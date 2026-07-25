@@ -49,6 +49,14 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import org.json.JSONArray
 import org.json.JSONObject
+import androidx.media3.session.SessionToken
+import androidx.media3.session.MediaController
+import android.content.ComponentName
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.MediaMetadata
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.ListenableFuture
 
 private const val APP_ASSET_HOST = "appassets.androidplatform.net"
 private const val APP_ASSET_PREFIX = "https://appassets.androidplatform.net/assets/"
@@ -71,6 +79,8 @@ class MainActivity : Activity() {
     private val FILE_CHOOSER_REQUEST_CODE = 100
     private val NOTIFICATION_REQUEST_CODE = 2
     private val MANAGE_FILES_REQUEST_CODE = 3
+    private var mediaControllerFuture: ListenableFuture<MediaController>? = null
+    private var mediaController: MediaController? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,6 +92,13 @@ class MainActivity : Activity() {
         )
 
         createNotificationChannels()
+
+        val sessionToken = SessionToken(this, ComponentName(this, VideoPlaybackService::class.java))
+        mediaControllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        mediaControllerFuture?.addListener(
+            { mediaController = mediaControllerFuture?.get() },
+            MoreExecutors.directExecutor()
+        )
 
         rootLayout = FrameLayout(this)
         rootLayout.layoutParams = matchParentParams
@@ -605,6 +622,126 @@ class MainActivity : Activity() {
     }
 
     inner class WebAppInterface(private val mContext: Context) {
+        private var currentVideoTransferStream: FileOutputStream? = null
+        private var currentVideoTransferFile: File? = null
+        private var activeVideoId: String = ""
+
+        @JavascriptInterface
+        fun startVideoTransfer(videoId: String) {
+            try {
+                val dir = File(mContext.cacheDir, "video_blobs")
+                if (!dir.exists()) dir.mkdirs()
+                currentVideoTransferFile = File(dir, "$videoId.mp4")
+                currentVideoTransferStream = FileOutputStream(currentVideoTransferFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun appendVideoChunk(videoId: String, base64Chunk: String) {
+            try {
+                val decoded = Base64.decode(base64Chunk, Base64.DEFAULT)
+                currentVideoTransferStream?.write(decoded)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun finishVideoTransfer(videoId: String): String {
+            try {
+                currentVideoTransferStream?.flush()
+                currentVideoTransferStream?.close()
+                currentVideoTransferStream = null
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return currentVideoTransferFile?.absolutePath ?: ""
+        }
+
+        @JavascriptInterface
+        fun playVideo(videoId: String, uri: String, title: String, startPosition: Long, loop: Boolean) {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.activeVideoId = videoId
+                val controller = this@MainActivity.mediaController ?: return@runOnUiThread
+                val parsedUri = if (uri.startsWith("/")) Uri.fromFile(File(uri)) else Uri.parse(uri)
+                val mediaItem = MediaItem.Builder()
+                    .setUri(parsedUri)
+                    .setMediaId(videoId)
+                    .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build())
+                    .build()
+                controller.setMediaItem(mediaItem)
+                controller.repeatMode = if (loop) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+                controller.seekTo(startPosition)
+                controller.prepare()
+                controller.play()
+            }
+        }
+
+        @JavascriptInterface
+        fun getBackgroundVideoId(): String {
+            return this@MainActivity.activeVideoId
+        }
+
+        @JavascriptInterface
+        fun pauseVideo() {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.mediaController?.pause()
+            }
+        }
+
+        @JavascriptInterface
+        fun resumeVideo() {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.mediaController?.play()
+            }
+        }
+
+        @JavascriptInterface
+        fun seekVideo(positionMs: Long) {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.mediaController?.seekTo(positionMs)
+            }
+        }
+
+        @JavascriptInterface
+        fun stopVideo() {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.mediaController?.stop()
+                this@MainActivity.mediaController?.clearMediaItems()
+            }
+        }
+
+        @JavascriptInterface
+        fun setVideoLoop(loop: Boolean) {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.mediaController?.repeatMode = if (loop) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+            }
+        }
+
+        @JavascriptInterface
+        fun getVideoPosition(): Long {
+            return this@MainActivity.mediaController?.currentPosition ?: 0L
+        }
+
+        @JavascriptInterface
+        fun getVideoDuration(): Long {
+            return this@MainActivity.mediaController?.duration ?: 0L
+        }
+
+        @JavascriptInterface
+        fun getVideoStatus(): String {
+            val controller = this@MainActivity.mediaController ?: return "idle"
+            return when (controller.playbackState) {
+                Player.STATE_IDLE -> "idle"
+                Player.STATE_BUFFERING -> "buffering"
+                Player.STATE_READY -> if (controller.isPlaying) "playing" else "paused"
+                Player.STATE_ENDED -> "ended"
+                else -> "idle"
+            }
+        }
+
         @JavascriptInterface
         fun getElapsedRealtimeMs(): Long {
             return SystemClock.elapsedRealtime()
