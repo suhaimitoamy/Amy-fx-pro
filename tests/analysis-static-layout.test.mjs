@@ -19,12 +19,15 @@ const updateManifest = JSON.parse(fs.readFileSync(
   'utf8'
 ));
 
-test('Analyze disclosures are forced open and cannot toggle closed', () => {
+test('Analyze shell stays static while D detail disclosures remain compact and interactive', () => {
   assert.match(stability, /details\.open = true/);
   assert.match(stability, /details\.removeAttribute\('name'\)/);
   assert.match(stability, /event\.preventDefault\(\)/);
   assert.match(stability, /if \(!details\.open\) details\.open = true/);
   assert.match(stability, /pointer-events: none/);
+  assert.match(stability, /isInteractiveMappingDisclosure/);
+  assert.match(stability, /matches\?\.\('\.professional-disclosure'\)/);
+  assert.match(stability, /if \(isInteractiveMappingDisclosure\(details\)\) return;/);
 });
 
 test('Analyze DOM is never reordered', () => {

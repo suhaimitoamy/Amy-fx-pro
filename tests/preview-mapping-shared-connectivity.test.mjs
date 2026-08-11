@@ -46,6 +46,8 @@ test('shared Mapping publication is deduplicated without a market-update write l
   assert.match(source, /let lastFingerprint = ""/);
   assert.match(source, /if \(!force && fingerprint === lastFingerprint\) return true/);
   assert.match(source, /lastFingerprint = fingerprint/);
-  assert.match(source, /window\.addEventListener\("amyfx:market-update", \(\) => publish\(true\)\)/);
+  assert.match(source, /window\.addEventListener\("amyfx:candles-updated", \(\) => publish\(true\)\)/);
+  assert.doesNotMatch(source, /amyfx:market-update/);
+  assert.doesNotMatch(source, /setInterval\s*\(/);
   assert.doesNotMatch(source, /writingShared|AmyFXIntel\.write|MarketContract\?\.write/);
 });

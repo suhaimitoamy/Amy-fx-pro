@@ -1,5 +1,15 @@
 # Feature History
 
+## Amy-SMC-D Canonical Mapping Engine
+- **Date:** 2026-08-11
+- **Status:** ✅ Implemented and 112-file JavaScript regression validated; private signed release workflow verification required
+- **Description:** Replaced the Preview directional Mapping path with a native deterministic replay of Amy-SMC-D baseline blob `d6e6d7c979dd5a852bddd9661bef0480caa2eb35`, covering descriptive/context fields, fresh structure evidence, and all named predictive event fields.
+- **Dealing Range:** M5/M15 preserve structural ranges with pure-location 70/30 and 60/40 boundaries. H1 uses previous 240 closed H1 bars with 55/45 boundaries. All are descriptive-only and cannot alter predictors or Final Bias.
+- **Data flow:** REST closed candles are validated, ordered, deduplicated, and replayed sequentially without future data, interpolation, or synthetic gap candles. The last valid closed result survives provider staleness. Native Twelve Data WebSocket ticks remain display-only.
+- **UI/Consumers:** Dashboard is reduced to Final Bias, Next Move, and Dealing Range; Analyze separates context, fresh evidence, and predictive events. Rencana Eksekusi, Entry Watch, Scalper, scanner, lifecycle, and notifications consume the canonical snapshot without directional authority.
+- **Validation:** Added deterministic fixtures for required SHA/contract, rejected forming/synthetic candles, unfilled gaps, live-price independence, H1 previous-240 exclusion, M5/M15 structural sources, DR dependency isolation, and qualified BOS `N=0`. Full suite passes 112/112 files.
+- **Release:** Candidate `2.0.0-preview.316` / `940316`; private manifest activation remains post-signed-APK verification.
+
 ## Professional Glassmorphism Full UI Redesign
 - **Date:** 2026-08-02
 - **Status:** ✅ Implemented and regression/viewport validated; signed release activation pending

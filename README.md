@@ -2,125 +2,49 @@
 
 Amy FX Preview adalah aplikasi Android hybrid untuk pemetaan market **XAU/USD**, Rencana Eksekusi, Entry Watch, jurnal trading, market intelligence, dan materi belajar. Source Preview berada pada branch khusus dan terpisah dari Amy FX publik.
 
-> **Release aktif:** `2.0.0-preview.315`  
-> **Version code:** `940315`  
-> **Tanggal rilis:** 5 Agustus 2026
+> **Release aktif:** `2.0.0-preview.316`
+> **Version code:** `940316`
+> **Tanggal rilis:** 11 Agustus 2026
 
-[Download Amy FX Preview 2.0.0-preview.315](https://github.com/suhaimitoamy/Amy-fx/releases/download/amyfx-blueprint-preview-2.0.0-preview.315/AmyFX-Preview-latest.apk)
+[Download Amy FX Preview 2.0.0-preview.316](https://github.com/suhaimitoamy/Amy-fx/releases/download/amyfx-blueprint-preview-2.0.0-preview.316/AmyFX-Preview-latest.apk)
 
-## Status Release `.315`
+## Status Release `.316`
 
-Preview `.315` memperbaiki ketidakjujuran antara data candle, detector struktur, dan tampilan Mapping. Perbaikan ini tidak memaksa arah BUY/SELL; tujuannya memastikan UI menampilkan hasil engine dan kondisi sumber candle yang sebenarnya.
+Preview `.316` mengganti directional Mapping lama dengan satu engine canonical yang mengikuti semantik `Amy-SMC-D.pine` blob `d6e6d7c979dd5a852bddd9661bef0480caa2eb35`. Port berjalan native di arsitektur Amy FX dan memproses candle tertutup secara sequential.
 
-Perubahan utama `.315`:
+Kontrak Mapping baru:
 
-- panel **Valid Break** membaca schema struktur modern (`concept`, `direction`, `level`, `status`) maupun schema legacy;
-- BOS/MSS terkonfirmasi tidak lagi hilang hanya karena renderer mencari field lama;
-- tulisan `Data belum cukup` hanya digunakan bila jumlah candle tertutup benar-benar kurang dari minimum;
-- bila 300 candle tersedia tetapi analisis gagal, UI menampilkan `Analisis gagal meski 300 candle tersedia` beserta error sebenarnya;
-- freshness memakai timestamp candle tertutup terbaru, bukan waktu fetch request;
-- provider yang tertinggal ditampilkan sebagai `CANDLE TERTUNDA N BAR` dan tidak disamarkan menjadi `CANDLE TERTUTUP`;
-- kegagalan refresh timeframe aktif ikut diteruskan sebagai warning;
-- perubahan konteks `.314` tetap dipertahankan.
+- HTF Swing, Swing Structure, Internal Structure, Liquidity, Dealing Range, Pattern, Final Bias, dan Event History berasal dari replay D;
+- Next Move, Sweep Continuation, Raw/Qualified Valid Break, Qualified CHoCH, Qualified BOS, serta Raw/Qualified Pattern berasal dari replay D;
+- M5/M15 tetap memakai structural dealing-range source dengan pure-location `70/30` dan `60/40`;
+- hanya H1 memakai highest/lowest dari previous 240 closed H1 bars dengan pure-location `55/45`;
+- Dealing Range bersifat descriptive-only dan tidak masuk Final Bias atau predictor lain;
+- Qualified BOS M5/M15/H1 tidak dibuat synthetic ketika baseline riset mempunyai `N=0`;
+- continuous context, fresh structural evidence, dan predictive/event signal ditampilkan sebagai kelas yang berbeda;
+- tidak ada confidence percentage yang dipresentasikan sebagai probabilitas live.
 
-Direction Forecast, Mapping Accuracy V3, rumus Entry, Stop Loss, Take Profit, target struktural, lifecycle setup, Execution Authority, package, signer, dan data pengguna tidak diubah.
+## Kontrak Candle dan Determinisme
 
-## Perubahan Konteks yang Dipertahankan dari `.314`
+- Hanya candle dengan status closed dan geometri OHLC valid yang masuk replay.
+- Candle diurutkan dan dideduplikasi berdasarkan timestamp; gap dibiarkan sebagai gap.
+- Tidak ada future candle, interpolation, atau synthetic candle.
+- Candle live/forming tidak dapat mengubah Mapping sampai resmi close.
+- Bila REST belum menyediakan close baru, UI mempertahankan Mapping dari candle closed terakhir yang valid dan menunjukkan timestamp sumbernya.
+- Freshness tetap menjadi proteksi kualitas data, bukan alasan untuk mengosongkan seluruh hasil yang masih valid.
 
-- kontrak bukti `RAW_OBSERVATION`, `VALIDATED_CONTEXT`, `VALIDATED_CLAIM`, dan `EXECUTION_AUTHORITY`;
-- sesi London dan New York mengikuti timezone pasar serta perubahan BST/GMT dan EDT/EST secara otomatis, lalu ditampilkan dalam WITA;
-- Previous Month High dan Previous Month Low sebagai external-liquidity context;
-- Strong/Weak High-Low berdasarkan protected structure dan active liquidity;
-- New York Midnight Open departure/retest sebagai konteks;
-- audit freshness untuk mencegah zona yang sudah tersentuh atau termitigasi disebut fresh-at-snapshot;
-- adaptive EQH/EQL per timeframe sebagai advisory experiment;
-- alternatif origin Order Block dalam causal impulse leg sebagai advisory review.
+## Otoritas dan Konsumen
 
-Adaptive EQH/EQL dan alternatif origin Order Block **belum mengganti logika produksi**. Keduanya hanya mengeluarkan metadata eksperimen sampai memiliki validasi out-of-sample yang cukup.
+`AMY_SMC_D` adalah satu-satunya directional Mapping authority. Dashboard menyajikan Final Bias, Next Move, dan Dealing Range; Analyze memisahkan context, fresh evidence, dan predictor.
 
-## Aturan Otoritas
+Rencana Eksekusi, Entry Watch, scanner, lifecycle, dan notifikasi tetap memakai kontrak yang sudah ada sebagai consumer/read-only. Modul tersebut tidak boleh menghitung ulang, membalik, atau menimpa arah Mapping. Formula Entry, SL, TP, RR, expectancy, dan trade management tidak diubah oleh rombak Mapping ini.
 
-Urutan kelas bukti:
+Original Z Target V1 tidak digunakan sebagai scoring directional Mapping. M5 TGT2 segmented target/expiry dari B dan ATR trailing M15/H1 dari B-LAB tidak dibawa ke engine baru.
 
-```text
-RAW OBSERVATION
-        ↓
-VALIDATED CONTEXT
-        ↓
-VALIDATED CLAIM
-        ↓
-EXECUTION AUTHORITY
-```
+## Harga Live dan REST
 
-Ketentuan:
+Harga XAU/USD live tetap dimiliki satu koneksi native Twelve Data WebSocket. Tick hanya memperbarui elemen harga dan status koneksi. Tick tidak memanggil analisis Mapping, tidak meminta REST, dan tidak memublikasikan ulang directional state.
 
-- FVG, Order Block, sweep, liquidity level, PMH/PML, Midnight Open, atau Strong/Weak High-Low tidak dapat membuka entry sendiri.
-- Context tambahan tidak boleh mengubah arah Direction Forecast.
-- BUY/SELL hanya berasal dari setup resmi yang sudah lolos seluruh gate dan diteruskan melalui `setupExecution`.
-- Rencana Eksekusi, Entry Watch, scanner, dan notifikasi harus membaca authority yang sama.
-- Data provider tertunda, forecast terminal, atau setup terminal tetap menghasilkan WAIT.
-
-## Kebenaran Data Candle
-
-Amy FX Preview membedakan tiga kondisi yang sebelumnya dapat tercampur:
-
-1. **Data benar-benar kurang** — jumlah candle tertutup berada di bawah minimum.
-2. **Analisis gagal** — candle cukup, tetapi engine menghasilkan exception; error ditampilkan apa adanya.
-3. **Provider tertunda** — jumlah candle banyak, tetapi timestamp candle terakhir tertinggal dari candle tertutup yang seharusnya tersedia.
-
-Jumlah `300/300` tidak lagi dianggap bukti bahwa data terbaru. Freshness ditentukan dari timestamp candle terakhir yang sudah close.
-
-## Valid Break
-
-Panel Valid Break membaca event struktur dari jalur berikut:
-
-- `st.lastEvent`;
-- `st.last`;
-- `marketConcepts.structure.lastEvent`;
-- `marketConcepts.structure.last`;
-- `structureSnapshot.latestStructure`;
-- `lastConfirmedBreak`.
-
-Event modern dengan `status: CONFIRMED_BREAK` dan `valid: true` diterjemahkan sebagai valid BOS/MSS. Break candidate, liquidity sweep, failed break, dan confirmed break tetap dibedakan; renderer tidak boleh mengubah candidate menjadi confirmed break.
-
-## Sesi DST-Aware
-
-Entry Map tidak lagi bergantung pada satu jam WITA tetap sepanjang tahun.
-
-- London memakai `Europe/London` dan mengikuti GMT/BST.
-- New York memakai `America/New_York` dan mengikuti EST/EDT.
-- Jam yang ditampilkan kepada pengguna tetap dikonversi ke WITA.
-- Mode sesi tiap timeframe tetap mengikuti profil Mapping yang sudah ada.
-
-Perubahan ini memperbaiki jam gate sesi; tidak mengubah rumus sweep, MSS, dealing location, Entry, SL, TP, atau target struktural.
-
-## Konteks Likuiditas Tambahan
-
-### PMH/PML
-
-Previous Month High dan Previous Month Low digunakan sebagai external liquidity, terutama pada timeframe tinggi. Level tersebut bukan trigger entry langsung.
-
-### Strong/Weak High-Low
-
-- **Strong Low:** protected low bullish yang masih utuh.
-- **Weak High:** BSL aktif yang menjadi liquidity context pada struktur bullish.
-- **Strong High:** protected high bearish yang masih utuh.
-- **Weak Low:** SSL aktif yang menjadi liquidity context pada struktur bearish.
-
-Label menjelaskan struktur dan sisi likuiditas yang dapat dipantau, bukan jaminan target tercapai.
-
-### Midnight Open
-
-Midnight Open memakai kalender `America/New_York`. Engine mencatat harga open pukul 00:00 New York, departure, status menunggu retest, dan confirmed retest. Midnight Open tetap contextual confluence.
-
-## Freshness Zona
-
-- `FRESH` hanya bila zona belum pernah disentuh atau dimitigasi sebelum snapshot;
-- zona yang sedang diuji tidak boleh disebut fresh;
-- confirmed reaction dipisahkan dari zona mentah;
-- zona terminal atau accepted-broken tidak dapat dipromosikan kembali menjadi fresh.
-
-Lifecycle zona produksi tetap menjadi sumber status utama.
+Candle Mapping tetap melalui pipeline REST yang sudah ada. Refresh bersifat event-driven/single-flight; tidak ada polling Mapping per tick atau timer render berulang yang ditambahkan.
 
 ## Identitas Amy FX Preview
 
@@ -130,12 +54,12 @@ Lifecycle zona produksi tetap menjadi sumber status utama.
 | Branch | `personal/amyfx-private` |
 | Application ID | `com.amyelitesuite.learningpreview` |
 | URI scheme | `amyfxpreview` |
-| Version name | `2.0.0-preview.315` |
-| Version code | `940315` |
+| Version name | `2.0.0-preview.316` |
+| Version code | `940316` |
 | Minimum Android | Android 8.0 / API 26 |
 | Target SDK | Android SDK 35 |
 | Update channel | `personal/amyfx-private/preview-update.json` |
-| Release tag | `amyfx-blueprint-preview-2.0.0-preview.315` |
+| Release tag | `amyfx-blueprint-preview-2.0.0-preview.316` |
 | APK | `AmyFX-Preview-latest.apk` |
 
 Package, URI, signing certificate, update channel, dan data pengguna Preview tetap terpisah dari Amy FX publik.
@@ -146,17 +70,17 @@ Package, URI, signing certificate, update channel, dan data pengguna Preview tet
 Twelve Data WebSocket
         └── Harga live di layar
 
-Candle terakhir yang sudah close
+Candle REST yang sudah close
         ↓
-Timestamp/source freshness validation
+Validasi OHLC + urut/deduplikasi tanpa gap fill
         ↓
-Mapping closed-candle runtime
+Replay sequential Amy-SMC-D
         ↓
-Structure + Liquidity + Context
+Descriptive context + fresh evidence + predictors
         ↓
-Direction Forecast
+Satu canonical Mapping state
         ↓
-Setup resmi
+Execution consumer/read-only
         ↓
 Execution Authority
         ├── Rencana Eksekusi
@@ -167,18 +91,17 @@ Execution Authority
 
 Harga live hanya memperbarui tampilan harga dan tidak boleh menghitung atau merender ulang Mapping.
 
-## Validasi Release `.315`
+## Validasi Release `.316`
 
 Sebelum rilis:
 
-- test schema Valid Break modern dan legacy lulus;
-- test 300 candle + analysis error lulus;
-- test provider-delayed candle source lulus;
-- test current closed-candle source lulus;
+- blob SHA Amy-SMC-D dan semantic contract dikunci oleh regression;
+- fixture H1 membuktikan current candle tidak masuk previous-240 range;
+- fixture M5/M15 membuktikan structural source dan boundary D tetap dipakai;
+- fixture determinisme, gap, open/synthetic-tail rejection, DR dependency, dan qualified BOS N=0 lulus;
+- test membuktikan perubahan harga live tidak mengubah output Mapping;
 - seluruh regression JavaScript lulus;
-- Android unit test lulus;
-- Android lint lulus;
-- debug build lulus.
+- workflow private menjalankan Android unit test, lint, signed release build, serta package/version/signer verification.
 
 Pipeline release resmi kemudian menjalankan ulang:
 
@@ -198,7 +121,7 @@ personal/amyfx-private  → Amy FX Preview
 main                    → Amy FX publik
 ```
 
-Release `.315` hanya dikerjakan pada `personal/amyfx-private`. Branch `main`, package produksi, URI produksi, signing produksi, update channel produksi, APK produksi, dan data pengguna produksi tidak disentuh.
+Release `.316` hanya dikerjakan pada `personal/amyfx-private`. Branch `main`, package produksi, URI produksi, signing produksi, update channel produksi, APK produksi, dan data pengguna produksi tidak disentuh.
 
 ## Disclaimer
 

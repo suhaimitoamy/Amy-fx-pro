@@ -96,11 +96,13 @@ test('Order Block display adapter uses validated body zone and keeps it availabl
   assert.equal(zones.zoneLiveStatus(bearish, 90), 'BELUM RETEST · DI ATAS HARGA');
 });
 
-test('zone UI uses nearest active zones instead of requiring live price inside zone', () => {
+test('zone adapter remains an execution-only consumer and does not patch Mapping from live price', () => {
   const ui = readFileSync(zoneUiUrl, 'utf8');
-  assert.match(ui, /nearestOrderBlocks/);
-  assert.match(ui, /nearestFairValueGaps/);
-  assert.match(ui, /Belum ada zona yang lolos filter konfirmasi Amy Concept Engine/);
-  assert.match(ui, /AMY_CONCEPT_ENGINE_V3/);
-  assert.doesNotMatch(ui, /price\s*>=\s*[^\n]+bottom\s*&&\s*price\s*<=\s*[^\n]+top/);
+  assert.match(ui, /\.mappingZones/);
+  assert.match(ui, /AMY_CONCEPT_ENGINE_V3_EXECUTION_SUPPORT/);
+  assert.match(ui, /directionalAuthority:\s*false/);
+  assert.match(ui, /mayOverrideMapping:\s*false/);
+  assert.doesNotMatch(ui, /setInterval\s*\(/);
+  assert.doesNotMatch(ui, /state\.price/);
+  assert.doesNotMatch(ui, /innerHTML\s*=/);
 });

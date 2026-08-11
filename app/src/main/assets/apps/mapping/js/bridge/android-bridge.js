@@ -33,7 +33,7 @@ function validatedContract(result = state.result) {
   const active = Boolean(
     result &&
     !result.dataStale &&
-    directionDecision?.source === 'VALIDATED_DIRECTION_FORECAST' &&
+    directionDecision?.source === 'AMY_SMC_D_NEXT_MOVE' &&
     directionDecision?.invalidated === false &&
     (directionDecision?.signal === 'BUY' || directionDecision?.signal === 'SELL') &&
     setupExecution?.active === true &&

@@ -43,10 +43,10 @@ test('Preview uses the approved simplified Mapping navigation and header', () =>
 test('advanced closed-candle sections remain collapsed by default and avoid automatic entry claims', () => {
   assert.match(ui, /<details class="professional-disclosure">/);
   assert.doesNotMatch(ui, /<details class="professional-disclosure" open>/);
-  assert.match(ui, /Konteks Market Lanjutan/);
-  assert.match(ui, /Target & Skenario Harga/);
-  assert.match(ui, /M15 CANDLE TERTUTUP/);
+  assert.match(ui, /Context & Fresh Evidence/);
+  assert.match(ui, /Predictive \/ Event Signals/);
+  assert.match(ui, /CLOSED CANDLE/);
   assert.match(ui, /bukan pada setiap tick harga live/);
-  assert.match(ui, /tunggu konfirmasi harga/);
+  assert.match(ui, /consumer\/read-only/);
   assert.doesNotMatch(ui, /AUTO ENTRY|ENTRY SEKARANG|PASTI BUY|PASTI SELL/i);
 });

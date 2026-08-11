@@ -154,8 +154,9 @@ test('runtime dan halaman Mapping memuat lapisan integrity tanpa MutationObserve
   assert.match(html, /mapping-integrity\.css/);
   assert.match(html, /mapping-integrity\.js/);
   assert.match(runtime, /sanitizeCandleValues/);
-  assert.match(runtime, /filterActionableSetups/);
-  assert.match(runtime, /Struktur lokal/);
+  assert.match(runtime, /LAST VALID CLOSED CANDLE/);
+  assert.match(runtime, /mappingRecomputeOnLiveTick:\s*false/);
   assert.doesNotMatch(runtime, /new\s+MutationObserver/);
+  assert.doesNotMatch(runtime, /setInterval\s*\(|runAnalysis\s*\(|state\.price/);
   assert.match(css, /integrity-map-row/);
 });

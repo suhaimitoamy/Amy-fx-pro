@@ -1,5 +1,21 @@
 # Technical Decisions
 
+## 2026-08-11
+
+### Amy-SMC-D Canonical Mapping Contract
+- This contract applies only to `personal/amyfx-private` and supersedes Mapping Accuracy V3, balanced-context, regime-router, cross-timeframe vote, and Scalper direction logic as directional Mapping authorities. Existing execution/lifecycle modules remain read-only consumers.
+- The semantic source of truth is `Amy-SMC-D.pine` from `suhaimitoamy/Indikator-trading-view` main at Git blob `d6e6d7c979dd5a852bddd9661bef0480caa2eb35`, interpreted with `reports/AMY-SMC-D-CHEATSHEET.md`. C/C-LAB/B/B-LAB/A/A-LAB are not Mapping sources.
+- Replay is sequential, deterministic, and closed-candle-only. Invalid, explicitly open, or explicitly synthetic candles are rejected; input is ordered/deduplicated without interpolation or gap filling. Live WebSocket price cannot enter or trigger replay.
+- D owns HTF Swing, Swing/Internal Structure, Liquidity, Dealing Range, Pattern, Final Bias, Event History, Next Move, Sweep Continuation, Raw/Qualified Valid Break, Qualified CHoCH/BOS, and Raw/Qualified Pattern.
+- M5 and M15 retain the D structural dealing range with pure-location 70/30 and 60/40 boundaries. H1 alone uses the previous 240 closed H1 highs/lows with pure-location 55/45 boundaries. Dealing Range is descriptive-only and excluded from Final Bias and every predictor.
+- Qualified BOS stays empty on M5/M15/H1 per the baseline research `N=0`; no synthetic event is created to fill UI. Continuous context, fresh structural evidence, and predictive events are separate presentation classes, and historical confidence is never shown as a live probability.
+- Original Z Target V1 is not directional scoring. M5 TGT2 segmented target/expiry from B and M15/H1 ATR trailing from B-LAB are excluded. Entry, SL, TP, RR, expectancy, and trade management are unchanged.
+
+### Preview `.316` Update Activation Sequence
+- Source identity advances from `2.0.0-preview.315` / `940315` to `2.0.0-preview.316` / `940316` while the active private manifest remains `.315` until the private release workflow verifies the signed APK.
+- The workflow runs the full JavaScript suite, Android release unit tests, lint, signed build, package/version/label/signer checks, immutable release publication, and only then activates `preview-update.json` on `personal/amyfx-private`.
+- Application ID `com.amyelitesuite.learningpreview`, label `Amy FX Preview`, URI `amyfxpreview`, permanent Preview signer, private update channel, and user data remain unchanged. No production identity or `main` workflow is changed.
+
 ## 2026-08-02
 
 ### Professional Glassmorphism Presentation Contract

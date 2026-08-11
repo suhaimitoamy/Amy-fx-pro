@@ -207,13 +207,14 @@ jobs:
             exit 1
           fi
           cat > /tmp/amyfx-preview-release-notes.md <<NOTES
-          Amy FX Preview $AMYFX_VERSION_NAME — Professional Glassmorphism UI.
+          Amy FX Preview $AMYFX_VERSION_NAME — Amy-SMC-D Canonical Mapping.
 
-          - Beranda, Mapping, Berita, Jurnal Trading, dan Tutorial Trading memakai glass system navy/graphite dengan aksen ice blue.
-          - Tema Sistem, Terang, dan Gelap tersedia; system bar Android mengikuti tema terpilih.
-          - Beranda memuat tepat lima modul resmi tanpa duplikasi; Koleksi dan Profil hanya menampilkan data serta status aktual perangkat.
-          - Loading memakai monogram Amy, delay 350 ms, timeout, dan retry tanpa persentase palsu.
-          - Engine Mapping, scanner, lifecycle, notifikasi, formula, dan data pengguna tetap dipertahankan.
+          - Mapping memakai Amy-SMC-D.pine blob d6e6d7c979dd5a852bddd9661bef0480caa2eb35 sebagai baseline semantik resmi.
+          - Replay berjalan sequential dari candle tertutup tanpa future candle, interpolation, atau synthetic candle.
+          - Dealing Range M5/M15 mempertahankan structural source 70/30 dan 60/40; H1 memakai previous 240 closed H1 bars 55/45.
+          - Context, fresh structural evidence, dan predictive event dipisahkan; Dealing Range tetap descriptive-only.
+          - Harga Twelve Data WebSocket tetap display-only dan tidak memicu kalkulasi ulang Mapping.
+          - Rencana Eksekusi, scanner, lifecycle, notifikasi, package, signer, dan data pengguna tetap dipertahankan sebagai consumer.
           - Amy FX publik pada branch main tidak diubah.
           NOTES
           gh release create "$AMYFX_RELEASE_TAG" \
@@ -222,7 +223,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$AMYFX_SOURCE_SHA" \
             --prerelease \
-            --title "Amy FX Preview $AMYFX_VERSION_NAME — Professional Glassmorphism UI" \
+            --title "Amy FX Preview $AMYFX_VERSION_NAME — Amy-SMC-D Canonical Mapping" \
             --notes-file /tmp/amyfx-preview-release-notes.md
           gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'AmyFX-Preview-latest.apk'
 
@@ -248,19 +249,19 @@ jobs:
               'mandatory': False,
               'enabled': True,
               'release_notes': [
-                  'Professional Glassmorphism UI diterapkan pada Beranda, Mapping, Berita, Jurnal Trading, dan Tutorial Trading.',
-                  'Tema Sistem, Terang, dan Gelap tersedia dan system bar Android mengikuti tema aplikasi.',
-                  'Beranda kini berisi tepat lima modul resmi tanpa duplikasi; Koleksi dan Profil hanya memakai data aktual perangkat.',
-                  'Loading memakai monogram Amy, delay 350 ms, timeout, dan retry tanpa persentase palsu.',
-                  'Engine Mapping, scanner, lifecycle, notifikasi, formula, dan data pengguna tetap dipertahankan.',
+                  'Mapping kini memakai Amy-SMC-D sebagai satu-satunya directional authority dari candle tertutup.',
+                  'Dealing Range M5/M15 memakai structural source 70/30 dan 60/40; H1 memakai previous 240 closed H1 bars 55/45.',
+                  'Context, fresh structural evidence, dan predictive event ditampilkan terpisah tanpa probabilitas live.',
+                  'Harga Twelve Data WebSocket tetap display-only dan tidak menghitung ulang Mapping.',
+                  'Rencana Eksekusi tetap consumer/read-only; package, signer, channel, dan data pengguna Preview tidak berubah.',
                   'Amy FX publik pada branch main tidak diubah.'
               ],
               'changelog': [
-                  'Professional glass UI tokens and shared components',
-                  'System, light, and dark theme controller',
-                  'Truthful home, collection, and profile presentation',
-                  'Unified loading, accessibility, and vector icon polish',
-                  'Android system bar theme synchronization'
+                  'Canonical Amy-SMC-D sequential replay engine',
+                  'Closed-candle and no-future data contract',
+                  'D pure-location Dealing Range profiles',
+                  'Descriptive, fresh-evidence, and predictive UI separation',
+                  'Display-only live WebSocket price isolation'
               ]
           }
           with open('preview-update.json', 'w', encoding='utf-8') as handle:

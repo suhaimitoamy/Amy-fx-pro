@@ -1,5 +1,27 @@
 # Bug History
 
+## Fixed Competing Mapping Authorities and Live Recompute Paths — 2026-08-11
+
+### Legacy Router and UI Layers Could Reinterpret or Replace Direction
+- **Severity:** Critical
+- **Cause:** The old pipeline combined validated-context evaluation, regime/strategy routing, cross-timeframe voting, UI reconciliation, Entry Watch mutation, and Scalper bridges. Several layers could derive or rewrite directional fields after the core analysis, leaving more than one effective Mapping authority.
+- **Fix:** `Amy-SMC-D` replay now produces the canonical immutable Mapping contract. Router compatibility is explicitly execution-consumer-only, Mapping Snapshot projects D fields, and Entry/Scalper/zone/UI adapters cannot overwrite D direction.
+
+### Mapping Could Be Coupled to Live Price or Recurring Render Work
+- **Severity:** Critical
+- **Cause:** Legacy reconciliation and runtime timers listened to live market events or polled frequently, allowing price-facing updates to republish Mapping state and rebuild the view even without a new closed candle.
+- **Fix:** Twelve Data WebSocket ticks now update targeted price/status elements only. Mapping replay runs only from the REST closed-candle analysis path; Mapping UI and adapter refreshes are event-driven and keyed by the closed source candle.
+
+### Stale Provider State Could Hide a Valid Last Mapping
+- **Severity:** High
+- **Cause:** Freshness/integrity layers could clear or replace the full Mapping when REST refresh failed, even though a previously analyzed closed candle remained valid.
+- **Fix:** Freshness remains an internal quality signal, while the last valid D result and its source timestamp remain visible until a newer valid closed candle is available.
+
+### H1 Dealing Range Could Admit the Current Candle or the Wrong Source
+- **Severity:** Critical
+- **Cause:** The previous engine did not implement the finalized D H1 previous-240 contract as the sole H1 range source, and generic location/context logic risked contaminating the descriptive field.
+- **Fix:** H1 range is calculated from exactly the prior 240 normalized closed H1 candles; current H1 is excluded. M5/M15 keep their structural sources, and all three pure-location outputs are dependency-isolated from predictors.
+
 ## Fixed Preview Duplicate News Delivery — 2026-08-01
 
 ### One News Event Could Produce Two or Three Notifications

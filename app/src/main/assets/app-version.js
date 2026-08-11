@@ -1,6 +1,6 @@
-// Amy FX Preview 315 — truthful break detection and closed-candle source status; updater identity aligned.
+// Amy FX Preview 316 — canonical Amy-SMC-D closed-candle Mapping engine.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-preview.315', code: 940315 });
+  const VERSION = Object.freeze({ name: '2.0.0-preview.316', code: 940316 });
   window.AmyFXAppVersion = VERSION;
   window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/personal/amyfx-private/preview-update.json';
   function displayVersionName(name) {
