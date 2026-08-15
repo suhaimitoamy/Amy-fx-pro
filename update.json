@@ -1,26 +1,27 @@
 {
-  "latest_version_code": 950320,
-  "latest_version_name": "2.0.0-pro.320",
-  "versionCode": 950320,
-  "version": "2.0.0-pro.320",
+  "latest_version_code": 950321,
+  "latest_version_name": "2.0.0-pro.321",
+  "versionCode": 950321,
+  "version": "2.0.0-pro.321",
   "releaseDate": "2026-08-15",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.320/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.320/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.321/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.321/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Scalper Engine menambahkan metode M15 baru Expansion Range Re-entry V3 untuk memanfaatkan sideways setelah expansion dengan re-entry berulang pada range yang sama.",
-    "Expansion Range Re-entry memakai range 2.5–10 point, entry dekat tepi range, midpoint re-arm, TP1 35%, profit-lock TP1, dan runner menuju TP2.",
-    "Riwayat & Statistik tidak lagi memasukkan IFVG Legacy ke statistik metode aktif, tetapi arsip lama tetap dipertahankan agar data Vault tidak rusak.",
-    "Kartu Performa per Metode sekarang dapat diketuk untuk membuka semua trade selesai milik metode tersebut langsung di bawah kartu.",
-    "Navigasi tiga kolom, Scalper Vault permanen, backup/restore, sinkronisasi backend, Mapping Amy-SMC-D, dan proteksi closed-candle/no-future-data tetap dipertahankan."
+    "Mapping Context Terpadu membuat HTF, Swing, Internal Structure, Dealing Range, liquidity, Valid Break, BOS/CHoCH, Pattern, FVG/OB, reference liquidity, Final Bias, Next Move, Market State, Outlook, dan Entry Readiness tetap informatif walaupun entry masih WAIT.",
+    "Sweep vs Acceptance ditambahkan sebagai context classifier untuk membedakan sweep/rejection, break/acceptance, dan kondisi menunggu tanpa membuka entry sendiri.",
+    "SMT XAUUSD–DXY M15 ditambahkan sebagai evidence-only selector. SMT tidak boleh membalik Final Bias/Next Move, membatalkan engine Mapping lain, atau memblokir Entry Map/Scalper.",
+    "Scalper Engine menambahkan SMR / First Retest M5 berdasarkan HTF-aligned liquidity sweep → displaced MSS → first FVG/OB retest.",
+    "Expansion Range Re-entry V3, seluruh driver Scalper lama, Vault/Riwayat, Mapping Amy-SMC-D, dan proteksi closed-candle/no-future-data tetap dipertahankan."
   ],
   "changelog": [
-    "Expansion Range Re-entry V3 M15 driver",
-    "Repeated range re-entry with midpoint re-arm",
-    "TP1 profit lock and TP2 runner lifecycle",
-    "Legacy IFVG excluded from active method analytics",
-    "Expandable all-trades view per Scalper method"
+    "Mapping Context Aggregator V1",
+    "Continuous context while Entry Map waits",
+    "Sweep vs Acceptance context classifier",
+    "XAUUSD-DXY SMT evidence-only selector",
+    "SMR / First Retest M5 Scalper driver",
+    "Context bridge facts/evidence population"
   ]
 }
