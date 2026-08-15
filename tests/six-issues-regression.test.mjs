@@ -148,22 +148,22 @@ test('Asia Range is anchored to New York and follows EDT EST automatically', () 
   assert.doesNotMatch(code, /const ASIA_END_HOUR = 14;/);
 });
 
-test('Preview source identity is current and no more than one signed build ahead of manifest', () => {
+test('Pro source identity is current and no more than one signed build ahead of manifest', () => {
   const appVersion = fs.readFileSync('app/src/main/assets/app-version.js', 'utf8');
-  const manifest = JSON.parse(fs.readFileSync('preview-update.json', 'utf8'));
-  const match = appVersion.match(/name:\s*'(2\.0\.0-preview\.(\d+))'\s*,\s*code:\s*(94\d{4})/);
-  assert.ok(match, 'Preview source identity must be readable');
+  const manifest = JSON.parse(fs.readFileSync('update.json', 'utf8'));
+  const match = appVersion.match(/name:\s*'(2\.0\.0-pro\.(\d+))'\s*,\s*code:\s*(95\d{4})/);
+  assert.ok(match, 'Pro source identity must be readable');
 
   const [, sourceName, sourceSequenceText, sourceCodeText] = match;
   const sourceSequence = Number(sourceSequenceText);
   const sourceCode = Number(sourceCodeText);
   const publishedCode = Number(manifest.latest_version_code);
   const publishedName = String(manifest.latest_version_name || '');
-  const publishedMatch = publishedName.match(/^2\.0\.0-preview\.(\d+)$/);
+  const publishedMatch = publishedName.match(/^2\.0\.0-pro\.(\d+)$/);
 
-  assert.ok(publishedMatch, 'Activated Preview manifest identity must be readable');
-  assert.equal(sourceCode, 940000 + sourceSequence);
+  assert.ok(publishedMatch, 'Activated Pro manifest identity must be readable');
+  assert.equal(sourceCode, 950000 + sourceSequence);
   assert.ok(sourceCode === publishedCode || sourceCode === publishedCode + 1);
-  assert.match(sourceName, /^2\.0\.0-preview\.\d+$/);
-  assert.match(appVersion, /personal\/amyfx-private\/preview-update\.json/);
+  assert.match(sourceName, /^2\.0\.0-pro\.\d+$/);
+  assert.match(appVersion, /Amy-fx-pro\/main\/update\.json/);
 });
