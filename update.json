@@ -1,26 +1,26 @@
 {
-  "latest_version_code": 950317,
-  "latest_version_name": "2.0.0-pro.317",
-  "versionCode": 950317,
-  "version": "2.0.0-pro.317",
+  "latest_version_code": 950318,
+  "latest_version_name": "2.0.0-pro.318",
+  "versionCode": 950318,
+  "version": "2.0.0-pro.318",
   "releaseDate": "2026-08-15",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.317/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.317/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.318/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.318/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Scalper Vault baru menampilkan statistik all-time: Total Trade, Win, Loss, Breakeven, Win Rate, dan Net R.",
-    "Riwayat terminal Scalper disimpan persisten di IndexedDB dan tetap membaca arsip localStorage lama tanpa menghapus data sebelumnya.",
-    "Riwayat panjang dirender bertahap 100 setup agar Mapping tetap ringan walaupun arsip terus bertambah.",
-    "Backup JSON dan Pulihkan Backup ditambahkan agar arsip Scalper dapat dicadangkan di luar aplikasi.",
-    "WR dihitung dari Win dibagi Win plus Loss; BE, invalidated, dan cancelled tidak masuk denominator WR."
+    "Mapping sekarang memiliki tiga navigasi utama: Dashboard, Analisis, dan Riwayat.",
+    "Statistik Scalper Vault dan riwayat permanen dipindahkan dari panel Analisis ke halaman Riwayat & Statistik agar Analisis lebih ringkas.",
+    "Riwayat & Statistik memakai Vault IndexedDB yang sama, jadi Total Trade, Win, Loss, Breakeven, Win Rate, Net R, dan arsip lama tetap berlanjut tanpa reset.",
+    "Halaman Riwayat menyediakan filter Win/Loss/BE/Invalid, pemuatan bertahap 100 setup, Backup JSON, Pulihkan Backup, dan sinkronisasi backend manual.",
+    "Dashboard dan Analisis tetap menampilkan setup Scalper aktif tanpa membawa daftar histori panjang."
   ],
   "changelog": [
-    "Persistent Scalper Vault all-time archive",
-    "All-time trade totals and win rate",
-    "IndexedDB migration from legacy permanent history",
-    "Paged permanent history rendering",
-    "Scalper Vault JSON backup and restore"
+    "Three primary Mapping navigations",
+    "Dedicated Scalper history and statistics page",
+    "Scalper Vault removed from Analysis presentation",
+    "All-time history filters and paged rendering",
+    "Persistent Vault backup restore and backend merge"
   ]
 }
