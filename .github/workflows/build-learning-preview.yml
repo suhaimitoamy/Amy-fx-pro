@@ -61,7 +61,7 @@ jobs:
       AMYFX_APPLICATION_ID: com.amyelitesuite.learningpreview
       AMYFX_APP_LABEL: Amy FX Learning
       AMYFX_URI_SCHEME: amyfx-learning
-      AMYFX_UPDATE_MANIFEST_URL: https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/refs/heads/feature/learning-context-stage1/learning-preview-update.json
+      AMYFX_UPDATE_MANIFEST_URL: https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/refs/heads/feature/learning-context-stage1/learning-preview-update.json
       AMYFX_VERSION_NAME: ${{ github.event.inputs.versionName || '1.0.4-preview' }}
       AMYFX_VERSION_CODE: ${{ github.event.inputs.versionCode || '1005' }}
       AMYFX_SIGNING_CERT_SHA256: "47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7"

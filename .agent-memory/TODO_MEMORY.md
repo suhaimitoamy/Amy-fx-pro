@@ -10,6 +10,13 @@
 - [ ] Add TwelveData error handling — check `data.status === "error"` in `api/heatmap.js`, `api/liquidity.js`, `api/twelvedata.js`.
 - [ ] Add clearer news scraping failure message if Telegram extraction returns empty (diagnostic info).
 - [ ] Add defensive WebView fallback for Telegram regex changes (only if primary regex starts failing).
+- [ ] [Mapping Pro] Gabungkan narasi teks berulang menjadi single card "Executive Market Summary".
+- [ ] [Mapping Pro] Buat state Card Scalper Engine menjadi ringkas/compact saat status idle/menunggu setup.
+- [ ] [Mapping Pro] Tambahkan Visual Price-to-Target Gauge (Level Ladder) memetakan harga live vs Entry, SL, dan TP.
+- [ ] [Mapping Pro] Tambahkan Instant Position Sizing & Lot Size Calculator di Setup Aktif.
+- [ ] [Mapping Pro] Tambahkan Session Live Countdown ke Kill Zone berikutnya.
+- [ ] [Mapping Pro] Tambahkan Liquidity Radar (Asia High/Low, PDH/PDL, EQH/EQL sweep tracker).
+- [ ] [Mapping Pro] Tambahkan One-Tap "Export Setup ke Jurnal Trading".
 
 ## Notes
 

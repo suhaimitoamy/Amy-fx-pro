@@ -6,7 +6,7 @@ Amy FX Preview adalah aplikasi Android hybrid untuk pemetaan market **XAU/USD**,
 > **Version code:** `940316`
 > **Tanggal rilis:** 11 Agustus 2026
 
-[Download Amy FX Preview 2.0.0-preview.316](https://github.com/suhaimitoamy/Amy-fx/releases/download/amyfx-blueprint-preview-2.0.0-preview.316/AmyFX-Preview-latest.apk)
+[Download Amy FX Preview 2.0.0-preview.316](https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-blueprint-preview-2.0.0-preview.316/AmyFX-Preview-latest.apk)
 
 ## Status Release `.316`
 

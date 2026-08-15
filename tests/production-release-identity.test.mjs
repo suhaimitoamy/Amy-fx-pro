@@ -8,10 +8,10 @@ const root = new URL('../', import.meta.url);
 const path = relative => new URL(relative, root);
 const source = relative => readFileSync(path(relative), 'utf8');
 
-test('personal source stays Preview while the public release workflow keeps production identity', () => {
+test('Amy-fx-pro uses Amy FX Preview as the primary release workflow', () => {
   const gradle = source('app/build.gradle.kts');
   const version = source('app/src/main/assets/app-version.js');
-  const workflow = source('.github/workflows/build-apk.yml');
+  const workflow = source('.github/workflows/amyfx-blueprint-preview-release.yml');
   const identity = version.match(/name: '(2\.0\.0-preview\.(\d+))', code: (94\d{4})/);
   assert.ok(identity, 'Preview source identity must be readable');
   const [, versionName, sequence, versionCode] = identity;
@@ -25,15 +25,10 @@ test('personal source stays Preview while the public release workflow keeps prod
   assert.ok(gradle.includes(`?: "${versionName}"`));
   assert.match(version, /personal\/amyfx-private\/preview-update\.json/);
 
-  assert.match(workflow, /AMYFX_APPLICATION_ID: com\.amyelitesuite/);
-  assert.match(workflow, /AMYFX_APP_LABEL: Amy FX/);
-  assert.match(workflow, /AMYFX_URI_SCHEME: amyfx/);
-  assert.match(workflow, /AMYFX_VERSION_NAME: "1\.5\.9"/);
-  assert.match(workflow, /AMYFX_VERSION_CODE: "50"/);
-  assert.match(workflow, /releases\/download\/amyfx-latest\/AmyFX-latest\.apk/);
-  assert.match(workflow, /latest_version_code': 50/);
-  assert.match(workflow, /latest_version_name': '1\.5\.9'/);
-  assert.match(workflow, /Verify public update manifest source/);
+  assert.match(workflow, /AMYFX_APPLICATION_ID: com\.amyelitesuite\.learningpreview/);
+  assert.match(workflow, /AMYFX_APP_LABEL: Amy FX Preview/);
+  assert.match(workflow, /AMYFX_URI_SCHEME: amyfxpreview/);
+  assert.match(workflow, /AMYFX_UPDATE_MANIFEST_URL: https:\/\/raw\.githubusercontent\.com\/suhaimitoamy\/Amy-fx-pro\/personal\/amyfx-private\/preview-update\.json/);
 });
 
 test('Mapping presents a clean product interface without duplicate Preview badges', () => {

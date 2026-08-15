@@ -18,7 +18,7 @@ val configuredApplicationId = System.getenv("AMYFX_APPLICATION_ID") ?: "com.amye
 val configuredAppLabel = System.getenv("AMYFX_APP_LABEL") ?: "Amy FX Preview"
 val configuredUriScheme = System.getenv("AMYFX_URI_SCHEME") ?: "amyfxpreview"
 val configuredUpdateManifestUrl = System.getenv("AMYFX_UPDATE_MANIFEST_URL")
-    ?: "https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/personal/amyfx-private/preview-update.json"
+    ?: "https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/personal/amyfx-private/preview-update.json"
 val configuredTwelveDataApiKey = System.getenv("TWELVEDATA_API_KEY").orEmpty()
 
 android {

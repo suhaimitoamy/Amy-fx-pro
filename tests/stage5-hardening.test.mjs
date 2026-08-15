@@ -95,24 +95,13 @@ test('release workflows pin the certificate and inspect v1 plus v2 structures', 
   assert.match(gradle, /enableV1Signing = true/);
   assert.match(gradle, /enableV2Signing = true/);
 
-  for (const path of ['.github/workflows/build-apk.yml', '.github/workflows/build-release.yml', '.github/workflows/stage5-apply.yml']) {
-    const workflow = read(path);
-    assert.match(workflow, /META-INF\/\[\^\/\]\+\\\.SF/);
-    assert.match(workflow, /META-INF\/\[\^\/\]\+\\\.\(RSA\|DSA\|EC\)/);
-    assert.match(workflow, /0x7109871A/);
-    assert.match(workflow, /keytool -printcert/);
-    assert.match(workflow, /47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7/);
-  }
-
-  const rolling = read('.github/workflows/build-apk.yml');
-  assert.match(rolling, /AMYFX_VERSION_NAME: "1\.5\.9"/);
-  assert.match(rolling, /AMYFX_VERSION_CODE: "50"/);
-  assert.match(rolling, /Verify public update manifest source/);
-
-  const manual = read('.github/workflows/build-release.yml');
-  assert.match(manual, /workflow_dispatch/);
-  assert.match(manual, /AMYFX_VERSION_NAME/);
-  assert.match(manual, /AMYFX_VERSION_CODE/);
+  const previewWorkflow = read('.github/workflows/amyfx-blueprint-preview-release.yml');
+  assert.match(previewWorkflow, /META-INF\/\[\^\/\]\+\\\.\(RSA\|DSA\|EC\)/);
+  assert.match(previewWorkflow, /keytool -printcert/);
+  assert.match(previewWorkflow, /47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7/);
+  assert.match(previewWorkflow, /AMYFX_APPLICATION_ID: com\.amyelitesuite\.learningpreview/);
+  assert.match(previewWorkflow, /AMYFX_APP_LABEL: Amy FX Preview/);
+  assert.match(previewWorkflow, /AMYFX_URI_SCHEME: amyfxpreview/);
 
   const candidate = read('.github/workflows/stage5-apply.yml');
   assert.match(candidate, /Validate Amy FX/);

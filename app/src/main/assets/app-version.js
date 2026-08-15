@@ -2,7 +2,7 @@
 (function () {
   const VERSION = Object.freeze({ name: '2.0.0-preview.316', code: 940316 });
   window.AmyFXAppVersion = VERSION;
-  window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/personal/amyfx-private/preview-update.json';
+  window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/personal/amyfx-private/preview-update.json';
   function displayVersionName(name) {
     return String(name || '').replace(/-preview(?:\.|-)?/i, ' · build ');
   }
