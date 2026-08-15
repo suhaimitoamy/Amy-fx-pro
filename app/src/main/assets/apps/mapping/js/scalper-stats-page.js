@@ -34,6 +34,9 @@ const resultR = value => {
 };
 
 const driver = setup => setup?.driverName
+  || setup?.methodName
+  || setup?.entryMethod
+  || setup?.patternName
   || (setup?.model === 'IFVG_SCALPER' ? 'IFVG LEGACY' : String(setup?.model || 'SCALPER ENGINE').replaceAll('_', ' '));
 
 const statusLabel = value => ({
@@ -89,6 +92,59 @@ function filteredArchive() {
   return archive.filter(setup => outcomeLabel(setup).key === filter);
 }
 
+function methodPerformance(history) {
+  const grouped = new Map();
+  for (const setup of history) {
+    const name = String(driver(setup) || 'METODE TIDAK DIKENAL').trim() || 'METODE TIDAK DIKENAL';
+    if (!grouped.has(name)) grouped.set(name, []);
+    grouped.get(name).push(setup);
+  }
+
+  return [...grouped.entries()].map(([name, setups]) => {
+    const stats = scalperVaultStats(setups);
+    const decisive = Number(stats.wins || 0) + Number(stats.losses || 0);
+    return {
+      name,
+      archiveCount: Number(stats.archiveCount || setups.length),
+      totalTrades: Number(stats.totalTrades || 0),
+      wins: Number(stats.wins || 0),
+      losses: Number(stats.losses || 0),
+      breakeven: Number(stats.breakeven || 0),
+      excluded: Number(stats.excludedSetups || 0),
+      winRate: stats.winRate == null ? null : Number(stats.winRate),
+      lossRate: decisive > 0 ? (Number(stats.losses || 0) / decisive) * 100 : null,
+      netR: stats.netR == null ? null : Number(stats.netR)
+    };
+  }).sort((a, b) =>
+    b.losses - a.losses
+    || (b.lossRate ?? -1) - (a.lossRate ?? -1)
+    || b.totalTrades - a.totalTrades
+    || a.name.localeCompare(b.name)
+  );
+}
+
+function methodCard(method, index) {
+  const winRate = method.winRate == null ? '-' : `${method.winRate.toFixed(1)}%`;
+  const lossRate = method.lossRate == null ? '-' : `${method.lossRate.toFixed(1)}%`;
+  const netR = method.netR == null ? '-' : resultR(method.netR);
+  const priority = index === 0 && method.losses > 0;
+  return `<article class="stats-method-card${priority ? ' is-priority' : ''}">
+    <div class="stats-method-head">
+      <div><span class="stats-method-rank">#${index + 1}</span><strong>${esc(method.name)}</strong></div>
+      ${priority ? '<span class="stats-method-priority">PRIORITAS EVALUASI</span>' : `<span class="stats-method-sample">${method.archiveCount} setup</span>`}
+    </div>
+    <div class="stats-method-grid">
+      <div><small>Trade</small><strong>${method.totalTrades}</strong></div>
+      <div class="win"><small>Win</small><strong>${method.wins}</strong></div>
+      <div class="loss"><small>Loss</small><strong>${method.losses}</strong></div>
+      <div><small>BE</small><strong>${method.breakeven}</strong></div>
+      <div class="wr"><small>WR</small><strong>${winRate}</strong></div>
+      <div><small>Net R</small><strong>${netR}</strong></div>
+    </div>
+    <div class="stats-method-foot"><span>Loss rate <b>${lossRate}</b></span><span>Invalid/Batal <b>${method.excluded}</b></span></div>
+  </article>`;
+}
+
 function historyItem(setup) {
   const outcome = outcomeLabel(setup);
   const cssOutcome = outcome.key === 'WIN' ? ' is-win' : outcome.key === 'LOSS' ? ' is-loss' : '';
@@ -112,6 +168,7 @@ function historyItem(setup) {
 function render() {
   if (!app) return;
   const stats = scalperVaultStats(archive);
+  const methods = methodPerformance(archive);
   const list = filteredArchive();
   const visible = list.slice(0, visibleLimit);
   const remaining = Math.max(0, list.length - visible.length);
@@ -142,6 +199,11 @@ function render() {
       <button type="button" class="sync" data-vault-sync ${syncing ? 'disabled' : ''}>${syncing ? 'Menyinkronkan…' : 'Perbarui dari Backend'}</button>
       <input type="file" accept="application/json,.json" data-vault-import-file hidden>
     </div>
+  </section>
+  <section class="card stats-method-section">
+    <div class="stats-history-head"><div><div class="kicker">PERFORMA PER METODE</div><h2>Metode yang Perlu Dievaluasi</h2></div><span class="stats-history-count">${methods.length} metode</span></div>
+    <p class="stats-method-note">Diurutkan dari jumlah Loss terbanyak. Gunakan juga jumlah Trade, WR, Loss Rate, dan Net R untuk menilai kualitas metode secara adil.</p>
+    <div class="stats-method-list">${methods.map(methodCard).join('') || '<div class="stats-empty">Belum ada metode dengan riwayat yang bisa dihitung.</div>'}</div>
   </section>
   <section class="card">
     <div class="stats-history-head"><div><div class="kicker">ARSIP PERMANEN</div><h2>Seluruh Riwayat Scalper</h2></div><span class="stats-history-count">${list.length} setup pada filter ini</span></div>
