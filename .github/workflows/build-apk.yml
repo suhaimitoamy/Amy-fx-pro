@@ -19,16 +19,16 @@ permissions:
 
 concurrency:
   group: amyfx-pro-release-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   AMYFX_APPLICATION_ID: com.amyelitesuite.learningpreview
   AMYFX_APP_LABEL: Amy FX Pro
   AMYFX_URI_SCHEME: amyfxpreview
   AMYFX_UPDATE_MANIFEST_URL: https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json
-  AMYFX_VERSION_NAME: "2.0.0-pro.318"
-  AMYFX_VERSION_CODE: "950318"
-  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.318
+  AMYFX_VERSION_NAME: "2.0.0-pro.319"
+  AMYFX_VERSION_CODE: "950319"
+  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.319
   AMYFX_KEYSTORE_PATH: /tmp/amyfx-pro-signing.keystore
   AMYFX_KEYSTORE_PASSWORD: android
   AMYFX_KEY_PASSWORD: android
@@ -56,17 +56,18 @@ jobs:
           node --check app/src/main/assets/app-version.js
           node --check app/src/main/assets/update-checker.js
           node --check app/src/main/assets/apps/mapping/js/scalper-stats-page.js
-          grep -Fq "name: '2.0.0-pro.318', code: 950318" app/src/main/assets/app-version.js
+          grep -Fq "name: '2.0.0-pro.319', code: 950319" app/src/main/assets/app-version.js
           grep -Fq 'com.amyelitesuite.learningpreview' app/build.gradle.kts
           grep -Fq 'Amy FX Pro' app/build.gradle.kts
           grep -Fq 'Amy-fx-pro/main/update.json' app/build.gradle.kts
           grep -Fq 'Amy FX Pro' app/src/main/assets/index.html
           grep -Fq 'href="scalper-stats.html"' app/src/main/assets/apps/mapping/index.html
           grep -Fq 'Riwayat & Statistik' app/src/main/assets/apps/mapping/scalper-stats.html
+          grep -Fq 'PERFORMA PER METODE' app/src/main/assets/apps/mapping/js/scalper-stats-page.js
           python3 -m json.tool update.json >/dev/null
-          grep -Fq '"latest_version_code": 950318' update.json
-          grep -Fq '"latest_version_name": "2.0.0-pro.318"' update.json
-          grep -Fq 'amyfx-pro-2.0.0-pro.318/AmyFX-Pro-latest.apk' update.json
+          grep -Fq '"latest_version_code": 950319' update.json
+          grep -Fq '"latest_version_name": "2.0.0-pro.319"' update.json
+          grep -Fq 'amyfx-pro-2.0.0-pro.319/AmyFX-Pro-latest.apk' update.json
 
       - name: Run JavaScript regression suite
         run: npm test
@@ -182,12 +183,12 @@ jobs:
           cat > /tmp/amyfx-pro-release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Mapping sekarang memiliki tiga navigasi utama: Dashboard, Analisis, dan Riwayat.
-          - Statistik Scalper Vault dan riwayat permanen dipindahkan dari Analisis ke halaman Riwayat & Statistik.
-          - Riwayat tetap memakai IndexedDB Vault yang sama; tidak ada reset Total Trade atau WR.
-          - Filter Win/Loss/BE/Invalid, pemuatan 100 setup per batch, Backup JSON, restore, dan sinkronisasi backend tersedia di tab Riwayat.
-          - Setup Scalper aktif tetap tampil di Analisis tanpa daftar histori panjang.
-          - Mapping Amy-SMC-D, closed-candle/no-future-data, package lineage, dan update channel Pro dipertahankan.
+          - Navigasi Mapping dikunci tiga kolom satu baris; Riwayat tidak lagi turun ke baris kedua.
+          - Riwayat & Statistik sekarang menghitung performa per metode/driver dari Scalper Vault yang sama.
+          - Setiap metode menampilkan Trade, Win, Loss, BE, WR, Loss Rate, Net R, serta Invalid/Batal.
+          - Ranking metode diurutkan berdasarkan jumlah Loss terbanyak untuk membantu menentukan prioritas evaluasi.
+          - Total Trade dan WR tetap ditampilkan agar metode dengan sampel besar tidak dinilai hanya dari jumlah loss absolut.
+          - Arsip permanen, backup/restore, backend merge, Mapping Amy-SMC-D, dan closed-candle/no-future-data tetap dipertahankan.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
