@@ -303,8 +303,8 @@ function downloadVaultBackup() {
   link.download = `AmyFX-Pro-Scalper-Vault-${stamp}.json`;
   document.body.appendChild(link);
   link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(href), 1000);
+  document.body.removeChild(link);
+  queueMicrotask(() => URL.revokeObjectURL(href));
   vaultNotice = `Backup dibuat: ${history.length} setup permanen.`;
   signature = '';
   render(lastValidPayload, scalperFreshness(lastValidPayload));
