@@ -1,128 +1,64 @@
-# Amy FX Preview — Personal Build
+# Amy FX Pro
 
-Amy FX Preview adalah aplikasi Android hybrid untuk pemetaan market **XAU/USD**, Rencana Eksekusi, Entry Watch, jurnal trading, market intelligence, dan materi belajar. Source Preview berada pada branch khusus dan terpisah dari Amy FX publik.
+Amy FX Pro memakai **Amy FX Preview sebagai baseline utama**. Baseline awal Pro dipromosikan dari `suhaimitoamy/Amy-fx` branch `personal/amyfx-private`, snapshot **Amy FX Preview 2.0.0-preview.316** pada commit `1e167ff1486572085a81b0b6ad8bca1d96ebdc53`.
 
-> **Release aktif:** `2.0.0-preview.316`
-> **Version code:** `940316`
-> **Tanggal rilis:** 11 Agustus 2026
+> **Baseline Pro:** `2.0.0-pro.316`  
+> **Version code:** `950316`  
+> **Tanggal penetapan:** 15 Agustus 2026
 
-[Download Amy FX Preview 2.0.0-preview.316](https://github.com/suhaimitoamy/Amy-fx/releases/download/amyfx-blueprint-preview-2.0.0-preview.316/AmyFX-Preview-latest.apk)
+## Status Utama
 
-## Status Release `.316`
+`main` pada repository ini adalah jalur utama **Amy FX Pro**, dengan engine dan runtime dari Preview `.316` sebagai fondasi. Repo `suhaimitoamy/Amy-fx` tidak diubah oleh proses promosi ini.
 
-Preview `.316` mengganti directional Mapping lama dengan satu engine canonical yang mengikuti semantik `Amy-SMC-D.pine` blob `d6e6d7c979dd5a852bddd9661bef0480caa2eb35`. Port berjalan native di arsitektur Amy FX dan memproses candle tertutup secara sequential.
+Mapping yang dibawa dari Preview `.316` mempertahankan kontrak berikut:
 
-Kontrak Mapping baru:
+- `AMY_SMC_D` sebagai directional Mapping authority;
+- pemrosesan candle tertutup secara sequential tanpa future candle, interpolation, atau synthetic candle;
+- HTF Swing, Swing Structure, Internal Structure, Liquidity, Dealing Range, Pattern, Final Bias, Event History, Next Move, Sweep Continuation, Valid Break, CHoCH, dan BOS dari replay canonical;
+- M5/M15 memakai structural dealing-range source dengan pure-location `70/30` dan `60/40`;
+- H1 memakai previous 240 closed H1 bars dengan pure-location `55/45`;
+- Dealing Range tetap descriptive-only;
+- live Twelve Data WebSocket tetap display-only dan tidak menghitung ulang Mapping;
+- Rencana Eksekusi, Entry Watch, scanner, lifecycle, dan notifikasi tetap consumer/read-only terhadap canonical Mapping state.
 
-- HTF Swing, Swing Structure, Internal Structure, Liquidity, Dealing Range, Pattern, Final Bias, dan Event History berasal dari replay D;
-- Next Move, Sweep Continuation, Raw/Qualified Valid Break, Qualified CHoCH, Qualified BOS, serta Raw/Qualified Pattern berasal dari replay D;
-- M5/M15 tetap memakai structural dealing-range source dengan pure-location `70/30` dan `60/40`;
-- hanya H1 memakai highest/lowest dari previous 240 closed H1 bars dengan pure-location `55/45`;
-- Dealing Range bersifat descriptive-only dan tidak masuk Final Bias atau predictor lain;
-- Qualified BOS M5/M15/H1 tidak dibuat synthetic ketika baseline riset mempunyai `N=0`;
-- continuous context, fresh structural evidence, dan predictive/event signal ditampilkan sebagai kelas yang berbeda;
-- tidak ada confidence percentage yang dipresentasikan sebagai probabilitas live.
-
-## Kontrak Candle dan Determinisme
-
-- Hanya candle dengan status closed dan geometri OHLC valid yang masuk replay.
-- Candle diurutkan dan dideduplikasi berdasarkan timestamp; gap dibiarkan sebagai gap.
-- Tidak ada future candle, interpolation, atau synthetic candle.
-- Candle live/forming tidak dapat mengubah Mapping sampai resmi close.
-- Bila REST belum menyediakan close baru, UI mempertahankan Mapping dari candle closed terakhir yang valid dan menunjukkan timestamp sumbernya.
-- Freshness tetap menjadi proteksi kualitas data, bukan alasan untuk mengosongkan seluruh hasil yang masih valid.
-
-## Otoritas dan Konsumen
-
-`AMY_SMC_D` adalah satu-satunya directional Mapping authority. Dashboard menyajikan Final Bias, Next Move, dan Dealing Range; Analyze memisahkan context, fresh evidence, dan predictor.
-
-Rencana Eksekusi, Entry Watch, scanner, lifecycle, dan notifikasi tetap memakai kontrak yang sudah ada sebagai consumer/read-only. Modul tersebut tidak boleh menghitung ulang, membalik, atau menimpa arah Mapping. Formula Entry, SL, TP, RR, expectancy, dan trade management tidak diubah oleh rombak Mapping ini.
-
-Original Z Target V1 tidak digunakan sebagai scoring directional Mapping. M5 TGT2 segmented target/expiry dari B dan ATR trailing M15/H1 dari B-LAB tidak dibawa ke engine baru.
-
-## Harga Live dan REST
-
-Harga XAU/USD live tetap dimiliki satu koneksi native Twelve Data WebSocket. Tick hanya memperbarui elemen harga dan status koneksi. Tick tidak memanggil analisis Mapping, tidak meminta REST, dan tidak memublikasikan ulang directional state.
-
-Candle Mapping tetap melalui pipeline REST yang sudah ada. Refresh bersifat event-driven/single-flight; tidak ada polling Mapping per tick atau timer render berulang yang ditambahkan.
-
-## Identitas Amy FX Preview
+## Identitas Amy FX Pro
 
 | Properti | Nilai |
 |---|---|
-| Nama aplikasi | `Amy FX Preview` |
-| Branch | `personal/amyfx-private` |
-| Application ID | `com.amyelitesuite.learningpreview` |
-| URI scheme | `amyfxpreview` |
-| Version name | `2.0.0-preview.316` |
-| Version code | `940316` |
+| Nama aplikasi | `Amy FX Pro` |
+| Branch utama | `main` |
+| Source baseline | Amy FX Preview `2.0.0-preview.316` |
+| Source commit | `1e167ff1486572085a81b0b6ad8bca1d96ebdc53` |
+| Version name | `2.0.0-pro.316` |
+| Version code | `950316` |
+| Update channel | `Amy-fx-pro/main/update.json` |
 | Minimum Android | Android 8.0 / API 26 |
 | Target SDK | Android SDK 35 |
-| Update channel | `personal/amyfx-private/preview-update.json` |
-| Release tag | `amyfx-blueprint-preview-2.0.0-preview.316` |
-| APK | `AmyFX-Preview-latest.apk` |
 
-Package, URI, signing certificate, update channel, dan data pengguna Preview tetap terpisah dari Amy FX publik.
+### Package continuity
 
-## Arsitektur Market Data
+Application ID tetap `com.amyelitesuite.learningpreview` dan URI scheme tetap `amyfxpreview` **secara sengaja** pada baseline pertama Pro. Alasannya adalah menjaga kompatibilitas Firebase, data aplikasi, dan deep-link dari lineage Preview yang dipromosikan. Branding, version line, repository, dan update channel sudah berpindah ke Amy FX Pro.
 
-```text
-Twelve Data WebSocket
-        └── Harga live di layar
+Jika nanti Pro harus dapat terpasang berdampingan dengan Preview sebagai aplikasi yang benar-benar terpisah, package baru harus didaftarkan terlebih dahulu pada konfigurasi Firebase sebelum application ID diganti.
 
-Candle REST yang sudah close
-        ↓
-Validasi OHLC + urut/deduplikasi tanpa gap fill
-        ↓
-Replay sequential Amy-SMC-D
-        ↓
-Descriptive context + fresh evidence + predictors
-        ↓
-Satu canonical Mapping state
-        ↓
-Execution consumer/read-only
-        ↓
-Execution Authority
-        ├── Rencana Eksekusi
-        ├── Entry Watch
-        ├── Scanner
-        └── Notifikasi
-```
+## Update dan Release
 
-Harga live hanya memperbarui tampilan harga dan tidak boleh menghitung atau merender ulang Mapping.
+Runtime Pro membaca manifest:
 
-## Validasi Release `.316`
+`https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json`
 
-Sebelum rilis:
+Workflow produksi lama Amy FX publik **tidak lagi berjalan otomatis pada push ke `main`**. `build-apk.yml` pada Pro dijadikan workflow validasi/build manual supaya promosi baseline tidak tanpa sengaja menerbitkan APK atau metadata Amy FX publik maupun Amy FX Preview.
 
-- blob SHA Amy-SMC-D dan semantic contract dikunci oleh regression;
-- fixture H1 membuktikan current candle tidak masuk previous-240 range;
-- fixture M5/M15 membuktikan structural source dan boundary D tetap dipakai;
-- fixture determinisme, gap, open/synthetic-tail rejection, DR dependency, dan qualified BOS N=0 lulus;
-- test membuktikan perubahan harga live tidak mengubah output Mapping;
-- seluruh regression JavaScript lulus;
-- workflow private menjalankan Android unit test, lint, signed release build, serta package/version/signer verification.
+File `preview-update.json` dan artefak historis lain yang terbawa dari snapshot Preview bukan update channel aktif Amy FX Pro.
 
-Pipeline release resmi kemudian menjalankan ulang:
+## Backup Sebelum Promosi
 
-- Blueprint stabilization;
-- seluruh regression JavaScript;
-- Android release unit test;
-- Android release lint;
-- signed release build;
-- verifikasi package, label, version code, version name, dan signer;
-- publikasi APK serta checksum SHA-256;
-- aktivasi `preview-update.json` setelah APK berhasil diverifikasi.
+Main Amy FX Pro sebelum perubahan ini disimpan pada branch:
 
-## Branch Boundary
+`archive/pro-main-before-preview-20260815`
 
-```text
-personal/amyfx-private  → Amy FX Preview
-main                    → Amy FX publik
-```
-
-Release `.316` hanya dikerjakan pada `personal/amyfx-private`. Branch `main`, package produksi, URI produksi, signing produksi, update channel produksi, APK produksi, dan data pengguna produksi tidak disentuh.
+Dengan demikian baseline lama tetap dapat diaudit atau dipulihkan bila diperlukan.
 
 ## Disclaimer
 
-Amy FX Preview adalah alat bantu analisis dan pembelajaran. Aplikasi tidak menjamin profit dan tidak membuktikan bahwa setiap konteks memiliki edge. Validasi statistik tetap harus dipisahkan antara in-sample, out-of-sample, dan forward test.
+Amy FX Pro adalah alat bantu analisis dan pembelajaran. Aplikasi tidak menjamin profit. Validasi statistik tetap harus memisahkan in-sample, out-of-sample, walk-forward, dan forward test.
