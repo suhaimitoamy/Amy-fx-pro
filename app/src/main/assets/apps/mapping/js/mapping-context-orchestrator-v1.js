@@ -7,16 +7,12 @@ let dxyCache = { at: 0, rows: [], state: null };
 let dxyRequest = null;
 let scheduled = false;
 let applying = false;
+let lastRenderSignature = '';
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
-}
-
-function text(value, fallback = '-') {
-  const output = String(value ?? '').trim();
-  return output || fallback;
 }
 
 function price(value) {
@@ -50,11 +46,16 @@ async function readDxyM15() {
         dxyCache = { at: Date.now(), rows: [], state: { reason: payload?.message || `DXY HTTP ${response.status}` } };
         return [];
       }
-      const rows = payload.values.map(value => ({
-        open_time: Date.parse(String(value.datetime || '').replace(' ', 'T') + (String(value.datetime || '').includes('Z') ? '' : 'Z')) / 1000,
-        close_time: Date.parse(String(value.datetime || '').replace(' ', 'T') + (String(value.datetime || '').includes('Z') ? '' : 'Z')) / 1000 + 900,
-        open: Number(value.open), high: Number(value.high), low: Number(value.low), close: Number(value.close), is_closed: true
-      })).filter(row => Number.isFinite(row.open_time) && [row.open, row.high, row.low, row.close].every(Number.isFinite));
+      const rows = payload.values.map(value => {
+        const rawTime = String(value.datetime || '').trim();
+        const normalized = /Z$|[+-]\d{2}:?\d{2}$/.test(rawTime) ? rawTime.replace(' ', 'T') : `${rawTime.replace(' ', 'T')}Z`;
+        const openTime = Date.parse(normalized) / 1000;
+        return {
+          open_time: openTime,
+          close_time: openTime + 900,
+          open: Number(value.open), high: Number(value.high), low: Number(value.low), close: Number(value.close), is_closed: true
+        };
+      }).filter(row => Number.isFinite(row.open_time) && [row.open, row.high, row.low, row.close].every(Number.isFinite));
       dxyCache = { at: Date.now(), rows: rows.reverse(), state: { source: payload.source || 'DXY_PROVIDER' } };
       return dxyCache.rows;
     } catch (error) {
@@ -104,11 +105,30 @@ function eventLine(label, event) {
   return `<div class="reason"><b>${escapeHtml(label)}</b><br><span class="muted">${escapeHtml(status)}</span></div>`;
 }
 
+function renderSignature(aggregate) {
+  return JSON.stringify({
+    facts: aggregate?.facts,
+    marketState: aggregate?.marketState,
+    events: Object.fromEntries(Object.entries(aggregate?.events || {}).map(([key, value]) => [key, [value?.status || value?.state, value?.summary]])),
+    locations: aggregate?.locations,
+    predictive: {
+      finalBias: aggregate?.predictive?.finalBias,
+      nextMoveSignal: aggregate?.predictive?.nextMoveSignal,
+      sweepContinuation: aggregate?.predictive?.sweepContinuation?.direction,
+      smt: aggregate?.predictive?.smt?.state
+    },
+    entry: aggregate?.entryReadiness,
+    outlook: aggregate?.outlook
+  });
+}
+
 function renderAggregate(aggregate) {
   if (!aggregate || window.state?.tab !== 'Analyze') return;
   const app = document.getElementById('app');
   if (!app) return;
+  const signature = renderSignature(aggregate);
   let card = document.getElementById('amy-mapping-context-aggregate-v1');
+  if (card && signature === lastRenderSignature) return;
   if (!card) {
     card = document.createElement('details');
     card.id = 'amy-mapping-context-aggregate-v1';
@@ -182,6 +202,7 @@ function renderAggregate(aggregate) {
       <div class="kicker" style="margin-top:14px">ENTRY READINESS</div>
       <div class="setup-card ${entry.ready ? 'ready' : 'wait'}"><div class="setup-head"><div><div class="setup-title">${escapeHtml(entry.action)}</div><div class="muted">${escapeHtml(entry.status)}</div></div><span class="badge ${badgeClass(entry.action)}">${escapeHtml(entry.action)}</span></div><div class="reason"><b>Alasan:</b><br>${escapeHtml(entry.reason)}</div></div>
     </div>`;
+  lastRenderSignature = signature;
 }
 
 function apply(smt = currentSmt()) {
