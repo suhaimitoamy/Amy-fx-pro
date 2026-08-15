@@ -30,13 +30,14 @@ test('user-facing Preview copy does not expose internal audit wording or histori
   }
 });
 
-test('Preview uses the approved simplified Mapping navigation and header', () => {
+test('Preview uses the approved three-navigation Mapping header', () => {
   assert.match(html, /Market Intelligence/);
   assert.match(html, /Struktur • Arah • Likuiditas/);
   assert.match(html, />Dashboard</);
   assert.match(html, />Analisis</);
+  assert.match(html, />Riwayat</);
+  assert.match(html, /href="scalper-stats\.html"/);
   assert.doesNotMatch(html, />Skenario</);
-  assert.doesNotMatch(html, />Riwayat</);
   assert.doesNotMatch(html, />Pengaturan</);
 });
 
