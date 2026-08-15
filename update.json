@@ -1,31 +1,24 @@
 {
-  "latest_version_code": 50,
-  "latest_version_name": "1.5.9",
-  "versionCode": 50,
-  "version": "1.5.9",
-  "releaseDate": "2026-07-25",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx/releases/download/amyfx-latest/AmyFX-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx/releases/download/amyfx-latest/AmyFX-latest.apk",
+  "latest_version_code": 950316,
+  "latest_version_name": "2.0.0-pro.316",
+  "versionCode": 950316,
+  "version": "2.0.0-pro.316",
+  "releaseDate": "2026-08-15",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-latest/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-latest/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
+  "enabled": true,
   "release_notes": [
-    "Freeze pada Trading Library dan Jurnal akibat loop pembaruan DOM telah dihentikan.",
-    "Menu samping serta navigasi Library, Media, Jurnal, dan Asisten kembali dapat diklik.",
-    "Jurnal hasil backup tetap dibaca dari IndexedDB.",
-    "Kalender tetap menampilkan nominal Win hijau dan Loss merah.",
-    "Rotasi otomatis API Gemini dan OpenRouter tetap tersedia dengan timeout dan cooldown.",
-    "DeepSeek tetap tersedia sebagai fallback berbayar opsional.",
-    "Package com.amyelitesuite, sertifikat permanen, data lokal, dan jalur update tetap dipertahankan.",
-    "Pembaruan dapat dipasang tanpa menghapus aplikasi."
+    "Amy FX Pro kini memakai snapshot Amy FX Preview 2.0.0-preview.316 sebagai baseline utama.",
+    "Mapping canonical Amy-SMC-D, closed-candle contract, Dealing Range, execution consumers, dan live-price isolation dari Preview 316 dipertahankan.",
+    "Identitas aplikasi dipisahkan menjadi Amy FX Pro agar tidak memakai package, URI, atau update channel Amy FX Preview maupun Amy FX publik.",
+    "Update channel Amy FX Pro sekarang berada di repo suhaimitoamy/Amy-fx-pro pada branch main."
   ],
   "changelog": [
-    "Freeze pada Trading Library dan Jurnal akibat loop pembaruan DOM telah dihentikan.",
-    "Menu samping serta navigasi Library, Media, Jurnal, dan Asisten kembali dapat diklik.",
-    "Jurnal hasil backup tetap dibaca dari IndexedDB.",
-    "Kalender tetap menampilkan nominal Win hijau dan Loss merah.",
-    "Rotasi otomatis API Gemini dan OpenRouter tetap tersedia dengan timeout dan cooldown.",
-    "DeepSeek tetap tersedia sebagai fallback berbayar opsional.",
-    "Package com.amyelitesuite, sertifikat permanen, data lokal, dan jalur update tetap dipertahankan.",
-    "Pembaruan dapat dipasang tanpa menghapus aplikasi."
+    "Promote Preview 316 codebase as Amy FX Pro main baseline",
+    "Dedicated Amy FX Pro application identity",
+    "Dedicated Amy FX Pro update channel",
+    "Preview engine and runtime preserved"
   ]
 }
