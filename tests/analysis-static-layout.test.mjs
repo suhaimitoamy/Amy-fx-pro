@@ -15,7 +15,7 @@ const appVersion = fs.readFileSync(
   'utf8'
 );
 const updateManifest = JSON.parse(fs.readFileSync(
-  new URL('../preview-update.json', import.meta.url),
+  new URL('../update.json', import.meta.url),
   'utf8'
 ));
 
@@ -46,23 +46,23 @@ test('Observers do not watch every nested mutation or every click', () => {
   assert.doesNotMatch(panels, /amyfx:scalper-state-change/);
 });
 
-test('Preview source identity is never behind the activated update manifest', () => {
-  const match = appVersion.match(/name:\s*'(2\.0\.0-preview\.(\d+))'\s*,\s*code:\s*(94\d{4})/);
-  assert.ok(match, 'Preview source identity must be readable');
+test('Pro source identity is never behind the activated Pro update manifest', () => {
+  const match = appVersion.match(/name:\s*'(2\.0\.0-pro\.(\d+))'\s*,\s*code:\s*(95\d{4})/);
+  assert.ok(match, 'Pro source identity must be readable');
 
   const [, sourceName, sourceSequenceText, sourceCodeText] = match;
   const sourceSequence = Number(sourceSequenceText);
   const sourceCode = Number(sourceCodeText);
   const publishedCode = Number(updateManifest.latest_version_code);
   const publishedName = String(updateManifest.latest_version_name || '');
-  const publishedMatch = publishedName.match(/^2\.0\.0-preview\.(\d+)$/);
+  const publishedMatch = publishedName.match(/^2\.0\.0-pro\.(\d+)$/);
 
-  assert.ok(publishedMatch, 'Activated Preview manifest identity must be readable');
+  assert.ok(publishedMatch, 'Activated Pro manifest identity must be readable');
   const publishedSequence = Number(publishedMatch[1]);
 
-  assert.equal(sourceCode, 940000 + sourceSequence);
-  assert.equal(publishedCode, 940000 + publishedSequence);
-  assert.ok(sourceCode >= publishedCode, 'Preview source must not be older than the update manifest');
+  assert.equal(sourceCode, 950000 + sourceSequence);
+  assert.equal(publishedCode, 950000 + publishedSequence);
+  assert.ok(sourceCode >= publishedCode, 'Pro source must not be older than the Pro update manifest');
 
   if (sourceCode === publishedCode) {
     assert.equal(sourceName, publishedName);
