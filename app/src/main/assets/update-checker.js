@@ -44,134 +44,165 @@
     }[char]));
   }
 
-  function displayVersionName(value) {
-    const text = String(value || '');
-    const compact = text.match(/^(\d+\.\d+\.\d+)(?:-(?:preview|pro)\.\d+)?$/i);
-    return compact ? compact[1] : text;
+  function notify(message) {
+    if (window.showToast) window.showToast(message);
+    else console.log(message);
   }
 
-  function notify(message) {
-    const text = String(message || '');
-    try {
-      if (window.Android?.showToast) {
-        window.Android.showToast(text);
-        return;
-      }
-    } catch (_) {}
-    try { console.log(text); } catch (_) {}
+  function displayVersionName(name) {
+    return String(name || '').replace(/-(?:preview|pro)(?:\.|-)?/i, ' · build ');
+  }
+
+  function humanBytes(value) {
+    const bytes = Number(value);
+    if (!Number.isFinite(bytes) || bytes < 0) return '-';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   function hasNativeUpdater() {
-    return Boolean(window.Android?.startAppUpdate);
+    return Boolean(window.Android && typeof window.Android.startAppUpdate === 'function');
   }
 
-  function announceNativeUpdate(latestCode, latestName) {
-    try {
-      if (window.Android?.notifyAppUpdateAvailable) {
-        window.Android.notifyAppUpdateAvailable(Number(latestCode), String(latestName));
+  function setNativeState(state, message) {
+    const ui = nativeUi;
+    if (!ui) return;
+    ui.status.textContent = message || state || 'Memproses pembaruan...';
+
+    if (state === 'starting' || state === 'downloading' || state === 'verifying') {
+      ui.downloading = true;
+      ui.progressWrap.style.display = 'block';
+      ui.updateBtn.disabled = true;
+      ui.updateBtn.textContent = state === 'verifying' ? 'Memverifikasi...' : 'Mengunduh...';
+      ui.cancelBtn.textContent = 'Batalkan';
+    } else if (state === 'permission') {
+      ui.downloading = false;
+      ui.updateBtn.disabled = true;
+      ui.updateBtn.textContent = 'Menunggu izin...';
+      ui.cancelBtn.textContent = 'Tutup';
+    } else if (state === 'ready') {
+      ui.downloading = false;
+      ui.progressWrap.style.display = 'block';
+      ui.bar.style.width = '100%';
+      ui.percent.textContent = '100%';
+      ui.updateBtn.disabled = true;
+      ui.updateBtn.textContent = 'Membuka installer...';
+      ui.cancelBtn.textContent = 'Tutup';
+    } else if (state === 'cancelled') {
+      ui.downloading = false;
+      ui.updateBtn.disabled = false;
+      ui.updateBtn.textContent = 'Coba Lagi';
+      ui.cancelBtn.textContent = 'Tutup';
+    }
+  }
+
+  window.AmyFXUpdateNative = {
+    onProgress(percent, downloaded, total) {
+      const ui = nativeUi;
+      if (!ui) return;
+      ui.progressWrap.style.display = 'block';
+      const safePercent = Number(percent);
+      if (Number.isFinite(safePercent) && safePercent >= 0) {
+        const value = Math.max(0, Math.min(100, safePercent));
+        ui.bar.style.width = `${value}%`;
+        ui.percent.textContent = `${value}%`;
+      } else {
+        ui.bar.style.width = '22%';
+        ui.percent.textContent = '...';
       }
-    } catch (_) {}
-  }
-
-  function bytesToMb(value) {
-    const bytes = Number(value || 0);
-    if (!Number.isFinite(bytes) || bytes <= 0) return '0 MB';
-    return `${(bytes / (1024 * 1024)).toFixed(bytes >= 10 * 1024 * 1024 ? 1 : 2)} MB`;
-  }
-
-  function setNativeState(kind, text) {
-    if (!nativeUi) return;
-    if (text) nativeUi.status.textContent = text;
-    nativeUi.status.dataset.state = kind || '';
-  }
-
-  window.AmyFXUpdateNative = Object.freeze({
-    onProgress(downloaded, total, percent) {
-      if (!nativeUi) return;
-      const numericPercent = Math.max(0, Math.min(100, Number(percent) || 0));
-      nativeUi.progressWrap.style.display = '';
-      nativeUi.bar.style.width = `${numericPercent}%`;
-      nativeUi.percent.textContent = `${Math.round(numericPercent)}%`;
-      nativeUi.bytes.textContent = total > 0
-        ? `${bytesToMb(downloaded)} / ${bytesToMb(total)}`
-        : bytesToMb(downloaded);
-      setNativeState('downloading', 'Mengunduh pembaruan...');
+      const received = humanBytes(downloaded);
+      const expected = Number(total) > 0 ? humanBytes(total) : 'ukuran belum diketahui';
+      ui.bytes.textContent = `${received} dari ${expected}`;
     },
-    onReady() {
-      if (!nativeUi) return;
-      nativeUi.bar.style.width = '100%';
-      nativeUi.percent.textContent = '100%';
-      nativeUi.updateBtn.disabled = true;
-      setNativeState('ready', 'Unduhan selesai. Menyiapkan instalasi Android...');
-    },
-    onInstalling() {
-      if (!nativeUi) return;
-      nativeUi.updateBtn.disabled = true;
-      setNativeState('installing', 'Android meminta konfirmasi instalasi pembaruan...');
+    onState(state, message) {
+      setNativeState(String(state || ''), String(message || ''));
     },
     onError(message) {
-      if (!nativeUi) return;
-      nativeUi.downloading = false;
-      nativeUi.updateBtn.disabled = false;
-      nativeUi.updateBtn.textContent = 'Coba Lagi';
-      nativeUi.cancelBtn.disabled = false;
-      nativeUi.status.style.color = '#ff9f9f';
-      setNativeState('error', String(message || 'Pembaruan gagal diunduh.'));
-    },
-    onCancelled() {
-      if (!nativeUi) return;
-      nativeUi.downloading = false;
-      nativeUi.updateBtn.disabled = false;
-      nativeUi.updateBtn.textContent = 'Unduh & Perbarui';
-      setNativeState('cancelled', 'Unduhan dibatalkan.');
+      const ui = nativeUi;
+      if (!ui) {
+        notify(String(message || 'Pembaruan gagal.'));
+        return;
+      }
+      ui.downloading = false;
+      ui.status.textContent = String(message || 'Pembaruan gagal.');
+      ui.status.style.color = '#ff8f8f';
+      ui.updateBtn.disabled = false;
+      ui.updateBtn.textContent = 'Coba Lagi';
+      ui.cancelBtn.textContent = 'Tutup';
     }
-  });
+  };
+
+  function announceNativeUpdate(latestCode, latestName) {
+    const key = 'amy_fx_update_notified_' + latestCode;
+    try {
+      if (localStorage.getItem(key) === '1') return;
+    } catch (_) {}
+    const message = 'Amy FX ' + displayVersionName(latestName) + ' siap dipasang.';
+    try {
+      if (window.Android && typeof window.Android.showNotification === 'function') {
+        window.Android.showNotification('Update Amy FX Pro Tersedia', message);
+      } else {
+        notify(message);
+      }
+      try { localStorage.setItem(key, '1'); } catch (_) {}
+    } catch (_) {
+      notify(message);
+    }
+  }
 
   function showUpdatePopup(data, latestCode, latestName) {
-    if (popupOpen || !document.body) return;
+    if (popupOpen) return;
     popupOpen = true;
 
     const forceUpdate = Boolean(data.force_update ?? data.mandatory);
     const overlay = document.createElement('div');
-    overlay.id = 'amyFxUpdateOverlay';
+    overlay.id = 'amy-fx-update-overlay';
     css(overlay, {
-      position: 'fixed', inset: '0', zIndex: '2147483647',
-      background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '20px', boxSizing: 'border-box'
+      position: 'fixed',
+      inset: '0',
+      zIndex: '2147483647',
+      background: 'rgba(0,0,0,.72)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif'
     });
 
     const box = document.createElement('div');
     css(box, {
-      width: '100%', maxWidth: '420px', borderRadius: '20px',
-      background: 'var(--amy-surface, #111)', color: 'var(--amy-text, #fff)',
-      border: '1px solid var(--amy-border, rgba(255,255,255,.16))',
-      boxShadow: '0 24px 80px rgba(0,0,0,.52)', padding: '20px'
+      width: '100%',
+      maxWidth: '420px',
+      background: 'var(--amy-surface-strong, #101925)',
+      color: 'var(--amy-text, #fff)',
+      border: '1px solid var(--amy-border-strong, rgba(177,214,255,.26))',
+      borderRadius: '22px',
+      padding: '20px',
+      boxShadow: '0 20px 60px rgba(0,0,0,.55)'
     });
 
-    const title = document.createElement('div');
-    title.textContent = `Amy FX ${displayVersionName(latestName)} tersedia`;
-    css(title, { fontSize: '19px', fontWeight: '900', marginBottom: '8px' });
-    box.appendChild(title);
+    const notes = Array.isArray(data.release_notes)
+      ? data.release_notes
+      : (Array.isArray(data.changelog) ? data.changelog : []);
 
-    const meta = document.createElement('div');
-    meta.textContent = `Versi terpasang: ${displayVersionName(CURRENT_VERSION_NAME)} · Build ${CURRENT_VERSION_CODE} → ${latestCode}`;
-    css(meta, { color: '#aaa', fontSize: '12px', marginBottom: '12px' });
-    box.appendChild(meta);
-
-    const notes = document.createElement('div');
-    const releaseNotes = Array.isArray(data.release_notes) ? data.release_notes : [];
-    notes.innerHTML = releaseNotes.length
-      ? `<ul style="margin:0;padding-left:20px">${releaseNotes.slice(0, 5).map(item => `<li style="margin:5px 0">${escapeHtml(item)}</li>`).join('')}</ul>`
-      : 'Pembaruan Amy FX tersedia.';
-    css(notes, { color: '#ddd', fontSize: '13px', lineHeight: '1.5', marginBottom: '14px' });
-    box.appendChild(notes);
+    box.innerHTML = `
+      <div style="color:var(--amy-accent, #69B7FF);font-weight:850;font-size:20px;margin-bottom:8px">Pembaruan Amy FX Pro Tersedia</div>
+      <div style="color:#ddd;line-height:1.5;margin-bottom:14px">
+        Versi kamu: <b>${escapeHtml(displayVersionName(CURRENT_VERSION_NAME))}</b> (${CURRENT_VERSION_CODE})<br>
+        Versi terbaru: <b>${escapeHtml(displayVersionName(latestName || latestCode))}</b> (${latestCode})
+      </div>
+      <div style="background:var(--amy-surface-soft, #162131);border:1px solid var(--amy-border, rgba(255,255,255,.08));border-radius:14px;padding:12px;margin-bottom:12px">
+        <div style="font-weight:900;margin-bottom:6px">Perubahan:</div>
+        ${notes.length ? '<ul style="margin:0;padding-left:18px;color:#ddd;line-height:1.5">' + notes.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>' : '<div style="color:#aaa">Tidak ada catatan perubahan.</div>'}
+      </div>`;
 
     const progressWrap = document.createElement('div');
-    progressWrap.style.display = 'none';
     css(progressWrap, {
-      border: '1px solid var(--amy-border, rgba(255,255,255,.12))',
+      display: 'none',
+      background: 'var(--amy-surface-soft, #162131)',
+      border: '1px solid var(--amy-border, rgba(177,214,255,.16))',
       borderRadius: '14px',
-      background: 'rgba(255,255,255,.035)',
       padding: '12px',
       marginBottom: '12px'
     });
