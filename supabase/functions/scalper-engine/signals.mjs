@@ -12,12 +12,19 @@ import {
   detectExpansionRangeReentryCandidates,
   evaluateExpansionRangeReentryCandidates,
 } from './expansion-range-reentry.mjs';
+import {
+  SMR_FIRST_RETEST_DRIVER,
+  SMR_FIRST_RETEST_VERSION,
+  detectSmrFirstRetestCandidates,
+  evaluateSmrFirstRetestCandidates,
+} from './smr-first-retest.mjs';
 export { BASE_CONFIG_VERSION, REPAIR_CONFIG_VERSION, AMD_CONFIG_VERSION, DEFAULT_PATTERN_CONFIG, derivePatternFeatures, evaluatePatternGate, resolvePatternConfig } from './pattern-gates.mjs';
-export { EXPANSION_RANGE_REENTRY_VERSION };
+export { EXPANSION_RANGE_REENTRY_VERSION, SMR_FIRST_RETEST_VERSION };
 
 export const DRIVER_REGISTRY = Object.freeze([
   ...BASE_DRIVER_REGISTRY,
   EXPANSION_RANGE_REENTRY_DRIVER,
+  SMR_FIRST_RETEST_DRIVER,
 ]);
 export { ENGINE_VERSION, SETUP_SCHEMA_VERSION, TIMEFRAME_SECONDS };
 
@@ -31,17 +38,19 @@ export function detectScalperCandidates(input = {}) {
   return mergeCandidates(
     detectMultiDriverCandidates(input),
     detectExpansionRangeReentryCandidates(input),
+    detectSmrFirstRetestCandidates(input),
   );
 }
 
 export function evaluateScalperCandidates(input = {}) {
   const base = evaluateMultiDriverCandidates(input);
   const expansionRange = evaluateExpansionRangeReentryCandidates(input);
+  const smr = evaluateSmrFirstRetestCandidates(input);
   return {
-    candidates: mergeCandidates(base.candidates, expansionRange.candidates),
-    telemetry: [...(base.telemetry || []), ...(expansionRange.telemetry || [])],
-    raw_count: Number(base.raw_count || 0) + Number(expansionRange.raw_count || 0),
-    rejected_count: Number(base.rejected_count || 0) + Number(expansionRange.rejected_count || 0),
+    candidates: mergeCandidates(base.candidates, expansionRange.candidates, smr.candidates),
+    telemetry: [...(base.telemetry || []), ...(expansionRange.telemetry || []), ...(smr.telemetry || [])],
+    raw_count: Number(base.raw_count || 0) + Number(expansionRange.raw_count || 0) + Number(smr.raw_count || 0),
+    rejected_count: Number(base.rejected_count || 0) + Number(expansionRange.rejected_count || 0) + Number(smr.rejected_count || 0),
   };
 }
 
