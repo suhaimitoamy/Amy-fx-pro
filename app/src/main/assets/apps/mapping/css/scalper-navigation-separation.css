@@ -2,8 +2,30 @@
    Dashboard/Analisis keep the live Scalper setup compact.
    All-time statistics and permanent history live in scalper-stats.html. */
 
-.nav {
+/*
+ * Mapping still loads legacy/shared navigation adapters after this stylesheet.
+ * Lock the new canonical three-item navigation so later two-column/flex rules
+ * cannot push Riwayat onto a second row.
+ */
+body.amyfx-module--mapping > .nav,
+body.amyfx-module--mapping .stats-nav {
+  display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  grid-auto-columns: auto !important;
+  grid-auto-rows: 1fr !important;
+  flex-wrap: nowrap !important;
+}
+
+body.amyfx-module--mapping > .nav > button,
+body.amyfx-module--mapping > .nav > a,
+body.amyfx-module--mapping .stats-nav > a {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
 }
 
 .nav > a {
