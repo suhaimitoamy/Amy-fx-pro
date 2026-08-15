@@ -1,14 +1,22 @@
-name: Amy FX Pro Validate and Build
+name: Amy FX Pro Build and Release
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-apk.yml'
+      - 'app/build.gradle.kts'
+      - 'app/src/main/assets/app-version.js'
+      - 'app/src/main/assets/update-checker.js'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: amyfx-pro-validation-${{ github.ref }}
-  cancel-in-progress: true
+  group: amyfx-pro-release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   AMYFX_APPLICATION_ID: com.amyelitesuite.learningpreview
@@ -17,12 +25,16 @@ env:
   AMYFX_UPDATE_MANIFEST_URL: https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json
   AMYFX_VERSION_NAME: "2.0.0-pro.316"
   AMYFX_VERSION_CODE: "950316"
+  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.316
+  AMYFX_KEYSTORE_PATH: /tmp/amyfx-pro-signing.keystore
+  AMYFX_KEYSTORE_PASSWORD: android
+  AMYFX_KEY_PASSWORD: android
   TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
 
 jobs:
-  validate-build:
+  build-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - name: Checkout Amy FX Pro
         uses: actions/checkout@v4
@@ -48,6 +60,7 @@ jobs:
           python3 -m json.tool update.json >/dev/null
           grep -Fq '"latest_version_code": 950316' update.json
           grep -Fq '"latest_version_name": "2.0.0-pro.316"' update.json
+          grep -Fq 'amyfx-pro-2.0.0-pro.316/AmyFX-Pro-latest.apk' update.json
 
       - name: Run JavaScript regression suite
         run: npm test
@@ -65,19 +78,77 @@ jobs:
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Try Preview signing-key continuity
+        id: preview-key
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: amy-fx-debug-keystore-v1
+
+      - name: Restore Amy FX Pro signing key
+        id: pro-key
+        if: steps.preview-key.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/amyfx-pro.keystore
+          key: amy-fx-pro-signing-key-v1
+
+      - name: Prepare persistent signing identity
+        id: signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android"
+          if [ "${{ steps.preview-key.outputs.cache-hit }}" = "true" ]; then
+            cp "$HOME/.android/debug.keystore" "$AMYFX_KEYSTORE_PATH"
+            echo 'AMYFX_KEY_ALIAS=androiddebugkey' >> "$GITHUB_ENV"
+            echo 'mode=preview-continuity' >> "$GITHUB_OUTPUT"
+          else
+            if [ "${{ steps.pro-key.outputs.cache-hit }}" != "true" ]; then
+              keytool -genkeypair \
+                -keystore "$HOME/.android/amyfx-pro.keystore" \
+                -storepass "$AMYFX_KEYSTORE_PASSWORD" \
+                -alias amyfxpro \
+                -keypass "$AMYFX_KEY_PASSWORD" \
+                -dname 'CN=Amy FX Pro, O=Amy FX, C=ID' \
+                -keyalg RSA -keysize 2048 -validity 10000
+              echo 'generated=true' >> "$GITHUB_OUTPUT"
+            fi
+            cp "$HOME/.android/amyfx-pro.keystore" "$AMYFX_KEYSTORE_PATH"
+            echo 'AMYFX_KEY_ALIAS=amyfxpro' >> "$GITHUB_ENV"
+            echo 'mode=pro-signer' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save new Amy FX Pro signing key
+        if: steps.signing.outputs.generated == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.android/amyfx-pro.keystore
+          key: amy-fx-pro-signing-key-v1
+
+      - name: Verify signing identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(keytool -list -v -keystore "$AMYFX_KEYSTORE_PATH" -storepass "$AMYFX_KEYSTORE_PASSWORD" -alias "$AMYFX_KEY_ALIAS" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1)"
+          test -n "$actual"
+          echo "AMYFX_SIGNING_CERT_SHA256=$actual" >> "$GITHUB_ENV"
+          echo "Signing mode: ${{ steps.signing.outputs.mode }}"
+          echo "Signing certificate SHA-256: $actual"
+          if [ "${{ steps.signing.outputs.mode }}" = 'preview-continuity' ]; then
+            test "$actual" = '47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7'
+          fi
+
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Run Android unit tests
-        run: ./gradlew testReleaseUnitTest --no-configuration-cache
+      - name: Android tests and lint
+        run: ./gradlew testReleaseUnitTest lintRelease --no-configuration-cache
 
-      - name: Run Android lint
-        run: ./gradlew lintRelease --no-configuration-cache
-
-      - name: Build release APK
+      - name: Build signed release APK
         run: ./gradlew assembleRelease --no-configuration-cache --stacktrace
 
-      - name: Verify APK identity
+      - name: Verify APK identity and signer
         shell: bash
         run: |
           set -euo pipefail
@@ -85,15 +156,65 @@ jobs:
           test -n "$apk"
           test -s "$apk"
           aapt="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$aapt" dump badging "$apk" | tee /tmp/amyfx-pro-badging.txt
           grep -Fq "package: name='${AMYFX_APPLICATION_ID}' versionCode='${AMYFX_VERSION_CODE}' versionName='${AMYFX_VERSION_NAME}'" /tmp/amyfx-pro-badging.txt
           grep -Fq "application-label:'${AMYFX_APP_LABEL}'" /tmp/amyfx-pro-badging.txt
-          mkdir -p dist
-          cp "$apk" dist/AmyFX-Pro-${AMYFX_VERSION_NAME}.apk
+          "$apksigner" verify --verbose --print-certs "$apk" | tee /tmp/amyfx-pro-signing.txt
+          expected="$(echo "$AMYFX_SIGNING_CERT_SHA256" | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          actual="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' /tmp/amyfx-pro-signing.txt | head -n1 | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          test "$actual" = "$expected"
+          cp "$apk" AmyFX-Pro-latest.apk
+          sha256sum AmyFX-Pro-latest.apk | tee AmyFX-Pro-latest.apk.sha256
 
-      - name: Upload validation APK artifact
+      - name: Publish Amy FX Pro release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/amyfx-pro-release-notes.md <<NOTES
+          Amy FX Pro $AMYFX_VERSION_NAME
+
+          - Baseline utama dipromosikan dari Amy FX Preview 2.0.0-preview.316.
+          - Mapping Amy-SMC-D dan kontrak closed-candle/no-future-data dari Preview dipertahankan.
+          - Package lineage Preview dipertahankan untuk kompatibilitas data/Firebase.
+          - Update channel resmi: Amy-fx-pro/main/update.json.
+          - Signing mode: ${{ steps.signing.outputs.mode }}.
+          - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
+          NOTES
+          if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$AMYFX_RELEASE_TAG" \
+              AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 \
+              --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$AMYFX_RELEASE_TAG" \
+              AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "Amy FX Pro $AMYFX_VERSION_NAME" \
+              --notes-file /tmp/amyfx-pro-release-notes.md \
+              --latest
+          fi
+          gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'AmyFX-Pro-latest.apk'
+
+      - name: Verify published APK endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${AMYFX_RELEASE_TAG}/AmyFX-Pro-latest.apk"
+          curl -fL --retry 4 --retry-delay 3 -o /tmp/AmyFX-Pro-published.apk "$url"
+          test -s /tmp/AmyFX-Pro-published.apk
+          expected="$(sha256sum AmyFX-Pro-latest.apk | awk '{print $1}')"
+          actual="$(sha256sum /tmp/AmyFX-Pro-published.apk | awk '{print $1}')"
+          test "$actual" = "$expected"
+
+      - name: Upload signed Pro artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Amy-FX-Pro-${{ env.AMYFX_VERSION_NAME }}-validation-apk
-          path: dist/AmyFX-Pro-${{ env.AMYFX_VERSION_NAME }}.apk
+          name: Amy-FX-Pro-${{ env.AMYFX_VERSION_NAME }}-signed
+          path: |
+            AmyFX-Pro-latest.apk
+            AmyFX-Pro-latest.apk.sha256
           if-no-files-found: error
+          retention-days: 30
