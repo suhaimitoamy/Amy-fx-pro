@@ -15,7 +15,7 @@ test('Preview loads the production execution authority after its detailed Scalpe
   assert.ok(decision > authority, 'execution decision bridge must load after authority');
 });
 
-test('Preview keeps its richer multi-setup Scalper detail', () => {
+test('Preview keeps its richer multi-setup Scalper detail and Pro Vault history', () => {
   const source = read('app/src/main/assets/apps/mapping/js/scalper-entry-watch-v1.js');
   for (const marker of [
     'displaySelectedSetupId',
@@ -25,9 +25,11 @@ test('Preview keeps its richer multi-setup Scalper detail', () => {
     'TP1 +10',
     'TP2 +20',
     'Setup aktif lainnya',
-    'Riwayat setup permanen'
+    'Riwayat permanen',
+    'SCALPER VAULT · ALL TIME',
+    'Win Rate'
   ]) {
-    assert.ok(source.includes(marker), `Preview detail marker missing: ${marker}`);
+    assert.ok(source.includes(marker), `Preview/Pro detail marker missing: ${marker}`);
   }
   assert.doesNotMatch(source, /setInterval|visibilitychange|focusHash|scrollIntoView/);
 });
