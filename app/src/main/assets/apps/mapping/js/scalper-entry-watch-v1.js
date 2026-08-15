@@ -1,14 +1,24 @@
 import { reconcileScalperPayload, scalperFreshness, scalperPayloadSignature } from './scalper-shadow-state.js';
+import {
+  SCALPER_VAULT_SCHEMA_VERSION,
+  loadScalperVault,
+  mergeScalperHistory,
+  persistScalperVault,
+  readLegacyScalperHistory,
+  scalperVaultStats
+} from './scalper-vault.js';
 
 const CARD_ID = 'amy-scalper-entry-watch';
 const ENDPOINT = 'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/scalper-setups';
-const HISTORY_STORAGE_KEY = 'amyfx.preview.scalper.permanent-history.v1';
+const HISTORY_PAGE_SIZE = 100;
 let signature = '';
 let lastValidPayload = null;
 let requestSequence = 0;
 let requestController = null;
 let started = false;
 let displaySelectedSetupId = '';
+let historyVisibleLimit = HISTORY_PAGE_SIZE;
+let vaultNotice = '';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -71,7 +81,7 @@ function instruction(setup) {
   if (setup.status === 'WAITING_TRIGGER') return 'Menunggu syarat trigger driver terpenuhi pada candle yang sudah close.';
   if (setup.status === 'WAITING_NEXT_OPEN' || setup.status === 'ENTRY_READY') return 'Menunggu open live berikutnya untuk mengunci entry, Stop Loss, TP1, dan TP2.';
   if (setup.status === 'ACTIVE' && setup.tp1Hit === true) return `${driver(setup)} ${timeframe(setup)} sudah mencapai TP1 +10 poin. Stop Loss tetap pada level awal; menunggu TP2 +20 poin.`;
-  if (setup.status === 'ACTIVE') return `${driver(setup)} ${timeframe(setup)} aktif dalam simulasi Preview. Target tetap TP1 +10 dan TP2 +20 poin; tanpa perpindahan breakeven otomatis.`;
+  if (setup.status === 'ACTIVE') return `${driver(setup)} ${timeframe(setup)} aktif dalam simulasi Scalper Engine. Target tetap TP1 +10 dan TP2 +20 poin; tanpa perpindahan breakeven otomatis.`;
   if (setup.status === 'BE_ACTIVE') return 'Status breakeven ini berasal dari lifecycle engine lama dan hanya ditampilkan sebagai riwayat.';
   if (setup.status === 'TIME_EXIT') return `Batas waktu setup selesai. Hasil simulasi ${resultR(setup.resultR)}.`;
   if (setup.status === 'TP_HIT') return 'TP2 tercapai pada simulasi Scalper Engine.';
@@ -88,38 +98,64 @@ function setupIdFromLocation() {
   try { return decodeURIComponent(encoded || ''); } catch (_) { return encoded || ''; }
 }
 
+function payloadHistory(payload) {
+  return Array.isArray(payload?.history)
+    ? payload.history
+    : Array.isArray(payload?.recent)
+      ? payload.recent
+      : [];
+}
+
+function withVaultHistory(payload, vaultHistory) {
+  const history = mergeScalperHistory(vaultHistory, payloadHistory(payload));
+  if (!history.length) return payload;
+  const base = payload?.ok === true
+    ? payload
+    : {
+        ok: true,
+        mode: 'pro_simulation',
+        generatedAt: new Date(0).toISOString(),
+        primary: null,
+        selected: null,
+        active: [],
+        engine: null,
+        persisted: true
+      };
+  return {
+    ...base,
+    history,
+    recent: history,
+    historyCount: Math.max(Number(base.historyCount || 0), history.length),
+    persisted: base.persisted === true || !base.engine
+  };
+}
+
 function storedPayload() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '{}');
-    const history = Array.isArray(parsed?.history) ? parsed.history : [];
-    if (!history.length) return null;
-    return {
-      ok: true,
-      mode: 'preview_simulation',
-      generatedAt: parsed.generatedAt || new Date(0).toISOString(),
-      primary: null,
-      selected: null,
-      active: [],
-      history,
-      recent: history,
-      historyCount: history.length,
-      engine: null,
-      persisted: true
-    };
-  } catch (_) {
-    return null;
-  }
+  const history = readLegacyScalperHistory();
+  if (!history.length) return null;
+  return {
+    ok: true,
+    mode: 'pro_simulation',
+    generatedAt: new Date(0).toISOString(),
+    primary: null,
+    selected: null,
+    active: [],
+    history,
+    recent: history,
+    historyCount: history.length,
+    engine: null,
+    persisted: true
+  };
 }
 
 function persistPayload(payload) {
-  const history = Array.isArray(payload?.history) ? payload.history : Array.isArray(payload?.recent) ? payload.recent : [];
+  const history = payloadHistory(payload);
   if (!history.length) return;
-  try {
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify({
-      generatedAt: payload.generatedAt || new Date().toISOString(),
-      history
-    }));
-  } catch (_) {}
+  void persistScalperVault(history, payload?.generatedAt || new Date().toISOString())
+    .then(result => {
+      window.AmyFXScalperVaultPersistence = Object.freeze({ ...result, updatedAt: Date.now() });
+    })
+    .catch(() => {});
 }
 
 function mini(setup, primaryId, displayId) {
@@ -136,7 +172,7 @@ function mini(setup, primaryId, displayId) {
 function resolveDisplay(payload) {
   const all = [
     ...(payload?.active || []),
-    ...(payload?.history || payload?.recent || []),
+    ...payloadHistory(payload),
     payload?.selected
   ].filter(Boolean);
   const selected = displaySelectedSetupId
@@ -147,13 +183,37 @@ function resolveDisplay(payload) {
   return payload?.primary || payload?.active?.[0] || null;
 }
 
+function vaultSummary(history) {
+  const stats = scalperVaultStats(history);
+  const winRate = stats.winRate == null ? '-' : `${stats.winRate.toFixed(1)}%`;
+  const netR = stats.netR == null ? '-' : resultR(stats.netR);
+  return `<div class="scalper-vault" data-scalper-vault="all-time">
+    <div class="scalper-vault__head"><div><div class="kicker">SCALPER VAULT · ALL TIME</div><strong>Statistik tersimpan permanen</strong></div><span>${stats.archiveCount} setup</span></div>
+    <div class="scalper-vault__primary">
+      <div><small>Total Trade</small><strong>${stats.totalTrades}</strong></div>
+      <div><small>Win</small><strong>${stats.wins}</strong></div>
+      <div><small>Loss</small><strong>${stats.losses}</strong></div>
+      <div><small>Win Rate</small><strong>${winRate}</strong></div>
+    </div>
+    <div class="scalper-vault__secondary">
+      <span>BE <b>${stats.breakeven}</b></span><span>Net R <b>${netR}</b></span><span>Invalid/Batal <b>${stats.excludedSetups}</b></span>
+    </div>
+    <p class="scalper-vault__formula">WR = Win ÷ (Win + Loss). Breakeven, invalidated, dan cancelled tidak masuk perhitungan WR.</p>
+    ${vaultNotice ? `<p class="scalper-vault__notice">${esc(vaultNotice)}</p>` : ''}
+    <div class="scalper-vault__actions">
+      <button type="button" data-scalper-vault-export="true">Backup JSON</button>
+      <button type="button" data-scalper-vault-import="true">Pulihkan Backup</button>
+      <input type="file" accept="application/json,.json" data-scalper-vault-import-file="true" hidden>
+    </div>
+  </div>`;
+}
+
 function card(payload, availability, error = '') {
   const active = Array.isArray(payload?.active) ? payload.active : [];
-  const history = Array.isArray(payload?.history)
-    ? payload.history
-    : Array.isArray(payload?.recent)
-      ? payload.recent
-      : [];
+  const history = payloadHistory(payload);
+  const stats = scalperVaultStats(history);
+  const visibleHistory = history.slice(0, historyVisibleLimit);
+  const remainingHistory = Math.max(0, history.length - visibleHistory.length);
   const primary = payload?.primary || active[0] || null;
   const setup = resolveDisplay(payload);
   const others = active.filter(item => item.id !== setup?.id);
@@ -177,22 +237,26 @@ function card(payload, availability, error = '') {
     ? ''
     : `<p class="scalper-watch__availability">${esc(
       availability === 'STALE'
-        ? 'Data engine stale. Riwayat permanen terakhir tetap ditampilkan.'
+        ? 'Data engine stale. Scalper Vault terakhir tetap ditampilkan.'
         : availability === 'STORED'
-          ? 'Backend belum dapat dibaca. Riwayat permanen di perangkat tetap ditampilkan.'
-          : `Riwayat permanen terakhir tetap ditampilkan.${error ? ` ${error}` : ''}`
+          ? 'Backend belum dapat dibaca. Scalper Vault di perangkat tetap ditampilkan.'
+          : `Scalper Vault terakhir tetap ditampilkan.${error ? ` ${error}` : ''}`
     )}</p>`;
   const reset = setup && primary && setup.id !== primary.id
     ? '<button type="button" class="scalper-return-primary" data-scalper-return-primary="true">Kembali ke setup utama</button>'
+    : '';
+  const loadMore = remainingHistory > 0
+    ? `<button type="button" class="scalper-history-more" data-scalper-history-more="true">Muat ${Math.min(HISTORY_PAGE_SIZE, remainingHistory)} lagi · tersisa ${remainingHistory}</button>`
     : '';
 
   return `<section id="${CARD_ID}" class="card scalper-watch scalper-watch--${tone(setup)}" data-scalper-mode="shadow" data-scalper-availability="${esc(availability)}">
     <div class="scalper-watch__head"><div><div class="kicker">SCALPER ENGINE · SHADOW MODE</div><h2>${esc(title)}</h2></div><span class="scalper-watch__badge">${esc(badge)}</span></div>
     <div class="scalper-watch__notice">SIMULASI — tidak mengeksekusi, memindahkan, atau menutup order broker otomatis.</div>
     ${availabilityNote}
+    ${vaultSummary(history)}
     ${setup ? `<div class="scalper-summary"><div><span>Driver</span><strong>${esc(driver(setup))}</strong></div><div><span>Timeframe</span><strong>${esc(timeframe(setup))}</strong></div><div><span>HTF Bias</span><strong>${esc(setup.htfBias || 'WAIT')}</strong></div><div><span>Lifecycle</span><strong>${esc(status(setup.status))}</strong></div></div>${levels}${stopBasis}${reason}<p class="scalper-watch__instruction">${esc(instruction(setup))}</p>${reset}` : '<p class="scalper-watch__instruction"></p>'}
     ${others.length ? `<div class="scalper-watch__section"><h3>Setup aktif lainnya (${others.length})</h3><div class="scalper-active-list">${others.map(item => mini(item, primary?.id, setup?.id)).join('')}</div></div>` : ''}
-    ${history.length ? `<details class="scalper-watch__recent"${displaySelectedSetupId ? ' open' : ''}><summary>Riwayat setup permanen (${history.length})</summary>${history.map(item => mini(item, primary?.id, setup?.id)).join('')}</details>` : ''}
+    ${history.length ? `<details class="scalper-watch__recent"${displaySelectedSetupId ? ' open' : ''}><summary>Riwayat permanen (${stats.totalTrades} trade · ${history.length} setup)</summary>${visibleHistory.map(item => mini(item, primary?.id, setup?.id)).join('')}${loadMore}</details>` : ''}
   </section>`;
 }
 
@@ -217,8 +281,73 @@ function ensureCard() {
   return existing;
 }
 
+function currentArchive() {
+  return mergeScalperHistory(payloadHistory(lastValidPayload));
+}
+
+function downloadVaultBackup() {
+  const history = currentArchive();
+  const backup = {
+    app: 'Amy FX Pro',
+    type: 'scalper-vault-backup',
+    schemaVersion: SCALPER_VAULT_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    stats: scalperVaultStats(history),
+    history
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const href = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 10);
+  link.href = href;
+  link.download = `AmyFX-Pro-Scalper-Vault-${stamp}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 1000);
+  vaultNotice = `Backup dibuat: ${history.length} setup permanen.`;
+  signature = '';
+  render(lastValidPayload, scalperFreshness(lastValidPayload));
+}
+
+async function restoreVaultBackup(file) {
+  try {
+    const parsed = JSON.parse(await file.text());
+    const imported = mergeScalperHistory(
+      Array.isArray(parsed?.history) ? parsed.history : [],
+      Array.isArray(parsed?.setups) ? parsed.setups : []
+    );
+    if (!imported.length) throw new Error('Backup tidak berisi riwayat Scalper yang valid.');
+    const merged = mergeScalperHistory(currentArchive(), imported);
+    await persistScalperVault(merged);
+    lastValidPayload = withVaultHistory(lastValidPayload, merged);
+    historyVisibleLimit = HISTORY_PAGE_SIZE;
+    vaultNotice = `Backup dipulihkan: ${imported.length} setup dibaca, ${merged.length} setup tersimpan total.`;
+    signature = '';
+    render(lastValidPayload, lastValidPayload?.engine ? scalperFreshness(lastValidPayload) : 'STORED');
+  } catch (error) {
+    vaultNotice = `Gagal memulihkan backup: ${error?.message || error}`;
+    signature = '';
+    render(lastValidPayload, lastValidPayload?.engine ? scalperFreshness(lastValidPayload) : 'STORED');
+  }
+}
+
 function bindInteractions(node) {
   node.addEventListener('click', event => {
+    if (event.target.closest('[data-scalper-vault-export]')) {
+      downloadVaultBackup();
+      return;
+    }
+    if (event.target.closest('[data-scalper-vault-import]')) {
+      node.querySelector('[data-scalper-vault-import-file]')?.click();
+      return;
+    }
+    if (event.target.closest('[data-scalper-history-more]')) {
+      historyVisibleLimit += HISTORY_PAGE_SIZE;
+      signature = '';
+      render(lastValidPayload, scalperFreshness(lastValidPayload));
+      return;
+    }
     const select = event.target.closest('[data-scalper-select-id]');
     if (select) {
       displaySelectedSetupId = select.dataset.scalperSelectId || '';
@@ -232,12 +361,19 @@ function bindInteractions(node) {
       render(lastValidPayload, scalperFreshness(lastValidPayload));
     }
   });
+  node.addEventListener('change', event => {
+    const input = event.target.closest('[data-scalper-vault-import-file]');
+    if (!input) return;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) void restoreVaultBackup(file);
+  });
 }
 
 function render(payload, availability, error = '') {
   const existing = ensureCard();
   if (!existing) return false;
-  const nextSignature = `${scalperPayloadSignature(payload, availability)}:${displaySelectedSetupId}`;
+  const nextSignature = `${scalperPayloadSignature(payload, availability)}:${displaySelectedSetupId}:${historyVisibleLimit}:${vaultNotice}`;
   if (nextSignature === signature) return false;
   const template = document.createElement('template');
   template.innerHTML = card(payload, availability, error).trim();
@@ -255,6 +391,7 @@ function render(payload, availability, error = '') {
     error,
     availability,
     displaySelectedSetupId,
+    vault: scalperVaultStats(payloadHistory(payload)),
     updatedAt: Date.now()
   });
   window.dispatchEvent(new CustomEvent('amyfx:scalper-state-change', { detail: window.AmyFXScalperState }));
@@ -293,6 +430,19 @@ async function sync() {
   }
 }
 
+async function hydrateVault() {
+  try {
+    const archive = await loadScalperVault();
+    if (!archive.length) return false;
+    lastValidPayload = withVaultHistory(lastValidPayload, archive);
+    persistPayload(lastValidPayload);
+    signature = '';
+    return render(lastValidPayload, lastValidPayload?.engine ? scalperFreshness(lastValidPayload) : 'STORED');
+  } catch (_) {
+    return false;
+  }
+}
+
 function consumeNotificationSelection() {
   const selectedId = setupIdFromLocation();
   if (selectedId) displaySelectedSetupId = selectedId;
@@ -309,6 +459,7 @@ function start() {
   const cardNode = ensureCard();
   if (cardNode) bindInteractions(cardNode);
   if (lastValidPayload) render(lastValidPayload, 'STORED');
+  void hydrateVault();
   sync();
   window.addEventListener('hashchange', consumeNotificationSelection);
 }
