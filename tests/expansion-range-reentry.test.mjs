@@ -51,6 +51,6 @@ test('Scalper Engine registers Expansion Range Re-entry V3 without changing the 
   }
 
   assert.ok(engine.includes("from './expansion-range-lifecycle.mjs'"));
-  assert.match(gradle, /versionCode\s*=.*950319/);
-  assert.match(gradle, /2\.0\.0-pro\.319/);
+  assert.match(gradle, /versionCode\s*=.*950320/);
+  assert.match(gradle, /2\.0\.0-pro\.320/);
 });
