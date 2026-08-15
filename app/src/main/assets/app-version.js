@@ -1,14 +1,14 @@
-// Amy FX Preview 316 — canonical Amy-SMC-D closed-candle Mapping engine.
+// Amy FX Pro — based on Amy FX Preview 316 canonical Amy-SMC-D closed-candle Mapping engine.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-preview.316', code: 940316 });
+  const VERSION = Object.freeze({ name: '2.0.0-pro.316', code: 950316 });
   window.AmyFXAppVersion = VERSION;
-  window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/personal/amyfx-private/preview-update.json';
+  window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
   function displayVersionName(name) {
-    return String(name || '').replace(/-preview(?:\.|-)?/i, ' · build ');
+    return String(name || '').replace(/-pro(?:\.|-)?/i, ' · build ');
   }
 
   function versionText() {
-    return `Amy FX · v${displayVersionName(VERSION.name)} · Kode ${VERSION.code}`;
+    return `Amy FX Pro · v${displayVersionName(VERSION.name)} · Kode ${VERSION.code}`;
   }
 
   function injectVersionRow() {
@@ -38,7 +38,7 @@
       window.AmyFXUpdate.checkNow({ announce: true });
       return;
     }
-    window.showToast?.(`Versi terpasang: Amy FX v${displayVersionName(VERSION.name)} (${VERSION.code}). Pemeriksa update sedang dimuat.`);
+    window.showToast?.(`Versi terpasang: Amy FX Pro v${displayVersionName(VERSION.name)} (${VERSION.code}). Pemeriksa update sedang dimuat.`);
     setTimeout(() => window.AmyFXUpdate?.checkNow?.({ announce: true }), 800);
   }
 
