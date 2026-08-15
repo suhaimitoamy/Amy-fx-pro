@@ -48,37 +48,36 @@ test('native secret vault never exposes a secret getter to WebView', async () =>
   for (const host of ['generativelanguage.googleapis.com', 'openrouter.ai', 'api.deepseek.com']) assert.match(bridge, new RegExp(host.replaceAll('.', '\\.')));
 });
 
-test('private Preview release remains isolated from production main', async () => {
-  const workflow = await read('.github/workflows/amyfx-blueprint-preview-release.yml');
+test('Pro release promotes Preview lineage into the Amy-fx-pro main channel', async () => {
+  const workflow = await read('.github/workflows/build-apk.yml');
   const appVersion = await read('app/src/main/assets/app-version.js');
-  const identity = appVersion.match(/name: '(2\.0\.0-preview\.\d+)', code: (94\d{4})/);
-  assert.ok(identity, 'current Preview identity must be readable from app-version.js');
+  const identity = appVersion.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
+  assert.ok(identity, 'current Pro identity must be readable from app-version.js');
 
-  assert.match(workflow, /personal\/amyfx-private/);
+  const [, versionName, sequenceText, versionCodeText] = identity;
+  assert.equal(Number(versionCodeText), 950000 + Number(sequenceText));
+  assert.equal(versionName, `2.0.0-pro.${sequenceText}`);
+
+  assert.match(workflow, /branches:\s*\n\s*- main/);
   assert.match(workflow, /com\.amyelitesuite\.learningpreview/);
-  assert.match(workflow, /Amy FX Preview/);
+  assert.match(workflow, /Amy FX Pro/);
   assert.match(workflow, /amyfxpreview/);
-  assert.match(workflow, /app\/src\/main\/assets\/app-version\.js/);
-  assert.match(workflow, /AMYFX_VERSION_NAME=\$version_name/);
-  assert.match(workflow, /AMYFX_VERSION_CODE=\$version_code/);
-  assert.match(workflow, /version_code != 940000 \+ sequence/);
-  assert.doesNotMatch(workflow, /AMYFX_VERSION_NAME:\s*2\.0\.0-preview\.\d+/);
-  assert.doesNotMatch(workflow, /AMYFX_VERSION_CODE:\s*["']?94\d{4}/);
-  assert.match(workflow, /test "\$version_code" -gt "\$published_code"/);
-  assert.match(workflow, /PYTHONDONTWRITEBYTECODE: "1"/);
-  assert.doesNotMatch(workflow, /python3 -m py_compile/);
-  assert.match(workflow, /preview-update\.json/);
-  assert.doesNotMatch(workflow, /git push origin (?:HEAD:)?main/);
-  assert.doesNotMatch(workflow, /refs\/heads\/main/);
+  assert.match(workflow, /Amy-fx-pro\/main\/update\.json/);
+  assert.match(workflow, /AMYFX_VERSION_NAME:\s*"2\.0\.0-pro\.316"/);
+  assert.match(workflow, /AMYFX_VERSION_CODE:\s*"950316"/);
+  assert.match(workflow, /amyfx-pro-2\.0\.0-pro\.316/);
+  assert.match(workflow, /gh release create/);
+  assert.doesNotMatch(workflow, /git push origin (?:HEAD:)?personal\/amyfx-private/);
+  assert.doesNotMatch(workflow, /raw\.githubusercontent\.com\/suhaimitoamy\/Amy-fx\/main\/update\.json/);
 });
 
-test('blueprint assets are non-empty and syntax checked by release gate', async () => {
+test('blueprint assets are non-empty and syntax checked by Pro release gate', async () => {
   const jsStat = await stat(new URL('app/src/main/assets/apps/shared/amyfx-blueprint-v1.js', root));
   const cssStat = await stat(new URL('app/src/main/assets/apps/shared/amyfx-blueprint-v1.css', root));
   assert.ok(jsStat.size > 20_000);
   assert.ok(cssStat.size > 2_000);
-  const workflow = await read('.github/workflows/amyfx-blueprint-preview-release.yml');
-  assert.match(workflow, /node --check app\/src\/main\/assets\/apps\/shared\/amyfx-blueprint-v1\.js/);
+  const workflow = await read('.github/workflows/build-apk.yml');
+  assert.match(workflow, /node --check app\/src\/main\/assets\/app-version\.js/);
   assert.match(workflow, /testReleaseUnitTest/);
   assert.match(workflow, /lintRelease/);
   assert.match(workflow, /assembleRelease/);
