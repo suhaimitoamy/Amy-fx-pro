@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="css/entry-watch.css">
 <link rel="stylesheet" href="css/execution-plan.css">
 <link rel="stylesheet" href="css/scalper-entry-watch.css">
+<link rel="stylesheet" href="css/scalper-navigation-separation.css">
 <link rel="stylesheet" href="css/mapping-v2.css">
 <link rel="stylesheet" href="css/analysis-compact.css">
 <link rel="stylesheet" href="css/five-issues-fix.css">
@@ -52,7 +53,7 @@
     var app = document.getElementById('app');
     if (!app || app.children.length || app.textContent.trim()) return;
     var message = window.__amyMappingStartupError || 'Analisis market belum berhasil dimuat.';
-    app.innerHTML = '<section class="card"><div class="kicker">PEMULIHAN DATA</div><h2>Memuat ulang analisis</h2><p class="muted">' + String(message).replace(/[&<>"']/g, function (char) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]; }) + '</p><button class="action" style="width:100%" onclick="location.reload()">Muat Ulang</button></section>';
+    app.innerHTML = '<section class="card"><div class="kicker">PEMULIHAN DATA</div><h2>Memuat ulang analisis</h2><p class="muted">' + String(message).replace(/[&<>"']/g, function (char) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'})[char]; }) + '</p><button class="action" style="width:100%" onclick="location.reload()">Muat Ulang</button></section>';
   }, 3500);
 })();
 </script>
@@ -62,7 +63,7 @@
 <header class="topbar"><a class="mapping-back" href="../../index.html" aria-label="Kembali ke Amy FX"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a><div class="brand" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><path d="M9 3v15M15 6v15"></path></svg></div><div><div class="brand-title">Mapping</div><div class="brand-sub">Struktur • Arah • Likuiditas</div></div><div id="conn" class="status" aria-label="Status Mapping">●</div></header>
 <section id="mapping-command-strip" class="amy-command-strip mapping-command-strip" aria-label="Ringkasan market"></section>
 <main class="content" id="app"></main>
-<nav class="nav"><button data-tab="Dashboard" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg><span>Dashboard</span></button><button data-tab="Analyze"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18M5 15l4-5 4 3 6-8"></path></svg><span>Analisis</span></button></nav>
+<nav class="nav"><button data-tab="Dashboard" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg><span>Dashboard</span></button><button data-tab="Analyze"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18M5 15l4-5 4 3 6-8"></path></svg><span>Analisis</span></button><a href="scalper-stats.html" aria-label="Buka riwayat dan statistik Scalper"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path><path d="M4 7l6-4 6 6 5-4"></path></svg><span>Riwayat</span></a></nav>
 <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
 <script src="js/api-request-coordinator.js"></script>
 <script type="module" src="js/api/closed-candle-response-sanitizer.js"></script>
