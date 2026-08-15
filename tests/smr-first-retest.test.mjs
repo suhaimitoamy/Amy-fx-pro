@@ -80,5 +80,6 @@ test('SMR evaluator adds accepted telemetry without generic post-hoc pattern gat
   const evaluation = evaluateSmrFirstRetestCandidates({ series: { M5: m5, D1: d1 }, nowSeconds: m5[30].close_time, maxSignalAgeSeconds: 3600 });
   assert.equal(evaluation.raw_count, evaluation.candidates.length);
   assert.equal(evaluation.rejected_count, 0);
-  assert.ok(evaluation.telemetry.every(item => item.gate === 'SMR_BT09F_LOCKED' && item.accepted === true));
+  assert.ok(evaluation.telemetry.every(item => item.gate_id === 'SMR_BT09F_LOCKED' && item.accepted === true));
+  assert.ok(evaluation.telemetry.every(item => item.base_config_version && item.repair_config_version));
 });
