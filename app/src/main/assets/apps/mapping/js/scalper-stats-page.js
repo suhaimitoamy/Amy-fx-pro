@@ -18,6 +18,7 @@ let visibleLimit = PAGE_SIZE;
 let notice = '';
 let sourceState = 'LOCAL';
 let syncing = false;
+let expandedMethod = '';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -37,7 +38,21 @@ const driver = setup => setup?.driverName
   || setup?.methodName
   || setup?.entryMethod
   || setup?.patternName
-  || (setup?.model === 'IFVG_SCALPER' ? 'IFVG LEGACY' : String(setup?.model || 'SCALPER ENGINE').replaceAll('_', ' '));
+  || String(setup?.model || 'SCALPER ENGINE').replaceAll('_', ' ');
+
+function isLegacyIfvg(setup) {
+  const model = String(setup?.model || '').trim().toUpperCase();
+  const driverId = String(setup?.driverId || setup?.driver_id || '').trim().toUpperCase();
+  const name = String(driver(setup) || '').trim().toUpperCase();
+  return model === 'IFVG_SCALPER'
+    || driverId === 'IFVG'
+    || name === 'IFVG'
+    || name === 'IFVG LEGACY';
+}
+
+function visibleArchive() {
+  return archive.filter(setup => !isLegacyIfvg(setup));
+}
 
 const statusLabel = value => ({
   TP_HIT: 'TP HIT',
@@ -88,8 +103,9 @@ function outcomeLabel(setup) {
 }
 
 function filteredArchive() {
-  if (filter === 'ALL') return archive;
-  return archive.filter(setup => outcomeLabel(setup).key === filter);
+  const active = visibleArchive();
+  if (filter === 'ALL') return active;
+  return active.filter(setup => outcomeLabel(setup).key === filter);
 }
 
 function methodPerformance(history) {
@@ -103,8 +119,13 @@ function methodPerformance(history) {
   return [...grouped.entries()].map(([name, setups]) => {
     const stats = scalperVaultStats(setups);
     const decisive = Number(stats.wins || 0) + Number(stats.losses || 0);
+    const trades = setups
+      .filter(setup => ['WIN', 'LOSS', 'BE'].includes(outcomeLabel(setup).key))
+      .sort((a, b) => setupTimestamp(b) - setupTimestamp(a));
     return {
       name,
+      setups,
+      trades,
       archiveCount: Number(stats.archiveCount || setups.length),
       totalTrades: Number(stats.totalTrades || 0),
       wins: Number(stats.wins || 0),
@@ -123,12 +144,40 @@ function methodPerformance(history) {
   );
 }
 
+function methodTradeItem(setup, index) {
+  const outcome = outcomeLabel(setup);
+  const tf = setup?.timeframe || 'M15';
+  const direction = setup?.direction || 'WAIT';
+  return `<div class="stats-method-trade stats-method-trade--${outcome.className || 'neutral'}">
+    <div class="stats-method-trade-head">
+      <div><strong>Trade #${index + 1}</strong><small>${esc(tf)} · ${esc(direction)} · ${esc(witaTime(setup))} WITA</small></div>
+      <span class="stats-outcome ${outcome.className}">${esc(outcome.label)}${Number.isFinite(Number(setup?.resultR)) ? ` · ${esc(resultR(setup.resultR))}` : ''}</span>
+    </div>
+    <div class="stats-method-trade-grid">
+      <div><small>Entry</small><strong>${price(setup?.entry)}</strong></div>
+      <div><small>SL</small><strong>${price(setup?.stopLoss)}</strong></div>
+      <div><small>TP1</small><strong>${price(setup?.tp1 ?? setup?.breakEvenTrigger)}</strong></div>
+      <div><small>TP2</small><strong>${price(setup?.tp2 ?? setup?.target)}</strong></div>
+    </div>
+    <div class="stats-method-trade-meta"><span>${esc(statusLabel(setup?.status))}</span><span>${esc(String(setup?.id || '').slice(-10) || '-')}</span></div>
+  </div>`;
+}
+
+function methodTradesPanel(method) {
+  return `<div class="stats-method-trades" data-method-trades-panel>
+    <div class="stats-method-trades-head"><div><div class="kicker">SEMUA TRADE METODE</div><strong>${esc(method.name)}</strong></div><span>${method.trades.length} trade</span></div>
+    <div class="stats-method-trade-list">${method.trades.map(methodTradeItem).join('') || '<div class="stats-empty">Belum ada trade selesai untuk metode ini.</div>'}</div>
+  </div>`;
+}
+
 function methodCard(method, index) {
   const winRate = method.winRate == null ? '-' : `${method.winRate.toFixed(1)}%`;
   const lossRate = method.lossRate == null ? '-' : `${method.lossRate.toFixed(1)}%`;
   const netR = method.netR == null ? '-' : resultR(method.netR);
   const priority = index === 0 && method.losses > 0;
-  return `<article class="stats-method-card${priority ? ' is-priority' : ''}">
+  const open = expandedMethod === method.name;
+  const methodToken = encodeURIComponent(method.name);
+  return `<article class="stats-method-card${priority ? ' is-priority' : ''}${open ? ' is-open' : ''}" role="button" tabindex="0" aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Tutup' : 'Buka'} semua trade ${esc(method.name)}" data-method-card="${esc(methodToken)}">
     <div class="stats-method-head">
       <div><span class="stats-method-rank">#${index + 1}</span><strong>${esc(method.name)}</strong></div>
       ${priority ? '<span class="stats-method-priority">PRIORITAS EVALUASI</span>' : `<span class="stats-method-sample">${method.archiveCount} setup</span>`}
@@ -142,6 +191,8 @@ function methodCard(method, index) {
       <div><small>Net R</small><strong>${netR}</strong></div>
     </div>
     <div class="stats-method-foot"><span>Loss rate <b>${lossRate}</b></span><span>Invalid/Batal <b>${method.excluded}</b></span></div>
+    <div class="stats-method-open-hint"><span>${open ? 'Tutup daftar trade' : 'Ketuk untuk lihat semua trade'}</span><b aria-hidden="true">${open ? '−' : '＋'}</b></div>
+    ${open ? methodTradesPanel(method) : ''}
   </article>`;
 }
 
@@ -167,8 +218,9 @@ function historyItem(setup) {
 
 function render() {
   if (!app) return;
-  const stats = scalperVaultStats(archive);
-  const methods = methodPerformance(archive);
+  const activeArchive = visibleArchive();
+  const stats = scalperVaultStats(activeArchive);
+  const methods = methodPerformance(activeArchive);
   const list = filteredArchive();
   const visible = list.slice(0, visibleLimit);
   const remaining = Math.max(0, list.length - visible.length);
@@ -202,8 +254,8 @@ function render() {
   </section>
   <section class="card stats-method-section">
     <div class="stats-history-head"><div><div class="kicker">PERFORMA PER METODE</div><h2>Metode yang Perlu Dievaluasi</h2></div><span class="stats-history-count">${methods.length} metode</span></div>
-    <p class="stats-method-note">Diurutkan dari jumlah Loss terbanyak. Gunakan juga jumlah Trade, WR, Loss Rate, dan Net R untuk menilai kualitas metode secara adil.</p>
-    <div class="stats-method-list">${methods.map(methodCard).join('') || '<div class="stats-empty">Belum ada metode dengan riwayat yang bisa dihitung.</div>'}</div>
+    <p class="stats-method-note">Diurutkan dari jumlah Loss terbanyak. Ketuk satu metode untuk membuka semua trade selesai milik metode tersebut tanpa berpindah ke Riwayat umum.</p>
+    <div class="stats-method-list">${methods.map(methodCard).join('') || '<div class="stats-empty">Belum ada metode dengan trade yang bisa dihitung.</div>'}</div>
   </section>
   <section class="card">
     <div class="stats-history-head"><div><div class="kicker">ARSIP PERMANEN</div><h2>Seluruh Riwayat Scalper</h2></div><span class="stats-history-count">${list.length} setup pada filter ini</span></div>
@@ -221,12 +273,13 @@ function render() {
 }
 
 function downloadBackup() {
+  const activeArchive = visibleArchive();
   const backup = {
     app: 'Amy FX Pro',
     type: 'scalper-vault-backup',
     schemaVersion: SCALPER_VAULT_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
-    stats: scalperVaultStats(archive),
+    stats: scalperVaultStats(activeArchive),
     history: archive
   };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
@@ -238,7 +291,7 @@ function downloadBackup() {
   link.click();
   document.body.removeChild(link);
   queueMicrotask(() => URL.revokeObjectURL(href));
-  notice = `Backup dibuat: ${archive.length} setup permanen.`;
+  notice = `Backup dibuat: ${activeArchive.length} setup aktif ditampilkan.`;
   render();
 }
 
@@ -253,7 +306,7 @@ async function restoreBackup(file) {
     archive = mergeScalperHistory(archive, imported);
     await persistScalperVault(archive);
     visibleLimit = PAGE_SIZE;
-    notice = `Backup dipulihkan: ${imported.length} setup dibaca, ${archive.length} setup tersimpan total.`;
+    notice = `Backup dipulihkan: ${imported.length} setup dibaca, ${visibleArchive().length} setup aktif ditampilkan.`;
   } catch (error) {
     notice = `Gagal memulihkan backup: ${error?.message || error}`;
   }
@@ -281,7 +334,7 @@ async function syncRemote({ announce = true } = {}) {
     archive = mergeScalperHistory(archive, remote);
     await persistScalperVault(archive, payload?.generatedAt || new Date().toISOString());
     sourceState = 'LIVE';
-    if (announce) notice = `Sinkron selesai. ${archive.length} setup permanen tersimpan; data lama tidak dipotong.`;
+    if (announce) notice = `Sinkron selesai. ${visibleArchive().length} setup aktif ditampilkan; data lama tetap aman.`;
   } catch (error) {
     sourceState = 'LOCAL';
     if (announce) notice = `Backend belum dapat dibaca. Vault lokal tetap aman: ${error?.message || error}`;
@@ -303,7 +356,21 @@ async function init() {
   void syncRemote({ announce: false });
 }
 
+function toggleMethodCard(card) {
+  if (!card) return;
+  let name = '';
+  try { name = decodeURIComponent(card.dataset.methodCard || ''); } catch (_) { name = card.dataset.methodCard || ''; }
+  if (!name) return;
+  expandedMethod = expandedMethod === name ? '' : name;
+  render();
+}
+
 app?.addEventListener('click', event => {
+  const methodCardElement = event.target.closest('[data-method-card]');
+  if (methodCardElement) {
+    toggleMethodCard(methodCardElement);
+    return;
+  }
   const filterButton = event.target.closest('[data-history-filter]');
   if (filterButton) {
     filter = filterButton.dataset.historyFilter || 'ALL';
@@ -325,6 +392,14 @@ app?.addEventListener('click', event => {
     return;
   }
   if (event.target.closest('[data-vault-sync]')) void syncRemote();
+});
+
+app?.addEventListener('keydown', event => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  const methodCardElement = event.target.closest('[data-method-card]');
+  if (!methodCardElement || event.target !== methodCardElement) return;
+  event.preventDefault();
+  toggleMethodCard(methodCardElement);
 });
 
 app?.addEventListener('change', event => {
