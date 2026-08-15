@@ -150,13 +150,19 @@ Deno.serve(async (request) => {
     run = await acquireRun(nowSeconds);
     if (!run) return json({ ok: true, skipped: true, reason: "minute_already_processed", engine: ENGINE_VERSION });
     const marketRefresh = await refreshMarketData();
-    const [m15, h1, m1] = await Promise.all([loadCandles("M15", 1200), loadCandles("H1", 800), loadCandles("M1", 1500)]);
+    const [m15, h1, m1, m5, d1] = await Promise.all([
+      loadCandles("M15", 1200),
+      loadCandles("H1", 800),
+      loadCandles("M1", 1500),
+      loadCandles("M5", 2500),
+      loadCandles("D1", 500),
+    ]);
     const latestM15=m15.at(-1),latestH1=h1.at(-1);
     if (!latestM15 || nowSeconds-Number(latestM15.close_time||0)>STALE_M15_SECONDS || !latestH1 || nowSeconds-Number(latestH1.close_time||0)>STALE_H1_SECONDS) {
       const payload={ok:false,skipped:true,reason:"driver_source_data_stale",latest_m15_close_time:latestM15?.close_time||null,latest_h1_close_time:latestH1?.close_time||null}; await finishRun(run.run_bucket,payload); return json(payload,200);
     }
     const m30=aggregateCandles(m15,1800,"M30",900),h4=aggregateCandles(h1,14400,"H4",3600);
-    const series={M15:m15,M30:m30,H1:h1,H4:h4};
+    const series={M5:m5,M15:m15,M30:m30,H1:h1,H4:h4,D1:d1};
     const evaluation=evaluateScalperCandidates({series,h1,nowSeconds,maxSignalAgeSeconds:MAX_SIGNAL_AGE_SECONDS,config:PATTERN_CONFIG});
     const candidates=evaluation.candidates;const telemetryInserted=await insertCandidateTelemetry(evaluation.telemetry);
     let inserted=0,activated=0,lifecycleEvents=0;
@@ -179,7 +185,7 @@ Deno.serve(async (request) => {
     active=await loadActiveSetups(); const recommended=assignRecommendations(active);
     for(const setup of recommended){const previous=active.find(item=>item.id===setup.id);if(previous?.recommendation_status!==setup.recommendation_status)await updateSetup(setup,previous);}
     const push=lifecycleEvents>0?await invokePush():{ok:true,skipped:true};
-    const payload={ok:true,engine:ENGINE_VERSION,mode:"preview_simulation",schema_version:3,config:{base_version:BASE_CONFIG_VERSION,repair_version:REPAIR_CONFIG_VERSION,amd_version:AMD_CONFIG_VERSION},driver_count:DRIVER_REGISTRY.length,candles:{M1:m1.length,M15:m15.length,M30:m30.length,H1:h1.length,H4:h4.length},market_refresh:marketRefresh,raw_candidates:evaluation.raw_count,candidates:candidates.length,rejected_candidates:evaluation.rejected_count,telemetry_inserted:telemetryInserted,inserted,activated,lifecycle_events:lifecycleEvents,active_setups:recommended.length,recommended_active:recommended.filter(item=>item.recommendation_status==="VALID").length,push};
+    const payload={ok:true,engine:ENGINE_VERSION,mode:"preview_simulation",schema_version:3,config:{base_version:BASE_CONFIG_VERSION,repair_version:REPAIR_CONFIG_VERSION,amd_version:AMD_CONFIG_VERSION},driver_count:DRIVER_REGISTRY.length,candles:{M1:m1.length,M5:m5.length,M15:m15.length,M30:m30.length,H1:h1.length,H4:h4.length,D1:d1.length},market_refresh:marketRefresh,raw_candidates:evaluation.raw_count,candidates:candidates.length,rejected_candidates:evaluation.rejected_count,telemetry_inserted:telemetryInserted,inserted,activated,lifecycle_events:lifecycleEvents,active_setups:recommended.length,recommended_active:recommended.filter(item=>item.recommendation_status==="VALID").length,push};
     await finishRun(run.run_bucket,payload); return json(payload,push.ok===false?207:200);
   } catch(error){console.error("scalper-engine failed",error);if(run?.run_bucket!=null)await finishRun(run.run_bucket,{},error instanceof Error?error.message:String(error)).catch(()=>{});return json({error:"scalper_engine_failed",detail:error instanceof Error?error.message:String(error)},500);}
 });
