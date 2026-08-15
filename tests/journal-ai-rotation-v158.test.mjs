@@ -61,18 +61,18 @@ test('journal runtime cannot create the global MutationObserver feedback loop th
   assert.match(runtime, /bindPoolUiNavigation/);
 });
 
-test('Amy FX personal source identity remains internally consistent on Preview', () => {
+test('Amy FX Pro source identity remains internally consistent with the promoted Preview lineage', () => {
   const gradle = source('app/build.gradle.kts');
   const appVersion = source('app/src/main/assets/app-version.js');
-  const identity = appVersion.match(/name: '(2\.0\.0-preview\.(\d+))', code: (94\d{4})/);
-  assert.ok(identity, 'Preview app-version identity is missing');
+  const identity = appVersion.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
+  assert.ok(identity, 'Pro app-version identity is missing');
   const [, versionName, sequence, versionCode] = identity;
 
   assert.match(gradle, /com\.amyelitesuite\.learningpreview/);
-  assert.match(gradle, /Amy FX Preview/);
+  assert.match(gradle, /Amy FX Pro/);
   assert.match(gradle, /amyfxpreview/);
-  assert.equal(Number(versionCode), 940000 + Number(sequence));
+  assert.equal(Number(versionCode), 950000 + Number(sequence));
   assert.ok(gradle.includes(`?: ${versionCode})`));
   assert.ok(gradle.includes(`?: "${versionName}"`));
-  assert.match(appVersion, /personal\/amyfx-private\/preview-update\.json/);
+  assert.match(appVersion, /Amy-fx-pro\/main\/update\.json/);
 });
