@@ -1,5 +1,6 @@
 import { normalizeCandles, timestampSeconds, latestConfirmedSwing } from './candles.mjs';
 import { ENGINE_VERSION, SETUP_SCHEMA_VERSION } from './drivers.mjs';
+import { BASE_CONFIG_VERSION, REPAIR_CONFIG_VERSION } from './pattern-gates.mjs';
 
 export const SMR_FIRST_RETEST_VERSION = 'SMR-FIRST-RETEST-BT09F-LIVE-V1';
 export const SMR_FIRST_RETEST_DRIVER = Object.freeze({
@@ -246,7 +247,11 @@ export function detectSmrFirstRetestCandidates({
   series = {},
   nowSeconds = Math.floor(Date.now() / 1000),
   maxSignalAgeSeconds = 21600,
+  config = {},
 } = {}) {
+  const enabled = config?.enabled !== false
+    && config?.driver_enabled?.[SMR_FIRST_RETEST_DRIVER.id] !== false;
+  if (!enabled) return [];
   const values = normalizeCandles(series.M5 || [], M5_SECONDS);
   const d1 = normalizeCandles(series.D1 || [], D1_SECONDS);
   if (values.length < 30 || d1.length < 8) return [];
@@ -279,19 +284,41 @@ export function detectSmrFirstRetestCandidates({
     .sort((a, b) => a.signal_candle_close_time - b.signal_candle_close_time);
 }
 
+function acceptedTelemetry(candidate, config = {}) {
+  return {
+    candidate_id: candidate.id,
+    engine_version: candidate.engine_version,
+    base_config_version: config?.base_version || BASE_CONFIG_VERSION,
+    repair_config_version: config?.repair_version || REPAIR_CONFIG_VERSION,
+    driver_id: candidate.driver_id,
+    timeframe: candidate.timeframe,
+    direction: candidate.direction,
+    signal_candle_close_time: candidate.signal_candle_close_time,
+    accepted: true,
+    gate_id: 'SMR_BT09F_LOCKED',
+    failed_conditions: [],
+    features: {
+      daily_htf_bias: candidate.quality.daily_htf_bias,
+      sweep_side: candidate.quality.sweep_side,
+      sweep_level: candidate.quality.sweep_level,
+      mss_level: candidate.quality.mss_level,
+      mss_body_atr: candidate.quality.mss_body_atr,
+      poi_kind: candidate.quality.poi_kind,
+      poi_bottom: candidate.quality.poi_bottom,
+      poi_top: candidate.quality.poi_top,
+      first_retest: true,
+    },
+  };
+}
+
 export function evaluateSmrFirstRetestCandidates(input = {}) {
+  const enabled = input?.config?.enabled !== false
+    && input?.config?.driver_enabled?.[SMR_FIRST_RETEST_DRIVER.id] !== false;
+  if (!enabled) return { candidates: [], telemetry: [], raw_count: 0, rejected_count: 0 };
   const candidates = detectSmrFirstRetestCandidates(input);
   return {
     candidates,
-    telemetry: candidates.map(candidate => ({
-      candidate_id: candidate.id,
-      driver_id: SMR_FIRST_RETEST_DRIVER.id,
-      engine_version: ENGINE_VERSION,
-      accepted: true,
-      gate: 'SMR_BT09F_LOCKED',
-      signal_candle_close_time: candidate.signal_candle_close_time,
-      reason: candidate.quality.reason,
-    })),
+    telemetry: candidates.map(candidate => acceptedTelemetry(candidate, input?.config)),
     raw_count: candidates.length,
     rejected_count: 0,
   };
