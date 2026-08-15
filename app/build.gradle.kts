@@ -14,9 +14,12 @@ val hasReleaseSigning = listOf(
 fun buildConfigString(value: String): String =
     "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
-val configuredApplicationId = System.getenv("AMYFX_APPLICATION_ID") ?: "com.amyelitesuite.pro"
+// Amy FX Pro is promoted from the Preview lineage. Keep the registered Preview
+// package and URI for Firebase/data/deep-link continuity, but use the Pro label,
+// version line, and dedicated Pro update channel.
+val configuredApplicationId = System.getenv("AMYFX_APPLICATION_ID") ?: "com.amyelitesuite.learningpreview"
 val configuredAppLabel = System.getenv("AMYFX_APP_LABEL") ?: "Amy FX Pro"
-val configuredUriScheme = System.getenv("AMYFX_URI_SCHEME") ?: "amyfxpro"
+val configuredUriScheme = System.getenv("AMYFX_URI_SCHEME") ?: "amyfxpreview"
 val configuredUpdateManifestUrl = System.getenv("AMYFX_UPDATE_MANIFEST_URL")
     ?: "https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json"
 val configuredTwelveDataApiKey = System.getenv("TWELVEDATA_API_KEY").orEmpty()
@@ -45,7 +48,6 @@ android {
 
     signingConfigs {
         create("release") {
-            // Amy FX Pro can use a dedicated release key through the AMYFX_* environment variables.
             enableV1Signing = true
             enableV2Signing = true
             if (hasReleaseSigning) {
