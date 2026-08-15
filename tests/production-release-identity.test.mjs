@@ -28,9 +28,9 @@ test('Amy FX Pro main promotes Preview lineage into a dedicated Pro release chan
   assert.match(workflow, /AMYFX_APPLICATION_ID: com\.amyelitesuite\.learningpreview/);
   assert.match(workflow, /AMYFX_APP_LABEL: Amy FX Pro/);
   assert.match(workflow, /AMYFX_URI_SCHEME: amyfxpreview/);
-  assert.match(workflow, /AMYFX_VERSION_NAME: "2\.0\.0-pro\.319"/);
-  assert.match(workflow, /AMYFX_VERSION_CODE: "950319"/);
-  assert.match(workflow, /amyfx-pro-2\.0\.0-pro\.319/);
+  assert.match(workflow, /AMYFX_VERSION_NAME: "2\.0\.0-pro\.320"/);
+  assert.match(workflow, /AMYFX_VERSION_CODE: "950320"/);
+  assert.match(workflow, /amyfx-pro-2\.0\.0-pro\.320/);
   assert.match(workflow, /AmyFX-Pro-latest\.apk/);
   assert.match(workflow, /Publish Amy FX Pro release/);
   assert.match(workflow, /Verify published APK endpoint/);
