@@ -12,13 +12,14 @@
   "release_notes": [
     "Amy FX Pro kini memakai snapshot Amy FX Preview 2.0.0-preview.316 sebagai baseline utama.",
     "Mapping canonical Amy-SMC-D, closed-candle contract, Dealing Range, execution consumers, dan live-price isolation dari Preview 316 dipertahankan.",
-    "Identitas aplikasi dipisahkan menjadi Amy FX Pro agar tidak memakai package, URI, atau update channel Amy FX Preview maupun Amy FX publik.",
+    "Branding, version line, repository, dan update channel sudah menjadi Amy FX Pro; package dan URI lineage Preview sementara dipertahankan untuk kompatibilitas Firebase, data aplikasi, dan deep-link.",
     "Update channel Amy FX Pro sekarang berada di repo suhaimitoamy/Amy-fx-pro pada branch main."
   ],
   "changelog": [
     "Promote Preview 316 codebase as Amy FX Pro main baseline",
-    "Dedicated Amy FX Pro application identity",
+    "Amy FX Pro branding and version line",
     "Dedicated Amy FX Pro update channel",
+    "Preview package lineage preserved for Firebase and data continuity",
     "Preview engine and runtime preserved"
   ]
 }
