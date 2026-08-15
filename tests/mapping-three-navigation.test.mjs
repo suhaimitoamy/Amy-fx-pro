@@ -14,6 +14,15 @@ test('Mapping exposes Dashboard, Analisis, and Riwayat as three primary navigati
   assert.match(html, />Riwayat<\/span>/);
 });
 
+test('three-item Mapping navigation is locked to one row across legacy shared overrides', () => {
+  const css = read('app/src/main/assets/apps/mapping/css/scalper-navigation-separation.css');
+  assert.match(css, /body\.amyfx-module--mapping > \.nav/);
+  assert.match(css, /display:\s*grid\s*!important/);
+  assert.match(css, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)\s*!important/);
+  assert.match(css, /grid-column:\s*auto\s*!important/);
+  assert.match(css, /grid-row:\s*auto\s*!important/);
+});
+
 test('Dashboard and Analysis no longer render Scalper Vault statistics or permanent history', () => {
   const css = read('app/src/main/assets/apps/mapping/css/scalper-navigation-separation.css');
   assert.match(css, /#app \.scalper-vault/);
@@ -40,4 +49,24 @@ test('Dedicated Scalper statistics page reads the same persistent Vault', () => 
   ]) {
     assert.ok(source.includes(marker), `stats page source marker missing: ${marker}`);
   }
+});
+
+test('Scalper history reports performance per stored method and prioritizes loss count', () => {
+  const source = read('app/src/main/assets/apps/mapping/js/scalper-stats-page.js');
+  const css = read('app/src/main/assets/apps/mapping/css/scalper-stats.css');
+  for (const marker of [
+    'function methodPerformance(history)',
+    'setup?.driverName',
+    'b.losses - a.losses',
+    'PERFORMA PER METODE',
+    'Metode yang Perlu Dievaluasi',
+    'PRIORITAS EVALUASI',
+    'Loss rate',
+    'Net R'
+  ]) {
+    assert.ok(source.includes(marker), `per-method stats marker missing: ${marker}`);
+  }
+  assert.match(css, /\.stats-method-card/);
+  assert.match(css, /\.stats-method-grid/);
+  assert.match(css, /\.stats-method-card\.is-priority/);
 });
