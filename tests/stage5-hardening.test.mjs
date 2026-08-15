@@ -5,51 +5,41 @@ import { readFileSync } from 'node:fs';
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-test('Amy FX personal source uses the permanent Preview Android identity', () => {
+test('Amy FX Pro keeps Preview package lineage while using the Pro release identity', () => {
   const gradle = read('app/build.gradle.kts');
   const version = read('app/src/main/assets/app-version.js');
-  const identity = version.match(/name: '(2\.0\.0-preview\.(\d+))', code: (94\d{4})/);
-  assert.ok(identity, 'current Preview identity must be readable from app-version.js');
+  const identity = version.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
+  assert.ok(identity, 'current Pro identity must be readable from app-version.js');
 
   const [, versionName, suffixText, versionCodeText] = identity;
   const versionCode = Number(versionCodeText);
-  assert.equal(versionCode, 940000 + Number(suffixText));
+  assert.equal(versionCode, 950000 + Number(suffixText));
 
   assert.match(gradle, /val configuredApplicationId = System\.getenv\("AMYFX_APPLICATION_ID"\) \?: "com\.amyelitesuite\.learningpreview"/);
-  assert.match(gradle, /val configuredAppLabel = System\.getenv\("AMYFX_APP_LABEL"\) \?: "Amy FX Preview"/);
+  assert.match(gradle, /val configuredAppLabel = System\.getenv\("AMYFX_APP_LABEL"\) \?: "Amy FX Pro"/);
   assert.match(gradle, /val configuredUriScheme = System\.getenv\("AMYFX_URI_SCHEME"\) \?: "amyfxpreview"/);
-  assert.match(gradle, /personal\/amyfx-private\/preview-update\.json/);
+  assert.match(gradle, /Amy-fx-pro\/main\/update\.json/);
   assert.match(gradle, /applicationId = configuredApplicationId/);
   assert.match(gradle, new RegExp(`versionCode[^\\n]*${versionCode}`));
   assert.match(gradle, new RegExp(`versionName[^\\n]*"${escapeRegex(versionName)}"`));
 });
 
-test('published public metadata is never ahead of the public APK source version', () => {
+test('published Pro metadata is never ahead of the Pro APK source version', () => {
   const metadata = JSON.parse(read('update.json'));
-  assert.ok([40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50].includes(metadata.latest_version_code));
-  const expected = metadata.latest_version_code === 50
-    ? '1.5.9'
-    : metadata.latest_version_code === 49
-      ? '1.5.8'
-      : metadata.latest_version_code === 48
-        ? '1.5.7'
-        : metadata.latest_version_code === 47
-          ? '1.5.6'
-          : metadata.latest_version_code === 46
-            ? '1.5.5'
-            : metadata.latest_version_code === 45
-              ? '1.5.4'
-              : metadata.latest_version_code === 44
-                ? '1.5.3'
-                : metadata.latest_version_code === 43
-                  ? '1.5.2'
-                  : metadata.latest_version_code === 42
-                    ? '1.5.1'
-                    : metadata.latest_version_code === 41
-                      ? '1.5.0'
-                      : '1.4.17';
-  assert.equal(metadata.latest_version_name, expected);
-  assert.ok(metadata.latest_version_code <= 50);
+  const version = read('app/src/main/assets/app-version.js');
+  const identity = version.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
+  assert.ok(identity, 'current Pro source identity must be readable');
+  const [, sourceName, , sourceCodeText] = identity;
+  const sourceCode = Number(sourceCodeText);
+
+  assert.equal(metadata.latest_version_code, metadata.versionCode);
+  assert.equal(metadata.latest_version_name, metadata.version);
+  assert.match(metadata.latest_version_name, /^2\.0\.0-pro\.\d+$/);
+  assert.ok(Number(metadata.latest_version_code) <= sourceCode);
+  if (Number(metadata.latest_version_code) === sourceCode) {
+    assert.equal(metadata.latest_version_name, sourceName);
+  }
+  assert.match(metadata.apk_url || metadata.downloadUrl || '', /amyfx-pro-2\.0\.0-pro\.316\/AmyFX-Pro-latest\.apk/);
   assert.ok(Array.isArray(metadata.release_notes));
   assert.ok(metadata.release_notes.length > 0);
 });
@@ -90,34 +80,28 @@ test('native notifications only open trusted local routes', () => {
   assert.match(native, /setSmallIcon\(R\.drawable\.ic_stat_amy_fx\)/);
 });
 
-test('release workflows pin the certificate and inspect v1 plus v2 structures', () => {
+test('active Pro release workflow pins signing continuity and verifies the built APK', () => {
   const gradle = read('app/build.gradle.kts');
   assert.match(gradle, /enableV1Signing = true/);
   assert.match(gradle, /enableV2Signing = true/);
 
-  for (const path of ['.github/workflows/build-apk.yml', '.github/workflows/build-release.yml', '.github/workflows/stage5-apply.yml']) {
-    const workflow = read(path);
-    assert.match(workflow, /META-INF\/\[\^\/\]\+\\\.SF/);
-    assert.match(workflow, /META-INF\/\[\^\/\]\+\\\.\(RSA\|DSA\|EC\)/);
-    assert.match(workflow, /0x7109871A/);
-    assert.match(workflow, /keytool -printcert/);
-    assert.match(workflow, /47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7/);
-  }
-
-  const rolling = read('.github/workflows/build-apk.yml');
-  assert.match(rolling, /AMYFX_VERSION_NAME: "1\.5\.9"/);
-  assert.match(rolling, /AMYFX_VERSION_CODE: "50"/);
-  assert.match(rolling, /Verify public update manifest source/);
+  const workflow = read('.github/workflows/build-apk.yml');
+  assert.match(workflow, /AMYFX_VERSION_NAME: "2\.0\.0-pro\.316"/);
+  assert.match(workflow, /AMYFX_VERSION_CODE: "950316"/);
+  assert.match(workflow, /amy-fx-debug-keystore-v1/);
+  assert.match(workflow, /amy-fx-pro-signing-key-v1/);
+  assert.match(workflow, /47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7/);
+  assert.match(workflow, /keytool -list -v/);
+  assert.match(workflow, /apksigner" verify --verbose --print-certs/);
+  assert.match(workflow, /aapt" dump badging/);
+  assert.match(workflow, /Publish Amy FX Pro release/);
+  assert.match(workflow, /Verify published APK endpoint/);
 
   const manual = read('.github/workflows/build-release.yml');
   assert.match(manual, /workflow_dispatch/);
-  assert.match(manual, /AMYFX_VERSION_NAME/);
-  assert.match(manual, /AMYFX_VERSION_CODE/);
-
   const candidate = read('.github/workflows/stage5-apply.yml');
-  assert.match(candidate, /Validate Amy FX/);
-  assert.match(candidate, /AMYFX_VERSION_NAME/);
-  assert.match(candidate, /AMYFX_VERSION_CODE/);
+  assert.match(candidate, /workflow_dispatch/);
+  assert.doesNotMatch(candidate, /push:\s*\n\s*branches:\s*\n\s*- main/);
 });
 
 test('public Firebase Android client remains bound to the public release applicationId', () => {
