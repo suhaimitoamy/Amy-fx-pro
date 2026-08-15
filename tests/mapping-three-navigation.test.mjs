@@ -51,7 +51,7 @@ test('Dedicated Scalper statistics page reads the same persistent Vault', () => 
   }
 });
 
-test('Scalper history reports performance per stored method and prioritizes loss count', () => {
+test('Scalper history reports active-method performance and prioritizes loss count', () => {
   const source = read('app/src/main/assets/apps/mapping/js/scalper-stats-page.js');
   const css = read('app/src/main/assets/apps/mapping/css/scalper-stats.css');
   for (const marker of [
@@ -62,11 +62,23 @@ test('Scalper history reports performance per stored method and prioritizes loss
     'Metode yang Perlu Dievaluasi',
     'PRIORITAS EVALUASI',
     'Loss rate',
-    'Net R'
+    'Net R',
+    'function isLegacyIfvg(setup)',
+    "model === 'IFVG_SCALPER'",
+    'function visibleArchive()',
+    'expandedMethod',
+    'data-method-card',
+    'SEMUA TRADE METODE',
+    'Ketuk untuk lihat semua trade',
+    'function methodTradeItem(setup, index)'
   ]) {
     assert.ok(source.includes(marker), `per-method stats marker missing: ${marker}`);
   }
+  assert.doesNotMatch(source, /\? 'IFVG LEGACY'/);
   assert.match(css, /\.stats-method-card/);
   assert.match(css, /\.stats-method-grid/);
   assert.match(css, /\.stats-method-card\.is-priority/);
+  assert.match(css, /\.stats-method-card\.is-open/);
+  assert.match(css, /\.stats-method-trades/);
+  assert.match(css, /\.stats-method-trade-grid/);
 });
