@@ -63,9 +63,9 @@ test('Pro release promotes Preview lineage into the Amy-fx-pro main channel', as
   assert.match(workflow, /Amy FX Pro/);
   assert.match(workflow, /amyfxpreview/);
   assert.match(workflow, /Amy-fx-pro\/main\/update\.json/);
-  assert.match(workflow, /AMYFX_VERSION_NAME:\s*"2\.0\.0-pro\.316"/);
-  assert.match(workflow, /AMYFX_VERSION_CODE:\s*"950316"/);
-  assert.match(workflow, /amyfx-pro-2\.0\.0-pro\.316/);
+  assert.match(workflow, /AMYFX_VERSION_NAME:\s*"2\.0\.0-pro\.317"/);
+  assert.match(workflow, /AMYFX_VERSION_CODE:\s*"950317"/);
+  assert.match(workflow, /amyfx-pro-2\.0\.0-pro\.317/);
   assert.match(workflow, /gh release create/);
   assert.doesNotMatch(workflow, /git push origin (?:HEAD:)?personal\/amyfx-private/);
   assert.doesNotMatch(workflow, /raw\.githubusercontent\.com\/suhaimitoamy\/Amy-fx\/main\/update\.json/);
