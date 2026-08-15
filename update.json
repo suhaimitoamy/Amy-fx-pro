@@ -1,26 +1,26 @@
 {
-  "latest_version_code": 950319,
-  "latest_version_name": "2.0.0-pro.319",
-  "versionCode": 950319,
-  "version": "2.0.0-pro.319",
+  "latest_version_code": 950320,
+  "latest_version_name": "2.0.0-pro.320",
+  "versionCode": 950320,
+  "version": "2.0.0-pro.320",
   "releaseDate": "2026-08-15",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.319/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.319/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.320/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.320/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Navigasi Mapping dikunci menjadi tiga kolom satu baris sehingga Dashboard, Analisis, dan Riwayat tidak lagi berpindah ke baris bawah.",
-    "Riwayat & Statistik sekarang memiliki Performa per Metode berdasarkan nama driver/metode yang tersimpan pada setiap setup.",
-    "Setiap metode menampilkan jumlah Trade, Win, Loss, BE, Win Rate, Loss Rate, Net R, serta Invalid/Batal.",
-    "Metode diurutkan berdasarkan jumlah Loss terbanyak agar prioritas evaluasi mudah terlihat, dengan jumlah Trade dan WR tetap ditampilkan agar perbandingan sampel lebih adil.",
-    "Scalper Vault lama tetap digunakan tanpa reset sehingga statistik per metode dihitung dari arsip permanen yang sudah ada."
+    "Scalper Engine menambahkan metode M15 baru Expansion Range Re-entry V3 untuk memanfaatkan sideways setelah expansion dengan re-entry berulang pada range yang sama.",
+    "Expansion Range Re-entry memakai range 2.5–10 point, entry dekat tepi range, midpoint re-arm, TP1 35%, profit-lock TP1, dan runner menuju TP2.",
+    "Riwayat & Statistik tidak lagi memasukkan IFVG Legacy ke statistik metode aktif, tetapi arsip lama tetap dipertahankan agar data Vault tidak rusak.",
+    "Kartu Performa per Metode sekarang dapat diketuk untuk membuka semua trade selesai milik metode tersebut langsung di bawah kartu.",
+    "Navigasi tiga kolom, Scalper Vault permanen, backup/restore, sinkronisasi backend, Mapping Amy-SMC-D, dan proteksi closed-candle/no-future-data tetap dipertahankan."
   ],
   "changelog": [
-    "Stable three-column Mapping navigation",
-    "Per-method Scalper performance analytics",
-    "Loss-count evaluation ranking",
-    "Method WR loss-rate and Net R breakdown",
-    "Persistent Vault statistics preserved"
+    "Expansion Range Re-entry V3 M15 driver",
+    "Repeated range re-entry with midpoint re-arm",
+    "TP1 profit lock and TP2 runner lifecycle",
+    "Legacy IFVG excluded from active method analytics",
+    "Expandable all-trades view per Scalper method"
   ]
 }
