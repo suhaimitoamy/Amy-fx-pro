@@ -8,32 +8,32 @@ const root = new URL('../', import.meta.url);
 const path = relative => new URL(relative, root);
 const source = relative => readFileSync(path(relative), 'utf8');
 
-test('personal source stays Preview while the public release workflow keeps production identity', () => {
+test('Amy FX Pro main promotes Preview lineage into a dedicated Pro release channel', () => {
   const gradle = source('app/build.gradle.kts');
   const version = source('app/src/main/assets/app-version.js');
   const workflow = source('.github/workflows/build-apk.yml');
-  const identity = version.match(/name: '(2\.0\.0-preview\.(\d+))', code: (94\d{4})/);
-  assert.ok(identity, 'Preview source identity must be readable');
+  const identity = version.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
+  assert.ok(identity, 'Pro source identity must be readable');
   const [, versionName, sequence, versionCode] = identity;
 
   assert.match(gradle, /com\.amyelitesuite\.learningpreview/);
-  assert.match(gradle, /Amy FX Preview/);
+  assert.match(gradle, /Amy FX Pro/);
   assert.match(gradle, /amyfxpreview/);
-  assert.match(gradle, /personal\/amyfx-private\/preview-update\.json/);
-  assert.equal(Number(versionCode), 940000 + Number(sequence));
+  assert.match(gradle, /Amy-fx-pro\/main\/update\.json/);
+  assert.equal(Number(versionCode), 950000 + Number(sequence));
   assert.ok(gradle.includes(`?: ${versionCode})`));
   assert.ok(gradle.includes(`?: "${versionName}"`));
-  assert.match(version, /personal\/amyfx-private\/preview-update\.json/);
+  assert.match(version, /Amy-fx-pro\/main\/update\.json/);
 
-  assert.match(workflow, /AMYFX_APPLICATION_ID: com\.amyelitesuite/);
-  assert.match(workflow, /AMYFX_APP_LABEL: Amy FX/);
-  assert.match(workflow, /AMYFX_URI_SCHEME: amyfx/);
-  assert.match(workflow, /AMYFX_VERSION_NAME: "1\.5\.9"/);
-  assert.match(workflow, /AMYFX_VERSION_CODE: "50"/);
-  assert.match(workflow, /releases\/download\/amyfx-latest\/AmyFX-latest\.apk/);
-  assert.match(workflow, /latest_version_code': 50/);
-  assert.match(workflow, /latest_version_name': '1\.5\.9'/);
-  assert.match(workflow, /Verify public update manifest source/);
+  assert.match(workflow, /AMYFX_APPLICATION_ID: com\.amyelitesuite\.learningpreview/);
+  assert.match(workflow, /AMYFX_APP_LABEL: Amy FX Pro/);
+  assert.match(workflow, /AMYFX_URI_SCHEME: amyfxpreview/);
+  assert.match(workflow, /AMYFX_VERSION_NAME: "2\.0\.0-pro\.316"/);
+  assert.match(workflow, /AMYFX_VERSION_CODE: "950316"/);
+  assert.match(workflow, /amyfx-pro-2\.0\.0-pro\.316/);
+  assert.match(workflow, /AmyFX-Pro-latest\.apk/);
+  assert.match(workflow, /Publish Amy FX Pro release/);
+  assert.match(workflow, /Verify published APK endpoint/);
 });
 
 test('Mapping presents a clean product interface without duplicate Preview badges', () => {
