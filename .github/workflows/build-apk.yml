@@ -24,9 +24,9 @@ env:
   AMYFX_APP_LABEL: Amy FX Pro
   AMYFX_URI_SCHEME: amyfxpreview
   AMYFX_UPDATE_MANIFEST_URL: https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json
-  AMYFX_VERSION_NAME: "2.0.0-pro.316"
-  AMYFX_VERSION_CODE: "950316"
-  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.316
+  AMYFX_VERSION_NAME: "2.0.0-pro.317"
+  AMYFX_VERSION_CODE: "950317"
+  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.317
   AMYFX_KEYSTORE_PATH: /tmp/amyfx-pro-signing.keystore
   AMYFX_KEYSTORE_PASSWORD: android
   AMYFX_KEY_PASSWORD: android
@@ -53,15 +53,15 @@ jobs:
           set -euo pipefail
           node --check app/src/main/assets/app-version.js
           node --check app/src/main/assets/update-checker.js
-          grep -Fq "name: '2.0.0-pro.316', code: 950316" app/src/main/assets/app-version.js
+          grep -Fq "name: '2.0.0-pro.317', code: 950317" app/src/main/assets/app-version.js
           grep -Fq 'com.amyelitesuite.learningpreview' app/build.gradle.kts
           grep -Fq 'Amy FX Pro' app/build.gradle.kts
           grep -Fq 'Amy-fx-pro/main/update.json' app/build.gradle.kts
           grep -Fq 'Amy FX Pro' app/src/main/assets/index.html
           python3 -m json.tool update.json >/dev/null
-          grep -Fq '"latest_version_code": 950316' update.json
-          grep -Fq '"latest_version_name": "2.0.0-pro.316"' update.json
-          grep -Fq 'amyfx-pro-2.0.0-pro.316/AmyFX-Pro-latest.apk' update.json
+          grep -Fq '"latest_version_code": 950317' update.json
+          grep -Fq '"latest_version_name": "2.0.0-pro.317"' update.json
+          grep -Fq 'amyfx-pro-2.0.0-pro.317/AmyFX-Pro-latest.apk' update.json
 
       - name: Run JavaScript regression suite
         run: npm test
@@ -177,10 +177,12 @@ jobs:
           cat > /tmp/amyfx-pro-release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Baseline utama dipromosikan dari Amy FX Preview 2.0.0-preview.316.
-          - Mapping Amy-SMC-D dan kontrak closed-candle/no-future-data dari Preview dipertahankan.
-          - Package lineage Preview dipertahankan untuk kompatibilitas data/Firebase.
-          - Update channel resmi: Amy-fx-pro/main/update.json.
+          - Scalper Vault menyimpan arsip terminal all-time dan bermigrasi dari permanent-history lama tanpa menghapus data sebelumnya.
+          - Statistik all-time: Total Trade, Win, Loss, BE, Win Rate, dan Net R.
+          - WR dihitung dari Win / (Win + Loss); BE, invalidated, dan cancelled dikecualikan.
+          - Riwayat panjang dirender bertahap 100 setup agar Mapping tetap ringan.
+          - Backup JSON dan Pulihkan Backup tersedia untuk portabilitas arsip.
+          - Mapping Amy-SMC-D, closed-candle/no-future-data, package lineage, dan update channel Pro dipertahankan.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
