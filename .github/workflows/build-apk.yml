@@ -11,6 +11,7 @@ on:
       - 'app/src/main/assets/update-checker.js'
       - 'app/src/main/assets/apps/mapping/**'
       - 'supabase/functions/scalper-engine/**'
+      - 'supabase/functions/smt-dxy-candles/**'
       - 'update.json'
       - 'tests/**'
   workflow_dispatch:
@@ -27,9 +28,9 @@ env:
   AMYFX_APP_LABEL: Amy FX Pro
   AMYFX_URI_SCHEME: amyfxpreview
   AMYFX_UPDATE_MANIFEST_URL: https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json
-  AMYFX_VERSION_NAME: "2.0.0-pro.320"
-  AMYFX_VERSION_CODE: "950320"
-  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.320
+  AMYFX_VERSION_NAME: "2.0.0-pro.321"
+  AMYFX_VERSION_CODE: "950321"
+  AMYFX_RELEASE_TAG: amyfx-pro-2.0.0-pro.321
   AMYFX_KEYSTORE_PATH: /tmp/amyfx-pro-signing.keystore
   AMYFX_KEYSTORE_PASSWORD: android
   AMYFX_KEY_PASSWORD: android
@@ -57,9 +58,14 @@ jobs:
           node --check app/src/main/assets/app-version.js
           node --check app/src/main/assets/update-checker.js
           node --check app/src/main/assets/apps/mapping/js/scalper-stats-page.js
+          node --check app/src/main/assets/apps/mapping/js/engine/sweep-acceptance.js
+          node --check app/src/main/assets/apps/mapping/js/engine/smt-selector.js
+          node --check app/src/main/assets/apps/mapping/js/engine/mapping-context-aggregator.js
+          node --check app/src/main/assets/apps/mapping/js/mapping-context-orchestrator-v1.js
           node --check supabase/functions/scalper-engine/expansion-range-reentry.mjs
           node --check supabase/functions/scalper-engine/expansion-range-lifecycle.mjs
-          grep -Fq "name: '2.0.0-pro.320', code: 950320" app/src/main/assets/app-version.js
+          node --check supabase/functions/scalper-engine/smr-first-retest.mjs
+          grep -Fq "name: '2.0.0-pro.321', code: 950321" app/src/main/assets/app-version.js
           grep -Fq 'com.amyelitesuite.learningpreview' app/build.gradle.kts
           grep -Fq 'Amy FX Pro' app/build.gradle.kts
           grep -Fq 'Amy-fx-pro/main/update.json' app/build.gradle.kts
@@ -68,10 +74,13 @@ jobs:
           grep -Fq 'Riwayat & Statistik' app/src/main/assets/apps/mapping/scalper-stats.html
           grep -Fq 'PERFORMA PER METODE' app/src/main/assets/apps/mapping/js/scalper-stats-page.js
           grep -Fq 'EXPANSION_RANGE_REENTRY' supabase/functions/scalper-engine/expansion-range-reentry.mjs
+          grep -Fq 'SMR_FIRST_RETEST' supabase/functions/scalper-engine/smr-first-retest.mjs
+          grep -Fq 'SMT_XAU_DXY' app/src/main/assets/apps/mapping/js/engine/mapping-context-aggregator.js
+          grep -Fq 'SWEEP_REJECTION' app/src/main/assets/apps/mapping/js/engine/sweep-acceptance.js
           python3 -m json.tool update.json >/dev/null
-          grep -Fq '"latest_version_code": 950320' update.json
-          grep -Fq '"latest_version_name": "2.0.0-pro.320"' update.json
-          grep -Fq 'amyfx-pro-2.0.0-pro.320/AmyFX-Pro-latest.apk' update.json
+          grep -Fq '"latest_version_code": 950321' update.json
+          grep -Fq '"latest_version_name": "2.0.0-pro.321"' update.json
+          grep -Fq 'amyfx-pro-2.0.0-pro.321/AmyFX-Pro-latest.apk' update.json
 
       - name: Run JavaScript regression suite
         run: npm test
@@ -187,12 +196,12 @@ jobs:
           cat > /tmp/amyfx-pro-release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Scalper Engine menambahkan Expansion Range Re-entry V3 khusus M15 untuk memanfaatkan sideways setelah expansion.
-          - Metode baru mendukung repeated re-entry pada parent range yang sama setelah midpoint re-arm, dengan range 2.5–10 point.
-          - Lifecycle V3 memakai TP1 35%, profit-lock TP1, lalu runner menuju TP2 tanpa mengorbankan winner yang sudah mencapai TP1.
-          - IFVG Legacy tidak lagi dicampur ke statistik metode aktif; arsip lama tetap dipertahankan di Scalper Vault.
-          - Kartu Performa per Metode dapat diketuk untuk membuka seluruh trade selesai milik metode tersebut langsung di halaman Riwayat.
-          - Navigasi tiga kolom, backup/restore Vault, backend merge, Mapping Amy-SMC-D, dan closed-candle/no-future-data tetap dipertahankan.
+          - Mapping Context Terpadu menjaga HTF, Swing/Internal Structure, Dealing Range, liquidity, Valid Break, BOS/CHoCH, Pattern, FVG/OB, reference levels, Final Bias dan Next Move tetap informatif saat Entry Map masih WAIT.
+          - Market State, Market Outlook dan Entry Readiness dipisahkan: Outlook hanya skenario, sedangkan otoritas entry tetap Entry Map/setup resmi.
+          - Sweep vs Acceptance ditambahkan sebagai context classifier tanpa membuka entry sendiri.
+          - SMT XAUUSD-DXY M15 ditambahkan sebagai evidence-only selector dan tidak boleh mengubah atau memblokir engine lain.
+          - Scalper Engine menambahkan SMR / First Retest M5: HTF-aligned liquidity sweep → displaced MSS → first FVG/OB retest.
+          - Expansion Range Re-entry V3, driver Scalper lama, Vault/Riwayat, Mapping Amy-SMC-D dan closed-candle/no-future-data tetap dipertahankan.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
