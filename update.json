@@ -4,8 +4,8 @@
   "versionCode": 950316,
   "version": "2.0.0-pro.316",
   "releaseDate": "2026-08-15",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-latest/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-latest/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.316/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.316/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
@@ -13,7 +13,7 @@
     "Amy FX Pro kini memakai snapshot Amy FX Preview 2.0.0-preview.316 sebagai baseline utama.",
     "Mapping canonical Amy-SMC-D, closed-candle contract, Dealing Range, execution consumers, dan live-price isolation dari Preview 316 dipertahankan.",
     "Branding, version line, repository, dan update channel sudah menjadi Amy FX Pro; package dan URI lineage Preview sementara dipertahankan untuk kompatibilitas Firebase, data aplikasi, dan deep-link.",
-    "Update channel Amy FX Pro sekarang berada di repo suhaimitoamy/Amy-fx-pro pada branch main."
+    "Update channel Amy FX Pro berada di repo suhaimitoamy/Amy-fx-pro pada branch main."
   ],
   "changelog": [
     "Promote Preview 316 codebase as Amy FX Pro main baseline",
