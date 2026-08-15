@@ -1,26 +1,26 @@
 {
-  "latest_version_code": 950318,
-  "latest_version_name": "2.0.0-pro.318",
-  "versionCode": 950318,
-  "version": "2.0.0-pro.318",
+  "latest_version_code": 950319,
+  "latest_version_name": "2.0.0-pro.319",
+  "versionCode": 950319,
+  "version": "2.0.0-pro.319",
   "releaseDate": "2026-08-15",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.318/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.318/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.319/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.319/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Mapping sekarang memiliki tiga navigasi utama: Dashboard, Analisis, dan Riwayat.",
-    "Statistik Scalper Vault dan riwayat permanen dipindahkan dari panel Analisis ke halaman Riwayat & Statistik agar Analisis lebih ringkas.",
-    "Riwayat & Statistik memakai Vault IndexedDB yang sama, jadi Total Trade, Win, Loss, Breakeven, Win Rate, Net R, dan arsip lama tetap berlanjut tanpa reset.",
-    "Halaman Riwayat menyediakan filter Win/Loss/BE/Invalid, pemuatan bertahap 100 setup, Backup JSON, Pulihkan Backup, dan sinkronisasi backend manual.",
-    "Dashboard dan Analisis tetap menampilkan setup Scalper aktif tanpa membawa daftar histori panjang."
+    "Navigasi Mapping dikunci menjadi tiga kolom satu baris sehingga Dashboard, Analisis, dan Riwayat tidak lagi berpindah ke baris bawah.",
+    "Riwayat & Statistik sekarang memiliki Performa per Metode berdasarkan nama driver/metode yang tersimpan pada setiap setup.",
+    "Setiap metode menampilkan jumlah Trade, Win, Loss, BE, Win Rate, Loss Rate, Net R, serta Invalid/Batal.",
+    "Metode diurutkan berdasarkan jumlah Loss terbanyak agar prioritas evaluasi mudah terlihat, dengan jumlah Trade dan WR tetap ditampilkan agar perbandingan sampel lebih adil.",
+    "Scalper Vault lama tetap digunakan tanpa reset sehingga statistik per metode dihitung dari arsip permanen yang sudah ada."
   ],
   "changelog": [
-    "Three primary Mapping navigations",
-    "Dedicated Scalper history and statistics page",
-    "Scalper Vault removed from Analysis presentation",
-    "All-time history filters and paged rendering",
-    "Persistent Vault backup restore and backend merge"
+    "Stable three-column Mapping navigation",
+    "Per-method Scalper performance analytics",
+    "Loss-count evaluation ranking",
+    "Method WR loss-rate and Net R breakdown",
+    "Persistent Vault statistics preserved"
   ]
 }
