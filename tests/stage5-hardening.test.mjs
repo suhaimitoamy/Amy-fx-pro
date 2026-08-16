@@ -39,7 +39,8 @@ test('published Pro metadata is never ahead of the Pro APK source version', () =
   if (Number(metadata.latest_version_code) === sourceCode) {
     assert.equal(metadata.latest_version_name, sourceName);
   }
-  assert.match(metadata.apk_url || metadata.downloadUrl || '', /amyfx-pro-2\.0\.0-pro\.321\/AmyFX-Pro-latest\.apk/);
+  const publishedTag = `amyfx-pro-${metadata.latest_version_name}`;
+  assert.match(metadata.apk_url || metadata.downloadUrl || '', new RegExp(`${escapeRegex(publishedTag)}/AmyFX-Pro-latest\\.apk`));
   assert.ok(Array.isArray(metadata.release_notes));
   assert.ok(metadata.release_notes.length > 0);
 });
@@ -86,8 +87,10 @@ test('active Pro release workflow pins signing continuity and verifies the built
   assert.match(gradle, /enableV2Signing = true/);
 
   const workflow = read('.github/workflows/build-apk.yml');
-  assert.match(workflow, /AMYFX_VERSION_NAME: "2\.0\.0-pro\.321"/);
-  assert.match(workflow, /AMYFX_VERSION_CODE: "950321"/);
+  assert.match(workflow, /Resolve source version/);
+  assert.match(workflow, /AMYFX_VERSION_NAME=\$version_name/);
+  assert.match(workflow, /AMYFX_VERSION_CODE=\$version_code/);
+  assert.match(workflow, /AMYFX_RELEASE_TAG=amyfx-pro-\$version_name/);
   assert.match(workflow, /amy-fx-debug-keystore-v1/);
   assert.match(workflow, /amy-fx-pro-signing-key-v1/);
   assert.match(workflow, /47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7/);
