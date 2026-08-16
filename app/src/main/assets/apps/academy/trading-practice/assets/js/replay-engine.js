@@ -1,4 +1,4 @@
-/* Amy FX Trading Practice — timestamp-owned replay controller. */
+/* Amy FX Trading Practice — timestamp-owned replay controller with selectable historical packs. */
 (function (root) {
   'use strict';
 
@@ -21,6 +21,7 @@
     this.provider = options.provider || root.AmyPracticeData;
     this.symbol = options.symbol || 'XAUUSD';
     this.timeframe = options.timeframe || 'M15';
+    this.sourceId = options.sourceId || null;
     this.cursor = null;
     this.startTime = null;
     this.timeline = [];
@@ -31,7 +32,7 @@
   }
 
   ReplayController.prototype.loadTimeline = async function () {
-    this.timeline = await this.provider.getTimeline({ symbol: this.symbol, timeframe: this.timeframe });
+    this.timeline = await this.provider.getTimeline({ symbol: this.symbol, timeframe: this.timeframe, sourceId: this.sourceId });
     if (!this.timeline.length) throw new Error('Timeline replay kosong.');
     return this.timeline.slice();
   };
@@ -54,6 +55,15 @@
     await this.loadTimeline();
     if (this.cursor == null) this.cursor = this.timeline[Math.min(80, this.timeline.length - 1)];
     return this.emit('timeframe', this.cursor);
+  };
+
+  ReplayController.prototype.setSource = async function (sourceId, timestamp) {
+    this.pause();
+    this.sourceId = sourceId || null;
+    this.cursor = null;
+    this.startTime = null;
+    this.timeline = [];
+    return this.start(timestamp == null ? null : timestamp);
   };
 
   ReplayController.prototype.move = async function (count) {
@@ -84,13 +94,16 @@
     var result = await this.provider.getCandles({
       symbol: this.symbol,
       timeframe: this.timeframe,
+      sourceId: this.sourceId,
       cursor: this.cursor
     });
+    this.sourceId = result.sourceId || this.sourceId;
     if (result.candles.some(function (candle) { return candle.time > this.cursor || Number(candle.lastSourceTime || candle.time) > this.cursor; }, this)) {
       throw new Error('NO FUTURE LEAK invariant gagal.');
     }
     var payload = {
       reason: reason,
+      sourceId: this.sourceId,
       symbol: this.symbol,
       timeframe: this.timeframe,
       cursor: this.cursor,

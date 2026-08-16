@@ -11,7 +11,7 @@
   async function record(answer, correct) {
     await window.AmyPracticeStorage.saveGuidedResult({
       exerciseId: active.id, title: active.title, answer: String(answer), correct: Boolean(correct),
-      timeframe: active.timeframe, source: 'packaged:XAUUSD:M1'
+      timeframe: active.timeframe, source: provider.SAMPLE_ID
     });
   }
 
@@ -58,7 +58,9 @@
     ui.byId('guidedProgress').style.width = ((index / exercises.length) * 100) + '%';
     ui.status('guidedStatus', active.type === 'tap' ? 'Ketuk jawaban langsung pada chart.' : 'Pilih satu keputusan di bawah.');
     renderChoices();
-    var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: active.timeframe });
+    // Guided answers are frozen against the bundled March 2009 sample. Never let
+    // a user-selected historical pack silently move the expected timestamps.
+    var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: active.timeframe, sourceId: provider.SAMPLE_ID });
     var visible = result.candles.filter(function (candle) { return candle.time >= active.visibleStart && candle.time <= active.visibleEnd; });
     chart.setCandles(visible, true);
   }

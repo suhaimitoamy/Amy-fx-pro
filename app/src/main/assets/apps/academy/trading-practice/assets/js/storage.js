@@ -1,13 +1,19 @@
-/* Amy FX Trading Practice — local-first IndexedDB storage with localStorage fallback. */
+/* Amy FX Trading Practice — local-first IndexedDB storage with archive-pack support. */
 (function (root) {
   'use strict';
 
   if (root.AmyPracticeStorage) return;
 
   var DB_NAME = 'amy_fx_trading_practice_v1';
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
   var FALLBACK_PREFIX = 'amy.practice.v1.';
-  var STORES = Object.freeze({ datasets: 'datasets', trades: 'trades', guided: 'guidedResults' });
+  var STORES = Object.freeze({
+    datasets: 'datasets',
+    trades: 'trades',
+    guided: 'guidedResults',
+    packs: 'historicalPacks',
+    packFiles: 'historicalPackFiles'
+  });
   var dbPromise = null;
 
   function fallbackKey(store) { return FALLBACK_PREFIX + store; }
@@ -16,9 +22,7 @@
     try {
       var value = JSON.parse(localStorage.getItem(fallbackKey(store)) || '[]');
       return Array.isArray(value) ? value : [];
-    } catch (_) {
-      return [];
-    }
+    } catch (_) { return []; }
   }
 
   function writeFallback(store, items) {
@@ -38,9 +42,16 @@
           trades.createIndex('createdAt', 'createdAt');
         }
         if (!db.objectStoreNames.contains(STORES.guided)) db.createObjectStore(STORES.guided, { keyPath: 'id' });
+        if (!db.objectStoreNames.contains(STORES.packs)) {
+          var packs = db.createObjectStore(STORES.packs, { keyPath: 'id' });
+          packs.createIndex('start', 'start');
+          packs.createIndex('importedAt', 'importedAt');
+        }
+        if (!db.objectStoreNames.contains(STORES.packFiles)) db.createObjectStore(STORES.packFiles, { keyPath: 'id' });
       };
       request.onsuccess = function () { resolve(request.result); };
       request.onerror = function () { reject(request.error || new Error('IndexedDB gagal dibuka')); };
+      request.onblocked = function () { reject(new Error('Upgrade database Practice terblokir. Tutup halaman Practice lain lalu coba lagi.')); };
     });
     return dbPromise;
   }
@@ -63,6 +74,7 @@
       await withStore(store, 'readwrite', function (objectStore) { return objectStore.put(value); });
       return value;
     } catch (_) {
+      if (store === STORES.packs || store === STORES.packFiles) throw _;
       var items = readFallback(store).filter(function (item) { return item && item.id !== value.id; });
       items.push(value);
       writeFallback(store, items);
@@ -72,18 +84,24 @@
 
   async function get(store, id) {
     try { return await withStore(store, 'readonly', function (objectStore) { return objectStore.get(id); }); }
-    catch (_) { return readFallback(store).find(function (item) { return item && item.id === id; }) || null; }
+    catch (_) {
+      if (store === STORES.packs || store === STORES.packFiles) return null;
+      return readFallback(store).find(function (item) { return item && item.id === id; }) || null;
+    }
   }
 
   async function getAll(store) {
     try { return await withStore(store, 'readonly', function (objectStore) { return objectStore.getAll(); }); }
-    catch (_) { return readFallback(store); }
+    catch (_) {
+      if (store === STORES.packs || store === STORES.packFiles) return [];
+      return readFallback(store);
+    }
   }
 
   async function remove(store, id) {
-    try {
-      await withStore(store, 'readwrite', function (objectStore) { return objectStore.delete(id); });
-    } catch (_) {
+    try { await withStore(store, 'readwrite', function (objectStore) { return objectStore.delete(id); }); }
+    catch (_) {
+      if (store === STORES.packs || store === STORES.packFiles) throw _;
       writeFallback(store, readFallback(store).filter(function (item) { return item && item.id !== id; }));
     }
   }
@@ -93,8 +111,16 @@
     return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   }
 
+  function cleanSymbol(symbol) { return String(symbol || 'XAUUSD').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+
   function datasetId(symbol, timeframe) {
-    return String(symbol || 'XAUUSD').toUpperCase().replace(/[^A-Z0-9]/g, '') + ':' + String(timeframe || 'M1').toUpperCase();
+    return cleanSymbol(symbol) + ':' + String(timeframe || 'M1').toUpperCase();
+  }
+
+  function packId(record) {
+    var start = Number(record && record.start || 0);
+    var end = Number(record && record.end || 0);
+    return 'pack:' + cleanSymbol(record && record.symbol) + ':' + String(record && record.timeframe || 'M1').toUpperCase() + ':' + start + ':' + end;
   }
 
   async function saveDataset(record) {
@@ -110,6 +136,57 @@
   async function listDatasets() {
     var items = await getAll(STORES.datasets);
     return items.sort(function (a, b) { return Number(b.importedAt || 0) - Number(a.importedAt || 0); });
+  }
+
+  async function saveHistoricalPack(record, blob) {
+    if (!blob || typeof blob.arrayBuffer !== 'function') throw new Error('File pack historis tidak valid.');
+    var meta = Object.assign({}, record);
+    meta.id = meta.id || packId(meta);
+    meta.symbol = String(meta.symbol || 'XAUUSD').toUpperCase();
+    meta.timeframe = String(meta.timeframe || 'M1').toUpperCase();
+    meta.importedAt = Number(meta.importedAt || Date.now());
+    meta.size = Number(meta.size || blob.size || 0);
+    delete meta.blob;
+
+    var db = await openDb();
+    return new Promise(function (resolve, reject) {
+      var transaction = db.transaction([STORES.packs, STORES.packFiles], 'readwrite');
+      transaction.oncomplete = function () { resolve(meta); };
+      transaction.onerror = function () { reject(transaction.error || new Error('Pack historis gagal disimpan.')); };
+      transaction.onabort = function () { reject(transaction.error || new Error('Penyimpanan pack historis dibatalkan.')); };
+      transaction.objectStore(STORES.packs).put(meta);
+      transaction.objectStore(STORES.packFiles).put({ id: meta.id, blob: blob });
+    });
+  }
+
+  async function loadHistoricalPack(id) {
+    var pair = await Promise.all([get(STORES.packs, id), get(STORES.packFiles, id)]);
+    if (!pair[0] || !pair[1] || !pair[1].blob) return null;
+    return { meta: pair[0], blob: pair[1].blob };
+  }
+
+  async function listHistoricalPacks() {
+    var items = await getAll(STORES.packs);
+    return items.sort(function (a, b) {
+      var byTime = Number(a.start || 0) - Number(b.start || 0);
+      return byTime || Number(a.importedAt || 0) - Number(b.importedAt || 0);
+    });
+  }
+
+  async function deleteHistoricalPack(id) {
+    var db = await openDb();
+    return new Promise(function (resolve, reject) {
+      var transaction = db.transaction([STORES.packs, STORES.packFiles], 'readwrite');
+      transaction.oncomplete = function () { resolve(true); };
+      transaction.onerror = function () { reject(transaction.error || new Error('Pack historis gagal dihapus.')); };
+      transaction.objectStore(STORES.packs).delete(id);
+      transaction.objectStore(STORES.packFiles).delete(id);
+    });
+  }
+
+  async function historicalPackBytes() {
+    var items = await listHistoricalPacks();
+    return items.reduce(function (sum, item) { return sum + Number(item.size || 0); }, 0);
   }
 
   async function saveTrade(record) {
@@ -146,6 +223,12 @@
     saveDataset: saveDataset,
     loadDataset: function (symbol, timeframe) { return get(STORES.datasets, datasetId(symbol, timeframe)); },
     listDatasets: listDatasets,
+    packId: packId,
+    saveHistoricalPack: saveHistoricalPack,
+    loadHistoricalPack: loadHistoricalPack,
+    listHistoricalPacks: listHistoricalPacks,
+    deleteHistoricalPack: deleteHistoricalPack,
+    historicalPackBytes: historicalPackBytes,
     saveTrade: saveTrade,
     listTrades: listTrades,
     deleteTrade: function (id) { return remove(STORES.trades, id); },
