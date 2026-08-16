@@ -2,10 +2,9 @@
 
 ## Pending Tasks
 
-- [ ] Add a direct ZIP archive importer if large monthly archives need to be loaded in-app; the current safe importer accepts CSV/JSON OHLC only.
-- [ ] Expand the packaged historical sample beyond the current 4,320 XAUUSD M1 candles if longer offline Practice sessions are required.
+- [ ] Add automatic next/previous monthly-pack handoff in Candle Replay if seamless multi-month playback is later required; current design intentionally keeps one explicit local pack active at a time to bound memory.
 - [ ] Add SMT guided-chart exercises only after a synchronized, provenance-preserving DXY dataset is available beside XAUUSD.
-- [ ] Smoke-test the native live chart in the Android WebView with a configured Twelve Data key during a future device-validation pass.
+- [ ] Smoke-test the native live chart on a real Android device with a configured Twelve Data key; CI already validates source, Android unit/lint/build, APK identity, signer, release asset, and endpoint.
 
 - [ ] Validate the real Causal V3 lifecycle against a naturally occurring setup when one eventually passes every unchanged gate; do not manufacture a setup or tune thresholds for this task.
 - [ ] Manually validate Mapping Accuracy V3 on current/forward closed candles for M1, M5, M15, M30, H1, H4, D1, and W1 using `docs/MAPPING_ACCURACY_V3_MANUAL_VALIDATION.md`.
@@ -18,6 +17,10 @@
 
 ## Notes
 
+- Academy Trading Practice now supports local repaired-audited ZIP packs recursively, including nested annual/group archives, without bundling the historical library into the APK.
+- Replay keeps one explicit pack active at a time and filters source candles at the real timestamp cursor before timeframe aggregation.
+- Live Chart can preload closed candle context from native CandleStore and then continue with AmyLivePrice/Twelve Data WebSocket without Twelve Data REST/polling; it intentionally starts from WebSocket ticks if CandleStore is empty.
+- Guided Practice is pinned to the packaged March 2009 sample so fixed exercise answers cannot drift when a user selects another historical pack.
 - XAU/USD 2021–2022 M5/M15 replay still produces zero locked setups after causal-order and paired-leg fixes. The next cumulative blocker is the unchanged SESSION gate.
 - Rolling 300 and 800 produce identical gate decisions, paired-anchor times/prices, and setup counts; only negligible EMA seed drift remains.
 - Mapping V3 manual profiles (M1, M30, H4, D1, W1) have no win-probability claim and must not be tuned from isolated live outcomes.
