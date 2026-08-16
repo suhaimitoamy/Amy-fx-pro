@@ -4,12 +4,13 @@ import fs from 'node:fs';
 
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Scalper Engine registers Expansion Range Re-entry V3 without changing the Pro release identity', () => {
+test('Scalper Engine registers Expansion Range Re-entry V3 without drifting from the current Pro source identity', () => {
   const signals = read('supabase/functions/scalper-engine/signals.mjs');
   const detector = read('supabase/functions/scalper-engine/expansion-range-reentry.mjs');
   const lifecycle = read('supabase/functions/scalper-engine/expansion-range-lifecycle.mjs');
   const engine = read('supabase/functions/scalper-engine/engine.mjs');
   const gradle = read('app/build.gradle.kts');
+  const appVersion = read('app/src/main/assets/app-version.js');
 
   for (const marker of [
     'EXPANSION_RANGE_REENTRY',
@@ -51,6 +52,11 @@ test('Scalper Engine registers Expansion Range Re-entry V3 without changing the 
   }
 
   assert.ok(engine.includes("from './expansion-range-lifecycle.mjs'"));
-  assert.match(gradle, /versionCode\s*=.*950321/);
-  assert.match(gradle, /2\.0\.0-pro\.321/);
+
+  const identity = appVersion.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
+  assert.ok(identity, 'current Pro identity must be readable from app-version.js');
+  const [, versionName, sequenceText, versionCodeText] = identity;
+  assert.equal(Number(versionCodeText), 950000 + Number(sequenceText));
+  assert.match(gradle, new RegExp(`versionCode = .*\\?: ${versionCodeText}\\)`));
+  assert.ok(gradle.includes(`versionName = System.getenv("AMYFX_VERSION_NAME") ?: "${versionName}"`));
 });
