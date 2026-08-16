@@ -170,6 +170,24 @@
     }
   }
 
+  function injectLearningTrackLinks() {
+    var navlinks = document.querySelector('.navlinks');
+    if (!navlinks) return;
+    var root = (typeof ROOT_PATH !== 'undefined') ? ROOT_PATH : '';
+    [
+      { match: 'backtest-learning/index.html', href: root + 'backtest-learning/index.html', label: 'ICT Backtest' },
+      { match: 'trading-practice/index.html', href: root + 'trading-practice/index.html', label: 'Practice' }
+    ].forEach(function (item) {
+      var exists = Array.prototype.some.call(navlinks.querySelectorAll('a'), function (link) { return String(link.getAttribute('href') || '').indexOf(item.match) >= 0; });
+      if (exists) return;
+      var link = document.createElement('a');
+      link.href = item.href;
+      link.textContent = item.label;
+      link.dataset.academyTrackLink = 'true';
+      navlinks.appendChild(link);
+    });
+  }
+
   /* ==========================================
      SECTION 2: HAMBURGER MENU
      ========================================== */
@@ -414,6 +432,7 @@
     injectGlassCSS();
     createThemePanel();
     injectThemeToggle();
+    injectLearningTrackLinks();
     initHamburger();
     initImageSlots();
     initLanjutBelajar();

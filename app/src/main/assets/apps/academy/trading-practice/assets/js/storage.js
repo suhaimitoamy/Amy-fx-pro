@@ -1,0 +1,158 @@
+/* Amy FX Trading Practice — local-first IndexedDB storage with localStorage fallback. */
+(function (root) {
+  'use strict';
+
+  if (root.AmyPracticeStorage) return;
+
+  var DB_NAME = 'amy_fx_trading_practice_v1';
+  var DB_VERSION = 1;
+  var FALLBACK_PREFIX = 'amy.practice.v1.';
+  var STORES = Object.freeze({ datasets: 'datasets', trades: 'trades', guided: 'guidedResults' });
+  var dbPromise = null;
+
+  function fallbackKey(store) { return FALLBACK_PREFIX + store; }
+
+  function readFallback(store) {
+    try {
+      var value = JSON.parse(localStorage.getItem(fallbackKey(store)) || '[]');
+      return Array.isArray(value) ? value : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function writeFallback(store, items) {
+    localStorage.setItem(fallbackKey(store), JSON.stringify(items));
+  }
+
+  function openDb() {
+    if (!root.indexedDB) return Promise.reject(new Error('IndexedDB unavailable'));
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function (resolve, reject) {
+      var request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = function () {
+        var db = request.result;
+        if (!db.objectStoreNames.contains(STORES.datasets)) db.createObjectStore(STORES.datasets, { keyPath: 'id' });
+        if (!db.objectStoreNames.contains(STORES.trades)) {
+          var trades = db.createObjectStore(STORES.trades, { keyPath: 'id' });
+          trades.createIndex('createdAt', 'createdAt');
+        }
+        if (!db.objectStoreNames.contains(STORES.guided)) db.createObjectStore(STORES.guided, { keyPath: 'id' });
+      };
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { reject(request.error || new Error('IndexedDB gagal dibuka')); };
+    });
+    return dbPromise;
+  }
+
+  async function withStore(store, mode, operation) {
+    var db = await openDb();
+    return new Promise(function (resolve, reject) {
+      var transaction = db.transaction(store, mode);
+      var objectStore = transaction.objectStore(store);
+      var request;
+      try { request = operation(objectStore); }
+      catch (error) { reject(error); return; }
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { reject(request.error || new Error('Operasi penyimpanan gagal')); };
+    });
+  }
+
+  async function put(store, value) {
+    try {
+      await withStore(store, 'readwrite', function (objectStore) { return objectStore.put(value); });
+      return value;
+    } catch (_) {
+      var items = readFallback(store).filter(function (item) { return item && item.id !== value.id; });
+      items.push(value);
+      writeFallback(store, items);
+      return value;
+    }
+  }
+
+  async function get(store, id) {
+    try { return await withStore(store, 'readonly', function (objectStore) { return objectStore.get(id); }); }
+    catch (_) { return readFallback(store).find(function (item) { return item && item.id === id; }) || null; }
+  }
+
+  async function getAll(store) {
+    try { return await withStore(store, 'readonly', function (objectStore) { return objectStore.getAll(); }); }
+    catch (_) { return readFallback(store); }
+  }
+
+  async function remove(store, id) {
+    try {
+      await withStore(store, 'readwrite', function (objectStore) { return objectStore.delete(id); });
+    } catch (_) {
+      writeFallback(store, readFallback(store).filter(function (item) { return item && item.id !== id; }));
+    }
+  }
+
+  function identifier(prefix) {
+    if (root.crypto && typeof root.crypto.randomUUID === 'function') return prefix + '-' + root.crypto.randomUUID();
+    return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function datasetId(symbol, timeframe) {
+    return String(symbol || 'XAUUSD').toUpperCase().replace(/[^A-Z0-9]/g, '') + ':' + String(timeframe || 'M1').toUpperCase();
+  }
+
+  async function saveDataset(record) {
+    var value = Object.assign({}, record, {
+      id: datasetId(record.symbol, record.timeframe),
+      symbol: String(record.symbol || 'XAUUSD').toUpperCase(),
+      timeframe: String(record.timeframe || 'M1').toUpperCase(),
+      importedAt: Number(record.importedAt || Date.now())
+    });
+    return put(STORES.datasets, value);
+  }
+
+  async function listDatasets() {
+    var items = await getAll(STORES.datasets);
+    return items.sort(function (a, b) { return Number(b.importedAt || 0) - Number(a.importedAt || 0); });
+  }
+
+  async function saveTrade(record) {
+    var value = Object.assign({}, record);
+    if (!value.id) value.id = identifier('trade');
+    if (!value.createdAt) value.createdAt = Date.now();
+    value.updatedAt = Date.now();
+    return put(STORES.trades, value);
+  }
+
+  async function listTrades() {
+    var items = await getAll(STORES.trades);
+    return items.sort(function (a, b) { return Number(b.createdAt || 0) - Number(a.createdAt || 0); });
+  }
+
+  async function saveGuidedResult(record) {
+    var value = Object.assign({}, record);
+    if (!value.id) value.id = identifier('guided');
+    if (!value.createdAt) value.createdAt = Date.now();
+    return put(STORES.guided, value);
+  }
+
+  function saveReplayState(value) {
+    try { localStorage.setItem(FALLBACK_PREFIX + 'replayState', JSON.stringify(value)); } catch (_) {}
+  }
+
+  function loadReplayState() {
+    try { return JSON.parse(localStorage.getItem(FALLBACK_PREFIX + 'replayState') || 'null'); }
+    catch (_) { return null; }
+  }
+
+  root.AmyPracticeStorage = Object.freeze({
+    datasetId: datasetId,
+    saveDataset: saveDataset,
+    loadDataset: function (symbol, timeframe) { return get(STORES.datasets, datasetId(symbol, timeframe)); },
+    listDatasets: listDatasets,
+    saveTrade: saveTrade,
+    listTrades: listTrades,
+    deleteTrade: function (id) { return remove(STORES.trades, id); },
+    saveGuidedResult: saveGuidedResult,
+    listGuidedResults: function () { return getAll(STORES.guided); },
+    saveReplayState: saveReplayState,
+    loadReplayState: loadReplayState,
+    identifier: identifier
+  });
+})(typeof window !== 'undefined' ? window : globalThis);

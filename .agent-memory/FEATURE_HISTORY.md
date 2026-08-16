@@ -1,5 +1,14 @@
 # Feature History
 
+## Academy Trading Practice + ICT Berbasis Backtest
+- **Date:** 2026-08-16
+- **Status:** ✅ Source implemented and targeted regression-validated; no APK/release/backtest run by request
+- **Trading Practice:** Added a real locally bundled candlestick chart, M1–D1 aggregation, zoom/pan/crosshair, persistent drawing tools, CSV/JSON OHLC import, native Twelve Data WebSocket tick aggregation, manual BUY/SELL/WAIT records, local outcome history, and three guided chart exercises.
+- **Replay:** Added timestamp-owned candle replay with previous/advance/play/speed controls and pre-aggregation future filtering across timeframe switches.
+- **Learning:** Added the separate nine-document `ICT Berbasis Backtest` path from the requested Google Drive source, complete with source provenance, catalog progress, reading resume/history reuse, completion state, and supported Practice CTAs.
+- **Academy integration:** Added three track selectors and global Academy navigation while preserving all existing Bagian 1–36 content, quiz behavior, history, and the market-learning bridge.
+- **Validation:** JavaScript syntax, diff whitespace, static asset references, and four focused replay/core/trade regressions. No Android build, visual QA campaign, strategy validation, release, or metadata/version change.
+
 ## Amy-SMC-D Canonical Mapping Engine
 - **Date:** 2026-08-11
 - **Status:** ✅ Implemented and 112-file JavaScript regression validated; private signed release workflow verification required

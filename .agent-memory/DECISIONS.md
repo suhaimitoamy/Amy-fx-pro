@@ -208,3 +208,18 @@
 - Hermes agent switched from DeepSeek to Gemini to save DeepSeek tokens.
 - MOA (Mixture of Agents) disabled to reduce double API calls.
 - Config: `/root/.hermes/config.yaml`
+
+## 2026-08-16
+
+### Academy Trading Practice
+- Trading Practice is a local-first Academy track. Historical/imported datasets, drawings, manual trades, replay state, and guided results stay on the device through IndexedDB with a localStorage fallback.
+- TradingView Lightweight Charts `4.2.3` is vendored under Academy assets with its license; Practice has no runtime CDN dependency.
+- Replay owns one real source timestamp cursor across timeframe changes. Source candles are filtered at the cursor before aggregation, and only the resulting visible subset reaches the chart.
+- The Practice live adapter consumes the existing `AmyLivePrice` / `amyfx:twelvedata-*` native WebSocket contract only. It does not call REST, poll, modify Mapping, or dispatch Mapping recomputation events.
+- Manual trade outcomes are an educational forward-candle journal, not a strategy validator. A candle touching SL and TP is resolved SL-first and labeled ambiguous.
+- The packaged UI sample is 4,320 repaired-audited XAUUSD M1 candles from the March 2009 monthly archive; it is explicitly labeled as sample data, not a backtest result.
+
+### ICT Berbasis Backtest Learning Track
+- Documents `00`–`08` from the Google Drive folder `Materi Ajar — ICT Berbasis Backtest` are bundled as a separate source-backed Academy track with their source document IDs and links.
+- The track reuses Academy reading-history keys while assigning records to namespace `ict-backtest`; query-specific lesson paths prevent all nine lessons from collapsing into one history entry.
+- Practice CTAs are exposed only where the available local data supports the exercise. SMT chart practice is omitted until synchronized DXY candles are available.

@@ -2,6 +2,11 @@
 
 ## Pending Tasks
 
+- [ ] Add a direct ZIP archive importer if large monthly archives need to be loaded in-app; the current safe importer accepts CSV/JSON OHLC only.
+- [ ] Expand the packaged historical sample beyond the current 4,320 XAUUSD M1 candles if longer offline Practice sessions are required.
+- [ ] Add SMT guided-chart exercises only after a synchronized, provenance-preserving DXY dataset is available beside XAUUSD.
+- [ ] Smoke-test the native live chart in the Android WebView with a configured Twelve Data key during a future device-validation pass.
+
 - [ ] Validate the real Causal V3 lifecycle against a naturally occurring setup when one eventually passes every unchanged gate; do not manufacture a setup or tune thresholds for this task.
 - [ ] Manually validate Mapping Accuracy V3 on current/forward closed candles for M1, M5, M15, M30, H1, H4, D1, and W1 using `docs/MAPPING_ACCURACY_V3_MANUAL_VALIDATION.md`.
 - [ ] Record repeatable reference mismatches with timeframe, candle open time, expected event, actual event, and screenshot before changing any Mapping V3 threshold.

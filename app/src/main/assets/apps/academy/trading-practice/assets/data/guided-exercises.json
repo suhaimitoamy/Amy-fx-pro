@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "source": "XAUUSD M1 repaired-audited sample, March 2009",
+  "exercises": [
+    {
+      "id": "liquidity-low-20090318",
+      "title": "Tandai liquidity event terendah",
+      "timeframe": "M15",
+      "type": "tap",
+      "visibleStart": 1237359600,
+      "visibleEnd": 1237384800,
+      "answerTime": 1237375800,
+      "timeTolerance": 900,
+      "priceMin": 883.5,
+      "priceMax": 890.0,
+      "prompt": "Ketuk candle/area yang mencetak low paling ekstrem pada window ini.",
+      "principle": "Liquidity event adalah observasi, belum otomatis menjadi arah entry.",
+      "success": "Tepat. Anda menemukan candle M15 yang memuat low 883,65.",
+      "retry": "Belum tepat. Cari wick terendah pada window, bukan candle sesudah reaksinya."
+    },
+    {
+      "id": "expansion-high-20090318",
+      "title": "Temukan candle ekspansi",
+      "timeframe": "H1",
+      "type": "tap",
+      "visibleStart": 1237370400,
+      "visibleEnd": 1237402800,
+      "answerTime": 1237388400,
+      "timeTolerance": 3600,
+      "priceMin": 930.0,
+      "priceMax": 948.0,
+      "prompt": "Ketuk candle H1 dengan range naik terbesar dan high tertinggi di window ini.",
+      "principle": "Ekspansi memberi konteks delivery; entry tetap membutuhkan urutan rule yang lengkap.",
+      "success": "Tepat. Candle 23:00 WITA memuat ekspansi sampai 947,15.",
+      "retry": "Coba lagi. Bandingkan range high-low setiap candle H1."
+    },
+    {
+      "id": "wait-after-sweep",
+      "title": "Pisahkan event dari keputusan",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237366800,
+      "visibleEnd": 1237377600,
+      "prompt": "Low telah tersapu. Tanpa data SMT DXY, HTF alignment, dan retest POI yang sudah dikonfirmasi, keputusan mekanis yang benar?",
+      "choices": ["BUY", "SELL", "WAIT"],
+      "answer": "WAIT",
+      "principle": "Sweep tidak cukup sebagai sinyal standalone. Jangan isi bukti yang tidak tersedia.",
+      "success": "Benar. WAIT menjaga fungsi Context, Selector, Confirmation, Location, dan Timing tetap terpisah.",
+      "retry": "Belum tepat. Satu liquidity event tidak membuktikan arah atau timing entry."
+    }
+  ]
+}
