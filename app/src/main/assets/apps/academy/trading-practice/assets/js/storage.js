@@ -62,9 +62,17 @@
       var transaction = db.transaction(store, mode);
       var objectStore = transaction.objectStore(store);
       var request;
+      var result;
+      transaction.oncomplete = function () { resolve(result); };
+      transaction.onerror = function () { reject(transaction.error || new Error('Transaksi penyimpanan gagal')); };
+      transaction.onabort = function () { reject(transaction.error || new Error('Transaksi penyimpanan dibatalkan')); };
       try { request = operation(objectStore); }
-      catch (error) { reject(error); return; }
-      request.onsuccess = function () { resolve(request.result); };
+      catch (error) {
+        try { transaction.abort(); } catch (_) {}
+        reject(error);
+        return;
+      }
+      request.onsuccess = function () { result = request.result; };
       request.onerror = function () { reject(request.error || new Error('Operasi penyimpanan gagal')); };
     });
   }
@@ -230,6 +238,7 @@
     deleteHistoricalPack: deleteHistoricalPack,
     historicalPackBytes: historicalPackBytes,
     saveTrade: saveTrade,
+    getTrade: function (id) { return get(STORES.trades, id); },
     listTrades: listTrades,
     deleteTrade: function (id) { return remove(STORES.trades, id); },
     saveGuidedResult: saveGuidedResult,

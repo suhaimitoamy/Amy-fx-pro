@@ -11,13 +11,34 @@
     return risk > 0 && reward > 0 ? reward / risk : null;
   }
 
+  function requiredNumber(value) {
+    if (value == null || String(value).trim() === '') return null;
+    return core.finite(value);
+  }
+
+  function stableKey(value) {
+    var text = String(value || 'local');
+    var hash = 2166136261;
+    for (var i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function decisionId(input) {
+    var symbol = String(input.symbol || 'XAUUSD').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var timeframe = String(input.timeframe || 'M15').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return 'decision-' + symbol + '-' + timeframe + '-' + Math.round(Number(input.tradeTime || 0)) + '-' + stableKey(input.sourceId);
+  }
+
   function validate(input) {
     var bias = String(input.bias || 'WAIT').toUpperCase();
     if (!['BUY', 'SELL', 'WAIT'].includes(bias)) throw new Error('Bias harus BUY, SELL, atau WAIT.');
     if (bias === 'WAIT') return { bias: bias, entry: null, stopLoss: null, takeProfit: null };
-    var entry = core.finite(input.entry);
-    var stopLoss = core.finite(input.stopLoss);
-    var takeProfit = core.finite(input.takeProfit);
+    var entry = requiredNumber(input.entry);
+    var stopLoss = requiredNumber(input.stopLoss);
+    var takeProfit = requiredNumber(input.takeProfit);
     if (![entry, stopLoss, takeProfit].every(Number.isFinite)) throw new Error('Entry, Stop Loss, dan Take Profit wajib diisi.');
     if (bias === 'BUY' && !(stopLoss < entry && entry < takeProfit)) throw new Error('Setup BUY wajib memiliki SL < Entry < TP.');
     if (bias === 'SELL' && !(takeProfit < entry && entry < stopLoss)) throw new Error('Setup SELL wajib memiliki TP < Entry < SL.');
@@ -28,19 +49,25 @@
     var geometry = validate(input);
     var currentPrice = core.finite(input.currentPrice);
     var activeAtSave = geometry.bias !== 'WAIT' && currentPrice != null && Math.abs(currentPrice - geometry.entry) <= 0.000001;
+    var tradeTime = Number(input.tradeTime);
+    if (!Number.isFinite(tradeTime)) throw new Error('Timestamp keputusan tidak valid. Tunggu sampai cursor replay siap.');
     return {
-      id: input.id || root.AmyPracticeStorage.identifier('trade'),
+      id: input.id || (input.lockDecision ? decisionId(input) : root.AmyPracticeStorage.identifier('trade')),
       symbol: String(input.symbol || 'XAUUSD').toUpperCase(),
       timeframe: String(input.timeframe || 'M15').toUpperCase(),
       replayStartTime: Number(input.replayStartTime || input.tradeTime),
-      tradeTime: Number(input.tradeTime),
+      tradeTime: tradeTime,
+      decisionCandleTime: tradeTime,
+      sourceId: String(input.sourceId || ''),
+      locked: Boolean(input.lockDecision),
+      lockedAt: input.lockDecision ? Number(input.lockedAt || Date.now()) : null,
       bias: geometry.bias,
       entry: geometry.entry,
       stopLoss: geometry.stopLoss,
       takeProfit: geometry.takeProfit,
       result: geometry.bias === 'WAIT' ? 'OPEN' : 'OPEN',
       entryStatus: geometry.bias === 'WAIT' ? 'NOT_APPLICABLE' : (activeAtSave ? 'ACTIVE' : 'WAITING_FILL'),
-      entryActivatedAt: activeAtSave ? Number(input.tradeTime) : null,
+      entryActivatedAt: activeAtSave ? tradeTime : null,
       plannedR: geometry.bias === 'WAIT' ? null : plannedR(geometry.bias, geometry.entry, geometry.stopLoss, geometry.takeProfit),
       r: null,
       notes: String(input.notes || '').trim(),
@@ -85,5 +112,5 @@
     return next;
   }
 
-  root.AmyPracticeTrades = Object.freeze({ create: create, validate: validate, evaluate: evaluate, plannedR: plannedR });
+  root.AmyPracticeTrades = Object.freeze({ create: create, validate: validate, evaluate: evaluate, plannedR: plannedR, decisionId: decisionId });
 })(typeof window !== 'undefined' ? window : globalThis);

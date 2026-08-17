@@ -1,5 +1,11 @@
 # Bug History
 
+## Trading Practice scale, decision persistence, and Live continuity
+- **Date:** 2026-08-17
+- **Severity:** High
+- **Cause:** No reserved price-axis width; Live replaced the active pack with a separate native buffer; IndexedDB resolved before transaction commit; drawing renderer only supported a legacy subset.
+- **Fix:** Reserved a responsive 92px price axis, merged the selected pack into Live with timestamp upsert/deduplication, verified committed decision retrieval, and added a TIME + PRICE drawing model.
+
 ## Fixed Competing Mapping Authorities and Live Recompute Paths — 2026-08-11
 
 ### Legacy Router and UI Layers Could Reinterpret or Replace Direction

@@ -7,11 +7,13 @@
     options = options || {};
     this.timeframe = options.timeframe || 'M1';
     this.aggregator = new root.AmyPracticeCore.TickAggregator(this.timeframe);
+    if (options.seedCandle) this.aggregator.seed(options.seedCandle);
     this.onCandle = typeof options.onCandle === 'function' ? options.onCandle : function () {};
     this.onStatus = typeof options.onStatus === 'function' ? options.onStatus : function () {};
     this.connected = false;
     this.retryIndex = 0;
     this.retryTimer = null;
+    this.started = false;
     this.handlePrice = this.handlePrice.bind(this);
     this.handleStatus = this.handleStatus.bind(this);
     this.handleAvailability = this.handleAvailability.bind(this);
@@ -20,6 +22,8 @@
   LivePriceAdapter.prototype.bridge = function () { return root.AmyLivePrice || null; };
 
   LivePriceAdapter.prototype.start = function () {
+    if (this.started) return;
+    this.started = true;
     root.addEventListener('amyfx:twelvedata-price', this.handlePrice);
     root.addEventListener('amyfx:twelvedata-status', this.handleStatus);
     root.addEventListener('online', this.handleAvailability);
@@ -28,6 +32,7 @@
   };
 
   LivePriceAdapter.prototype.connect = function () {
+    if (!this.started) return;
     clearTimeout(this.retryTimer);
     var bridge = this.bridge();
     if (!bridge || typeof bridge.connect !== 'function') {
@@ -42,7 +47,7 @@
 
   LivePriceAdapter.prototype.scheduleReconnect = function () {
     var self = this;
-    if (document.hidden || root.navigator.onLine === false) return;
+    if (!this.started || document.hidden || root.navigator.onLine === false) return;
     var delays = [1000, 2000, 5000, 10000, 20000];
     var delay = delays[Math.min(this.retryIndex, delays.length - 1)];
     this.retryIndex += 1;
@@ -74,16 +79,24 @@
   };
 
   LivePriceAdapter.prototype.handleAvailability = function () {
-    if (!document.hidden && root.navigator.onLine !== false && !this.connected) this.connect();
+    if (this.started && !document.hidden && root.navigator.onLine !== false && !this.connected) this.connect();
   };
 
-  LivePriceAdapter.prototype.setTimeframe = function (timeframe) {
+  LivePriceAdapter.prototype.setTimeframe = function (timeframe, seedCandle) {
     this.timeframe = timeframe;
     this.aggregator.setTimeframe(timeframe);
+    if (seedCandle) this.aggregator.seed(seedCandle);
+  };
+
+  LivePriceAdapter.prototype.seed = function (candle) {
+    return this.aggregator.seed(candle);
   };
 
   LivePriceAdapter.prototype.stop = function () {
     clearTimeout(this.retryTimer);
+    this.started = false;
+    this.connected = false;
+    this.retryIndex = 0;
     root.removeEventListener('amyfx:twelvedata-price', this.handlePrice);
     root.removeEventListener('amyfx:twelvedata-status', this.handleStatus);
     root.removeEventListener('online', this.handleAvailability);

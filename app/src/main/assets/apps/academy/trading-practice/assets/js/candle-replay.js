@@ -49,12 +49,33 @@
   async function updateOutcomes(payload) {
     var trades = await storage.listTrades();
     var matching = trades.filter(function (item) {
-      return item.symbol === payload.symbol && item.timeframe === payload.timeframe && item.result === 'OPEN' && item.bias !== 'WAIT';
+      return item.symbol === payload.symbol && item.timeframe === payload.timeframe && item.result === 'OPEN' && item.bias !== 'WAIT' &&
+        item.sourceId === payload.sourceId;
     });
     for (var i = 0; i < matching.length; i += 1) {
       var evaluated = window.AmyPracticeTrades.evaluate(matching[i], payload.candles);
       if (evaluated.result !== matching[i].result || evaluated.entryStatus !== matching[i].entryStatus) await storage.saveTrade(evaluated);
     }
+  }
+
+  async function syncDecisionState(payload) {
+    var id = window.AmyPracticeTrades.decisionId({
+      symbol: payload.symbol, timeframe: payload.timeframe,
+      sourceId: payload.sourceId, tradeTime: payload.cursor
+    });
+    var existing = await storage.getTrade(id);
+    ui.tradeReady(true);
+    if (!existing) {
+      delete ui.byId('tradeForm').dataset.lockedDecisionId;
+      chart.setTradeLevels([]);
+      ui.decisionState('idle', 'Belum dikunci', 'Cursor ' + core.formatWita(payload.cursor, true));
+      return;
+    }
+    ui.byId('tradeForm').dataset.lockedDecisionId = existing.id;
+    ui.decisionState('locked', 'Keputusan terkunci ✓', existing.bias + ' · ' + core.formatWita(existing.tradeTime, true) + ' · tersimpan permanen');
+    chart.setTradeLevels(existing.bias === 'WAIT' ? [] : [
+      { type: 'entry', price: existing.entry, title: 'Entry' }, { type: 'stop', price: existing.stopLoss, title: 'SL' }, { type: 'target', price: existing.takeProfit, title: 'TP' }
+    ]);
   }
 
   async function render(payload) {
@@ -76,6 +97,7 @@
       sourceId: payload.sourceId
     });
     await updateOutcomes(payload);
+    await syncDecisionState(payload);
   }
 
   async function move(count) {
@@ -85,19 +107,38 @@
 
   async function saveTrade(event) {
     event.preventDefault();
-    if (!latestPayload) return;
+    if (!latestPayload) {
+      ui.status('tradeStatus', 'Cursor replay belum siap. Tunggu data selesai dimuat.', true);
+      return;
+    }
     var current = ui.currentCandle(latestPayload.candles);
+    var submit = ui.byId('tradeSubmit');
     try {
+      ui.tradeReady(false);
+      if (submit) submit.textContent = 'Menyimpan keputusan…';
+      ui.decisionState('saving', 'Sedang menyimpan', 'Menunggu commit IndexedDB pada cursor ini…');
+      ui.status('tradeStatus', 'Menyimpan dan memverifikasi keputusan lokal…');
       var record = await ui.saveTrade(event.currentTarget, {
         symbol: latestPayload.symbol, timeframe: latestPayload.timeframe,
         tradeTime: latestPayload.cursor, replayStartTime: latestPayload.startTime,
-        currentPrice: current && current.close
+        currentPrice: current && current.close, sourceId: latestPayload.sourceId,
+        lockDecision: true
       });
+      var persisted = await storage.getTrade(record.id);
+      if (!persisted || persisted.tradeTime !== record.tradeTime) throw new Error('Keputusan belum terverifikasi di penyimpanan lokal. Coba lagi.');
       chart.setTradeLevels(record.bias === 'WAIT' ? [] : [
         { type: 'entry', price: record.entry, title: 'Entry' }, { type: 'stop', price: record.stopLoss, title: 'SL' }, { type: 'target', price: record.takeProfit, title: 'TP' }
       ]);
-      ui.status('tradeStatus', record.bias + ' dikunci pada ' + core.formatWita(record.tradeTime, true) + '.');
-    } catch (error) { ui.status('tradeStatus', error.message, true); }
+      event.currentTarget.dataset.lockedDecisionId = record.id;
+      ui.decisionState('locked', 'Keputusan terkunci ✓', record.bias + ' · ' + core.formatWita(record.tradeTime, true) + ' · tersimpan permanen');
+      ui.status('tradeStatus', '✓ ' + record.bias + ' berhasil dikunci dan sudah dapat dibaca kembali melalui Riwayat.', false, true);
+    } catch (error) {
+      ui.decisionState('error', 'Gagal mengunci', error.message);
+      ui.status('tradeStatus', error.message, true);
+    } finally {
+      ui.tradeReady(Boolean(latestPayload));
+      if (submit) submit.textContent = 'Kunci keputusan di cursor ini';
+    }
   }
 
   async function changeSource(value) {
@@ -112,6 +153,8 @@
   }
 
   async function init() {
+    ui.tradeReady(false);
+    ui.byId('tradeForm').addEventListener('submit', saveTrade);
     var saved = storage.loadReplayState() || {};
     ui.byId('timeframe').value = saved.timeframe || 'M15';
     ui.byId('speed').value = String(saved.speedMs || 900);
@@ -150,7 +193,6 @@
       var time = replay.timeline[Number(this.value)];
       if (time != null) replay.seek(time).catch(function (error) { ui.status('replayStatus', error.message, true); });
     });
-    ui.byId('tradeForm').addEventListener('submit', saveTrade);
     window.addEventListener('pagehide', function () { replay.destroy(); chart.destroy(); }, { once: true });
     try { await replay.start(saved.sourceId === selectedSource ? saved.cursor : null); }
     catch (error) { ui.status('replayStatus', error.message, true); }

@@ -1,5 +1,11 @@
 # Feature History
 
+## Trading Practice Advanced Drawings and Continuous Live Chart
+- **Date:** 2026-08-17
+- **Status:** ✅ Source implemented; 118 regression files pass; Android build pending Gradle availability
+- **Description:** Added selectable/movable chart drawings, active-pack historical→Live continuity, and persistent replay-decision feedback/history retrieval.
+- **Release:** Candidate `2.0.0-pro.323` / `950323`; published update manifest remains `.322` pending signed APK verification.
+
 ## Academy Trading Practice + ICT Berbasis Backtest
 - **Date:** 2026-08-16
 - **Status:** ✅ Source implemented and targeted regression-validated; no APK/release/backtest run by request

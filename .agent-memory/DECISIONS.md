@@ -1,5 +1,12 @@
 # Technical Decisions
 
+## 2026-08-17
+
+### Trading Practice Chart Continuity and Drawing Contract
+- Chart Analysis Live uses the selected historical pack as its immutable base, then merges native closed context and WebSocket candles by timeframe timestamp without interpolation or duplicates.
+- Replay decisions have a deterministic symbol/timeframe/cursor/source identity and are evaluated only from later candles. Drawings persist in TIME + PRICE coordinates.
+- Source advances to `2.0.0-pro.323` / `950323`; published `update.json` stays `.322` until a signed `.323` APK is verified.
+
 ## 2026-08-11
 
 ### Amy-SMC-D Canonical Mapping Contract

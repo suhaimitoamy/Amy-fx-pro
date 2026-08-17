@@ -56,6 +56,36 @@
     return Array.from(byTime.values()).sort(function (a, b) { return a.time - b.time; });
   }
 
+  function mergeCandleSeries(primary, secondary, options) {
+    options = options || {};
+    var replaceExisting = options.replaceExisting === true;
+    var byTime = new Map();
+    normalizeCandles(primary).forEach(function (candle) { byTime.set(candle.time, candle); });
+    normalizeCandles(secondary).forEach(function (candle) {
+      if (replaceExisting || !byTime.has(candle.time)) byTime.set(candle.time, candle);
+    });
+    return Array.from(byTime.values()).sort(function (a, b) { return a.time - b.time; });
+  }
+
+  function upsertLatestCandle(items, value, options) {
+    options = options || {};
+    var candles = normalizeCandles(items);
+    var candle = normalizeCandle(value);
+    if (!candle) return { candles: candles, candle: null, action: 'INVALID' };
+    var immutableThrough = finite(options.immutableThrough);
+    if (immutableThrough != null && candle.time <= immutableThrough) {
+      return { candles: candles, candle: null, action: 'IGNORED_HISTORICAL' };
+    }
+    var last = candles.length ? candles[candles.length - 1] : null;
+    if (last && candle.time < last.time) return { candles: candles, candle: null, action: 'IGNORED_OLDER' };
+    if (last && candle.time === last.time) {
+      candles[candles.length - 1] = candle;
+      return { candles: candles, candle: candle, action: 'UPDATED' };
+    }
+    candles.push(candle);
+    return { candles: candles, candle: candle, action: 'APPENDED' };
+  }
+
   function timeframeSeconds(timeframe) {
     return TIMEFRAME_SECONDS[String(timeframe || '').toUpperCase()] || null;
   }
@@ -198,6 +228,17 @@
     this.current = null;
   };
 
+  TickAggregator.prototype.seed = function (value) {
+    var candle = normalizeCandle(value);
+    if (!candle) {
+      this.current = null;
+      return false;
+    }
+    candle.time = Math.floor(candle.time / this.seconds) * this.seconds;
+    this.current = candle;
+    return true;
+  };
+
   TickAggregator.prototype.push = function (tick) {
     var tickPrice = finite(tick && tick.price);
     var tickTime = parseTime(tick && tick.timestamp);
@@ -221,6 +262,8 @@
     parseTime: parseTime,
     normalizeCandle: normalizeCandle,
     normalizeCandles: normalizeCandles,
+    mergeCandleSeries: mergeCandleSeries,
+    upsertLatestCandle: upsertLatestCandle,
     timeframeSeconds: timeframeSeconds,
     aggregateCandles: aggregateCandles,
     visibleCandles: visibleCandles,

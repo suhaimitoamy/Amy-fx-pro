@@ -10,6 +10,9 @@
   function resultClass(result) { return result === 'WIN' ? 'result-win' : (result === 'LOSS' ? 'result-loss' : 'result-open'); }
   function level(value) { return value == null ? '—' : core.price(value); }
   function rValue(value) { return value == null ? '—' : Number(value).toFixed(2) + 'R'; }
+  function decision(trade) {
+    return esc(trade.bias) + (trade.locked ? '<small class="history-lock">TERKUNCI</small>' : '');
+  }
 
   function renderTrades() {
     var result = ui.byId('resultFilter').value;
@@ -17,7 +20,7 @@
     var filtered = allTrades.filter(function (trade) { return (!result || trade.result === result) && (!timeframe || trade.timeframe === timeframe); });
     var rows = ui.byId('historyRows');
     rows.innerHTML = filtered.map(function (trade) {
-      return '<tr><td>' + esc(core.formatWita(trade.tradeTime, true)) + '</td><td>' + esc(trade.timeframe) + '</td><td>' + esc(trade.bias) + '</td><td>' + level(trade.entry) + ' / ' + level(trade.stopLoss) + ' / ' + level(trade.takeProfit) + '</td><td class="' + resultClass(trade.result) + '">' + esc(trade.result) + '</td><td>' + rValue(trade.plannedR) + ' / ' + rValue(trade.r) + '</td><td title="' + esc(trade.notes) + '">' + esc((trade.notes || '—').slice(0, 60)) + '</td><td><button type="button" data-delete-trade="' + esc(trade.id) + '">Hapus</button></td></tr>';
+      return '<tr data-trade-id="' + esc(trade.id) + '"><td>' + esc(core.formatWita(trade.tradeTime, true)) + '</td><td>' + esc(trade.timeframe) + '</td><td>' + decision(trade) + '</td><td>' + level(trade.entry) + ' / ' + level(trade.stopLoss) + ' / ' + level(trade.takeProfit) + '</td><td class="' + resultClass(trade.result) + '">' + esc(trade.result) + '</td><td>' + rValue(trade.plannedR) + ' / ' + rValue(trade.r) + '</td><td title="' + esc(trade.notes) + '">' + esc((trade.notes || '—').slice(0, 60)) + '</td><td><button type="button" data-delete-trade="' + esc(trade.id) + '">Hapus</button></td></tr>';
     }).join('');
     if (!filtered.length) rows.innerHTML = '<tr><td colspan="8" class="empty-state">Belum ada catatan yang cocok.</td></tr>';
     rows.querySelectorAll('[data-delete-trade]').forEach(function (button) {

@@ -5,12 +5,19 @@
   var provider = window.AmyPracticeData;
   var chart;
   var candles = [];
+  var historicalCandles = [];
   var liveCandles = [];
   var live = null;
   var isLive = false;
 
   function timeframe() { return ui.byId('timeframe').value; }
   function sourceId() { return ui.byId('datasetSource').value || provider.SAMPLE_ID; }
+
+  function renderLiveToggle(enabled) {
+    var button = ui.byId('liveToggle');
+    button.textContent = enabled ? 'Kembali ke Historis' : 'Aktifkan Live';
+    button.classList.toggle('active', enabled);
+  }
 
   function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>\"']/g, function (char) {
@@ -68,9 +75,12 @@
     try {
       var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: timeframe(), sourceId: sourceId() });
       candles = result.candles;
+      historicalCandles = result.candles.slice();
       chart.setCandles(candles, fit !== false);
       var last = ui.currentCandle(candles);
       ui.renderOhlc('ohlc', last, last && last.time);
+      ui.tradeReady(Boolean(last));
+      ui.decisionState('idle', 'Siap disimpan', last ? ('Candle ' + core.formatWita(last.time, true)) : 'Dataset tidak memiliki candle.');
       ui.text('chartMode', 'Historis');
       ui.status('chartStatus', candles.length + ' candle ' + timeframe() + ' siap. Zoom, pan, atau pilih alat gambar.');
       ui.text('sourceNote', 'Sumber: ' + result.source + (result.sampleOnly ? ' · sample UI, bukan hasil backtest.' : ' · pack historis lokal.'));
@@ -98,54 +108,78 @@
     catch (_) { return []; }
   }
 
-  function seedLiveContext() {
-    liveCandles = nativeClosedContext(timeframe());
+  async function seedLiveContext(fit) {
+    var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: timeframe(), sourceId: sourceId() });
+    historicalCandles = result.candles.slice();
+    var nativeContext = nativeClosedContext(timeframe()).filter(function (item) {
+      return !historicalCandles.length || item.time > historicalCandles[historicalCandles.length - 1].time;
+    });
+    liveCandles = core.mergeCandleSeries(historicalCandles, nativeContext);
     candles = liveCandles;
-    chart.setCandles(liveCandles, true);
+    chart.setCandles(liveCandles, fit !== false);
     var last = ui.currentCandle(liveCandles);
     if (last) ui.renderOhlc('ohlc', last, last.time);
-    return liveCandles.length;
+    ui.tradeReady(Boolean(last));
+    ui.decisionState('idle', 'Siap disimpan', last ? ('Candle ' + core.formatWita(last.time, true)) : 'Menunggu candle live.');
+    return { total: liveCandles.length, historical: historicalCandles.length, source: result.source };
   }
 
   async function setLive(enabled) {
-    isLive = enabled;
     var button = ui.byId('liveToggle');
-    button.textContent = enabled ? 'Kembali ke Historis' : 'Aktifkan Live';
-    button.classList.toggle('active', enabled);
+    button.disabled = true;
     if (!enabled) {
-      if (live) live.stop();
-      live = null;
-      await loadHistorical(true);
+      try {
+        if (live) live.stop();
+        live = null;
+        isLive = false;
+        renderLiveToggle(false);
+        await loadHistorical(true);
+      } finally {
+        button.disabled = false;
+      }
       return;
     }
 
-    if (live) live.stop();
-    var contextCount = seedLiveContext();
-    ui.text('chartMode', 'Live WebSocket');
-    ui.text('sourceNote', contextCount
-      ? 'Konteks: ' + contextCount + ' candle closed dari CandleStore lokal → dilanjutkan native AmyLivePrice / Twelve Data WebSocket. Tanpa REST Twelve Data.'
-      : 'Konteks closed lokal belum tersedia. Chart akan mulai dari tick WebSocket berikutnya; tidak ada REST Twelve Data.');
-    live = new window.AmyPracticeLive.LivePriceAdapter({
-      timeframe: timeframe(),
-      onCandle: function (update) {
-        var current = update.current;
-        var last = liveCandles.length ? liveCandles[liveCandles.length - 1] : null;
-        if (last && Number(current.time) < Number(last.time)) return;
-        var index = liveCandles.findIndex(function (item) { return item.time === current.time; });
-        if (index >= 0) liveCandles[index] = current;
-        else liveCandles.push(current);
-        liveCandles.sort(function (a, b) { return a.time - b.time; });
-        if (liveCandles.length > 600) liveCandles.splice(0, liveCandles.length - 600);
-        candles = liveCandles;
-        chart.updateCandle(current);
-        ui.renderOhlc('ohlc', current, current.time);
-      },
-      onStatus: function (value) {
-        var suffix = contextCount ? ' · konteks closed lokal tetap tampil' : '';
-        ui.status('chartStatus', value.message + suffix, /ERROR|FAILED/.test(value.status));
-      }
-    });
-    live.start();
+    try {
+      if (live) live.stop();
+      live = null;
+      var context = await seedLiveContext(false);
+      var historicalEnd = historicalCandles.length ? historicalCandles[historicalCandles.length - 1].time : null;
+      var seed = liveCandles.length && (historicalEnd == null || liveCandles[liveCandles.length - 1].time > historicalEnd)
+        ? liveCandles[liveCandles.length - 1]
+        : null;
+      var nextLive = new window.AmyPracticeLive.LivePriceAdapter({
+        timeframe: timeframe(),
+        seedCandle: seed,
+        onCandle: function (update) {
+          var current = update.current;
+          var merged = core.upsertLatestCandle(liveCandles, current, { immutableThrough: historicalEnd });
+          if (!merged.candle) return;
+          liveCandles = merged.candles;
+          candles = liveCandles;
+          chart.updateCandle(merged.candle);
+          ui.renderOhlc('ohlc', merged.candle, merged.candle.time);
+        },
+        onStatus: function (value) {
+          var suffix = context.historical ? ' · ' + context.historical + ' candle historis tetap tampil' : '';
+          ui.status('chartStatus', value.message + suffix, /ERROR|FAILED/.test(value.status));
+        }
+      });
+      nextLive.start();
+      live = nextLive;
+      isLive = true;
+      renderLiveToggle(true);
+      ui.text('chartMode', 'Live WebSocket');
+      ui.text('sourceNote', 'Konteks: ' + context.historical + ' candle dari pack aktif ' + context.source + ' → dilanjutkan AmyLivePrice / Twelve Data WebSocket. Gap tidak diisi candle sintetis.');
+    } catch (error) {
+      if (live) live.stop();
+      live = null;
+      isLive = false;
+      renderLiveToggle(false);
+      throw error;
+    } finally {
+      button.disabled = false;
+    }
   }
 
   async function importDataset() {
@@ -181,19 +215,38 @@
   async function saveTrade(event) {
     event.preventDefault();
     var current = ui.currentCandle(candles);
+    var submit = ui.byId('tradeSubmit');
+    if (!current) {
+      ui.status('tradeStatus', 'Belum ada candle aktif untuk dicatat.', true);
+      return;
+    }
     try {
+      ui.tradeReady(false);
+      if (submit) submit.textContent = 'Menyimpan setup…';
+      ui.decisionState('saving', 'Sedang menyimpan', 'Menunggu commit penyimpanan lokal…');
       var record = await ui.saveTrade(event.currentTarget, {
-        symbol: 'XAUUSD', timeframe: timeframe(), tradeTime: current ? current.time : Math.floor(Date.now() / 1000),
-        replayStartTime: current ? current.time : Math.floor(Date.now() / 1000), currentPrice: current && current.close
+        symbol: 'XAUUSD', timeframe: timeframe(), tradeTime: current.time,
+        replayStartTime: current.time, currentPrice: current.close, sourceId: sourceId()
       });
+      var persisted = await window.AmyPracticeStorage.getTrade(record.id);
+      if (!persisted || persisted.tradeTime !== record.tradeTime) throw new Error('Setup belum terverifikasi di penyimpanan lokal. Coba lagi.');
       chart.setTradeLevels(record.bias === 'WAIT' ? [] : [
         { type: 'entry', price: record.entry, title: 'Entry' }, { type: 'stop', price: record.stopLoss, title: 'SL' }, { type: 'target', price: record.takeProfit, title: 'TP' }
       ]);
-      ui.status('tradeStatus', record.bias + ' tersimpan. Planned R: ' + (record.plannedR == null ? '—' : record.plannedR.toFixed(2)) + '.');
-    } catch (error) { ui.status('tradeStatus', error.message, true); }
+      ui.decisionState('locked', 'Setup tersimpan ✓', record.bias + ' · ' + core.formatWita(record.tradeTime, true));
+      ui.status('tradeStatus', '✓ Setup tersedia di Riwayat. Planned R: ' + (record.plannedR == null ? '—' : record.plannedR.toFixed(2)) + '.', false, true);
+    } catch (error) {
+      ui.decisionState('error', 'Gagal menyimpan', error.message);
+      ui.status('tradeStatus', error.message, true);
+    } finally {
+      ui.tradeReady(Boolean(ui.currentCandle(candles)));
+      if (submit) submit.textContent = 'Simpan ke riwayat lokal';
+    }
   }
 
   async function init() {
+    ui.tradeReady(false);
+    ui.byId('tradeForm').addEventListener('submit', saveTrade);
     chart = new window.AmyCandleChart.CandleChart(ui.byId('chart'), {
       storageKey: 'amy.practice.v1.drawings.analysis',
       onCrosshair: function (candle, time) { if (candle) ui.renderOhlc('ohlc', candle, Number(time)); }
@@ -202,16 +255,14 @@
     await refreshSources();
     ui.byId('timeframe').addEventListener('change', async function () {
       if (isLive) {
-        if (live) live.setTimeframe(timeframe());
-        var count = seedLiveContext();
-        ui.text('sourceNote', count
-          ? 'Konteks: ' + count + ' candle closed dari CandleStore lokal → WebSocket live.'
-          : 'Konteks closed lokal belum tersedia pada timeframe ini → WebSocket live.');
+        if (live) live.stop();
+        live = null;
+        await setLive(true);
       } else await loadHistorical(true);
     });
     ui.byId('datasetSource').addEventListener('change', async function () {
       provider.setSelectedSourceId(this.value);
-      if (!isLive) await loadHistorical(true);
+      if (!isLive) await loadHistorical(true); else { if (live) live.stop(); live = null; await setLive(true); }
     });
     ui.byId('liveToggle').addEventListener('click', function () { setLive(!isLive).catch(function (error) { ui.status('chartStatus', error.message, true); }); });
     ui.byId('importButton').addEventListener('click', importDataset);
@@ -219,7 +270,6 @@
       var button = event.target.closest('[data-delete-pack]');
       if (button) deletePack(button.dataset.deletePack);
     });
-    ui.byId('tradeForm').addEventListener('submit', saveTrade);
     window.addEventListener('pagehide', function () { if (live) live.stop(); chart.destroy(); }, { once: true });
     await loadHistorical(true);
   }
