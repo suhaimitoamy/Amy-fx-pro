@@ -2,7 +2,7 @@
 
 ## Pending Tasks
 
-- [ ] Complete real-device WebView visual/gesture smoke tests after the signed `.325` release; CI owns Android unit, lint, build, identity, signer, and endpoint verification.
+- [ ] Complete real-device WebView visual/gesture smoke tests after the signed `.326` release; CI owns Android unit, lint, build, identity, signer, and endpoint verification.
 
 - [ ] Add automatic next/previous monthly-pack handoff in Candle Replay if seamless multi-month playback is later required; current design intentionally keeps one explicit local pack active at a time to bound memory.
 - [ ] Add SMT guided-chart exercises only after a synchronized, provenance-preserving DXY dataset is available beside XAUUSD.

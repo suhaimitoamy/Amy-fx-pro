@@ -55,20 +55,39 @@ function node(name = 'div') {
 }
 
 function createRuntime() {
-  const chartCalls = { create: null, apply: [], series: null, data: [] };
+  const chartCalls = { create: null, apply: [], series: null, seriesApi: null, timeScale: null, data: [] };
+  let horizontalScale = 1;
+  let verticalScale = 1;
+  const visibleTimeHandlers = new Set();
+  const visibleLogicalHandlers = new Set();
+  const sizeHandlers = new Set();
   const timeScale = {
     width: () => 276,
     height: () => 24,
-    timeToCoordinate: time => time === 0 || time === 120 ? time : null,
-    coordinateToTime: coordinate => coordinate,
-    fitContent() {}, subscribeVisibleTimeRangeChange() {}, unsubscribeVisibleTimeRangeChange() {}
+    timeToCoordinate: time => time === 0 || time === 120 ? time * horizontalScale : null,
+    coordinateToTime: coordinate => coordinate / horizontalScale,
+    fitContent() {},
+    subscribeVisibleTimeRangeChange(handler) { visibleTimeHandlers.add(handler); },
+    unsubscribeVisibleTimeRangeChange(handler) { visibleTimeHandlers.delete(handler); },
+    subscribeVisibleLogicalRangeChange(handler) { visibleLogicalHandlers.add(handler); },
+    unsubscribeVisibleLogicalRangeChange(handler) { visibleLogicalHandlers.delete(handler); },
+    subscribeSizeChange(handler) { sizeHandlers.add(handler); },
+    unsubscribeSizeChange(handler) { sizeHandlers.delete(handler); },
+    setHorizontalScale(value) {
+      horizontalScale = value;
+      for (const handler of visibleLogicalHandlers) handler({ from: 0, to: 120 / horizontalScale });
+    },
+    triggerSize() { for (const handler of sizeHandlers) handler(276, 496); }
   };
   const series = {
     setData(value) { chartCalls.data = value; }, update() {},
-    priceToCoordinate: price => 5000 - price,
-    coordinateToPrice: coordinate => 5000 - coordinate,
+    priceToCoordinate: price => (5000 - price) * verticalScale,
+    coordinateToPrice: coordinate => 5000 - coordinate / verticalScale,
+    setVerticalScale(value) { verticalScale = value; },
     createPriceLine: options => options, removePriceLine() {}
   };
+  chartCalls.timeScale = timeScale;
+  chartCalls.seriesApi = series;
   const lightweight = {
     CrosshairMode: { Normal: 0 }, LineStyle: { Dashed: 2 },
     createChart(host, options) {
@@ -93,7 +112,7 @@ function createRuntime() {
   const runtime = {
     console, document, LightweightCharts: lightweight,
     localStorage: { getItem: key => localValues.get(key) ?? null, setItem: (key, value) => localValues.set(key, String(value)) },
-    addEventListener() {}, removeEventListener() {}, requestAnimationFrame: callback => callback(),
+    addEventListener() {}, removeEventListener() {}, requestAnimationFrame: callback => callback(), cancelAnimationFrame() {},
     setTimeout, clearTimeout
   };
   runtime.window = runtime;
@@ -190,6 +209,48 @@ test('painted drawings can be selected and dragged using mobile-sized hit target
   ]);
 });
 
+test('horizontal zoom stays enabled and TIME + PRICE drawings follow chart scale transforms', () => {
+  const { runtime, chartCalls, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'drawing-scale-sync-test' });
+  chart.setCandles([
+    { time: 0, open: 4898, high: 4904, low: 4895, close: 4900 },
+    { time: 120, open: 4900, high: 4902, low: 4875, close: 4880 }
+  ]);
+  const arrow = chart.addDrawing('arrow', [{ time: 0, price: 4900 }, { time: 120, price: 4880 }]);
+  const coordinates = () => {
+    const group = chart.overlay.children.find(item => item.getAttribute && item.getAttribute('data-drawing-id') === arrow.id);
+    const line = group.children.find(item => item.nodeName === 'LINE' && item.getAttribute('stroke') !== 'transparent');
+    return ['x1', 'y1', 'x2', 'y2'].map(name => Number(line.getAttribute(name)));
+  };
+
+  assert.deepEqual(JSON.parse(JSON.stringify(chartCalls.create.handleScale)), {
+    axisPressedMouseMove: { time: true, price: true },
+    axisDoubleClickReset: { time: true, price: true },
+    mouseWheel: true,
+    pinch: true
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(chartCalls.create.handleScroll)), {
+    mouseWheel: true,
+    pressedMouseMove: true,
+    horzTouchDrag: true,
+    vertTouchDrag: true
+  });
+  assert.deepEqual(coordinates(), [0, 100, 120, 120]);
+
+  chartCalls.timeScale.setHorizontalScale(0.5);
+  assert.deepEqual(coordinates(), [0, 100, 60, 120], 'logical-range zoom redraws the arrow at the new candle spacing');
+
+  chartCalls.seriesApi.setVerticalScale(2);
+  chart.host.dispatchEvent({ type: 'wheel' });
+  assert.deepEqual(coordinates(), [0, 200, 60, 240], 'price-scale gestures redraw the arrow against the new price coordinates');
+  assert.deepEqual(JSON.parse(JSON.stringify(arrow.points)), [
+    { time: 0, price: 4900 }, { time: 120, price: 4880 }
+  ], 'zoom changes screen coordinates without mutating TIME + PRICE anchors');
+
+  chart.handleClick({ point: { x: 220, y: 200 }, time: 60 });
+  assert.equal(chart.selectedId, null, 'a blank-chart tap releases selection so native pan and pinch remain available');
+});
+
 test('text editor stays outside the clipped chart and saved text is visible and editable', () => {
   const { runtime, container } = createRuntime();
   const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'drawing-text-test' });
@@ -254,6 +315,8 @@ test('every supported drawing type renders and can be selected through its paint
   const css = readFileSync(new URL('../app/src/main/assets/apps/academy/trading-practice/assets/css/practice.css', import.meta.url), 'utf8');
   assert.match(css, /\.practice-drawing-editor \{ position:fixed;/, 'text entry must not be clipped by the chart shell');
   assert.match(css, /\.practice-drawing-handle, \.practice-drawing-handle-hit \{ cursor:\s*move; pointer-events:\s*all;/);
+  assert.match(css, /\.practice-chart-overlay\.is-selecting \{ pointer-events:\s*none;/, 'blank selected-chart space must pass pinch and pan gestures through');
+  assert.match(css, /\.practice-chart-overlay\.is-selecting \.practice-drawing \{[^}]*pointer-events:\s*visiblePainted;/, 'only painted drawings intercept edit gestures');
 });
 
 test('analysis and replay expose every required drawing tool and load the domain model first', () => {

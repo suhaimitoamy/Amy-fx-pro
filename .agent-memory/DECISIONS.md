@@ -2,8 +2,13 @@
 
 ## 2026-08-17
 
+### Trading Practice TradingView-style Scale Synchronization Contract
+- Lightweight Charts owns blank chart gestures even while Select/Edit is active; only painted drawing geometry and visible/invisible edit handles own drawing pointer input.
+- Horizontal candle-width scaling explicitly enables pinch and pressed time-axis gestures. Drawings remain immutable in TIME + PRICE and are reprojected after visible logical/time range, pane size, wheel, pointer/touch, and price-scale transformations.
+- Source advances to candidate `2.0.0-pro.326` / `950326`; the active update manifest remains verified `.325` until signed Android CI, identity, signer, release-asset, checksum, and published endpoint gates pass.
+
 ### Trading Practice Mobile Drawing Interaction Contract
-- A completed drawing is one-shot-created and then immediately selected in Select/Edit mode; chart pan/zoom returns only through the explicit Gesture Chart control.
+- A completed drawing is one-shot-created and then immediately selected in Select/Edit mode; blank chart space still pans/zooms, while the explicit Gesture Chart control exits drawing selection entirely.
 - Painted SVG ownership is the primary selection source. Geometry remains a fallback, while transparent 28px strokes and 36px point targets provide reliable mobile touch without changing the visible drawing.
 - Text, Note, and Price Note entry is a fixed body-level dialog so chart overflow and low anchor positions cannot hide the field or actions.
 - Source and active update manifest are `2.0.0-pro.325` / `950325`; signed Android CI, package/version/label/signer, release-asset, checksum, and published endpoint gates all pass.

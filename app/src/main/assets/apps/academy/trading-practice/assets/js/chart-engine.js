@@ -51,6 +51,7 @@
     this.draftPath = null;
     this.dragState = null;
     this.textEditor = null;
+    this.drawingSyncFrame = null;
     this.drawings = this.loadDrawings();
     this.history = [];
     this.candles = [];
@@ -79,8 +80,18 @@
         entireTextOnly: true, alignLabels: true, scaleMargins: { top: 0.08, bottom: 0.12 }
       },
       timeScale: { borderColor: '#263244', timeVisible: true, secondsVisible: false, rightOffset: 4 },
-      handleScale: true,
-      handleScroll: true,
+      handleScale: {
+        axisPressedMouseMove: { time: true, price: true },
+        axisDoubleClickReset: { time: true, price: true },
+        mouseWheel: true,
+        pinch: true
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: true
+      },
       localization: {
         locale: 'id-ID',
         priceFormatter: function (price) { return Number.isFinite(Number(price)) ? Number(price).toFixed(2) : '—'; }
@@ -101,13 +112,22 @@
     this.handlePointerUp = this.handlePointerUp.bind(this);
     this.handlePointerCancel = this.handlePointerCancel.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.scheduleDrawingSync = this.scheduleDrawingSync.bind(this);
+    this.handleChartTransform = this.handleChartTransform.bind(this);
     this.chart.subscribeCrosshairMove(this.handleCrosshair);
     this.chart.subscribeClick(this.handleClick);
-    this.chart.timeScale().subscribeVisibleTimeRangeChange(this.renderDrawings);
+    this.chart.timeScale().subscribeVisibleTimeRangeChange(this.scheduleDrawingSync);
+    this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.scheduleDrawingSync);
+    this.chart.timeScale().subscribeSizeChange(this.scheduleDrawingSync);
     this.overlay.addEventListener('pointerdown', this.handlePointerDown);
     this.overlay.addEventListener('pointermove', this.handlePointerMove);
     this.overlay.addEventListener('pointerup', this.handlePointerUp);
     this.overlay.addEventListener('pointercancel', this.handlePointerCancel);
+    this.host.addEventListener('wheel', this.handleChartTransform, { passive: true });
+    this.host.addEventListener('pointermove', this.handleChartTransform, { passive: true });
+    this.host.addEventListener('pointerup', this.handleChartTransform, { passive: true });
+    this.host.addEventListener('touchmove', this.handleChartTransform, { passive: true });
+    this.host.addEventListener('touchend', this.handleChartTransform, { passive: true });
     document.addEventListener('keydown', this.handleKeyDown);
 
     var self = this;
@@ -167,6 +187,21 @@
     this.overlay.setAttribute('height', height);
     this.overlay.style.width = width + 'px';
     this.overlay.style.height = height + 'px';
+  };
+
+  CandleChart.prototype.scheduleDrawingSync = function () {
+    if (this.drawingSyncFrame != null) return;
+    var self = this;
+    var requestFrame = root.requestAnimationFrame || function (callback) { return setTimeout(callback, 0); };
+    this.drawingSyncFrame = requestFrame(function () {
+      self.drawingSyncFrame = null;
+      self.renderDrawings();
+    });
+  };
+
+  CandleChart.prototype.handleChartTransform = function (event) {
+    if (event && event.type === 'pointermove' && !event.buttons && !event.pressure && event.pointerType !== 'touch') return;
+    this.scheduleDrawingSync();
   };
 
   CandleChart.prototype.resize = function () {
@@ -805,6 +840,14 @@
   };
 
   CandleChart.prototype.handleClick = function (parameter) {
+    if (this.activeTool === 'select') {
+      if (this.selectedId) {
+        this.selectedId = null;
+        this.renderDrawings();
+        this.notify('Pilihan drawing dilepas. Area kosong tetap bisa digeser atau di-zoom.');
+      }
+      return;
+    }
     if (!parameter || !parameter.point || this.activeTool) return;
     var time = parameter.time;
     if (typeof time === 'object' && time) time = Date.UTC(time.year, time.month - 1, time.day) / 1000;
@@ -834,7 +877,19 @@
     this.overlay.removeEventListener('pointermove', this.handlePointerMove);
     this.overlay.removeEventListener('pointerup', this.handlePointerUp);
     this.overlay.removeEventListener('pointercancel', this.handlePointerCancel);
-    this.chart.timeScale().unsubscribeVisibleTimeRangeChange(this.renderDrawings);
+    this.host.removeEventListener('wheel', this.handleChartTransform);
+    this.host.removeEventListener('pointermove', this.handleChartTransform);
+    this.host.removeEventListener('pointerup', this.handleChartTransform);
+    this.host.removeEventListener('touchmove', this.handleChartTransform);
+    this.host.removeEventListener('touchend', this.handleChartTransform);
+    this.chart.timeScale().unsubscribeVisibleTimeRangeChange(this.scheduleDrawingSync);
+    this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.scheduleDrawingSync);
+    this.chart.timeScale().unsubscribeSizeChange(this.scheduleDrawingSync);
+    if (this.drawingSyncFrame != null) {
+      var cancelFrame = root.cancelAnimationFrame || clearTimeout;
+      cancelFrame(this.drawingSyncFrame);
+      this.drawingSyncFrame = null;
+    }
     this.chart.unsubscribeCrosshairMove(this.handleCrosshair);
     this.chart.unsubscribeClick(this.handleClick);
     this.removeTextEditor();

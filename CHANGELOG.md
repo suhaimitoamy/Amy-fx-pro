@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-17 — TradingView-style Chart Zoom & Drawing Sync
+
+- Enabled explicit pinch zoom and pressed time-axis scaling so candle width can be enlarged or reduced horizontally.
+- Kept blank chart space interactive in Select/Edit mode while painted drawings and handles retain direct mobile editing.
+- Redraws drawing overlays from immutable TIME + PRICE anchors on logical-range, pane-size, wheel, pointer, touch, and price-scale transformations.
+- Added regression coverage proving arrow coordinates follow horizontal and vertical scale changes without mutating their saved market coordinates.
+
 ## 2026-08-17 — Trading Practice Mobile Drawing Repair
 
 - Automatically selects each finished drawing so it can immediately be moved, resized, or deleted.

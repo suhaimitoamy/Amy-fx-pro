@@ -1,5 +1,13 @@
 # Bug History
 
+## Trading Practice horizontal zoom failed and drawings drifted from chart scale
+- **Date:** 2026-08-17
+- **Severity:** High
+- **Cause:** Select/Edit gave the full SVG overlay pointer ownership, blocking blank-chart gestures. Drawing redraws listened only to visible time-range changes, which can remain unchanged when clamped edges keep the same timestamps while logical bar spacing changes; price-scale gestures also had no redraw signal.
+- **Fix:** Explicitly enabled Lightweight Charts pinch and time-axis scaling, passed blank Select/Edit space through to the chart while retaining painted-object/handle hit targets, subscribed to logical-range and pane-size changes, and coalesced wheel/pointer/touch redraws from persistent TIME + PRICE anchors.
+- **Validation:** Eight focused chart tests prove horizontal and vertical coordinate synchronization, immutable drawing anchors, native gesture configuration, and drawing-only pointer ownership. All 119 application regression files pass locally.
+- **Release:** Candidate `2.0.0-pro.326` / `950326`; active update remains verified `.325` until signed Android CI, signer, asset, checksum, and endpoint gates pass.
+
 ## Trading Practice drawings ignored touch and text editor could be clipped
 - **Date:** 2026-08-17
 - **Severity:** High

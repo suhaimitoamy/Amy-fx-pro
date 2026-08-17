@@ -197,10 +197,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Drawing tools: a finished object now enters Select/Edit mode automatically and exposes its edit handles immediately.
-          - Mobile touch: lines, paths, labels, shapes, and control points have forgiving invisible hit areas for reliable select, drag, and point editing.
-          - Text, Note, and Price Note: the entry dialog now stays above the chart and mobile keyboard instead of being clipped by the chart shell.
-          - All drawing types retain persistent TIME + PRICE coordinates, deletion, Undo, and replay-cursor no-future boundaries.
+          - TradingView-style horizontal scaling: pinch zoom and pressed time-axis scaling can widen or narrow candle spacing.
+          - Select/Edit keeps blank chart space available for native pan and pinch; only painted drawings and edit handles capture drawing gestures.
+          - Drawing overlays redraw from their persistent TIME + PRICE anchors whenever logical bar spacing, pane size, wheel, pointer, touch, or price scaling changes.
+          - Existing mobile hit targets, Text/Note dialogs, deletion, Undo, and replay-cursor no-future boundaries remain preserved.
           - Existing Candle Replay decisions, Live continuity, Amy-SMC-D Mapping, Scalper, Journal/Vault, package continuity, and user data remain preserved.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.

@@ -1,5 +1,11 @@
 # Feature History
 
+## TradingView-style Horizontal Zoom and Drawing Synchronization
+- **Date:** 2026-08-17
+- **Status:** ✅ Source implemented; eight focused chart tests and all 119 regression files pass; signed `.326` release verification pending
+- **Description:** Candle spacing supports explicit horizontal pinch/time-axis scaling, blank Select/Edit space preserves chart gestures, and every drawing is reprojected from TIME + PRICE anchors across logical/time/price/size transformations.
+- **Release:** Candidate `2.0.0-pro.326` / `950326`; active manifest remains `.325` until every release gate succeeds.
+
 ## Trading Practice Mobile Drawing Interaction Repair
 - **Date:** 2026-08-17
 - **Status:** ✅ Released; seven focused chart tests and all 119 regression files pass; signed `.325` Android CI and endpoint verification pass
