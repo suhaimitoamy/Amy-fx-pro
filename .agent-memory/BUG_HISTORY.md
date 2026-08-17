@@ -6,7 +6,7 @@
 - **Cause:** Select/Edit gave the full SVG overlay pointer ownership, blocking blank-chart gestures. Drawing redraws listened only to visible time-range changes, which can remain unchanged when clamped edges keep the same timestamps while logical bar spacing changes; price-scale gestures also had no redraw signal.
 - **Fix:** Explicitly enabled Lightweight Charts pinch and time-axis scaling, passed blank Select/Edit space through to the chart while retaining painted-object/handle hit targets, subscribed to logical-range and pane-size changes, and coalesced wheel/pointer/touch redraws from persistent TIME + PRICE anchors.
 - **Validation:** Eight focused chart tests prove horizontal and vertical coordinate synchronization, immutable drawing anchors, native gesture configuration, and drawing-only pointer ownership. All 119 application regression files pass locally.
-- **Release:** Candidate `2.0.0-pro.326` / `950326`; active update remains verified `.325` until signed Android CI, signer, asset, checksum, and endpoint gates pass.
+- **Release:** Resolved in active signed release `2.0.0-pro.326` / `950326`; Android CI, identity, signer continuity, release asset, checksum, and published endpoint verification all pass.
 
 ## Trading Practice drawings ignored touch and text editor could be clipped
 - **Date:** 2026-08-17
@@ -14,7 +14,7 @@
 - **Cause:** Saving a drawing immediately called `setTool(null)`, disabling pointer events on the SVG overlay. Selection then depended on narrow geometric tolerances, while the annotation form was absolutely positioned inside an overflow-clipped chart shell.
 - **Fix:** Finished drawings now switch directly to Select/Edit with the new object selected; rendered SVG ownership, 28px invisible line/path hit strokes, and 36px handle targets make mobile selection and dragging reliable. Text/Note/Price Note use a fixed dialog attached outside the chart shell.
 - **Validation:** Seven focused chart tests cover automatic selection, painted-target selection, TIME + PRICE drag persistence, visible text submission, touch target sizing, and render/select behavior for every supported tool. All 119 application regression files pass locally.
-- **Release:** Resolved in active signed release `2.0.0-pro.325` / `950325`; Android CI, signer continuity, release asset, checksum, and published endpoint verification all pass.
+- **Release:** First resolved in signed `.325`; current active `.326` preserves the repair and passes the same identity, signer, asset, checksum, and endpoint gates.
 
 ## Trading Practice scale, decision persistence, and Live continuity
 - **Date:** 2026-08-17

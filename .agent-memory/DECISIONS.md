@@ -5,18 +5,18 @@
 ### Trading Practice TradingView-style Scale Synchronization Contract
 - Lightweight Charts owns blank chart gestures even while Select/Edit is active; only painted drawing geometry and visible/invisible edit handles own drawing pointer input.
 - Horizontal candle-width scaling explicitly enables pinch and pressed time-axis gestures. Drawings remain immutable in TIME + PRICE and are reprojected after visible logical/time range, pane size, wheel, pointer/touch, and price-scale transformations.
-- Source advances to candidate `2.0.0-pro.326` / `950326`; the active update manifest remains verified `.325` until signed Android CI, identity, signer, release-asset, checksum, and published endpoint gates pass.
+- Source and active update manifest are `2.0.0-pro.326` / `950326`; signed Android CI, identity, signer, release-asset, checksum, and published endpoint gates all pass.
 
 ### Trading Practice Mobile Drawing Interaction Contract
 - A completed drawing is one-shot-created and then immediately selected in Select/Edit mode; blank chart space still pans/zooms, while the explicit Gesture Chart control exits drawing selection entirely.
 - Painted SVG ownership is the primary selection source. Geometry remains a fallback, while transparent 28px strokes and 36px point targets provide reliable mobile touch without changing the visible drawing.
 - Text, Note, and Price Note entry is a fixed body-level dialog so chart overflow and low anchor positions cannot hide the field or actions.
-- Source and active update manifest are `2.0.0-pro.325` / `950325`; signed Android CI, package/version/label/signer, release-asset, checksum, and published endpoint gates all pass.
+- The interaction repair first shipped in `.325`; current source and active manifest are `.326`, which preserves it and adds verified scale synchronization.
 
 ### Trading Practice Chart Continuity and Drawing Contract
 - Chart Analysis Live uses the selected historical pack as its immutable base, then merges native closed context and WebSocket candles by timeframe timestamp without interpolation or duplicates.
 - Replay decisions have a deterministic symbol/timeframe/cursor/source identity and are evaluated only from later candles. Drawings persist in TIME + PRICE coordinates.
-- The chart-continuity baseline was signed and activated in `.324` after all release gates passed. Current source and active manifest are `.325`, which preserves that baseline and adds the verified mobile drawing-interaction repair.
+- The chart-continuity baseline was signed and activated in `.324` after all release gates passed. Current source and active manifest are `.326`, which preserves that baseline and both verified drawing repairs.
 
 ## 2026-08-11
 

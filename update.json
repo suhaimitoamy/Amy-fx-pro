@@ -1,27 +1,27 @@
 {
-  "latest_version_code": 950325,
-  "latest_version_name": "2.0.0-pro.325",
-  "versionCode": 950325,
-  "version": "2.0.0-pro.325",
+  "latest_version_code": 950326,
+  "latest_version_name": "2.0.0-pro.326",
+  "versionCode": 950326,
+  "version": "2.0.0-pro.326",
   "releaseDate": "2026-08-17",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.325/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.325/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.326/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.326/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Gambar baru sekarang otomatis terpilih dan langsung siap digeser, diubah melalui handle, atau dihapus.",
-    "Garis, path, label, bentuk, dan titik kontrol memiliki area sentuh mobile yang lebih mudah dipilih tanpa mengubah tampilan gambar.",
-    "Text, Note, dan Price Note kini memakai dialog yang tetap terlihat di atas chart dan keyboard, sehingga tulisan dapat disimpan dan muncul pada chart.",
-    "Seluruh alat gambar tetap menyimpan koordinat TIME + PRICE, Undo, serta batas cursor Replay tanpa membuka data masa depan.",
+    "Zoom horizontal kini dapat memperbesar atau memperkecil jarak candle melalui pinch dan skala sumbu waktu seperti TradingView.",
+    "Saat Select/Edit aktif, ruang kosong chart tetap dapat digeser dan di-zoom; hanya drawing dan handle yang menangkap sentuhan edit.",
+    "Panah dan seluruh drawing kini ikut berubah posisi serta ukuran terhadap candle saat skala waktu, harga, atau ukuran pane berubah.",
+    "Anchor drawing tetap disimpan sebagai TIME + PRICE sehingga zoom tidak mengubah titik market aslinya.",
     "Keputusan Replay, kontinuitas Live, Mapping Amy-SMC-D, Scalper, Journal/Vault, signer, package, dan data pengguna tetap dipertahankan."
   ],
   "changelog": [
-    "Automatic post-draw Select/Edit mode",
-    "Reliable mobile SVG selection and dragging",
-    "28px invisible line and path hit targets",
-    "36px drawing-handle touch targets",
-    "Mobile-safe Text, Note, and Price Note dialog",
-    "Persistent TIME + PRICE and no-future replay boundaries"
+    "TradingView-style horizontal candle scaling",
+    "Blank-chart pinch and pan during Select/Edit",
+    "Logical-range and price-scale drawing synchronization",
+    "Persistent immutable TIME + PRICE anchors",
+    "Reliable mobile drawing and handle hit targets",
+    "Mobile-safe Text, Note, and Price Note dialog"
   ]
 }

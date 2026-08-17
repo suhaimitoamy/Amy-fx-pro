@@ -2,21 +2,21 @@
 
 ## TradingView-style Horizontal Zoom and Drawing Synchronization
 - **Date:** 2026-08-17
-- **Status:** ✅ Source implemented; eight focused chart tests and all 119 regression files pass; signed `.326` release verification pending
+- **Status:** ✅ Released; eight focused chart tests and all 119 regression files pass; signed `.326` Android CI and endpoint verification pass
 - **Description:** Candle spacing supports explicit horizontal pinch/time-axis scaling, blank Select/Edit space preserves chart gestures, and every drawing is reprojected from TIME + PRICE anchors across logical/time/price/size transformations.
-- **Release:** Candidate `2.0.0-pro.326` / `950326`; active manifest remains `.325` until every release gate succeeds.
+- **Release:** Active `2.0.0-pro.326` / `950326` with verified identity, signer continuity, release asset, checksum, and download endpoint.
 
 ## Trading Practice Mobile Drawing Interaction Repair
 - **Date:** 2026-08-17
 - **Status:** ✅ Released; seven focused chart tests and all 119 regression files pass; signed `.325` Android CI and endpoint verification pass
 - **Description:** Finished drawings automatically enter Select/Edit, rendered objects and handles expose mobile-sized hit targets, drag changes persist in TIME + PRICE, and annotation entry uses a fixed dialog that cannot be clipped by the chart.
-- **Release:** Active `2.0.0-pro.325` / `950325` with verified signer continuity, release asset, checksum, and download endpoint.
+- **Release:** First shipped in `.325`; current active `.326` preserves the mobile drawing repair.
 
 ## Trading Practice Advanced Drawings and Continuous Live Chart
 - **Date:** 2026-08-17
 - **Status:** ✅ Released; 17 focused tests and all 119 regression files pass; signed `.324` Android CI gates and endpoint verification pass
 - **Description:** Added selectable/movable chart drawings, active-pack historical→Live continuity, and persistent replay-decision feedback/history retrieval.
-- **Release:** Originally released in `.324`; current active `.325` includes the mobile drawing-interaction repair while preserving this continuity contract.
+- **Release:** Originally released in `.324`; current active `.326` includes both mobile drawing-interaction and scale-synchronization repairs while preserving this continuity contract.
 
 ## Academy Trading Practice + ICT Berbasis Backtest
 - **Date:** 2026-08-16
