@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-17 — Trading Practice Mobile Drawing Repair
+
+- Automatically selects each finished drawing so it can immediately be moved, resized, or deleted.
+- Added 28px invisible hit strokes for thin lines and paths plus 36px touch targets around point handles.
+- Selects objects from their actual rendered SVG target before falling back to geometric hit testing.
+- Moved Text, Note, and Price Note entry into a fixed mobile-safe dialog outside the chart's clipped shell.
+- Added functional Pointer Events coverage for drag persistence and render/select coverage for every supported drawing type.
+
 ## 2026-07-11 — Market Context & Notification Routing Hardening
 
 - Replaced latest-regime FVG validation with point-in-time ATR.

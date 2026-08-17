@@ -1,5 +1,11 @@
 # Feature History
 
+## Trading Practice Mobile Drawing Interaction Repair
+- **Date:** 2026-08-17
+- **Status:** ✅ Implemented; seven focused chart tests and all 119 regression files pass; signed `.325` release verification pending
+- **Description:** Finished drawings automatically enter Select/Edit, rendered objects and handles expose mobile-sized hit targets, drag changes persist in TIME + PRICE, and annotation entry uses a fixed dialog that cannot be clipped by the chart.
+- **Release:** Source candidate `2.0.0-pro.325` / `950325`; active manifest remains `.324` until the signed `.325` artifact is verified.
+
 ## Trading Practice Advanced Drawings and Continuous Live Chart
 - **Date:** 2026-08-17
 - **Status:** ✅ Released; 17 focused tests and all 119 regression files pass; signed `.324` Android CI gates and endpoint verification pass

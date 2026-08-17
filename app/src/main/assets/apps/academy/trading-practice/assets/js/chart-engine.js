@@ -50,6 +50,7 @@
     this.draftPoints = [];
     this.draftPath = null;
     this.dragState = null;
+    this.textEditor = null;
     this.drawings = this.loadDrawings();
     this.history = [];
     this.candles = [];
@@ -293,8 +294,9 @@
     this.remember();
     this.drawings.push(drawing);
     this.saveDrawings();
-    this.setTool(null);
-    this.notify(TOOL_LABELS[drawing.type] + ' tersimpan pada TIME + PRICE.');
+    this.selectedId = drawing.id;
+    this.setTool('select');
+    this.notify(TOOL_LABELS[drawing.type] + ' tersimpan dan siap digeser atau diedit.');
     return drawing;
   };
 
@@ -353,6 +355,11 @@
   };
 
   CandleChart.prototype.appendLine = function (group, a, b, attributes) {
+    group.appendChild(this.svgElement('line', {
+      x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+      stroke: 'transparent', 'stroke-width': 28, 'stroke-linecap': 'round',
+      'vector-effect': 'non-scaling-stroke', 'pointer-events': 'stroke', class: 'practice-drawing-hit'
+    }));
     var line = this.svgElement('line', Object.assign({
       x1: a.x, y1: a.y, x2: b.x, y2: b.y,
       stroke: '#e2e8f0', 'stroke-width': 2, 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke'
@@ -443,6 +450,11 @@
     } else if (drawing.type === 'path' && points.filter(Boolean).length > 1) {
       group.appendChild(this.svgElement('polyline', {
         points: points.filter(Boolean).map(function (point) { return point.x + ',' + point.y; }).join(' '),
+        fill: 'none', stroke: 'transparent', 'stroke-width': 28, 'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+        'vector-effect': 'non-scaling-stroke', 'pointer-events': 'stroke', class: 'practice-drawing-hit'
+      }));
+      group.appendChild(this.svgElement('polyline', {
+        points: points.filter(Boolean).map(function (point) { return point.x + ',' + point.y; }).join(' '),
         fill: 'none', stroke: color, 'stroke-width': 2.3, 'stroke-linejoin': 'round', 'stroke-linecap': 'round'
       }));
     } else if (drawing.type === 'priceRange' && b) {
@@ -499,6 +511,10 @@
     indexes.forEach(function (index) {
       var point = self.screenPoint(drawing.points[index]);
       if (!point) return;
+      self.overlay.appendChild(self.svgElement('circle', {
+        cx: point.x, cy: point.y, r: 18, fill: 'transparent', 'pointer-events': 'all',
+        class: 'practice-drawing-handle-hit', 'data-drawing-id': drawing.id, 'data-point-index': index
+      }));
       self.overlay.appendChild(self.svgElement('circle', {
         cx: point.x, cy: point.y, r: 6, fill: '#f8fafc', stroke: '#0ea5e9', 'stroke-width': 2,
         class: 'practice-drawing-handle', 'data-drawing-id': drawing.id, 'data-point-index': index
@@ -576,18 +592,18 @@
   };
 
   CandleChart.prototype.openTextEditor = function (type, point) {
-    var existing = this.container.querySelector('.practice-drawing-editor');
-    if (existing) existing.remove();
-    var screen = this.screenPoint(point) || { x: 12, y: 12 };
+    this.removeTextEditor();
     var form = document.createElement('form');
     form.className = 'practice-drawing-editor';
-    form.style.left = clamp(screen.x, 8, Math.max(8, this.plotWidth() - 250)) + 'px';
-    form.style.top = clamp(screen.y, 8, Math.max(8, this.plotHeight() - 130)) + 'px';
+    form.setAttribute('role', 'dialog');
+    form.setAttribute('aria-modal', 'true');
+    form.setAttribute('aria-label', (TOOL_LABELS[type] || 'Anotasi') + ' chart');
     var label = document.createElement('label');
-    label.textContent = TOOL_LABELS[type] || 'Anotasi';
+    label.textContent = (TOOL_LABELS[type] || 'Anotasi') + ' chart';
     var input = document.createElement('textarea');
     input.maxLength = 240;
     input.placeholder = type === 'priceNote' ? 'Contoh: Area reaksi' : 'Tulis anotasi…';
+    input.setAttribute('aria-label', label.textContent);
     var actions = document.createElement('div');
     var save = document.createElement('button');
     save.type = 'submit'; save.textContent = 'Simpan';
@@ -595,16 +611,27 @@
     cancel.type = 'button'; cancel.textContent = 'Batal';
     actions.appendChild(save); actions.appendChild(cancel);
     form.appendChild(label); form.appendChild(input); form.appendChild(actions);
-    this.container.appendChild(form);
+    (document.body || this.container).appendChild(form);
+    this.textEditor = form;
     var self = this;
     this.setTool(null);
+    form.addEventListener('pointerdown', function (event) { event.stopPropagation(); });
     form.addEventListener('submit', function (event) {
       event.preventDefault();
+      self.removeTextEditor();
       self.addDrawing(type, [point], input.value || TOOL_LABELS[type]);
-      form.remove();
     });
-    cancel.addEventListener('click', function () { form.remove(); self.notify('Anotasi dibatalkan.'); });
+    cancel.addEventListener('click', function () {
+      self.removeTextEditor();
+      self.setTool(self.drawings.length ? 'select' : null);
+      self.notify('Anotasi dibatalkan.');
+    });
     input.focus();
+  };
+
+  CandleChart.prototype.removeTextEditor = function () {
+    if (this.textEditor && this.textEditor.parentNode) this.textEditor.parentNode.removeChild(this.textEditor);
+    this.textEditor = null;
   };
 
   CandleChart.prototype.capturePointer = function (event) {
@@ -620,7 +647,10 @@
     this.capturePointer(event);
     if (this.activeTool === 'select') {
       var handle = event.target.closest && event.target.closest('[data-point-index]');
-      var drawing = handle ? this.drawings.find(function (item) { return item.id === handle.getAttribute('data-drawing-id'); }) : this.findDrawingAt(point.x, point.y);
+      var painted = event.target.closest && event.target.closest('[data-drawing-id]');
+      var targetId = (handle || painted) && (handle || painted).getAttribute('data-drawing-id');
+      var drawing = targetId ? this.drawings.find(function (item) { return item.id === targetId; }) : null;
+      if (!drawing) drawing = this.findDrawingAt(point.x, point.y);
       this.selectedId = drawing ? drawing.id : null;
       this.dragState = drawing ? {
         id: drawing.id,
@@ -754,6 +784,13 @@
   };
 
   CandleChart.prototype.handleKeyDown = function (event) {
+    if (event.key === 'Escape' && this.textEditor) {
+      event.preventDefault();
+      this.removeTextEditor();
+      this.setTool(this.drawings.length ? 'select' : null);
+      this.notify('Anotasi dibatalkan.');
+      return;
+    }
     if (event.key === 'Escape' && this.activeTool) this.setTool(null);
     var isEditor = Boolean(event.target && event.target.matches && event.target.matches('input, textarea, [contenteditable="true"]'));
     if ((event.key === 'Delete' || event.key === 'Backspace') && this.activeTool === 'select' && this.selectedId && !isEditor) {
@@ -800,8 +837,7 @@
     this.chart.timeScale().unsubscribeVisibleTimeRangeChange(this.renderDrawings);
     this.chart.unsubscribeCrosshairMove(this.handleCrosshair);
     this.chart.unsubscribeClick(this.handleClick);
-    var editor = this.container.querySelector('.practice-drawing-editor');
-    if (editor) editor.remove();
+    this.removeTextEditor();
     this.chart.remove();
   };
 

@@ -1,5 +1,13 @@
 # Bug History
 
+## Trading Practice drawings ignored touch and text editor could be clipped
+- **Date:** 2026-08-17
+- **Severity:** High
+- **Cause:** Saving a drawing immediately called `setTool(null)`, disabling pointer events on the SVG overlay. Selection then depended on narrow geometric tolerances, while the annotation form was absolutely positioned inside an overflow-clipped chart shell.
+- **Fix:** Finished drawings now switch directly to Select/Edit with the new object selected; rendered SVG ownership, 28px invisible line/path hit strokes, and 36px handle targets make mobile selection and dragging reliable. Text/Note/Price Note use a fixed dialog attached outside the chart shell.
+- **Validation:** Seven focused chart tests cover automatic selection, painted-target selection, TIME + PRICE drag persistence, visible text submission, touch target sizing, and render/select behavior for every supported tool. All 119 application regression files pass locally.
+- **Release:** Source candidate `2.0.0-pro.325` / `950325`; active update remains signed `.324` until `.325` passes Android CI, signer, release-asset, checksum, and endpoint verification.
+
 ## Trading Practice scale, decision persistence, and Live continuity
 - **Date:** 2026-08-17
 - **Severity:** High

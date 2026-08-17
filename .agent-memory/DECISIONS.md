@@ -2,6 +2,12 @@
 
 ## 2026-08-17
 
+### Trading Practice Mobile Drawing Interaction Contract
+- A completed drawing is one-shot-created and then immediately selected in Select/Edit mode; chart pan/zoom returns only through the explicit Gesture Chart control.
+- Painted SVG ownership is the primary selection source. Geometry remains a fallback, while transparent 28px strokes and 36px point targets provide reliable mobile touch without changing the visible drawing.
+- Text, Note, and Price Note entry is a fixed body-level dialog so chart overflow and low anchor positions cannot hide the field or actions.
+- Source advances to `2.0.0-pro.325` / `950325`; the active update manifest stays on verified `.324` until the `.325` signed release passes every publication gate.
+
 ### Trading Practice Chart Continuity and Drawing Contract
 - Chart Analysis Live uses the selected historical pack as its immutable base, then merges native closed context and WebSocket candles by timeframe timestamp without interpolation or duplicates.
 - Replay decisions have a deterministic symbol/timeframe/cursor/source identity and are evaluated only from later candles. Drawings persist in TIME + PRICE coordinates.

@@ -16,16 +16,42 @@ function classList() {
 }
 
 function node(name = 'div') {
-  return {
+  const listeners = new Map();
+  const element = {
     nodeName: name.toUpperCase(), className: '', classList: classList(), style: {}, attributes: {}, children: [],
     clientWidth: 360, clientHeight: 520, firstChild: null, textContent: '',
     appendChild(child) { this.children.push(child); this.firstChild = this.children[0] || null; child.parentNode = this; return child; },
-    removeChild(child) { this.children = this.children.filter(item => item !== child); this.firstChild = this.children[0] || null; },
-    setAttribute(key, value) { this.attributes[key] = String(value); },
+    removeChild(child) { this.children = this.children.filter(item => item !== child); this.firstChild = this.children[0] || null; child.parentNode = null; },
+    remove() { if (this.parentNode) this.parentNode.removeChild(this); },
+    setAttribute(key, value) { this.attributes[key] = String(value); if (key === 'class') this.className = String(value); },
     getAttribute(key) { return this.attributes[key] ?? null; },
-    addEventListener() {}, removeEventListener() {}, querySelector() { return null; },
+    matches(selector) {
+      return String(selector).split(',').some(part => {
+        const value = part.trim();
+        if (value.startsWith('.')) return `${this.className} ${this.attributes.class || ''}`.split(/\s+/).includes(value.slice(1));
+        if (value.startsWith('[')) {
+          const match = value.match(/^\[([^=\]]+)(?:=["']?([^"'\]]+)["']?)?\]$/);
+          return Boolean(match && this.getAttribute(match[1]) != null && (match[2] == null || this.getAttribute(match[1]) === match[2]));
+        }
+        return this.nodeName.toLowerCase() === value.toLowerCase();
+      });
+    },
+    closest(selector) { let current = this; while (current) { if (current.matches && current.matches(selector)) return current; current = current.parentNode; } return null; },
+    addEventListener(type, callback) { const items = listeners.get(type) || []; items.push(callback); listeners.set(type, items); },
+    removeEventListener(type, callback) { listeners.set(type, (listeners.get(type) || []).filter(item => item !== callback)); },
+    dispatchEvent(event) { event.target ||= this; for (const callback of listeners.get(event.type) || []) callback.call(this, event); return true; },
+    querySelector(selector) {
+      for (const child of this.children) {
+        if (child.matches && child.matches(selector)) return child;
+        const nested = child.querySelector && child.querySelector(selector);
+        if (nested) return nested;
+      }
+      return null;
+    },
+    focus() { this.focused = true; },
     getBoundingClientRect() { return { left: 0, top: 0, width: this.clientWidth, height: this.clientHeight }; }
   };
+  return element;
 }
 
 function createRuntime() {
@@ -58,9 +84,11 @@ function createRuntime() {
     }
   };
   const localValues = new Map();
+  const body = node('body');
   const document = {
+    body,
     createElement: name => node(name), createElementNS: (_, name) => node(name),
-    addEventListener() {}, removeEventListener() {}
+    addEventListener() {}, removeEventListener() {}, querySelector: selector => body.querySelector(selector)
   };
   const runtime = {
     console, document, LightweightCharts: lightweight,
@@ -102,8 +130,9 @@ test('TIME + PRICE drawing interpolation and persistence survive chart recreatio
   const saved = first.addDrawing('trend', [{ time: 60, price: 4101.25 }, { time: 120, price: 4108.5 }]);
   assert.ok(saved);
   assert.ok(localValues.has('drawing-persistence-test'));
-  first.setTool('select');
-  first.selectedId = saved.id;
+  assert.equal(first.activeTool, 'select', 'a finished drawing immediately enters edit mode');
+  assert.equal(first.selectedId, saved.id, 'a finished drawing is immediately selected');
+  assert.equal(first.overlay.classList.contains('is-selecting'), true);
   assert.equal(first.deleteSelected(), true);
   assert.equal(first.drawings.length, 0);
   assert.equal(first.undo(), true);
@@ -125,6 +154,106 @@ test('TIME + PRICE drawing interpolation and persistence survive chart recreatio
   ]);
   assert.equal(second.activeTool, null);
   assert.equal(second.overlay.classList.contains('is-drawing'), false, 'normal chart gestures remain available while no tool is active');
+});
+
+test('painted drawings can be selected and dragged using mobile-sized hit targets', () => {
+  const { runtime, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'drawing-touch-test' });
+  chart.setCandles([
+    { time: 0, open: 4898, high: 4904, low: 4895, close: 4900 },
+    { time: 120, open: 4900, high: 4902, low: 4875, close: 4880 }
+  ]);
+  const trend = chart.addDrawing('trend', [{ time: 0, price: 4900 }, { time: 120, price: 4880 }]);
+  chart.addDrawing('rectangle', [{ time: 30, price: 4920 }, { time: 90, price: 4860 }]);
+
+  const drawingGroup = chart.overlay.children.find(item => item.getAttribute && item.getAttribute('data-drawing-id') === trend.id);
+  assert.ok(drawingGroup, 'trend SVG group is rendered');
+  const paintedLine = drawingGroup.children.find(item => item.nodeName === 'LINE' && item.getAttribute('stroke') !== 'transparent');
+  const touchLine = drawingGroup.children.find(item => item.getAttribute('class') === 'practice-drawing-hit');
+  assert.ok(paintedLine, 'visible trend line is rendered');
+  assert.equal(touchLine.getAttribute('stroke-width'), '28', 'thin lines expose a forgiving invisible touch target');
+
+  chart.handlePointerDown({
+    clientX: 20, clientY: 100, pointerId: 1, target: paintedLine,
+    preventDefault() {}, stopPropagation() {}
+  });
+  assert.equal(chart.selectedId, trend.id, 'the painted SVG target selects its owning drawing');
+  const handleHits = chart.overlay.children.filter(item => item.getAttribute && item.getAttribute('class') === 'practice-drawing-handle-hit');
+  assert.equal(handleHits.length, 2);
+  assert.ok(handleHits.every(item => item.getAttribute('r') === '18'), 'edit handles have a 36px touch area');
+
+  chart.handlePointerMove({ clientX: 30, clientY: 110, preventDefault() {} });
+  chart.handlePointerUp({ clientX: 30, clientY: 110, preventDefault() {} });
+  const moved = chart.drawings.find(item => item.id === trend.id);
+  assert.deepEqual(JSON.parse(JSON.stringify(moved.points)), [
+    { time: 10, price: 4890 }, { time: 130, price: 4870 }
+  ]);
+});
+
+test('text editor stays outside the clipped chart and saved text is visible and editable', () => {
+  const { runtime, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'drawing-text-test' });
+  chart.setCandles([
+    { time: 0, open: 4898, high: 4904, low: 4895, close: 4900 },
+    { time: 120, open: 4900, high: 4908, low: 4898, close: 4905 }
+  ]);
+
+  chart.setTool('text');
+  chart.openTextEditor('text', { time: 60, price: 4900 });
+  const editor = chart.textEditor;
+  assert.ok(editor, 'text dialog opens');
+  assert.equal(editor.parentNode, runtime.document.body, 'text dialog is not clipped by the chart shell');
+  assert.equal(editor.getAttribute('role'), 'dialog');
+  const input = editor.querySelector('textarea');
+  assert.equal(input.focused, true);
+  input.value = 'Area beli utama';
+  editor.dispatchEvent({ type: 'submit', preventDefault() {} });
+
+  const drawing = chart.drawings.at(-1);
+  assert.equal(drawing.type, 'text');
+  assert.equal(drawing.text, 'Area beli utama');
+  assert.equal(chart.textEditor, null);
+  assert.equal(chart.activeTool, 'select');
+  assert.equal(chart.selectedId, drawing.id);
+  const group = chart.overlay.children.find(item => item.getAttribute && item.getAttribute('data-drawing-id') === drawing.id);
+  assert.equal(group.querySelector('text').textContent, 'Area beli utama');
+});
+
+test('every supported drawing type renders and can be selected through its painted SVG', () => {
+  const { runtime, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'drawing-all-tools-test' });
+  chart.setCandles([
+    { time: 0, open: 4898, high: 4910, low: 4888, close: 4900 },
+    { time: 120, open: 4900, high: 4920, low: 4870, close: 4890 }
+  ]);
+  const one = [{ time: 30, price: 4900 }];
+  const two = [{ time: 20, price: 4910 }, { time: 100, price: 4880 }];
+  const three = [{ time: 20, price: 4900 }, { time: 100, price: 4920 }, { time: 80, price: 4875 }];
+  const inputs = {
+    horizontal: one, horizontalRay: one, entry: one, stop: one, target: one,
+    text: one, note: one, priceNote: one,
+    trend: two, fibonacci: two, priceRange: two, rectangle: two, arrow: two, circle: two,
+    parallelChannel: three, longPosition: three, shortPosition: three,
+    path: [{ time: 10, price: 4910 }, { time: 60, price: 4885 }, { time: 110, price: 4905 }]
+  };
+  const created = Object.entries(inputs).map(([type, points]) => chart.addDrawing(type, points, type === 'text' ? 'Teks terlihat' : ''));
+  assert.ok(created.every(Boolean));
+
+  for (const drawing of created) {
+    const group = chart.overlay.children.find(item => item.getAttribute && item.getAttribute('data-drawing-id') === drawing.id);
+    assert.ok(group && group.children.length, `${drawing.type} must render visible SVG content`);
+    const painted = group.children.find(item => item.getAttribute('class') !== 'practice-drawing-hit') || group;
+    chart.handlePointerDown({
+      clientX: 40, clientY: 100, pointerId: 7, target: painted,
+      preventDefault() {}, stopPropagation() {}
+    });
+    assert.equal(chart.selectedId, drawing.id, `${drawing.type} must be selectable from its SVG target`);
+    chart.handlePointerUp({ clientX: 40, clientY: 100, preventDefault() {} });
+  }
+
+  const css = readFileSync(new URL('../app/src/main/assets/apps/academy/trading-practice/assets/css/practice.css', import.meta.url), 'utf8');
+  assert.match(css, /\.practice-drawing-editor \{ position:fixed;/, 'text entry must not be clipped by the chart shell');
+  assert.match(css, /\.practice-drawing-handle, \.practice-drawing-handle-hit \{ cursor:\s*move; pointer-events:\s*all;/);
 });
 
 test('analysis and replay expose every required drawing tool and load the domain model first', () => {

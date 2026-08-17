@@ -46,9 +46,11 @@ body.practice-page { background: var(--practice-bg); color: var(--practice-text)
 .practice-chart-overlay.is-drawing { pointer-events: auto; cursor: crosshair; }
 .practice-chart-overlay.is-selecting { pointer-events: auto; cursor: grab; }
 .practice-chart-overlay.is-selecting:active { cursor: grabbing; }
+.practice-chart-overlay.is-selecting .practice-drawing { cursor: grab; }
 .practice-drawing.is-draft { opacity: .72; }
 .practice-drawing.is-selected { filter: drop-shadow(0 0 4px rgba(56,189,248,.92)); }
-.practice-drawing-handle { cursor: move; pointer-events: auto; }
+.practice-drawing-hit { pointer-events: stroke; }
+.practice-drawing-handle, .practice-drawing-handle-hit { cursor: move; pointer-events: all; }
 .drawing-menu { position: relative; }
 .drawing-menu summary { list-style: none; min-height: 42px; display:flex; align-items:center; padding:9px 12px; border:1px solid #314159; border-radius:10px; cursor:pointer; font-weight:800; }
 .drawing-menu summary::-webkit-details-marker { display:none; }
@@ -57,9 +59,9 @@ body.practice-page { background: var(--practice-bg); color: var(--practice-text)
 .drawing-menu-grid button { min-width:0; text-align:left; }
 .drawing-menu-grid button:disabled { opacity:.42; cursor:not-allowed; }
 .drawing-menu-help { grid-column:1 / -1; padding:8px 9px; border-radius:8px; background:rgba(45,212,191,.07); color:var(--practice-muted); font-size:.75rem; line-height:1.4; }
-.practice-drawing-editor { position:absolute; z-index:15; width:min(240px, calc(100% - 16px)); display:grid; gap:8px; padding:10px; border:1px solid #38bdf8; border-radius:11px; background:#0e1622; box-shadow:0 16px 36px rgba(0,0,0,.5); }
+.practice-drawing-editor { position:fixed; z-index:2147483000; left:50%; bottom:16px; bottom:max(16px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(420px, calc(100vw - 24px)); max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow:auto; display:grid; gap:10px; padding:14px; border:1px solid #38bdf8; border-radius:14px; background:#0e1622; box-shadow:0 18px 54px rgba(0,0,0,.72); }
 .practice-drawing-editor label { color:#e8eef7; font-size:.78rem; font-weight:800; }
-.practice-drawing-editor textarea { min-height:62px; resize:vertical; border:1px solid #314159; border-radius:8px; background:#080e17; color:#e8eef7; padding:8px; font:inherit; }
+.practice-drawing-editor textarea { min-height:86px; resize:vertical; border:1px solid #314159; border-radius:8px; background:#080e17; color:#e8eef7; padding:10px; font:inherit; }
 .practice-drawing-editor div { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .practice-drawing-editor button { min-height:36px; border:1px solid #314159; border-radius:8px; background:#152235; color:#e8eef7; font-weight:800; }
 .ohlc-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid var(--practice-border); background: var(--practice-panel); border-radius: 12px; color: var(--practice-muted); font-size: .78rem; }

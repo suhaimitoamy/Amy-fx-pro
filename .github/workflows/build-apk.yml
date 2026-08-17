@@ -197,11 +197,11 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Chart Analysis: right price labels and the current-price badge retain a responsive unclipped price-axis gutter.
-          - Drawing tools: persistent TIME + PRICE coordinates, selection, movement, deletion, Undo, and replay-cursor no-future boundaries.
-          - Candle Replay: cursor-owned decisions wait for IndexedDB commit, restore deterministically, and cannot be overwritten after locking.
-          - Live Chart: the selected historical pack continues into native Twelve Data WebSocket candles with ordered deduplication and stale-tick rejection.
-          - Existing Amy-SMC-D Mapping, Scalper, Journal/Vault, package continuity, and user data remain preserved.
+          - Drawing tools: a finished object now enters Select/Edit mode automatically and exposes its edit handles immediately.
+          - Mobile touch: lines, paths, labels, shapes, and control points have forgiving invisible hit areas for reliable select, drag, and point editing.
+          - Text, Note, and Price Note: the entry dialog now stays above the chart and mobile keyboard instead of being clipped by the chart shell.
+          - All drawing types retain persistent TIME + PRICE coordinates, deletion, Undo, and replay-cursor no-future boundaries.
+          - Existing Candle Replay decisions, Live continuity, Amy-SMC-D Mapping, Scalper, Journal/Vault, package continuity, and user data remain preserved.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
