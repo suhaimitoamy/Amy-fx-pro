@@ -102,6 +102,20 @@ test('TIME + PRICE drawing interpolation and persistence survive chart recreatio
   const saved = first.addDrawing('trend', [{ time: 60, price: 4101.25 }, { time: 120, price: 4108.5 }]);
   assert.ok(saved);
   assert.ok(localValues.has('drawing-persistence-test'));
+  first.setTool('select');
+  first.selectedId = saved.id;
+  assert.equal(first.deleteSelected(), true);
+  assert.equal(first.drawings.length, 0);
+  assert.equal(first.undo(), true);
+  assert.equal(first.drawings.length, 1);
+  first.clearDrawings();
+  assert.equal(first.drawings.length, 0);
+  assert.equal(first.undo(), true, 'clear-all remains recoverable with Undo');
+  assert.equal(first.drawings.length, 1);
+  first.setDrawingTimeBoundary(60);
+  assert.equal(first.isDrawingVisible(saved), false, 'a replay rewind must hide drawing anchors from a future cursor');
+  const clamped = first.pointFromEvent({ clientX: 100, clientY: 100 });
+  assert.equal(clamped.time, 60, 'new drawing anchors cannot move past the replay cursor');
 
   const nextContainer = node('section');
   const second = new runtime.AmyCandleChart.CandleChart(nextContainer, { storageKey: 'drawing-persistence-test' });

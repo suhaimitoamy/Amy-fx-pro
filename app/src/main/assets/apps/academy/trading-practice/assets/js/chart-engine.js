@@ -40,6 +40,9 @@
     this.options = options;
     this.model = root.AmyPracticeDrawing;
     this.storageKey = options.storageKey || '';
+    this.drawingTimeBoundary = options.drawingTimeBoundary != null && Number.isFinite(Number(options.drawingTimeBoundary))
+      ? Number(options.drawingTimeBoundary)
+      : null;
     this.activeTool = null;
     this.selectedId = null;
     this.gestureStart = null;
@@ -195,6 +198,21 @@
     });
   };
 
+  CandleChart.prototype.setDrawingTimeBoundary = function (timestamp) {
+    var value = Number(timestamp);
+    this.drawingTimeBoundary = timestamp != null && Number.isFinite(value) ? value : null;
+    var selected = this.drawings.find(function (drawing) { return drawing.id === this.selectedId; }, this);
+    var selectionCleared = Boolean(selected && !this.isDrawingVisible(selected));
+    if (selectionCleared) this.selectedId = null;
+    this.renderDrawings();
+    if (selectionCleared) this.notify('Drawing setelah cursor replay disembunyikan.');
+  };
+
+  CandleChart.prototype.isDrawingVisible = function (drawing) {
+    if (!drawing || this.drawingTimeBoundary == null) return Boolean(drawing);
+    return drawing.points.every(function (point) { return Number(point.time) <= this.drawingTimeBoundary; }, this);
+  };
+
   CandleChart.prototype.updateCandle = function (candle) {
     if (!candle) return;
     var value = { time: Number(candle.time), open: Number(candle.open), high: Number(candle.high), low: Number(candle.low), close: Number(candle.close) };
@@ -268,6 +286,10 @@
       this.notify('Titik gambar belum lengkap.');
       return null;
     }
+    if (!this.isDrawingVisible(drawing)) {
+      this.notify('Drawing replay tidak boleh melewati cursor aktif.');
+      return null;
+    }
     this.remember();
     this.drawings.push(drawing);
     this.saveDrawings();
@@ -320,6 +342,7 @@
     var price = this.series.coordinateToPrice(y);
     if (time == null || price == null) return null;
     if (typeof time === 'object') time = Date.UTC(time.year, time.month - 1, time.day) / 1000;
+    if (this.drawingTimeBoundary != null) time = Math.min(Number(time), this.drawingTimeBoundary);
     return { time: Number(time), price: Number(price), x: x, y: y };
   };
 
@@ -493,7 +516,7 @@
     defs.appendChild(marker);
     this.overlay.appendChild(defs);
     var self = this;
-    this.drawings.forEach(function (drawing) {
+    this.drawings.filter(function (drawing) { return self.isDrawingVisible(drawing); }).forEach(function (drawing) {
       var group = self.renderDrawing(drawing, false);
       if (group) self.overlay.appendChild(group);
     });
@@ -522,6 +545,7 @@
     var hit = { x: x, y: y };
     for (var index = this.drawings.length - 1; index >= 0; index -= 1) {
       var drawing = this.drawings[index];
+      if (!this.isDrawingVisible(drawing)) continue;
       var points = drawing.points.map(this.screenPoint.bind(this));
       var a = points[0];
       var b = points[1];
@@ -631,12 +655,20 @@
     if (this.activeTool === 'select' && this.dragState) {
       event.preventDefault();
       var next;
-      if (!this.dragState.remembered && distance(point, this.dragState.startPoint) > 2) {
+      if (!this.dragState.remembered && distance(point, this.dragState.startPoint) <= 2) return;
+      if (!this.dragState.remembered) {
         this.remember();
         this.dragState.remembered = true;
       }
       if (this.dragState.mode === 'point') next = this.model.updatePoint(this.dragState.original, this.dragState.pointIndex, point);
-      else next = this.model.move(this.dragState.original, point.time - this.dragState.startPoint.time, point.price - this.dragState.startPoint.price);
+      else {
+        var deltaTime = point.time - this.dragState.startPoint.time;
+        if (this.drawingTimeBoundary != null) {
+          var latestTime = Math.max.apply(null, this.dragState.original.points.map(function (item) { return Number(item.time); }));
+          deltaTime = Math.min(deltaTime, this.drawingTimeBoundary - latestTime);
+        }
+        next = this.model.move(this.dragState.original, deltaTime, point.price - this.dragState.startPoint.price);
+      }
       var index = this.drawings.findIndex(function (drawing) { return drawing.id === next.id; });
       if (index >= 0) this.drawings[index] = next;
       this.renderDrawings();

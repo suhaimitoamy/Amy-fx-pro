@@ -2,7 +2,7 @@
 
 ## Pending Tasks
 
-- [ ] Run `testDebugUnitTest assembleDebug lintDebug` and real-device WebView visual/gesture smoke tests for `.323` once Gradle 8.4 is available; this workspace could not download it because network access was unavailable.
+- [ ] Complete real-device WebView visual/gesture smoke tests after the signed `.324` release; CI owns Android unit, lint, build, identity, signer, and endpoint verification.
 
 - [ ] Add automatic next/previous monthly-pack handoff in Candle Replay if seamless multi-month playback is later required; current design intentionally keeps one explicit local pack active at a time to bound memory.
 - [ ] Add SMT guided-chart exercises only after a synchronized, provenance-preserving DXY dataset is available beside XAUUSD.

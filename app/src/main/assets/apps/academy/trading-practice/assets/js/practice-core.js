@@ -69,7 +69,8 @@
 
   function upsertLatestCandle(items, value, options) {
     options = options || {};
-    var candles = normalizeCandles(items);
+    var trusted = options.trustedSeries === true && Array.isArray(items);
+    var candles = trusted ? (options.mutate === true ? items : items.slice()) : normalizeCandles(items);
     var candle = normalizeCandle(value);
     if (!candle) return { candles: candles, candle: null, action: 'INVALID' };
     var immutableThrough = finite(options.immutableThrough);
@@ -244,6 +245,7 @@
     var tickTime = parseTime(tick && tick.timestamp);
     if (tickPrice == null || tickTime == null || tickPrice <= 0) return null;
     var bucket = Math.floor(tickTime / this.seconds) * this.seconds;
+    if (this.current && bucket < this.current.time) return null;
     var closed = null;
     if (!this.current || this.current.time !== bucket) {
       closed = this.current ? Object.assign({}, this.current, { isClosed: true }) : null;

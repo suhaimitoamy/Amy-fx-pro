@@ -5,7 +5,7 @@
 ### Trading Practice Chart Continuity and Drawing Contract
 - Chart Analysis Live uses the selected historical pack as its immutable base, then merges native closed context and WebSocket candles by timeframe timestamp without interpolation or duplicates.
 - Replay decisions have a deterministic symbol/timeframe/cursor/source identity and are evaluated only from later candles. Drawings persist in TIME + PRICE coordinates.
-- Source advances to `2.0.0-pro.323` / `950323`; published `update.json` stays `.322` until a signed `.323` APK is verified.
+- Source advances to `2.0.0-pro.324` / `950324`. The signed and endpoint-verified `.323` APK is activated as the safe bridge from `.322`; `.324` becomes active only after its final replay-cursor drawing, decision-lock, and stale-tick safeguards pass the same release gates.
 
 ## 2026-08-11
 

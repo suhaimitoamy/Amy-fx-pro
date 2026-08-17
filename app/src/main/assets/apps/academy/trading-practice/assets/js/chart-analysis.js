@@ -72,6 +72,7 @@
   }
 
   async function loadHistorical(fit) {
+    ui.tradeReady(false);
     try {
       var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: timeframe(), sourceId: sourceId() });
       candles = result.candles;
@@ -84,7 +85,10 @@
       ui.text('chartMode', 'Historis');
       ui.status('chartStatus', candles.length + ' candle ' + timeframe() + ' siap. Zoom, pan, atau pilih alat gambar.');
       ui.text('sourceNote', 'Sumber: ' + result.source + (result.sampleOnly ? ' · sample UI, bukan hasil backtest.' : ' · pack historis lokal.'));
-    } catch (error) { ui.status('chartStatus', error.message, true); }
+    } catch (error) {
+      ui.decisionState('error', 'Dataset gagal dimuat', error.message);
+      ui.status('chartStatus', error.message, true);
+    }
   }
 
   function nativeRows(symbol, tf) {
@@ -126,6 +130,7 @@
 
   async function setLive(enabled) {
     var button = ui.byId('liveToggle');
+    var nextLive = null;
     button.disabled = true;
     if (!enabled) {
       try {
@@ -145,15 +150,17 @@
       live = null;
       var context = await seedLiveContext(false);
       var historicalEnd = historicalCandles.length ? historicalCandles[historicalCandles.length - 1].time : null;
-      var seed = liveCandles.length && (historicalEnd == null || liveCandles[liveCandles.length - 1].time > historicalEnd)
-        ? liveCandles[liveCandles.length - 1]
-        : null;
-      var nextLive = new window.AmyPracticeLive.LivePriceAdapter({
+      var seed = liveCandles.length ? liveCandles[liveCandles.length - 1] : null;
+      nextLive = new window.AmyPracticeLive.LivePriceAdapter({
         timeframe: timeframe(),
         seedCandle: seed,
         onCandle: function (update) {
           var current = update.current;
-          var merged = core.upsertLatestCandle(liveCandles, current, { immutableThrough: historicalEnd });
+          var merged = core.upsertLatestCandle(liveCandles, current, {
+            immutableThrough: historicalEnd,
+            trustedSeries: true,
+            mutate: true
+          });
           if (!merged.candle) return;
           liveCandles = merged.candles;
           candles = liveCandles;
@@ -172,10 +179,12 @@
       ui.text('chartMode', 'Live WebSocket');
       ui.text('sourceNote', 'Konteks: ' + context.historical + ' candle dari pack aktif ' + context.source + ' → dilanjutkan AmyLivePrice / Twelve Data WebSocket. Gap tidak diisi candle sintetis.');
     } catch (error) {
-      if (live) live.stop();
+      if (nextLive) nextLive.stop();
+      else if (live) live.stop();
       live = null;
       isLive = false;
       renderLiveToggle(false);
+      await loadHistorical(false);
       throw error;
     } finally {
       button.disabled = false;
@@ -208,6 +217,11 @@
       await provider.deleteSource(id);
       await refreshSources(wasSelected ? provider.SAMPLE_ID : sourceId());
       if (!isLive) await loadHistorical(true);
+      else {
+        if (live) live.stop();
+        live = null;
+        await setLive(true);
+      }
       ui.status('importStatus', 'Pack dihapus dari perangkat.');
     } catch (error) { ui.status('importStatus', error.message, true); }
   }
@@ -254,15 +268,24 @@
     ui.bindDrawingToolbar(chart);
     await refreshSources();
     ui.byId('timeframe').addEventListener('change', async function () {
-      if (isLive) {
-        if (live) live.stop();
-        live = null;
-        await setLive(true);
-      } else await loadHistorical(true);
+      try {
+        if (isLive) {
+          if (live) live.stop();
+          live = null;
+          await setLive(true);
+        } else await loadHistorical(true);
+      } catch (error) { ui.status('chartStatus', error.message, true); }
     });
     ui.byId('datasetSource').addEventListener('change', async function () {
-      provider.setSelectedSourceId(this.value);
-      if (!isLive) await loadHistorical(true); else { if (live) live.stop(); live = null; await setLive(true); }
+      try {
+        provider.setSelectedSourceId(this.value);
+        if (!isLive) await loadHistorical(true);
+        else {
+          if (live) live.stop();
+          live = null;
+          await setLive(true);
+        }
+      } catch (error) { ui.status('chartStatus', error.message, true); }
     });
     ui.byId('liveToggle').addEventListener('click', function () { setLive(!isLive).catch(function (error) { ui.status('chartStatus', error.message, true); }); });
     ui.byId('importButton').addEventListener('click', importDataset);

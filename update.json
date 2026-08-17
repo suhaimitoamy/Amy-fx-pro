@@ -1,31 +1,27 @@
 {
-  "latest_version_code": 950322,
-  "latest_version_name": "2.0.0-pro.322",
-  "versionCode": 950322,
-  "version": "2.0.0-pro.322",
-  "releaseDate": "2026-08-16",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.322/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.322/AmyFX-Pro-latest.apk",
+  "latest_version_code": 950323,
+  "latest_version_name": "2.0.0-pro.323",
+  "versionCode": 950323,
+  "version": "2.0.0-pro.323",
+  "releaseDate": "2026-08-17",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.323/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.323/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Trading Practice sekarang memiliki Historical Pack Library lokal untuk memasang ZIP repaired-audited, CSV, atau JSON tanpa memasukkan dataset historis ke ukuran APK.",
-    "Importer ZIP mendukung arsip bertingkat secara rekursif dan menyimpan sumber M1 terkompresi per pack; timeframe M5 sampai D1 dibentuk saat digunakan.",
-    "Candle Replay memiliki pemilih pack historis dan tetap memotong sumber pada cursor timestamp sebelum agregasi timeframe sehingga proteksi no-future-data tetap dipertahankan.",
-    "Live Chart sekarang menampilkan konteks candle closed dari CandleStore lokal sebelum dilanjutkan oleh native Twelve Data WebSocket, tanpa REST Twelve Data atau polling.",
-    "Guided Practice tetap dikunci ke sample Maret 2009 agar jawaban latihan deterministik; Mapping Amy-SMC-D, Scalper, Journal/Vault, package Preview-continuity, dan signer Pro tetap dipertahankan."
+    "Sumbu harga kanan Chart Analysis kini memiliki ruang responsif agar label XAUUSD dan badge harga berjalan tidak terpotong.",
+    "Drawing tools diperluas dengan koordinat TIME + PRICE yang persisten, pilihan objek, pemindahan, hapus satu per satu, hapus semua, dan Undo.",
+    "Keputusan Candle Replay menunggu commit IndexedDB, dibaca kembali untuk verifikasi, dan memakai identitas symbol/timeframe/cursor/dataset yang stabil.",
+    "Mode Live mempertahankan pack historis aktif lalu melanjutkannya dengan candle native/WebSocket secara kronologis tanpa duplikat atau candle sintetis.",
+    "Proteksi no-future-data, Mapping Amy-SMC-D, Scalper, Journal/Vault, package continuity, signer, dan data pengguna tetap dipertahankan."
   ],
   "changelog": [
-    "Academy Historical Pack Library",
-    "Recursive repaired-audited ZIP importer",
-    "Selectable no-future-data Candle Replay packs",
-    "Live CandleStore context before Twelve Data WebSocket",
-    "Guided Practice deterministic sample pinning",
-    "Dynamic Pro release identity CI",
-    "Mapping Context Aggregator V1",
-    "Sweep vs Acceptance context classifier",
-    "XAUUSD-DXY SMT evidence-only selector",
-    "SMR / First Retest M5 Scalper driver"
+    "Unclipped responsive right price scale",
+    "Advanced persistent TIME + PRICE drawings",
+    "Replay decision commit and retrieval verification",
+    "Historical-pack to Live candle continuity",
+    "Chronological candle upsert and deduplication",
+    "No-future-data replay preservation"
   ]
 }

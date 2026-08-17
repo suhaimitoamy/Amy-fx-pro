@@ -92,6 +92,11 @@ test('historical and live candles merge continuously, update same bucket, dedupl
   assert.equal(ignored.action, 'IGNORED_OLDER');
   assert.equal(ignored.candles.at(-1).high, 999);
   assert.deepEqual(Array.from(ignored.candles, candle => candle.time), [0, 60, 120, 180, 240]);
+
+  const liveBuffer = merged.slice();
+  const appended = context.AmyPracticeCore.upsertLatestCandle(liveBuffer, minuteCandles[5], { trustedSeries: true, mutate: true });
+  assert.equal(appended.candles, liveBuffer, 'trusted live ticks update the existing buffer without copying the full historical pack');
+  assert.equal(liveBuffer.at(-1).time, 300);
 });
 
 test('historical OHLC wins on an overlapping native/live context timestamp', () => {
@@ -110,6 +115,7 @@ test('historical OHLC wins on an overlapping native/live context timestamp', () 
 test('tick aggregation can seed and update the last historical timeframe candle', () => {
   const aggregator = new context.AmyPracticeCore.TickAggregator('M1');
   aggregator.seed({ time: 120, open: 100, high: 101, low: 99, close: 100 });
+  assert.equal(aggregator.push({ timestamp: 60, price: 500 }), null, 'a stale reconnect tick must not rewind the active bucket');
   const update = aggregator.push({ timestamp: 150, price: 102 });
   assert.equal(update.closed, null);
   assert.equal(update.current.time, 120);
@@ -233,4 +239,10 @@ test('IndexedDB write resolves only after the transaction commit event', async (
   state.transaction.oncomplete();
   await saving;
   assert.equal(resolved, true);
+});
+
+test('replay outcomes are isolated to the active historical pack', () => {
+  const source = readFileSync(new URL('candle-replay.js', base), 'utf8');
+  assert.match(source, /item\.sourceId === payload\.sourceId/);
+  assert.doesNotMatch(source, /!item\.sourceId \|\| item\.sourceId === payload\.sourceId/);
 });

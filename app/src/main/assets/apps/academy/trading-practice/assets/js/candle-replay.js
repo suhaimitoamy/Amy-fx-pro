@@ -64,14 +64,15 @@
       sourceId: payload.sourceId, tradeTime: payload.cursor
     });
     var existing = await storage.getTrade(id);
-    ui.tradeReady(true);
     if (!existing) {
       delete ui.byId('tradeForm').dataset.lockedDecisionId;
       chart.setTradeLevels([]);
+      ui.tradeReady(true);
       ui.decisionState('idle', 'Belum dikunci', 'Cursor ' + core.formatWita(payload.cursor, true));
       return;
     }
     ui.byId('tradeForm').dataset.lockedDecisionId = existing.id;
+    ui.tradeReady(false);
     ui.decisionState('locked', 'Keputusan terkunci ✓', existing.bias + ' · ' + core.formatWita(existing.tradeTime, true) + ' · tersimpan permanen');
     chart.setTradeLevels(existing.bias === 'WAIT' ? [] : [
       { type: 'entry', price: existing.entry, title: 'Entry' }, { type: 'stop', price: existing.stopLoss, title: 'SL' }, { type: 'target', price: existing.takeProfit, title: 'TP' }
@@ -80,6 +81,10 @@
 
   async function render(payload) {
     latestPayload = payload;
+    ui.tradeReady(false);
+    delete ui.byId('tradeForm').dataset.lockedDecisionId;
+    chart.setTradeLevels([]);
+    chart.setDrawingTimeBoundary(payload.cursor);
     chart.setCandles(payload.candles, firstRender);
     firstRender = false;
     var current = ui.currentCandle(payload.candles);
@@ -113,11 +118,27 @@
     }
     var current = ui.currentCandle(latestPayload.candles);
     var submit = ui.byId('tradeSubmit');
+    var saved = false;
     try {
       ui.tradeReady(false);
       if (submit) submit.textContent = 'Menyimpan keputusan…';
       ui.decisionState('saving', 'Sedang menyimpan', 'Menunggu commit IndexedDB pada cursor ini…');
       ui.status('tradeStatus', 'Menyimpan dan memverifikasi keputusan lokal…');
+      var id = window.AmyPracticeTrades.decisionId({
+        symbol: latestPayload.symbol, timeframe: latestPayload.timeframe,
+        sourceId: latestPayload.sourceId, tradeTime: latestPayload.cursor
+      });
+      var alreadyLocked = await storage.getTrade(id);
+      if (alreadyLocked) {
+        saved = true;
+        event.currentTarget.dataset.lockedDecisionId = alreadyLocked.id;
+        chart.setTradeLevels(alreadyLocked.bias === 'WAIT' ? [] : [
+          { type: 'entry', price: alreadyLocked.entry, title: 'Entry' }, { type: 'stop', price: alreadyLocked.stopLoss, title: 'SL' }, { type: 'target', price: alreadyLocked.takeProfit, title: 'TP' }
+        ]);
+        ui.decisionState('locked', 'Keputusan terkunci ✓', alreadyLocked.bias + ' · ' + core.formatWita(alreadyLocked.tradeTime, true) + ' · tidak dapat ditimpa');
+        ui.status('tradeStatus', 'Keputusan pada cursor ini sudah tersimpan di Riwayat.', false, true);
+        return;
+      }
       var record = await ui.saveTrade(event.currentTarget, {
         symbol: latestPayload.symbol, timeframe: latestPayload.timeframe,
         tradeTime: latestPayload.cursor, replayStartTime: latestPayload.startTime,
@@ -130,13 +151,14 @@
         { type: 'entry', price: record.entry, title: 'Entry' }, { type: 'stop', price: record.stopLoss, title: 'SL' }, { type: 'target', price: record.takeProfit, title: 'TP' }
       ]);
       event.currentTarget.dataset.lockedDecisionId = record.id;
+      saved = true;
       ui.decisionState('locked', 'Keputusan terkunci ✓', record.bias + ' · ' + core.formatWita(record.tradeTime, true) + ' · tersimpan permanen');
       ui.status('tradeStatus', '✓ ' + record.bias + ' berhasil dikunci dan sudah dapat dibaca kembali melalui Riwayat.', false, true);
     } catch (error) {
       ui.decisionState('error', 'Gagal mengunci', error.message);
       ui.status('tradeStatus', error.message, true);
     } finally {
-      ui.tradeReady(Boolean(latestPayload));
+      ui.tradeReady(Boolean(latestPayload) && !saved && !event.currentTarget.dataset.lockedDecisionId);
       if (submit) submit.textContent = 'Kunci keputusan di cursor ini';
     }
   }
@@ -145,6 +167,10 @@
     playing = false;
     ui.text('playPause', 'Putar');
     replay.pause();
+    latestPayload = null;
+    ui.tradeReady(false);
+    ui.decisionState('saving', 'Memuat pack', 'Keputusan dapat dikunci setelah cursor pack baru siap.');
+    chart.setTradeLevels([]);
     provider.setSelectedSourceId(value);
     firstRender = true;
     ui.status('replayStatus', 'Memuat pack historis…');
@@ -186,6 +212,10 @@
       playing = false;
       ui.text('playPause', 'Putar');
       firstRender = true;
+      latestPayload = null;
+      ui.tradeReady(false);
+      ui.decisionState('saving', 'Mengganti timeframe', 'Menjaga cursor yang sama tanpa membuka candle masa depan.');
+      chart.setTradeLevels([]);
       try { await replay.setTimeframe(this.value); } catch (error) { ui.status('replayStatus', error.message, true); }
     });
     ui.byId('datasetSource').addEventListener('change', function () { changeSource(this.value); });
