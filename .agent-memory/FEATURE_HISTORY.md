@@ -2,15 +2,15 @@
 
 ## Trading Practice Mobile Drawing Interaction Repair
 - **Date:** 2026-08-17
-- **Status:** ✅ Implemented; seven focused chart tests and all 119 regression files pass; signed `.325` release verification pending
+- **Status:** ✅ Released; seven focused chart tests and all 119 regression files pass; signed `.325` Android CI and endpoint verification pass
 - **Description:** Finished drawings automatically enter Select/Edit, rendered objects and handles expose mobile-sized hit targets, drag changes persist in TIME + PRICE, and annotation entry uses a fixed dialog that cannot be clipped by the chart.
-- **Release:** Source candidate `2.0.0-pro.325` / `950325`; active manifest remains `.324` until the signed `.325` artifact is verified.
+- **Release:** Active `2.0.0-pro.325` / `950325` with verified signer continuity, release asset, checksum, and download endpoint.
 
 ## Trading Practice Advanced Drawings and Continuous Live Chart
 - **Date:** 2026-08-17
 - **Status:** ✅ Released; 17 focused tests and all 119 regression files pass; signed `.324` Android CI gates and endpoint verification pass
 - **Description:** Added selectable/movable chart drawings, active-pack historical→Live continuity, and persistent replay-decision feedback/history retrieval.
-- **Release:** Active `2.0.0-pro.324` / `950324`; signed `.323` served only as the verified bridge from `.322`.
+- **Release:** Originally released in `.324`; current active `.325` includes the mobile drawing-interaction repair while preserving this continuity contract.
 
 ## Academy Trading Practice + ICT Berbasis Backtest
 - **Date:** 2026-08-16

@@ -1,27 +1,27 @@
 {
-  "latest_version_code": 950324,
-  "latest_version_name": "2.0.0-pro.324",
-  "versionCode": 950324,
-  "version": "2.0.0-pro.324",
+  "latest_version_code": 950325,
+  "latest_version_name": "2.0.0-pro.325",
+  "versionCode": 950325,
+  "version": "2.0.0-pro.325",
   "releaseDate": "2026-08-17",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.324/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.324/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.325/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.325/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Sumbu harga kanan Chart Analysis kini memiliki ruang responsif agar label XAUUSD dan badge harga berjalan tidak terpotong.",
-    "Drawing tools diperluas dengan koordinat TIME + PRICE yang persisten, pilihan objek, pemindahan, hapus, Undo, serta batas cursor agar drawing Replay tidak membuka masa depan.",
-    "Keputusan Candle Replay menunggu commit IndexedDB, dibaca kembali untuk verifikasi, memakai identitas stabil, dan tidak dapat ditimpa setelah terkunci.",
-    "Mode Live mempertahankan pack historis aktif lalu melanjutkannya dengan candle native/WebSocket secara kronologis tanpa duplikat, candle sintetis, atau rewind dari tick lama.",
-    "Proteksi no-future-data, Mapping Amy-SMC-D, Scalper, Journal/Vault, package continuity, signer, dan data pengguna tetap dipertahankan."
+    "Gambar baru sekarang otomatis terpilih dan langsung siap digeser, diubah melalui handle, atau dihapus.",
+    "Garis, path, label, bentuk, dan titik kontrol memiliki area sentuh mobile yang lebih mudah dipilih tanpa mengubah tampilan gambar.",
+    "Text, Note, dan Price Note kini memakai dialog yang tetap terlihat di atas chart dan keyboard, sehingga tulisan dapat disimpan dan muncul pada chart.",
+    "Seluruh alat gambar tetap menyimpan koordinat TIME + PRICE, Undo, serta batas cursor Replay tanpa membuka data masa depan.",
+    "Keputusan Replay, kontinuitas Live, Mapping Amy-SMC-D, Scalper, Journal/Vault, signer, package, dan data pengguna tetap dipertahankan."
   ],
   "changelog": [
-    "Unclipped responsive right price scale",
-    "Advanced persistent TIME + PRICE drawings",
-    "Replay decision commit, retrieval, and immutable cursor lock",
-    "Historical-pack to Live candle continuity",
-    "Chronological candle upsert, deduplication, and stale-tick rejection",
-    "No-future-data replay and drawing preservation"
+    "Automatic post-draw Select/Edit mode",
+    "Reliable mobile SVG selection and dragging",
+    "28px invisible line and path hit targets",
+    "36px drawing-handle touch targets",
+    "Mobile-safe Text, Note, and Price Note dialog",
+    "Persistent TIME + PRICE and no-future replay boundaries"
   ]
 }
