@@ -2,9 +2,9 @@
 
 ## Trading Practice Advanced Drawings and Continuous Live Chart
 - **Date:** 2026-08-17
-- **Status:** ✅ Source implemented; 17 focused tests and all 119 regression files pass; signed `.324` Android release pending CI verification
+- **Status:** ✅ Released; 17 focused tests and all 119 regression files pass; signed `.324` Android CI gates and endpoint verification pass
 - **Description:** Added selectable/movable chart drawings, active-pack historical→Live continuity, and persistent replay-decision feedback/history retrieval.
-- **Release:** Candidate `2.0.0-pro.324` / `950324`; signed `.323` is the active bridge release while `.324` awaits signed APK verification.
+- **Release:** Active `2.0.0-pro.324` / `950324`; signed `.323` served only as the verified bridge from `.322`.
 
 ## Academy Trading Practice + ICT Berbasis Backtest
 - **Date:** 2026-08-16

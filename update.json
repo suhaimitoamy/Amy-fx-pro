@@ -1,27 +1,27 @@
 {
-  "latest_version_code": 950323,
-  "latest_version_name": "2.0.0-pro.323",
-  "versionCode": 950323,
-  "version": "2.0.0-pro.323",
+  "latest_version_code": 950324,
+  "latest_version_name": "2.0.0-pro.324",
+  "versionCode": 950324,
+  "version": "2.0.0-pro.324",
   "releaseDate": "2026-08-17",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.323/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.323/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.324/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.324/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
     "Sumbu harga kanan Chart Analysis kini memiliki ruang responsif agar label XAUUSD dan badge harga berjalan tidak terpotong.",
-    "Drawing tools diperluas dengan koordinat TIME + PRICE yang persisten, pilihan objek, pemindahan, hapus satu per satu, hapus semua, dan Undo.",
-    "Keputusan Candle Replay menunggu commit IndexedDB, dibaca kembali untuk verifikasi, dan memakai identitas symbol/timeframe/cursor/dataset yang stabil.",
-    "Mode Live mempertahankan pack historis aktif lalu melanjutkannya dengan candle native/WebSocket secara kronologis tanpa duplikat atau candle sintetis.",
+    "Drawing tools diperluas dengan koordinat TIME + PRICE yang persisten, pilihan objek, pemindahan, hapus, Undo, serta batas cursor agar drawing Replay tidak membuka masa depan.",
+    "Keputusan Candle Replay menunggu commit IndexedDB, dibaca kembali untuk verifikasi, memakai identitas stabil, dan tidak dapat ditimpa setelah terkunci.",
+    "Mode Live mempertahankan pack historis aktif lalu melanjutkannya dengan candle native/WebSocket secara kronologis tanpa duplikat, candle sintetis, atau rewind dari tick lama.",
     "Proteksi no-future-data, Mapping Amy-SMC-D, Scalper, Journal/Vault, package continuity, signer, dan data pengguna tetap dipertahankan."
   ],
   "changelog": [
     "Unclipped responsive right price scale",
     "Advanced persistent TIME + PRICE drawings",
-    "Replay decision commit and retrieval verification",
+    "Replay decision commit, retrieval, and immutable cursor lock",
     "Historical-pack to Live candle continuity",
-    "Chronological candle upsert and deduplication",
-    "No-future-data replay preservation"
+    "Chronological candle upsert, deduplication, and stale-tick rejection",
+    "No-future-data replay and drawing preservation"
   ]
 }

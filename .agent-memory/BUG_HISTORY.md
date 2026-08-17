@@ -5,6 +5,7 @@
 - **Severity:** High
 - **Cause:** The right scale had no minimum width/whole-label guarantee inside an overflow-clipped shell; Live replaced the selected pack with a separate native buffer; IndexedDB writes reported success before transaction commit; and the legacy drawing layer supported only three primitives without selection/editing.
 - **Fix:** Reserved an 84–92px responsive price axis and kept overlays inside the plot, merged the immutable selected pack into Live with ordered timestamp upsert/deduplication, verified decision retrieval only after commit, and added a persistent editable TIME + PRICE drawing model.
+- **Release:** Resolved in active signed release `2.0.0-pro.324` / `950324` after full CI identity, signer, asset, checksum, and endpoint verification.
 
 ## Fixed Competing Mapping Authorities and Live Recompute Paths — 2026-08-11
 
