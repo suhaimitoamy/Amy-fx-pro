@@ -2,13 +2,13 @@
 
 Amy FX Preview adalah aplikasi Android hybrid untuk pemetaan market **XAU/USD**, Rencana Eksekusi, Entry Watch, jurnal trading, market intelligence, dan materi belajar. Source Preview berada pada branch khusus dan terpisah dari Amy FX publik.
 
-> **Release aktif:** `2.0.0-preview.316`
-> **Version code:** `940316`
-> **Tanggal rilis:** 11 Agustus 2026
+> **Release aktif:** `2.0.0-preview.317`
+> **Version code:** `940317`
+> **Tanggal rilis:** 19 Agustus 2026
 
-[Download Amy FX Preview 2.0.0-preview.316](https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-blueprint-preview-2.0.0-preview.316/AmyFX-Preview-latest.apk)
+[Download Amy FX Preview 2.0.0-preview.317](https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-blueprint-preview-2.0.0-preview.317/AmyFX-Preview-latest.apk)
 
-## Status Release `.316`
+## Status Release `.317`
 
 Preview `.316` mengganti directional Mapping lama dengan satu engine canonical yang mengikuti semantik `Amy-SMC-D.pine` blob `d6e6d7c979dd5a852bddd9661bef0480caa2eb35`. Port berjalan native di arsitektur Amy FX dan memproses candle tertutup secara sequential.
 
@@ -54,12 +54,12 @@ Candle Mapping tetap melalui pipeline REST yang sudah ada. Refresh bersifat even
 | Branch | `personal/amyfx-private` |
 | Application ID | `com.amyelitesuite.learningpreview` |
 | URI scheme | `amyfxpreview` |
-| Version name | `2.0.0-preview.316` |
-| Version code | `940316` |
+| Version name | `2.0.0-preview.317` |
+| Version code | `940317` |
 | Minimum Android | Android 8.0 / API 26 |
 | Target SDK | Android SDK 35 |
 | Update channel | `personal/amyfx-private/preview-update.json` |
-| Release tag | `amyfx-blueprint-preview-2.0.0-preview.316` |
+| Release tag | `amyfx-blueprint-preview-2.0.0-preview.317` |
 | APK | `AmyFX-Preview-latest.apk` |
 
 Package, URI, signing certificate, update channel, dan data pengguna Preview tetap terpisah dari Amy FX publik.

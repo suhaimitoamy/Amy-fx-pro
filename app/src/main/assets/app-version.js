@@ -1,6 +1,6 @@
-// Amy FX Preview 316 — canonical Amy-SMC-D closed-candle Mapping engine.
+// Amy FX Preview 317 — gold Dark-Premium-Fintech UI revamp.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-preview.316', code: 940316 });
+  const VERSION = Object.freeze({ name: '2.0.0-preview.317', code: 940317 });
   window.AmyFXAppVersion = VERSION;
   window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/personal/amyfx-private/preview-update.json';
   function displayVersionName(name) {

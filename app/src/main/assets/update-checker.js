@@ -1,7 +1,7 @@
 (function () {
-  const VERSION = window.AmyFXAppVersion || { name: '2.0.0-preview.316', code: 940316 };
-  const CURRENT_VERSION_CODE = Number(VERSION.code) || 940316;
-  const CURRENT_VERSION_NAME = String(VERSION.name || '2.0.0-preview.316');
+  const VERSION = window.AmyFXAppVersion || { name: '2.0.0-preview.317', code: 940317 };
+  const CURRENT_VERSION_CODE = Number(VERSION.code) || 940317;
+  const CURRENT_VERSION_NAME = String(VERSION.name || '2.0.0-preview.317');
   const UPDATE_URL = window.AmyFXUpdateManifestUrl
     || 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/personal/amyfx-private/preview-update.json';
   const CHECK_INTERVAL_MS = 15 * 60 * 1000;
