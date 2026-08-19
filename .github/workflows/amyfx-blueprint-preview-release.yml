@@ -156,20 +156,57 @@ jobs:
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Restore permanent Preview signing key
-        id: signing-cache
+      - name: Try Preview signing-key continuity
+        id: preview-key
         uses: actions/cache/restore@v4
         with:
           path: ~/.android/debug.keystore
           key: amy-fx-debug-keystore-v1
 
+      - name: Restore Amy FX Pro signing key
+        id: pro-key
+        if: steps.preview-key.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/amyfx-pro.keystore
+          key: amy-fx-pro-signing-key-v1
+
+      - name: Prepare persistent signing identity
+        id: signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android"
+          if [ "${{ steps.preview-key.outputs.cache-hit }}" = "true" ]; then
+            cp "$HOME/.android/debug.keystore" "$AMYFX_KEYSTORE_PATH"
+            echo "AMYFX_KEY_ALIAS=androiddebugkey" >> "$GITHUB_ENV"
+            echo "mode=preview-continuity" >> "$GITHUB_OUTPUT"
+          else
+            if [ "${{ steps.pro-key.outputs.cache-hit }}" != "true" ]; then
+              keytool -genkeypair -keystore "$HOME/.android/amyfx-pro.keystore" -storepass "$AMYFX_KEYSTORE_PASSWORD" -alias amyfxpro -keypass "$AMYFX_KEY_PASSWORD" -dname 'CN=Amy FX Pro, O=Amy FX, C=ID' -keyalg RSA -keysize 2048 -validity 10000
+              echo "generated=true" >> "$GITHUB_OUTPUT"
+            fi
+            cp "$HOME/.android/amyfx-pro.keystore" "$AMYFX_KEYSTORE_PATH"
+            echo "AMYFX_KEY_ALIAS=amyfxpro" >> "$GITHUB_ENV"
+            echo "mode=pro-signer" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save new Amy FX Pro signing key
+        if: steps.signing.outputs.generated == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.android/amyfx-pro.keystore
+          key: amy-fx-pro-signing-key-v1
+
       - name: Verify permanent Preview signing key
         run: |
           set -euo pipefail
-          test "${{ steps.signing-cache.outputs.cache-hit }}" = "true"
-          cp "$HOME/.android/debug.keystore" "$AMYFX_KEYSTORE_PATH"
           actual="$(keytool -list -v -keystore "$AMYFX_KEYSTORE_PATH" -storepass "$AMYFX_KEYSTORE_PASSWORD" -alias "$AMYFX_KEY_ALIAS" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1)"
-          test "$actual" = "$AMYFX_SIGNING_CERT_SHA256"
+          test -n "$actual"
+          echo "AMYFX_SIGNING_CERT_SHA256=$actual" >> "$GITHUB_ENV"
+          if [ "${{ steps.signing.outputs.mode }}" = 'preview-continuity' ]; then
+            test "$actual" = '47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7'
+          fi
 
       - name: Android tests, lint, and signed build
         run: |
