@@ -18,13 +18,13 @@ test('professional glass foundation exposes official dark and light design token
   const theme = read('apps/shared/amyfx-theme.css');
   const controller = read('apps/shared/amyfx-theme-controller.js');
 
-  assert.match(tokens, /--amy-bg:\s*#070b12/i);
-  assert.match(tokens, /--amy-accent:\s*#69b7ff/i);
-  assert.match(tokens, /--amy-buy:\s*#32d583/i);
-  assert.match(tokens, /--amy-sell:\s*#ff5c6c/i);
+  assert.match(tokens, /--amy-bg:\s*#0a0a0a/i);
+  assert.match(tokens, /--amy-accent:\s*#d4af37/i);
+  assert.match(tokens, /--amy-buy:\s*#00d97e/i);
+  assert.match(tokens, /--amy-sell:\s*#ff4c4c/i);
   assert.match(tokens, /--amy-wait:\s*#f5b942/i);
   assert.match(theme, /html\[data-amyfx-theme="light"\]/);
-  assert.match(theme, /--amy-bg:\s*#eef4fa/i);
+  assert.match(theme, /--amy-bg:\s*#f6f3ea/i);
   assert.match(controller, /amyfx\.ui\.theme\.v1/);
   assert.match(controller, /\["system", "light", "dark"\]/);
   assert.match(controller, /Android\?\.setSystemUiTheme/);

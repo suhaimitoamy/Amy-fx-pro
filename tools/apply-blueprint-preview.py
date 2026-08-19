@@ -11,7 +11,7 @@ CORE_INSTALLER = Path(__file__).with_name("apply-blueprint-preview-core.py")
 ROOT = Path(__file__).resolve().parents[1]
 PREVIEW_MANIFEST = ROOT / "preview-update.json"
 PRIVATE_MANIFEST_URL = (
-    "https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/"
+    "https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/"
     "personal/amyfx-private/preview-update.json"
 )
 
