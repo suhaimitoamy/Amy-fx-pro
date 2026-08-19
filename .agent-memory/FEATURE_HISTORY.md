@@ -1,5 +1,13 @@
 # Feature History
 
+## Gold Dark-Premium-Fintech UI Recolor & Copy Polish
+- **Date:** 2026-08-19
+- **Status:** Implemented (presentation-only); signed release verification pending
+- **Description:** Rebased the shared design tokens from the navy/ice-blue glass palette to the CLAUDE.md gold Dark-Premium-Fintech aesthetic — metallic gold accent, neon green buy, neon red sell, amber wait, pure-black surfaces — so every module shares one consistent, market-ready theme.
+- **Copy:** Removed unimportant/disclaimer copy (e.g. Academy "Belajar konsep tanpa klaim profit pasti", Mapping "SIMULASI — belum mengeksekusi..." and emoji button labels) in favor of concise, professional wording.
+- **CMS:** Restyled the Academy admin landing to the shared dark-gold theme and linked it to the existing editor.
+- **Compatibility:** No engine, scanner, lifecycle, market-data, notification, or user-data logic changed.
+
 ## Amy-SMC-D Canonical Mapping Engine
 - **Date:** 2026-08-11
 - **Status:** ✅ Implemented and 112-file JavaScript regression validated; private signed release workflow verification required

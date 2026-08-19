@@ -1,5 +1,13 @@
 # Technical Decisions
 
+## 2026-08-19
+
+### Gold Dark-Premium-Fintech Palette Authority
+- The shared presentation tokens now resolve to a gold-on-black "Dark Premium Fintech" aesthetic per CLAUDE.md invariants: metallic gold accent `#d4af37`, neon green buy `#00d97e`, neon red sell `#ff4c4c`, amber wait `#f5b942`, on `#0a0a0a` pure-black surfaces.
+- This supersedes the 2026-08-02 navy/ice-blue glass palette. The change is presentation-only: `--gold`, `--accent`, and `--primary-gold` compatibility aliases now map to actual gold instead of blue, so all modules (Beranda, Mapping, Berita, Jurnal, Academy, Admin) share one consistent theme.
+- Mapping inline colors, emoji button labels, and verbose placeholder/disclaimer copy were trimmed to a concise, market-ready form. The Academy landing disclaimer ("Belajar konsep tanpa klaim profit pasti") was replaced with value copy, and the Academy admin (CMS) landing was restyled and linked to the editor.
+- No engine, scanner, lifecycle, market-data, notification, or user-data logic changed.
+
 ## 2026-08-11
 
 ### Amy-SMC-D Canonical Mapping Contract

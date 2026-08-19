@@ -226,7 +226,7 @@ body.amyfx-module--home .nav-btn {
 }
 body.amyfx-module--home .nav-btn .icon { color: currentColor; }
 body.amyfx-module--home .nav-btn.active {
-  background: linear-gradient(180deg, rgba(105, 183, 255, 0.15), rgba(105, 183, 255, 0.035));
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.035));
   color: var(--amy-accent);
 }
 body.amyfx-module--home .nav-btn.active::before {
@@ -281,7 +281,7 @@ body.amyfx-module--home .home-hero {
   padding: 20px;
   border-radius: var(--amy-radius-lg);
   background:
-    radial-gradient(circle at 88% 36%, rgba(89, 215, 255, 0.13), transparent 34%),
+    radial-gradient(circle at 88% 36%, rgba(232, 207, 139, 0.13), transparent 34%),
     linear-gradient(135deg, var(--amy-highlight), transparent 38%),
     var(--amy-surface);
 }
@@ -292,9 +292,9 @@ body.amyfx-module--home .home-hero::before {
   bottom: -52px;
   width: 190px;
   height: 190px;
-  border: 1px solid rgba(105, 183, 255, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 50%;
-  box-shadow: inset 0 0 54px rgba(89, 215, 255, 0.07), 0 0 28px rgba(105, 183, 255, 0.08);
+  box-shadow: inset 0 0 54px rgba(232, 207, 139, 0.07), 0 0 28px rgba(212, 175, 55, 0.08);
 }
 body.amyfx-module--home .home-hero::after {
   content: "AMY";
@@ -458,7 +458,7 @@ body.amyfx-module--home .profile-row {
 }
 body.amyfx-module--home .profile-row small { color: var(--amy-text-secondary); }
 body.amyfx-module--home .profile-row .tool-icon {
-  background: rgba(105, 183, 255, 0.1);
+  background: rgba(212, 175, 55, 0.1);
   color: var(--amy-accent);
 }
 
@@ -485,7 +485,7 @@ body.amyfx-module--home .profile-row .tool-icon {
 .theme-choice svg { width: 20px; height: 20px; }
 .theme-choice.is-active {
   border-color: color-mix(in srgb, var(--amy-accent) 65%, var(--amy-border));
-  background: rgba(105, 183, 255, 0.12);
+  background: rgba(212, 175, 55, 0.12);
   color: var(--amy-accent);
   box-shadow: inset 0 1px 0 var(--amy-highlight);
 }
@@ -500,7 +500,7 @@ body.amyfx-module--home .profile-row .tool-icon {
   justify-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at 50% 42%, rgba(89, 215, 255, 0.12), transparent 18rem),
+    radial-gradient(circle at 50% 42%, rgba(232, 207, 139, 0.12), transparent 18rem),
     var(--amy-bg);
   color: var(--amy-text);
 }
@@ -514,7 +514,7 @@ body.amyfx-module--home .profile-row .tool-icon {
   border: 1px solid var(--amy-border-strong);
   border-radius: 50%;
   background: radial-gradient(circle, var(--amy-surface-strong), var(--amy-bg));
-  box-shadow: inset 0 0 30px rgba(89, 215, 255, 0.08), 0 0 36px rgba(105, 183, 255, 0.1);
+  box-shadow: inset 0 0 30px rgba(232, 207, 139, 0.08), 0 0 36px rgba(212, 175, 55, 0.1);
 }
 .amyfx-loading-mark strong { font-size: 18px; letter-spacing: 0.12em; }
 .amyfx-loading-ring {
@@ -522,7 +522,7 @@ body.amyfx-module--home .profile-row .tool-icon {
   inset: -9px;
   border: 2px solid transparent;
   border-top-color: var(--amy-cyan);
-  border-right-color: rgba(105, 183, 255, 0.38);
+  border-right-color: rgba(212, 175, 55, 0.38);
   border-radius: 50%;
   animation: amyfx-spin 1.1s linear infinite;
 }
@@ -612,9 +612,9 @@ body.amyfx-module--mapping .mapping-back { margin-left: 0; }
 body.amyfx-module--mapping .brand {
   width: 42px;
   height: 42px;
-  border: 1px solid rgba(105, 183, 255, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 13px;
-  background: rgba(105, 183, 255, 0.12);
+  background: rgba(212, 175, 55, 0.12);
   color: var(--amy-module-mapping);
 }
 body.amyfx-module--mapping .brand svg { width: 22px; height: 22px; }
@@ -642,7 +642,7 @@ body.amyfx-module--mapping .mapping-hero {
   padding: 16px;
   border-color: var(--amy-border-strong);
   background:
-    radial-gradient(circle at 92% 16%, rgba(105, 183, 255, 0.11), transparent 42%),
+    radial-gradient(circle at 92% 16%, rgba(212, 175, 55, 0.11), transparent 42%),
     var(--amy-surface);
 }
 body.amyfx-module--mapping .price { color: var(--amy-text); font-size: 25px; }
@@ -658,8 +658,8 @@ body.amyfx-module--mapping .amyfx-tf-grid button {
 }
 body.amyfx-module--mapping .tf-grid button.active,
 body.amyfx-module--mapping .amyfx-tf-grid button.active {
-  border-color: rgba(105, 183, 255, 0.55) !important;
-  background: rgba(105, 183, 255, 0.16) !important;
+  border-color: rgba(212, 175, 55, 0.55) !important;
+  background: rgba(212, 175, 55, 0.16) !important;
   color: var(--amy-accent) !important;
 }
 body.amyfx-module--mapping .num,
@@ -687,7 +687,7 @@ body.amyfx-module--mapping .decision-main.wait { color: var(--amy-wait); }
 body.amyfx-module--mapping .execution-plan--wait { border-color: rgba(245, 185, 66, 0.3); }
 body.amyfx-module--mapping .execution-plan--buy { border-color: rgba(50, 213, 131, 0.3); }
 body.amyfx-module--mapping .execution-plan--sell { border-color: rgba(255, 92, 108, 0.3); }
-body.amyfx-module--mapping .execution-action--amy { background: rgba(105, 183, 255, 0.14); color: var(--amy-accent); }
+body.amyfx-module--mapping .execution-action--amy { background: rgba(212, 175, 55, 0.14); color: var(--amy-accent); }
 body.amyfx-module--mapping .professional-disclosure,
 body.amyfx-module--mapping .disclosure {
   border-color: var(--amy-border);
@@ -723,7 +723,7 @@ body.amyfx-module--mapping .nav button {
   color: var(--amy-text-muted);
 }
 body.amyfx-module--mapping .nav button.active {
-  background: rgba(105, 183, 255, 0.13);
+  background: rgba(212, 175, 55, 0.13);
   color: var(--amy-accent);
 }
 body.amyfx-module--mapping .amy-sticky-bar { background: var(--amy-surface-strong); border-color: var(--amy-border); }
@@ -766,8 +766,8 @@ body.amyfx-module--intel .intel-tab {
   font-size: 12px;
 }
 body.amyfx-module--intel .intel-tab.active {
-  border-color: rgba(105, 183, 255, 0.32);
-  background: rgba(105, 183, 255, 0.12);
+  border-color: rgba(212, 175, 55, 0.32);
+  background: rgba(212, 175, 55, 0.12);
   color: var(--amy-accent);
 }
 body.amyfx-module--intel .intel-panel {
@@ -800,7 +800,7 @@ body.amyfx-module--intel .current-price { color: var(--amy-accent); }
 body.amyfx-module--intel .liq-center {
   border-color: var(--amy-accent);
   background: radial-gradient(circle, var(--amy-surface-strong), var(--amy-bg));
-  box-shadow: 0 0 22px rgba(105, 183, 255, 0.15), inset 0 0 14px rgba(105, 183, 255, 0.08);
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.15), inset 0 0 14px rgba(212, 175, 55, 0.08);
 }
 body.amyfx-module--intel .liq-network::before { background: linear-gradient(var(--amy-sell), var(--amy-accent), var(--amy-buy)); }
 body.amyfx-module--intel .loading-overlay {

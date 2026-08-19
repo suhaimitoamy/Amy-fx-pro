@@ -201,7 +201,7 @@
 
     const direct=Array.from(document.querySelectorAll('[data-scanner-status]'));
     if(direct.length){
-      direct.forEach(el=>{el.textContent=scannerStatus==='ON'?'📡 Background Scanner ON':'📴 Background Scanner OFF'});
+      direct.forEach(el=>{el.textContent=scannerStatus==='ON'?'Background Scanner ON':'Background Scanner OFF'});
       return;
     }
 

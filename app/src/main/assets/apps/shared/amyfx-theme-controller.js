@@ -48,7 +48,7 @@
       meta.name = "theme-color";
       document.head?.appendChild(meta);
     }
-    meta.content = theme === "light" ? "#eef4fa" : "#070b12";
+    meta.content = theme === "light" ? "#f6f3ea" : "#0a0a0a";
   }
 
   function syncNative(theme) {

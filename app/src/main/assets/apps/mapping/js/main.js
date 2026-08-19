@@ -227,7 +227,7 @@ function livePriceWatchdog() {
 
 function syncAutomaticScannerUi() {
   const button = document.querySelector('[data-scanner-status]');
-  const buttonText = '📡 Scanner mengikuti setup causal';
+  const buttonText = 'Scanner mengikuti setup causal';
   if (button) {
     if (button.textContent !== buttonText) button.textContent = buttonText;
     if (!button.classList.contains('action')) button.className = 'action';

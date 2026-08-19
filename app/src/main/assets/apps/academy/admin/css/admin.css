@@ -1,15 +1,15 @@
 :root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface-hover: #242836;
-  --border: #2a2e3a;
-  --text: #e2e8f0;
-  --text-muted: #8892a4;
-  --accent: #10b981;
-  --accent-hover: #059669;
-  --gold: #f59e0b;
-  --danger: #ef4444;
-  --info: #3b82f6;
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-hover: #1d1d1d;
+  --border: rgba(212, 175, 55, 0.18);
+  --text: #f7f5ee;
+  --text-muted: #a9a39a;
+  --accent: #d4af37;
+  --accent-hover: #b8932b;
+  --gold: #d4af37;
+  --danger: #ff4c4c;
+  --info: #d4af37;
   --radius: 12px;
   --transition: 0.2s ease;
   --font: 'Inter', sans-serif;
@@ -192,7 +192,7 @@ h1, h2, h3, h4 {
 
 .search-bar input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
 
 .filter-chips {
@@ -217,7 +217,7 @@ h1, h2, h3, h4 {
 }
 
 .chip.active {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(212, 175, 55, 0.1);
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
@@ -269,7 +269,7 @@ h1, h2, h3, h4 {
 }
 
 .bagian-card.advanced .bagian-num {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(212, 175, 55, 0.1);
   color: var(--gold);
 }
 
