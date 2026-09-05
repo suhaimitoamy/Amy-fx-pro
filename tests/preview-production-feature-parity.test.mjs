@@ -34,12 +34,13 @@ test('Preview keeps its richer multi-setup Scalper detail and Pro Vault history'
   assert.doesNotMatch(source, /setInterval|visibilitychange|focusHash|scrollIntoView/);
 });
 
-test('Scalper engine registry contains ten current drivers including AMD', () => {
+test('Scalper engine registry contains eleven base drivers including AMD and Discipline Scalper', () => {
   const source = read('supabase/functions/scalper-engine/drivers.mjs');
   const registry = source.match(/DRIVER_REGISTRY = Object\.freeze\(\[([\s\S]*?)\]\);/)?.[1] || '';
   const ids = [...registry.matchAll(/id:\s*'([^']+)'/g)].map(match => match[1]);
 
-  assert.equal(ids.length, 10);
+  assert.equal(ids.length, 11);
+  assert.ok(ids.includes('DISCIPLINE_SCALPER'));
   assert.ok(ids.includes('AMD'));
   assert.ok(ids.includes('FVG'));
   assert.ok(ids.includes('ORDER_BLOCK'));
