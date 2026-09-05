@@ -15,7 +15,7 @@ test('clarity runtime has no cross-timeframe scalper direction chooser', () => {
 test('each timeframe renders its own D Final Bias and Next Move', () => {
   assert.match(source, /d\.descriptive\.finalBias\.direction/);
   assert.match(source, /d\.predictive\.nextMove\.signal/);
-  assert.match(source, /d\.predictive\.nextMove\.source/);
+  assert.doesNotMatch(source, /d\.predictive\.nextMove\.source/);
   assert.doesNotMatch(source, /primary scalping|lower-timeframe conflict|weighted vote/i);
 });
 

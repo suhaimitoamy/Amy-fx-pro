@@ -33,13 +33,13 @@ test('Dashboard contains only the three primary market outputs', () => {
 test('Analyze separates D descriptive, fresh evidence, and predictive signals', () => {
   const helper = section('function marketOverviewMarkup(', 'function renderDashboardCard(');
   const analyze = section('function renderAnalyzeCard(', 'function renderCard(');
-  assert.match(helper, /Final Bias · Descriptive/);
-  assert.match(helper, /Next Move · Predictive/);
-  assert.match(helper, /Dealing Range · Descriptive/);
+  assert.match(helper, /Final Bias/);
+  assert.match(helper, /d\.predictive\.nextMove\.signal/);
+  assert.match(helper, /Dealing Range/);
   assert.match(analyze, /contextMarkup\(d\)/);
   assert.match(analyze, /freshMarkup\(d\)/);
   assert.match(analyze, /predictiveMarkup\(d\)/);
-  assert.match(analyze, /consumer\/read-only/);
+  assert.match(analyze, /execution.status/);
   assert.doesNotMatch(analyze, /accuracy|confidence|probability/i);
 });
 

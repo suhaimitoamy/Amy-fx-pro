@@ -158,9 +158,9 @@ test('Preview separates compact D summary from collapsed descriptive and predict
   assert.match(ui, /CLOSED CANDLE/);
   assert.match(ui, /Context & Fresh Evidence/);
   assert.match(ui, /Predictive \/ Event Signals/);
-  assert.match(ui, /Final Bias · Descriptive/);
-  assert.match(ui, /Next Move · Predictive/);
-  assert.match(ui, /consumer\/read-only/);
+  assert.match(ui, /Final Bias/);
+  assert.match(ui, /d\.predictive\.nextMove\.signal/);
+  assert.match(ui, /execution.status/);
   assert.match(ui, /closedCandleFingerprint/);
   assert.doesNotMatch(ui, /KONTEKS STRATEGI|Strategy Router|regime-probability/i);
   assert.doesNotMatch(ui, /RELIABILITAS HISTORIS|Performa Historis Model/);

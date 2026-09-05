@@ -43,8 +43,8 @@ test('Asia Range keeps its DST-aware session source and stays outside D Mapping 
 test('Mapping explanation exposes D source candle and keeps execution read-only', () => {
   assert.match(clarity, /Sumber Analisis/);
   assert.match(clarity, /Candle sudah resmi tutup/);
-  assert.match(clarity, /Dealing Range tidak masuk predictor/);
-  assert.match(clarity, /Execution Plan membaca Mapping sebagai consumer/);
+  assert.match(clarity, /descriptive.dealingRange.location/);
+  assert.match(clarity, /state.result.setupExecution/);
   assert.doesNotMatch(clarity, /confidence percentage live[^<]*\d+%/i);
 });
 

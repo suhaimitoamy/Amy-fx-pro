@@ -78,7 +78,7 @@ test('historical reliability is excluded at the Market Intent source instead of 
   assert.match(marketIntent, /Context \/ Descriptive/);
   assert.match(marketIntent, /Fresh Structural Evidence/);
   assert.match(marketIntent, /Predictive \/ Event Signals/);
-  assert.match(marketIntent, /consumer\/read-only/);
+  assert.doesNotMatch(marketIntent, /consumer\/read-only/);
   assert.doesNotMatch(marketIntent, /RELIABILITAS HISTORIS/);
   assert.doesNotMatch(marketIntent, /Performa Historis Model/);
   assert.doesNotMatch(fixes, /amy-outlook-backtest-note/);

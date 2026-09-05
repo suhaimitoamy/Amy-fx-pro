@@ -47,7 +47,7 @@ test('advanced closed-candle sections remain collapsed by default and avoid auto
   assert.match(ui, /Context & Fresh Evidence/);
   assert.match(ui, /Predictive \/ Event Signals/);
   assert.match(ui, /CLOSED CANDLE/);
-  assert.match(ui, /bukan pada setiap tick harga live/);
-  assert.match(ui, /consumer\/read-only/);
+  assert.match(ui, /Diperbarui setelah candle berikutnya ditutup/);
+  assert.doesNotMatch(ui, /consumer\/read-only/);
   assert.doesNotMatch(ui, /AUTO ENTRY|ENTRY SEKARANG|PASTI BUY|PASTI SELL/i);
 });

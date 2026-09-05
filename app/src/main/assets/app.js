@@ -168,8 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setActive('beranda');
     const coreModules = projects.slice(0, 4);
     const indicator = projects[4];
-    const online = navigator.onLine !== false;
-    mainContent.innerHTML = `<section class="home-hero slide-up"><div class="eyebrow">AMY FX WORKSPACE</div><h2>Keputusan market dalam satu ruang kerja</h2><p>Buka Mapping, pantau berita, simpan jurnal, dan lanjutkan materi trading dari satu tempat.</p><div class="home-status" data-online="${online}"><span class="status-dot"></span><span>${online ? 'Sistem siap digunakan' : 'Mode offline aktif'}</span></div></section><div class="section-heading"><div><span class="section-kicker">MODUL UTAMA</span><h2>Ruang kerja trading</h2></div><span class="section-count">${projects.length} modul</span></div><div class="quick-grid slide-up">${coreModules.map(item => quickCard(item)).join('')}${quickCard(indicator, true)}</div>`;
+    mainContent.innerHTML = `<div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${coreModules.map(item => quickCard(item)).join('')}${quickCard(indicator, true)}</div>`;
   }
 
   function renderProjectList(title) {

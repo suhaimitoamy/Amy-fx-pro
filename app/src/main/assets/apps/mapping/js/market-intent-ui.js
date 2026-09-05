@@ -66,7 +66,7 @@ function eventValue(event) {
 }
 
 function cell(label, value, note = '') {
-  return `<div class="amy-d-cell ${directionClass(value)}"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value || 'WAIT')}</strong>${note ? `<span>${escapeHtml(note)}</span>` : ''}</div>`;
+  return `<div class="amy-d-cell ${directionClass(value)}">${label ? `<small>${escapeHtml(label)}</small>` : ''}<strong>${escapeHtml(value || 'WAIT')}</strong>${note ? `<span>${escapeHtml(note)}</span>` : ''}</div>`;
 }
 
 function installStyle() {
@@ -119,7 +119,7 @@ function predictiveMarkup(d) {
     ? 'Baseline riset N=0; tidak dibuat synthetic BOS.'
     : bos.note;
   return `<div class="amy-d-section"><div class="amy-d-section-title">Predictive / Event Signals <span>Amy-SMC-D baseline</span></div><div class="amy-d-grid">
-    ${cell('Next Move', predictive.nextMove.signal, predictive.nextMove.source)}
+    ${cell('', predictive.nextMove.signal)}
     ${cell('Sweep Continuation', predictive.sweepContinuation.active ? predictive.sweepContinuation.direction : 'WAIT', 'Tidak meng-invert Raw Sweep secara sembarang')}
     ${cell('Raw Valid Break', predictive.rawValidBreak ? rawBreak.title : 'WAIT', rawBreak.note)}
     ${cell('Qualified Valid Break', predictive.qualifiedValidBreak ? qualifiedBreak.title : 'WAIT', qualifiedBreak.note)}
@@ -131,10 +131,10 @@ function predictiveMarkup(d) {
 }
 
 function marketOverviewMarkup(d) {
-  return `<div class="amy-d-section"><div class="amy-d-section-title">Ringkasan Mapping <span>closed-candle state</span></div><div class="amy-d-grid">
-    ${cell('Final Bias · Descriptive', d.descriptive.finalBias.direction, d.descriptive.finalBias.fresh ? 'Fresh bias change' : 'Continuous state')}
-    ${cell('Next Move · Predictive', d.predictive.nextMove.signal, d.predictive.nextMove.source)}
-    ${cell('Dealing Range · Descriptive', d.descriptive.dealingRange.location, `${d.descriptive.dealingRange.source} · tidak masuk predictor`)}
+  return `<div class="amy-d-section"><div class="amy-d-section-title">Ringkasan Mapping</div><div class="amy-d-grid">
+    ${cell('Final Bias', d.descriptive.finalBias.direction)}
+    ${cell('', d.predictive.nextMove.signal)}
+    ${cell('Dealing Range', d.descriptive.dealingRange.location)}
   </div></div>`;
 }
 
@@ -151,12 +151,12 @@ function renderAnalyzeCard(result) {
   const d = result.amySmcD;
   const stale = Boolean(result.dataStale || result.dataDegraded);
   const execution = result.setupExecution || {};
-  return `<section class="card amy-d-card analyze-context-card" id="${CARD_ID}" data-market-intent-ready="true" data-stale="${stale}"><div class="amy-d-head"><div><div class="kicker">AMY-SMC-D · ${escapeHtml(d.tf)}</div><h2>Canonical Mapping</h2><span class="amy-d-badge">${stale ? 'LAST VALID CLOSED CANDLE' : 'CLOSED CANDLE'}</span></div><div class="amy-d-source">Candle sumber<br><b>${escapeHtml(wita(d.sourceCandle?.time))} WITA</b></div></div>
+  return `<section class="card amy-d-card analyze-context-card" id="${CARD_ID}" data-market-intent-ready="true" data-stale="${stale}"><div class="amy-d-head"><div><div class="kicker">AMY-SMC-D · ${escapeHtml(d.tf)}</div><h2>Analisis Mapping</h2><span class="amy-d-badge">${stale ? 'LAST VALID CLOSED CANDLE' : 'CLOSED CANDLE'}</span></div><div class="amy-d-source">Candle sumber<br><b>${escapeHtml(wita(d.sourceCandle?.time))} WITA</b></div></div>
     ${marketOverviewMarkup(d)}
     <details class="professional-disclosure"><summary><span>Context & Fresh Evidence</span><small>Descriptive state dan event struktur baru</small></summary>${contextMarkup(d)}${freshMarkup(d)}</details>
     <details class="professional-disclosure"><summary><span>Predictive / Event Signals</span><small>Signal baseline Amy-SMC-D</small></summary>${predictiveMarkup(d)}</details>
-    <div class="amy-d-note"><b>Rencana Eksekusi:</b> ${escapeHtml(execution.status || 'WAIT')}. Modul eksekusi tetap consumer/read-only dan tidak boleh menimpa Mapping. Dealing Range tidak masuk Final Bias atau predictor.</div>
-    <p class="muted">Mapping berubah setelah candle sumber berikutnya resmi tutup, bukan pada setiap tick harga live.</p>
+    <div class="amy-d-note"><b>Rencana Eksekusi:</b> ${escapeHtml(execution.status || 'WAIT')}</div>
+    <p class="muted">Diperbarui setelah candle berikutnya ditutup.</p>
     <div class="amy-d-actions"><button class="action" type="button" data-amy-d-refresh>Perbarui Candle ${escapeHtml(d.tf)}</button></div>
   </section>`;
 }

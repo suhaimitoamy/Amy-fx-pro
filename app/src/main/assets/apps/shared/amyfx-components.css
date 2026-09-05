@@ -390,6 +390,7 @@ body.amyfx-module--home .app-icon {
 body.amyfx-module--home .app-icon svg { width: 23px; height: 23px; stroke: currentColor; }
 body.amyfx-module--home .quick-card strong,
 body.amyfx-module--home .project-card h3 { color: var(--amy-text); font-size: 14px; }
+body.amyfx-module--home .quick-card strong { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 body.amyfx-module--home .quick-card small,
 body.amyfx-module--home .project-card p { color: var(--amy-text-secondary); font-size: 11px; line-height: 1.45; }
 body.amyfx-module--home .project-card .badge { display: none; }

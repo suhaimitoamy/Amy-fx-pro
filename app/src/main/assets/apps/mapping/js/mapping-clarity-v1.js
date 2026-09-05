@@ -115,14 +115,13 @@ function renderExplanation() {
   const signature = JSON.stringify([d.sourceCandle, descriptive, predictive, execution.status]);
   patchHost(details, 'amy-d-explanation', `<div class="kicker">AMY-SMC-D MAPPING</div><h2>Apa yang Sedang Terjadi?</h2>
     <div class="d-grid">
-      <div class="d-box"><small>Final Bias · Descriptive</small><strong class="${directionClass(descriptive.finalBias.direction)}">${escapeHtml(descriptive.finalBias.direction)}</strong><span>Continuous context; bukan event forecast tunggal.</span></div>
-      <div class="d-box"><small>Next Move · Predictive</small><strong class="${directionClass(predictive.nextMove.signal)}">${escapeHtml(predictive.nextMove.signal)}</strong><span>${escapeHtml(predictive.nextMove.source)}</span></div>
-      <div class="d-box"><small>Dealing Range</small><strong class="${directionClass(descriptive.dealingRange.location)}">${escapeHtml(descriptive.dealingRange.location)}</strong><span>Descriptive-only · ${escapeHtml(descriptive.dealingRange.source)}</span></div>
+      <div class="d-box"><small>Final Bias</small><strong class="${directionClass(descriptive.finalBias.direction)}">${escapeHtml(descriptive.finalBias.direction)}</strong></div>
+      <div class="d-box"><strong class="${directionClass(predictive.nextMove.signal)}">${escapeHtml(predictive.nextMove.signal)}</strong></div>
+      <div class="d-box"><small>Dealing Range</small><strong class="${directionClass(descriptive.dealingRange.location)}">${escapeHtml(descriptive.dealingRange.location)}</strong></div>
       <div class="d-box"><small>Sumber Analisis</small><strong>${escapeHtml(wita(d.sourceCandle?.time))} WITA</strong><span>Candle sudah resmi tutup.</span></div>
     </div>
     <div class="d-note fresh"><b>Fresh evidence:</b> ${fresh.length ? escapeHtml(fresh.join(' · ')) : 'Tidak ada event struktur baru; state yang tampil adalah continuous/stale context.'}</div>
-    <div class="d-note"><b>Execution Plan:</b> ${escapeHtml(execution.status || 'WAIT')}. Execution Plan membaca Mapping sebagai consumer dan tidak menghitung ulang arah.</div>
-    <div class="d-note"><b>Kontrak:</b> Event History adalah evidence/context. Dealing Range tidak masuk predictor. Tidak ada confidence percentage live.</div>`, signature);
+    <div class="d-note"><b>Execution Plan:</b> ${escapeHtml(execution.status || 'WAIT')}</div>`, signature);
 }
 
 function renderValidBreak() {
@@ -154,7 +153,7 @@ function renderAllTimeframes() {
     if (row.missing) return `<tr><td><b>${escapeHtml(row.tf)}</b></td><td colspan="6">${escapeHtml(row.error || 'Belum dimuat')}</td></tr>`;
     const d = row.d;
     const fresh = d.descriptive.htfSwing.fresh || d.descriptive.swingStructure.fresh || d.descriptive.internalStructure.fresh;
-    return `<tr><td><b>${escapeHtml(row.tf)}</b><small>${escapeHtml(wita(d.sourceCandle?.time))} WITA</small></td><td><b class="${directionClass(d.descriptive.finalBias.direction)}">${escapeHtml(d.descriptive.finalBias.direction)}</b></td><td><b class="${directionClass(d.predictive.nextMove.signal)}">${escapeHtml(d.predictive.nextMove.signal)}</b><small>${escapeHtml(d.predictive.nextMove.source)}</small></td><td><b class="${directionClass(d.descriptive.dealingRange.location)}">${escapeHtml(d.descriptive.dealingRange.location)}</b><small>${escapeHtml(d.descriptive.dealingRange.source)}</small></td><td>${fresh ? '<b class="d-bull">FRESH</b>' : 'CONTINUOUS'}<small>${escapeHtml(eventText(d.descriptive.swingStructure.event || d.descriptive.internalStructure.event))}</small></td><td>${escapeHtml(eventText(d.predictive.qualifiedChoch))}</td><td>${escapeHtml(d.predictive.qualifiedPattern.active ? d.predictive.qualifiedPattern.name : 'WAIT')}</td></tr>`;
+    return `<tr><td><b>${escapeHtml(row.tf)}</b><small>${escapeHtml(wita(d.sourceCandle?.time))} WITA</small></td><td><b class="${directionClass(d.descriptive.finalBias.direction)}">${escapeHtml(d.descriptive.finalBias.direction)}</b></td><td><b class="${directionClass(d.predictive.nextMove.signal)}">${escapeHtml(d.predictive.nextMove.signal)}</b></td><td><b class="${directionClass(d.descriptive.dealingRange.location)}">${escapeHtml(d.descriptive.dealingRange.location)}</b></td><td>${fresh ? '<b class="d-bull">FRESH</b>' : 'CONTINUOUS'}<small>${escapeHtml(eventText(d.descriptive.swingStructure.event || d.descriptive.internalStructure.event))}</small></td><td>${escapeHtml(eventText(d.predictive.qualifiedChoch))}</td><td>${escapeHtml(d.predictive.qualifiedPattern.active ? d.predictive.qualifiedPattern.name : 'WAIT')}</td></tr>`;
   }).join('');
   const signature = JSON.stringify(rows.map(row => row.missing ? [row.tf, 'missing'] : [row.tf, row.d.sourceCandle, row.d.descriptive, row.d.predictive]));
   patchHost(details, 'amy-d-all-tf', `<div class="kicker">ALL-TIMEFRAME AMY-SMC-D</div><h2>Context • Fresh Evidence • Predictive</h2><p class="d-note">Setiap timeframe memakai perilaku Amy-SMC-D/Z miliknya sendiri. Boundary 70/30, 60/40, dan rolling-240 hanya diterapkan pada M5, M15, dan H1 sesuai source.</p><div class="d-table-wrap"><table class="d-table"><thead><tr><th>TF / Candle</th><th>Final Bias</th><th>Next Move</th><th>Dealing Range</th><th>Fresh Structure</th><th>Qualified CHoCH</th><th>Qualified Pattern</th></tr></thead><tbody>${body}</tbody></table></div>`, signature);

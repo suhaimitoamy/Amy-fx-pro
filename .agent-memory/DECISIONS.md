@@ -241,3 +241,10 @@
 - Documents `00`–`08` from the Google Drive folder `Materi Ajar — ICT Berbasis Backtest` are bundled as a separate source-backed Academy track with their source document IDs and links.
 - The track reuses Academy reading-history keys while assigning records to namespace `ict-backtest`; query-specific lesson paths prevent all nine lessons from collapsing into one history entry.
 - Practice CTAs are exposed only where the available local data supports the exercise. SMT chart practice is omitted until synchronized DXY candles are available.
+
+## 2026-09-05 — Professional Copy, Pro 327
+
+- Remove the home promotional hero and Academy feature cards requested in the screenshots; keep existing module and lesson navigation.
+- Mapping summary displays the existing direction without its Next Move label or internal source code. Final Bias and Dealing Range retain concise labels; calculations and data ownership are unchanged.
+- Allow home menu titles to wrap rather than truncate.
+- Source advances to `2.0.0-pro.327` / `950327`. Activate `update.json` only after the signed release and published APK verification succeed.

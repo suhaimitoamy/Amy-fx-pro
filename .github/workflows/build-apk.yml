@@ -197,11 +197,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - TradingView-style horizontal scaling: pinch zoom and pressed time-axis scaling can widen or narrow candle spacing.
-          - Select/Edit keeps blank chart space available for native pan and pinch; only painted drawings and edit handles capture drawing gestures.
-          - Drawing overlays redraw from their persistent TIME + PRICE anchors whenever logical bar spacing, pane size, wheel, pointer, touch, or price scaling changes.
-          - Existing mobile hit targets, Text/Note dialogs, deletion, Undo, and replay-cursor no-future boundaries remain preserved.
-          - Existing Candle Replay decisions, Live continuity, Amy-SMC-D Mapping, Scalper, Journal/Vault, package continuity, and user data remain preserved.
+          - Beranda lebih ringkas tanpa banner promosi dan nama menu dapat terbaca penuh.
+          - Academy menampilkan jalur belajar tanpa kartu promosi berulang.
+          - Mapping menampilkan hasil utama tanpa label dan kode sumber internal yang mengganggu.
+          - Penyimpanan entry Candle Replay diperbaiki, termasuk penanganan keputusan terkunci dan kegagalan penyimpanan.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
