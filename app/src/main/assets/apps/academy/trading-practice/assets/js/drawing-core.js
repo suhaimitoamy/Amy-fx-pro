@@ -43,6 +43,15 @@
     return 'drawing-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   }
 
+  function normalizeStyle(style) {
+    style = style || {};
+    return {
+      color: /^#[0-9a-f]{6}$/i.test(style.color || '') ? style.color : null,
+      width: Number.isFinite(Number(style.width)) ? Math.max(1, Math.min(8, Number(style.width))) : 2,
+      opacity: style.opacity != null && Number.isFinite(Number(style.opacity)) ? Math.max(.1, Math.min(1, Number(style.opacity))) : 1
+    };
+  }
+
   function normalizeDrawing(input) {
     if (!input) return null;
     var type = normalizeType(input.type);
@@ -54,6 +63,7 @@
       id: String(input.id || identifier()),
       type: type,
       points: points,
+      style: normalizeStyle(input.style),
       text: String(input.text || '').trim().slice(0, 240),
       createdAt: Number(input.createdAt || Date.now())
     };
@@ -65,6 +75,7 @@
       id: options.id,
       type: type,
       points: points,
+      style: options.style,
       text: options.text,
       createdAt: options.createdAt
     });
@@ -77,6 +88,7 @@
       id: normalized.id,
       type: normalized.type,
       points: normalized.points.map(function (point) { return { time: point.time, price: point.price }; }),
+      style: normalizeStyle(normalized.style),
       text: normalized.text,
       createdAt: normalized.createdAt
     };
@@ -118,6 +130,7 @@
     SINGLE_POINT: SINGLE_POINT,
     TWO_POINT: TWO_POINT,
     THREE_POINT: THREE_POINT,
+    normalizeStyle: normalizeStyle,
     normalizePoint: normalizePoint,
     normalizeDrawing: normalizeDrawing,
     normalizeType: normalizeType,

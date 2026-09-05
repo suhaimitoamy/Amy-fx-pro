@@ -8,6 +8,7 @@ const THREE_HOURS = 3 * 60 * 60;
 
 export const EXPANSION_RANGE_REENTRY_VERSION = 'ERR-V3-2026-M15-V1';
 export const EXPANSION_RANGE_REENTRY_DRIVER = Object.freeze({
+  enabled: true,
   id: 'EXPANSION_RANGE_REENTRY',
   name: 'Expansion Range Re-entry',
   version: EXPANSION_RANGE_REENTRY_VERSION,

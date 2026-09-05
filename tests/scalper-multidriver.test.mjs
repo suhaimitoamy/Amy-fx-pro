@@ -6,8 +6,8 @@ function candle(time, open, high, low, close, seconds = 900) {
   return { open_time: time, close_time: time + seconds, open, high, low, close, is_closed: true };
 }
 
-test('registry contains twelve active Scalper drivers including ERR and SMR and no IFVG', () => {
-  assert.equal(DRIVER_REGISTRY.length, 12);
+test('registry contains thirteen active Scalper drivers including ERR and SMR and no IFVG', () => {
+  assert.equal(DRIVER_REGISTRY.length, 13);
   assert.equal(DRIVER_REGISTRY.some(driver => driver.id.includes('IFVG')), false);
   assert.deepEqual(DRIVER_REGISTRY.find(driver => driver.id === 'FVG').timeframes, ['H4']);
   assert.deepEqual(DRIVER_REGISTRY.find(driver => driver.id === 'FALSE_BREAKOUT').timeframes, ['M15', 'H1', 'H4']);

@@ -40,6 +40,7 @@ function node(name = 'div') {
     addEventListener(type, callback) { const items = listeners.get(type) || []; items.push(callback); listeners.set(type, items); },
     removeEventListener(type, callback) { listeners.set(type, (listeners.get(type) || []).filter(item => item !== callback)); },
     dispatchEvent(event) { event.target ||= this; for (const callback of listeners.get(event.type) || []) callback.call(this, event); return true; },
+    querySelectorAll(selector) { return this.children.flatMap(child => [...(child.matches && child.matches(selector) ? [child] : []), ...(child.querySelectorAll ? child.querySelectorAll(selector) : [])]); },
     querySelector(selector) {
       for (const child of this.children) {
         if (child.matches && child.matches(selector)) return child;

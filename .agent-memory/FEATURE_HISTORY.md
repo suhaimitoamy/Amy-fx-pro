@@ -145,3 +145,8 @@
 - **Files:**
   - `api/liquidity.js`
 - **Description:** Independent Vercel serverless function. Copies `fetchCandles()` and swing detection from heatmap.js. Detects BSL (swing highs) and SSL (swing lows), tracks sweep status, returns 15 nearest unswept levels.
+
+
+## 2026-09-05 — Pro328
+
+Pro328 source: Discipline Scalper (13 total registered methods including existing ERR/SMR); persisted method switches in Mapping history/performance; scoped backend preferences, setups and push; Academy track03 manual plan workspace, drawing style/drag improvements and 15 guided exercises. Upload/parser, replay candle progression and tracks01/02 preserved. Files span scalper engine/APIs, additive device identity, Mapping views, Academy trading-practice, migration and build version/workflow.

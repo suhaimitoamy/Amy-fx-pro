@@ -1,3 +1,4 @@
+import { scopeEvaluation } from '../_shared/scalper-device.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {
   DRIVER_REGISTRY,
@@ -124,8 +125,9 @@ async function updateSetup(setup, expected) {
 async function loadActiveSetups() {
   const statuses = NON_TERMINAL_STATUSES.join(",");
   const params = new URLSearchParams({ select: "*", status: `in.(${statuses})`, order: "signal_candle_close_time.asc", limit: "200" });
-  const rows = await rest(`amyfx_preview_scalper_setups?${params.toString()}`);
-  return Array.isArray(rows) ? rows : [];
+  const rows=[];
+  for(let offset=0;;offset+=200){params.set('offset',String(offset));const page=await rest(`amyfx_preview_scalper_setups?${params.toString()}`);rows.push(...page);if(page.length<200)break;}
+  return rows;
 }
 async function insertEvent(setup, event, notificationEligible) {
   if (!event?.status) return false;
@@ -162,8 +164,24 @@ Deno.serve(async (request) => {
       const payload={ok:false,skipped:true,reason:"driver_source_data_stale",latest_m15_close_time:latestM15?.close_time||null,latest_h1_close_time:latestH1?.close_time||null}; await finishRun(run.run_bucket,payload); return json(payload,200);
     }
     const m30=aggregateCandles(m15,1800,"M30",900),h4=aggregateCandles(h1,14400,"H4",3600);
-    const series={M5:m5,M15:m15,M30:m30,H1:h1,H4:h4,D1:d1};
-    const evaluation=evaluateScalperCandidates({series,h1,nowSeconds,maxSignalAgeSeconds:MAX_SIGNAL_AGE_SECONDS,config:PATTERN_CONFIG});
+    const completeM5=aggregateCandles(m1,300,"M5",60);
+    const usableM5=[...new Map([...m5,...completeM5].map(c=>[Number(c.open_time),c])).values()].sort((a,b)=>Number(a.open_time)-Number(b.open_time));
+    const series={M5:usableM5,M15:m15,M30:m30,H1:h1,H4:h4,D1:d1};
+    const input={series,h1,nowSeconds,maxSignalAgeSeconds:MAX_SIGNAL_AGE_SECONDS,config:PATTERN_CONFIG};
+    const evaluation=evaluateScalperCandidates(input);
+    const preferences=[];
+    for(let offset=0;;offset+=500){
+      const page=await rest(`amyfx_scalper_device_preferences?select=device_scope,enabled_drivers&order=device_scope.asc&limit=500&offset=${offset}`);
+      preferences.push(...page);if(page.length<500)break;
+    }
+    const evaluations=new Map();
+    for(const preference of preferences){
+      const signature=JSON.stringify(DRIVER_REGISTRY.map(d=>preference.enabled_drivers[d.id]!==false));
+      if(!evaluations.has(signature))evaluations.set(signature,evaluateScalperCandidates({...input,series:{...series,config:{enabledDrivers:preference.enabled_drivers}}}));
+      const scoped=scopeEvaluation(evaluations.get(signature),preference.device_scope);
+      evaluation.candidates.push(...scoped.candidates);evaluation.telemetry.push(...scoped.telemetry);
+      evaluation.raw_count+=scoped.raw_count; evaluation.rejected_count+=scoped.rejected_count;
+    }
     const candidates=evaluation.candidates;const telemetryInserted=await insertCandidateTelemetry(evaluation.telemetry);
     let inserted=0,activated=0,lifecycleEvents=0;
     for(const candidate of candidates){const freshEnough=nowSeconds-Number(candidate.signal_candle_close_time)<=NOTIFICATION_AGE_SECONDS;const created=await insertSetup({...candidate,notification_enabled:freshEnough});if(!created)continue;inserted++;if(await insertEvent(created,{status:candidate.status,price:null,candle_time:candidate.signal_candle_open_time,result_r:null},created.notification_enabled===true))lifecycleEvents++;}
@@ -182,10 +200,11 @@ Deno.serve(async (request) => {
         for(const event of advanced.events)if(await insertEvent(setup,event,setup.notification_enabled===true))lifecycleEvents++;
       }
     }
-    active=await loadActiveSetups(); const recommended=assignRecommendations(active);
+    active=await loadActiveSetups(); const scopeGroups=new Map();for(const item of active){const key=item.device_scope||'global';if(!scopeGroups.has(key))scopeGroups.set(key,[]);scopeGroups.get(key).push(item);}
+    const recommended=[...scopeGroups.values()].flatMap(group=>assignRecommendations(group));
     for(const setup of recommended){const previous=active.find(item=>item.id===setup.id);if(previous?.recommendation_status!==setup.recommendation_status)await updateSetup(setup,previous);}
     const push=lifecycleEvents>0?await invokePush():{ok:true,skipped:true};
-    const payload={ok:true,engine:ENGINE_VERSION,mode:"preview_simulation",schema_version:3,config:{base_version:BASE_CONFIG_VERSION,repair_version:REPAIR_CONFIG_VERSION,amd_version:AMD_CONFIG_VERSION},driver_count:DRIVER_REGISTRY.length,candles:{M1:m1.length,M5:m5.length,M15:m15.length,M30:m30.length,H1:h1.length,H4:h4.length,D1:d1.length},market_refresh:marketRefresh,raw_candidates:evaluation.raw_count,candidates:candidates.length,rejected_candidates:evaluation.rejected_count,telemetry_inserted:telemetryInserted,inserted,activated,lifecycle_events:lifecycleEvents,active_setups:recommended.length,recommended_active:recommended.filter(item=>item.recommendation_status==="VALID").length,push};
+    const payload={ok:true,engine:ENGINE_VERSION,mode:"preview_simulation",schema_version:3,config:{base_version:BASE_CONFIG_VERSION,repair_version:REPAIR_CONFIG_VERSION,amd_version:AMD_CONFIG_VERSION},driver_count:DRIVER_REGISTRY.length,candles:{M1:m1.length,M5:usableM5.length,M15:m15.length,M30:m30.length,H1:h1.length,H4:h4.length,D1:d1.length},market_refresh:marketRefresh,raw_candidates:evaluation.raw_count,candidates:candidates.length,rejected_candidates:evaluation.rejected_count,telemetry_inserted:telemetryInserted,inserted,activated,lifecycle_events:lifecycleEvents,active_setups:recommended.length,recommended_active:recommended.filter(item=>item.recommendation_status==="VALID").length,push};
     await finishRun(run.run_bucket,payload); return json(payload,push.ok===false?207:200);
   } catch(error){console.error("scalper-engine failed",error);if(run?.run_bucket!=null)await finishRun(run.run_bucket,{},error instanceof Error?error.message:String(error)).catch(()=>{});return json({error:"scalper_engine_failed",detail:error instanceof Error?error.message:String(error)},500);}
 });

@@ -1,3 +1,4 @@
+import { METHODS, methodEnabled, toggleMarkup, deviceHeaders, initializeMethods } from './method-toggles.js';
 import {
   SCALPER_VAULT_SCHEMA_VERSION,
   loadScalperVault,
@@ -116,6 +117,7 @@ function methodPerformance(history) {
     grouped.get(name).push(setup);
   }
 
+  METHODS.forEach(d=>{if(!grouped.has(d.name))grouped.set(d.name,[]);});
   return [...grouped.entries()].map(([name, setups]) => {
     const stats = scalperVaultStats(setups);
     const decisive = Number(stats.wins || 0) + Number(stats.losses || 0);
@@ -124,6 +126,7 @@ function methodPerformance(history) {
       .sort((a, b) => setupTimestamp(b) - setupTimestamp(a));
     return {
       name,
+      id: setups[0]?.driverId || METHODS.find(d=>d.name===name)?.id || '',
       setups,
       trades,
       archiveCount: Number(stats.archiveCount || setups.length),
@@ -187,7 +190,7 @@ function methodCard(method, index) {
       <div class="win"><small>Win</small><strong>${method.wins}</strong></div>
       <div class="loss"><small>Loss</small><strong>${method.losses}</strong></div>
       <div><small>BE</small><strong>${method.breakeven}</strong></div>
-      <div class="wr"><small>WR</small><strong>${winRate}</strong></div>
+      <div class="wr"><small>WR</small><strong>${winRate}</strong>${method.id ? toggleMarkup(method.id) : ''}</div>
       <div><small>Net R</small><strong>${netR}</strong></div>
     </div>
     <div class="stats-method-foot"><span>Loss rate <b>${lossRate}</b></span><span>Invalid/Batal <b>${method.excluded}</b></span></div>
@@ -254,7 +257,7 @@ function render() {
   </section>
   <section class="card stats-method-section">
     <div class="stats-history-head"><div><div class="kicker">PERFORMA PER METODE</div><h2>Metode yang Perlu Dievaluasi</h2></div><span class="stats-history-count">${methods.length} metode</span></div>
-    <p class="stats-method-note">Diurutkan dari jumlah Loss terbanyak. Ketuk satu metode untuk membuka semua trade selesai milik metode tersebut tanpa berpindah ke Riwayat umum.</p>
+    <p data-method-sync role="status"></p><p class="stats-method-note">Diurutkan dari jumlah Loss terbanyak. Ketuk satu metode untuk membuka semua trade selesai milik metode tersebut tanpa berpindah ke Riwayat umum.</p>
     <div class="stats-method-list">${methods.map(methodCard).join('') || '<div class="stats-empty">Belum ada metode dengan trade yang bisa dihitung.</div>'}</div>
   </section>
   <section class="card">
@@ -321,7 +324,7 @@ async function syncRemote({ announce = true } = {}) {
   try {
     const params = new URLSearchParams({ limit: '50', history: 'all', history_limit: '2000' });
     const response = await fetch(`${ENDPOINT}?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ...deviceHeaders() },
       cache: 'no-store'
     });
     const payload = await response.json().catch(() => null);
@@ -345,6 +348,7 @@ async function syncRemote({ announce = true } = {}) {
 }
 
 async function init() {
+  await initializeMethods();
   try {
     archive = await loadScalperVault();
     sourceState = 'LOCAL';
@@ -410,4 +414,5 @@ app?.addEventListener('change', event => {
   if (file) void restoreBackup(file);
 });
 
+window.addEventListener('amy-method-toggles',render);
 void init();

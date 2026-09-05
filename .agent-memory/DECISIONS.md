@@ -248,3 +248,8 @@
 - Mapping summary displays the existing direction without its Next Move label or internal source code. Final Bias and Dealing Range retain concise labels; calculations and data ownership are unchanged.
 - Allow home menu titles to wrap rather than truncate.
 - Source advances to `2.0.0-pro.327` / `950327`. Activate `update.json` only after the signed release and published APK verification succeed.
+
+
+## 2026-09-05 — Pro328
+
+Pro328: Preferences are per device/install, using a random native capability (or browser-local capability) and server-side SHA-256 scope. Defaults ON. Shared scans remain for legacy devices; scoped scans and push recipients cannot affect other devices. Existing active positions finish their lifecycle after toggling OFF. Discipline uses the existing detector/candidate contract with an isolated liquidity-target lifecycle wrapper. Published update.json advances only after signed APK and download checksum verification.

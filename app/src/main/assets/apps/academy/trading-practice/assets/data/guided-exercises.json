@@ -16,7 +16,8 @@
       "prompt": "Ketuk candle/area yang mencetak low paling ekstrem pada window ini.",
       "principle": "Liquidity event adalah observasi, belum otomatis menjadi arah entry.",
       "success": "Tepat. Anda menemukan candle M15 yang memuat low 883,65.",
-      "retry": "Belum tepat. Cari wick terendah pada window, bukan candle sesudah reaksinya."
+      "retry": "Belum tepat. Cari wick terendah pada window, bukan candle sesudah reaksinya.",
+      "category": "Liquidity"
     },
     {
       "id": "expansion-high-20090318",
@@ -32,7 +33,8 @@
       "prompt": "Ketuk candle H1 dengan range naik terbesar dan high tertinggi di window ini.",
       "principle": "Ekspansi memberi konteks delivery; entry tetap membutuhkan urutan rule yang lengkap.",
       "success": "Tepat. Candle 23:00 WITA memuat ekspansi sampai 947,15.",
-      "retry": "Coba lagi. Bandingkan range high-low setiap candle H1."
+      "retry": "Coba lagi. Bandingkan range high-low setiap candle H1.",
+      "category": "Basic Chart Reading"
     },
     {
       "id": "wait-after-sweep",
@@ -42,11 +44,251 @@
       "visibleStart": 1237366800,
       "visibleEnd": 1237377600,
       "prompt": "Low telah tersapu. Tanpa data SMT DXY, HTF alignment, dan retest POI yang sudah dikonfirmasi, keputusan mekanis yang benar?",
-      "choices": ["BUY", "SELL", "WAIT"],
+      "choices": [
+        "BUY",
+        "SELL",
+        "WAIT"
+      ],
       "answer": "WAIT",
       "principle": "Sweep tidak cukup sebagai sinyal standalone. Jangan isi bukti yang tidak tersedia.",
       "success": "Benar. WAIT menjaga fungsi Context, Selector, Confirmation, Location, dan Timing tetap terpisah.",
-      "retry": "Belum tepat. Satu liquidity event tidak membuktikan arah atau timing entry."
+      "retry": "Belum tepat. Satu liquidity event tidak membuktikan arah atau timing entry.",
+      "category": "Entry Decision"
+    },
+    {
+      "id": "basic-direction",
+      "category": "Basic Chart Reading",
+      "title": "Arah pergerakan window",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237230000,
+      "visibleEnd": 1237251600,
+      "prompt": "Bandingkan close awal dan akhir window chart. Harga bergerak ke mana?",
+      "choices": [
+        "Naik",
+        "Turun",
+        "Tidak berubah"
+      ],
+      "answer": "Turun",
+      "principle": "Arah neto window berasal dari perbandingan dua close. Ini belum membuktikan seluruh struktur trend.",
+      "success": "Benar. Arah neto window berasal dari perbandingan dua close. Ini belum membuktikan seluruh struktur trend.",
+      "retry": "Periksa lagi. Arah neto window berasal dari perbandingan dua close. Ini belum membuktikan seluruh struktur trend."
+    },
+    {
+      "id": "basic-swing-high",
+      "category": "Basic Chart Reading",
+      "title": "Temukan swing tertinggi",
+      "timeframe": "M15",
+      "type": "tap",
+      "visibleStart": 1237230000,
+      "visibleEnd": 1237251600,
+      "answerTime": 1237230000,
+      "timeTolerance": 900,
+      "priceMin": 924.2,
+      "priceMax": 925.2,
+      "prompt": "Ketuk wick tertinggi pada window chart.",
+      "principle": "High menjadi referensi struktur; validasi swing selalu memerlukan konteks candle di kanan dan kiri.",
+      "success": "Benar. Ini high tertinggi pada window.",
+      "retry": "Cari ujung wick paling tinggi, bukan close candle."
+    },
+    {
+      "id": "liquidity-reclaim",
+      "category": "Liquidity",
+      "title": "Sweep / stop-hunt kandidat",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237163400,
+      "visibleEnd": 1237174200,
+      "prompt": "Garis menandai high 12 candle sebelumnya. Candle terakhir menembus high lalu close kembali di bawahnya. Apa yang terlihat?",
+      "choices": [
+        "Sweep resistance",
+        "Breakout terkonfirmasi",
+        "Tidak ada penetrasi"
+      ],
+      "answer": "Sweep resistance",
+      "principle": "High tersapu lalu close kembali ke range. Ini pola sweep; niat pelaku atau stop order tidak dapat dibuktikan hanya dari OHLC.",
+      "success": "Benar. High tersapu lalu close kembali ke range. Ini pola sweep; niat pelaku atau stop order tidak dapat dibuktikan hanya dari OHLC.",
+      "retry": "Periksa lagi. High tersapu lalu close kembali ke range. Ini pola sweep; niat pelaku atau stop order tidak dapat dibuktikan hanya dari OHLC.",
+      "referenceLevel": 928.23
+    },
+    {
+      "id": "liquidity-target",
+      "category": "Liquidity",
+      "title": "Area target berikutnya",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237230000,
+      "visibleEnd": 1237251600,
+      "prompt": "Dalam skenario BUY, high yang ditandai berada di atas harga terakhir. Area mana yang menjadi calon target liquidity?",
+      "choices": [
+        "High yang ditandai",
+        "SL di bawah entry",
+        "Harga acak"
+      ],
+      "answer": "High yang ditandai",
+      "principle": "High di atas harga adalah calon liquidity target untuk skenario BUY; bukan jaminan akan tercapai.",
+      "success": "Benar. High di atas harga adalah calon liquidity target untuk skenario BUY; bukan jaminan akan tercapai.",
+      "retry": "Periksa lagi. High di atas harga adalah calon liquidity target untuk skenario BUY; bukan jaminan akan tercapai.",
+      "referenceLevel": 924.7
+    },
+    {
+      "id": "structure-bos",
+      "category": "Market Structure",
+      "title": "BOS dalam skenario bullish",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237158900,
+      "visibleEnd": 1237169700,
+      "prompt": "Skenario: struktur sebelumnya bullish dan garis adalah swing high acuan. Close terakhir menembusnya. Klasifikasi apa yang sesuai?",
+      "choices": [
+        "BOS bullish",
+        "CHOCH bearish",
+        "Sweep tanpa close break"
+      ],
+      "answer": "BOS bullish",
+      "principle": "Dalam konteks bullish yang diberikan, close di atas swing high adalah continuation BOS. Konteks trend adalah asumsi latihan yang disebutkan, bukan sinyal otomatis.",
+      "success": "Benar. Dalam konteks bullish yang diberikan, close di atas swing high adalah continuation BOS. Konteks trend adalah asumsi latihan yang disebutkan, bukan sinyal otomatis.",
+      "retry": "Periksa lagi. Dalam konteks bullish yang diberikan, close di atas swing high adalah continuation BOS. Konteks trend adalah asumsi latihan yang disebutkan, bukan sinyal otomatis.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "structure-choch",
+      "category": "Market Structure",
+      "title": "CHOCH dalam skenario bearish",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237158900,
+      "visibleEnd": 1237169700,
+      "prompt": "Skenario: struktur sebelumnya bearish dan garis adalah lower high terakhir. Harga kini close di atasnya. Apa indikasi awalnya?",
+      "choices": [
+        "CHOCH bullish",
+        "BOS bearish",
+        "Pasti langsung BUY"
+      ],
+      "answer": "CHOCH bullish",
+      "principle": "Pelanggaran lower high dapat menjadi CHOCH bullish. Perubahan karakter belum menjamin reversal atau entry.",
+      "success": "Benar. Pelanggaran lower high dapat menjadi CHOCH bullish. Perubahan karakter belum menjamin reversal atau entry.",
+      "retry": "Periksa lagi. Pelanggaran lower high dapat menjadi CHOCH bullish. Perubahan karakter belum menjamin reversal atau entry.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "structure-fake",
+      "category": "Market Structure",
+      "title": "Fake breakout",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237163400,
+      "visibleEnd": 1237174200,
+      "prompt": "High sempat melewati garis, tetapi close terakhir kembali di bawah. Apakah break resistance bertahan pada candle itu?",
+      "choices": [
+        "Ya, close di atas",
+        "Tidak, reclaim ke range",
+        "Tidak perlu melihat close"
+      ],
+      "answer": "Tidak, reclaim ke range",
+      "principle": "Wick di luar level tidak sama dengan close break. Candle yang kembali ke range adalah contoh kegagalan breakout.",
+      "success": "Benar. Wick di luar level tidak sama dengan close break. Candle yang kembali ke range adalah contoh kegagalan breakout.",
+      "retry": "Periksa lagi. Wick di luar level tidak sama dengan close break. Candle yang kembali ke range adalah contoh kegagalan breakout.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "entry-buy-plan",
+      "category": "Entry Decision",
+      "title": "Pilih tindakan dalam rencana bullish",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237158900,
+      "visibleEnd": 1237169700,
+      "prompt": "Skenario latihan: bias bullish, sweep support dan displacement sudah terkonfirmasi; retest entry tercapai, SL dan target valid. Rencana mana yang searah?",
+      "choices": [
+        "BUY",
+        "SELL",
+        "WAIT"
+      ],
+      "answer": "BUY",
+      "principle": "BUY sesuai seluruh syarat skenario yang diberikan. Pada market nyata, bukti tersebut harus diamati sebelum entry.",
+      "success": "Benar. BUY sesuai seluruh syarat skenario yang diberikan. Pada market nyata, bukti tersebut harus diamati sebelum entry.",
+      "retry": "Periksa lagi. BUY sesuai seluruh syarat skenario yang diberikan. Pada market nyata, bukti tersebut harus diamati sebelum entry.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "entry-wait-retest",
+      "category": "Entry Decision",
+      "title": "Konfirmasi belum berarti mengejar",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237158900,
+      "visibleEnd": 1237169700,
+      "prompt": "Skenario: bullish, sweep dan displacement tersedia, tetapi harga belum kembali ke level entry dalam plan. Keputusan?",
+      "choices": [
+        "BUY sekarang",
+        "SELL",
+        "WAIT"
+      ],
+      "answer": "WAIT",
+      "principle": "Tunggu harga mencapai level entry yang direncanakan. Displacement saja tidak mengizinkan entry di harga sembarang.",
+      "success": "Benar. Tunggu harga mencapai level entry yang direncanakan. Displacement saja tidak mengizinkan entry di harga sembarang.",
+      "retry": "Periksa lagi. Tunggu harga mencapai level entry yang direncanakan. Displacement saja tidak mengizinkan entry di harga sembarang.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "mistake-fomo",
+      "category": "Trader Mistake",
+      "title": "Mengejar candle besar",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237158900,
+      "visibleEnd": 1237169700,
+      "prompt": "Trader melihat candle ekspansi terakhir lalu BUY jauh dari area rencana karena takut ketinggalan. Kesalahan utamanya?",
+      "choices": [
+        "FOMO",
+        "Menunggu retest",
+        "Mengikuti batas risiko"
+      ],
+      "answer": "FOMO",
+      "principle": "Entry didorong rasa takut ketinggalan, bukan harga dan konfirmasi dalam rencana.",
+      "success": "Benar. Entry didorong rasa takut ketinggalan, bukan harga dan konfirmasi dalam rencana.",
+      "retry": "Periksa lagi. Entry didorong rasa takut ketinggalan, bukan harga dan konfirmasi dalam rencana.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "mistake-early",
+      "category": "Trader Mistake",
+      "title": "Entry sebelum konfirmasi",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237163400,
+      "visibleEnd": 1237174200,
+      "prompt": "Pada candle sweep ini, trader SELL saat wick masih naik sebelum candle tutup. Bukti apa yang belum tersedia ketika ia entry?",
+      "choices": [
+        "Close kembali ke range",
+        "Warna toolbar",
+        "Nama pair"
+      ],
+      "answer": "Close kembali ke range",
+      "principle": "Reclaim baru diketahui setelah candle tutup. Entry lebih awal mengasumsikan hasil candle yang belum selesai.",
+      "success": "Benar. Reclaim baru diketahui setelah candle tutup. Entry lebih awal mengasumsikan hasil candle yang belum selesai.",
+      "retry": "Periksa lagi. Reclaim baru diketahui setelah candle tutup. Entry lebih awal mengasumsikan hasil candle yang belum selesai.",
+      "referenceLevel": 926.88
+    },
+    {
+      "id": "mistake-risk",
+      "category": "Trader Mistake",
+      "title": "Risiko tidak sebanding",
+      "timeframe": "M15",
+      "type": "choice",
+      "visibleStart": 1237230000,
+      "visibleEnd": 1237251600,
+      "prompt": "Skenario BUY memakai entry pada harga terakhir, SL 10 poin di bawah, dan target hanya 2 poin di atas. Apa masalah rencananya?",
+      "choices": [
+        "Reward hanya 0,2R",
+        "Reward 5R",
+        "Tidak ada risiko"
+      ],
+      "answer": "Reward hanya 0,2R",
+      "principle": "Reward/risk = 2/10 = 0,2R. Trader perlu mengevaluasi geometri dan aturan risiko sebelum entry; chart yang terlihat menarik tidak memperbaikinya.",
+      "success": "Benar. Reward/risk = 2/10 = 0,2R. Trader perlu mengevaluasi geometri dan aturan risiko sebelum entry; chart yang terlihat menarik tidak memperbaikinya.",
+      "retry": "Periksa lagi. Reward/risk = 2/10 = 0,2R. Trader perlu mengevaluasi geometri dan aturan risiko sebelum entry; chart yang terlihat menarik tidak memperbaikinya."
     }
   ]
 }

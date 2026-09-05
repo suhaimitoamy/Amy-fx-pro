@@ -645,6 +645,9 @@ class MainActivity : Activity() {
         private var backgroundVideoTransfer: BackgroundVideoTransferSession? = null
 
         @JavascriptInterface
+        fun getScalperDeviceToken(): String = ScalperDeviceIdentity.token(mContext)
+
+        @JavascriptInterface
         fun getElapsedRealtimeMs(): Long {
             return SystemClock.elapsedRealtime()
         }

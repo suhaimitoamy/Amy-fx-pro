@@ -34,18 +34,20 @@ function mergeCandidates(...groups) {
       || Number(a.priority || 99) - Number(b.priority || 99));
 }
 
+function enabledFor(input,id){return input.series?.config?.enabledDrivers?.[id]!==false&&input.config?.driver_enabled?.[id]!==false&&input.config?.enabled!==false;}
+
 export function detectScalperCandidates(input = {}) {
   return mergeCandidates(
     detectMultiDriverCandidates(input),
-    detectExpansionRangeReentryCandidates(input),
-    detectSmrFirstRetestCandidates(input),
+    enabledFor(input,'EXPANSION_RANGE_REENTRY')?detectExpansionRangeReentryCandidates(input):[],
+    enabledFor(input,'SMR_FIRST_RETEST')?detectSmrFirstRetestCandidates(input):[],
   );
 }
 
 export function evaluateScalperCandidates(input = {}) {
   const base = evaluateMultiDriverCandidates(input);
-  const expansionRange = evaluateExpansionRangeReentryCandidates(input);
-  const smr = evaluateSmrFirstRetestCandidates(input);
+  const expansionRange = enabledFor(input,'EXPANSION_RANGE_REENTRY')?evaluateExpansionRangeReentryCandidates(input):{candidates:[],telemetry:[]};
+  const smr = enabledFor(input,'SMR_FIRST_RETEST')?evaluateSmrFirstRetestCandidates(input):{candidates:[],telemetry:[]};
   return {
     candidates: mergeCandidates(base.candidates, expansionRange.candidates, smr.candidates),
     telemetry: [...(base.telemetry || []), ...(expansionRange.telemetry || []), ...(smr.telemetry || [])],

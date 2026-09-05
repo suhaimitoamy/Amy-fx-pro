@@ -30,3 +30,8 @@
 - Auth fix needs user decision: what passcode to use.
 - API_BASE fix needs WebView testing — `file://` protocol doesn't support relative API paths.
 - TwelveData error handling is the safest fix to implement first.
+
+
+## 2026-09-05 — Pro328
+
+Pro328 release: confirm GitHub signed build and automatic update.json activation; verify drawing gestures and per-device controls on a real Android device. Local browser could not access the preview, so real-device visual validation remains pending.

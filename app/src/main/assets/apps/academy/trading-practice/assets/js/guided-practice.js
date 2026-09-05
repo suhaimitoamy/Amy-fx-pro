@@ -4,6 +4,8 @@
   var provider = window.AmyPracticeData;
   var chart;
   var exercises = [];
+  var allExercises = [];
+  var loadSequence = 0;
   var index = 0;
   var active = null;
   var completed = false;
@@ -17,6 +19,7 @@
 
   function finishAttempt(answer, correct) {
     record(answer, correct).catch(function () {});
+    ui.text('exercisePrinciple', active.principle);
     ui.status('guidedStatus', correct ? active.success : active.retry, !correct);
     if (correct) {
       completed = true;
@@ -47,13 +50,14 @@
   }
 
   async function loadExercise() {
+    const sequence=++loadSequence;
     active = exercises[index];
     completed = false;
     ui.byId('nextExercise').hidden = true;
     ui.text('exerciseLabel', 'LATIHAN ' + (index + 1) + ' DARI ' + exercises.length);
     ui.text('exerciseTitle', active.title);
     ui.text('exercisePrompt', active.prompt);
-    ui.text('exercisePrinciple', active.principle);
+    ui.text('exercisePrinciple', 'Penjelasan tersedia setelah Anda menjawab.');
     ui.text('exerciseTimeframe', active.timeframe);
     ui.byId('guidedProgress').style.width = ((index / exercises.length) * 100) + '%';
     ui.status('guidedStatus', active.type === 'tap' ? 'Ketuk jawaban langsung pada chart.' : 'Pilih satu keputusan di bawah.');
@@ -61,8 +65,10 @@
     // Guided answers are frozen against the bundled March 2009 sample. Never let
     // a user-selected historical pack silently move the expected timestamps.
     var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: active.timeframe, sourceId: provider.SAMPLE_ID });
+    if(sequence!==loadSequence)return;
     var visible = result.candles.filter(function (candle) { return candle.time >= active.visibleStart && candle.time <= active.visibleEnd; });
     chart.setCandles(visible, true);
+    chart.setTradeLevels(active.referenceLevel == null ? [] : [{type:'entry',price:active.referenceLevel,title:'Level acuan latihan'}]);
   }
 
   async function init() {
@@ -73,7 +79,12 @@
     try {
       var response = await fetch('assets/data/guided-exercises.json', { cache: 'no-store' });
       if (!response.ok) throw new Error('Daftar latihan tidak dapat dibaca.');
-      exercises = (await response.json()).exercises || [];
+      allExercises = (await response.json()).exercises || [];
+      exercises = allExercises;
+      var categories=Array.from(new Set(allExercises.map(item=>item.category)));
+      var select=ui.byId('exerciseCategory');
+      categories.forEach(category=>{var option=document.createElement('option');option.value=category;option.textContent=category;select.appendChild(option);});
+      select.addEventListener('change',()=>{exercises=select.value==='ALL'?allExercises:allExercises.filter(item=>item.category===select.value);index=0;loadExercise().catch(error=>ui.status('guidedStatus',error.message,true));});
       if (!exercises.length) throw new Error('Latihan belum tersedia.');
       await loadExercise();
     } catch (error) { ui.status('guidedStatus', error.message, true); }

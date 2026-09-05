@@ -57,7 +57,27 @@
       if (remove) remove.disabled = !state.selectedId;
       text('drawingStatus', state.message || (state.activeTool ? 'Alat gambar aktif.' : 'Gesture chart aktif.'));
     }
-    chart.onDrawingState = sync;
+    var toolbar = document.querySelector('.drawing-menu');
+    if (toolbar) {
+      var styles = document.createElement('div');
+      styles.className = 'drawing-style-controls';
+      styles.innerHTML = '<label>Warna <input type="color" data-style="color" value="#60a5fa"></label><label>Ketebalan <input type="range" data-style="width" min="1" max="8" value="2"></label><label>Opasitas <input type="range" data-style="opacity" min="0.1" max="1" step="0.1" value="1"></label>';
+      toolbar.appendChild(styles);
+      styles.addEventListener('change', function (event) {
+        var key = event.target.dataset.style;
+        if (!key) return;
+        var patch = {}; patch[key] = key === 'color' ? event.target.value : Number(event.target.value);
+        chart.setDrawingStyle(patch);
+      });
+    }
+    chart.onDrawingState = function (state) {
+      sync(state);
+      var selected = chart.drawings.find(function (item) { return item.id === state.selectedId; });
+      var style = selected ? selected.style : chart.drawingStyle;
+      if (toolbar && style) toolbar.querySelectorAll('[data-style]').forEach(function (input) {
+        input.value = style[input.dataset.style] == null ? '#60a5fa' : style[input.dataset.style];
+      });
+    };
     document.querySelectorAll('[data-drawing-tool]').forEach(function (button) {
       button.addEventListener('click', function () {
         chart.setTool(button.dataset.drawingTool);

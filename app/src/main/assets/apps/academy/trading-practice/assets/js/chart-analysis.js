@@ -77,6 +77,7 @@
       var result = await provider.getCandles({ symbol: 'XAUUSD', timeframe: timeframe(), sourceId: sourceId() });
       candles = result.candles;
       historicalCandles = result.candles.slice();
+      window.dispatchEvent(new Event('amy-practice-source-ready'));
       chart.setCandles(candles, fit !== false);
       var last = ui.currentCandle(candles);
       ui.renderOhlc('ohlc', last, last && last.time);
@@ -121,6 +122,7 @@
     liveCandles = core.mergeCandleSeries(historicalCandles, nativeContext);
     candles = liveCandles;
     chart.setCandles(liveCandles, fit !== false);
+    window.dispatchEvent(new Event('amy-practice-source-ready'));
     var last = ui.currentCandle(liveCandles);
     if (last) ui.renderOhlc('ohlc', last, last.time);
     ui.tradeReady(Boolean(last));

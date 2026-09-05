@@ -45,6 +45,7 @@ function recommendationPrefix(setup, status) {
 }
 function titleFor(setup, status) {
   const label = driverLabel(setup);
+  if(setup.driver_id==='DISCIPLINE_SCALPER')return `[SIMULASI] ${label} ${setup.direction} — ${status==='WAITING_TRIGGER'?'MENUNGGU RETEST LIQUIDITY':status==='TP_HIT'?'TP LIQUIDITY HIT':status}`;
   const prefix = recommendationPrefix(setup, status);
   if (status === "WAITING_TRIGGER") return `${prefix}[SIMULASI] ${label} ${setup.direction} — MENUNGGU MIDPOINT FVG`;
   if (status === "WAITING_NEXT_OPEN" || status === "ENTRY_READY") return `${prefix}[SIMULASI] ${label} ${setup.direction} TERKONFIRMASI`;
@@ -84,13 +85,15 @@ Deno.serve(async (request) => {
     if (!Array.isArray(events) || !events.length) return json({ ok: true, attempted: 0, sent: 0, failed: 0 });
     const setupIds = [...new Set(events.map(event => String(event.setup_id || "")).filter(Boolean))];
     const setupQuery = new URLSearchParams({
-      select: "id,model,driver_id,driver_name,timeframe,direction,status,recommendation_status,entry_price,stop_loss,break_even_trigger,target_price,result_r,bars_elapsed",
+      select: "id,device_scope,model,driver_id,driver_name,timeframe,direction,status,recommendation_status,entry_price,stop_loss,break_even_trigger,target_price,result_r,bars_elapsed",
       id: `in.(${setupIds.map(id => `"${id.replaceAll('"', '')}"`).join(",")})`,
     });
-    const deviceQuery = new URLSearchParams({ select: "id,device_id,fcm_token,enabled", enabled: "eq.true", device_id: `like.${PREVIEW_DEVICE_PREFIX}%` });
+    const deviceQuery = new URLSearchParams({ select: "id,device_id,fcm_token,enabled,scalper_scope_id", enabled: "eq.true", device_id: `like.${PREVIEW_DEVICE_PREFIX}%` });
     const [setups, devices] = await Promise.all([rest(`amyfx_preview_scalper_setups?${setupQuery.toString()}`), rest(`device_tokens?${deviceQuery.toString()}`)]);
     const setupById = new Map((Array.isArray(setups) ? setups : []).map(row => [String(row.id), row]));
     const activeDevices = Array.isArray(devices) ? devices : [];
+    const registeredScopes=new Set();
+    for(let offset=0;;offset+=500){const page=await rest(`amyfx_scalper_device_preferences?select=device_scope&order=device_scope.asc&limit=500&offset=${offset}`);page.forEach(p=>registeredScopes.add(p.device_scope));if(page.length<500)break;}
     if (!activeDevices.length) return json({ ok: true, attempted: 0, sent: 0, failed: 0, reason: "no_preview_devices" });
     const client = messaging(); let sent = 0; let failed = 0;
     for (const event of events) {
@@ -99,6 +102,7 @@ Deno.serve(async (request) => {
       const targetUrl = `https://appassets.androidplatform.net/assets/apps/mapping/index.html#scalper=${encodeURIComponent(setup.id)}`;
       let eventSent = false;
       for (const device of activeDevices) {
+        if(setup.device_scope ? device.scalper_scope_id!==setup.device_scope : registeredScopes.has(device.scalper_scope_id))continue;
         try {
           const title = titleFor(setup, event.status); const body = bodyFor(setup, event);
           const messageId = await client.send({

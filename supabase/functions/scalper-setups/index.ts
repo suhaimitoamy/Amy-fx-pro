@@ -1,3 +1,4 @@
+import { deviceScope } from '../_shared/scalper-device.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL = String(Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
@@ -5,7 +6,7 @@ const SERVICE_ROLE_KEY = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "")
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,OPTIONS",
-  "Access-Control-Allow-Headers": "Accept,Content-Type",
+  "Access-Control-Allow-Headers": "Accept,Content-Type,x-amy-device-token",
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
 };
@@ -84,6 +85,7 @@ function publicSetup(row) {
     reason: quality.reason || null,
     invalidationReason: quality.invalidation_reason || null,
     stopBasis: quality.stop_basis_label || null,
+    targetModel: quality.lifecycle_policy === "DISCIPLINE_LIQUIDITY_V1" ? "LIQUIDITY" : "DEFAULT",
     entryModel: quality.entry_model || "NEXT_OPEN",
     patternGate: quality.pattern_gate || null,
     baseConfigVersion: quality.base_config_version || null,
@@ -102,6 +104,11 @@ Deno.serve(async (request) => {
   if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) return json({ error: "backend_not_configured" }, 503);
   try {
+    const scope=await deviceScope(request);
+    const preferences=scope?await rest(`amyfx_scalper_device_preferences?device_scope=eq.${scope}&select=created_at&limit=1`):[];
+    const activeScope=scope?`&device_scope=eq.${scope}`:'&device_scope=is.null';
+    const cutoff=preferences[0]?.created_at;
+    const historyScope=scope&&cutoff?`&or=(device_scope.eq.${scope},and(device_scope.is.null,created_at.lt.${encodeURIComponent(cutoff)}))`:activeScope;
     const url = new URL(request.url);
     const limit = Math.min(Math.max(Number.parseInt(url.searchParams.get("limit") || "20", 10) || 20, 1), 100);
     const historyLimit = Math.min(Math.max(Number.parseInt(url.searchParams.get("history_limit") || "500", 10) || 500, 1), 2000);
@@ -111,11 +118,11 @@ Deno.serve(async (request) => {
     const select = "id,engine_version,schema_version,model,driver_id,driver_name,driver_rule_version,timeframe,symbol,direction,status,recommendation_status,signal_candle_open_time,signal_candle_close_time,entry_candle_open_time,entry_price,initial_stop_loss,stop_loss,break_even_trigger,target_price,risk,buffer_atr,max_bars,bars_elapsed,last_evaluated_open_time,htf_bias,htf_candle_close_time,zone_bottom,zone_top,be_armed,result_r,exit_price,exit_time,priority,priority_display,revision,quality,created_at,updated_at";
     const historyTimeFilter = includeAllHistory ? "" : `&signal_candle_close_time=gte.${recentThreshold}`;
     const selectedRequest = setupId
-      ? rest(`amyfx_preview_scalper_setups?select=${select}&id=eq.${encodeURIComponent(setupId)}&limit=1`)
+      ? rest(`amyfx_preview_scalper_setups?select=${select}${historyScope}&id=eq.${encodeURIComponent(setupId)}&limit=1`)
       : Promise.resolve([]);
     const [active, history, selectedRows, lastRun] = await Promise.all([
-      rest(`amyfx_preview_scalper_setups?select=${select}&status=in.(WAITING_TRIGGER,WAITING_NEXT_OPEN,ENTRY_READY,ACTIVE,BE_ACTIVE)&order=signal_candle_close_time.desc&limit=${limit}`),
-      rest(`amyfx_preview_scalper_setups?select=${select}&status=in.(TP_HIT,SL_HIT,BE_HIT,TIME_EXIT,INVALIDATED,CANCELLED)${historyTimeFilter}&order=exit_time.desc&limit=${historyLimit}`),
+      rest(`amyfx_preview_scalper_setups?select=${select}${activeScope}&status=in.(WAITING_TRIGGER,WAITING_NEXT_OPEN,ENTRY_READY,ACTIVE,BE_ACTIVE)&order=signal_candle_close_time.desc&limit=${limit}`),
+      rest(`amyfx_preview_scalper_setups?select=${select}${historyScope}&status=in.(TP_HIT,SL_HIT,BE_HIT,TIME_EXIT,INVALIDATED,CANCELLED)${historyTimeFilter}&order=exit_time.desc&limit=${historyLimit}`),
       selectedRequest,
       rest("amyfx_preview_scalper_runs?select=status,started_at,completed_at,result,error&order=run_bucket.desc&limit=1"),
     ]);
@@ -127,6 +134,7 @@ Deno.serve(async (request) => {
     return json({
       ok: true,
       mode: "preview_simulation",
+      deviceScope: scope,
       generatedAt: new Date().toISOString(),
       primary: primary ? publicSetup(primary) : null,
       selected: selectedRow ? publicSetup(selectedRow) : null,

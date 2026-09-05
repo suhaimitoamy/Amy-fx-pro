@@ -4,6 +4,7 @@ import { BASE_CONFIG_VERSION, REPAIR_CONFIG_VERSION } from './pattern-gates.mjs'
 
 export const SMR_FIRST_RETEST_VERSION = 'SMR-FIRST-RETEST-BT09F-LIVE-V1';
 export const SMR_FIRST_RETEST_DRIVER = Object.freeze({
+  enabled: true,
   id: 'SMR_FIRST_RETEST',
   name: 'SMR / First Retest',
   version: SMR_FIRST_RETEST_VERSION,

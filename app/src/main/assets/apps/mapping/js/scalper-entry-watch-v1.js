@@ -1,3 +1,4 @@
+import { deviceHeaders, initializeMethods } from './method-toggles.js';
 import { reconcileScalperPayload, scalperFreshness, scalperPayloadSignature } from './scalper-shadow-state.js';
 import {
   SCALPER_VAULT_SCHEMA_VERSION,
@@ -77,6 +78,7 @@ function witaTime(value) {
 }
 
 function instruction(setup) {
+  if(setup?.driverId==='DISCIPLINE_SCALPER')return setup.status==='WAITING_TRIGGER'?'Menunggu retest level liquidity setelah konfirmasi.':`Discipline Scalper ${setup.status} · target liquidity, SL tetap tanpa breakeven.`;
   if (!setup) return '';
   if (setup.status === 'WAITING_TRIGGER') return 'Menunggu syarat trigger driver terpenuhi pada candle yang sudah close.';
   if (setup.status === 'WAITING_NEXT_OPEN' || setup.status === 'ENTRY_READY') return 'Menunggu open live berikutnya untuk mengunci entry, Stop Loss, TP1, dan TP2.';
@@ -225,7 +227,7 @@ function card(payload, availability, error = '') {
       : 'MENUNGGU SETUP';
   const badge = availabilityLabel || (setup ? status(setup.status) : 'MENUNGGU SETUP');
   const levels = setup?.entry != null
-    ? `<div class="scalper-level-grid"><div><small>Entry</small><strong>${price(setup.entry)}</strong></div><div><small>Stop Loss</small><strong>${price(setup.stopLoss)}</strong></div><div><small>TP1 +10</small><strong>${price(setup.tp1 ?? setup.breakEvenTrigger)}</strong></div><div><small>TP2 +20</small><strong>${price(setup.tp2 ?? setup.target)}</strong></div></div>`
+    ? `<div class="scalper-level-grid"><div><small>Entry</small><strong>${price(setup.entry)}</strong></div><div><small>Stop Loss</small><strong>${price(setup.stopLoss)}</strong></div><div><small>${setup.driverId==='DISCIPLINE_SCALPER'?'—':'TP1 +10'}</small><strong>${price(setup.tp1 ?? setup.breakEvenTrigger)}</strong></div><div><small>${setup.driverId==='DISCIPLINE_SCALPER'?'TP liquidity':'TP2 +20'}</small><strong>${price(setup.tp2 ?? setup.target)}</strong></div></div>`
     : '';
   const stopBasis = setup?.stopBasis
     ? `<div class="scalper-stop-basis"><small>Dasar SL</small><strong>${esc(setup.stopBasis)}</strong></div>`
@@ -405,19 +407,21 @@ function endpointUrl() {
 }
 
 async function sync() {
+  await initializeMethods();
   const sequence = ++requestSequence;
   requestController?.abort();
   const controller = new AbortController();
   requestController = controller;
   try {
     const response = await fetch(endpointUrl(), {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ...deviceHeaders() },
       cache: 'no-store',
       signal: controller.signal
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok || !payload?.ok) throw new Error(payload?.detail || payload?.error || `HTTP ${response.status}`);
     if (sequence !== requestSequence || controller.signal.aborted) return false;
+    if(lastValidPayload?.deviceScope!==payload.deviceScope)lastValidPayload=lastValidPayload?{...lastValidPayload,active:[],primary:null,selected:null}:null;
     lastValidPayload = reconcileScalperPayload(lastValidPayload, payload);
     persistPayload(lastValidPayload);
     return render(lastValidPayload, scalperFreshness(lastValidPayload));

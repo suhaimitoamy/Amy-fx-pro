@@ -51,7 +51,8 @@ test('Scalper Engine registers Expansion Range Re-entry V3 without drifting from
     assert.ok(lifecycle.includes(marker), `ERR V3 lifecycle marker missing: ${marker}`);
   }
 
-  assert.ok(engine.includes("from './expansion-range-lifecycle.mjs'"));
+  assert.ok(engine.includes("from './discipline-lifecycle.mjs'"));
+  assert.ok(fs.readFileSync(new URL('../supabase/functions/scalper-engine/discipline-lifecycle.mjs', import.meta.url), 'utf8').includes("from './expansion-range-lifecycle.mjs'"));
 
   const identity = appVersion.match(/name: '(2\.0\.0-pro\.(\d+))', code: (95\d{4})/);
   assert.ok(identity, 'current Pro identity must be readable from app-version.js');

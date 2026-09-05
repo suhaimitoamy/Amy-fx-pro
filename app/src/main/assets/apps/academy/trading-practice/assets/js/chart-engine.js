@@ -39,6 +39,7 @@
     this.container = container;
     this.options = options;
     this.model = root.AmyPracticeDrawing;
+    this.drawingStyle = this.model.normalizeStyle();
     this.storageKey = options.storageKey || '';
     this.drawingTimeBoundary = options.drawingTimeBoundary != null && Number.isFinite(Number(options.drawingTimeBoundary))
       ? Number(options.drawingTimeBoundary)
@@ -317,7 +318,7 @@
   };
 
   CandleChart.prototype.addDrawing = function (type, points, text) {
-    var drawing = this.model.create(type, points, { text: text });
+    var drawing = this.model.create(type, points, { text: text, style: this.drawingStyle });
     if (!drawing) {
       this.notify('Titik gambar belum lengkap.');
       return null;
@@ -453,7 +454,8 @@
       class: 'practice-drawing' + (drawing.id === this.selectedId ? ' is-selected' : '') + (draft ? ' is-draft' : ''),
       'data-drawing-id': draft ? '' : drawing.id
     });
-    var color = COLORS[drawing.type] || '#e2e8f0';
+    var style = this.model.normalizeStyle(drawing.style);
+    var color = style.color || COLORS[drawing.type] || '#e2e8f0';
     var a = points[0];
     var b = points[1];
     var c = points[2];
@@ -537,7 +539,25 @@
       this.appendLine(group, a, { x: width, y: a.y }, { stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '4 4' });
       this.appendLabel(group, a.x + 7, a.y, (drawing.text || 'Harga') + ' · ' + priceText(domain[0].price), { stroke: color, color: color });
     }
+    group.querySelectorAll('[stroke]').forEach(function (element) {
+      if (element.getAttribute('stroke') === 'transparent' || element.getAttribute('stroke') === 'none') return;
+      element.setAttribute('stroke-width', style.width);
+      if (style.color) element.setAttribute('stroke', style.color);
+    });
+    group.setAttribute('opacity', style.opacity);
     return group;
+  };
+
+  CandleChart.prototype.setDrawingStyle = function (patch) {
+    var selected = this.drawings.find(function (item) { return item.id === this.selectedId; }, this);
+    this.drawingStyle = this.model.normalizeStyle(Object.assign({}, selected ? selected.style : this.drawingStyle, patch));
+    if (selected) {
+      this.remember();
+      selected.style = this.model.normalizeStyle(this.drawingStyle);
+      this.saveDrawings();
+    }
+    this.renderDrawings();
+    this.notify(selected ? 'Style gambar tersimpan.' : 'Style untuk gambar berikutnya.');
   };
 
   CandleChart.prototype.renderHandles = function (drawing) {
@@ -736,19 +756,19 @@
       }
       var index = this.drawings.findIndex(function (drawing) { return drawing.id === next.id; });
       if (index >= 0) this.drawings[index] = next;
-      this.renderDrawings();
+      this.scheduleDrawingSync();
       return;
     }
     if (this.activeTool === 'path' && this.draftPath) {
       var last = this.draftPath[this.draftPath.length - 1];
       if (!last || distance(point, last) >= 4) this.draftPath.push(point);
       this.hoverPoint = point;
-      this.renderDrawings();
+      this.scheduleDrawingSync();
       return;
     }
     if (this.gestureStart || this.draftPoints.length === 2) {
       this.hoverPoint = point;
-      this.renderDrawings();
+      this.scheduleDrawingSync();
     }
   };
 
@@ -757,11 +777,13 @@
     event.preventDefault();
     var point = this.pointFromEvent(event);
     if (this.activeTool === 'select') {
+      if (this.dragState && point) this.handlePointerMove(event);
       if (this.dragState && this.dragState.remembered) {
         this.saveDrawings();
         this.notify('Perubahan gambar tersimpan.');
       }
       this.dragState = null;
+      this.renderDrawings();
       return;
     }
     if (this.activeTool === 'path') {
@@ -811,6 +833,11 @@
   };
 
   CandleChart.prototype.handlePointerCancel = function () {
+    if(this.dragState && this.dragState.remembered){
+      var index=this.drawings.findIndex(function(item){return item.id===this.dragState.id;},this);
+      if(index>=0)this.drawings[index]=this.model.clone(this.dragState.original);
+      this.history.pop();
+    }
     this.gestureStart = null;
     this.hoverPoint = null;
     this.draftPath = null;

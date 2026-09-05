@@ -339,3 +339,8 @@
 - Fixed Candle Replay submit accessing `event.currentTarget` after awaiting storage. Browser event dispatch clears this property, causing entry saving and the final button reset to fail.
 - Capture the form synchronously and retain it through save, duplicate-decision handling, and error recovery.
 - Validation: 24 Trading Practice tests pass, including new, already-locked, and failed-storage submits with a cleared event target; JavaScript syntax and diff whitespace checks pass.
+
+
+## 2026-09-05 — Pro328
+
+Pro328: isolated per-device scan/recommendation/notification paths; enabled drivers skipped before detectors. Discipline retest cannot fill historical candles before setup creation and resolves same-bar SL/TP conservatively. Drawing drag final pointer position and cancellation preserve persisted objects. Focused engine/drawing/API regression checks passed (50 checks). Full local suite stopped at missing files in partial checkout; CI performs the complete suite. No profitability backtest added or thresholds tuned.

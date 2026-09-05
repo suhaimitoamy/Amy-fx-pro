@@ -136,8 +136,8 @@ jobs:
             echo 'mode=preview-continuity' >> "$GITHUB_OUTPUT"
           else
             if [ "${{ steps.pro-key.outputs.cache-hit }}" != "true" ]; then
-              keytool -genkeypair -keystore "$HOME/.android/amyfx-pro.keystore" -storepass "$AMYFX_KEYSTORE_PASSWORD" -alias amyfxpro -keypass "$AMYFX_KEY_PASSWORD" -dname 'CN=Amy FX Pro, O=Amy FX, C=ID' -keyalg RSA -keysize 2048 -validity 10000
-              echo 'generated=true' >> "$GITHUB_OUTPUT"
+              echo 'Permanent signing key missing; refusing to replace the installed app signer.'
+              exit 1
             fi
             cp "$HOME/.android/amyfx-pro.keystore" "$AMYFX_KEYSTORE_PATH"
             echo 'AMYFX_KEY_ALIAS=amyfxpro' >> "$GITHUB_ENV"
@@ -197,10 +197,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Beranda lebih ringkas tanpa banner promosi dan nama menu dapat terbaca penuh.
-          - Academy menampilkan jalur belajar tanpa kartu promosi berulang.
-          - Mapping menampilkan hasil utama tanpa label dan kode sumber internal yang mengganggu.
-          - Penyimpanan entry Candle Replay diperbaiki, termasuk penanganan keputusan terkunci dan kegagalan penyimpanan.
+          - Discipline Scalper dengan bias H4, retest liquidity dan target liquidity.
+          - Toggle metode per perangkat dengan scan, riwayat dan notifikasi terpisah.
+          - Workspace analisis manual, style drawing, dan 15 latihan Guided Practice.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
@@ -229,3 +228,32 @@ jobs:
             AmyFX-Pro-latest.apk.sha256
           if-no-files-found: error
           retention-days: 30
+
+      - name: Activate verified Pro update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --ff-only origin main
+          python3 - <<'PYUPDATE'
+          import os, json, pathlib, re, datetime, hashlib
+          source=pathlib.Path('app/src/main/assets/app-version.js').read_text()
+          name=os.environ['AMYFX_VERSION_NAME']; code=int(os.environ['AMYFX_VERSION_CODE'])
+          if "name: '"+name+"', code: "+str(code) not in source:
+              raise SystemExit('Source advanced during build. Do not activate an older release.')
+          path=pathlib.Path('update.json'); data=json.loads(path.read_text())
+          if int(data.get('latest_version_code',0))>code:
+              raise SystemExit('Refusing update manifest downgrade')
+          url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
+          notes=['Discipline Scalper: H4 bias, sweep/break, retest dan TP liquidity.','Kontrol ON/OFF metode khusus perangkat Anda.','Workspace analisis, style drawing dan 15 latihan Guided Practice.']
+          data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
+          path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          PYUPDATE
+          git add update.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Activate verified Amy FX Pro $AMYFX_VERSION_NAME"
+            git push origin HEAD:main
+          fi
