@@ -112,6 +112,7 @@
 
   async function saveTrade(event) {
     event.preventDefault();
+    var form = event.currentTarget;
     if (!latestPayload) {
       ui.status('tradeStatus', 'Cursor replay belum siap. Tunggu data selesai dimuat.', true);
       return;
@@ -131,7 +132,7 @@
       var alreadyLocked = await storage.getTrade(id);
       if (alreadyLocked) {
         saved = true;
-        event.currentTarget.dataset.lockedDecisionId = alreadyLocked.id;
+        form.dataset.lockedDecisionId = alreadyLocked.id;
         chart.setTradeLevels(alreadyLocked.bias === 'WAIT' ? [] : [
           { type: 'entry', price: alreadyLocked.entry, title: 'Entry' }, { type: 'stop', price: alreadyLocked.stopLoss, title: 'SL' }, { type: 'target', price: alreadyLocked.takeProfit, title: 'TP' }
         ]);
@@ -139,7 +140,7 @@
         ui.status('tradeStatus', 'Keputusan pada cursor ini sudah tersimpan di Riwayat.', false, true);
         return;
       }
-      var record = await ui.saveTrade(event.currentTarget, {
+      var record = await ui.saveTrade(form, {
         symbol: latestPayload.symbol, timeframe: latestPayload.timeframe,
         tradeTime: latestPayload.cursor, replayStartTime: latestPayload.startTime,
         currentPrice: current && current.close, sourceId: latestPayload.sourceId,
@@ -150,7 +151,7 @@
       chart.setTradeLevels(record.bias === 'WAIT' ? [] : [
         { type: 'entry', price: record.entry, title: 'Entry' }, { type: 'stop', price: record.stopLoss, title: 'SL' }, { type: 'target', price: record.takeProfit, title: 'TP' }
       ]);
-      event.currentTarget.dataset.lockedDecisionId = record.id;
+      form.dataset.lockedDecisionId = record.id;
       saved = true;
       ui.decisionState('locked', 'Keputusan terkunci ✓', record.bias + ' · ' + core.formatWita(record.tradeTime, true) + ' · tersimpan permanen');
       ui.status('tradeStatus', '✓ ' + record.bias + ' berhasil dikunci dan sudah dapat dibaca kembali melalui Riwayat.', false, true);
@@ -158,7 +159,7 @@
       ui.decisionState('error', 'Gagal mengunci', error.message);
       ui.status('tradeStatus', error.message, true);
     } finally {
-      ui.tradeReady(Boolean(latestPayload) && !saved && !event.currentTarget.dataset.lockedDecisionId);
+      ui.tradeReady(Boolean(latestPayload) && !saved && !form.dataset.lockedDecisionId);
       if (submit) submit.textContent = 'Kunci keputusan di cursor ini';
     }
   }
