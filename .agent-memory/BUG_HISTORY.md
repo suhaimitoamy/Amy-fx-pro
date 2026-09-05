@@ -344,3 +344,5 @@
 ## 2026-09-05 — Pro328
 
 Pro328: isolated per-device scan/recommendation/notification paths; enabled drivers skipped before detectors. Discipline retest cannot fill historical candles before setup creation and resolves same-bar SL/TP conservatively. Drawing drag final pointer position and cancellation preserve persisted objects. Focused engine/drawing/API regression checks passed (50 checks). Full local suite stopped at missing files in partial checkout; CI performs the complete suite. No profitability backtest added or thresholds tuned.
+
+Release gate resolved: the old parity assertion still counted 10 base methods; updated to 11 with an explicit Discipline presence assertion. Complete CI suite passed after this correction. Existing FCM destination and payload were verified unchanged; recipient restriction deployment then succeeded.

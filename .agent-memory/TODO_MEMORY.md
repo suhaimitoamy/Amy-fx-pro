@@ -34,4 +34,4 @@
 
 ## 2026-09-05 — Pro328
 
-Pro328 release: confirm GitHub signed build and automatic update.json activation; verify drawing gestures and per-device controls on a real Android device. Local browser could not access the preview, so real-device visual validation remains pending.
+Pro328 release: signed build and automatic update.json activation completed (run 33976208755). Remaining: verify drawing gestures and per-device controls on a real Android device. Local browser could not access the preview, so real-device visual validation remains pending.

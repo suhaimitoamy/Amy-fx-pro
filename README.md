@@ -4,7 +4,7 @@ Amy FX Pro adalah jalur utama aplikasi **Amy FX Pro** dengan engine dan runtime 
 
 ## Current Version
 
-> **Latest update:** `Amy FX Pro v328 (source candidate)`  
+> **Latest update:** `Amy FX Pro v328`  
 > **Update date:** 5 September 2026
 
 ## Status Utama
@@ -25,7 +25,7 @@ Versi terbaru membawa update runtime dan validasi terbaru dari jalur Pro. Engine
 |---|---|
 | Nama aplikasi | `Amy FX Pro` |
 | Branch utama | `main` |
-| Current version | `v328` (source candidate) |
+| Current version | `v328` |
 | Update channel | `Amy-fx-pro/main/update.json` |
 
 ## Update dan Release
@@ -41,7 +41,7 @@ Amy FX Pro adalah alat bantu analisis dan pembelajaran. Aplikasi tidak menjamin 
 - Discipline Scalper: bias H4 EMA20, PDH/PDL dan Asia liquidity, sweep/break, retest entry, SL 0.18 ATR dan target liquidity.
 - Toggle metode per perangkat, termasuk konfigurasi server, isolasi hasil dan notifikasi. Setting tidak mengubah perangkat lain; riwayat tetap tersedia.
 - Trading Practice Jalur 03: workspace rencana analisis, style drawing per objek, dan 15 latihan dalam lima kategori. Import candle dan replay tetap memakai alur existing.
-- Versi sumber: `2.0.0-pro.328` / `950328`. `update.json` tetap menunjuk APK terakhir yang terverifikasi sampai workflow rilis berhasil.
+- Versi sumber: `2.0.0-pro.328` / `950328`. APK bertanda tangan telah diterbitkan dan `update.json` aktif menunjuk versi 328. Build, identitas aplikasi, signer, dan checksum unduhan telah lolos verifikasi.
 
 ## Kontinuitas aplikasi
 
