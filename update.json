@@ -1,24 +1,23 @@
 {
-  "latest_version_code": 950327,
-  "latest_version_name": "2.0.0-pro.327",
-  "versionCode": 950327,
-  "version": "2.0.0-pro.327",
+  "latest_version_code": 950328,
+  "latest_version_name": "2.0.0-pro.328",
+  "versionCode": 950328,
+  "version": "2.0.0-pro.328",
   "releaseDate": "2026-09-05",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.327/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.327/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.328/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.328/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Beranda lebih ringkas tanpa banner promosi; nama menu tampil utuh.",
-    "Academy lebih bersih tanpa kartu promosi berulang.",
-    "Ringkasan Mapping menampilkan hasil utama tanpa label teknis dan kode sumber internal.",
-    "Perbaikan penyimpanan entry Candle Replay di jalur 3."
+    "Discipline Scalper: H4 bias, sweep/break, retest dan TP liquidity.",
+    "Kontrol ON/OFF metode khusus perangkat Anda.",
+    "Workspace analisis, style drawing dan 15 latihan Guided Practice."
   ],
   "changelog": [
-    "Beranda lebih ringkas tanpa banner promosi; nama menu tampil utuh.",
-    "Academy lebih bersih tanpa kartu promosi berulang.",
-    "Ringkasan Mapping menampilkan hasil utama tanpa label teknis dan kode sumber internal.",
-    "Perbaikan penyimpanan entry Candle Replay di jalur 3."
-  ]
+    "Discipline Scalper: H4 bias, sweep/break, retest dan TP liquidity.",
+    "Kontrol ON/OFF metode khusus perangkat Anda.",
+    "Workspace analisis, style drawing dan 15 latihan Guided Practice."
+  ],
+  "sha256": "ceed5e4408e5aabfd0387f2d1d977dcee6aa983bd5915bca24956f7458bbfd08"
 }
