@@ -333,3 +333,9 @@
 - **Cause:** Both APK workflows tried to checkout the private `amy-trading-academy-vault` repository during every build, although the generated Academy assets were already committed in Amy-fx. The missing cross-repository token caused `Input required and not supplied: token`.
 - **Fix:** Removed the private Vault checkout and runtime Academy generator steps from `.github/workflows/build-apk.yml` and `.github/workflows/build-debug.yml`. APK builds now use the committed Academy assets directly.
 - **Verification:** GitHub Actions `Build Amy FX APK` run 29158586991 completed successfully.
+
+## 2026-09-05 — Jalur 03 Replay Entry Save
+
+- Fixed Candle Replay submit accessing `event.currentTarget` after awaiting storage. Browser event dispatch clears this property, causing entry saving and the final button reset to fail.
+- Capture the form synchronously and retain it through save, duplicate-decision handling, and error recovery.
+- Validation: 24 Trading Practice tests pass, including new, already-locked, and failed-storage submits with a cleared event target; JavaScript syntax and diff whitespace checks pass.
