@@ -1,23 +1,23 @@
 {
-  "latest_version_code": 950328,
-  "latest_version_name": "2.0.0-pro.328",
-  "versionCode": 950328,
-  "version": "2.0.0-pro.328",
-  "releaseDate": "2026-09-05",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.328/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.328/AmyFX-Pro-latest.apk",
+  "latest_version_code": 950329,
+  "latest_version_name": "2.0.0-pro.329",
+  "versionCode": 950329,
+  "version": "2.0.0-pro.329",
+  "releaseDate": "2026-09-06",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.329/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.329/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Discipline Scalper: H4 bias, sweep/break, retest dan TP liquidity.",
-    "Kontrol ON/OFF metode khusus perangkat Anda.",
-    "Workspace analisis, style drawing dan 15 latihan Guided Practice."
+    "Candle Replay: gambar berulang, pemilihan objek dan resize bebas.",
+    "Fullscreen, daftar objek dan duplikat gambar.",
+    "Perbaikan terjemahan berita Bahasa Indonesia."
   ],
   "changelog": [
-    "Discipline Scalper: H4 bias, sweep/break, retest dan TP liquidity.",
-    "Kontrol ON/OFF metode khusus perangkat Anda.",
-    "Workspace analisis, style drawing dan 15 latihan Guided Practice."
+    "Candle Replay: gambar berulang, pemilihan objek dan resize bebas.",
+    "Fullscreen, daftar objek dan duplikat gambar.",
+    "Perbaikan terjemahan berita Bahasa Indonesia."
   ],
-  "sha256": "ceed5e4408e5aabfd0387f2d1d977dcee6aa983bd5915bca24956f7458bbfd08"
+  "sha256": "5c37b6d0bf7766c42a6e3a8fe7daa4a8b8c88ed85a3865ea1c27006ae6576a62"
 }
