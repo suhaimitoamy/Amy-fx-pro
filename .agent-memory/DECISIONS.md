@@ -253,3 +253,8 @@
 ## 2026-09-05 — Pro328
 
 Pro328: Preferences are per device/install, using a random native capability (or browser-local capability) and server-side SHA-256 scope. Defaults ON. Shared scans remain for legacy devices; scoped scans and push recipients cannot affect other devices. Existing active positions finish their lifecycle after toggling OFF. Discipline uses the existing detector/candidate contract with an isolated liquidity-target lifecycle wrapper. Published update.json advances only after signed APK and download checksum verification.
+
+
+## 2026-09-06 — Pro329
+
+User explicitly requests Pro329 without tests, backtests or additional verification. Scope is Candle Replay drawing interactions/fullscreen plus Indonesian news. Projection coordinates use visible candles only; replay source filtering is unchanged. New drawings store replay creation cursor so projections can extend into blank space while remaining hidden when rewinding before creation. No arbitrary object-count cap. Build329 skips verification/test steps; signing uses the existing cached key. The update manifest advances only after an actual APK publication.

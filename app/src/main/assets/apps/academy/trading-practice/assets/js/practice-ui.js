@@ -62,7 +62,7 @@
       var styles = document.createElement('div');
       styles.className = 'drawing-style-controls';
       styles.innerHTML = '<label>Warna <input type="color" data-style="color" value="#60a5fa"></label><label>Ketebalan <input type="range" data-style="width" min="1" max="8" value="2"></label><label>Opasitas <input type="range" data-style="opacity" min="0.1" max="1" step="0.1" value="1"></label>';
-      toolbar.appendChild(styles);
+      (toolbar.querySelector('.drawing-menu-grid') || toolbar).appendChild(styles);
       styles.addEventListener('change', function (event) {
         var key = event.target.dataset.style;
         if (!key) return;
@@ -74,6 +74,7 @@
       sync(state);
       var selected = chart.drawings.find(function (item) { return item.id === state.selectedId; });
       var style = selected ? selected.style : chart.drawingStyle;
+      if (chart.refreshObjectControls) chart.refreshObjectControls(state);
       if (toolbar && style) toolbar.querySelectorAll('[data-style]').forEach(function (input) {
         input.value = style[input.dataset.style] == null ? '#60a5fa' : style[input.dataset.style];
       });
@@ -95,7 +96,72 @@
     if (undo) undo.addEventListener('click', function () { chart.undo(); });
     var finish = byId('finishDrawing');
     if (finish) finish.addEventListener('click', function () { chart.setTool(null); });
+    if (byId('replayWorkspace')) bindReplayWorkspace(chart);
     sync({ activeTool: chart.activeTool, selectedId: chart.selectedId, message: 'Gesture chart aktif. ' + chart.drawings.length + ' gambar tersimpan.' });
+  }
+
+  function bindReplayWorkspace(chart) {
+    var workspace = byId('replayWorkspace');
+    var quick = document.createElement('div');
+    quick.className = 'replay-drawing-actions';
+    quick.innerHTML = '<button type="button" data-quick="select">Pilih / Geser</button><button type="button" data-quick="rectangle">Kotak +</button><button type="button" data-quick="arrow">Panah +</button><label class="drawing-repeat"><input type="checkbox" id="repeatDrawing" checked> Gambar berulang</label><select id="drawingObjects" aria-label="Daftar semua objek"><option value="">Pilih objek</option></select><button type="button" id="duplicateObject">Duplikat</button><button type="button" id="removeObject">Hapus</button><input id="objectColor" type="color" value="#60a5fa" aria-label="Warna objek"><button type="button" id="replayFullscreen" aria-pressed="false">Layar penuh</button>';
+    chart.container.parentNode.insertBefore(quick, chart.container);
+    var list = byId('drawingObjects');
+    chart.refreshObjectControls = function (state) {
+      var key = chart.drawings.map(function (d) { return d.id + ':' + chart.isDrawingVisible(d); }).join('|');
+      if (list.dataset.objects !== key) {
+        list.replaceChildren();
+        var empty = document.createElement('option'); empty.value = ''; empty.textContent = 'Objek (' + chart.drawings.length + ')'; list.appendChild(empty);
+        chart.drawings.forEach(function (drawing, index) {
+          var option = document.createElement('option'); option.value = drawing.id;
+          option.textContent = (index + 1) + '. ' + drawing.type;
+          option.disabled = !chart.isDrawingVisible(drawing);
+          list.appendChild(option);
+        });
+        list.dataset.objects = key;
+      }
+      list.value = state.selectedId || '';
+      byId('duplicateObject').disabled = byId('removeObject').disabled = !state.selectedId;
+      byId('repeatDrawing').checked = chart.stayInDrawingMode;
+      quick.querySelectorAll('[data-quick]').forEach(function (button) { button.classList.toggle('active', button.dataset.quick === state.activeTool); });
+      var selected = chart.drawings.find(function (d) { return d.id === state.selectedId; });
+      byId('objectColor').value = (selected && selected.style.color) || chart.drawingStyle.color || '#60a5fa';
+    };
+    quick.querySelectorAll('[data-quick]').forEach(function (button) { button.addEventListener('click', function () { chart.setTool(button.dataset.quick); }); });
+    list.addEventListener('change', function () { chart.selectDrawing(list.value); });
+    byId('repeatDrawing').addEventListener('change', function (event) { chart.stayInDrawingMode = event.target.checked; chart.notify(event.target.checked ? 'Buat objek berulang. Pilih / Geser untuk mengedit.' : 'Selesai menggambar langsung masuk mode edit.'); });
+    byId('duplicateObject').addEventListener('click', function () { chart.duplicateSelected(); });
+    byId('removeObject').addEventListener('click', function () { chart.deleteSelected(); });
+    byId('objectColor').addEventListener('change', function (event) { chart.setDrawingStyle({color:event.target.value}); });
+    var full = byId('replayFullscreen');
+    var scrollY = 0;
+    function layout(enabled) {
+      if (enabled && !document.body.classList.contains('replay-fullscreen')) scrollY = root.scrollY;
+      document.body.classList.toggle('replay-fullscreen', enabled);
+      workspace.classList.toggle('is-fullscreen', enabled);
+      full.textContent = enabled ? 'Keluar layar penuh' : 'Layar penuh';
+      full.setAttribute('aria-pressed', String(enabled));
+      root.requestAnimationFrame(function () { chart.resize(); if (!enabled) root.scrollTo(0, scrollY); });
+    }
+    function leaveFullscreen() {
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      layout(false);
+    }
+    full.addEventListener('click', function () {
+      if (workspace.classList.contains('is-fullscreen')) { leaveFullscreen(); return; }
+      // Fixed viewport remains usable in Android WebViews without the Fullscreen API.
+      layout(true);
+      if (workspace.requestFullscreen) {
+        try { var pending = workspace.requestFullscreen(); if (pending && pending.catch) pending.catch(function () {}); } catch (_) {}
+      }
+    });
+    document.addEventListener('fullscreenchange', function () {
+      if (!document.fullscreenElement) layout(false);
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && workspace.classList.contains('is-fullscreen')) leaveFullscreen();
+    });
+    chart.refreshObjectControls({activeTool:chart.activeTool,selectedId:chart.selectedId});
   }
 
   root.AmyPracticeUI = Object.freeze({

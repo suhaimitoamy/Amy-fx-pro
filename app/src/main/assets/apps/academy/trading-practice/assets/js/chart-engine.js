@@ -44,7 +44,9 @@
     this.drawingTimeBoundary = options.drawingTimeBoundary != null && Number.isFinite(Number(options.drawingTimeBoundary))
       ? Number(options.drawingTimeBoundary)
       : null;
-    this.activeTool = null;
+    this.activeTool = 'select';
+    this.stayInDrawingMode = options.stayInDrawingMode === true;
+    this.tapAnchor = null;
     this.selectedId = null;
     this.gestureStart = null;
     this.hoverPoint = null;
@@ -65,7 +67,7 @@
     this.host = document.createElement('div');
     this.host.className = 'practice-chart-canvas';
     this.overlay = document.createElementNS(SVG_NS, 'svg');
-    this.overlay.classList.add('practice-chart-overlay');
+    this.overlay.classList.add('practice-chart-overlay', 'is-selecting');
     this.overlay.setAttribute('aria-hidden', 'true');
     container.appendChild(this.host);
     container.appendChild(this.overlay);
@@ -163,6 +165,7 @@
       activeTool: this.activeTool,
       selectedId: this.selectedId,
       count: this.drawings.length,
+      stayInDrawingMode: this.stayInDrawingMode,
       message: String(message || '')
     });
   };
@@ -207,7 +210,7 @@
 
   CandleChart.prototype.resize = function () {
     var width = Math.max(280, this.container.clientWidth || 800);
-    var height = Math.max(360, Number(this.options.height || this.container.clientHeight || 520));
+    var height = document.body.classList.contains('replay-fullscreen') ? Math.max(100, this.container.clientHeight) : Math.max(360, Number(this.options.height || this.container.clientHeight || 520));
     this.chart.applyOptions({
       width: width,
       height: height,
@@ -247,6 +250,7 @@
 
   CandleChart.prototype.isDrawingVisible = function (drawing) {
     if (!drawing || this.drawingTimeBoundary == null) return Boolean(drawing);
+    if (this.options.allowDrawingProjection && drawing.replayCreatedAt != null) return drawing.replayCreatedAt <= this.drawingTimeBoundary;
     return drawing.points.every(function (point) { return Number(point.time) <= this.drawingTimeBoundary; }, this);
   };
 
@@ -266,6 +270,7 @@
   CandleChart.prototype.setTool = function (tool) {
     var requested = tool === 'select' ? 'select' : this.model.normalizeType(tool);
     this.activeTool = requested || null;
+    this.tapAnchor = null;
     this.gestureStart = null;
     this.hoverPoint = null;
     this.draftPoints = [];
@@ -286,6 +291,24 @@
     this.saveDrawings();
     this.setTool(null);
     this.notify('Semua gambar dihapus.');
+  };
+
+  CandleChart.prototype.selectDrawing = function (id) {
+    var drawing = this.drawings.find(function (item) { return item.id === id; });
+    if (!drawing || !this.isDrawingVisible(drawing)) return;
+    this.selectedId = id;
+    this.setTool('select');
+    this.notify('Objek dipilih. Seret bagian tengah atau pegangan putih di tepinya.');
+  };
+
+  CandleChart.prototype.duplicateSelected = function () {
+    var drawing = this.drawings.find(function (item) { return item.id === this.selectedId; }, this);
+    if (!drawing) return;
+    var copy = this.model.create(drawing.type, drawing.points, { text:drawing.text, style:drawing.style, replayCreatedAt:this.drawingTimeBoundary });
+    this.remember();
+    this.drawings.push(copy);
+    this.saveDrawings();
+    this.selectDrawing(copy.id);
   };
 
   CandleChart.prototype.deleteSelected = function () {
@@ -318,7 +341,7 @@
   };
 
   CandleChart.prototype.addDrawing = function (type, points, text) {
-    var drawing = this.model.create(type, points, { text: text, style: this.drawingStyle });
+    var drawing = this.model.create(type, points, { text: text, style: this.drawingStyle, replayCreatedAt: this.options.allowDrawingProjection ? this.drawingTimeBoundary : null });
     if (!drawing) {
       this.notify('Titik gambar belum lengkap.');
       return null;
@@ -331,7 +354,7 @@
     this.drawings.push(drawing);
     this.saveDrawings();
     this.selectedId = drawing.id;
-    this.setTool('select');
+    this.setTool(this.stayInDrawingMode ? type : 'select');
     this.notify(TOOL_LABELS[drawing.type] + ' tersimpan dan siap digeser atau diedit.');
     return drawing;
   };
@@ -343,6 +366,12 @@
     if (direct != null) return Number(direct);
     var items = this.candles;
     if (!items.length) return null;
+    if (this.options.allowDrawingProjection) {
+      var last = items.length - 1;
+      var step = Number(this.options.timeframeSeconds) || (last > 0 ? items[last].time - items[last - 1].time : 60);
+      if (target < items[0].time) return this.chart.timeScale().logicalToCoordinate((target - items[0].time) / step);
+      if (target > items[last].time) return this.chart.timeScale().logicalToCoordinate(last + (target - items[last].time) / step);
+    }
     var low = 0;
     var high = items.length;
     while (low < high) {
@@ -376,11 +405,25 @@
     var rect = this.overlay.getBoundingClientRect();
     var x = clamp(event.clientX - rect.left, 0, this.plotWidth());
     var y = clamp(event.clientY - rect.top, 0, this.plotHeight());
-    var time = this.chart.timeScale().coordinateToTime(x);
+    var scale = this.chart.timeScale();
+    var time = scale.coordinateToTime(x);
+    if (this.options.allowDrawingProjection && this.candles.length) {
+      var logical = scale.coordinateToLogical(x);
+      if (logical != null) {
+        var items = this.candles, last = items.length - 1;
+        var step = Number(this.options.timeframeSeconds) || (last > 0 ? items[last].time - items[last - 1].time : 60);
+        if (logical < 0) time = items[0].time + logical * step;
+        else if (logical > last) time = items[last].time + (logical - last) * step;
+        else {
+          var left = Math.floor(logical), right = Math.min(last, left + 1);
+          time = items[left].time + (logical - left) * (items[right].time - items[left].time);
+        }
+      }
+    }
     var price = this.series.coordinateToPrice(y);
     if (time == null || price == null) return null;
     if (typeof time === 'object') time = Date.UTC(time.year, time.month - 1, time.day) / 1000;
-    if (this.drawingTimeBoundary != null) time = Math.min(Number(time), this.drawingTimeBoundary);
+    if (this.drawingTimeBoundary != null && !this.options.allowDrawingProjection) time = Math.min(Number(time), this.drawingTimeBoundary);
     return { time: Number(time), price: Number(price), x: x, y: y };
   };
 
@@ -473,7 +516,11 @@
     } else if (drawing.type === 'trend' && b) {
       this.appendLine(group, a, b, { stroke: color, 'stroke-width': 2.2 });
     } else if (drawing.type === 'arrow' && b) {
-      this.appendLine(group, a, b, { stroke: color, 'stroke-width': 2.2, 'marker-end': 'url(#amy-practice-arrow)' });
+      var markerId = 'arrow-' + drawing.id.replace(/[^a-zA-Z0-9_-]/g, '');
+      var marker = this.svgElement('marker', { id: markerId, markerWidth: 8, markerHeight: 8, refX: 7, refY: 3, orient: 'auto', markerUnits: 'strokeWidth' });
+      marker.appendChild(this.svgElement('path', { d: 'M0,0 L0,6 L8,3 z', fill: color }));
+      group.appendChild(marker);
+      this.appendLine(group, a, b, { stroke: color, 'stroke-width': 2.2, 'marker-end': 'url(#' + markerId + ')' });
     } else if (drawing.type === 'rectangle' && b) {
       group.appendChild(this.svgElement('rect', {
         x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.max(1, Math.abs(a.x - b.x)), height: Math.max(1, Math.abs(a.y - b.y)),
@@ -562,18 +609,31 @@
 
   CandleChart.prototype.renderHandles = function (drawing) {
     var self = this;
-    var indexes = drawing.type === 'path' && drawing.points.length > 2 ? [0, drawing.points.length - 1] : drawing.points.map(function (_, index) { return index; });
-    indexes.forEach(function (index) {
-      var point = self.screenPoint(drawing.points[index]);
+    var handles = drawing.points.map(function (point, index) { return { point: point, timeIndex: index, priceIndex: index }; });
+    if (drawing.type === 'path' && handles.length > 2) handles = [handles[0], handles[handles.length - 1]];
+    if (drawing.type === 'rectangle') {
+      var a = drawing.points[0], b = drawing.points[1];
+      handles = [
+        {point:a,timeIndex:0,priceIndex:0}, {point:b,timeIndex:1,priceIndex:1},
+        {point:{time:a.time,price:b.price},timeIndex:0,priceIndex:1},
+        {point:{time:b.time,price:a.price},timeIndex:1,priceIndex:0},
+        {point:{time:(a.time+b.time)/2,price:a.price},timeIndex:-1,priceIndex:0},
+        {point:{time:(a.time+b.time)/2,price:b.price},timeIndex:-1,priceIndex:1},
+        {point:{time:a.time,price:(a.price+b.price)/2},timeIndex:0,priceIndex:-1},
+        {point:{time:b.time,price:(a.price+b.price)/2},timeIndex:1,priceIndex:-1}
+      ];
+    }
+    handles.forEach(function (handle) {
+      var point = self.screenPoint(handle.point);
       if (!point) return;
-      self.overlay.appendChild(self.svgElement('circle', {
-        cx: point.x, cy: point.y, r: 18, fill: 'transparent', 'pointer-events': 'all',
-        class: 'practice-drawing-handle-hit', 'data-drawing-id': drawing.id, 'data-point-index': index
-      }));
-      self.overlay.appendChild(self.svgElement('circle', {
-        cx: point.x, cy: point.y, r: 6, fill: '#f8fafc', stroke: '#0ea5e9', 'stroke-width': 2,
-        class: 'practice-drawing-handle', 'data-drawing-id': drawing.id, 'data-point-index': index
-      }));
+      var attrs = { cx:point.x, cy:point.y, 'data-drawing-id':drawing.id,
+        'data-point-index':handle.timeIndex, 'data-time-index':handle.timeIndex, 'data-price-index':handle.priceIndex };
+      self.overlay.appendChild(self.svgElement('circle', Object.assign({}, attrs, {
+        r:18, fill:'transparent', 'pointer-events':'all', class:'practice-drawing-handle-hit'
+      })));
+      self.overlay.appendChild(self.svgElement('circle', Object.assign({}, attrs, {
+        r:6, fill:'#f8fafc', stroke:'#0ea5e9', 'stroke-width':2, class:'practice-drawing-handle'
+      })));
     });
   };
 
@@ -592,14 +652,14 @@
       if (group) self.overlay.appendChild(group);
     });
     if (this.draftPath && this.draftPath.length > 1) {
-      var pathDraft = this.model.create('path', this.draftPath);
+      var pathDraft = this.model.create('path', this.draftPath, { style: this.drawingStyle });
       var pathGroup = pathDraft && this.renderDrawing(pathDraft, true);
       if (pathGroup) this.overlay.appendChild(pathGroup);
     } else if (this.gestureStart && this.hoverPoint && this.activeTool && this.activeTool !== 'select') {
       var previewPoints = this.draftPoints.length ? this.draftPoints.concat([this.hoverPoint]) : [this.gestureStart, this.hoverPoint];
       var required = this.model.requiredPoints(this.activeTool);
       if (previewPoints.length >= required) {
-        var preview = this.model.create(this.activeTool, previewPoints.slice(0, required));
+        var preview = this.model.create(this.activeTool, previewPoints.slice(0, required), { style: this.drawingStyle });
         var previewGroup = preview && this.renderDrawing(preview, true);
         if (previewGroup) this.overlay.appendChild(previewGroup);
       }
@@ -694,7 +754,12 @@
   };
 
   CandleChart.prototype.handlePointerDown = function (event) {
-    if (!this.activeTool) return;
+    if (!this.activeTool) {
+      var object = event.target.closest && event.target.closest('[data-drawing-id]');
+      if (!object) return;
+      this.activeTool = 'select';
+      this.overlay.classList.add('is-selecting');
+    }
     event.preventDefault();
     event.stopPropagation();
     var point = this.pointFromEvent(event);
@@ -711,6 +776,8 @@
         id: drawing.id,
         mode: handle ? 'point' : 'move',
         pointIndex: handle ? Number(handle.getAttribute('data-point-index')) : null,
+        timeIndex: handle ? Number(handle.getAttribute('data-time-index')) : null,
+        priceIndex: handle ? Number(handle.getAttribute('data-price-index')) : null,
         startPoint: point,
         original: this.model.clone(drawing),
         remembered: false
@@ -729,7 +796,7 @@
       this.hoverPoint = point;
       return;
     }
-    this.gestureStart = point;
+    this.gestureStart = this.tapAnchor || point;
     this.hoverPoint = point;
   };
 
@@ -745,10 +812,14 @@
         this.remember();
         this.dragState.remembered = true;
       }
-      if (this.dragState.mode === 'point') next = this.model.updatePoint(this.dragState.original, this.dragState.pointIndex, point);
+      if (this.dragState.mode === 'point') {
+        next = this.model.clone(this.dragState.original);
+        if (this.dragState.timeIndex >= 0) next.points[this.dragState.timeIndex].time = Math.round(point.time);
+        if (this.dragState.priceIndex >= 0) next.points[this.dragState.priceIndex].price = point.price;
+      }
       else {
         var deltaTime = point.time - this.dragState.startPoint.time;
-        if (this.drawingTimeBoundary != null) {
+        if (this.drawingTimeBoundary != null && !this.options.allowDrawingProjection) {
           var latestTime = Math.max.apply(null, this.dragState.original.points.map(function (item) { return Number(item.time); }));
           deltaTime = Math.min(deltaTime, this.drawingTimeBoundary - latestTime);
         }
@@ -804,7 +875,10 @@
     }
     if (this.model.TWO_POINT.indexOf(tool) >= 0) {
       if (distance(this.gestureStart, point) < 3) {
-        this.notify('Seret dari titik awal ke titik akhir.');
+        var touched = this.findDrawingAt(point.x, point.y);
+        if (!this.tapAnchor && touched) { this.selectDrawing(touched.id); return; }
+        this.tapAnchor = this.gestureStart;
+        this.notify('Titik awal dipasang. Tap titik akhir, atau seret untuk menggambar.');
         this.gestureStart = null;
         this.hoverPoint = null;
         this.renderDrawings();
@@ -833,6 +907,7 @@
   };
 
   CandleChart.prototype.handlePointerCancel = function () {
+    this.tapAnchor = null;
     if(this.dragState && this.dragState.remembered){
       var index=this.drawings.findIndex(function(item){return item.id===this.dragState.id;},this);
       if(index>=0)this.drawings[index]=this.model.clone(this.dragState.original);

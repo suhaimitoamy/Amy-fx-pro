@@ -48,7 +48,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const fallback = await scrapeTelegram(limit, !telegramOnly);
+    const fallback = await scrapeTelegram(limit, true);
     res.setHeader('Cache-Control', telegramOnly
       ? 'no-store'
       : 's-maxage=30, stale-while-revalidate=60');
@@ -120,12 +120,13 @@ async function translateToId(text) {
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=id&dt=t&q=${encodeURIComponent(text)}`;
     const response = await fetchWithTimeout(url, {}, 8000);
-    if (!response.ok) return text;
+    if (!response.ok) return '';
     const data = await response.json();
-    if (!Array.isArray(data?.[0])) return text;
-    return data[0].map(chunk => chunk?.[0] || '').join('').trim() || text;
+    if (!Array.isArray(data?.[0])) return '';
+    const translated = data[0].map(chunk => chunk?.[0] || '').join('').trim();
+    return translated === text.trim() && data[2] !== 'id' ? '' : translated;
   } catch (_) {
-    return text;
+    return '';
   }
 }
 
@@ -139,7 +140,7 @@ async function scrapeTelegram(limit, shouldTranslate = true) {
     impact: getNewsImpact(item.text),
     relevant: isRelevantNews(item.text),
     textOriginal: item.text,
-    text: shouldTranslate ? await translateToId(item.text) : item.text
+    text: shouldTranslate ? (await translateToId(item.text)) || 'Terjemahan Bahasa Indonesia belum tersedia. Buka sumber untuk membaca berita asli.' : item.text
   })));
 }
 

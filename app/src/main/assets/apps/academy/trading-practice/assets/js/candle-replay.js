@@ -84,6 +84,7 @@
     ui.tradeReady(false);
     delete ui.byId('tradeForm').dataset.lockedDecisionId;
     chart.setTradeLevels([]);
+    chart.options.timeframeSeconds = ({M1:60,M5:300,M15:900,M30:1800,H1:3600,H4:14400,D1:86400})[ui.byId('timeframe').value] || 900;
     chart.setDrawingTimeBoundary(payload.cursor);
     chart.setCandles(payload.candles, firstRender);
     firstRender = false;
@@ -188,6 +189,7 @@
     var selectedSource = await refreshSources(saved.sourceId || provider.selectedSourceId());
     chart = new window.AmyCandleChart.CandleChart(ui.byId('chart'), {
       storageKey: 'amy.practice.v1.drawings.replay',
+      allowDrawingProjection: true, stayInDrawingMode: true,
       onCrosshair: function (candle, time) { if (candle) ui.renderOhlc('ohlc', candle, Number(time)); }
     });
     ui.bindDrawingToolbar(chart);

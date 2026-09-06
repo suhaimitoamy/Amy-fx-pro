@@ -64,6 +64,7 @@
       type: type,
       points: points,
       style: normalizeStyle(input.style),
+      replayCreatedAt: input.replayCreatedAt == null ? null : finite(input.replayCreatedAt),
       text: String(input.text || '').trim().slice(0, 240),
       createdAt: Number(input.createdAt || Date.now())
     };
@@ -76,6 +77,7 @@
       type: type,
       points: points,
       style: options.style,
+      replayCreatedAt: options.replayCreatedAt,
       text: options.text,
       createdAt: options.createdAt
     });
@@ -89,6 +91,7 @@
       type: normalized.type,
       points: normalized.points.map(function (point) { return { time: point.time, price: point.price }; }),
       style: normalizeStyle(normalized.style),
+      replayCreatedAt: normalized.replayCreatedAt,
       text: normalized.text,
       createdAt: normalized.createdAt
     };

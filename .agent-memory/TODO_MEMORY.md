@@ -35,3 +35,8 @@
 ## 2026-09-05 — Pro328
 
 Pro328 release: signed build and automatic update.json activation completed (run 33976208755). Remaining: verify drawing gestures and per-device controls on a real Android device. Local browser could not access the preview, so real-device visual validation remains pending.
+
+
+## 2026-09-06 — Pro329
+
+Pro329 pending: reconnect GitHub, apply the prepared changes to current main without overwriting any later work, publish commit with [release329-no-tests] marker, build/publish329. No tests/backtests/verification requested. Backend news-sync v11 already deployed. New news-feed translation-at-read design was rejected by automatic approval review and abandoned; existing news-feed is unchanged. Safer repair translates only freshly fetched public Telegram content and was accepted. No approval blocker remains on deployed news-sync.

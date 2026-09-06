@@ -346,3 +346,8 @@
 Pro328: isolated per-device scan/recommendation/notification paths; enabled drivers skipped before detectors. Discipline retest cannot fill historical candles before setup creation and resolves same-bar SL/TP conservatively. Drawing drag final pointer position and cancellation preserve persisted objects. Focused engine/drawing/API regression checks passed (50 checks). Full local suite stopped at missing files in partial checkout; CI performs the complete suite. No profitability backtest added or thresholds tuned.
 
 Release gate resolved: the old parity assertion still counted 10 base methods; updated to 11 with an explicit Discipline presence assertion. Complete CI suite passed after this correction. Existing FCM destination and payload were verified unchanged; recipient restriction deployment then succeeded.
+
+
+## 2026-09-06 — Pro329
+
+Pro329 source fix: coordinateToTime returned null beyond available candles, and drawing timestamps were clamped to replay cursor, preventing extension/drawing in empty chart space. Added logical-coordinate projection, rectangle corner/edge handles, tap selection and repeat drawing mode. Translation failures previously returned the source text, which was persisted as Indonesian and never retried. Sync now retries public Telegram posts in rotating batches and stores an empty translation on failure. No tests/backtests or post-change verification performed, per user request.

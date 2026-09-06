@@ -152,3 +152,8 @@
 Pro328 source: Discipline Scalper (13 total registered methods including existing ERR/SMR); persisted method switches in Mapping history/performance; scoped backend preferences, setups and push; Academy track03 manual plan workspace, drawing style/drag improvements and 15 guided exercises. Upload/parser, replay candle progression and tracks01/02 preserved. Files span scalper engine/APIs, additive device identity, Mapping views, Academy trading-practice, migration and build version/workflow.
 
 Pro328 released: signed APK and update manifest 950328 verified, GitHub Actions run 33976208755 passed the full JavaScript suite, Android tests/lint/build, signature continuity and downloaded checksum. Supabase migration 20260905154829 applied; preferences v1, device-register v4, setups v8, scoped push v6 and engine v11 deployed. Engine health returned HTTP200 with 13 drivers; preferences without a device capability returned HTTP401. APK SHA-256: ceed5e4408e5aabfd0387f2d1d977dcee6aa983bd5915bca24956f7458bbfd08.
+
+
+## 2026-09-06 — Pro329
+
+Pro329 source prepared: replay repeat mode, two-tap/drag drawing, direct object selection, eight rectangle resize handles, projections, object list, duplicate/delete/color controls, fullscreen including Android WebView CSS fallback. Source version 2.0.0-pro.329 / 950329. Supabase news-sync v11 deployed from public Telegram text; no manual invocation/post-deployment verification. GitHub connection is unavailable in this session, so commit publishing and APK329 release remain pending. Existing update.json remains328.

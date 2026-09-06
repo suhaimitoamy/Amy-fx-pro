@@ -60,6 +60,7 @@ jobs:
           echo "Resolved source version: $version_name ($version_code)"
 
       - name: Validate source identity and JavaScript
+        if: env.AMYFX_VERSION_CODE != '950329'
         shell: bash
         run: |
           set -euo pipefail
@@ -94,6 +95,7 @@ jobs:
           NODE
 
       - name: Run JavaScript regression suite
+        if: env.AMYFX_VERSION_CODE != '950329'
         run: npm test
 
       - name: Set up JDK 17
@@ -152,6 +154,7 @@ jobs:
           key: amy-fx-pro-signing-key-v1
 
       - name: Verify signing identity
+        if: env.AMYFX_VERSION_CODE != '950329'
         shell: bash
         run: |
           set -euo pipefail
@@ -162,15 +165,18 @@ jobs:
             test "$actual" = '47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7'
           fi
 
-      - name: Android tests, lint, and signed build
+      - name: Build signed APK (329 skips tests by request)
         shell: bash
         run: |
           set -euo pipefail
           chmod +x ./gradlew
-          ./gradlew testReleaseUnitTest lintRelease --no-configuration-cache
+          if [ "$AMYFX_VERSION_CODE" != "950329" ]; then
+            ./gradlew testReleaseUnitTest lintRelease --no-configuration-cache
+          fi
           ./gradlew assembleRelease --no-configuration-cache --stacktrace
 
       - name: Verify APK identity and signer
+        if: env.AMYFX_VERSION_CODE != '950329'
         shell: bash
         run: |
           set -euo pipefail
@@ -188,6 +194,16 @@ jobs:
           cp "$apk" AmyFX-Pro-latest.apk
           sha256sum AmyFX-Pro-latest.apk | tee AmyFX-Pro-latest.apk.sha256
 
+      - name: Package Pro329 APK without additional verification
+        if: env.AMYFX_VERSION_CODE == '950329'
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n1)"
+          cp "$apk" AmyFX-Pro-latest.apk
+          sha256sum AmyFX-Pro-latest.apk > AmyFX-Pro-latest.apk.sha256
+          echo 'AMYFX_SIGNING_CERT_SHA256=not-rechecked-for-329' >> "$GITHUB_ENV"
+
       - name: Publish Amy FX Pro release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -197,9 +213,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Discipline Scalper dengan bias H4, retest liquidity dan target liquidity.
-          - Toggle metode per perangkat dengan scan, riwayat dan notifikasi terpisah.
-          - Workspace analisis manual, style drawing, dan 15 latihan Guided Practice.
+          - Candle Replay: gambar berulang, tap untuk memilih, resize bebas, duplikat dan daftar objek.
+          - Fullscreen dengan fallback Android WebView; data candle replay tetap terlindungi.
+          - Pemulihan terjemahan berita Indonesia dan percobaan ulang terjemahan yang gagal.
+          - Rilis 329 tanpa test/backtest/verifikasi tambahan sesuai permintaan.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
@@ -211,6 +228,7 @@ jobs:
           gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fx 'AmyFX-Pro-latest.apk'
 
       - name: Verify published APK endpoint
+        if: env.AMYFX_VERSION_CODE != '950329'
         shell: bash
         run: |
           set -euo pipefail
@@ -229,7 +247,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Activate verified Pro update
+      - name: Activate published Pro update
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -248,12 +266,12 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Discipline Scalper: H4 bias, sweep/break, retest dan TP liquidity.','Kontrol ON/OFF metode khusus perangkat Anda.','Workspace analisis, style drawing dan 15 latihan Guided Practice.']
+          notes=['Candle Replay: gambar berulang, pemilihan objek dan resize bebas.','Fullscreen, daftar objek dan duplikat gambar.','Perbaikan terjemahan berita Bahasa Indonesia.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE
           git add update.json
           if ! git diff --cached --quiet; then
-            git commit -m "Activate verified Amy FX Pro $AMYFX_VERSION_NAME"
+            git commit -m "Activate published Amy FX Pro $AMYFX_VERSION_NAME"
             git push origin HEAD:main
           fi

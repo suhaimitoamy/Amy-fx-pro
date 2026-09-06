@@ -4,7 +4,7 @@ Amy FX Pro adalah jalur utama aplikasi **Amy FX Pro** dengan engine dan runtime 
 
 ## Current Version
 
-> **Latest update:** `Amy FX Pro v328`  
+> **Latest update:** `Amy FX Pro v329 (source)`  
 > **Update date:** 5 September 2026
 
 ## Status Utama
@@ -25,7 +25,7 @@ Versi terbaru membawa update runtime dan validasi terbaru dari jalur Pro. Engine
 |---|---|
 | Nama aplikasi | `Amy FX Pro` |
 | Branch utama | `main` |
-| Current version | `v328` |
+| Current version | `v329` (source) |
 | Update channel | `Amy-fx-pro/main/update.json` |
 
 ## Update dan Release
@@ -36,7 +36,7 @@ Perubahan terbaru dicatat melalui commit repository. Release dan validasi mengik
 
 Amy FX Pro adalah alat bantu analisis dan pembelajaran. Aplikasi tidak menjamin profit. Validasi statistik tetap harus memisahkan in-sample, out-of-sample, walk-forward, dan forward test.
 
-## Perubahan sumber 328
+## Perubahan sumber 328 (rilis sebelumnya)
 
 - Discipline Scalper: bias H4 EMA20, PDH/PDL dan Asia liquidity, sweep/break, retest entry, SL 0.18 ATR dan target liquidity.
 - Toggle metode per perangkat, termasuk konfigurasi server, isolasi hasil dan notifikasi. Setting tidak mengubah perangkat lain; riwayat tetap tersedia.
@@ -46,3 +46,9 @@ Amy FX Pro adalah alat bantu analisis dan pembelajaran. Aplikasi tidak menjamin 
 ## Kontinuitas aplikasi
 
 Amy FX Pro mempertahankan garis pengembangan Amy FX Preview dari `personal/amyfx-private`, termasuk basis canonical Mapping pada `2.0.0-pro.316`. Package Android `com.amyelitesuite.learningpreview` dipertahankan agar data dan jalur upgrade kompatibel. Jalur rilis Pro saat ini adalah `main` dan `Amy-fx-pro/main/update.json`.
+
+## Perubahan sumber 329
+
+Candle Replay: gambar berulang tanpa batas jumlah objek dalam kode, seleksi langsung, delapan pegangan kotak, panah yang dapat diperpanjang ke ruang kosong, daftar objek, duplikasi, dan fullscreen. Future candle tetap dipotong oleh replay engine. News: gagal terjemah tidak lagi dianggap sebagai teks Indonesia; sinkronisasi mencoba lagi berita lama.
+
+Sumber `2.0.0-pro.329` / `950329` disiapkan. Belum diterbitkan: koneksi GitHub perlu diaktifkan kembali. Tidak ada tes, backtest, atau verifikasi tambahan sesuai permintaan pengguna. Workflow329 melewati tahap tersebut dan hanya build/publish. Update manifest tetap menunjuk328 sampai APK329 benar-benar dipublikasikan.
