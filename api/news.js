@@ -35,10 +35,6 @@ export default async function handler(req, res) {
       );
 
       if (Array.isArray(central?.news) && central.news.length > 0) {
-        central.news = await Promise.all(
-          central.news.map(normalizeNewsTranslation)
-        );
-
         res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
         return res.status(200).json({
           ...central,
@@ -132,22 +128,6 @@ async function translateToId(text) {
   } catch (_) {
     return '';
   }
-}
-
-async function normalizeNewsTranslation(item) {
-  const original = item.textOriginal || item.text || '';
-
-  if (!original) return item;
-
-  item.textOriginal = original;
-
-  if (!item.text || item.text === original) {
-    const translated = await translateToId(original);
-    item.text = translated ||
-      'Terjemahan Bahasa Indonesia belum tersedia. Buka sumber untuk membaca berita asli.';
-  }
-
-  return item;
 }
 
 async function scrapeTelegram(limit, shouldTranslate = true) {
