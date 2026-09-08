@@ -1,11 +1,11 @@
 {
-  "latest_version_code": 950329,
-  "latest_version_name": "2.0.0-pro.329",
-  "versionCode": 950329,
-  "version": "2.0.0-pro.329",
+  "latest_version_code": 950331,
+  "latest_version_name": "2.0.0-pro.331",
+  "versionCode": 950331,
+  "version": "2.0.0-pro.331",
   "releaseDate": "2026-09-08",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.329/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.329/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.331/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.331/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
@@ -19,5 +19,5 @@
     "Fullscreen, daftar objek dan duplikat gambar.",
     "Perbaikan terjemahan berita Bahasa Indonesia."
   ],
-  "sha256": "1e4e7631fe4bebc3579be4bf79d00b4c80a62d3b32b342cfea7238b0376e979e"
+  "sha256": "b59e448d3e1f1c6a3462484916b7a9fa80467001008a23b4ecfc9ba45c863f43"
 }
