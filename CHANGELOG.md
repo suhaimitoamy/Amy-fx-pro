@@ -1,77 +1,77 @@
 # Changelog
 
-## 2026-08-17 — TradingView-style Chart Zoom & Drawing Sync
+## 2026-08-17 — Zoom Grafik Gaya TradingView & Sinkronisasi Gambar
 
-- Enabled explicit pinch zoom and pressed time-axis scaling so candle width can be enlarged or reduced horizontally.
-- Kept blank chart space interactive in Select/Edit mode while painted drawings and handles retain direct mobile editing.
-- Redraws drawing overlays from immutable TIME + PRICE anchors on logical-range, pane-size, wheel, pointer, touch, and price-scale transformations.
-- Added regression coverage proving arrow coordinates follow horizontal and vertical scale changes without mutating their saved market coordinates.
+- Mengaktifkan zoom jepit eksplisit dan penskalaan sumbu waktu sehingga lebar lilin dapat diperbesar atau diperkecil secara horizontal.
+- Menjaga ruang grafik kosong tetap interaktif dalam mode Pilih/Edit sementara gambar yang dilukis dan pegangan tetap dapat diedit langsung di mobile.
+- Menggambar ulang overlay gambar dari jangkar TIME + PRICE yang tidak dapat diubah pada transformasi logical-range, pane-size, wheel, pointer, touch, dan price-scale.
+- Menambahkan jangkauan regresi yang membuktikan koordinat panah mengikuti perubahan skala horizontal dan vertikal tanpa mengubah koordinat pasar yang tersimpan.
 
-## 2026-08-17 — Trading Practice Mobile Drawing Repair
+## 2026-08-17 — Perbaikan Gambar Latihan Perdagangan Mobile
 
-- Automatically selects each finished drawing so it can immediately be moved, resized, or deleted.
-- Added 28px invisible hit strokes for thin lines and paths plus 36px touch targets around point handles.
-- Selects objects from their actual rendered SVG target before falling back to geometric hit testing.
-- Moved Text, Note, and Price Note entry into a fixed mobile-safe dialog outside the chart's clipped shell.
-- Added functional Pointer Events coverage for drag persistence and render/select coverage for every supported drawing type.
+- Secara otomatis memilih setiap gambar yang selesai sehingga dapat langsung dipindahkan, diubah ukurannya, atau dihapus.
+- Menambahkan goresan hit tidak terlihat 28px untuk garis tipis dan jalur plus target sentuh 36px di sekitar pegangan titik.
+- Memilih objek dari target SVG yang sebenarnya dirender sebelum kembali ke pengujian hit geometris.
+- Memindahkan entri Text, Note, dan Price Note ke dialog tetap yang aman untuk mobile di luar shell grafik yang terpotong.
+- Menambahkan cakupan Pointer Events fungsional untuk persistensi drag dan cakupan render/pilih untuk setiap jenis gambar yang didukung.
 
-## 2026-07-11 — Market Context & Notification Routing Hardening
+## 2026-07-11 — Pengerasan Konteks Pasar & Perutean Notifikasi
 
-- Replaced latest-regime FVG validation with point-in-time ATR.
-- Made equal-high/equal-low, external-level, sweep, and deduplication tolerances volatility-aware.
-- Required Order Blocks to originate from a valid displaced structure break and scored their imbalance origin.
-- Anchored HTF dealing ranges to confirmed structural swings instead of the nearest level around current price.
-- Downgraded standalone BOS/CHOCH and displacement candles to context-only; they can no longer trigger execution.
-- Rewrote Mapping explanation into plain Indonesian: direction, confirmation, target, action, and risk.
-- Sorted Telegram news by numeric post ID before filtering and reduced edge-cache staleness.
-- Added per-news deep links, focused-item scrolling, bounded synchronization retry, and generic native routes for News, Journal, and Academy notifications.
-- Added five regression checks; 14 JavaScript tests now pass.
-- Revalidated January–June candles: 70.09% TP1 hit rate across 117 trades, +14.76R, profit factor 1.34, and 6.34R maximum drawdown after a $0.30 cost assumption.
+- Mengganti validasi FVG rezim terbaru dengan ATR point-in-time.
+- Membuat toleransi equal-high/equal-low, external-level, sweep, dan deduplikasi sadar volatilitas.
+- Memerlukan Order Blocks berasal dari break struktur yang terungkap secara valid dan mencetak asal imbalance mereka.
+- Menambatkan HTF dealing ranges ke swing struktural yang dikonfirmasi alih-alih level terdekat di sekitar harga saat ini.
+- Menurunkan standalone BOS/CHOCH dan candle displacement ke context-only; mereka tidak dapat lagi memicu eksekusi.
+- Menulis ulang penjelasan Pemetaan menjadi Bahasa Indonesia sederhana: arah, konfirmasi, target, tindakan, dan risiko.
+- Mengurutkan berita Telegram berdasarkan ID pos numerik sebelum memfilter dan mengurangi kedaluwarsa cache tepi.
+- Menambahkan deep link per berita, scrolling item fokus, retry sinkronisasi terbatas, dan rute native generik untuk notifikasi News, Journal, dan Academy.
+- Menambahkan lima pemeriksaan regresi; 14 tes JavaScript sekarang lulus.
+- Divalidasi ulang candle Januari–Juni: tingkat hit TP1 70,09% di 117 perdagangan, +14,76R, faktor keuntungan 1,34, dan drawdown maksimal 6,34R setelah asumsi biaya $0,30.
 
-## 2026-07-11 — M15 Precision Mode
+## 2026-07-11 — Mode Presisi M15
 
-- Restricted actionable Mapping setups and native scanner targets to M15.
-- Added TP1 at 1R, 90% profit secure, break-even runner, and TP2 ≥2R lifecycle.
-- Added TP1 Secured, Runner to TP2, TP1 + BE, and TP2 Hit live states.
-- Superseded by the stricter Market Context revalidation above.
+- Membatasi setup Pemetaan yang dapat ditindaklanjuti dan target pemindai native ke M15.
+- Menambahkan TP1 pada 1R, amankan 90% keuntungan, break-even runner, dan siklus hidup TP2 ≥2R.
+- Menambahkan status TP1 Secured, Runner to TP2, TP1 + BE, dan TP2 Hit live.
+- Digantikan oleh validasi ulang Konteks Pasar yang lebih ketat di atas.
 
-## 2026-07-11 — Mapping Logic Production Hardening
+## 2026-07-11 — Pengerasan Produksi Logika Pemetaan
 
-- Prevented swept liquidity from becoming active again after price reversal.
-- Replaced latest-ATR historical validation with point-in-time ATR.
-- Required sweep candles to close back inside the liquidity level.
-- Raised minimum setup RR to 1:2 and made violations fatal.
-- Combined HTF structure with Premium/Discount location.
-- Fixed Silver Bullet precedence inside the New York session.
-- Added seven production-engine regression tests.
+- Mencegah likuiditas yang tersapu menjadi aktif lagi setelah pembalikan harga.
+- Mengganti validasi historis ATR terbaru dengan ATR point-in-time.
+- Memerlukan candle sweep untuk menutup kembali di dalam level likuiditas.
+- Menaikkan RR setup minimum ke 1:2 dan membuat pelanggaran fatal.
+- Menggabungkan struktur HTF dengan lokasi Premium/Discount.
+- Memperbaiki preseden Silver Bullet di dalam sesi New York.
+- Menambahkan tujuh tes mesin produksi regresi.
 
-## 2026-07-11 — Institutional Intelligence UI
+## 2026-07-11 — UI Intelijen Institusional
 
-- Added shared XAU/USD Market Command Strip to Market Intel and Mapping.
-- Added rule-based Market Briefing combining liquidity, Mapping, session, and news risk.
-- Upgraded Liquidity Node Map with proximity/freshness strength and Nearest Draw emphasis.
-- Added Setup Lifecycle Rail for Sweep → MSS → FVG/OB → Entry → Target.
-- Added request cancellation, visibility-aware refresh, reduced-motion handling, and targeted Mapping live-price updates.
+- Menambahkan Pita Perintah Pasar XAU/USD bersama ke Market Intel dan Pemetaan.
+- Menambahkan Briefing Pasar berbasis aturan yang menggabungkan likuiditas, Pemetaan, sesi, dan risiko berita.
+- Meningkatkan Peta Node Likuiditas dengan kekuatan kedekatan/kesegaran dan penekanan Nearest Draw.
+- Menambahkan Setup Lifecycle Rail untuk Sweep → MSS → FVG/OB → Entry → Target.
+- Menambahkan pembatalan permintaan, refresh sadar visibilitas, penanganan reduced-motion, dan update live-price Pemetaan yang ditargetkan.
 
 ## 2026-07-10 — Stability Pass
 
 ## 2026-07-11 — Mockup UI Pass
 
-- Reworked the main shell toward the Amy FX black-and-gold mockup: Beranda, Proyek, Koleksi, and Profil.
-- Added a compact home dashboard, quick module access, local collection history, and device profile status.
-- Simplified Mapping Dashboard into price, bias, timeframe, setup focus, and active-session cards.
-- Kept detailed Mapping diagnostics available under Analyze instead of showing every block at once.
+- Mengerjakan ulang shell utama menuju mockup Amy FX hitam-dan-emas: Beranda, Proyek, Koleksi, dan Profil.
+- Menambahkan dashboard rumah kompak, akses modul cepat, riwayat koleksi lokal, dan status profil perangkat.
+- Menyederhanakan Mapping Dashboard menjadi kartu price, bias, timeframe, setup focus, dan active-session.
+- Menjaga diagnostik Pemetaan terperinci tersedia di bawah Analyze alih-alih menampilkan setiap blok sekaligus.
 
-- Disabled automatic Mapping setup notifications to prevent conflicts with native scanner alerts.
-- Fixed candle cache retention using seconds instead of milliseconds.
-- Excluded the latest still-forming REST candle from Mapping analysis.
-- Aligned Mapping and native scanner target expiry to 24 hours.
-- Fixed setup conflict handling in Decision confidence.
-- Improved TwelveData provider error propagation.
-- Excluded secondary Mapping diagnostics behind collapsible sections on mobile.
-- Replaced the Academy auth stub with a device-local access code.
-- Synchronized Market Intel Liquidity assets into the Android APK source.
-- Restored the missing Kotlin MappingLogicCore source used by unit tests.
+- Menonaktifkan notifikasi setup Pemetaan otomatis untuk mencegah konflik dengan peringatan pemindai native.
+- Memperbaiki retensi cache candle menggunakan detik alih-alih milidetik.
+- Mengecualikan candle REST yang masih terbentuk terbaru dari analisis Pemetaan.
+- Menyelaraskan expiry target Pemetaan dan pemindai native ke 24 jam.
+- Memperbaiki penanganan konflik setup dalam keyakinan Keputusan.
+- Meningkatkan propagasi error penyedia TwelveData.
+- Mengecualikan diagnostik Pemetaan sekunder di belakang bagian yang dapat dikembangkan di mobile.
+- Mengganti stub auth Academy dengan kode akses lokal perangkat.
+- Menyinkronkan aset Market Intel Liquidity ke sumber APK Android.
+- Mengembalikan sumber MappingLogicCore Kotlin yang hilang digunakan oleh tes unit.
 
 ## 1.2.0 - 2026-06-25
 
