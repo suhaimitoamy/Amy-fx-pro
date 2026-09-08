@@ -96,7 +96,7 @@
     <string name="close">Tutup</string>
     <string name="refresh">Segarkan</string>
     <string name="export">Ekspor</string>
-    <string name="import">Impor</string>
+    <string name="action_import">Impor</string>
     
     <!-- Version Info -->
     <string name="version">Versi</string>
