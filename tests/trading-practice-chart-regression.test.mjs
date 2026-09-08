@@ -172,8 +172,8 @@ test('TIME + PRICE drawing interpolation and persistence survive chart recreatio
   assert.deepEqual(JSON.parse(JSON.stringify(second.drawings[0].points)), [
     { time: 60, price: 4101.25 }, { time: 120, price: 4108.5 }
   ]);
-  assert.equal(second.activeTool, null);
-  assert.equal(second.overlay.classList.contains('is-drawing'), false, 'normal chart gestures remain available while no tool is active');
+  assert.equal(second.activeTool, 'select', 'restored drawings remain selectable in Pro329+');
+  assert.equal(second.overlay.classList.contains('is-drawing'), false, 'select mode keeps blank-chart gestures available');
 });
 
 test('painted drawings can be selected and dragged using mobile-sized hit targets', () => {
