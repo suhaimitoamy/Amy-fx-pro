@@ -35,6 +35,10 @@ export default async function handler(req, res) {
       );
 
       if (Array.isArray(central?.news) && central.news.length > 0) {
+        central.news = await Promise.all(
+          central.news.map(normalizeNewsTranslation)
+        );
+
         res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
         return res.status(200).json({
           ...central,
@@ -130,6 +134,26 @@ async function translateToId(text) {
   }
 }
 
+const TRANSLATION_UNAVAILABLE = 'Terjemahan Bahasa Indonesia belum tersedia. Buka sumber untuk membaca berita asli.';
+
+async function normalizeNewsTranslation(item) {
+  if (!item || typeof item !== 'object') return item;
+  const text = typeof item.text === 'string' ? item.text : '';
+  const original = typeof item.textOriginal === 'string' && item.textOriginal.trim()
+    ? item.textOriginal : text;
+  if (!original.trim()) return { ...item, text: TRANSLATION_UNAVAILABLE };
+
+  const needsTranslation = !text.trim() || text.trim() === original.trim()
+    || text.trim() === TRANSLATION_UNAVAILABLE;
+  return {
+    ...item,
+    textOriginal: original,
+    text: needsTranslation
+      ? (await translateToId(original)) || TRANSLATION_UNAVAILABLE
+      : text
+  };
+}
+
 async function scrapeTelegram(limit, shouldTranslate = true) {
   const { getNewsImpact, isRelevantNews } = await loadNewsRelevance();
   const html = await fetchTelegramHtml();
@@ -140,7 +164,7 @@ async function scrapeTelegram(limit, shouldTranslate = true) {
     impact: getNewsImpact(item.text),
     relevant: isRelevantNews(item.text),
     textOriginal: item.text,
-    text: shouldTranslate ? (await translateToId(item.text)) || 'Terjemahan Bahasa Indonesia belum tersedia. Buka sumber untuk membaca berita asli.' : item.text
+    text: shouldTranslate ? (await translateToId(item.text)) || TRANSLATION_UNAVAILABLE : item.text
   })));
 }
 

@@ -1,5 +1,13 @@
 # Bug History
 
+## 2026-09-08 — Pro330 news translation bypass (local repair, not deployed)
+
+- GitHub commit 28661ed9 added central-feed translation normalization; f5678597 removed it. Latest fetched origin/main f0e4f244 has no subsequent api/news.js repair.
+- Live public Supabase news-feed returned English text equal to textOriginal. Vercel handler previously returned that payload without calling its translator.
+- Local api/news.js now normalizes missing/equal/placeholder translations on the central path, preserves originals and metadata without mutating upstream items, and retries failed items on a later request. Telegram fallback keeps its existing behavior and shares the unavailable message.
+- Added deterministic handler regression for missing originals, empty text, whitespace, existing translation, placeholder retry, HTTP429, network errors, malformed response, unchanged English and recovery. Corrected an already-stale news-relevance regression import expectation to the current bundled ./news-relevance.mjs path.
+- Verification: 23 focused routing/relevance tests pass; node --check and git diff --check pass. Live local handler returned HTTP200/backend=supabase with the unavailable message; direct Google translation returned HTTP429. Successful live translation is NOT verified, and provider throttling remains unresolved. No push, deployment, APK build, or database writes performed.
+
 ## Trading Practice horizontal zoom failed and drawings drifted from chart scale
 - **Date:** 2026-08-17
 - **Severity:** High
