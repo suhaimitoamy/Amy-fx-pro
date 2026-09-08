@@ -24,7 +24,7 @@
     <string name="sweep">Sapuan</string>
     <string name="liquidity">Likuiditas</string>
     <string name="market_structure">Struktur Pasar</string>
-    <string name="supply_demand">Penawaran & Permintaan</string>
+    <string name="supply_demand">Penawaran &amp; Permintaan</string>
     <string name="fair_value_gap">FVG (Celah Nilai Wajar)</string>
     <string name="order_block">Order Block</string>
     <string name="break_of_structure">Break of Structure (BOS)</string>
@@ -46,7 +46,7 @@
     <string name="drawing_tools">Alat Gambar</string>
     <string name="timeframe">Timeframe</string>
     <string name="m15">M15 (Mode Presisi)</string>
-    <string name="zoom_pinch">Zoom Jepit & Skala Sumbu Waktu</string>
+    <string name="zoom_pinch">Zoom Jepit &amp; Skala Sumbu Waktu</string>
     <string name="drawing_sync">Sinkronisasi Gambar</string>
     <string name="select_edit_mode">Mode Pilih/Edit</string>
     
@@ -100,7 +100,7 @@
     
     <!-- Version Info -->
     <string name="version">Versi</string>
-    <string name="current_version">2.0.0-pro.330</string>
+    <string name="current_version">2.0.0-pro.331</string>
     <string name="update_available">Pembaruan Tersedia</string>
     <string name="changelog">Catatan Perubahan</string>
     
