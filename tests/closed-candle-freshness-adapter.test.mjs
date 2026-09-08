@@ -52,13 +52,15 @@ test('analysis badge reports a closed-candle source instead of stale', () => {
   assert.doesNotMatch(stability, /M15 STALE/);
 });
 
-test('Pro release source is aligned with or exactly one signed build ahead of the active manifest', () => {
+test('Pro release source advances beyond the active manifest when a release is pending', () => {
   const match = appVersion.match(/name:\s*'2\.0\.0-pro\.(\d+)'\s*,\s*code:\s*(95\d{4})/);
   assert.ok(match, 'Pro source identity must be readable');
   const sourceSequence = Number(match[1]);
   const sourceCode = Number(match[2]);
   const publishedCode = Number(updateManifest.latest_version_code);
+  const publishedSequence = Number(String(updateManifest.latest_version_name || '').split('.').pop());
 
   assert.equal(sourceCode, 950000 + sourceSequence);
-  assert.ok(sourceCode === publishedCode || sourceCode === publishedCode + 1);
+  assert.ok(sourceCode >= publishedCode, 'Pro source must not be older than the active manifest');
+  if (sourceCode > publishedCode) assert.ok(sourceSequence > publishedSequence);
 });

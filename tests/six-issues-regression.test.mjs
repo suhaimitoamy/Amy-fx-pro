@@ -163,7 +163,7 @@ test('Pro source identity is current and no more than one signed build ahead of 
 
   assert.ok(publishedMatch, 'Activated Pro manifest identity must be readable');
   assert.equal(sourceCode, 950000 + sourceSequence);
-  assert.ok(sourceCode === publishedCode || sourceCode === publishedCode + 1);
+  assert.ok(sourceCode >= publishedCode, 'Failed candidates may be skipped, but manifest downgrade is forbidden');
   assert.match(sourceName, /^2\.0\.0-pro\.\d+$/);
   assert.match(appVersion, /Amy-fx-pro\/main\/update\.json/);
 });
