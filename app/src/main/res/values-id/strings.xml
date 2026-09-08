@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Name -->
-    <string name="app_name">Amy FX Pro</string>
-    
+
     <!-- Navigation & Menu -->
     <string name="nav_home">Beranda</string>
     <string name="nav_projects">Proyek</string>
