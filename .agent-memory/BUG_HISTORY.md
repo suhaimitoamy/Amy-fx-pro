@@ -367,3 +367,8 @@ Pro332 fixes fixed fullscreen being trapped by the Academy fadeInUp transform, o
 
 
 Pro332 release completed: GitHub Actions run 34301702033 succeeded, including JavaScript regression, Android unit/lint/build, signing identity and published endpoint verification. Active public update.json is 2.0.0-pro.332 / 950332, enabled=true. Published APK SHA-256 62bd08b231bef85e768af95b50540ecfe3e0d6b3e71a77dbc670da18f4e297f1 matches the release asset digest. Earlier build/activation pending status is resolved. Actual device notification and WebView visual checks remain unobserved.
+# 2026-09-09 — Pro333 Candle Replay fullscreen height and mobile overflow
+
+- **Cause:** Fullscreen changed `.practice-layout` to flex but retained the base `align-items: start`; the chart column therefore used only intrinsic content height and the absolutely positioned chart collapsed to zero height.
+- **Fix:** Fullscreen now stretches the chart column through the available viewport height. Mobile drawing actions wrap, and the object popover is bounded to the workspace viewport with border-box sizing.
+- **Scope:** Presentation/layout only. Replay state, candle data, drawings, and trading calculations are unchanged.

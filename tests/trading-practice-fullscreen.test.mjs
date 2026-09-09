@@ -85,3 +85,10 @@ test('Escape in an annotation editor does not discard the fullscreen workspace',
   r.doc.dispatch('keydown', { key: 'Escape' });
   assert.equal(r.workspace.parentNode, r.body);
 });
+
+test('fullscreen CSS stretches the replay column so the chart retains a height', () => {
+  const css = readFileSync(new URL('../app/src/main/assets/apps/academy/trading-practice/assets/css/practice.css', import.meta.url), 'utf8');
+  assert.match(css, /#replayWorkspace\.is-fullscreen \.practice-layout \{[^}]*align-items:stretch/);
+  assert.match(css, /@media \(max-width:680px\)[\s\S]*\.replay-drawing-actions \{ flex-wrap:wrap; overflow:visible; \}/);
+  assert.match(css, /\.replay-object-controls \{ position:absolute; left:6px; right:6px; width:auto; max-width:none; box-sizing:border-box; \}/);
+});

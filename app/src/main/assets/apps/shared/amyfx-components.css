@@ -1092,7 +1092,7 @@ body.practice-page .replay-drawing-actions > button { white-space: nowrap; paddi
 body.practice-page #replayFullscreen { margin-left: auto; border-color: var(--practice-accent); color: var(--practice-accent); flex-shrink: 0; }
 .replay-object-menu { position: relative; }
 .replay-object-menu > summary { cursor: pointer; font-size: 12px; padding: 10px; border: 1px solid var(--practice-border); border-radius: 8px; }
-.replay-object-controls { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; display: flex; flex-wrap: wrap; gap: 8px; width: min(300px,85vw); padding: 12px; background: var(--practice-panel); border: 1px solid var(--practice-border); border-radius: 12px; box-shadow: 0 8px 30px #0006; }
+.replay-object-controls { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; display: flex; flex-wrap: wrap; gap: 8px; width: min(300px,calc(100vw - 20px)); padding: 12px; box-sizing: border-box; background: var(--practice-panel); border: 1px solid var(--practice-border); border-radius: 12px; box-shadow: 0 8px 30px #0006; }
 .replay-object-controls select { width: 100%; }
 body.practice-page #playPause { background: var(--practice-accent); color: var(--practice-bg); border-color: var(--practice-accent); min-width: 80px; }
 body.practice-page .practice-side > details > summary { cursor: pointer; font-weight: 600; }
@@ -1107,6 +1107,9 @@ body.replay-fullscreen #replayWorkspace .drawing-menu-grid { background: var(--p
   body.practice-page .practice-toolbar { gap: 8px; }
   body.practice-page .practice-toolbar > label:first-child { flex-basis: 100%; }
   body.practice-page .replay-drawing-actions > button { padding: 8px; }
+  body.practice-page .replay-drawing-actions { flex-wrap: wrap; overflow: visible; }
+  body.practice-page .replay-object-menu { position: static; }
+  body.practice-page .replay-object-controls { left: 6px; right: 6px; width: auto; max-width: none; }
   body.practice-page .replay-heading .eyebrow { font-size: 10px; }
 }
 @media (max-height: 500px) {

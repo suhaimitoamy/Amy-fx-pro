@@ -2,6 +2,8 @@
 
 ## Pending Tasks
 
+- [ ] Confirm Pro333 Candle Replay fullscreen chart height and object-menu containment on the reporting Android device after the signed release is activated.
+
 - [ ] Complete real-device WebView visual/gesture smoke tests after the signed `.326` release; CI owns Android unit, lint, build, identity, signer, and endpoint verification.
 
 - [ ] Add automatic next/previous monthly-pack handoff in Candle Replay if seamless multi-month playback is later required; current design intentionally keeps one explicit local pack active at a time to bound memory.

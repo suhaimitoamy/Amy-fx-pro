@@ -1,5 +1,12 @@
 # Technical Decisions
 
+## 2026-09-09 — Pro333 Replay fullscreen layout contract
+
+- The body-level workspace portal remains the Android WebView fullscreen fallback.
+- In fullscreen, the replay layout must stretch its chart column; mobile drawing actions may wrap rather than widen the viewport.
+- The object popover is constrained to the replay workspace edges so all labels and controls remain visible on narrow screens.
+- Source advances to `2.0.0-pro.333` / `950333`; the published manifest stays on the verified prior release until CI publishes and activates Pro333.
+
 ## 2026-08-17
 
 ### Trading Practice TradingView-style Scale Synchronization Contract

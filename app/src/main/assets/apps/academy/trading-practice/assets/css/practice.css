@@ -154,7 +154,7 @@ body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):no
 #replayWorkspace.is-fullscreen .drawing-menu summary { min-height:32px; padding:4px 8px; }
 #replayWorkspace.is-fullscreen .ohlc-strip { margin:0; padding:4px 8px; display:flex; gap:14px; overflow:auto; flex:none; white-space:nowrap; }
 #replayWorkspace.is-fullscreen .ohlc-strip span,#replayWorkspace.is-fullscreen .ohlc-strip strong { font-size:11px; }
-#replayWorkspace.is-fullscreen .practice-layout { display:flex; flex:1; min-height:0; margin:0; }
+#replayWorkspace.is-fullscreen .practice-layout { display:flex; flex:1; min-height:0; margin:0; align-items:stretch; }
 #replayWorkspace.is-fullscreen .practice-layout > section { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; }
 #replayWorkspace.is-fullscreen .practice-side { display:none; }
 #replayWorkspace.is-fullscreen .practice-chart-shell { flex:1; height:auto!important; min-height:0!important; }
@@ -169,4 +169,10 @@ body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):no
  #replayWorkspace.is-fullscreen .ohlc-strip { display:none; }
  #replayWorkspace.is-fullscreen .replay-drawing-actions { flex-wrap:nowrap; overflow-x:auto; }
  #replayWorkspace.is-fullscreen .replay-drawing-actions > * { flex-shrink:0; }
+}
+@media (max-width:680px) {
+ .replay-drawing-actions { flex-wrap:wrap; overflow:visible; }
+ .replay-object-menu { position:static; }
+ .replay-object-controls { position:absolute; left:6px; right:6px; width:auto; max-width:none; box-sizing:border-box; }
+ #replayWorkspace.is-fullscreen .practice-layout { height:100%; }
 }
