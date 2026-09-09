@@ -162,3 +162,6 @@ Pro329 source prepared: replay repeat mode, two-tap/drag drawing, direct object 
 ## 2026-09-09 — Pro332
 
 Pro332 source: compact Replay heading, persistent fullscreen exit, object popover, data/help disclosures, concise copy, shared flat surfaces/spacing/typography for Home, Mapping, Market Intel, Journal and Academy, and collapsible Academy course summaries. Trading calculations, candle sources, history and notification ownership are unchanged.
+
+
+Pro332 release completed: GitHub Actions run 34301702033 succeeded, including JavaScript regression, Android unit/lint/build, signing identity and published endpoint verification. Active public update.json is 2.0.0-pro.332 / 950332, enabled=true. Published APK SHA-256 62bd08b231bef85e768af95b50540ecfe3e0d6b3e71a77dbc670da18f4e297f1 matches the release asset digest. Earlier build/activation pending status is resolved. Actual device notification and WebView visual checks remain unobserved.

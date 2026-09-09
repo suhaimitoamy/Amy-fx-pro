@@ -45,3 +45,6 @@ Pro329 pending: reconnect GitHub, apply the prepared changes to current main wit
 ## 2026-09-09 — Pro332
 
 Pro332: signed APK build and automatic manifest activation pending at source commit. Real-device Android fullscreen/rotation/drawing and light/dark visual smoke checks remain necessary; no local browser executable was available.
+
+
+Pro332 release completed: GitHub Actions run 34301702033 succeeded, including JavaScript regression, Android unit/lint/build, signing identity and published endpoint verification. Active public update.json is 2.0.0-pro.332 / 950332, enabled=true. Published APK SHA-256 62bd08b231bef85e768af95b50540ecfe3e0d6b3e71a77dbc670da18f4e297f1 matches the release asset digest. Earlier build/activation pending status is resolved. Actual device notification and WebView visual checks remain unobserved.
