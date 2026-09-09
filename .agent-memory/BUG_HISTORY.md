@@ -377,3 +377,8 @@ Pro332 release completed: GitHub Actions run 34301702033 succeeded, including Ja
 ## 2026-09-09 — Pro334 server-owned live price
 
 Pro334 source fixes device-key dependency, backward/stale tick acceptance, UTC parsing and synthetic sentinel ingestion. Candle proxy disables CDN stale serving, bounds memory TTL at candle close + grace, and avoids caching stale Edge fallback as fresh. A degraded Edge response attempts the configured Vercel provider before preserving fallback. Targeted checks only; real-device/deployed stream still needs observation.
+
+
+## 2026-09-09 — Pro334 release gate correction
+
+Release run 34341434298 stopped before APK creation because api-polling-coordinator.test.mjs still required the removed CDN stale cache policy. Updated that regression to require no-store on all three cache headers and bounded candle-close memory TTL; the targeted test file passes 11 checks. Keep published manifest333 until signed release succeeds.

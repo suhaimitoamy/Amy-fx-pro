@@ -130,12 +130,15 @@ test('current Supabase fallback is verified instead of rejected only for contain
   assert.match(coordinator, /amyfxExpectedClosedOpenTime/);
 });
 
-test('backend shares provider responses and serves stale cache during provider failure', () => {
+test('backend shares provider responses but never serves stale data through CDN', () => {
   assert.match(backend, /globalThis\.__amyFxTwelveDataCache/);
   assert.match(backend, /globalThis\.__amyFxTwelveDataInFlight/);
   assert.match(backend, /CACHE_TTL_SECONDS/);
-  assert.match(backend, /Math\.max\(ttl \* 4, 300\)/);
+  assert.match(backend, /Math\.min\(30, Math\.ceil\(nextClose - now\)\)/);
+  for (const header of ['Cache-Control', 'CDN-Cache-Control', 'Vercel-CDN-Cache-Control']) {
+    assert.ok(backend.includes(`res.setHeader('${header}', 'no-store')`));
+  }
   assert.match(backend, /readCache\(key, \{ allowStale: true \}\)/);
   assert.match(backend, /STALE_FALLBACK/);
-  assert.match(backend, /stale-if-error/);
+  assert.doesNotMatch(backend, /stale-if-error|stale-while-revalidate/);
 });
