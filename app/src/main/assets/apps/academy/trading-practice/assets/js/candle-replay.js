@@ -64,6 +64,7 @@
       sourceId: payload.sourceId, tradeTime: payload.cursor
     });
     var existing = await storage.getTrade(id);
+    if (latestPayload !== payload) return;
     if (!existing) {
       delete ui.byId('tradeForm').dataset.lockedDecisionId;
       chart.setTradeLevels([]);
@@ -103,7 +104,7 @@
       sourceId: payload.sourceId
     });
     await updateOutcomes(payload);
-    await syncDecisionState(payload);
+    if (latestPayload === payload) await syncDecisionState(payload);
   }
 
   async function move(count) {
@@ -189,7 +190,7 @@
     var selectedSource = await refreshSources(saved.sourceId || provider.selectedSourceId());
     chart = new window.AmyCandleChart.CandleChart(ui.byId('chart'), {
       storageKey: 'amy.practice.v1.drawings.replay',
-      allowDrawingProjection: true, stayInDrawingMode: true,
+      allowDrawingProjection: true, stayInDrawingMode: false, followReplay: true,
       onCrosshair: function (candle, time) { if (candle) ui.renderOhlc('ohlc', candle, Number(time)); }
     });
     ui.bindDrawingToolbar(chart);
@@ -202,6 +203,11 @@
     ui.byId('nextCandle').addEventListener('click', function () { move(1); });
     ui.byId('nextFive').addEventListener('click', function () { move(5); });
     ui.byId('resetReplay').addEventListener('click', function () {
+      playing = false;
+      firstRender = true;
+      chart.followReplay = true;
+      chart.chart.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: true } });
+      ui.text('playPause', 'Putar');
       var initial = replay.timeline[Math.min(80, replay.timeline.length - 1)];
       replay.start(initial).catch(function (error) { ui.status('replayStatus', error.message, true); });
     });
@@ -223,6 +229,8 @@
     });
     ui.byId('datasetSource').addEventListener('change', function () { changeSource(this.value); });
     ui.byId('replaySlider').addEventListener('input', function () {
+      playing = false;
+      ui.text('playPause', 'Putar');
       var time = replay.timeline[Number(this.value)];
       if (time != null) replay.seek(time).catch(function (error) { ui.status('replayStatus', error.message, true); });
     });
@@ -234,3 +242,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { init().catch(function (error) { ui.status('replayStatus', error.message, true); }); }, { once: true });
   else init().catch(function (error) { ui.status('replayStatus', error.message, true); });
 })();
+

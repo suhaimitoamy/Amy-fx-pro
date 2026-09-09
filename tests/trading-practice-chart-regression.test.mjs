@@ -57,6 +57,10 @@ function node(name = 'div') {
 
 function createRuntime() {
   const chartCalls = { create: null, apply: [], series: null, seriesApi: null, timeScale: null, data: [] };
+  let visibleRange = { from: 0, to: 80 };
+  chartCalls.rangeWrites = 0;
+  chartCalls.dataWrites = 0;
+  chartCalls.updates = 0;
   let horizontalScale = 1;
   let verticalScale = 1;
   const visibleTimeHandlers = new Set();
@@ -68,6 +72,8 @@ function createRuntime() {
     timeToCoordinate: time => time === 0 || time === 120 ? time * horizontalScale : null,
     coordinateToTime: coordinate => coordinate / horizontalScale,
     fitContent() {},
+    getVisibleLogicalRange: () => ({ ...visibleRange }),
+    setVisibleLogicalRange(range) { visibleRange = { ...range }; chartCalls.rangeWrites++; },
     subscribeVisibleTimeRangeChange(handler) { visibleTimeHandlers.add(handler); },
     unsubscribeVisibleTimeRangeChange(handler) { visibleTimeHandlers.delete(handler); },
     subscribeVisibleLogicalRangeChange(handler) { visibleLogicalHandlers.add(handler); },
@@ -81,7 +87,8 @@ function createRuntime() {
     triggerSize() { for (const handler of sizeHandlers) handler(276, 496); }
   };
   const series = {
-    setData(value) { chartCalls.data = value; }, update() {},
+    setData(value) { chartCalls.data = value.slice(); chartCalls.dataWrites++; visibleRange = { from: 10, to: 90 }; },
+    update(bar) { chartCalls.updates++; const last = chartCalls.data.at(-1); if (last?.time === bar.time) chartCalls.data[chartCalls.data.length - 1] = bar; else chartCalls.data.push(bar); },
     priceToCoordinate: price => (5000 - price) * verticalScale,
     coordinateToPrice: coordinate => 5000 - coordinate / verticalScale,
     setVerticalScale(value) { verticalScale = value; },
@@ -341,4 +348,68 @@ test('live mode keeps the active pack as an immutable base and does not refit th
   assert.match(source, /immutableThrough: historicalEnd/);
   assert.match(source, /seedLiveContext\(false\)/);
   assert.match(source, /item\.sourceId === payload\.sourceId|sourceId\(\)/);
+});
+
+
+
+test('replay append does not reset an active pan and rewind preserves exact logical range', () => {
+  const { runtime, chartCalls, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container, { followReplay: true });
+  const bars = [0, 60, 120].map(time => ({ time, open: 4900, high: 4902, low: 4898, close: 4901 }));
+  chart.setCandles(bars.slice(0, 2));
+  chart.host.dispatchEvent({ type: 'pointerdown' });
+  assert.equal(chart.followReplay, false);
+  chartCalls.timeScale.setVisibleLogicalRange({ from: -32.5, to: 18.25 });
+  const writes = chartCalls.rangeWrites;
+  chart.setCandles(bars, false);
+  assert.equal(chartCalls.dataWrites, 1, 'append uses series.update instead of full replacement');
+  assert.equal(chartCalls.rangeWrites, writes, 'append must not reset native in-progress pan');
+  assert.deepEqual(chartCalls.timeScale.getVisibleLogicalRange(), { from: -32.5, to: 18.25 });
+  chart.setCandles(bars.slice(0, 1), false);
+  assert.deepEqual(chartCalls.timeScale.getVisibleLogicalRange(), { from: -32.5, to: 18.25 }, 'rewind restores the same fractional zoom/pan range');
+  chart.goToCursor();
+  assert.equal(chart.followReplay, true);
+  const centered = chartCalls.timeScale.getVisibleLogicalRange();
+  assert.equal(centered.to, 4);
+  assert.equal(centered.to - centered.from, 50.75, 'return to cursor preserves zoom');
+});
+
+test('gesture mode ignores painted objects and unrelated pointers cannot move a drawing', () => {
+  const { runtime, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container);
+  const bar = { time: 0, open: 4900, high: 4902, low: 4898, close: 4901 };
+  chart.setCandles([bar, { ...bar, time: 120 }]);
+  const item = chart.addDrawing('trend', [{ time: 0, price: 4900 }, { time: 120, price: 4880 }]);
+  chart.setTool(null);
+  const group = chart.overlay.children.find(n => n.getAttribute('data-drawing-id') === item.id);
+  chart.handlePointerDown({ pointerId: 1, target: group, preventDefault() { throw new Error('pan must pass through'); } });
+  assert.equal(chart.dragState, null);
+  chart.setTool('select');
+  chart.handlePointerDown({ clientX: 20, clientY: 100, pointerId: 1, target: group, preventDefault() {}, stopPropagation() {} });
+  chart.handlePointerMove({ clientX: 70, clientY: 160, pointerId: 2, preventDefault() {} });
+  assert.equal(chart.dragState.remembered, false);
+  chart.handlePointerUp({ clientX: 70, clientY: 160, pointerId: 2, preventDefault() {} });
+  assert.ok(chart.dragState, 'second finger cannot finish the first drag');
+  chart.handlePointerCancel({ pointerId: 1 });
+  assert.equal(chart.dragState, null);
+});
+
+test('replay data waits for drawing release and redo restores the completed edit', () => {
+  const { runtime, chartCalls, container } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container);
+  const bars = [0, 120, 240].map(time => ({ time, open: 4900, high: 4902, low: 4898, close: 4901 }));
+  chart.setCandles(bars.slice(0, 2));
+  const drawing = chart.addDrawing('trend', [{ time: 0, price: 4900 }, { time: 120, price: 4880 }]);
+  const group = chart.overlay.children.find(n => n.getAttribute('data-drawing-id') === drawing.id);
+  chart.handlePointerDown({ clientX: 20, clientY: 100, pointerId: 1, target: group, preventDefault() {}, stopPropagation() {} });
+  chart.setCandles(bars, false);
+  assert.equal(chart.candles.length, 2, 'scale stays fixed during object gesture');
+  chart.handlePointerMove({ clientX: 30, clientY: 110, pointerId: 1, preventDefault() {} });
+  chart.handlePointerUp({ clientX: 30, clientY: 110, pointerId: 1, preventDefault() {} });
+  assert.equal(chart.candles.length, 3);
+  const edited = JSON.stringify(chart.drawings);
+  assert.equal(chart.undo(), true);
+  assert.notEqual(JSON.stringify(chart.drawings), edited);
+  assert.equal(chart.redo(), true);
+  assert.equal(JSON.stringify(chart.drawings), edited);
 });

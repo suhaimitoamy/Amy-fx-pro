@@ -246,3 +246,35 @@ test('replay outcomes are isolated to the active historical pack', () => {
   assert.match(source, /item\.sourceId === payload\.sourceId/);
   assert.doesNotMatch(source, /!item\.sourceId \|\| item\.sourceId === payload\.sourceId/);
 });
+
+
+test('rapid seeks discard a late provider response instead of moving the chart backward', async () => {
+  const pending = [];
+  const seen = [];
+  const replay = new context.AmyReplayEngine.ReplayController({
+    sourceId: 'fixture',
+    provider: { getCandles: request => new Promise(resolve => pending.push({ request, resolve })) },
+    onChange: payload => seen.push(payload.cursor)
+  });
+  replay.timeline = [0, 60, 120];
+  const first = replay.seek(60);
+  const second = replay.seek(120);
+  pending[1].resolve({ sourceId: 'fixture', candles: [], source: 'fixture' });
+  await second;
+  pending[0].resolve({ sourceId: 'fixture', candles: [], source: 'fixture' });
+  assert.equal(await first, null);
+  assert.deepEqual(seen, [120]);
+});
+
+test('reaching the final replay bar stops playback rather than repeatedly replacing data', async () => {
+  let ended = 0;
+  const replay = new context.AmyReplayEngine.ReplayController({
+    sourceId: 'fixture', speedMs: 10000,
+    provider: { getCandles: async () => ({ sourceId: 'fixture', candles: [], source: 'fixture' }) },
+    onEnd: () => { ended++; }
+  });
+  replay.timeline = [0, 60]; replay.cursor = 0;
+  replay.play();
+  try { await replay.move(1); assert.equal(replay.playTimer, null); assert.equal(ended, 1); }
+  finally { replay.destroy(); }
+});

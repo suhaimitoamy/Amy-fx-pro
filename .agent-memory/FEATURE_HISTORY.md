@@ -165,3 +165,9 @@ Pro332 source: compact Replay heading, persistent fullscreen exit, object popove
 
 
 Pro332 release completed: GitHub Actions run 34301702033 succeeded, including JavaScript regression, Android unit/lint/build, signing identity and published endpoint verification. Active public update.json is 2.0.0-pro.332 / 950332, enabled=true. Published APK SHA-256 62bd08b231bef85e768af95b50540ecfe3e0d6b3e71a77dbc670da18f4e297f1 matches the release asset digest. Earlier build/activation pending status is resolved. Actual device notification and WebView visual checks remain unobserved.
+
+
+
+## 2026-09-09 — Pro335 replay navigation
+
+Pro335 adds explicit Geser, return-to-cursor/follow, auto/manual price scale, redo (Ctrl/Cmd+Shift+Z), and Ctrl/Cmd+Z undo. Replay defaults to one-shot drawings with repeat still available. Existing drawing tools and fullscreen remain. This improves TradingView-style interactions; full TradingView feature parity is not claimed.

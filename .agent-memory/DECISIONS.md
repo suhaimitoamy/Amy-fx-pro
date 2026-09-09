@@ -278,3 +278,9 @@ Pro332 release completed: GitHub Actions run 34301702033 succeeded, including Ja
 ## 2026-09-09 — Pro334 server-owned live price
 
 Pro334 moves provider WebSocket ownership to api/live-price.js on Vercel (Node22 native WebSocket), relaying validated ticks via SSE to the existing Android AmyLivePrice interface without dependencies or device keys. API key remains TWELVEDATA_API_KEY in Vercel only; APK build value is empty. Stream reconnects before the 60-second function limit. Mapping closed-candle authority is unchanged.
+
+
+
+## 2026-09-09 — Pro335 replay navigation
+
+Replay uses incremental series updates for an unchanged prefix; full replacements preserve the immediate logical viewport. Native pan/pinch suspends following; Ke cursor restores following without resetting zoom. Explicit Geser mode makes all drawing SVG pointer-transparent. Rectangle interiors pass through; borders and handles remain editable. Keep the existing signed release pipeline and activate update.json only after artifact verification.

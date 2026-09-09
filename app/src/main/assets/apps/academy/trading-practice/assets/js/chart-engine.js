@@ -57,6 +57,10 @@
     this.drawingSyncFrame = null;
     this.drawings = this.loadDrawings();
     this.history = [];
+    this.redoHistory = [];
+    this.followReplay = options.followReplay !== false;
+    this.gesturePointerId = null;
+    this.pendingCandles = null;
     this.candles = [];
     this.priceLines = [];
     this.onCrosshair = typeof options.onCrosshair === 'function' ? options.onCrosshair : function () {};
@@ -82,7 +86,7 @@
         visible: true, borderVisible: true, borderColor: '#263244', minimumWidth: 92,
         entireTextOnly: true, alignLabels: true, scaleMargins: { top: 0.08, bottom: 0.12 }
       },
-      timeScale: { borderColor: '#263244', timeVisible: true, secondsVisible: false, rightOffset: 4 },
+      timeScale: { borderColor: '#263244', timeVisible: true, secondsVisible: false, rightOffset: 4, shiftVisibleRangeOnNewBar: this.followReplay },
       handleScale: {
         axisPressedMouseMove: { time: true, price: true },
         axisDoubleClickReset: { time: true, price: true },
@@ -126,6 +130,12 @@
     this.overlay.addEventListener('pointermove', this.handlePointerMove);
     this.overlay.addEventListener('pointerup', this.handlePointerUp);
     this.overlay.addEventListener('pointercancel', this.handlePointerCancel);
+    this.handleNavigationStart = function () {
+      if (this.followReplay) { this.followReplay = false; this.chart.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: false } }); this.notify('Posisi chart bebas. Tekan Ke cursor untuk mengikuti replay.'); }
+    }.bind(this);
+    this.host.addEventListener('pointerdown', this.handleNavigationStart, { passive: true });
+    this.host.addEventListener('touchstart', this.handleNavigationStart, { passive: true });
+    this.host.addEventListener('wheel', this.handleNavigationStart, { passive: true });
     this.host.addEventListener('wheel', this.handleChartTransform, { passive: true });
     this.host.addEventListener('pointermove', this.handleChartTransform, { passive: true });
     this.host.addEventListener('pointerup', this.handleChartTransform, { passive: true });
@@ -156,6 +166,7 @@
   };
 
   CandleChart.prototype.remember = function () {
+    this.redoHistory = [];
     this.history.push(JSON.stringify(this.drawings));
     if (this.history.length > 30) this.history.shift();
   };
@@ -165,6 +176,7 @@
       activeTool: this.activeTool,
       selectedId: this.selectedId,
       count: this.drawings.length,
+      followReplay: this.followReplay,
       stayInDrawingMode: this.stayInDrawingMode,
       message: String(message || '')
     });
@@ -226,9 +238,38 @@
     }).filter(function (candle) {
       return [candle.time, candle.open, candle.high, candle.low, candle.close].every(Number.isFinite);
     }).sort(function (a, b) { return a.time - b.time; });
+    // Defer data changes while an object is being dragged: its TIME/PRICE
+    // conversion must use one unchanged scale until the pointer is released.
+    if (this.dragState || this.gestureStart || this.draftPath) {
+      this.pendingCandles = { candles: safe, fit: fit };
+      return;
+    }
+    var scale = this.chart.timeScale();
+    var range = scale.getVisibleLogicalRange ? scale.getVisibleLogicalRange() : null;
+    var previous = this.candles;
+    var unique = [];
+    safe.forEach(function (bar) {
+      if (unique.length && unique[unique.length - 1].time === bar.time) unique[unique.length - 1] = bar;
+      else unique.push(bar);
+    });
+    safe = unique;
+    var incremental = fit === false && previous.length > 0 && safe.length >= previous.length;
+    for (var i = 0; incremental && i < previous.length; i += 1) {
+      var old = previous[i], next = safe[i];
+      if (old.time !== next.time || (i < previous.length - 1 &&
+        (old.open !== next.open || old.high !== next.high || old.low !== next.low || old.close !== next.close))) incremental = false;
+    }
     this.candles = safe;
-    this.series.setData(safe);
-    if (fit !== false && safe.length) this.chart.timeScale().fitContent();
+    if (incremental) {
+      for (var j = previous.length - 1; j < safe.length; j += 1) this.series.update(safe[j]);
+    } else this.series.setData(safe);
+    if (fit !== false && safe.length) scale.fitContent();
+    else if (!incremental && range && scale.setVisibleLogicalRange) {
+      // setData on rewind can shift even with shiftVisibleRangeOnNewBar=false.
+      // Restore immediately, never in a delayed callback that can undo a swipe.
+      var shift = this.followReplay ? safe.length - previous.length : 0;
+      scale.setVisibleLogicalRange({ from: range.from + shift, to: range.to + shift });
+    }
     this.syncOverlaySize();
     this.renderDrawings();
     var self = this;
@@ -236,6 +277,35 @@
       self.syncOverlaySize();
       self.renderDrawings();
     });
+  };
+
+  CandleChart.prototype.flushPendingCandles = function () {
+    var pending = this.pendingCandles;
+    this.pendingCandles = null;
+    if (pending) this.setCandles(pending.candles, pending.fit);
+  };
+
+  CandleChart.prototype.goToCursor = function () {
+    this.followReplay = true;
+    this.chart.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: true } });
+    var scale = this.chart.timeScale();
+    var range = scale.getVisibleLogicalRange();
+    if (range && this.candles.length) {
+      var end = this.candles.length - 1 + 4;
+      scale.setVisibleLogicalRange({ from: end - (range.to - range.from), to: end });
+    }
+    this.notify('Chart mengikuti candle replay. Geser chart untuk melepas.');
+  };
+
+  CandleChart.prototype.redo = function () {
+    if (!this.redoHistory.length) return false;
+    this.history.push(JSON.stringify(this.drawings));
+    this.drawings = JSON.parse(this.redoHistory.pop()).map(this.model.normalizeDrawing).filter(Boolean);
+    this.selectedId = null;
+    this.saveDrawings();
+    this.renderDrawings();
+    this.notify('Perubahan gambar diterapkan kembali.');
+    return true;
   };
 
   CandleChart.prototype.setDrawingTimeBoundary = function (timestamp) {
@@ -276,7 +346,10 @@
     this.draftPoints = [];
     this.draftPath = null;
     this.dragState = null;
+    this.gesturePointerId = null;
+    this.flushPendingCandles();
     if (this.activeTool !== 'select') this.selectedId = null;
+    this.overlay.classList.toggle('is-panning', !this.activeTool);
     this.overlay.classList.toggle('is-drawing', Boolean(this.activeTool && this.activeTool !== 'select'));
     this.overlay.classList.toggle('is-selecting', this.activeTool === 'select');
     this.overlay.setAttribute('aria-hidden', this.activeTool ? 'false' : 'true');
@@ -331,6 +404,7 @@
       this.notify('Belum ada perubahan gambar untuk diurungkan.');
       return false;
     }
+    this.redoHistory.push(JSON.stringify(this.drawings));
     var previous = JSON.parse(this.history.pop() || '[]');
     this.drawings = previous.map(this.model.normalizeDrawing).filter(Boolean);
     this.selectedId = null;
@@ -524,7 +598,11 @@
     } else if (drawing.type === 'rectangle' && b) {
       group.appendChild(this.svgElement('rect', {
         x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.max(1, Math.abs(a.x - b.x)), height: Math.max(1, Math.abs(a.y - b.y)),
-        fill: color, 'fill-opacity': .16, stroke: color, 'stroke-width': 1.6
+        fill: color, 'fill-opacity': .16, stroke: color, 'stroke-width': 1.6, 'pointer-events': 'stroke'
+      }));
+      group.appendChild(this.svgElement('rect', {
+        x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.max(1, Math.abs(a.x - b.x)), height: Math.max(1, Math.abs(a.y - b.y)),
+        fill: 'none', stroke: 'transparent', 'stroke-width': 20, 'pointer-events': 'stroke', class: 'practice-drawing-hit'
       }));
     } else if (drawing.type === 'circle' && b) {
       group.appendChild(this.svgElement('ellipse', {
@@ -754,12 +832,9 @@
   };
 
   CandleChart.prototype.handlePointerDown = function (event) {
-    if (!this.activeTool) {
-      var object = event.target.closest && event.target.closest('[data-drawing-id]');
-      if (!object) return;
-      this.activeTool = 'select';
-      this.overlay.classList.add('is-selecting');
-    }
+    if (!this.activeTool || (event.button != null && event.button !== 0)) return;
+    if (this.gesturePointerId != null && this.gesturePointerId !== event.pointerId) return;
+    this.gesturePointerId = event.pointerId;
     event.preventDefault();
     event.stopPropagation();
     var point = this.pointFromEvent(event);
@@ -801,6 +876,7 @@
   };
 
   CandleChart.prototype.handlePointerMove = function (event) {
+    if (event.pointerId != null && this.gesturePointerId != null && event.pointerId !== this.gesturePointerId) return;
     if (!this.activeTool) return;
     var point = this.pointFromEvent(event);
     if (!point) return;
@@ -844,6 +920,9 @@
   };
 
   CandleChart.prototype.handlePointerUp = function (event) {
+    if (event.pointerId != null && this.gesturePointerId != null && event.pointerId !== this.gesturePointerId) return;
+    this.gesturePointerId = null;
+    try { this.overlay.releasePointerCapture(event.pointerId); } catch (_) {}
     if (!this.activeTool) return;
     event.preventDefault();
     var point = this.pointFromEvent(event);
@@ -854,6 +933,7 @@
         this.notify('Perubahan gambar tersimpan.');
       }
       this.dragState = null;
+      this.flushPendingCandles();
       this.renderDrawings();
       return;
     }
@@ -906,7 +986,9 @@
     }
   };
 
-  CandleChart.prototype.handlePointerCancel = function () {
+  CandleChart.prototype.handlePointerCancel = function (event) {
+    if (event && event.pointerId != null && this.gesturePointerId != null && event.pointerId !== this.gesturePointerId) return;
+    this.gesturePointerId = null;
     this.tapAnchor = null;
     if(this.dragState && this.dragState.remembered){
       var index=this.drawings.findIndex(function(item){return item.id===this.dragState.id;},this);
@@ -917,6 +999,7 @@
     this.hoverPoint = null;
     this.draftPath = null;
     this.dragState = null;
+    this.flushPendingCandles();
     this.renderDrawings();
   };
 
@@ -930,6 +1013,10 @@
     }
     if (event.key === 'Escape' && this.activeTool) this.setTool(null);
     var isEditor = Boolean(event.target && event.target.matches && event.target.matches('input, textarea, [contenteditable="true"]'));
+    if (!isEditor && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+      event.preventDefault();
+      if (event.shiftKey) this.redo(); else this.undo();
+    }
     if ((event.key === 'Delete' || event.key === 'Backspace') && this.activeTool === 'select' && this.selectedId && !isEditor) {
       event.preventDefault();
       this.deleteSelected();
@@ -979,6 +1066,9 @@
     this.overlay.removeEventListener('pointermove', this.handlePointerMove);
     this.overlay.removeEventListener('pointerup', this.handlePointerUp);
     this.overlay.removeEventListener('pointercancel', this.handlePointerCancel);
+    this.host.removeEventListener('pointerdown', this.handleNavigationStart);
+    this.host.removeEventListener('touchstart', this.handleNavigationStart);
+    this.host.removeEventListener('wheel', this.handleNavigationStart);
     this.host.removeEventListener('wheel', this.handleChartTransform);
     this.host.removeEventListener('pointermove', this.handleChartTransform);
     this.host.removeEventListener('pointerup', this.handleChartTransform);
@@ -1000,3 +1090,4 @@
 
   root.AmyCandleChart = Object.freeze({ CandleChart: CandleChart, COLORS: COLORS, TOOL_LABELS: TOOL_LABELS, FIB_LEVELS: FIB_LEVELS });
 })(typeof window !== 'undefined' ? window : globalThis);
+

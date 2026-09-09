@@ -104,7 +104,7 @@
     var workspace = byId('replayWorkspace');
     var quick = document.createElement('div');
     quick.className = 'replay-drawing-actions';
-    quick.innerHTML = '<button type="button" data-quick="select">Pilih</button><button type="button" data-quick="rectangle">Kotak +</button><button type="button" data-quick="arrow">Panah +</button><details class="replay-object-menu"><summary>Objek</summary><div class="replay-object-controls"><label class="drawing-repeat"><input type="checkbox" id="repeatDrawing" checked> Gambar berulang</label><select id="drawingObjects" aria-label="Daftar semua objek"><option value="">Pilih objek</option></select><button type="button" id="duplicateObject">Duplikat</button><button type="button" id="removeObject">Hapus</button><input id="objectColor" type="color" value="#60a5fa" aria-label="Warna objek"></div></details><button type="button" id="replayFullscreen" aria-pressed="false">Layar penuh</button>';
+    quick.innerHTML = '<button type="button" data-quick="pan">Geser</button><button type="button" data-quick="select">Pilih</button><button type="button" data-quick="rectangle">Kotak +</button><button type="button" data-quick="arrow">Panah +</button><details class="replay-object-menu"><summary>Objek</summary><div class="replay-object-controls"><label class="drawing-repeat"><input type="checkbox" id="repeatDrawing"> Gambar berulang</label><select id="drawingObjects" aria-label="Daftar semua objek"><option value="">Pilih objek</option></select><button type="button" id="replayFollow" aria-pressed="true">Ke cursor</button><button type="button" id="replayAutoPrice" aria-pressed="true">Auto harga</button><button type="button" id="redoObject">Ulangi edit</button><button type="button" id="duplicateObject">Duplikat</button><button type="button" id="removeObject">Hapus</button><input id="objectColor" type="color" value="#60a5fa" aria-label="Warna objek"></div></details><button type="button" id="replayFullscreen" aria-pressed="false">Layar penuh</button>';
     chart.container.parentNode.insertBefore(quick, chart.container);
     var list = byId('drawingObjects');
     chart.refreshObjectControls = function (state) {
@@ -120,14 +120,24 @@
         });
         list.dataset.objects = key;
       }
+      byId('replayFollow').setAttribute('aria-pressed', String(chart.followReplay));
       list.value = state.selectedId || '';
       byId('duplicateObject').disabled = byId('removeObject').disabled = !state.selectedId;
       byId('repeatDrawing').checked = chart.stayInDrawingMode;
-      quick.querySelectorAll('[data-quick]').forEach(function (button) { button.classList.toggle('active', button.dataset.quick === state.activeTool); });
+      quick.querySelectorAll('[data-quick]').forEach(function (button) { button.classList.toggle('active', button.dataset.quick === (state.activeTool || 'pan')); });
       var selected = chart.drawings.find(function (d) { return d.id === state.selectedId; });
       byId('objectColor').value = (selected && selected.style.color) || chart.drawingStyle.color || '#60a5fa';
     };
     quick.querySelectorAll('[data-quick]').forEach(function (button) { button.addEventListener('click', function () { chart.setTool(button.dataset.quick); }); });
+    byId('replayFollow').addEventListener('click', function () { chart.goToCursor(); });
+    byId('redoObject').addEventListener('click', function () { chart.redo(); });
+    byId('replayAutoPrice').addEventListener('click', function () {
+      var enabled = this.getAttribute('aria-pressed') !== 'true';
+      chart.chart.priceScale('right').applyOptions({ autoScale: enabled });
+      this.setAttribute('aria-pressed', String(enabled));
+      this.textContent = enabled ? 'Auto harga' : 'Harga manual';
+      chart.scheduleDrawingSync();
+    });
     list.addEventListener('change', function () { chart.selectDrawing(list.value); });
     byId('repeatDrawing').addEventListener('change', function (event) { chart.stayInDrawingMode = event.target.checked; chart.notify(event.target.checked ? 'Buat objek berulang. Pilih / Geser untuk mengedit.' : 'Selesai menggambar langsung masuk mode edit.'); });
     byId('duplicateObject').addEventListener('click', function () { chart.duplicateSelected(); });
@@ -193,3 +203,4 @@
     currentCandle: currentCandle, saveTrade: saveTrade, bindDrawingToolbar: bindDrawingToolbar
   });
 })(typeof window !== 'undefined' ? window : globalThis);
+

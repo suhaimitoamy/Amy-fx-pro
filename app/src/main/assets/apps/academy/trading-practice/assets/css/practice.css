@@ -176,3 +176,11 @@ body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):no
  .replay-object-controls { position:absolute; left:6px; right:6px; width:auto; max-width:none; box-sizing:border-box; }
  #replayWorkspace.is-fullscreen .practice-layout { height:100%; }
 }
+
+
+/* Gesture mode gives the entire plot, including drawings, to the chart. */
+.practice-chart-canvas { touch-action: none; overscroll-behavior: contain; }
+.practice-chart-overlay.is-panning, .practice-chart-overlay.is-panning * { pointer-events: none!important; }
+.practice-chart-overlay .practice-drawing > rect[pointer-events="stroke"] { pointer-events: stroke; }
+.practice-chart-overlay.is-drawing .practice-drawing-handle,
+.practice-chart-overlay.is-drawing .practice-drawing-handle-hit { pointer-events: none; }

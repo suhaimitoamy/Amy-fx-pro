@@ -382,3 +382,9 @@ Pro334 source fixes device-key dependency, backward/stale tick acceptance, UTC p
 ## 2026-09-09 — Pro334 release gate correction
 
 Release run 34341434298 stopped before APK creation because api-polling-coordinator.test.mjs still required the removed CDN stale cache policy. Updated that regression to require no-store on all three cache headers and bounded candle-close memory TTL; the targeted test file passes 11 checks. Keep published manifest333 until signed release succeeds.
+
+
+
+## 2026-09-09 — Pro335 replay navigation
+
+Pro335 fixes full-data replacement during forward replay, viewport displacement on rewind, drawing interception in gesture mode, competing secondary pointer edits, late seek responses and playback continuing at the final bar. Data changes wait for active object gestures to complete. Focused chart/fullscreen/replay regression tests pass; Android device touch behavior remains unobserved.

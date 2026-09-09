@@ -26,6 +26,8 @@
     this.startTime = null;
     this.timeline = [];
     this.playTimer = null;
+    this.requestSequence = 0;
+    this.movePending = false;
     this.speedMs = Number(options.speedMs || 900);
     this.onChange = typeof options.onChange === 'function' ? options.onChange : function () {};
     this.onEnd = typeof options.onEnd === 'function' ? options.onEnd : function () {};
@@ -51,6 +53,7 @@
 
   ReplayController.prototype.setTimeframe = async function (timeframe) {
     this.pause();
+    this.requestSequence += 1;
     this.timeframe = String(timeframe || 'M15').toUpperCase();
     await this.loadTimeline();
     if (this.cursor == null) this.cursor = this.timeline[Math.min(80, this.timeline.length - 1)];
@@ -59,6 +62,7 @@
 
   ReplayController.prototype.setSource = async function (sourceId, timestamp) {
     this.pause();
+    this.requestSequence += 1;
     this.sourceId = sourceId || null;
     this.cursor = null;
     this.startTime = null;
@@ -73,7 +77,7 @@
     var currentIndex = this.timeline[insertion] === this.cursor ? insertion : insertion - 1;
     var targetIndex = Math.max(0, Math.min(this.timeline.length - 1, currentIndex + Number(count || 0)));
     this.cursor = this.timeline[targetIndex];
-    if (targetIndex === this.timeline.length - 1 && Number(count || 0) > 0) this.onEnd();
+    if (targetIndex === this.timeline.length - 1 && Number(count || 0) > 0) { this.pause(); this.onEnd(); }
     return this.emit(count < 0 ? 'previous' : 'advance', previous);
   };
 
@@ -91,12 +95,17 @@
   };
 
   ReplayController.prototype.emit = async function (reason, previousCursor) {
+    var sequence = ++this.requestSequence;
+    var cursor = this.cursor;
+    var timeframe = this.timeframe;
+    var sourceId = this.sourceId;
     var result = await this.provider.getCandles({
       symbol: this.symbol,
       timeframe: this.timeframe,
       sourceId: this.sourceId,
-      cursor: this.cursor
+      cursor: cursor
     });
+    if (sequence !== this.requestSequence || cursor !== this.cursor || timeframe !== this.timeframe || sourceId !== this.sourceId) return null;
     this.sourceId = result.sourceId || this.sourceId;
     if (result.candles.some(function (candle) { return candle.time > this.cursor || Number(candle.lastSourceTime || candle.time) > this.cursor; }, this)) {
       throw new Error('NO FUTURE LEAK invariant gagal.');
@@ -121,7 +130,9 @@
     var self = this;
     if (self.playTimer) return;
     self.playTimer = setInterval(function () {
-      self.move(1).catch(function () { self.pause(); });
+      if (self.movePending) return;
+      self.movePending = true;
+      self.move(1).catch(function () { self.pause(); self.onEnd(); }).finally(function () { self.movePending = false; });
     }, self.speedMs);
   };
 
@@ -137,7 +148,8 @@
     if (wasPlaying) this.play();
   };
 
-  ReplayController.prototype.destroy = function () { this.pause(); };
+  ReplayController.prototype.destroy = function () { this.pause(); this.requestSequence += 1; };
 
   root.AmyReplayEngine = Object.freeze({ ReplayController: ReplayController, lowerBound: lowerBound });
 })(typeof window !== 'undefined' ? window : globalThis);
+

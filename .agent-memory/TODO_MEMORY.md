@@ -55,3 +55,9 @@ Pro332 release completed: GitHub Actions run 34301702033 succeeded, including Ja
 ## 2026-09-09 — Pro334 server-owned live price
 
 Pro334 source 2.0.0-pro.334 / 950334: push triggers existing signed APK workflow; keep update.json on published333 until CI activation. Confirm Vercel deployment has TWELVEDATA_API_KEY with XAU/USD WebSocket entitlement and observe stream on device; no credential value is copied into source.
+
+
+
+## 2026-09-09 — Pro335 replay navigation
+
+After Pro335 release, verify one/two-finger gestures, drawing-edge resizing, free pan over rectangles, portrait/landscape fullscreen and update notification on the reporting Android device. Browser access to local preview was blocked in this session. Full TradingView feature parity (including its proprietary indicators/layouts and complete drawing settings) remains outside this implemented release.
