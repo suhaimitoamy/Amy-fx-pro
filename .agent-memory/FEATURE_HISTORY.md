@@ -171,3 +171,6 @@ Pro332 release completed: GitHub Actions run 34301702033 succeeded, including Ja
 ## 2026-09-09 — Pro335 replay navigation
 
 Pro335 adds explicit Geser, return-to-cursor/follow, auto/manual price scale, redo (Ctrl/Cmd+Shift+Z), and Ctrl/Cmd+Z undo. Replay defaults to one-shot drawings with repeat still available. Existing drawing tools and fullscreen remain. This improves TradingView-style interactions; full TradingView feature parity is not claimed.
+
+
+Pro335 release completed: commit 9d57a417d15b7774d04b26ec680a164240f35494, signed release workflow 34371918736 and lint workflow 34371918728 both succeeded. Active update.json is enabled at 2.0.0-pro.335 / 950335. APK asset digest matches manifest SHA-256 6c5815bf444b08e826032e8acdd3c8bbcf548098d06e069262627192caa4f49c. Release notes now describe replay navigation changes. No trading backtest was run. Actual Android gestures and receipt of the native update notification remain unobserved.
