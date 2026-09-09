@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.335/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.336/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Candle Replay: geser dan zoom tetap stabil saat candle bertambah atau replay dimundurkan.",
-    "Mode Geser melewati objek; Pilih untuk edit tepi dan pegangan gambar.",
-    "Ke cursor, skala harga otomatis/manual, serta undo dan redo gambar.",
-    "Respons replay terlambat diabaikan dan playback berhenti pada candle terakhir."
+    "Candle Replay: usapan ke bawah tidak lagi memicu tarik-untuk-refresh Android.",
+    "Gesture chart dan objek tetap ditangani replay dalam tampilan biasa maupun layar penuh.",
+    "Proteksi refresh tetap aktif setelah aplikasi kembali dari background."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.335/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.336/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950335,
-  "latest_version_name": "2.0.0-pro.335",
+  "latest_version_code": 950336,
+  "latest_version_name": "2.0.0-pro.336",
   "mandatory": false,
   "releaseDate": "2026-09-09",
   "release_notes": [
-    "Candle Replay: geser dan zoom tetap stabil saat candle bertambah atau replay dimundurkan.",
-    "Mode Geser melewati objek; Pilih untuk edit tepi dan pegangan gambar.",
-    "Ke cursor, skala harga otomatis/manual, serta undo dan redo gambar.",
-    "Respons replay terlambat diabaikan dan playback berhenti pada candle terakhir."
+    "Candle Replay: usapan ke bawah tidak lagi memicu tarik-untuk-refresh Android.",
+    "Gesture chart dan objek tetap ditangani replay dalam tampilan biasa maupun layar penuh.",
+    "Proteksi refresh tetap aktif setelah aplikasi kembali dari background."
   ],
-  "sha256": "6c5815bf444b08e826032e8acdd3c8bbcf548098d06e069262627192caa4f49c",
-  "version": "2.0.0-pro.335",
-  "versionCode": 950335
+  "sha256": "86cd65759077485b5b4fcf509b6f8f4041b66ed85a9a801f29030d348c034dbc",
+  "version": "2.0.0-pro.336",
+  "versionCode": 950336
 }
