@@ -2,39 +2,73 @@
 
 ## Identitas dan kontinuitas
 
-Amy FX Pro berasal dari Amy FX Preview di branch `personal/amyfx-private`; baseline Pro awal `2.0.0-pro.316`. Package `com.amyelitesuite.learningpreview` dan signer dipertahankan untuk pembaruan tanpa uninstall. Kanal aktif tetap `Amy-fx-pro/main/update.json`. Kandidat Pro331 memperbaiki build resource Indonesia dan menyinkronkan identitas updater. Aktivasi manifest menunggu APK signed lolos CI.
+Amy FX Pro merupakan jalur utama pengembangan aplikasi trading **Amy FX Pro** dengan engine dan runtime yang dikembangkan secara berkelanjutan.
 
+Baseline awal Pro berasal dari `Amy FX Preview` pada branch `personal/amyfx-private` dengan versi `2.0.0-pro.316`. Identitas aplikasi, package `com.amyelitesuite.learningpreview`, dan signer dipertahankan untuk mendukung pembaruan tanpa uninstall.
 
-Amy FX Pro adalah jalur utama aplikasi **Amy FX Pro** dengan engine dan runtime yang dikembangkan secara berkelanjutan.
+Kanal pembaruan:
+
+```
+Amy-fx-pro/main/update.json
+```
 
 ## Current Version
 
-> **Latest update:** `Amy FX Pro v331 (source)`
-> **Update date:** 5 September 2026
+> **Latest source:** `Amy FX Pro v331`
+> **Source update:** 5 September 2026
+> **Branch:** `main`
 
-## Status Utama
+## Production Status
 
-`main` adalah branch produksi utama Amy FX Pro.
+Branch `main` merupakan jalur produksi utama Amy FX Pro.
 
-Versi terbaru membawa update runtime dan validasi terbaru dari jalur Pro. Engine tetap mempertahankan prinsip:
+Versi terbaru mempertahankan arsitektur inti:
 
-- canonical Mapping sebagai sumber utama data struktur;
-- pemrosesan candle tertutup secara sequential;
-- tidak menggunakan future candle, interpolation, atau synthetic candle;
-- consumer seperti scanner, Entry Watch, lifecycle, dan notifikasi membaca canonical state;
-- live market feed bersifat display/update data dan tidak mengubah historical Mapping secara sepihak.
+- Canonical Mapping sebagai sumber utama struktur market.
+- Pemrosesan candle tertutup secara sequential.
+- Tidak menggunakan future candle, interpolation, atau synthetic candle.
+- Scanner, Entry Watch, lifecycle, dan notifikasi membaca canonical state.
+- Live market feed hanya melakukan update tampilan/data realtime dan tidak mengubah historical Mapping secara sepihak.
 
-## Identitas Amy FX Pro
+## Feature Update v331
+
+### Candle Replay
+
+- Unlimited drawing object.
+- Seleksi objek langsung.
+- Delapan pegangan resize untuk objek box.
+- Arrow dapat diperpanjang ke area kosong.
+- Object list dan duplikasi objek.
+- Fullscreen replay mode.
+- Future candle tetap dibatasi oleh replay engine.
+
+### News Engine
+
+- Perbaikan validasi bahasa hasil terjemahan.
+- Teks gagal diterjemahkan tidak lagi dipaksa dianggap sebagai Bahasa Indonesia.
+- Sinkronisasi ulang berita lama tersedia untuk menjaga konsistensi data.
+
+## Technical Identity
 
 | Properti | Nilai |
 |---|---|
-| Nama aplikasi | `Amy FX Pro` |
-| Branch utama | `main` |
-| Current version | `v331` (source) |
-| Update channel | `Amy-fx-pro/main/update.json` |
+| Nama aplikasi | Amy FX Pro |
+| Branch utama | main |
+| Current version | v331 |
+| Update channel | Amy-fx-pro/main/update.json |
+| Package continuity | com.amyelitesuite.learningpreview |
 
-## Perubahan sumber 331
+## Build Status
 
-Candle Replay: gambar berulang tanpa batas jumlah objek dalam kode, seleksi langsung, delapan pegangan kotak, panah yang dapat diperpanjang ke ruang kosong, daftar objek, duplikasi, dan fullscreen. Future candle tetap dipotong oleh replay engine. News: gagal terjemah tidak lagi dianggap sebagai teks Indonesia; sinkronisasi mencoba lagi berita lama.
+Source `2.0.0-pro.331` / `950331` merupakan source release terbaru.
 
-Sumber `2.0.0-pro.331` / `950331` menunggu build signed CI. Update manifest tetap menunjuk versi terakhir yang benar-benar terbit sampai APK331 berhasil dipublikasikan.
+Manifest update tetap mengarah ke versi yang benar-benar terbit sampai APK signed berhasil dipublikasikan melalui CI.
+
+## Development Principle
+
+Amy FX Pro dikembangkan dengan prinsip:
+
+- Data market harus deterministic.
+- Historical structure tidak boleh berubah karena data masa depan.
+- Semua engine consumer harus membaca sumber canonical yang sama.
+- Setiap fitur baru wajib menjaga kompatibilitas runtime dan kontinuitas aplikasi.
