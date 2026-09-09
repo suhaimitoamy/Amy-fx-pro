@@ -1,11 +1,11 @@
 {
-  "latest_version_code": 950333,
-  "latest_version_name": "2.0.0-pro.333",
-  "versionCode": 950333,
-  "version": "2.0.0-pro.333",
+  "latest_version_code": 950334,
+  "latest_version_name": "2.0.0-pro.334",
+  "versionCode": 950334,
+  "version": "2.0.0-pro.334",
   "releaseDate": "2026-09-09",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.333/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.333/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.334/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.334/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
@@ -19,5 +19,5 @@
     "Workspace chart ringkas dengan menu alat dan objek.",
     "Tampilan seluruh modul lebih rapi, konsisten, dan minim teks berulang."
   ],
-  "sha256": "7846682782c76044205bef1dfae754f2a227b846869a23e60dd896ad15df740d"
+  "sha256": "7ce96cd2a2febbe9d7ede6485ca1abc7919f10f28051566156251090e57bc853"
 }
