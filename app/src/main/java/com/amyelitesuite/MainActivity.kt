@@ -73,6 +73,7 @@ class MainActivity : Activity() {
     private lateinit var twelveDataPriceBridge: TwelveDataPriceBridge
     private lateinit var assetLoader: WebViewAssetLoader
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private var refreshPageUrl: String? = null
     private lateinit var rootLayout: FrameLayout
     private lateinit var permissionGate: LinearLayout
     private lateinit var batteryStatusText: TextView
@@ -183,11 +184,19 @@ class MainActivity : Activity() {
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val uri = request?.url ?: return true
-                if (isTrustedLocalUri(uri)) return false
+                if (isTrustedLocalUri(uri)) {
+                    if (request.isForMainFrame) updateRefreshPolicy(uri.toString())
+                    return false
+                }
                 if (uri.scheme == "https" || uri.scheme == "http") {
                     try { startActivity(Intent(Intent.ACTION_VIEW, uri)) } catch (_: Exception) {}
                 }
                 return true
+            }
+
+            override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                updateRefreshPolicy(url)
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -204,8 +213,16 @@ class MainActivity : Activity() {
             }
         }
 
+        swipeRefreshLayout.setOnChildScrollUpCallback { _, _ ->
+            // Native interception happens before DOM touch-action/preventDefault.
+            isReplayRefreshBlocked() || webView.canScrollVertically(-1)
+        }
         swipeRefreshLayout.setOnRefreshListener {
-            webView.reload()
+            if (isReplayRefreshBlocked()) {
+                swipeRefreshLayout.isRefreshing = false
+            } else {
+                webView.reload()
+            }
         }
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
@@ -424,6 +441,17 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun isReplayRefreshBlocked(): Boolean =
+        ReplayRefreshPolicy.blocksPullToRefresh(refreshPageUrl) ||
+            ReplayRefreshPolicy.blocksPullToRefresh(webView.url)
+
+    private fun updateRefreshPolicy(url: String? = refreshPageUrl) {
+        refreshPageUrl = url
+        val enabled = !ReplayRefreshPolicy.blocksPullToRefresh(url)
+        swipeRefreshLayout.isEnabled = enabled
+        if (!enabled) swipeRefreshLayout.isRefreshing = false
+    }
+
     private fun updatePermissionGate(forceToast: Boolean = false) {
         if (!::permissionGate.isInitialized) return
 
@@ -436,7 +464,7 @@ class MainActivity : Activity() {
 
         // Izin background tidak boleh memblokir halaman Mapping atau modul lain.
         permissionGate.visibility = View.GONE
-        swipeRefreshLayout.isEnabled = true
+        updateRefreshPolicy()
 
         if (forceToast) {
             val message = if (notificationOk && batteryOk) {

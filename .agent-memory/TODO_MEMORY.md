@@ -61,3 +61,8 @@ Pro334 source 2.0.0-pro.334 / 950334: push triggers existing signed APK workflow
 ## 2026-09-09 — Pro335 replay navigation
 
 After Pro335 release, verify one/two-finger gestures, drawing-edge resizing, free pan over rectangles, portrait/landscape fullscreen and update notification on the reporting Android device. Browser access to local preview was blocked in this session. Full TradingView feature parity (including its proprietary indicators/layouts and complete drawing settings) remains outside this implemented release.
+
+
+## 2026-09-09 — Pro336
+
+Confirm on the reporting Android device that downward swipes in replay (normal/fullscreen, chart/object, after background/resume) never show native refresh; navigating home must restore normal pull-to-refresh. Pro335's native refresh issue is addressed by Pro336 source, with signed release verification pending.

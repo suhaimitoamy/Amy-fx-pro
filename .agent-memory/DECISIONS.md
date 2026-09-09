@@ -284,3 +284,8 @@ Pro334 moves provider WebSocket ownership to api/live-price.js on Vercel (Node22
 ## 2026-09-09 — Pro335 replay navigation
 
 Replay uses incremental series updates for an unchanged prefix; full replacements preserve the immediate logical viewport. Native pan/pinch suspends following; Ke cursor restores following without resetting zoom. Explicit Geser mode makes all drawing SVG pointer-transparent. Rectangle interiors pass through; borders and handles remain editable. Keep the existing signed release pipeline and activate update.json only after artifact verification.
+
+
+## 2026-09-09 — Pro336 native replay refresh ownership
+
+Disable native SwipeRefreshLayout for the exact Candle Replay route at main-frame navigation/start. The child-scroll callback and refresh listener also guard the active replay URL. Permission/resume updates reuse the route policy instead of unconditionally enabling refresh. Other pages retain normal pull-to-refresh. Source is 2.0.0-pro.336 / 950336; existing signed CI activates update.json only after APK verification.

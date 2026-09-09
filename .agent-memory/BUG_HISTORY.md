@@ -388,3 +388,8 @@ Release run 34341434298 stopped before APK creation because api-polling-coordina
 ## 2026-09-09 — Pro335 replay navigation
 
 Pro335 fixes full-data replacement during forward replay, viewport displacement on rewind, drawing interception in gesture mode, competing secondary pointer edits, late seek responses and playback continuing at the final bar. Data changes wait for active object gestures to complete. Focused chart/fullscreen/replay regression tests pass; Android device touch behavior remains unobserved.
+
+
+## 2026-09-09 — Replay downward swipe triggers native refresh
+
+The Pro335 device screenshot exposes the native SwipeRefreshLayout spinner. CSS touch-action cannot stop Android parent interception; updatePermissionGate also re-enabled refresh on resume. Pro336 adds a native exact-route policy, pre-navigation/page-start disable, child-scroll interception guard, reload callback guard and resume-safe restoration. Kotlin tests cover replay routes, queries/fragments, normal-page restoration and malformed URLs. Android CI owns compilation and test execution; device verification remains pending. No trading backtest.

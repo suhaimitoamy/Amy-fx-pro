@@ -266,7 +266,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Candle Replay: perbaikan fullscreen dan tombol keluar.','Workspace chart ringkas dengan menu alat dan objek.','Tampilan seluruh modul lebih rapi, konsisten, dan minim teks berulang.']
+          notes=['Candle Replay: usapan ke bawah tidak lagi memicu tarik-untuk-refresh Android.','Gesture chart dan objek tetap ditangani replay dalam tampilan biasa maupun layar penuh.','Proteksi refresh tetap aktif setelah aplikasi kembali dari background.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE
