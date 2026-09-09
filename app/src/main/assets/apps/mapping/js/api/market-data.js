@@ -23,7 +23,7 @@ let analysisController = null;
 let analysisInFlight = null;
 
 const PROXY_URL = 'https://amy-fx.vercel.app/api/twelvedata';
-const LIVE_TICK_HARD_TTL_MS = 180_000;
+const LIVE_TICK_HARD_TTL_MS = 45_000;
 const LIVE_RECONNECT_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
 function normalizedMarketTimestamp(value) {
@@ -819,11 +819,11 @@ export async function fetchTf(tf, { signal } = {}) {
     if (data.status === 'error') throw new Error(data.message || 'Fetch gagal');
     const payloadQuality = assertBackendPayloadFresh(data, `Candle ${tf}`);
 
-    const raw = (data.values || []).reverse();
+    const raw = (data.values || []).filter(c => !c.amyfxSyntheticCurrent).slice().reverse();
     const closeCutoff = Date.now() - 10_000;
     const duration = timeframeDurationMs(tf);
     const candles = raw.map(c => ({
-      time: new Date(c.datetime).getTime() / 1000,
+      time: normalizedMarketTimestamp(c.datetime) / 1000,
       timeframe: tf,
       open: +c.open,
       high: +c.high,
@@ -1131,6 +1131,7 @@ function applyLivePriceTick(detail) {
     return false;
   }
 
+  if (capturedAt < Math.max(lastWsTickAt, Number(localStorage.getItem('last_ws_tick_at') || 0))) return false;
   lastWsTickAt = capturedAt;
   localStorage.setItem('last_ws_tick_at', String(lastWsTickAt));
   localStorage.setItem('last_price', String(price));

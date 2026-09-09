@@ -4,5 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node tools/run-tests-sequential.mjs"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

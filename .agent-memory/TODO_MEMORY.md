@@ -50,3 +50,8 @@ Pro332: signed APK build and automatic manifest activation pending at source com
 
 
 Pro332 release completed: GitHub Actions run 34301702033 succeeded, including JavaScript regression, Android unit/lint/build, signing identity and published endpoint verification. Active public update.json is 2.0.0-pro.332 / 950332, enabled=true. Published APK SHA-256 62bd08b231bef85e768af95b50540ecfe3e0d6b3e71a77dbc670da18f4e297f1 matches the release asset digest. Earlier build/activation pending status is resolved. Actual device notification and WebView visual checks remain unobserved.
+
+
+## 2026-09-09 — Pro334 server-owned live price
+
+Pro334 source 2.0.0-pro.334 / 950334: push triggers existing signed APK workflow; keep update.json on published333 until CI activation. Confirm Vercel deployment has TWELVEDATA_API_KEY with XAU/USD WebSocket entitlement and observe stream on device; no credential value is copied into source.

@@ -372,3 +372,8 @@ Pro332 release completed: GitHub Actions run 34301702033 succeeded, including Ja
 - **Cause:** Fullscreen changed `.practice-layout` to flex but retained the base `align-items: start`; the chart column therefore used only intrinsic content height and the absolutely positioned chart collapsed to zero height.
 - **Fix:** Fullscreen now stretches the chart column through the available viewport height. Mobile drawing actions wrap, and the object popover is bounded to the workspace viewport with border-box sizing.
 - **Scope:** Presentation/layout only. Replay state, candle data, drawings, and trading calculations are unchanged.
+
+
+## 2026-09-09 — Pro334 server-owned live price
+
+Pro334 source fixes device-key dependency, backward/stale tick acceptance, UTC parsing and synthetic sentinel ingestion. Candle proxy disables CDN stale serving, bounds memory TTL at candle close + grace, and avoids caching stale Edge fallback as fresh. A degraded Edge response attempts the configured Vercel provider before preserving fallback. Targeted checks only; real-device/deployed stream still needs observation.

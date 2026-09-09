@@ -51,13 +51,11 @@ function marketOutlookPlaceholder() {
 }
 
 function livePriceKeyCard() {
-  if (state.conn !== 'Key Required') return '';
+  if (state.conn !== 'Key Required' && state.conn !== 'Offline') return '';
   return `<section class="card" data-stability-key="live-price-websocket-key">
-    <div class="kicker">HARGA LIVE · TWELVE DATA WEBSOCKET</div>
-    <h2>Hubungkan harga XAU/USD</h2>
-    <p class="muted">Hubungkan Twelve Data untuk mengaktifkan harga live. Key disimpan terenkripsi di perangkat.</p>
-    <input id="apiKey" type="password" autocomplete="off" placeholder="Twelve Data API Key">
-    <button class="action" onclick="window.saveConnect()" style="width:100%;margin-top:10px">Hubungkan Harga Live</button>
+    <h2>Harga live belum tersambung</h2>
+    <p class="muted">Harga terakhir belum diperbarui. Koneksi akan dicoba kembali otomatis.</p>
+    <button class="action" onclick="window.saveConnect()">Coba lagi</button>
   </section>`;
 }
 

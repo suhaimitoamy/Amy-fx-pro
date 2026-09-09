@@ -22,7 +22,7 @@ val configuredAppLabel = System.getenv("AMYFX_APP_LABEL") ?: "Amy FX Pro"
 val configuredUriScheme = System.getenv("AMYFX_URI_SCHEME") ?: "amyfxpreview"
 val configuredUpdateManifestUrl = System.getenv("AMYFX_UPDATE_MANIFEST_URL")
     ?: "https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json"
-val configuredTwelveDataApiKey = System.getenv("TWELVEDATA_API_KEY").orEmpty()
+val configuredTwelveDataApiKey = "" // Provider credential is server-only.
 
 android {
     namespace = "com.amyelitesuite"
@@ -32,8 +32,8 @@ android {
         applicationId = configuredApplicationId
         minSdk = 26
         targetSdk = 35
-        versionCode = (System.getenv("AMYFX_VERSION_CODE")?.toIntOrNull() ?: 950333)
-        versionName = System.getenv("AMYFX_VERSION_NAME") ?: "2.0.0-pro.333"
+        versionCode = (System.getenv("AMYFX_VERSION_CODE")?.toIntOrNull() ?: 950334)
+        versionName = System.getenv("AMYFX_VERSION_NAME") ?: "2.0.0-pro.334"
         manifestPlaceholders["appLabel"] = configuredAppLabel
         manifestPlaceholders["amyFxScheme"] = configuredUriScheme
         buildConfigField("String", "UPDATE_MANIFEST_URL", buildConfigString(configuredUpdateManifestUrl))

@@ -56,8 +56,8 @@ test('Twelve Data WebSocket credentials stay out of source and WebView storage',
   assert.doesNotMatch(native, /SecurePrefs\.putString\(mContext, "api_key"/);
   assert.match(native, /SecurePrefs\.remove\(mContext, "api_key"\)/);
   assert.match(native, /addJavascriptInterface\(twelveDataPriceBridge, "AmyLivePrice"\)/);
-  assert.match(priceBridge, /SecurePrefs\.putString\(appContext, PREF_WEBSOCKET_API_KEY, apiKey\)/);
-  assert.match(priceBridge, /BuildConfig\.TWELVE_DATA_API_KEY/);
+  assert.doesNotMatch(priceBridge, /SecurePrefs\.putString|configuredApiKey/);
+  assert.doesNotMatch(priceBridge, /BuildConfig\.TWELVE_DATA_API_KEY/);
   assert.match(priceBridge, /fun hasApiKey\(\): Boolean/);
   assert.doesNotMatch(priceBridge, /fun (?:get|read|export)ApiKey\(/);
 });
