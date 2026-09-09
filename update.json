@@ -1,23 +1,23 @@
 {
-  "latest_version_code": 950331,
-  "latest_version_name": "2.0.0-pro.331",
-  "versionCode": 950331,
-  "version": "2.0.0-pro.331",
-  "releaseDate": "2026-09-08",
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.331/AmyFX-Pro-latest.apk",
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.331/AmyFX-Pro-latest.apk",
+  "latest_version_code": 950332,
+  "latest_version_name": "2.0.0-pro.332",
+  "versionCode": 950332,
+  "version": "2.0.0-pro.332",
+  "releaseDate": "2026-09-09",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.332/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.332/AmyFX-Pro-latest.apk",
   "force_update": false,
   "mandatory": false,
   "enabled": true,
   "release_notes": [
-    "Candle Replay: gambar berulang, pemilihan objek dan resize bebas.",
-    "Fullscreen, daftar objek dan duplikat gambar.",
-    "Perbaikan terjemahan berita Bahasa Indonesia."
+    "Candle Replay: perbaikan fullscreen dan tombol keluar.",
+    "Workspace chart ringkas dengan menu alat dan objek.",
+    "Tampilan seluruh modul lebih rapi, konsisten, dan minim teks berulang."
   ],
   "changelog": [
-    "Candle Replay: gambar berulang, pemilihan objek dan resize bebas.",
-    "Fullscreen, daftar objek dan duplikat gambar.",
-    "Perbaikan terjemahan berita Bahasa Indonesia."
+    "Candle Replay: perbaikan fullscreen dan tombol keluar.",
+    "Workspace chart ringkas dengan menu alat dan objek.",
+    "Tampilan seluruh modul lebih rapi, konsisten, dan minim teks berulang."
   ],
-  "sha256": "b59e448d3e1f1c6a3462484916b7a9fa80467001008a23b4ecfc9ba45c863f43"
+  "sha256": "62bd08b231bef85e768af95b50540ecfe3e0d6b3e71a77dbc670da18f4e297f1"
 }
