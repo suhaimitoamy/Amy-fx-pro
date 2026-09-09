@@ -359,3 +359,8 @@ Release gate resolved: the old parity assertion still counted 10 base methods; u
 ## 2026-09-06 — Pro329
 
 Pro329 source fix: coordinateToTime returned null beyond available candles, and drawing timestamps were clamped to replay cursor, preventing extension/drawing in empty chart space. Added logical-coordinate projection, rectangle corner/edge handles, tap selection and repeat drawing mode. Translation failures previously returned the source text, which was persisted as Indonesian and never retried. Sync now retries public Telegram posts in rotating batches and stores an empty translation on failure. No tests/backtests or post-change verification performed, per user request.
+
+
+## 2026-09-09 — Pro332
+
+Pro332 fixes fixed fullscreen being trapped by the Academy fadeInUp transform, overflowing object controls, fallback cancellation on unrelated fullscreen events, and annotation editors hidden behind fullscreen. Four focused fullscreen state tests pass; existing 122-file regression suite passes. Browser rendering could not be checked locally because no browser executable is installed and download timed out.

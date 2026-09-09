@@ -62,7 +62,7 @@ body.practice-page { background: var(--practice-bg); color: var(--practice-text)
 .drawing-menu-grid button { min-width:0; text-align:left; }
 .drawing-menu-grid button:disabled { opacity:.42; cursor:not-allowed; }
 .drawing-menu-help { grid-column:1 / -1; padding:8px 9px; border-radius:8px; background:rgba(45,212,191,.07); color:var(--practice-muted); font-size:.75rem; line-height:1.4; }
-.practice-drawing-editor { position:fixed; z-index:2147483000; left:50%; bottom:16px; bottom:max(16px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(420px, calc(100vw - 24px)); max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow:auto; display:grid; gap:10px; padding:14px; border:1px solid #38bdf8; border-radius:14px; background:#0e1622; box-shadow:0 18px 54px rgba(0,0,0,.72); }
+.practice-drawing-editor { position:fixed; z-index:2147483647; left:50%; bottom:16px; bottom:max(16px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(420px, calc(100vw - 24px)); max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow:auto; display:grid; gap:10px; padding:14px; border:1px solid #38bdf8; border-radius:14px; background:#0e1622; box-shadow:0 18px 54px rgba(0,0,0,.72); }
 .practice-drawing-editor label { color:#e8eef7; font-size:.78rem; font-weight:800; }
 .practice-drawing-editor textarea { min-height:86px; resize:vertical; border:1px solid #314159; border-radius:8px; background:#080e17; color:#e8eef7; padding:10px; font:inherit; }
 .practice-drawing-editor div { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
@@ -146,7 +146,7 @@ body.practice-page { background: var(--practice-bg); color: var(--practice-text)
 .replay-drawing-actions input[type=color] { width:38px; height:36px; padding:2px; }
 .drawing-repeat { display:flex; gap:5px; align-items:center; font-size:12px; }
 body.replay-fullscreen { overflow:hidden!important; }
-body.replay-fullscreen > :not(main):not(script) { visibility:hidden!important; }
+body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):not(script) { visibility:hidden!important; }
 #replayWorkspace.is-fullscreen { position:fixed; inset:0; z-index:2147483646; background:#070b12; width:100%; height:100vh; height:100dvh; padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left)); box-sizing:border-box; display:flex; flex-direction:column; gap:4px; overflow:hidden; }
 #replayWorkspace.is-fullscreen .practice-toolbar { margin:0; padding:4px; gap:6px; flex:none; }
 #replayWorkspace.is-fullscreen .practice-toolbar > label:first-child { display:none; }

@@ -157,3 +157,8 @@ Pro328 released: signed APK and update manifest 950328 verified, GitHub Actions 
 ## 2026-09-06 — Pro329
 
 Pro329 source prepared: replay repeat mode, two-tap/drag drawing, direct object selection, eight rectangle resize handles, projections, object list, duplicate/delete/color controls, fullscreen including Android WebView CSS fallback. Source version 2.0.0-pro.329 / 950329. Supabase news-sync v11 deployed from public Telegram text; no manual invocation/post-deployment verification. GitHub connection is unavailable in this session, so commit publishing and APK329 release remain pending. Existing update.json remains328.
+
+
+## 2026-09-09 — Pro332
+
+Pro332 source: compact Replay heading, persistent fullscreen exit, object popover, data/help disclosures, concise copy, shared flat surfaces/spacing/typography for Home, Mapping, Market Intel, Journal and Academy, and collapsible Academy course summaries. Trading calculations, candle sources, history and notification ownership are unchanged.

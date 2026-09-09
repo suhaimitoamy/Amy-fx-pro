@@ -1,6 +1,6 @@
 // Amy FX Pro — based on Amy FX Preview 316 canonical Amy-SMC-D closed-candle Mapping engine.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-pro.331', code: 950331 });
+  const VERSION = Object.freeze({ name: '2.0.0-pro.332', code: 950332 });
   window.AmyFXAppVersion = VERSION;
   window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
   function displayVersionName(name) {
@@ -8,7 +8,7 @@
   }
 
   function versionText() {
-    return `Amy FX Pro · v${displayVersionName(VERSION.name)} · Kode ${VERSION.code}`;
+    return `Amy FX Pro · v${displayVersionName(VERSION.name)}`;
   }
 
   function injectVersionRow() {

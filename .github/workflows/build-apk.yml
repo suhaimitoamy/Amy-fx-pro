@@ -214,10 +214,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Candle Replay: gambar berulang, tap untuk memilih, resize bebas, duplikat dan daftar objek.
-          - Fullscreen dengan fallback Android WebView; data candle replay tetap terlindungi.
-          - Pemulihan terjemahan berita Indonesia dan percobaan ulang terjemahan yang gagal.
-          - Rilis 329 tanpa test/backtest/verifikasi tambahan sesuai permintaan.
+          - Candle Replay: perbaikan fullscreen Android WebView dan tombol keluar yang selalu terlihat.
+          - Workspace chart ringkas dengan pengaturan objek dalam menu.
+          - Penyegaran tampilan seluruh modul dan pengurangan teks berulang.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
@@ -267,7 +266,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Candle Replay: gambar berulang, pemilihan objek dan resize bebas.','Fullscreen, daftar objek dan duplikat gambar.','Perbaikan terjemahan berita Bahasa Indonesia.']
+          notes=['Candle Replay: perbaikan fullscreen dan tombol keluar.','Workspace chart ringkas dengan menu alat dan objek.','Tampilan seluruh modul lebih rapi, konsisten, dan minim teks berulang.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

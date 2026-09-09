@@ -104,7 +104,7 @@
     var workspace = byId('replayWorkspace');
     var quick = document.createElement('div');
     quick.className = 'replay-drawing-actions';
-    quick.innerHTML = '<button type="button" data-quick="select">Pilih / Geser</button><button type="button" data-quick="rectangle">Kotak +</button><button type="button" data-quick="arrow">Panah +</button><label class="drawing-repeat"><input type="checkbox" id="repeatDrawing" checked> Gambar berulang</label><select id="drawingObjects" aria-label="Daftar semua objek"><option value="">Pilih objek</option></select><button type="button" id="duplicateObject">Duplikat</button><button type="button" id="removeObject">Hapus</button><input id="objectColor" type="color" value="#60a5fa" aria-label="Warna objek"><button type="button" id="replayFullscreen" aria-pressed="false">Layar penuh</button>';
+    quick.innerHTML = '<button type="button" data-quick="select">Pilih</button><button type="button" data-quick="rectangle">Kotak +</button><button type="button" data-quick="arrow">Panah +</button><details class="replay-object-menu"><summary>Objek</summary><div class="replay-object-controls"><label class="drawing-repeat"><input type="checkbox" id="repeatDrawing" checked> Gambar berulang</label><select id="drawingObjects" aria-label="Daftar semua objek"><option value="">Pilih objek</option></select><button type="button" id="duplicateObject">Duplikat</button><button type="button" id="removeObject">Hapus</button><input id="objectColor" type="color" value="#60a5fa" aria-label="Warna objek"></div></details><button type="button" id="replayFullscreen" aria-pressed="false">Layar penuh</button>';
     chart.container.parentNode.insertBefore(quick, chart.container);
     var list = byId('drawingObjects');
     chart.refreshObjectControls = function (state) {
@@ -135,31 +135,55 @@
     byId('objectColor').addEventListener('change', function (event) { chart.setDrawingStyle({color:event.target.value}); });
     var full = byId('replayFullscreen');
     var scrollY = 0;
+    var placeholder = document.createComment('replay workspace position');
+    var nativeActive = false;
     function layout(enabled) {
-      if (enabled && !document.body.classList.contains('replay-fullscreen')) scrollY = root.scrollY;
+      if (enabled === workspace.classList.contains('is-fullscreen')) return;
+      if (enabled) {
+        scrollY = root.scrollY;
+        workspace.parentNode.insertBefore(placeholder, workspace);
+        // Academy's animated container retains a transform, trapping fixed children.
+        // Move the existing nodes, preserving the chart, listeners and drawing state.
+        document.body.appendChild(workspace);
+      } else if (placeholder.parentNode) {
+        placeholder.parentNode.replaceChild(workspace, placeholder);
+      }
       document.body.classList.toggle('replay-fullscreen', enabled);
       workspace.classList.toggle('is-fullscreen', enabled);
-      full.textContent = enabled ? 'Keluar layar penuh' : 'Layar penuh';
+      full.textContent = enabled ? 'Keluar' : 'Layar penuh';
+      full.setAttribute('aria-label', enabled ? 'Keluar layar penuh' : 'Buka layar penuh');
       full.setAttribute('aria-pressed', String(enabled));
-      root.requestAnimationFrame(function () { chart.resize(); if (!enabled) root.scrollTo(0, scrollY); });
+      root.requestAnimationFrame(function () {
+        chart.resize();
+        if (!enabled) root.scrollTo(0, scrollY);
+        full.focus({ preventScroll: true });
+      });
     }
     function leaveFullscreen() {
-      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      if (document.fullscreenElement === workspace && document.exitFullscreen) {
+        try { Promise.resolve(document.exitFullscreen()).catch(function () {}); } catch (_) {}
+      }
+      nativeActive = false;
       layout(false);
     }
     full.addEventListener('click', function () {
       if (workspace.classList.contains('is-fullscreen')) { leaveFullscreen(); return; }
-      // Fixed viewport remains usable in Android WebViews without the Fullscreen API.
       layout(true);
-      if (workspace.requestFullscreen) {
-        try { var pending = workspace.requestFullscreen(); if (pending && pending.catch) pending.catch(function () {}); } catch (_) {}
+      // Android WebView uses the viewport fallback; unsupported native requests
+      // must never undo a working full-screen layout.
+      if (!root.Android && workspace.requestFullscreen) {
+        try { Promise.resolve(workspace.requestFullscreen()).catch(function () {}); } catch (_) {}
       }
     });
     document.addEventListener('fullscreenchange', function () {
-      if (!document.fullscreenElement) layout(false);
+      if (document.fullscreenElement === workspace) nativeActive = true;
+      else if (nativeActive) { nativeActive = false; layout(false); }
     });
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && workspace.classList.contains('is-fullscreen')) leaveFullscreen();
+      if (event.key === 'Escape' && workspace.classList.contains('is-fullscreen') && !chart.textEditor) leaveFullscreen();
+    });
+    root.addEventListener('resize', function () {
+      if (workspace.classList.contains('is-fullscreen')) root.requestAnimationFrame(function () { chart.resize(); });
     });
     chart.refreshObjectControls({activeTool:chart.activeTool,selectedId:chart.selectedId});
   }

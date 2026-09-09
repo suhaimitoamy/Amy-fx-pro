@@ -726,7 +726,7 @@
     cancel.type = 'button'; cancel.textContent = 'Batal';
     actions.appendChild(save); actions.appendChild(cancel);
     form.appendChild(label); form.appendChild(input); form.appendChild(actions);
-    (document.body || this.container).appendChild(form);
+    (document.fullscreenElement || document.body || this.container).appendChild(form);
     this.textEditor = form;
     var self = this;
     this.setTool(null);

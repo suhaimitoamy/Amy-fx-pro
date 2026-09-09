@@ -258,3 +258,8 @@ Pro328: Preferences are per device/install, using a random native capability (or
 ## 2026-09-06 — Pro329
 
 User explicitly requests Pro329 without tests, backtests or additional verification. Scope is Candle Replay drawing interactions/fullscreen plus Indonesian news. Projection coordinates use visible candles only; replay source filtering is unchanged. New drawings store replay creation cursor so projections can extend into blank space while remaining hidden when rewinding before creation. No arbitrary object-count cap. Build329 skips verification/test steps; signing uses the existing cached key. The update manifest advances only after an actual APK publication.
+
+
+## 2026-09-09 — Pro332
+
+Pro332 uses a body-level replay workspace portal to escape the Academy container animation transform. Native fullscreen is optional outside Android; rejected requests preserve viewport fallback. Existing chart nodes, listeners and storage remain intact. Object controls move into a disclosure; shared component styles simplify all main modules. Source 2.0.0-pro.332 / 950332; update.json remains331 until the signed release workflow verifies and activates332.

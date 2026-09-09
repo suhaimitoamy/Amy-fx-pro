@@ -55,7 +55,7 @@ function livePriceKeyCard() {
   return `<section class="card" data-stability-key="live-price-websocket-key">
     <div class="kicker">HARGA LIVE · TWELVE DATA WEBSOCKET</div>
     <h2>Hubungkan harga XAU/USD</h2>
-    <p class="muted">Masukkan API key Twelve Data satu kali. Key disimpan terenkripsi oleh Android; harga memakai WebSocket, sedangkan candle Mapping tetap memakai jalur REST yang sudah ada.</p>
+    <p class="muted">Hubungkan Twelve Data untuk mengaktifkan harga live. Key disimpan terenkripsi di perangkat.</p>
     <input id="apiKey" type="password" autocomplete="off" placeholder="Twelve Data API Key">
     <button class="action" onclick="window.saveConnect()" style="width:100%;margin-top:10px">Hubungkan Harga Live</button>
   </section>`;
