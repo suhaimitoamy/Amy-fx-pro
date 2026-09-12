@@ -43,10 +43,11 @@ function atrAt(cs, i) {
     j ? Math.abs(cs[j].high-cs[j-1].close) : 0, j ? Math.abs(cs[j].low-cs[j-1].close) : 0);
   return total / MODEL.atr;
 }
-function pivots(cs, i) {
+function pivots(cs, i, duration=3600) {
   const p = i-MODEL.pivot;
   if (p < MODEL.pivot) return [];
   const window = cs.slice(p-MODEL.pivot, i+1);
+  if (window.some((c,j)=>j && c.time-window[j-1].time!==duration)) return [];
   return ['high','low'].filter(kind => window.every((c,j) => j===MODEL.pivot ||
     (kind==='high' ? cs[p][kind]>c[kind] : cs[p][kind]<c[kind])))
     .map(kind => ({ kind, level: cs[p][kind], time: cs[p].time, confirmed: cs[i].time, used: false }));
@@ -176,7 +177,7 @@ export function analyze({ candles, context, tf='M15', now=Date.now()/1000, degra
         reason='Sweep dan reclaim terkonfirmasi. Menunggu displacement yang menutup melewati swing lawan.';
       }
     }
-    levels.push(...pivots(cs,i));
+    levels.push(...pivots(cs,i,duration));
   }
   const fresh=!degraded && now-(latest.time+duration)<=duration+120 && now-(hs.at(-1).time+3600)<=3720;
   const signal=fresh && plan?.status==='PENDING' && !['OUTSIDE','CLOSED'].includes(session(now)) ? plan.direction:'WAIT';
