@@ -68,7 +68,7 @@ async function refresh(){
   }catch(error){
     if(id!==generation)return;
     $('error').hidden=false;$('error').textContent='Candle belum berhasil diperbarui. Periksa koneksi lalu tekan Perbarui.';
-    if(raw && raw.tf===tf)render(analyze({...raw,degraded:true,now:Date.now()/1000}));
+    if(raw && raw.tf===tf){raw={...raw,degraded:true};render(analyze({...raw,now:Date.now()/1000}));}
     else render(analyze({candles:[],context:[],tf,now:Date.now()/1000}));
   }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;schedule();}}
 }
