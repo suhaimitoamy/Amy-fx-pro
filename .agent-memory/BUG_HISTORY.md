@@ -393,3 +393,11 @@ Pro335 fixes full-data replacement during forward replay, viewport displacement 
 ## 2026-09-09 — Replay downward swipe triggers native refresh
 
 The Pro335 device screenshot exposes the native SwipeRefreshLayout spinner. CSS touch-action cannot stop Android parent interception; updatePermissionGate also re-enabled refresh on resume. Pro336 adds a native exact-route policy, pre-navigation/page-start disable, child-scroll interception guard, reload callback guard and resume-safe restoration. Kotlin tests cover replay routes, queries/fragments, normal-page restoration and malformed URLs. Android CI owns compilation and test execution; device verification remains pending. No trading backtest.
+
+## 2026-09-12 — Pro337 Mapping replacement
+
+Removed legacy analysis/repair stack from the production Mapping entry. New model
+rejects conflicting duplicates, future/open/synthetic data and stale source decisions.
+Gaps retire liquidity and cancel uncertain simulations; ambiguous fill/target bars
+cannot manufacture wins. New deterministic positive BUY/SELL and rejection fixtures
+pass. Browser preview blocked by ERR_BLOCKED_BY_CLIENT; no device visual claim.

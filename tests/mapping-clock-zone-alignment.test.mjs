@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,7 +10,7 @@ const zonesUrl = new URL('../app/src/main/assets/apps/mapping/js/zones/indicator
 const zoneUiUrl = new URL('../app/src/main/assets/apps/mapping/js/mapping-zone-sync.js', import.meta.url);
 const clockUrl = new URL('../app/src/main/assets/apps/mapping/js/clock-sync.js', import.meta.url);
 const renderUrl = new URL('../app/src/main/assets/apps/mapping/js/ui/ui-render.js', import.meta.url);
-const indexUrl = new URL('../app/src/main/assets/apps/mapping/index.html', import.meta.url);
+const indexUrl = new URL('../app/src/main/assets/apps/mapping/legacy-index.html', import.meta.url);
 
 const source = readFileSync(zonesUrl, 'utf8');
 const zones = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);

@@ -289,3 +289,13 @@ Replay uses incremental series updates for an unchanged prefix; full replacement
 ## 2026-09-09 — Pro336 native replay refresh ownership
 
 Disable native SwipeRefreshLayout for the exact Candle Replay route at main-frame navigation/start. The child-scroll callback and refresh listener also guard the active replay URL. Permission/resume updates reuse the route policy instead of unconditionally enabling refresh. Other pages retain normal pull-to-refresh. Source is 2.0.0-pro.336 / 950336; existing signed CI activates update.json only after APK verification.
+
+## 2026-09-12 — Pro337 ICT Mapping replacement
+
+User explicitly requested complete Mapping logic/UI/entry/analysis replacement. Public
+Mapping now uses ICT-SWEEP-MSS-FVG-1, superseding Amy-SMC-D and earlier Mapping contracts
+for this page. Symmetric H1 context + M5/M15 sweep/MSS/FVG limit model; numeric thresholds
+are explicit unvalidated engineering choices. Legacy page archived, no legacy analysis
+scripts loaded by new page. Scalper history/push remain separate, clearly labeled.
+Source337; existing signed release gates must activate update.json only after publication.
+Details and validation limitations: docs/ICT_MAPPING_V1.md.

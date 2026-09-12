@@ -214,9 +214,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Candle Replay: perbaikan fullscreen Android WebView dan tombol keluar yang selalu terlihat.
-          - Workspace chart ringkas dengan pengaturan objek dalam menu.
-          - Penyegaran tampilan seluruh modul dan pengurangan teks berulang.
+          - Mapping baru: struktur H1, sweep, displacement/MSS, FVG, dan retest M5/M15.
+          - Chart, bukti candle, entry/SL/target terkunci, serta riwayat simulasi model.
+          - WAIT untuk data terlambat atau setup tidak lengkap; hasil model belum membuktikan profitabilitas.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
@@ -266,7 +266,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Candle Replay: usapan ke bawah tidak lagi memicu tarik-untuk-refresh Android.','Gesture chart dan objek tetap ditangani replay dalam tampilan biasa maupun layar penuh.','Proteksi refresh tetap aktif setelah aplikasi kembali dari background.']
+          notes=['Mapping ICT baru: struktur H1 → sweep → MSS → FVG → retest M5/M15.','Panel chart, bukti analisis, entry/SL/target, serta riwayat simulasi.','Data terlambat dan setup tidak lengkap menghasilkan WAIT. Profitabilitas belum terverifikasi.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

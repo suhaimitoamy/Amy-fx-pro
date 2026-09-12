@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -69,7 +71,7 @@ test('active private clients route market reads through Supabase Edge gateways',
 
 test('Mapping shares Entry Watch zones with Amy Bot', async () => {
   const sync = await read('app/src/main/assets/apps/mapping/js/mentor-market-context-sync.js');
-  const index = await read('app/src/main/assets/apps/mapping/index.html');
+  const index = await read('app/src/main/assets/apps/mapping/legacy-index.html');
   assert.match(index, /mentor-market-context-sync\.js/);
   assert.match(sync, /entryWatch: watch/);
   assert.match(sync, /FVG: fairValueGaps/);

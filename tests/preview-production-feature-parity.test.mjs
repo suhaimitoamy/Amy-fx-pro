@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -5,7 +7,7 @@ import fs from 'node:fs';
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('Preview loads the production execution authority after its detailed Scalper panel', () => {
-  const html = read('app/src/main/assets/apps/mapping/index.html');
+  const html = read('app/src/main/assets/apps/mapping/legacy-index.html');
   const panel = html.indexOf('js/scalper-entry-watch-v1.js');
   const authority = html.indexOf('js/scalper-execution-authority.js');
   const decision = html.indexOf('js/scalper-execution-decision-bridge.js');

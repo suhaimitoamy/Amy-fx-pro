@@ -66,3 +66,11 @@ After Pro335 release, verify one/two-finger gestures, drawing-edge resizing, fre
 ## 2026-09-09 — Pro336
 
 Confirm on the reporting Android device that downward swipes in replay (normal/fullscreen, chart/object, after background/resume) never show native refresh; navigating home must restore normal pull-to-refresh. Pro335's native refresh issue is addressed by Pro336 source, with signed release verification pending.
+
+## 2026-09-12 — Pro337
+
+- Verify new Mapping UI/chart/gestures on Android, including M5/M15 switch, timeout,
+  background/resume, dark/light theme and receipt of the native update notification.
+- Validate model on held-out broker-quality data including spread, commission, slippage
+  and scheduled news; forward paper-test before drawing profitability conclusions.
+- Pro337 signed release/manifest verification pending at source preparation.

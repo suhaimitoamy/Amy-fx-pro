@@ -174,3 +174,11 @@ Pro335 adds explicit Geser, return-to-cursor/follow, auto/manual price scale, re
 
 
 Pro335 release completed: commit 9d57a417d15b7774d04b26ec680a164240f35494, signed release workflow 34371918736 and lint workflow 34371918728 both succeeded. Active update.json is enabled at 2.0.0-pro.335 / 950335. APK asset digest matches manifest SHA-256 6c5815bf444b08e826032e8acdd3c8bbcf548098d06e069262627192caa4f49c. Release notes now describe replay navigation changes. No trading backtest was run. Actual Android gestures and receipt of the native update notification remain unobserved.
+
+## 2026-09-12 — Pro337 ICT workspace
+
+New Mapping engine, provider adapter and responsive chart workspace: H1 structure,
+M5/M15 entry, evidence timestamps, pending/active distinction, locked entry/SL/target,
+WAIT diagnostics and explicitly gross windowed simulation history. 125 JavaScript
+regression files pass; source version337 prepared for existing signed release pipeline.
+Profitability remains unverified; no backtest result is claimed.

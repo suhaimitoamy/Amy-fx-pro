@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -5,7 +7,7 @@ import fs from 'node:fs';
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('Mapping exposes Dashboard, Analisis, and Riwayat as three primary navigations', () => {
-  const html = read('app/src/main/assets/apps/mapping/index.html');
+  const html = read('app/src/main/assets/apps/mapping/legacy-index.html');
   assert.match(html, /data-tab="Dashboard"/);
   assert.match(html, /data-tab="Analyze"/);
   assert.match(html, /href="scalper-stats\.html"/);

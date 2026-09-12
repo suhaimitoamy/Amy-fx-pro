@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -15,7 +17,7 @@ function assertSyntax(path) {
 test('Mapping keeps the latest closed candle authoritative while reporting provider freshness truthfully', () => {
   const path = 'app/src/main/assets/apps/mapping/js/mapping-runtime-repair-v3.js';
   const runtime = read(path);
-  const index = read('app/src/main/assets/apps/mapping/index.html');
+  const index = read('app/src/main/assets/apps/mapping/legacy-index.html');
 
   assertSyntax(path);
   assert.match(index, /mapping-runtime-repair-v3\.js/);

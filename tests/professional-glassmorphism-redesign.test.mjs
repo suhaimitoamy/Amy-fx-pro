@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -7,7 +9,7 @@ const read = relative => readFileSync(asset(relative), 'utf8');
 
 const principalPages = [
   'index.html',
-  'apps/mapping/index.html',
+  'apps/mapping/legacy-index.html',
   'apps/market-intel/index.html',
   'apps/journal/index.html',
   'apps/academy/index.html'

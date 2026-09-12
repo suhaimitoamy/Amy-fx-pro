@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -38,7 +40,7 @@ test('Amy FX Pro main promotes Preview lineage into a dedicated Pro release chan
 });
 
 test('Mapping presents a clean product interface without duplicate Preview badges', () => {
-  const html = source('app/src/main/assets/apps/mapping/index.html');
+  const html = source('app/src/main/assets/apps/mapping/legacy-index.html');
   const main = source('app/src/main/assets/apps/mapping/js/main.js');
   const branding = source('app/src/main/assets/apps/mapping/js/production-branding.js');
 

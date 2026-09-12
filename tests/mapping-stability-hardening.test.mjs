@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -93,7 +95,7 @@ test('overlapping Mapping and Scalper requests abort stale work', async () => {
 });
 
 test('Mapping header is one fixed-size dot and legacy header fields stay hidden', async () => {
-  const html = await read('app/src/main/assets/apps/mapping/index.html');
+  const html = await read('app/src/main/assets/apps/mapping/legacy-index.html');
   const css = await read('app/src/main/assets/apps/mapping/css/style.css');
   const mappingCss = await read('app/src/main/assets/apps/mapping/css/mapping-v2.css');
   const live = await read('app/src/main/assets/apps/mapping/js/mapping-live-consistency-v1.js');

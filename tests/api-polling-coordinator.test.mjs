@@ -1,9 +1,11 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-const indexPath = 'app/src/main/assets/apps/mapping/index.html';
+const indexPath = 'app/src/main/assets/apps/mapping/legacy-index.html';
 const runtimePath = 'app/src/main/assets/apps/mapping/js/entry-watch-runtime-v2.js';
 const coordinatorPath = 'app/src/main/assets/apps/mapping/js/api-request-coordinator.js';
 const candleCoordinatorPath = 'app/src/main/assets/apps/mapping/js/candle-refresh-coordinator.js';

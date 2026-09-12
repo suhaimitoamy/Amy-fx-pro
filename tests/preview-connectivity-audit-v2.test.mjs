@@ -1,3 +1,5 @@
+// Legacy Mapping contract retained for the archived Pro336 page.
+// Production ICT workspace is covered by ict-workspace.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
@@ -18,7 +20,7 @@ const providerPath = 'app/src/main/assets/apps/shared/amyfx-provider-detection-v
 
 const modulePages = [
   'app/src/main/assets/index.html',
-  'app/src/main/assets/apps/mapping/index.html',
+  'app/src/main/assets/apps/mapping/legacy-index.html',
   'app/src/main/assets/apps/market-intel/index.html',
   'app/src/main/assets/apps/journal/index.html',
   'app/src/main/assets/apps/academy/index.html'
