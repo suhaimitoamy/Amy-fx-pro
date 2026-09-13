@@ -316,3 +316,11 @@ Guided Practice now owns 60 explicitly illustrative OHLC scenarios (20 per level
 ## 2026-09-13 — Pro340 local application assistant
 
 Pro340 supersedes five-menu and legacy mentor runtime contracts: four main modules, one local assistant UI and public AmyFXOS.ask delegation with no provider fallback. Academy auth loader uses the same assistant. Read-only adapters consume versioned ICT Mapping snapshots, News feed snapshots, journal metadata (IndexedDB with labeled legacy fallback), Academy reading state and guided results. Candle timestamps and stale WAIT are mandatory; never label candle close as live tick. Knowledge index is extracted from 531 packaged lessons with source links. Source 2.0.0-pro.340 / 950340; manifest activation is owned by existing signed CI after release verification.
+
+
+## 2026-09-13 — Pro341 startup, ICT Intel and bright glass
+
+- Active Berita imports the same ICT engine, provider and snapshot adapter as Mapping; its legacy fetch router and heatmap renderer are no longer loaded. Backend and strategy rules are unchanged.
+- Hero price is explicitly the closed-candle reference, not a live tick. Source candle age owns freshness. Heatmap groups exact unswept Mapping levels into bands spanning at most USD1; width means relative pivot count, never order volume.
+- Four actual modules own home rendering. Shared frosted surfaces are brighter in both existing themes; Mapping chart follows theme changes.
+- Source version is 2.0.0-pro.341 / 950341. Existing update manifest remains untouched until the signed release workflow verifies and activates341.

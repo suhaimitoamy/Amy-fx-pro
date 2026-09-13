@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setActive(target) {
     navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
-    localStorage.setItem('amy_root_tab', target);
+    try { localStorage.setItem('amy_root_tab', target); } catch (_) {}
   }
 
   function projectCard(item) {
@@ -165,9 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderHome() {
     setActive('beranda');
-    const coreModules = projects.slice(0, 4);
-    const indicator = projects[4];
-    mainContent.innerHTML = `<div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${coreModules.map(item => quickCard(item)).join('')}${quickCard(indicator, true)}</div>`;
+    mainContent.innerHTML = `<div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
   }
 
   function renderProjectList(title) {
@@ -338,7 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   navBtns.forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.target)));
-  navigate(localStorage.getItem('amy_root_tab') || 'beranda');
+  let initialTab = 'beranda';
+  try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}
+  navigate(['beranda', 'proyek', 'koleksi', 'profil'].includes(initialTab) ? initialTab : 'beranda');
 });
 
 

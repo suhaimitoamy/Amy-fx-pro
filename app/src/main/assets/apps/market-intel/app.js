@@ -62,8 +62,8 @@ function payloadIsFresh(updated, maxAgeMs = 10 * 60 * 1000) {
 // ─── Init ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   pendingNewsId = readNewsRoute();
-  window.AmyFXIntel?.mountStrip(document.getElementById('market-command-strip'));
-  window.AmyFXIntel?.mountBriefing(document.getElementById('intel-briefing'));
+  // ICT Intel owns the hero; legacy snapshots cannot overwrite Mapping levels.
+
   setupTabs();
   setupNewsInteractions();
   window.AmyFXLoading?.start({
@@ -363,6 +363,7 @@ function renderNews(sortedNews) {
 
 // ─── Heatmap Loader ──────────────────────────────────────
 async function loadHeatmap(silent = false) {
+  if (window.AmyICTIntel) return window.AmyICTIntel.refresh();
   const status = document.getElementById('heatmap-status');
   if (!silent) status.textContent = 'Menghitung heatmap...';
 
@@ -439,6 +440,7 @@ function renderHeatmap(zones, currentPrice) {
 
 // ─── Liquidity Loader ────────────────────────────────────
 async function loadLiquidity(silent = false) {
+  if (window.AmyICTIntel) return window.AmyICTIntel.refresh();
   const status = document.getElementById('liquidity-status');
   const list = document.getElementById('liquidity-list');
   if (!status || !list) return;

@@ -417,3 +417,10 @@ Fixed guided question/chart mismatch, correct-only progression and repeat-answer
 ## 2026-09-13 — Pro340 local application assistant
 
 Legacy mentor read obsolete Mapping contracts after the Pro337 replacement and several wrappers could replace the answer path. Replaced active mentor loading with a single local assistant, explicitly persisted the new Mapping snapshot for other pages, removed remote-provider fallback from public ask, and connected Academy dynamic loading. Guided summary now retains review lesson titles. News translation completion updates its assistant snapshot.
+
+
+## 2026-09-13 — Pro341
+
+- Fixed cold-start home TypeError: renderHome called quickCard(projects[4]) after the catalog was reduced to four modules. Home now maps actual entries and falls back from obsolete saved tabs. Regression executes startup while fetch never resolves.
+- Fixed stale/divergent Berita hero and liquidity: the active Mapping uses amyfx.ict.mapping.v1 while Intel mounted legacy contract values and rewrote candle requests to another provider route. Active Intel now shares the ICT model/provider/snapshot and labels stale data; old responses cannot replace newer source candles.
+- Local verification: all128 JavaScript regression files passed; eight targeted tests cover cold start, blocked storage, bands, freshness, snapshot parity, concurrent requests, failed/older data, and shared provider wiring. Browser installation failed (certificate validation in agent-browser; trusted Playwright download timed out), so visual/device verification is unobserved.
