@@ -2,6 +2,8 @@
 
 ## Pending Tasks
 
+- [ ] Verify Market Intel auto-translation on real Android device after Pro339 release activation.
+
 - [ ] Confirm Pro333 Candle Replay fullscreen chart height and object-menu containment on the reporting Android device after the signed release is activated.
 
 - [ ] Complete real-device WebView visual/gesture smoke tests after the signed `.326` release; CI owns Android unit, lint, build, identity, signer, and endpoint verification.

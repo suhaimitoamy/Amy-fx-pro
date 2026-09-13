@@ -1,5 +1,11 @@
 # Bug History
 
+## 2026-09-13 — Pro339 Market Intel client-side auto-translation with local cache
+
+- Cause: Google blocked unofficial serverless/cloud requests to `translate.googleapis.com` (HTTP 429/CAPTCHA), causing server-side translations to fail and fallback to English text.
+- Fix: Added resilient client-side auto-translation in `app/src/main/assets/apps/market-intel/app.js` using the client's residential/cellular IP, backed by MyMemory free fallback and offline `localStorage` cache (`amy_news_tr_cache_v1`).
+- Version: Bumped version to `2.0.0-pro.339` / `950339` to trigger native in-app updater notification.
+
 ## 2026-09-08 — Pro330 news translation bypass (local repair, not deployed)
 
 - GitHub commit 28661ed9 added central-feed translation normalization; f5678597 removed it. Latest fetched origin/main f0e4f244 has no subsequent api/news.js repair.

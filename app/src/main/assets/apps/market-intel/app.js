@@ -149,6 +149,120 @@ function focusNewsItem(id) {
   return true;
 }
 
+// ─── Client Translation Cache & Engine ───────────────────
+const TRANSLATION_CACHE_KEY = 'amy_news_tr_cache_v1';
+
+function getTranslationCache() {
+  try {
+    return JSON.parse(localStorage.getItem(TRANSLATION_CACHE_KEY) || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveTranslationToCache(id, translatedText) {
+  if (!id || !translatedText) return;
+  try {
+    const cache = getTranslationCache();
+    cache[String(id)] = translatedText;
+    const keys = Object.keys(cache);
+    if (keys.length > 300) {
+      keys.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+    }
+    localStorage.setItem(TRANSLATION_CACHE_KEY, JSON.stringify(cache));
+  } catch (_) {}
+}
+
+function isTextEnglish(text) {
+  if (!text || typeof text !== 'string') return false;
+  return /\b(the|and|to|of|in|for|with|on|at|by|from|about|against|between|into|through|after|before|above|below|is|was|are|were|been|has|had|have|will|would|could|should|says|said|told|warns|warned|urged|declares|report|reported|sources?)\b/i.test(text);
+}
+
+function needsClientTranslation(item) {
+  if (!item) return false;
+  const original = String(item.textOriginal || '').trim();
+  const text = String(item.text || '').trim();
+  if (!text) return true;
+  if (text.includes('Terjemahan Bahasa Indonesia belum tersedia')) return true;
+  if (original && text === original) return true;
+  return isTextEnglish(text);
+}
+
+async function translateTextClient(text) {
+  const cleanText = String(text || '').trim();
+  if (!cleanText) return null;
+
+  // Method 1: Google Translate web endpoint (works directly from user mobile/residential IP)
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=id&dt=t&q=${encodeURIComponent(cleanText)}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.[0])) {
+        const translated = data[0].map(chunk => chunk?.[0] || '').join('').trim();
+        if (translated && (translated !== cleanText || data[2] === 'id')) {
+          return translated;
+        }
+      }
+    }
+  } catch (_) {}
+
+  // Method 2: MyMemory Translation API fallback (100% free)
+  try {
+    const snippet = cleanText.slice(0, 500);
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(snippet)}&langpair=en|id`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (res.ok) {
+      const data = await res.json();
+      const translated = data?.responseData?.translatedText?.trim();
+      if (translated && !translated.toUpperCase().includes('MYMEMORY WARNING') && translated !== snippet) {
+        return cleanText.length > 500 ? translated + '…' : translated;
+      }
+    }
+  } catch (_) {}
+
+  return null;
+}
+
+function applyCachedTranslations(newsList) {
+  const cache = getTranslationCache();
+  for (const item of newsList) {
+    const id = newsId(item);
+    if (cache[id]) {
+      item.text = cache[id];
+    }
+  }
+}
+
+async function autoTranslateNewsItems(sortedNews) {
+  const pending = sortedNews.filter(item => needsClientTranslation(item));
+  if (!pending.length) return;
+
+  for (let i = 0; i < pending.length; i += 2) {
+    const batch = pending.slice(i, i + 2);
+    await Promise.allSettled(batch.map(async item => {
+      const id = newsId(item);
+      const sourceText = item.textOriginal || item.text;
+      const translated = await translateTextClient(sourceText);
+      if (translated) {
+        item.text = translated;
+        saveTranslationToCache(id, translated);
+        const card = [...document.querySelectorAll('.news-item')].find(el => el.dataset.newsId === String(id));
+        if (card) {
+          const textEl = card.querySelector('.news-text');
+          if (textEl) textEl.textContent = translated;
+        }
+      }
+    }));
+  }
+}
+
 // ─── News Loader ─────────────────────────────────────────
 async function loadNews(silent = false) {
   const status = document.getElementById('news-status');
@@ -174,12 +288,23 @@ async function loadNews(silent = false) {
       const byId = Number(b.id || 0) - Number(a.id || 0);
       return byId || new Date(b.time || 0) - new Date(a.time || 0);
     });
+
+    applyCachedTranslations(sortedNews);
+
     const latestNews = sortedNews[0];
     if (latestNews) {
       const currentNewsId = newsId(latestNews);
       const lastNewsId = localStorage.getItem('amy_last_news_id');
       
       if (lastNewsId && lastNewsId !== currentNewsId) {
+        if (needsClientTranslation(latestNews)) {
+          const sourceText = latestNews.textOriginal || latestNews.text;
+          const tr = await translateTextClient(sourceText);
+          if (tr) {
+            latestNews.text = tr;
+            saveTranslationToCache(currentNewsId, tr);
+          }
+        }
         const title = 'Breaking News XAU/USD';
         const msg = latestNews.text || 'Berita baru telah tiba.';
         if (window.Android?.showNotificationWithUrl) {
@@ -202,6 +327,7 @@ async function loadNews(silent = false) {
     panelLoadedAt.news = Date.now();
     window.AmyFXIntel?.write('news', { updated: data.updated, capturedAt: data.updated, source: 'VERCEL_NEWS', items: sortedNews.slice(0, 10) });
     renderNews(sortedNews);
+    autoTranslateNewsItems(sortedNews);
     if (pendingNewsId) {
       activateTab('news');
       if (!focusNewsItem(pendingNewsId)) {

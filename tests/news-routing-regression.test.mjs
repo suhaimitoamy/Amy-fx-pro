@@ -30,6 +30,19 @@ test('market intel membawa ID berita pada deep-link notifikasi', () => {
   assert.match(appSource, /focusNewsItem\(pendingNewsId\)/);
 });
 
+test('market intel integrates client-side auto-translation with offline local cache', () => {
+  const appSource = fs.readFileSync(new URL('../app/src/main/assets/apps/market-intel/app.js', import.meta.url), 'utf8');
+  assert.match(appSource, /TRANSLATION_CACHE_KEY\s*=\s*'amy_news_tr_cache_v1'/);
+  assert.match(appSource, /function getTranslationCache\(\)/);
+  assert.match(appSource, /function saveTranslationToCache\(/);
+  assert.match(appSource, /function needsClientTranslation\(/);
+  assert.match(appSource, /async function translateTextClient\(/);
+  assert.match(appSource, /function applyCachedTranslations\(/);
+  assert.match(appSource, /async function autoTranslateNewsItems\(/);
+  assert.match(appSource, /api\.mymemory\.translated\.net/);
+  assert.match(appSource, /translate\.googleapis\.com/);
+});
+
 test('Supabase feed normalizes missing translations and retries failures', async t => {
   // Deterministic fixtures; no live translation or database writes in this test.
   const original = 'Gold rises as the dollar weakens.';

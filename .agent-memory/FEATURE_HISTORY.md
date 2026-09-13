@@ -1,5 +1,11 @@
 # Feature History
 
+## Market Intel Client-Side Auto-Translation and Offline Cache
+- **Date:** 2026-09-13
+- **Status:** ✅ Implemented and tested; bump Pro339
+- **Description:** Real-time client-side translation directly in Android WebView/browser, bypassing server IP blocks with local cache persistence.
+- **Release:** `2.0.0-pro.339` / `950339`.
+
 ## TradingView-style Horizontal Zoom and Drawing Synchronization
 - **Date:** 2026-08-17
 - **Status:** ✅ Released; eight focused chart tests and all 119 regression files pass; signed `.326` Android CI and endpoint verification pass

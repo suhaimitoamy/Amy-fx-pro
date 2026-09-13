@@ -1,5 +1,12 @@
 # Technical Decisions
 
+## 2026-09-13 — Pro339 Client-side News Auto-Translation Architecture
+
+- Client-side translation is authoritative in Market Intel when feeds return untranslated or placeholder English text.
+- Translated news items are persisted in `localStorage` under `amy_news_tr_cache_v1` (bounded to 300 entries) so each news item is translated exactly once without consuming recurring bandwidth.
+- Primary translation calls Google Translate web endpoint from user's residential/mobile IP; secondary falls back to MyMemory API.
+- Source advances to `2.0.0-pro.339` / `950339`.
+
 ## 2026-09-09 — Pro333 Replay fullscreen layout contract
 
 - The body-level workspace portal remains the Android WebView fullscreen fallback.
