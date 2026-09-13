@@ -1,21 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.339/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.340/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Market Intel / Berita: Auto-translate Bahasa Indonesia langsung di sisi client (HP) dengan cache offline lokal.",
-    "Bebas biaya dan bypass blokir cloud: Terjemahan otomatis berjalan lancar tanpa kendala kuota/blokir."
+    "Menu utama menjadi empat: Mapping, Berita, Jurnal Trading, Tutorial Trading.",
+    "Asisten lokal tanpa API AI/LLM: membaca Mapping baru, berita tersimpan, jurnal dan progres belajar; pencarian materi Academy.",
+    "Data candle dan berita dilengkapi waktu sumber; data lama tidak dianggap live."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.339/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.340/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950339,
-  "latest_version_name": "2.0.0-pro.339",
+  "latest_version_code": 950340,
+  "latest_version_name": "2.0.0-pro.340",
   "mandatory": false,
   "releaseDate": "2026-09-13",
   "release_notes": [
-    "Market Intel / Berita: Auto-translate Bahasa Indonesia langsung di sisi client (HP) dengan cache offline lokal.",
-    "Bebas biaya dan bypass blokir cloud: Terjemahan otomatis berjalan lancar tanpa kendala kuota/blokir."
+    "Menu utama menjadi empat: Mapping, Berita, Jurnal Trading, Tutorial Trading.",
+    "Asisten lokal tanpa API AI/LLM: membaca Mapping baru, berita tersimpan, jurnal dan progres belajar; pencarian materi Academy.",
+    "Data candle dan berita dilengkapi waktu sumber; data lama tidak dianggap live."
   ],
-  "sha256": "b1615081148871b9c657bb3e916520bec7cd0d32555fc02d6d9ad9badf5baee6",
-  "version": "2.0.0-pro.339",
-  "versionCode": 950339
+  "sha256": "3af71bbe25893f15411d380cc77938b5fd33f0f477f0a32a4df536d173f3f0b8",
+  "version": "2.0.0-pro.340",
+  "versionCode": 950340
 }
