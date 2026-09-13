@@ -1,3 +1,10 @@
+## 2.0.0-pro.341
+
+- Fix blank home on first open and invalid saved root tabs.
+- Use the same ICT candle provider/model for News hero, BSL/SSL and liquidity heatmap.
+- Add readable liquidity bands, side filters, level counts, distances and source freshness.
+- Brighten frosted surfaces across all principal modules and synchronize Mapping chart theme.
+
 # Changelog
 
 ## 2026-08-17 — Zoom Grafik Gaya TradingView & Sinkronisasi Gambar

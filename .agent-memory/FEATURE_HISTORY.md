@@ -201,3 +201,10 @@ Pro340 adds four-menu navigation and a local, deterministic application assistan
 
 
 Pro340 release completed: source commit efa8c80406d57cc8c40b08ed6755d9ce3dac589e; signed workflow 34750969449 and lint workflow 34750969447 succeeded. All 127 JavaScript regression files and 14 dedicated assistant cases pass. Android unit tests, lint, APK identity/signer and published endpoint gates passed. Active update.json is enabled at 2.0.0-pro.340 / 950340. APK asset digest matches manifest SHA-256 3af71bbe25893f15411d380cc77938b5fd33f0f477f0a32a4df536d173f3f0b8. Earlier signed-release/manifest pending notes for Pro340 are resolved. Actual Android layout and receipt of native update notification remain unobserved; browser preview was blocked.
+
+
+## 2026-09-13 — Pro341
+
+- Brighter blue/violet frosted panels across Home, Mapping, News, Journal and Academy, preserving theme choice and data.
+- ICT liquidity ladder with exact zone ranges, BSL/SSL side filters, source timeframe/time, distance from the Mapping candle close, relative swing counts, and expandable confirmation times. Hero, ladder and liquidity list refresh together; failures retain explicitly stale references.
+- Source341 prepared for the existing signed APK pipeline. Signed release and on-device appearance not yet verified at this checkpoint.

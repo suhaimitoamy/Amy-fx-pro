@@ -35,13 +35,13 @@
       <div class="status-bar" id="heatmap-status">Menghitung heatmap...</div>
       <div class="heatmap-info">
         <span class="current-price" id="heatmap-price">--</span>
-        <span class="timeframe">M15 · Dynamic</span>
+        <span class="timeframe">Mapping ICT</span>
       </div>
       <div id="heatmap-canvas" class="heatmap-canvas"></div>
       <div class="heatmap-legend">
-        <span class="legend-item"><span class="dot res"></span> Resistance / BSL</span>
-        <span class="legend-item"><span class="dot sup"></span> Support / SSL</span>
-        <span class="legend-item"><span class="dot cur"></span> Harga Berjalan</span>
+        <span class="legend-item"><span class="dot res"></span> BSL · Buy stops</span>
+        <span class="legend-item"><span class="dot sup"></span> SSL · Sell stops</span>
+        <span class="legend-item"><span class="dot cur"></span> Referensi harga</span>
       </div>
     </section>
     <section id="panel-liquidity" class="intel-panel">
@@ -56,9 +56,8 @@
   <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
   <script src="../shared/amyfx-market-state-contract-v1.js" data-amyfx-market-contract="v2"></script>
   <script src="../shared/market-intelligence.js"></script>
-  <script src="private-market-api-router.js"></script>
   <script src="app.js"></script>
-  <script src="heatmap-v2.js"></script>
+  <script type="module" src="ict-intel.js"></script>
   <script src="../shared/amyfx-blueprint-hotfix-v1.js" data-amyfx-blueprint-hotfix="v1"></script>
   <script src="../shared/amyfx-blueprint-v1.js" data-amyfx-blueprint-js="v1"></script>
   <script src="../shared/amy-local-assistant.js" data-amy-local-assistant="v1"></script>

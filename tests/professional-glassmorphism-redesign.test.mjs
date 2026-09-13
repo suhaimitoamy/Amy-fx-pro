@@ -53,8 +53,8 @@ test('home uses the four requested main modules without duplicate access or fabr
   const ids = [...projectsBlock.matchAll(/id:\s*'([^']+)'/g)].map(match => match[1]);
 
   assert.deepEqual(ids, ['mapping', 'intel', 'jurnal', 'academy']);
-  assert.match(app, /const coreModules = projects\.slice\(0, 4\)/);
-  assert.match(app, /quickCard\(indicator, true\)/);
+  assert.match(app, /projects\.map\(item => quickCard\(item\)\)/);
+  assert.doesNotMatch(app, /quickCard\(indicator, true\)/);
   assert.doesNotMatch(app, /VIP Member|Lifetime Access|Trader Amy FX|VIP FACILITY/i);
   assert.doesNotMatch(app, /const favorites = \[projects\.find/);
   assert.match(app, /amy_indicator_favorites/);

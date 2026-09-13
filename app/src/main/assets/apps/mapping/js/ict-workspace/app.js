@@ -1,5 +1,6 @@
 import {analyze,MODEL} from './engine.js';
 import {loadCandles} from './data.js';
+import {makeSnapshot} from './snapshot.js';
 const $=id=>document.getElementById(id);
 const price=v=>Number.isFinite(v)?v.toFixed(2):'—';
 const date=t=>t?new Date(t*1000).toLocaleString('id-ID',{timeZone:'Asia/Singapore',hour12:false})+' WITA':'—';
@@ -14,6 +15,13 @@ try {
     series=chart.addCandlestickSeries({upColor:'#65d5b1',downColor:'#ff8f9b',borderVisible:false,wickUpColor:'#65d5b1',wickDownColor:'#ff8f9b'});
   } else $('chart').textContent='Chart tidak tersedia. Bukti harga tetap ditampilkan di tab analisis.';
 } catch { $('chart').textContent='Chart tidak berhasil dimuat. Periksa bukti candle di tab analisis.'; }
+function paintChartTheme() {
+  const light=document.documentElement.dataset.amyfxTheme==='light';
+  chart?.applyOptions({layout:{background:{color:light?'#edf1fc':'#293b60'},textColor:light?'#475977':'#ced9ed'},
+    grid:{vertLines:{color:light?'#dce3f2':'#3c5176'},horzLines:{color:light?'#dce3f2':'#3c5176'}}});
+}
+paintChartTheme();
+window.addEventListener('amyfx:theme-change',paintChartTheme);
 function record(title,body){return `<div class="record"><strong>${escape(title)}</strong><p>${escape(body)}</p></div>`;}
 function draw(result) {
   if(!series)return;
@@ -49,8 +57,7 @@ function render(result) {
   $('history').innerHTML=result.history.slice().reverse().slice(0,30).map(h=>record(`${h.direction} · ${h.status}`,`${date(h.createdAt)} · entry ${price(h.entry)} · SL ${price(h.sl)} · TP ${price(h.tp)}${Number.isFinite(h.r)?' · '+h.r.toFixed(2)+'R bruto':''}${h.ambiguous?' · urutan intrabar ambigu':''}`)).join('')||'<p>Belum ada setup selesai dalam jendela candle ini.</p>';
   draw(result);
   // New versioned snapshot: no legacy direction, forecast, or execution writers.
-  window.AmyICTMapping=Object.freeze({model:MODEL.id,signal:result.signal,tf:result.tf,fresh:result.fresh,
-    sourceTime:result.sourceTime, capturedAt:Date.now(), close:result.candles.at(-1)?.close ?? null, context:result.context, stage:result.stage, session:result.session, levels:result.levels, reason:result.reason,plan:p?JSON.parse(JSON.stringify(p)):null});
+  window.AmyICTMapping=Object.freeze(makeSnapshot(result));
   try { localStorage.setItem('amyfx.ict.mapping.v1',JSON.stringify(window.AmyICTMapping)); } catch {}
   window.dispatchEvent(new CustomEvent('amyfx:ict-mapping-updated',{detail:window.AmyICTMapping}));
 }
