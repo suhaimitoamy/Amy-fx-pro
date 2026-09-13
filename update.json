@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.336/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.337/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Candle Replay: usapan ke bawah tidak lagi memicu tarik-untuk-refresh Android.",
-    "Gesture chart dan objek tetap ditangani replay dalam tampilan biasa maupun layar penuh.",
-    "Proteksi refresh tetap aktif setelah aplikasi kembali dari background."
+    "Mapping ICT baru: struktur H1 → sweep → MSS → FVG → retest M5/M15.",
+    "Panel chart, bukti analisis, entry/SL/target, serta riwayat simulasi.",
+    "Data terlambat dan setup tidak lengkap menghasilkan WAIT. Profitabilitas belum terverifikasi."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.336/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.337/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950336,
-  "latest_version_name": "2.0.0-pro.336",
+  "latest_version_code": 950337,
+  "latest_version_name": "2.0.0-pro.337",
   "mandatory": false,
-  "releaseDate": "2026-09-09",
+  "releaseDate": "2026-09-13",
   "release_notes": [
-    "Candle Replay: usapan ke bawah tidak lagi memicu tarik-untuk-refresh Android.",
-    "Gesture chart dan objek tetap ditangani replay dalam tampilan biasa maupun layar penuh.",
-    "Proteksi refresh tetap aktif setelah aplikasi kembali dari background."
+    "Mapping ICT baru: struktur H1 → sweep → MSS → FVG → retest M5/M15.",
+    "Panel chart, bukti analisis, entry/SL/target, serta riwayat simulasi.",
+    "Data terlambat dan setup tidak lengkap menghasilkan WAIT. Profitabilitas belum terverifikasi."
   ],
-  "sha256": "86cd65759077485b5b4fcf509b6f8f4041b66ed85a9a801f29030d348c034dbc",
-  "version": "2.0.0-pro.336",
-  "versionCode": 950336
+  "sha256": "d5bda3936b032a3afa71e0c9364e6afe4e560ccd87d79374720358181faebd36",
+  "version": "2.0.0-pro.337",
+  "versionCode": 950337
 }
