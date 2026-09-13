@@ -1,23 +1,21 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.338/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.339/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Academy: Jalur 02 dihapus dari panel.",
-    "Guided Practice: 60 soal acak dalam 3 tingkat, chart ilustrasi dan penanda sesuai soal.",
-    "Rangkuman jawaban salah dengan tautan langsung ke materi Jalur 01."
+    "Market Intel / Berita: Auto-translate Bahasa Indonesia langsung di sisi client (HP) dengan cache offline lokal.",
+    "Bebas biaya dan bypass blokir cloud: Terjemahan otomatis berjalan lancar tanpa kendala kuota/blokir."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.338/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.339/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950338,
-  "latest_version_name": "2.0.0-pro.338",
+  "latest_version_code": 950339,
+  "latest_version_name": "2.0.0-pro.339",
   "mandatory": false,
   "releaseDate": "2026-09-13",
   "release_notes": [
-    "Academy: Jalur 02 dihapus dari panel.",
-    "Guided Practice: 60 soal acak dalam 3 tingkat, chart ilustrasi dan penanda sesuai soal.",
-    "Rangkuman jawaban salah dengan tautan langsung ke materi Jalur 01."
+    "Market Intel / Berita: Auto-translate Bahasa Indonesia langsung di sisi client (HP) dengan cache offline lokal.",
+    "Bebas biaya dan bypass blokir cloud: Terjemahan otomatis berjalan lancar tanpa kendala kuota/blokir."
   ],
-  "sha256": "02d1e15f319b6d8e428f9ae7894643f74f3918338746a072314c4b94a8e8c4ed",
-  "version": "2.0.0-pro.338",
-  "versionCode": 950338
+  "sha256": "b1615081148871b9c657bb3e916520bec7cd0d32555fc02d6d9ad9badf5baee6",
+  "version": "2.0.0-pro.339",
+  "versionCode": 950339
 }
