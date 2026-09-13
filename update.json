@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.337/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.338/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping ICT baru: struktur H1 → sweep → MSS → FVG → retest M5/M15.",
-    "Panel chart, bukti analisis, entry/SL/target, serta riwayat simulasi.",
-    "Data terlambat dan setup tidak lengkap menghasilkan WAIT. Profitabilitas belum terverifikasi."
+    "Academy: Jalur 02 dihapus dari panel.",
+    "Guided Practice: 60 soal acak dalam 3 tingkat, chart ilustrasi dan penanda sesuai soal.",
+    "Rangkuman jawaban salah dengan tautan langsung ke materi Jalur 01."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.337/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.338/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950337,
-  "latest_version_name": "2.0.0-pro.337",
+  "latest_version_code": 950338,
+  "latest_version_name": "2.0.0-pro.338",
   "mandatory": false,
   "releaseDate": "2026-09-13",
   "release_notes": [
-    "Mapping ICT baru: struktur H1 → sweep → MSS → FVG → retest M5/M15.",
-    "Panel chart, bukti analisis, entry/SL/target, serta riwayat simulasi.",
-    "Data terlambat dan setup tidak lengkap menghasilkan WAIT. Profitabilitas belum terverifikasi."
+    "Academy: Jalur 02 dihapus dari panel.",
+    "Guided Practice: 60 soal acak dalam 3 tingkat, chart ilustrasi dan penanda sesuai soal.",
+    "Rangkuman jawaban salah dengan tautan langsung ke materi Jalur 01."
   ],
-  "sha256": "d5bda3936b032a3afa71e0c9364e6afe4e560ccd87d79374720358181faebd36",
-  "version": "2.0.0-pro.337",
-  "versionCode": 950337
+  "sha256": "02d1e15f319b6d8e428f9ae7894643f74f3918338746a072314c4b94a8e8c4ed",
+  "version": "2.0.0-pro.338",
+  "versionCode": 950338
 }
