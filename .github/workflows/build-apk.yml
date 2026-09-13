@@ -214,9 +214,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Mapping baru: struktur H1, sweep, displacement/MSS, FVG, dan retest M5/M15.
-          - Chart, bukti candle, entry/SL/target terkunci, serta riwayat simulasi model.
-          - WAIT untuk data terlambat atau setup tidak lengkap; hasil model belum membuktikan profitabilitas.
+          - Academy: Jalur 02 dihapus dari panel dan navigasi.
+          - Guided Practice: 60 soal acak, tiga tingkat, chart ilustrasi OHLC dan penanda sesuai soal.
+          - Rangkuman jawaban salah menautkan materi Jalur 01 untuk dipelajari kembali.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
