@@ -86,3 +86,6 @@ Verify Pro338 chart labels, gestures, narrow-screen layout, lesson return and na
 ## 2026-09-13 — Pro340 local application assistant
 
 Verify Pro340 on real Android: open each main module then ask from another module; confirm IndexedDB journal reads, news refresh, reading/quiz progress, keyboard/scroll/close and update notification. Local browser preview blocked by ERR_BLOCKED_BY_CLIENT. Signed build and manifest activation pending at source preparation; do not claim device notification observed. Future broader language understanding requires additional rules/search or a separately approved model.
+
+
+Pro340 release completed: source commit efa8c80406d57cc8c40b08ed6755d9ce3dac589e; signed workflow 34750969449 and lint workflow 34750969447 succeeded. All 127 JavaScript regression files and 14 dedicated assistant cases pass. Android unit tests, lint, APK identity/signer and published endpoint gates passed. Active update.json is enabled at 2.0.0-pro.340 / 950340. APK asset digest matches manifest SHA-256 3af71bbe25893f15411d380cc77938b5fd33f0f477f0a32a4df536d173f3f0b8. Earlier signed-release/manifest pending notes for Pro340 are resolved. Actual Android layout and receipt of native update notification remain unobserved; browser preview was blocked.
