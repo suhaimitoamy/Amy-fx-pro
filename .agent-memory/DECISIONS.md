@@ -299,3 +299,8 @@ are explicit unvalidated engineering choices. Legacy page archived, no legacy an
 scripts loaded by new page. Scalper history/push remain separate, clearly labeled.
 Source337; existing signed release gates must activate update.json only after publication.
 Details and validation limitations: docs/ICT_MAPPING_V1.md.
+
+
+## 2026-09-13 — Pro338 Academy
+
+Guided Practice now owns 60 explicitly illustrative OHLC scenarios (20 per level); it never binds fixed answers to unrelated historical packs. Per-question candles/markers/levels are one contract. Fisher–Yates shuffles prioritize unseen IDs across sessions. First answers are immutable; mistakes link to existing Jalur 01 lessons. Remove Jalur 02 entry points from Academy cards and injected navigation. Source338 uses the established Amy-fx-pro main Pro release pipeline; old Amy-fx private-branch rules describe the separate original repository.

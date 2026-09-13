@@ -182,3 +182,8 @@ M5/M15 entry, evidence timestamps, pending/active distinction, locked entry/SL/t
 WAIT diagnostics and explicitly gross windowed simulation history. 125 JavaScript
 regression files pass; source version337 prepared for existing signed release pipeline.
 Profitability remains unverified; no backtest result is claimed.
+
+
+## 2026-09-13 — Pro338 Academy
+
+Pro338: 60 guided exercises across mudah/sedang/advanced, random choices and unseen-first sessions of 10/20/all, matching illustrative candle charts, session score and grouped mistakes with exact Jalur 01 lesson links; persisted last summary. Jalur 02 removed from panel/navigation. Existing Replay and Chart Analysis data providers preserved.
