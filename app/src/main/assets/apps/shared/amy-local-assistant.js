@@ -36,7 +36,7 @@
     if(/\b(harga|price|mapping|market|xau|gold|emas|sinyal|signal|bias|arah|entry|setup|stop loss|target|sl|tp)\b/.test(q))found.push('mapping');
     if(/\b(news|berita|kabar|headline|ekonomi)\b/.test(q))found.push('news');
     if(/\b(jurnal|journal|transaksi|profit|rugi|winrate|win rate|performa|evaluasi|kesalahan|emosi|disiplin)\b/.test(q))found.push('journal');
-    if(/\b(belajar|academy|akademi|tutorial|progres|progress|latihan|soal|skor|nilai|materi|pelajaran)\b/.test(q))found.push('academy');
+    if(/\b(belajar|baca|bacaan|membaca|pelajari|academy|akademi|tutorial|progres|progress|latihan|soal|skor|nilai|materi|pelajaran)\b/.test(q))found.push('academy');
     // Personal trade questions use Journal, unless Mapping is explicitly named.
     if(found.includes('journal')&&!/mapping|harga|market|xau|gold|emas|sinyal|signal|bias|arah/.test(q))return found.filter(id=>id!=='mapping');
     return found;
@@ -58,7 +58,7 @@
   }
   function news(q,n){
     const items=list(n?.items);if(!items.length)return 'Belum ada berita tersimpan. Buka Berita untuk memuat feed aplikasi.';
-    const terms=q.split(' ').filter(t=>t.length>2&&!['berita','news','terbaru','apa','yang','ada','tentang','kabar','tolong','ringkas','ringkasan'].includes(t));
+    const terms=q.split(' ').filter(t=>t.length>2&&!['berita','news','terbaru','apa','yang','ada','tentang','kabar','tolong','ringkas','ringkasan','sekarang','dong','nih','nggak','enggak','gak','kah','saya','aku','tampilkan','lihat','kasih','berikan'].includes(t));
     const selected=terms.length?items.filter(r=>terms.some(t=>norm(r.text+' '+r.textOriginal).includes(t))):items;
     return `Berita yang tersimpan · feed ${stamp(n.updated||n.capturedAt)}. Ini salinan feed terakhir, bukan jaminan berita paling baru.\n`+(selected.length?selected.slice(0,5).map((r,i)=>`${i+1}. ${String(r.text||r.textOriginal||r.title||'').slice(0,1400)}\nSumber: ${r.source||'SM_News_24h'} · ${stamp(r.time)}`).join('\n\n'):'Tidak ada berita tersimpan yang cocok. Buka Berita untuk memperbarui feed.');
   }
@@ -85,7 +85,7 @@
     }else text+='\nBelum ada sesi latihan selesai tersimpan.';
     return text;
   }
-  const stop=new Set('apa itu adalah jelaskan tolong saya aku dong yang dengan dan di ke dari tentang bagaimana kenapa mengapa cara materi belajar tutorial arti maksud pengertian contoh nya'.split(' '));
+  const stop=new Set('apa itu adalah jelaskan jelasin tolong saya aku dong nih yang dengan dan di ke dari tentang bagaimana kenapa mengapa cara materi belajar tutorial arti maksud pengertian contoh nya'.split(' '));
   function knowledge(q){
     const tokens=q.split(' ').filter(t=>t.length>1&&!stop.has(t));if(!tokens.length)return null;
     const ranked=list(root.AmyLocalKnowledge).map(row=>{const title=norm(row.title),body=norm(row.text);return {row,score:tokens.reduce((s,t)=>s+(title.includes(t)?5:body.includes(t)?1:0),0),hits:tokens.filter(t=>title.includes(t)||body.includes(t)).length};}).filter(r=>r.hits===tokens.length).sort((a,b)=>b.score-a.score);
