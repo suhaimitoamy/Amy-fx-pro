@@ -74,3 +74,8 @@ Confirm on the reporting Android device that downward swipes in replay (normal/f
 - Validate model on held-out broker-quality data including spread, commission, slippage
   and scheduled news; forward paper-test before drawing profitability conclusions.
 - Pro337 signed release/manifest verification pending at source preparation.
+
+
+## 2026-09-13 — Pro338 Academy
+
+Verify Pro338 chart labels, gestures, narrow-screen layout, lesson return and native update notification on the reporting Android device. Cloud browser local preview was blocked (ERR_BLOCKED_BY_CLIENT); visual verification unobserved. Signed release and manifest activation pending at source preparation. The old note pinning Guided Practice to March2009 is superseded by Pro338 illustrative scenarios; Replay/Chart Analysis still use their existing sources.

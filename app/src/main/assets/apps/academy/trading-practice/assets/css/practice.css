@@ -184,3 +184,18 @@ body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):no
 .practice-chart-overlay .practice-drawing > rect[pointer-events="stroke"] { pointer-events: stroke; }
 .practice-chart-overlay.is-drawing .practice-drawing-handle,
 .practice-chart-overlay.is-drawing .practice-drawing-handle-hit { pointer-events: none; }
+
+/* Guided sessions: explicit hidden states also work with grid/flex layouts. */
+.practice-page [hidden] { display:none !important; }
+.guided-controls { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-bottom:20px; }
+.guided-controls label { flex:1 1 160px; min-width:0; }
+.guided-controls select { width:100%; }
+.guided-controls p { flex-basis:100%; margin:0; }
+.guided-choices button:disabled { opacity:1; cursor:default; }
+.guided-choices [data-result="correct"] { border:2px solid #22c55e; }
+.guided-choices [data-result="wrong"] { border:2px solid #f87171; }
+#reviewTopics { display:grid; gap:16px; margin:20px 0; }
+#reviewTopics details { margin-top:16px; }
+#reviewTopics summary { cursor:pointer; }
+#guidedSummary { scroll-margin-top:80px; }
+#nextExercise, #endSession { margin-top:12px; width:100%; }

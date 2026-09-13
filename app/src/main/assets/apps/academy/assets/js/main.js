@@ -175,7 +175,6 @@
     if (!navlinks) return;
     var root = (typeof ROOT_PATH !== 'undefined') ? ROOT_PATH : '';
     [
-      { match: 'backtest-learning/index.html', href: root + 'backtest-learning/index.html', label: 'ICT Backtest' },
       { match: 'trading-practice/index.html', href: root + 'trading-practice/index.html', label: 'Practice' }
     ].forEach(function (item) {
       var exists = Array.prototype.some.call(navlinks.querySelectorAll('a'), function (link) { return String(link.getAttribute('href') || '').indexOf(item.match) >= 0; });

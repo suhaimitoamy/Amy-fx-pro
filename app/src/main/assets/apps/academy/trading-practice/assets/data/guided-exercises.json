@@ -1,294 +1,6066 @@
 {
-  "schemaVersion": 1,
-  "source": "XAUUSD M1 repaired-audited sample, March 2009",
+  "schemaVersion": 2,
+  "source": "Skenario OHLC ilustratif untuk belajar; bukan harga pasar atau hasil backtest.",
   "exercises": [
     {
-      "id": "liquidity-low-20090318",
-      "title": "Tandai liquidity event terendah",
-      "timeframe": "M15",
-      "type": "tap",
-      "visibleStart": 1237359600,
-      "visibleEnd": 1237384800,
-      "answerTime": 1237375800,
-      "timeTolerance": 900,
-      "priceMin": 883.5,
-      "priceMax": 890.0,
-      "prompt": "Ketuk candle/area yang mencetak low paling ekstrem pada window ini.",
-      "principle": "Liquidity event adalah observasi, belum otomatis menjadi arah entry.",
-      "success": "Tepat. Anda menemukan candle M15 yang memuat low 883,65.",
-      "retry": "Belum tepat. Cari wick terendah pada window, bukan candle sesudah reaksinya.",
-      "category": "Liquidity"
-    },
-    {
-      "id": "expansion-high-20090318",
-      "title": "Temukan candle ekspansi",
-      "timeframe": "H1",
-      "type": "tap",
-      "visibleStart": 1237370400,
-      "visibleEnd": 1237402800,
-      "answerTime": 1237388400,
-      "timeTolerance": 3600,
-      "priceMin": 930.0,
-      "priceMax": 948.0,
-      "prompt": "Ketuk candle H1 dengan range naik terbesar dan high tertinggi di window ini.",
-      "principle": "Ekspansi memberi konteks delivery; entry tetap membutuhkan urutan rule yang lengkap.",
-      "success": "Tepat. Candle 23:00 WITA memuat ekspansi sampai 947,15.",
-      "retry": "Coba lagi. Bandingkan range high-low setiap candle H1.",
-      "category": "Basic Chart Reading"
-    },
-    {
-      "id": "wait-after-sweep",
-      "title": "Pisahkan event dari keputusan",
-      "timeframe": "M15",
+      "id": "fvg-bullish-1",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "mudah",
+      "title": "Fair Value Gap (FVG) · studi 1",
       "type": "choice",
-      "visibleStart": 1237366800,
-      "visibleEnd": 1237377600,
-      "prompt": "Low telah tersapu. Tanpa data SMT DXY, HTF alignment, dan retest POI yang sudah dikonfirmasi, keputusan mekanis yang benar?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Amati candle A–B–C. Jenis imbalance yang terbentuk?",
+      "answer": "FVG bullish",
       "choices": [
-        "BUY",
-        "SELL",
-        "WAIT"
+        "FVG bullish",
+        "FVG bearish",
+        "Tidak ada FVG"
       ],
-      "answer": "WAIT",
-      "principle": "Sweep tidak cukup sebagai sinyal standalone. Jangan isi bukti yang tidak tersedia.",
-      "success": "Benar. WAIT menjaga fungsi Context, Selector, Confirmation, Location, dan Timing tetap terpisah.",
-      "retry": "Belum tepat. Satu liquidity event tidak membuktikan arah atau timing entry.",
-      "category": "Entry Decision"
+      "principle": "FVG tiga candle memakai wick A dan C yang tidak overlap, dengan displacement pada B.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704067200,
+          "open": 100,
+          "high": 103,
+          "low": 99,
+          "close": 102
+        },
+        {
+          "time": 1704068100,
+          "open": 102,
+          "high": 104,
+          "low": 100,
+          "close": 101
+        },
+        {
+          "time": 1704069000,
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102
+        },
+        {
+          "time": 1704069900,
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103
+        },
+        {
+          "time": 1704070800,
+          "open": 103,
+          "high": 113,
+          "low": 102,
+          "close": 112
+        },
+        {
+          "time": 1704071700,
+          "open": 112,
+          "high": 115,
+          "low": 109,
+          "close": 114
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704069900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704070800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704071700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 104,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 109,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bullish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "basic-direction",
-      "category": "Basic Chart Reading",
-      "title": "Arah pergerakan window",
-      "timeframe": "M15",
+      "id": "fvg-bullish-2",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "mudah",
+      "title": "Fair Value Gap (FVG) · studi 2",
       "type": "choice",
-      "visibleStart": 1237230000,
-      "visibleEnd": 1237251600,
-      "prompt": "Bandingkan close awal dan akhir window chart. Harga bergerak ke mana?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle mana yang menjadi dorongan tengah pembentuk FVG?",
+      "answer": "B",
       "choices": [
-        "Naik",
-        "Turun",
-        "Tidak berubah"
+        "B",
+        "A",
+        "C"
       ],
-      "answer": "Turun",
-      "principle": "Arah neto window berasal dari perbandingan dua close. Ini belum membuktikan seluruh struktur trend.",
-      "success": "Benar. Arah neto window berasal dari perbandingan dua close. Ini belum membuktikan seluruh struktur trend.",
-      "retry": "Periksa lagi. Arah neto window berasal dari perbandingan dua close. Ini belum membuktikan seluruh struktur trend."
+      "principle": "B berada di tengah dan memiliki body besar; gap dibuktikan oleh wick A dan C.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704153600,
+          "open": 100,
+          "high": 103,
+          "low": 99,
+          "close": 102
+        },
+        {
+          "time": 1704154500,
+          "open": 102,
+          "high": 104,
+          "low": 100,
+          "close": 101
+        },
+        {
+          "time": 1704155400,
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102
+        },
+        {
+          "time": 1704156300,
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103
+        },
+        {
+          "time": 1704157200,
+          "open": 103,
+          "high": 113,
+          "low": 102,
+          "close": 112
+        },
+        {
+          "time": 1704158100,
+          "open": 112,
+          "high": 115,
+          "low": 109,
+          "close": 114
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704156300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704157200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704158100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 104,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 109,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bullish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "basic-swing-high",
-      "category": "Basic Chart Reading",
-      "title": "Temukan swing tertinggi",
-      "timeframe": "M15",
-      "type": "tap",
-      "visibleStart": 1237230000,
-      "visibleEnd": 1237251600,
-      "answerTime": 1237230000,
-      "timeTolerance": 900,
-      "priceMin": 924.2,
-      "priceMax": 925.2,
-      "prompt": "Ketuk wick tertinggi pada window chart.",
-      "principle": "High menjadi referensi struktur; validasi swing selalu memerlukan konteks candle di kanan dan kiri.",
-      "success": "Benar. Ini high tertinggi pada window.",
-      "retry": "Cari ujung wick paling tinggi, bukan close candle."
-    },
-    {
-      "id": "liquidity-reclaim",
-      "category": "Liquidity",
-      "title": "Sweep / stop-hunt kandidat",
-      "timeframe": "M15",
+      "id": "fvg-bullish-3",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "sedang",
+      "title": "Fair Value Gap (FVG) · studi 3",
       "type": "choice",
-      "visibleStart": 1237163400,
-      "visibleEnd": 1237174200,
-      "prompt": "Garis menandai high 12 candle sebelumnya. Candle terakhir menembus high lalu close kembali di bawahnya. Apa yang terlihat?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa batas bawah dan atas FVG A–C?",
+      "answer": "104.00 – 109.00",
       "choices": [
-        "Sweep resistance",
-        "Breakout terkonfirmasi",
-        "Tidak ada penetrasi"
+        "104.00 – 109.00",
+        "101.00 – 104.00",
+        "109.00 – 113.00"
       ],
-      "answer": "Sweep resistance",
-      "principle": "High tersapu lalu close kembali ke range. Ini pola sweep; niat pelaku atau stop order tidak dapat dibuktikan hanya dari OHLC.",
-      "success": "Benar. High tersapu lalu close kembali ke range. Ini pola sweep; niat pelaku atau stop order tidak dapat dibuktikan hanya dari OHLC.",
-      "retry": "Periksa lagi. High tersapu lalu close kembali ke range. Ini pola sweep; niat pelaku atau stop order tidak dapat dibuktikan hanya dari OHLC.",
-      "referenceLevel": 928.23
+      "principle": "Batas gap adalah high A dan low C untuk bullish, low A dan high C untuk bearish. Di sini: 104.00–109.00.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704240000,
+          "open": 100,
+          "high": 103,
+          "low": 99,
+          "close": 102
+        },
+        {
+          "time": 1704240900,
+          "open": 102,
+          "high": 104,
+          "low": 100,
+          "close": 101
+        },
+        {
+          "time": 1704241800,
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102
+        },
+        {
+          "time": 1704242700,
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103
+        },
+        {
+          "time": 1704243600,
+          "open": 103,
+          "high": 113,
+          "low": 102,
+          "close": 112
+        },
+        {
+          "time": 1704244500,
+          "open": 112,
+          "high": 115,
+          "low": 109,
+          "close": 114
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704242700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704243600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704244500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 104,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 109,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bullish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "liquidity-target",
-      "category": "Liquidity",
-      "title": "Area target berikutnya",
-      "timeframe": "M15",
+      "id": "fvg-bullish-4",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "sedang",
+      "title": "Fair Value Gap (FVG) · studi 4",
       "type": "choice",
-      "visibleStart": 1237230000,
-      "visibleEnd": 1237251600,
-      "prompt": "Dalam skenario BUY, high yang ditandai berada di atas harga terakhir. Area mana yang menjadi calon target liquidity?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Di harga mana midpoint / consequent encroachment FVG?",
+      "answer": "106.50",
       "choices": [
-        "High yang ditandai",
-        "SL di bawah entry",
-        "Harga acak"
+        "106.50",
+        "104.00",
+        "109.00"
       ],
-      "answer": "High yang ditandai",
-      "principle": "High di atas harga adalah calon liquidity target untuk skenario BUY; bukan jaminan akan tercapai.",
-      "success": "Benar. High di atas harga adalah calon liquidity target untuk skenario BUY; bukan jaminan akan tercapai.",
-      "retry": "Periksa lagi. High di atas harga adalah calon liquidity target untuk skenario BUY; bukan jaminan akan tercapai.",
-      "referenceLevel": 924.7
+      "principle": "CE = (batas bawah + batas atas) / 2. CE bukan jaminan harga akan bereaksi.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704326400,
+          "open": 100,
+          "high": 103,
+          "low": 99,
+          "close": 102
+        },
+        {
+          "time": 1704327300,
+          "open": 102,
+          "high": 104,
+          "low": 100,
+          "close": 101
+        },
+        {
+          "time": 1704328200,
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102
+        },
+        {
+          "time": 1704329100,
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103
+        },
+        {
+          "time": 1704330000,
+          "open": 103,
+          "high": 113,
+          "low": 102,
+          "close": 112
+        },
+        {
+          "time": 1704330900,
+          "open": 112,
+          "high": 115,
+          "low": 109,
+          "close": 114
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704329100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704330000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704330900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 104,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 109,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bullish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "structure-bos",
-      "category": "Market Structure",
-      "title": "BOS dalam skenario bullish",
-      "timeframe": "M15",
+      "id": "fvg-bullish-5",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "advanced",
+      "title": "Fair Value Gap (FVG) · studi 5",
       "type": "choice",
-      "visibleStart": 1237158900,
-      "visibleEnd": 1237169700,
-      "prompt": "Skenario: struktur sebelumnya bullish dan garis adalah swing high acuan. Close terakhir menembusnya. Klasifikasi apa yang sesuai?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Chart berakhir di C. Apakah entry retest FVG sudah terjadi?",
+      "answer": "Belum ada candle retest setelah C",
       "choices": [
-        "BOS bullish",
-        "CHOCH bearish",
-        "Sweep tanpa close break"
+        "Belum ada candle retest setelah C",
+        "Sudah, karena B besar",
+        "Sudah, karena FVG terbentuk"
       ],
-      "answer": "BOS bullish",
-      "principle": "Dalam konteks bullish yang diberikan, close di atas swing high adalah continuation BOS. Konteks trend adalah asumsi latihan yang disebutkan, bukan sinyal otomatis.",
-      "success": "Benar. Dalam konteks bullish yang diberikan, close di atas swing high adalah continuation BOS. Konteks trend adalah asumsi latihan yang disebutkan, bukan sinyal otomatis.",
-      "retry": "Periksa lagi. Dalam konteks bullish yang diberikan, close di atas swing high adalah continuation BOS. Konteks trend adalah asumsi latihan yang disebutkan, bukan sinyal otomatis.",
-      "referenceLevel": 926.88
+      "principle": "Formasi FVG dan retest adalah dua peristiwa berbeda. Chart belum memuat candle setelah pembentukan.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704412800,
+          "open": 100,
+          "high": 103,
+          "low": 99,
+          "close": 102
+        },
+        {
+          "time": 1704413700,
+          "open": 102,
+          "high": 104,
+          "low": 100,
+          "close": 101
+        },
+        {
+          "time": 1704414600,
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102
+        },
+        {
+          "time": 1704415500,
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103
+        },
+        {
+          "time": 1704416400,
+          "open": 103,
+          "high": 113,
+          "low": 102,
+          "close": 112
+        },
+        {
+          "time": 1704417300,
+          "open": 112,
+          "high": 115,
+          "low": 109,
+          "close": 114
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704415500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704416400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704417300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 104,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 109,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bullish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "structure-choch",
-      "category": "Market Structure",
-      "title": "CHOCH dalam skenario bearish",
-      "timeframe": "M15",
+      "id": "fvg-bullish-6",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "advanced",
+      "title": "Fair Value Gap (FVG) · studi 6",
       "type": "choice",
-      "visibleStart": 1237158900,
-      "visibleEnd": 1237169700,
-      "prompt": "Skenario: struktur sebelumnya bearish dan garis adalah lower high terakhir. Harga kini close di atasnya. Apa indikasi awalnya?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apa yang dapat disimpulkan dari chart ini saja?",
+      "answer": "FVG terbentuk; bias HTF dan validasi entry belum tersedia",
       "choices": [
-        "CHOCH bullish",
-        "BOS bearish",
-        "Pasti langsung BUY"
+        "FVG terbentuk; bias HTF dan validasi entry belum tersedia",
+        "Pasti profit jika entry di CE",
+        "Bias semua timeframe sudah sama"
       ],
-      "answer": "CHOCH bullish",
-      "principle": "Pelanggaran lower high dapat menjadi CHOCH bullish. Perubahan karakter belum menjamin reversal atau entry.",
-      "success": "Benar. Pelanggaran lower high dapat menjadi CHOCH bullish. Perubahan karakter belum menjamin reversal atau entry.",
-      "retry": "Periksa lagi. Pelanggaran lower high dapat menjadi CHOCH bullish. Perubahan karakter belum menjamin reversal atau entry.",
-      "referenceLevel": 926.88
+      "principle": "Chart membuktikan geometri FVG saja. Bias HTF, risiko dan konfirmasi entry harus dinilai terpisah.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704499200,
+          "open": 100,
+          "high": 103,
+          "low": 99,
+          "close": 102
+        },
+        {
+          "time": 1704500100,
+          "open": 102,
+          "high": 104,
+          "low": 100,
+          "close": 101
+        },
+        {
+          "time": 1704501000,
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102
+        },
+        {
+          "time": 1704501900,
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103
+        },
+        {
+          "time": 1704502800,
+          "open": 103,
+          "high": 113,
+          "low": 102,
+          "close": 112
+        },
+        {
+          "time": 1704503700,
+          "open": 112,
+          "high": 115,
+          "low": 109,
+          "close": 114
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704501900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704502800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704503700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 104,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 109,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bullish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "structure-fake",
-      "category": "Market Structure",
-      "title": "Fake breakout",
-      "timeframe": "M15",
+      "id": "fvg-bearish-1",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "mudah",
+      "title": "Fair Value Gap (FVG) · studi 7",
       "type": "choice",
-      "visibleStart": 1237163400,
-      "visibleEnd": 1237174200,
-      "prompt": "High sempat melewati garis, tetapi close terakhir kembali di bawah. Apakah break resistance bertahan pada candle itu?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Amati candle A–B–C. Jenis imbalance yang terbentuk?",
+      "answer": "FVG bearish",
       "choices": [
-        "Ya, close di atas",
-        "Tidak, reclaim ke range",
-        "Tidak perlu melihat close"
+        "FVG bearish",
+        "FVG bullish",
+        "Tidak ada FVG"
       ],
-      "answer": "Tidak, reclaim ke range",
-      "principle": "Wick di luar level tidak sama dengan close break. Candle yang kembali ke range adalah contoh kegagalan breakout.",
-      "success": "Benar. Wick di luar level tidak sama dengan close break. Candle yang kembali ke range adalah contoh kegagalan breakout.",
-      "retry": "Periksa lagi. Wick di luar level tidak sama dengan close break. Candle yang kembali ke range adalah contoh kegagalan breakout.",
-      "referenceLevel": 926.88
+      "principle": "FVG tiga candle memakai wick A dan C yang tidak overlap, dengan displacement pada B.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704585600,
+          "open": 140,
+          "high": 141,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704586500,
+          "open": 138,
+          "high": 140,
+          "low": 136,
+          "close": 139
+        },
+        {
+          "time": 1704587400,
+          "open": 139,
+          "high": 140,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704588300,
+          "open": 138,
+          "high": 139,
+          "low": 136,
+          "close": 137
+        },
+        {
+          "time": 1704589200,
+          "open": 137,
+          "high": 138,
+          "low": 127,
+          "close": 128
+        },
+        {
+          "time": 1704590100,
+          "open": 128,
+          "high": 131,
+          "low": 125,
+          "close": 126
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704588300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704589200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704590100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 131,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 136,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bearish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "entry-buy-plan",
-      "category": "Entry Decision",
-      "title": "Pilih tindakan dalam rencana bullish",
-      "timeframe": "M15",
+      "id": "fvg-bearish-2",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "mudah",
+      "title": "Fair Value Gap (FVG) · studi 8",
       "type": "choice",
-      "visibleStart": 1237158900,
-      "visibleEnd": 1237169700,
-      "prompt": "Skenario latihan: bias bullish, sweep support dan displacement sudah terkonfirmasi; retest entry tercapai, SL dan target valid. Rencana mana yang searah?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle mana yang menjadi dorongan tengah pembentuk FVG?",
+      "answer": "B",
       "choices": [
-        "BUY",
-        "SELL",
-        "WAIT"
+        "B",
+        "A",
+        "C"
       ],
-      "answer": "BUY",
-      "principle": "BUY sesuai seluruh syarat skenario yang diberikan. Pada market nyata, bukti tersebut harus diamati sebelum entry.",
-      "success": "Benar. BUY sesuai seluruh syarat skenario yang diberikan. Pada market nyata, bukti tersebut harus diamati sebelum entry.",
-      "retry": "Periksa lagi. BUY sesuai seluruh syarat skenario yang diberikan. Pada market nyata, bukti tersebut harus diamati sebelum entry.",
-      "referenceLevel": 926.88
+      "principle": "B berada di tengah dan memiliki body besar; gap dibuktikan oleh wick A dan C.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704672000,
+          "open": 140,
+          "high": 141,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704672900,
+          "open": 138,
+          "high": 140,
+          "low": 136,
+          "close": 139
+        },
+        {
+          "time": 1704673800,
+          "open": 139,
+          "high": 140,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704674700,
+          "open": 138,
+          "high": 139,
+          "low": 136,
+          "close": 137
+        },
+        {
+          "time": 1704675600,
+          "open": 137,
+          "high": 138,
+          "low": 127,
+          "close": 128
+        },
+        {
+          "time": 1704676500,
+          "open": 128,
+          "high": 131,
+          "low": 125,
+          "close": 126
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704674700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704675600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704676500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 131,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 136,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bearish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "entry-wait-retest",
-      "category": "Entry Decision",
-      "title": "Konfirmasi belum berarti mengejar",
-      "timeframe": "M15",
+      "id": "fvg-bearish-3",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "sedang",
+      "title": "Fair Value Gap (FVG) · studi 9",
       "type": "choice",
-      "visibleStart": 1237158900,
-      "visibleEnd": 1237169700,
-      "prompt": "Skenario: bullish, sweep dan displacement tersedia, tetapi harga belum kembali ke level entry dalam plan. Keputusan?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa batas bawah dan atas FVG A–C?",
+      "answer": "131.00 – 136.00",
       "choices": [
-        "BUY sekarang",
-        "SELL",
-        "WAIT"
+        "131.00 – 136.00",
+        "128.00 – 131.00",
+        "136.00 – 140.00"
       ],
-      "answer": "WAIT",
-      "principle": "Tunggu harga mencapai level entry yang direncanakan. Displacement saja tidak mengizinkan entry di harga sembarang.",
-      "success": "Benar. Tunggu harga mencapai level entry yang direncanakan. Displacement saja tidak mengizinkan entry di harga sembarang.",
-      "retry": "Periksa lagi. Tunggu harga mencapai level entry yang direncanakan. Displacement saja tidak mengizinkan entry di harga sembarang.",
-      "referenceLevel": 926.88
+      "principle": "Batas gap adalah high A dan low C untuk bullish, low A dan high C untuk bearish. Di sini: 131.00–136.00.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704758400,
+          "open": 140,
+          "high": 141,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704759300,
+          "open": 138,
+          "high": 140,
+          "low": 136,
+          "close": 139
+        },
+        {
+          "time": 1704760200,
+          "open": 139,
+          "high": 140,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704761100,
+          "open": 138,
+          "high": 139,
+          "low": 136,
+          "close": 137
+        },
+        {
+          "time": 1704762000,
+          "open": 137,
+          "high": 138,
+          "low": 127,
+          "close": 128
+        },
+        {
+          "time": 1704762900,
+          "open": 128,
+          "high": 131,
+          "low": 125,
+          "close": 126
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704761100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704762000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704762900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 131,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 136,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bearish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "mistake-fomo",
-      "category": "Trader Mistake",
-      "title": "Mengejar candle besar",
-      "timeframe": "M15",
+      "id": "fvg-bearish-4",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "sedang",
+      "title": "Fair Value Gap (FVG) · studi 10",
       "type": "choice",
-      "visibleStart": 1237158900,
-      "visibleEnd": 1237169700,
-      "prompt": "Trader melihat candle ekspansi terakhir lalu BUY jauh dari area rencana karena takut ketinggalan. Kesalahan utamanya?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Di harga mana midpoint / consequent encroachment FVG?",
+      "answer": "133.50",
       "choices": [
-        "FOMO",
-        "Menunggu retest",
-        "Mengikuti batas risiko"
+        "133.50",
+        "131.00",
+        "136.00"
       ],
-      "answer": "FOMO",
-      "principle": "Entry didorong rasa takut ketinggalan, bukan harga dan konfirmasi dalam rencana.",
-      "success": "Benar. Entry didorong rasa takut ketinggalan, bukan harga dan konfirmasi dalam rencana.",
-      "retry": "Periksa lagi. Entry didorong rasa takut ketinggalan, bukan harga dan konfirmasi dalam rencana.",
-      "referenceLevel": 926.88
+      "principle": "CE = (batas bawah + batas atas) / 2. CE bukan jaminan harga akan bereaksi.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704844800,
+          "open": 140,
+          "high": 141,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704845700,
+          "open": 138,
+          "high": 140,
+          "low": 136,
+          "close": 139
+        },
+        {
+          "time": 1704846600,
+          "open": 139,
+          "high": 140,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704847500,
+          "open": 138,
+          "high": 139,
+          "low": 136,
+          "close": 137
+        },
+        {
+          "time": 1704848400,
+          "open": 137,
+          "high": 138,
+          "low": 127,
+          "close": 128
+        },
+        {
+          "time": 1704849300,
+          "open": 128,
+          "high": 131,
+          "low": 125,
+          "close": 126
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704847500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704848400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704849300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 131,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 136,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bearish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "mistake-early",
-      "category": "Trader Mistake",
-      "title": "Entry sebelum konfirmasi",
-      "timeframe": "M15",
+      "id": "fvg-bearish-5",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "advanced",
+      "title": "Fair Value Gap (FVG) · studi 11",
       "type": "choice",
-      "visibleStart": 1237163400,
-      "visibleEnd": 1237174200,
-      "prompt": "Pada candle sweep ini, trader SELL saat wick masih naik sebelum candle tutup. Bukti apa yang belum tersedia ketika ia entry?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Chart berakhir di C. Apakah entry retest FVG sudah terjadi?",
+      "answer": "Belum ada candle retest setelah C",
       "choices": [
-        "Close kembali ke range",
-        "Warna toolbar",
-        "Nama pair"
+        "Belum ada candle retest setelah C",
+        "Sudah, karena B besar",
+        "Sudah, karena FVG terbentuk"
       ],
-      "answer": "Close kembali ke range",
-      "principle": "Reclaim baru diketahui setelah candle tutup. Entry lebih awal mengasumsikan hasil candle yang belum selesai.",
-      "success": "Benar. Reclaim baru diketahui setelah candle tutup. Entry lebih awal mengasumsikan hasil candle yang belum selesai.",
-      "retry": "Periksa lagi. Reclaim baru diketahui setelah candle tutup. Entry lebih awal mengasumsikan hasil candle yang belum selesai.",
-      "referenceLevel": 926.88
+      "principle": "Formasi FVG dan retest adalah dua peristiwa berbeda. Chart belum memuat candle setelah pembentukan.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1704931200,
+          "open": 140,
+          "high": 141,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704932100,
+          "open": 138,
+          "high": 140,
+          "low": 136,
+          "close": 139
+        },
+        {
+          "time": 1704933000,
+          "open": 139,
+          "high": 140,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1704933900,
+          "open": 138,
+          "high": 139,
+          "low": 136,
+          "close": 137
+        },
+        {
+          "time": 1704934800,
+          "open": 137,
+          "high": 138,
+          "low": 127,
+          "close": 128
+        },
+        {
+          "time": 1704935700,
+          "open": 128,
+          "high": 131,
+          "low": 125,
+          "close": 126
+        }
+      ],
+      "markers": [
+        {
+          "time": 1704933900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1704934800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1704935700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 131,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 136,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bearish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     },
     {
-      "id": "mistake-risk",
-      "category": "Trader Mistake",
-      "title": "Risiko tidak sebanding",
-      "timeframe": "M15",
+      "id": "fvg-bearish-6",
+      "category": "Fair Value Gap (FVG)",
+      "topic": "fvg",
+      "difficulty": "advanced",
+      "title": "Fair Value Gap (FVG) · studi 12",
       "type": "choice",
-      "visibleStart": 1237230000,
-      "visibleEnd": 1237251600,
-      "prompt": "Skenario BUY memakai entry pada harga terakhir, SL 10 poin di bawah, dan target hanya 2 poin di atas. Apa masalah rencananya?",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apa yang dapat disimpulkan dari chart ini saja?",
+      "answer": "FVG terbentuk; bias HTF dan validasi entry belum tersedia",
       "choices": [
-        "Reward hanya 0,2R",
-        "Reward 5R",
-        "Tidak ada risiko"
+        "FVG terbentuk; bias HTF dan validasi entry belum tersedia",
+        "Pasti profit jika entry di CE",
+        "Bias semua timeframe sudah sama"
       ],
-      "answer": "Reward hanya 0,2R",
-      "principle": "Reward/risk = 2/10 = 0,2R. Trader perlu mengevaluasi geometri dan aturan risiko sebelum entry; chart yang terlihat menarik tidak memperbaikinya.",
-      "success": "Benar. Reward/risk = 2/10 = 0,2R. Trader perlu mengevaluasi geometri dan aturan risiko sebelum entry; chart yang terlihat menarik tidak memperbaikinya.",
-      "retry": "Periksa lagi. Reward/risk = 2/10 = 0,2R. Trader perlu mengevaluasi geometri dan aturan risiko sebelum entry; chart yang terlihat menarik tidak memperbaikinya."
+      "principle": "Chart membuktikan geometri FVG saja. Bias HTF, risiko dan konfirmasi entry harus dinilai terpisah.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "title": "Fair Value Gap (FVG)"
+      },
+      "candles": [
+        {
+          "time": 1705017600,
+          "open": 140,
+          "high": 141,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1705018500,
+          "open": 138,
+          "high": 140,
+          "low": 136,
+          "close": 139
+        },
+        {
+          "time": 1705019400,
+          "open": 139,
+          "high": 140,
+          "low": 137,
+          "close": 138
+        },
+        {
+          "time": 1705020300,
+          "open": 138,
+          "high": 139,
+          "low": 136,
+          "close": 137
+        },
+        {
+          "time": 1705021200,
+          "open": 137,
+          "high": 138,
+          "low": 127,
+          "close": 128
+        },
+        {
+          "time": 1705022100,
+          "open": 128,
+          "high": 131,
+          "low": 125,
+          "close": 126
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705020300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705021200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705022100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 131,
+          "title": "Batas bawah zona",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 136,
+          "title": "Batas atas zona",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "fvg",
+        "direction": "bearish",
+        "a": 3,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-BSL-1",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "mudah",
+      "title": "Equal highs, equal lows dan liquidity · studi 13",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Dua wick A dan B berada di level yang sama. Pool yang ditunjukkan?",
+      "answer": "Buy-side liquidity di atas equal highs",
+      "choices": [
+        "Buy-side liquidity di atas equal highs",
+        "FVG tiga candle",
+        "Tidak ada level yang berulang"
+      ],
+      "principle": "Equal highs/lows adalah acuan potensi kumpulan stop, bukan pengamatan langsung seluruh order pasar.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705104000,
+          "open": 140,
+          "high": 143,
+          "low": 139,
+          "close": 142
+        },
+        {
+          "time": 1705104900,
+          "open": 142,
+          "high": 150,
+          "low": 141,
+          "close": 146
+        },
+        {
+          "time": 1705105800,
+          "open": 146,
+          "high": 147,
+          "low": 142,
+          "close": 143
+        },
+        {
+          "time": 1705106700,
+          "open": 143,
+          "high": 150,
+          "low": 142,
+          "close": 146
+        },
+        {
+          "time": 1705107600,
+          "open": 146,
+          "high": 147,
+          "low": 143,
+          "close": 144
+        },
+        {
+          "time": 1705108500,
+          "open": 144,
+          "high": 153,
+          "low": 143,
+          "close": 147
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705104900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705106700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705108500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 150,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "high",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-BSL-2",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "mudah",
+      "title": "Equal highs, equal lows dan liquidity · studi 14",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle mana yang menembus level A/B kemudian close kembali?",
+      "answer": "C",
+      "choices": [
+        "C",
+        "A",
+        "B"
+      ],
+      "principle": "C melewati level referensi dengan wick lalu close kembali di sisi sebelumnya.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705190400,
+          "open": 140,
+          "high": 143,
+          "low": 139,
+          "close": 142
+        },
+        {
+          "time": 1705191300,
+          "open": 142,
+          "high": 150,
+          "low": 141,
+          "close": 146
+        },
+        {
+          "time": 1705192200,
+          "open": 146,
+          "high": 147,
+          "low": 142,
+          "close": 143
+        },
+        {
+          "time": 1705193100,
+          "open": 143,
+          "high": 150,
+          "low": 142,
+          "close": 146
+        },
+        {
+          "time": 1705194000,
+          "open": 146,
+          "high": 147,
+          "low": 143,
+          "close": 144
+        },
+        {
+          "time": 1705194900,
+          "open": 144,
+          "high": 153,
+          "low": 143,
+          "close": 147
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705191300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705193100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705194900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 150,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "high",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-BSL-3",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "sedang",
+      "title": "Equal highs, equal lows dan liquidity · studi 15",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa harga level acuan A/B?",
+      "answer": "150.00",
+      "choices": [
+        "150.00",
+        "143.00",
+        "153.00"
+      ],
+      "principle": "Bandingkan kedua wick A dan B: keduanya tepat di level acuan yang ditandai.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705276800,
+          "open": 140,
+          "high": 143,
+          "low": 139,
+          "close": 142
+        },
+        {
+          "time": 1705277700,
+          "open": 142,
+          "high": 150,
+          "low": 141,
+          "close": 146
+        },
+        {
+          "time": 1705278600,
+          "open": 146,
+          "high": 147,
+          "low": 142,
+          "close": 143
+        },
+        {
+          "time": 1705279500,
+          "open": 143,
+          "high": 150,
+          "low": 142,
+          "close": 146
+        },
+        {
+          "time": 1705280400,
+          "open": 146,
+          "high": 147,
+          "low": 143,
+          "close": 144
+        },
+        {
+          "time": 1705281300,
+          "open": 144,
+          "high": 153,
+          "low": 143,
+          "close": 147
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705277700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705279500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705281300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 150,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "high",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-BSL-4",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "sedang",
+      "title": "Equal highs, equal lows dan liquidity · studi 16",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Mengapa C dibaca sebagai sweep/reclaim, bukan close breakout?",
+      "answer": "Wick melewati level dan close kembali",
+      "choices": [
+        "Wick melewati level dan close kembali",
+        "Warna candle saja cukup",
+        "Setiap high/low baru adalah breakout"
+      ],
+      "principle": "C menembus 150.00, tetapi close di 147.00. Posisi close terhadap level membedakan reclaim dari close-through.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705363200,
+          "open": 140,
+          "high": 143,
+          "low": 139,
+          "close": 142
+        },
+        {
+          "time": 1705364100,
+          "open": 142,
+          "high": 150,
+          "low": 141,
+          "close": 146
+        },
+        {
+          "time": 1705365000,
+          "open": 146,
+          "high": 147,
+          "low": 142,
+          "close": 143
+        },
+        {
+          "time": 1705365900,
+          "open": 143,
+          "high": 150,
+          "low": 142,
+          "close": 146
+        },
+        {
+          "time": 1705366800,
+          "open": 146,
+          "high": 147,
+          "low": 143,
+          "close": 144
+        },
+        {
+          "time": 1705367700,
+          "open": 144,
+          "high": 153,
+          "low": 143,
+          "close": 147
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705364100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705365900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705367700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 150,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "high",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-BSL-5",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "advanced",
+      "title": "Equal highs, equal lows dan liquidity · studi 17",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apakah sweep C sendirian memastikan pembalikan tren?",
+      "answer": "Tidak; tunggu konfirmasi struktur dan konteks",
+      "choices": [
+        "Tidak; tunggu konfirmasi struktur dan konteks",
+        "Ya, pasti reversal",
+        "Ya, selalu entry tanpa SL"
+      ],
+      "principle": "Sweep adalah kejadian harga. Konfirmasi sesudahnya belum terlihat di chart.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705449600,
+          "open": 140,
+          "high": 143,
+          "low": 139,
+          "close": 142
+        },
+        {
+          "time": 1705450500,
+          "open": 142,
+          "high": 150,
+          "low": 141,
+          "close": 146
+        },
+        {
+          "time": 1705451400,
+          "open": 146,
+          "high": 147,
+          "low": 142,
+          "close": 143
+        },
+        {
+          "time": 1705452300,
+          "open": 143,
+          "high": 150,
+          "low": 142,
+          "close": 146
+        },
+        {
+          "time": 1705453200,
+          "open": 146,
+          "high": 147,
+          "low": 143,
+          "close": 144
+        },
+        {
+          "time": 1705454100,
+          "open": 144,
+          "high": 153,
+          "low": 143,
+          "close": 147
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705450500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705452300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705454100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 150,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "high",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-BSL-6",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "advanced",
+      "title": "Equal highs, equal lows dan liquidity · studi 18",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Bukti mana yang belum tersedia sampai candle C?",
+      "answer": "MSS lanjutan setelah sweep",
+      "choices": [
+        "MSS lanjutan setelah sweep",
+        "Dua wick pada level sama",
+        "Wick melewati level acuan"
+      ],
+      "principle": "Tidak ada candle setelah C. Jangan mengasumsikan MSS atau hasil trade yang belum terjadi.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705536000,
+          "open": 140,
+          "high": 143,
+          "low": 139,
+          "close": 142
+        },
+        {
+          "time": 1705536900,
+          "open": 142,
+          "high": 150,
+          "low": 141,
+          "close": 146
+        },
+        {
+          "time": 1705537800,
+          "open": 146,
+          "high": 147,
+          "low": 142,
+          "close": 143
+        },
+        {
+          "time": 1705538700,
+          "open": 143,
+          "high": 150,
+          "low": 142,
+          "close": 146
+        },
+        {
+          "time": 1705539600,
+          "open": 146,
+          "high": 147,
+          "low": 143,
+          "close": 144
+        },
+        {
+          "time": 1705540500,
+          "open": 144,
+          "high": 153,
+          "low": 143,
+          "close": 147
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705536900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705538700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705540500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 150,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "high",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-SSL-1",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "mudah",
+      "title": "Equal highs, equal lows dan liquidity · studi 19",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Dua wick A dan B berada di level yang sama. Pool yang ditunjukkan?",
+      "answer": "Sell-side liquidity di bawah equal lows",
+      "choices": [
+        "Sell-side liquidity di bawah equal lows",
+        "FVG tiga candle",
+        "Tidak ada level yang berulang"
+      ],
+      "principle": "Equal highs/lows adalah acuan potensi kumpulan stop, bukan pengamatan langsung seluruh order pasar.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705622400,
+          "open": 180,
+          "high": 181,
+          "low": 177,
+          "close": 178
+        },
+        {
+          "time": 1705623300,
+          "open": 178,
+          "high": 179,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705624200,
+          "open": 174,
+          "high": 178,
+          "low": 173,
+          "close": 177
+        },
+        {
+          "time": 1705625100,
+          "open": 177,
+          "high": 178,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705626000,
+          "open": 174,
+          "high": 177,
+          "low": 173,
+          "close": 176
+        },
+        {
+          "time": 1705626900,
+          "open": 176,
+          "high": 177,
+          "low": 167,
+          "close": 173
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705623300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705625100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705626900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 170,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "low",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-SSL-2",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "mudah",
+      "title": "Equal highs, equal lows dan liquidity · studi 20",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle mana yang menembus level A/B kemudian close kembali?",
+      "answer": "C",
+      "choices": [
+        "C",
+        "A",
+        "B"
+      ],
+      "principle": "C melewati level referensi dengan wick lalu close kembali di sisi sebelumnya.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705708800,
+          "open": 180,
+          "high": 181,
+          "low": 177,
+          "close": 178
+        },
+        {
+          "time": 1705709700,
+          "open": 178,
+          "high": 179,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705710600,
+          "open": 174,
+          "high": 178,
+          "low": 173,
+          "close": 177
+        },
+        {
+          "time": 1705711500,
+          "open": 177,
+          "high": 178,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705712400,
+          "open": 174,
+          "high": 177,
+          "low": 173,
+          "close": 176
+        },
+        {
+          "time": 1705713300,
+          "open": 176,
+          "high": 177,
+          "low": 167,
+          "close": 173
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705709700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705711500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705713300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 170,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "low",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-SSL-3",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "sedang",
+      "title": "Equal highs, equal lows dan liquidity · studi 21",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa harga level acuan A/B?",
+      "answer": "170.00",
+      "choices": [
+        "170.00",
+        "163.00",
+        "173.00"
+      ],
+      "principle": "Bandingkan kedua wick A dan B: keduanya tepat di level acuan yang ditandai.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705795200,
+          "open": 180,
+          "high": 181,
+          "low": 177,
+          "close": 178
+        },
+        {
+          "time": 1705796100,
+          "open": 178,
+          "high": 179,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705797000,
+          "open": 174,
+          "high": 178,
+          "low": 173,
+          "close": 177
+        },
+        {
+          "time": 1705797900,
+          "open": 177,
+          "high": 178,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705798800,
+          "open": 174,
+          "high": 177,
+          "low": 173,
+          "close": 176
+        },
+        {
+          "time": 1705799700,
+          "open": 176,
+          "high": 177,
+          "low": 167,
+          "close": 173
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705796100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705797900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705799700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 170,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "low",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-SSL-4",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "sedang",
+      "title": "Equal highs, equal lows dan liquidity · studi 22",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Mengapa C dibaca sebagai sweep/reclaim, bukan close breakout?",
+      "answer": "Wick melewati level dan close kembali",
+      "choices": [
+        "Wick melewati level dan close kembali",
+        "Warna candle saja cukup",
+        "Setiap high/low baru adalah breakout"
+      ],
+      "principle": "C menembus 170.00, tetapi close di 173.00. Posisi close terhadap level membedakan reclaim dari close-through.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705881600,
+          "open": 180,
+          "high": 181,
+          "low": 177,
+          "close": 178
+        },
+        {
+          "time": 1705882500,
+          "open": 178,
+          "high": 179,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705883400,
+          "open": 174,
+          "high": 178,
+          "low": 173,
+          "close": 177
+        },
+        {
+          "time": 1705884300,
+          "open": 177,
+          "high": 178,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705885200,
+          "open": 174,
+          "high": 177,
+          "low": 173,
+          "close": 176
+        },
+        {
+          "time": 1705886100,
+          "open": 176,
+          "high": 177,
+          "low": 167,
+          "close": 173
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705882500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705884300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705886100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 170,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "low",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-SSL-5",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "advanced",
+      "title": "Equal highs, equal lows dan liquidity · studi 23",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apakah sweep C sendirian memastikan pembalikan tren?",
+      "answer": "Tidak; tunggu konfirmasi struktur dan konteks",
+      "choices": [
+        "Tidak; tunggu konfirmasi struktur dan konteks",
+        "Ya, pasti reversal",
+        "Ya, selalu entry tanpa SL"
+      ],
+      "principle": "Sweep adalah kejadian harga. Konfirmasi sesudahnya belum terlihat di chart.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1705968000,
+          "open": 180,
+          "high": 181,
+          "low": 177,
+          "close": 178
+        },
+        {
+          "time": 1705968900,
+          "open": 178,
+          "high": 179,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705969800,
+          "open": 174,
+          "high": 178,
+          "low": 173,
+          "close": 177
+        },
+        {
+          "time": 1705970700,
+          "open": 177,
+          "high": 178,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1705971600,
+          "open": 174,
+          "high": 177,
+          "low": 173,
+          "close": 176
+        },
+        {
+          "time": 1705972500,
+          "open": 176,
+          "high": 177,
+          "low": 167,
+          "close": 173
+        }
+      ],
+      "markers": [
+        {
+          "time": 1705968900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1705970700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1705972500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 170,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "low",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "liquidity-SSL-6",
+      "category": "Equal highs, equal lows dan liquidity",
+      "topic": "liquidity",
+      "difficulty": "advanced",
+      "title": "Equal highs, equal lows dan liquidity · studi 24",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Bukti mana yang belum tersedia sampai candle C?",
+      "answer": "MSS lanjutan setelah sweep",
+      "choices": [
+        "MSS lanjutan setelah sweep",
+        "Dua wick pada level sama",
+        "Wick melewati level acuan"
+      ],
+      "principle": "Tidak ada candle setelah C. Jangan mengasumsikan MSS atau hasil trade yang belum terjadi.",
+      "lesson": {
+        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "title": "Equal highs, equal lows dan liquidity"
+      },
+      "candles": [
+        {
+          "time": 1706054400,
+          "open": 180,
+          "high": 181,
+          "low": 177,
+          "close": 178
+        },
+        {
+          "time": 1706055300,
+          "open": 178,
+          "high": 179,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1706056200,
+          "open": 174,
+          "high": 178,
+          "low": 173,
+          "close": 177
+        },
+        {
+          "time": 1706057100,
+          "open": 177,
+          "high": 178,
+          "low": 170,
+          "close": 174
+        },
+        {
+          "time": 1706058000,
+          "open": 174,
+          "high": 177,
+          "low": 173,
+          "close": 176
+        },
+        {
+          "time": 1706058900,
+          "open": 176,
+          "high": 177,
+          "low": 167,
+          "close": 173
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706055300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706057100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706058900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 170,
+          "title": "Level A/B",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "sweep",
+        "direction": "low",
+        "a": 1,
+        "b": 3,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break naik-1",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "mudah",
+      "title": "Market structure dasar · studi 25",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle C close di sisi mana dari level swing A?",
+      "answer": "Di atas swing A",
+      "choices": [
+        "Di atas swing A",
+        "Tepat di swing A",
+        "Belum menyentuh swing A"
+      ],
+      "principle": "Baca close C terhadap garis swing A, bukan hanya wick tertinggi/terendah.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706140800,
+          "open": 180,
+          "high": 184,
+          "low": 179,
+          "close": 183
+        },
+        {
+          "time": 1706141700,
+          "open": 183,
+          "high": 190,
+          "low": 182,
+          "close": 188
+        },
+        {
+          "time": 1706142600,
+          "open": 188,
+          "high": 189,
+          "low": 182,
+          "close": 184
+        },
+        {
+          "time": 1706143500,
+          "open": 184,
+          "high": 186,
+          "low": 181,
+          "close": 183
+        },
+        {
+          "time": 1706144400,
+          "open": 183,
+          "high": 192,
+          "low": 182,
+          "close": 189
+        },
+        {
+          "time": 1706145300,
+          "open": 189,
+          "high": 197,
+          "low": 188,
+          "close": 196
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706141700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706144400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706145300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 190,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "up",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break naik-2",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "mudah",
+      "title": "Market structure dasar · studi 26",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle mana hanya menembus dengan wick tanpa close melewati swing?",
+      "answer": "B",
+      "choices": [
+        "B",
+        "A",
+        "C"
+      ],
+      "principle": "B menembus swing tetapi close kembali; C baru close melewati level.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706227200,
+          "open": 180,
+          "high": 184,
+          "low": 179,
+          "close": 183
+        },
+        {
+          "time": 1706228100,
+          "open": 183,
+          "high": 190,
+          "low": 182,
+          "close": 188
+        },
+        {
+          "time": 1706229000,
+          "open": 188,
+          "high": 189,
+          "low": 182,
+          "close": 184
+        },
+        {
+          "time": 1706229900,
+          "open": 184,
+          "high": 186,
+          "low": 181,
+          "close": 183
+        },
+        {
+          "time": 1706230800,
+          "open": 183,
+          "high": 192,
+          "low": 182,
+          "close": 189
+        },
+        {
+          "time": 1706231700,
+          "open": 189,
+          "high": 197,
+          "low": 188,
+          "close": 196
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706228100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706230800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706231700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 190,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "up",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break naik-3",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "sedang",
+      "title": "Market structure dasar · studi 27",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Level struktur yang dilampaui close C adalah?",
+      "answer": "190.00",
+      "choices": [
+        "190.00",
+        "181.00",
+        "197.00"
+      ],
+      "principle": "Level 190.00 berasal dari wick swing A yang terbentuk sebelum breakout.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706313600,
+          "open": 180,
+          "high": 184,
+          "low": 179,
+          "close": 183
+        },
+        {
+          "time": 1706314500,
+          "open": 183,
+          "high": 190,
+          "low": 182,
+          "close": 188
+        },
+        {
+          "time": 1706315400,
+          "open": 188,
+          "high": 189,
+          "low": 182,
+          "close": 184
+        },
+        {
+          "time": 1706316300,
+          "open": 184,
+          "high": 186,
+          "low": 181,
+          "close": 183
+        },
+        {
+          "time": 1706317200,
+          "open": 183,
+          "high": 192,
+          "low": 182,
+          "close": 189
+        },
+        {
+          "time": 1706318100,
+          "open": 189,
+          "high": 197,
+          "low": 188,
+          "close": 196
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706314500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706317200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706318100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 190,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "up",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break naik-4",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "sedang",
+      "title": "Market structure dasar · studi 28",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Manakah bukti lebih kuat untuk close-break pada chart ini?",
+      "answer": "Close C melewati swing A",
+      "choices": [
+        "Close C melewati swing A",
+        "Wick B saja",
+        "Warna A saja"
+      ],
+      "principle": "Break berbasis close harus dibuktikan oleh penutupan melewati swing yang sudah ada.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706400000,
+          "open": 180,
+          "high": 184,
+          "low": 179,
+          "close": 183
+        },
+        {
+          "time": 1706400900,
+          "open": 183,
+          "high": 190,
+          "low": 182,
+          "close": 188
+        },
+        {
+          "time": 1706401800,
+          "open": 188,
+          "high": 189,
+          "low": 182,
+          "close": 184
+        },
+        {
+          "time": 1706402700,
+          "open": 184,
+          "high": 186,
+          "low": 181,
+          "close": 183
+        },
+        {
+          "time": 1706403600,
+          "open": 183,
+          "high": 192,
+          "low": 182,
+          "close": 189
+        },
+        {
+          "time": 1706404500,
+          "open": 189,
+          "high": 197,
+          "low": 188,
+          "close": 196
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706400900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706403600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706404500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 190,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "up",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break naik-5",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "advanced",
+      "title": "Market structure dasar · studi 29",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Dapatkah satu window ini memastikan label BOS continuation atau MSS reversal?",
+      "answer": "Perlu konteks tren sebelum window",
+      "choices": [
+        "Perlu konteks tren sebelum window",
+        "Pasti BOS continuation",
+        "Pasti MSS reversal"
+      ],
+      "principle": "Arah break terlihat, tetapi BOS continuation versus MSS reversal memerlukan struktur/tren sebelumnya.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706486400,
+          "open": 180,
+          "high": 184,
+          "low": 179,
+          "close": 183
+        },
+        {
+          "time": 1706487300,
+          "open": 183,
+          "high": 190,
+          "low": 182,
+          "close": 188
+        },
+        {
+          "time": 1706488200,
+          "open": 188,
+          "high": 189,
+          "low": 182,
+          "close": 184
+        },
+        {
+          "time": 1706489100,
+          "open": 184,
+          "high": 186,
+          "low": 181,
+          "close": 183
+        },
+        {
+          "time": 1706490000,
+          "open": 183,
+          "high": 192,
+          "low": 182,
+          "close": 189
+        },
+        {
+          "time": 1706490900,
+          "open": 189,
+          "high": 197,
+          "low": 188,
+          "close": 196
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706487300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706490000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706490900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 190,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "up",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break naik-6",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "advanced",
+      "title": "Market structure dasar · studi 30",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apakah retest level yang ditembus sudah terkonfirmasi?",
+      "answer": "Belum; chart berhenti pada candle break C",
+      "choices": [
+        "Belum; chart berhenti pada candle break C",
+        "Sudah karena wick B",
+        "Sudah karena C besar"
+      ],
+      "principle": "Retest harus terjadi sesudah break; tidak boleh memakai candle B sebelum break C sebagai retest.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706572800,
+          "open": 180,
+          "high": 184,
+          "low": 179,
+          "close": 183
+        },
+        {
+          "time": 1706573700,
+          "open": 183,
+          "high": 190,
+          "low": 182,
+          "close": 188
+        },
+        {
+          "time": 1706574600,
+          "open": 188,
+          "high": 189,
+          "low": 182,
+          "close": 184
+        },
+        {
+          "time": 1706575500,
+          "open": 184,
+          "high": 186,
+          "low": 181,
+          "close": 183
+        },
+        {
+          "time": 1706576400,
+          "open": 183,
+          "high": 192,
+          "low": 182,
+          "close": 189
+        },
+        {
+          "time": 1706577300,
+          "open": 189,
+          "high": 197,
+          "low": 188,
+          "close": 196
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706573700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706576400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706577300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 190,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "up",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break turun-1",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "mudah",
+      "title": "Market structure dasar · studi 31",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle C close di sisi mana dari level swing A?",
+      "answer": "Di bawah swing A",
+      "choices": [
+        "Di bawah swing A",
+        "Tepat di swing A",
+        "Belum menyentuh swing A"
+      ],
+      "principle": "Baca close C terhadap garis swing A, bukan hanya wick tertinggi/terendah.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706659200,
+          "open": 220,
+          "high": 221,
+          "low": 216,
+          "close": 217
+        },
+        {
+          "time": 1706660100,
+          "open": 217,
+          "high": 218,
+          "low": 210,
+          "close": 212
+        },
+        {
+          "time": 1706661000,
+          "open": 212,
+          "high": 218,
+          "low": 211,
+          "close": 216
+        },
+        {
+          "time": 1706661900,
+          "open": 216,
+          "high": 219,
+          "low": 214,
+          "close": 217
+        },
+        {
+          "time": 1706662800,
+          "open": 217,
+          "high": 218,
+          "low": 208,
+          "close": 211
+        },
+        {
+          "time": 1706663700,
+          "open": 211,
+          "high": 212,
+          "low": 203,
+          "close": 204
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706660100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706662800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706663700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 210,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "down",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break turun-2",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "mudah",
+      "title": "Market structure dasar · studi 32",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Candle mana hanya menembus dengan wick tanpa close melewati swing?",
+      "answer": "B",
+      "choices": [
+        "B",
+        "A",
+        "C"
+      ],
+      "principle": "B menembus swing tetapi close kembali; C baru close melewati level.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706745600,
+          "open": 220,
+          "high": 221,
+          "low": 216,
+          "close": 217
+        },
+        {
+          "time": 1706746500,
+          "open": 217,
+          "high": 218,
+          "low": 210,
+          "close": 212
+        },
+        {
+          "time": 1706747400,
+          "open": 212,
+          "high": 218,
+          "low": 211,
+          "close": 216
+        },
+        {
+          "time": 1706748300,
+          "open": 216,
+          "high": 219,
+          "low": 214,
+          "close": 217
+        },
+        {
+          "time": 1706749200,
+          "open": 217,
+          "high": 218,
+          "low": 208,
+          "close": 211
+        },
+        {
+          "time": 1706750100,
+          "open": 211,
+          "high": 212,
+          "low": 203,
+          "close": 204
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706746500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706749200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706750100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 210,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "down",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break turun-3",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "sedang",
+      "title": "Market structure dasar · studi 33",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Level struktur yang dilampaui close C adalah?",
+      "answer": "210.00",
+      "choices": [
+        "210.00",
+        "201.00",
+        "217.00"
+      ],
+      "principle": "Level 210.00 berasal dari wick swing A yang terbentuk sebelum breakout.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706832000,
+          "open": 220,
+          "high": 221,
+          "low": 216,
+          "close": 217
+        },
+        {
+          "time": 1706832900,
+          "open": 217,
+          "high": 218,
+          "low": 210,
+          "close": 212
+        },
+        {
+          "time": 1706833800,
+          "open": 212,
+          "high": 218,
+          "low": 211,
+          "close": 216
+        },
+        {
+          "time": 1706834700,
+          "open": 216,
+          "high": 219,
+          "low": 214,
+          "close": 217
+        },
+        {
+          "time": 1706835600,
+          "open": 217,
+          "high": 218,
+          "low": 208,
+          "close": 211
+        },
+        {
+          "time": 1706836500,
+          "open": 211,
+          "high": 212,
+          "low": 203,
+          "close": 204
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706832900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706835600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706836500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 210,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "down",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break turun-4",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "sedang",
+      "title": "Market structure dasar · studi 34",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Manakah bukti lebih kuat untuk close-break pada chart ini?",
+      "answer": "Close C melewati swing A",
+      "choices": [
+        "Close C melewati swing A",
+        "Wick B saja",
+        "Warna A saja"
+      ],
+      "principle": "Break berbasis close harus dibuktikan oleh penutupan melewati swing yang sudah ada.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1706918400,
+          "open": 220,
+          "high": 221,
+          "low": 216,
+          "close": 217
+        },
+        {
+          "time": 1706919300,
+          "open": 217,
+          "high": 218,
+          "low": 210,
+          "close": 212
+        },
+        {
+          "time": 1706920200,
+          "open": 212,
+          "high": 218,
+          "low": 211,
+          "close": 216
+        },
+        {
+          "time": 1706921100,
+          "open": 216,
+          "high": 219,
+          "low": 214,
+          "close": 217
+        },
+        {
+          "time": 1706922000,
+          "open": 217,
+          "high": 218,
+          "low": 208,
+          "close": 211
+        },
+        {
+          "time": 1706922900,
+          "open": 211,
+          "high": 212,
+          "low": 203,
+          "close": 204
+        }
+      ],
+      "markers": [
+        {
+          "time": 1706919300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1706922000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1706922900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 210,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "down",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break turun-5",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "advanced",
+      "title": "Market structure dasar · studi 35",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Dapatkah satu window ini memastikan label BOS continuation atau MSS reversal?",
+      "answer": "Perlu konteks tren sebelum window",
+      "choices": [
+        "Perlu konteks tren sebelum window",
+        "Pasti BOS continuation",
+        "Pasti MSS reversal"
+      ],
+      "principle": "Arah break terlihat, tetapi BOS continuation versus MSS reversal memerlukan struktur/tren sebelumnya.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1707004800,
+          "open": 220,
+          "high": 221,
+          "low": 216,
+          "close": 217
+        },
+        {
+          "time": 1707005700,
+          "open": 217,
+          "high": 218,
+          "low": 210,
+          "close": 212
+        },
+        {
+          "time": 1707006600,
+          "open": 212,
+          "high": 218,
+          "low": 211,
+          "close": 216
+        },
+        {
+          "time": 1707007500,
+          "open": 216,
+          "high": 219,
+          "low": 214,
+          "close": 217
+        },
+        {
+          "time": 1707008400,
+          "open": 217,
+          "high": 218,
+          "low": 208,
+          "close": 211
+        },
+        {
+          "time": 1707009300,
+          "open": 211,
+          "high": 212,
+          "low": 203,
+          "close": 204
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707005700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707008400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707009300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 210,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "down",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "structure-break turun-6",
+      "category": "Market structure dasar",
+      "topic": "structure",
+      "difficulty": "advanced",
+      "title": "Market structure dasar · studi 36",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apakah retest level yang ditembus sudah terkonfirmasi?",
+      "answer": "Belum; chart berhenti pada candle break C",
+      "choices": [
+        "Belum; chart berhenti pada candle break C",
+        "Sudah karena wick B",
+        "Sudah karena C besar"
+      ],
+      "principle": "Retest harus terjadi sesudah break; tidak boleh memakai candle B sebelum break C sebagai retest.",
+      "lesson": {
+        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "title": "Market structure dasar"
+      },
+      "candles": [
+        {
+          "time": 1707091200,
+          "open": 220,
+          "high": 221,
+          "low": 216,
+          "close": 217
+        },
+        {
+          "time": 1707092100,
+          "open": 217,
+          "high": 218,
+          "low": 210,
+          "close": 212
+        },
+        {
+          "time": 1707093000,
+          "open": 212,
+          "high": 218,
+          "low": 211,
+          "close": 216
+        },
+        {
+          "time": 1707093900,
+          "open": 216,
+          "high": 219,
+          "low": 214,
+          "close": 217
+        },
+        {
+          "time": 1707094800,
+          "open": 217,
+          "high": 218,
+          "low": 208,
+          "close": 211
+        },
+        {
+          "time": 1707095700,
+          "open": 211,
+          "high": 212,
+          "low": 203,
+          "close": 204
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707092100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707094800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707095700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 210,
+          "title": "Swing A",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "break",
+        "direction": "down",
+        "a": 1,
+        "b": 4,
+        "c": 5
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-discount-1",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "mudah",
+      "title": "Premium, discount dan dealing range · studi 37",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Close C berada di bagian mana dari dealing range A–B?",
+      "answer": "Discount",
+      "choices": [
+        "Discount",
+        "Equilibrium",
+        "Premium"
+      ],
+      "principle": "Premium di atas midpoint; discount di bawah midpoint dari range yang dinyatakan dalam soal.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707177600,
+          "open": 224,
+          "high": 228,
+          "low": 220,
+          "close": 226
+        },
+        {
+          "time": 1707178500,
+          "open": 226,
+          "high": 235,
+          "low": 225,
+          "close": 233
+        },
+        {
+          "time": 1707179400,
+          "open": 233,
+          "high": 240,
+          "low": 230,
+          "close": 235
+        },
+        {
+          "time": 1707180300,
+          "open": 235,
+          "high": 236,
+          "low": 224,
+          "close": 226
+        },
+        {
+          "time": 1707181200,
+          "open": 226,
+          "high": 228,
+          "low": 223,
+          "close": 225
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707177600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707179400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707181200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 220,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 230,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 240,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.25
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-discount-2",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "mudah",
+      "title": "Premium, discount dan dealing range · studi 38",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa equilibrium range 220.00–240.00?",
+      "answer": "230.00",
+      "choices": [
+        "230.00",
+        "220.00",
+        "240.00"
+      ],
+      "principle": "Equilibrium = (range high + range low) / 2.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707264000,
+          "open": 224,
+          "high": 228,
+          "low": 220,
+          "close": 226
+        },
+        {
+          "time": 1707264900,
+          "open": 226,
+          "high": 235,
+          "low": 225,
+          "close": 233
+        },
+        {
+          "time": 1707265800,
+          "open": 233,
+          "high": 240,
+          "low": 230,
+          "close": 235
+        },
+        {
+          "time": 1707266700,
+          "open": 235,
+          "high": 236,
+          "low": 224,
+          "close": 226
+        },
+        {
+          "time": 1707267600,
+          "open": 226,
+          "high": 228,
+          "low": 223,
+          "close": 225
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707264000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707265800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707267600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 220,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 230,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 240,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.25
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-discount-3",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "sedang",
+      "title": "Premium, discount dan dealing range · studi 39",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa posisi relatif close C dari batas bawah range?",
+      "answer": "25%",
+      "choices": [
+        "25%",
+        "50%",
+        "100%"
+      ],
+      "principle": "Posisi = (close − low) / (high − low). Close 225.00, low 220.00, high 240.00.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707350400,
+          "open": 224,
+          "high": 228,
+          "low": 220,
+          "close": 226
+        },
+        {
+          "time": 1707351300,
+          "open": 226,
+          "high": 235,
+          "low": 225,
+          "close": 233
+        },
+        {
+          "time": 1707352200,
+          "open": 233,
+          "high": 240,
+          "low": 230,
+          "close": 235
+        },
+        {
+          "time": 1707353100,
+          "open": 235,
+          "high": 236,
+          "low": 224,
+          "close": 226
+        },
+        {
+          "time": 1707354000,
+          "open": 226,
+          "high": 228,
+          "low": 223,
+          "close": 225
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707350400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707352200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707354000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 220,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 230,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 240,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.25
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-discount-4",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "sedang",
+      "title": "Premium, discount dan dealing range · studi 40",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Level mana yang merupakan batas external atas range?",
+      "answer": "240.00",
+      "choices": [
+        "240.00",
+        "230.00",
+        "225.00"
+      ],
+      "principle": "External atas adalah high pembentuk range B; midpoint adalah level internal.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707436800,
+          "open": 224,
+          "high": 228,
+          "low": 220,
+          "close": 226
+        },
+        {
+          "time": 1707437700,
+          "open": 226,
+          "high": 235,
+          "low": 225,
+          "close": 233
+        },
+        {
+          "time": 1707438600,
+          "open": 233,
+          "high": 240,
+          "low": 230,
+          "close": 235
+        },
+        {
+          "time": 1707439500,
+          "open": 235,
+          "high": 236,
+          "low": 224,
+          "close": 226
+        },
+        {
+          "time": 1707440400,
+          "open": 226,
+          "high": 228,
+          "low": 223,
+          "close": 225
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707436800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707438600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707440400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 220,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 230,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 240,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.25
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-discount-5",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "advanced",
+      "title": "Premium, discount dan dealing range · studi 41",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apakah lokasi close C cukup untuk langsung entry?",
+      "answer": "Tidak; lokasi harus dipadukan konteks dan konfirmasi",
+      "choices": [
+        "Tidak; lokasi harus dipadukan konteks dan konfirmasi",
+        "Ya, lokasi menjamin arah",
+        "Ya, tanpa perlu risiko"
+      ],
+      "principle": "Premium/discount adalah lokasi relatif terhadap range terpilih, bukan sinyal mandiri.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707523200,
+          "open": 224,
+          "high": 228,
+          "low": 220,
+          "close": 226
+        },
+        {
+          "time": 1707524100,
+          "open": 226,
+          "high": 235,
+          "low": 225,
+          "close": 233
+        },
+        {
+          "time": 1707525000,
+          "open": 233,
+          "high": 240,
+          "low": 230,
+          "close": 235
+        },
+        {
+          "time": 1707525900,
+          "open": 235,
+          "high": 236,
+          "low": 224,
+          "close": 226
+        },
+        {
+          "time": 1707526800,
+          "open": 226,
+          "high": 228,
+          "low": 223,
+          "close": 225
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707523200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707525000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707526800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 220,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 230,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 240,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.25
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-discount-6",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "advanced",
+      "title": "Premium, discount dan dealing range · studi 42",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Jika memakai range timeframe lebih tinggi, apa yang harus dilakukan?",
+      "answer": "Hitung ulang posisi dengan high/low range HTF",
+      "choices": [
+        "Hitung ulang posisi dengan high/low range HTF",
+        "Pertahankan persentase yang sama",
+        "Anggap seluruh timeframe identik"
+      ],
+      "principle": "Persentase lokasi bergantung pada pasangan batas range. Chart ini hanya menunjukkan range yang ditetapkan.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707609600,
+          "open": 224,
+          "high": 228,
+          "low": 220,
+          "close": 226
+        },
+        {
+          "time": 1707610500,
+          "open": 226,
+          "high": 235,
+          "low": 225,
+          "close": 233
+        },
+        {
+          "time": 1707611400,
+          "open": 233,
+          "high": 240,
+          "low": 230,
+          "close": 235
+        },
+        {
+          "time": 1707612300,
+          "open": 235,
+          "high": 236,
+          "low": 224,
+          "close": 226
+        },
+        {
+          "time": 1707613200,
+          "open": 226,
+          "high": 228,
+          "low": 223,
+          "close": 225
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707609600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707611400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707613200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 220,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 230,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 240,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.25
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-premium-1",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "mudah",
+      "title": "Premium, discount dan dealing range · studi 43",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Close C berada di bagian mana dari dealing range A–B?",
+      "answer": "Premium",
+      "choices": [
+        "Premium",
+        "Equilibrium",
+        "Discount"
+      ],
+      "principle": "Premium di atas midpoint; discount di bawah midpoint dari range yang dinyatakan dalam soal.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707696000,
+          "open": 244,
+          "high": 248,
+          "low": 240,
+          "close": 246
+        },
+        {
+          "time": 1707696900,
+          "open": 246,
+          "high": 255,
+          "low": 245,
+          "close": 253
+        },
+        {
+          "time": 1707697800,
+          "open": 253,
+          "high": 260,
+          "low": 250,
+          "close": 255
+        },
+        {
+          "time": 1707698700,
+          "open": 255,
+          "high": 256,
+          "low": 244,
+          "close": 246
+        },
+        {
+          "time": 1707699600,
+          "open": 246,
+          "high": 256,
+          "low": 243,
+          "close": 255
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707696000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707697800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707699600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 240,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 250,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 260,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.75
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-premium-2",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "mudah",
+      "title": "Premium, discount dan dealing range · studi 44",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa equilibrium range 240.00–260.00?",
+      "answer": "250.00",
+      "choices": [
+        "250.00",
+        "240.00",
+        "260.00"
+      ],
+      "principle": "Equilibrium = (range high + range low) / 2.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707782400,
+          "open": 244,
+          "high": 248,
+          "low": 240,
+          "close": 246
+        },
+        {
+          "time": 1707783300,
+          "open": 246,
+          "high": 255,
+          "low": 245,
+          "close": 253
+        },
+        {
+          "time": 1707784200,
+          "open": 253,
+          "high": 260,
+          "low": 250,
+          "close": 255
+        },
+        {
+          "time": 1707785100,
+          "open": 255,
+          "high": 256,
+          "low": 244,
+          "close": 246
+        },
+        {
+          "time": 1707786000,
+          "open": 246,
+          "high": 256,
+          "low": 243,
+          "close": 255
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707782400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707784200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707786000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 240,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 250,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 260,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.75
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-premium-3",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "sedang",
+      "title": "Premium, discount dan dealing range · studi 45",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa posisi relatif close C dari batas bawah range?",
+      "answer": "75%",
+      "choices": [
+        "75%",
+        "50%",
+        "100%"
+      ],
+      "principle": "Posisi = (close − low) / (high − low). Close 255.00, low 240.00, high 260.00.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707868800,
+          "open": 244,
+          "high": 248,
+          "low": 240,
+          "close": 246
+        },
+        {
+          "time": 1707869700,
+          "open": 246,
+          "high": 255,
+          "low": 245,
+          "close": 253
+        },
+        {
+          "time": 1707870600,
+          "open": 253,
+          "high": 260,
+          "low": 250,
+          "close": 255
+        },
+        {
+          "time": 1707871500,
+          "open": 255,
+          "high": 256,
+          "low": 244,
+          "close": 246
+        },
+        {
+          "time": 1707872400,
+          "open": 246,
+          "high": 256,
+          "low": 243,
+          "close": 255
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707868800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707870600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707872400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 240,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 250,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 260,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.75
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-premium-4",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "sedang",
+      "title": "Premium, discount dan dealing range · studi 46",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Level mana yang merupakan batas external atas range?",
+      "answer": "260.00",
+      "choices": [
+        "260.00",
+        "250.00",
+        "245.00"
+      ],
+      "principle": "External atas adalah high pembentuk range B; midpoint adalah level internal.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1707955200,
+          "open": 244,
+          "high": 248,
+          "low": 240,
+          "close": 246
+        },
+        {
+          "time": 1707956100,
+          "open": 246,
+          "high": 255,
+          "low": 245,
+          "close": 253
+        },
+        {
+          "time": 1707957000,
+          "open": 253,
+          "high": 260,
+          "low": 250,
+          "close": 255
+        },
+        {
+          "time": 1707957900,
+          "open": 255,
+          "high": 256,
+          "low": 244,
+          "close": 246
+        },
+        {
+          "time": 1707958800,
+          "open": 246,
+          "high": 256,
+          "low": 243,
+          "close": 255
+        }
+      ],
+      "markers": [
+        {
+          "time": 1707955200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1707957000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1707958800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 240,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 250,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 260,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.75
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-premium-5",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "advanced",
+      "title": "Premium, discount dan dealing range · studi 47",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Apakah lokasi close C cukup untuk langsung entry?",
+      "answer": "Tidak; lokasi harus dipadukan konteks dan konfirmasi",
+      "choices": [
+        "Tidak; lokasi harus dipadukan konteks dan konfirmasi",
+        "Ya, lokasi menjamin arah",
+        "Ya, tanpa perlu risiko"
+      ],
+      "principle": "Premium/discount adalah lokasi relatif terhadap range terpilih, bukan sinyal mandiri.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1708041600,
+          "open": 244,
+          "high": 248,
+          "low": 240,
+          "close": 246
+        },
+        {
+          "time": 1708042500,
+          "open": 246,
+          "high": 255,
+          "low": 245,
+          "close": 253
+        },
+        {
+          "time": 1708043400,
+          "open": 253,
+          "high": 260,
+          "low": 250,
+          "close": 255
+        },
+        {
+          "time": 1708044300,
+          "open": 255,
+          "high": 256,
+          "low": 244,
+          "close": 246
+        },
+        {
+          "time": 1708045200,
+          "open": 246,
+          "high": 256,
+          "low": 243,
+          "close": 255
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708041600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1708043400,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1708045200,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 240,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 250,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 260,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.75
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "range-premium-6",
+      "category": "Premium, discount dan dealing range",
+      "topic": "range",
+      "difficulty": "advanced",
+      "title": "Premium, discount dan dealing range · studi 48",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Jika memakai range timeframe lebih tinggi, apa yang harus dilakukan?",
+      "answer": "Hitung ulang posisi dengan high/low range HTF",
+      "choices": [
+        "Hitung ulang posisi dengan high/low range HTF",
+        "Pertahankan persentase yang sama",
+        "Anggap seluruh timeframe identik"
+      ],
+      "principle": "Persentase lokasi bergantung pada pasangan batas range. Chart ini hanya menunjukkan range yang ditetapkan.",
+      "lesson": {
+        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "title": "Premium, discount dan dealing range"
+      },
+      "candles": [
+        {
+          "time": 1708128000,
+          "open": 244,
+          "high": 248,
+          "low": 240,
+          "close": 246
+        },
+        {
+          "time": 1708128900,
+          "open": 246,
+          "high": 255,
+          "low": 245,
+          "close": 253
+        },
+        {
+          "time": 1708129800,
+          "open": 253,
+          "high": 260,
+          "low": 250,
+          "close": 255
+        },
+        {
+          "time": 1708130700,
+          "open": 255,
+          "high": 256,
+          "low": 244,
+          "close": 246
+        },
+        {
+          "time": 1708131600,
+          "open": 246,
+          "high": 256,
+          "low": 243,
+          "close": 255
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708128000,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "A"
+        },
+        {
+          "time": 1708129800,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "B"
+        },
+        {
+          "time": 1708131600,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 240,
+          "title": "Range low",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 250,
+          "title": "Equilibrium",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 260,
+          "title": "Range high",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "range",
+        "closeIndex": 4,
+        "position": 0.75
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-BUY-1",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "mudah",
+      "title": "Menentukan SL dan TP Gold · studi 49",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Rencana BUY: garis Entry, SL, TP terlihat. Berapa jarak risiko entry–SL?",
+      "answer": "5 poin",
+      "choices": [
+        "5 poin",
+        "10 poin",
+        "15 poin"
+      ],
+      "principle": "Risiko harga = nilai absolut entry − SL. Nilai uang per poin belum diberikan.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708214400,
+          "open": 268,
+          "high": 272,
+          "low": 267,
+          "close": 271
+        },
+        {
+          "time": 1708215300,
+          "open": 271,
+          "high": 274,
+          "low": 268,
+          "close": 272
+        },
+        {
+          "time": 1708216200,
+          "open": 272,
+          "high": 273,
+          "low": 267,
+          "close": 269
+        },
+        {
+          "time": 1708217100,
+          "open": 269,
+          "high": 272,
+          "low": 268,
+          "close": 270
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708217100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 270,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 265,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "BUY"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-BUY-2",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "mudah",
+      "title": "Menentukan SL dan TP Gold · studi 50",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Rencana BUY: berapa jarak reward entry–TP?",
+      "answer": "10 poin",
+      "choices": [
+        "10 poin",
+        "5 poin",
+        "20 poin"
+      ],
+      "principle": "Reward harga = nilai absolut TP − entry.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708300800,
+          "open": 268,
+          "high": 272,
+          "low": 267,
+          "close": 271
+        },
+        {
+          "time": 1708301700,
+          "open": 271,
+          "high": 274,
+          "low": 268,
+          "close": 272
+        },
+        {
+          "time": 1708302600,
+          "open": 272,
+          "high": 273,
+          "low": 267,
+          "close": 269
+        },
+        {
+          "time": 1708303500,
+          "open": 269,
+          "high": 272,
+          "low": 268,
+          "close": 270
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708303500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 270,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 265,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "BUY"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-BUY-3",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "sedang",
+      "title": "Menentukan SL dan TP Gold · studi 51",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa reward:risk rencana pada chart?",
+      "answer": "2:1",
+      "choices": [
+        "2:1",
+        "1:2",
+        "1:1"
+      ],
+      "principle": "Reward 10 poin dibagi risiko 5 poin = 2R, belum memperhitungkan biaya.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708387200,
+          "open": 268,
+          "high": 272,
+          "low": 267,
+          "close": 271
+        },
+        {
+          "time": 1708388100,
+          "open": 271,
+          "high": 274,
+          "low": 268,
+          "close": 272
+        },
+        {
+          "time": 1708389000,
+          "open": 272,
+          "high": 273,
+          "low": 267,
+          "close": 269
+        },
+        {
+          "time": 1708389900,
+          "open": 269,
+          "high": 272,
+          "low": 268,
+          "close": 270
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708389900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 270,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 265,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "BUY"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-BUY-4",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "sedang",
+      "title": "Menentukan SL dan TP Gold · studi 52",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Untuk BUY, apakah posisi SL dan TP terhadap entry valid secara geometri?",
+      "answer": "Ya, SL di sisi rugi dan TP di sisi untung",
+      "choices": [
+        "Ya, SL di sisi rugi dan TP di sisi untung",
+        "Tidak, SL dan TP terbalik",
+        "Tidak, karena entry harus sama dengan SL"
+      ],
+      "principle": "BUY: SL < entry < TP. SELL: TP < entry < SL. Validasi geometri tidak membuktikan kualitas sinyal.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708473600,
+          "open": 268,
+          "high": 272,
+          "low": 267,
+          "close": 271
+        },
+        {
+          "time": 1708474500,
+          "open": 271,
+          "high": 274,
+          "low": 268,
+          "close": 272
+        },
+        {
+          "time": 1708475400,
+          "open": 272,
+          "high": 273,
+          "low": 267,
+          "close": 269
+        },
+        {
+          "time": 1708476300,
+          "open": 269,
+          "high": 272,
+          "low": 268,
+          "close": 270
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708476300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 270,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 265,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "BUY"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-BUY-5",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "advanced",
+      "title": "Menentukan SL dan TP Gold · studi 53",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Chart berhenti di C sebelum trade berjalan. Apakah TP/SL sudah boleh dicatat?",
+      "answer": "Belum, perlu candle setelah entry",
+      "choices": [
+        "Belum, perlu candle setelah entry",
+        "Catat TP karena 2R",
+        "Catat SL karena wick sebelumnya"
+      ],
+      "principle": "Candle sebelum/saat keputusan bukan hasil trade ke depan. Jangan mengisi outcome tanpa data lanjutan.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708560000,
+          "open": 268,
+          "high": 272,
+          "low": 267,
+          "close": 271
+        },
+        {
+          "time": 1708560900,
+          "open": 271,
+          "high": 274,
+          "low": 268,
+          "close": 272
+        },
+        {
+          "time": 1708561800,
+          "open": 272,
+          "high": 273,
+          "low": 267,
+          "close": 269
+        },
+        {
+          "time": 1708562700,
+          "open": 269,
+          "high": 272,
+          "low": 268,
+          "close": 270
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708562700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 270,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 265,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "BUY"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-BUY-6",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "advanced",
+      "title": "Menentukan SL dan TP Gold · studi 54",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Jika biaya round-trip setara 1 poin, reward bersih pada TP berapa?",
+      "answer": "9 poin",
+      "choices": [
+        "9 poin",
+        "10 poin",
+        "11 poin"
+      ],
+      "principle": "Reward kotor 10 poin − biaya 1 poin = 9 poin. RR kotor bukan hasil bersih setelah biaya.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708646400,
+          "open": 268,
+          "high": 272,
+          "low": 267,
+          "close": 271
+        },
+        {
+          "time": 1708647300,
+          "open": 271,
+          "high": 274,
+          "low": 268,
+          "close": 272
+        },
+        {
+          "time": 1708648200,
+          "open": 272,
+          "high": 273,
+          "low": 267,
+          "close": 269
+        },
+        {
+          "time": 1708649100,
+          "open": 269,
+          "high": 272,
+          "low": 268,
+          "close": 270
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708649100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 270,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 265,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "BUY"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-SELL-1",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "mudah",
+      "title": "Menentukan SL dan TP Gold · studi 55",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Rencana SELL: garis Entry, SL, TP terlihat. Berapa jarak risiko entry–SL?",
+      "answer": "5 poin",
+      "choices": [
+        "5 poin",
+        "10 poin",
+        "15 poin"
+      ],
+      "principle": "Risiko harga = nilai absolut entry − SL. Nilai uang per poin belum diberikan.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708732800,
+          "open": 288,
+          "high": 292,
+          "low": 287,
+          "close": 291
+        },
+        {
+          "time": 1708733700,
+          "open": 291,
+          "high": 294,
+          "low": 288,
+          "close": 292
+        },
+        {
+          "time": 1708734600,
+          "open": 292,
+          "high": 293,
+          "low": 287,
+          "close": 289
+        },
+        {
+          "time": 1708735500,
+          "open": 289,
+          "high": 292,
+          "low": 288,
+          "close": 290
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708735500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 290,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 295,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "SELL"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-SELL-2",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "mudah",
+      "title": "Menentukan SL dan TP Gold · studi 56",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Rencana SELL: berapa jarak reward entry–TP?",
+      "answer": "10 poin",
+      "choices": [
+        "10 poin",
+        "5 poin",
+        "20 poin"
+      ],
+      "principle": "Reward harga = nilai absolut TP − entry.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708819200,
+          "open": 288,
+          "high": 292,
+          "low": 287,
+          "close": 291
+        },
+        {
+          "time": 1708820100,
+          "open": 291,
+          "high": 294,
+          "low": 288,
+          "close": 292
+        },
+        {
+          "time": 1708821000,
+          "open": 292,
+          "high": 293,
+          "low": 287,
+          "close": 289
+        },
+        {
+          "time": 1708821900,
+          "open": 289,
+          "high": 292,
+          "low": 288,
+          "close": 290
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708821900,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 290,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 295,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "SELL"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-SELL-3",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "sedang",
+      "title": "Menentukan SL dan TP Gold · studi 57",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Berapa reward:risk rencana pada chart?",
+      "answer": "2:1",
+      "choices": [
+        "2:1",
+        "1:2",
+        "1:1"
+      ],
+      "principle": "Reward 10 poin dibagi risiko 5 poin = 2R, belum memperhitungkan biaya.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708905600,
+          "open": 288,
+          "high": 292,
+          "low": 287,
+          "close": 291
+        },
+        {
+          "time": 1708906500,
+          "open": 291,
+          "high": 294,
+          "low": 288,
+          "close": 292
+        },
+        {
+          "time": 1708907400,
+          "open": 292,
+          "high": 293,
+          "low": 287,
+          "close": 289
+        },
+        {
+          "time": 1708908300,
+          "open": 289,
+          "high": 292,
+          "low": 288,
+          "close": 290
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708908300,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 290,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 295,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "SELL"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-SELL-4",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "sedang",
+      "title": "Menentukan SL dan TP Gold · studi 58",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Untuk SELL, apakah posisi SL dan TP terhadap entry valid secara geometri?",
+      "answer": "Ya, SL di sisi rugi dan TP di sisi untung",
+      "choices": [
+        "Ya, SL di sisi rugi dan TP di sisi untung",
+        "Tidak, SL dan TP terbalik",
+        "Tidak, karena entry harus sama dengan SL"
+      ],
+      "principle": "BUY: SL < entry < TP. SELL: TP < entry < SL. Validasi geometri tidak membuktikan kualitas sinyal.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1708992000,
+          "open": 288,
+          "high": 292,
+          "low": 287,
+          "close": 291
+        },
+        {
+          "time": 1708992900,
+          "open": 291,
+          "high": 294,
+          "low": 288,
+          "close": 292
+        },
+        {
+          "time": 1708993800,
+          "open": 292,
+          "high": 293,
+          "low": 287,
+          "close": 289
+        },
+        {
+          "time": 1708994700,
+          "open": 289,
+          "high": 292,
+          "low": 288,
+          "close": 290
+        }
+      ],
+      "markers": [
+        {
+          "time": 1708994700,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 290,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 295,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "SELL"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-SELL-5",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "advanced",
+      "title": "Menentukan SL dan TP Gold · studi 59",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Chart berhenti di C sebelum trade berjalan. Apakah TP/SL sudah boleh dicatat?",
+      "answer": "Belum, perlu candle setelah entry",
+      "choices": [
+        "Belum, perlu candle setelah entry",
+        "Catat TP karena 2R",
+        "Catat SL karena wick sebelumnya"
+      ],
+      "principle": "Candle sebelum/saat keputusan bukan hasil trade ke depan. Jangan mengisi outcome tanpa data lanjutan.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1709078400,
+          "open": 288,
+          "high": 292,
+          "low": 287,
+          "close": 291
+        },
+        {
+          "time": 1709079300,
+          "open": 291,
+          "high": 294,
+          "low": 288,
+          "close": 292
+        },
+        {
+          "time": 1709080200,
+          "open": 292,
+          "high": 293,
+          "low": 287,
+          "close": 289
+        },
+        {
+          "time": 1709081100,
+          "open": 289,
+          "high": 292,
+          "low": 288,
+          "close": 290
+        }
+      ],
+      "markers": [
+        {
+          "time": 1709081100,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 290,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 295,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "SELL"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
+    },
+    {
+      "id": "risk-SELL-6",
+      "category": "Menentukan SL dan TP Gold",
+      "topic": "risk",
+      "difficulty": "advanced",
+      "title": "Menentukan SL dan TP Gold · studi 60",
+      "type": "choice",
+      "timeframe": "M15",
+      "source": "illustrative-ohlc-v2",
+      "prompt": "Jika biaya round-trip setara 1 poin, reward bersih pada TP berapa?",
+      "answer": "9 poin",
+      "choices": [
+        "9 poin",
+        "10 poin",
+        "11 poin"
+      ],
+      "principle": "Reward kotor 10 poin − biaya 1 poin = 9 poin. RR kotor bukan hasil bersih setelah biaya.",
+      "lesson": {
+        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "title": "Menentukan SL dan TP Gold"
+      },
+      "candles": [
+        {
+          "time": 1709164800,
+          "open": 288,
+          "high": 292,
+          "low": 287,
+          "close": 291
+        },
+        {
+          "time": 1709165700,
+          "open": 291,
+          "high": 294,
+          "low": 288,
+          "close": 292
+        },
+        {
+          "time": 1709166600,
+          "open": 292,
+          "high": 293,
+          "low": 287,
+          "close": 289
+        },
+        {
+          "time": 1709167500,
+          "open": 289,
+          "high": 292,
+          "low": 288,
+          "close": 290
+        }
+      ],
+      "markers": [
+        {
+          "time": 1709167500,
+          "position": "aboveBar",
+          "color": "#60a5fa",
+          "shape": "circle",
+          "text": "C"
+        }
+      ],
+      "levels": [
+        {
+          "price": 290,
+          "title": "Entry",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 295,
+          "title": "SL",
+          "color": "#94a3b8"
+        },
+        {
+          "price": 280,
+          "title": "TP",
+          "color": "#94a3b8"
+        }
+      ],
+      "evidence": {
+        "pattern": "risk",
+        "side": "SELL"
+      },
+      "chartGuide": "Candle A/B/C dan garis acuan adalah bagian dari soal. Geser atau perbesar chart; sentuh candle untuk melihat OHLC."
     }
   ]
 }

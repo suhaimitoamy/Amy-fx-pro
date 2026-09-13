@@ -401,3 +401,8 @@ rejects conflicting duplicates, future/open/synthetic data and stale source deci
 Gaps retire liquidity and cancel uncertain simulations; ambiguous fill/target bars
 cannot manufacture wins. New deterministic positive BUY/SELL and rejection fixtures
 pass. Browser preview blocked by ERR_BLOCKED_BY_CLIENT; no device visual claim.
+
+
+## 2026-09-13 — Pro338 Academy
+
+Fixed guided question/chart mismatch, correct-only progression and repeat-answer score masking. Each question now supplies matching OHLC and markers; wrong answers can advance and remain in the review. Autoscale includes SL/TP and zone references so supporting levels cannot fall outside the chart.
