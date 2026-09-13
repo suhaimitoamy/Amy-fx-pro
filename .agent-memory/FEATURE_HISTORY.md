@@ -193,3 +193,8 @@ Profitability remains unverified; no backtest result is claimed.
 ## 2026-09-13 — Pro338 Academy
 
 Pro338: 60 guided exercises across mudah/sedang/advanced, random choices and unseen-first sessions of 10/20/all, matching illustrative candle charts, session score and grouped mistakes with exact Jalur 01 lesson links; persisted last summary. Jalur 02 removed from panel/navigation. Existing Replay and Chart Analysis data providers preserved.
+
+
+## 2026-09-13 — Pro340 local application assistant
+
+Pro340 adds four-menu navigation and a local, deterministic application assistant: multi-module questions, short topic follow-ups, cached news search, journal totals/outcomes/recent evaluations, reading and guided progress, source-linked Academy passage lookup. It does not implement unrestricted natural-language understanding, live tick fetching, external AI, or order execution. All 127 JS regression files passed at source preparation; 13 dedicated assistant cases cover empty/stale data, analytics, retrieval and integration. Browser preview was blocked by ERR_BLOCKED_BY_CLIENT; real Android UI unobserved. Signed release pending at source preparation.

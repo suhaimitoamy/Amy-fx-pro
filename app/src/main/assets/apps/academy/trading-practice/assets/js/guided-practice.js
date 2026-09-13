@@ -81,7 +81,7 @@
     ui.byId('guidedSummary').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function saveReport() {
-    remember(SUMMARY_KEY, { results: results.map(function (r) { return { id: r.exercise.id, answer: r.answer, correct: r.correct }; }) });
+    remember(SUMMARY_KEY, { review: session.summary(results).topics.map(function(t){return {title:t.lesson.title,href:t.lesson.href};}), results: results.map(function (r) { return { id: r.exercise.id, answer: r.answer, correct: r.correct }; }) });
   }
   function start() {
     exercises = session.select(bank, ui.byId('exerciseCategory').value, Number(ui.byId('sessionLength').value), seen);

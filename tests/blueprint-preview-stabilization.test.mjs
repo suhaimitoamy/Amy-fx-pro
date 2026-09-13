@@ -24,21 +24,21 @@ test('market pages load the listener guard before Blueprint while other modules 
     const contractIndex = html.indexOf('data-amyfx-market-contract="v2"');
     const hotfixIndex = html.indexOf('data-amyfx-blueprint-hotfix="v1"');
     const blueprintIndex = html.indexOf('data-amyfx-blueprint-js="v1"');
-    const providerIndex = html.indexOf('data-amyfx-provider-detection="v1"');
+    const providerIndex = html.indexOf('data-amy-local-assistant="v1"');
     assert.ok(contractIndex >= 0, `${path} missing canonical market contract`);
     assert.ok(hotfixIndex > contractIndex, `${path} must load stabilization after canonical market contract`);
     assert.ok(blueprintIndex > hotfixIndex, `${path} must load listener guard before Blueprint runtime`);
-    assert.ok(providerIndex > blueprintIndex, `${path} must load provider detection after Blueprint runtime`);
+    assert.ok(providerIndex > blueprintIndex, `${path} must load local assistant after Blueprint runtime`);
   }
 
   for (const path of otherModulePages) {
     const html = await read(path);
     const blueprintIndex = html.indexOf('data-amyfx-blueprint-js="v1"');
     const hotfixIndex = html.indexOf('data-amyfx-blueprint-hotfix="v1"');
-    const providerIndex = html.indexOf('data-amyfx-provider-detection="v1"');
+    const providerIndex = html.indexOf('data-amy-local-assistant="v1"');
     assert.ok(blueprintIndex >= 0, `${path} missing Blueprint runtime`);
     assert.ok(hotfixIndex > blueprintIndex, `${path} must load stabilization after Blueprint runtime`);
-    assert.ok(providerIndex > hotfixIndex, `${path} must load provider detection after stabilization`);
+    assert.ok(providerIndex > hotfixIndex, `${path} must load local assistant after stabilization`);
   }
 });
 

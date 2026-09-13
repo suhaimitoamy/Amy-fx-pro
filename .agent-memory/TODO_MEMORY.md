@@ -81,3 +81,8 @@ Confirm on the reporting Android device that downward swipes in replay (normal/f
 ## 2026-09-13 — Pro338 Academy
 
 Verify Pro338 chart labels, gestures, narrow-screen layout, lesson return and native update notification on the reporting Android device. Cloud browser local preview was blocked (ERR_BLOCKED_BY_CLIENT); visual verification unobserved. Signed release and manifest activation pending at source preparation. The old note pinning Guided Practice to March2009 is superseded by Pro338 illustrative scenarios; Replay/Chart Analysis still use their existing sources.
+
+
+## 2026-09-13 — Pro340 local application assistant
+
+Verify Pro340 on real Android: open each main module then ask from another module; confirm IndexedDB journal reads, news refresh, reading/quiz progress, keyboard/scroll/close and update notification. Local browser preview blocked by ERR_BLOCKED_BY_CLIENT. Signed build and manifest activation pending at source preparation; do not claim device notification observed. Future broader language understanding requires additional rules/search or a separately approved model.

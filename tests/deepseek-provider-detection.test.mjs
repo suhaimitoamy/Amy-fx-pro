@@ -49,7 +49,7 @@ test('provider repair bridge and detector are installed in every Preview module'
   assert.match(installer, /data-amyfx-provider-detection/);
   for (const path of modulePages) {
     const html = await read(path);
-    assert.match(html, /data-amyfx-provider-detection="v1"/, `${path} missing provider detector`);
+    assert.match(html, /data-amy-local-assistant="v1"/, `${path} missing local assistant`);
   }
 });
 

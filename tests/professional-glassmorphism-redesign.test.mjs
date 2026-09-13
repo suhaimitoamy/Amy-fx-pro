@@ -47,12 +47,12 @@ test('every principal Amy FX screen loads the shared redesign after its legacy c
   });
 });
 
-test('home uses exactly the five existing modules without duplicate access or fabricated profile data', () => {
+test('home uses the four requested main modules without duplicate access or fabricated profile data', () => {
   const app = read('app.js');
   const projectsBlock = app.match(/const projects = \[([\s\S]*?)\n  \];/)?.[1] || '';
   const ids = [...projectsBlock.matchAll(/id:\s*'([^']+)'/g)].map(match => match[1]);
 
-  assert.deepEqual(ids, ['mapping', 'intel', 'jurnal', 'academy', 'indikator']);
+  assert.deepEqual(ids, ['mapping', 'intel', 'jurnal', 'academy']);
   assert.match(app, /const coreModules = projects\.slice\(0, 4\)/);
   assert.match(app, /quickCard\(indicator, true\)/);
   assert.doesNotMatch(app, /VIP Member|Lifetime Access|Trader Amy FX|VIP FACILITY/i);

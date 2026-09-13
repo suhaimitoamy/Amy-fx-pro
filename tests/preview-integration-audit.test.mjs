@@ -77,11 +77,11 @@ test('Blueprint runtime is installed exactly once with canonical guard order on 
     assert.equal(count(html, 'data-amyfx-blueprint-css="v1"'), 1, `${file}: blueprint CSS count`);
     assert.equal(count(html, 'data-amyfx-blueprint-js="v1"'), 1, `${file}: blueprint JS count`);
     assert.equal(count(html, 'data-amyfx-blueprint-hotfix="v1"'), 1, `${file}: hotfix count`);
-    assert.equal(count(html, 'data-amyfx-provider-detection="v1"'), 1, `${file}: provider runtime count`);
+    assert.equal(count(html, 'data-amy-local-assistant="v1"'), 1, `${file}: provider runtime count`);
 
     const blueprintIndex = html.indexOf('data-amyfx-blueprint-js="v1"');
     const hotfixIndex = html.indexOf('data-amyfx-blueprint-hotfix="v1"');
-    const providerIndex = html.indexOf('data-amyfx-provider-detection="v1"');
+    const providerIndex = html.indexOf('data-amy-local-assistant="v1"');
     if (canonicalMarketModules.has(file)) {
       assert.equal(count(html, 'data-amyfx-market-contract="v2"'), 1, `${file}: canonical market contract count`);
       const contractIndex = html.indexOf('data-amyfx-market-contract="v2"');

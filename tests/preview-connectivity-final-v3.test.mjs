@@ -59,7 +59,7 @@ test('nested Academy lessons load Amy shared runtime', async () => {
   const auth = await read(files.academyAuth);
   const lesson = await read(files.academyLesson);
   assert.match(lesson, /assets\/js\/auth\.js/);
-  for (const token of ['amyfx-blueprint-v1.css', 'amyfx-blueprint-v1.js', 'amyfx-blueprint-hotfix-v1.js', 'amyfx-provider-detection-v1.js']) assert.match(auth, new RegExp(token.replaceAll('.', '\\.')));
+  for (const token of ['amyfx-blueprint-v1.css', 'amyfx-blueprint-v1.js', 'amyfx-blueprint-hotfix-v1.js', 'amy-local-assistant.js']) assert.match(auth, new RegExp(token.replaceAll('.', '\\.')));
   assert.match(auth, /new URL\('\.\.\/shared\/',academyRoot\)/);
 });
 

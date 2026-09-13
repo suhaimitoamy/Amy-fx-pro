@@ -709,15 +709,8 @@
   }
 
   async function ask(question, options = {}) {
-    const context = options.context || await buildContext(options.sourceModule || moduleName);
-    try {
-      return await callProvider(question, context, options);
-    } catch (error) {
-      const fallback = deterministicAnswer(question, context);
-      fallback.warning = error.message;
-      fallback.category = error.category;
-      return fallback;
-    }
+    if (window.AmyLocalAssistant) return window.AmyLocalAssistant.ask(question, options);
+    return {text: "Asisten lokal sedang dimuat. Coba lagi sebentar.", provider: "amy-local"};
   }
 
   let mentor = null;
@@ -882,7 +875,7 @@
   }
 
   function mountMentor() {
-    if (!flags.global_mentor || mentor || !document.body) return;
+    return; // Pro340: the single local assistant owns chat UI.
     mentor = document.createElement("div");
     mentor.className = "amy-os-root";
     mentor.dataset.amyModule = moduleName;

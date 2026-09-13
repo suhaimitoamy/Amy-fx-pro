@@ -50,7 +50,8 @@ function render(result) {
   draw(result);
   // New versioned snapshot: no legacy direction, forecast, or execution writers.
   window.AmyICTMapping=Object.freeze({model:MODEL.id,signal:result.signal,tf:result.tf,fresh:result.fresh,
-    sourceTime:result.sourceTime,reason:result.reason,plan:p?JSON.parse(JSON.stringify(p)):null});
+    sourceTime:result.sourceTime, capturedAt:Date.now(), close:result.candles.at(-1)?.close ?? null, context:result.context, stage:result.stage, session:result.session, levels:result.levels, reason:result.reason,plan:p?JSON.parse(JSON.stringify(p)):null});
+  try { localStorage.setItem('amyfx.ict.mapping.v1',JSON.stringify(window.AmyICTMapping)); } catch {}
   window.dispatchEvent(new CustomEvent('amyfx:ict-mapping-updated',{detail:window.AmyICTMapping}));
 }
 function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,60000);}

@@ -412,3 +412,8 @@ pass. Browser preview blocked by ERR_BLOCKED_BY_CLIENT; no device visual claim.
 ## 2026-09-13 — Pro338 Academy
 
 Fixed guided question/chart mismatch, correct-only progression and repeat-answer score masking. Each question now supplies matching OHLC and markers; wrong answers can advance and remain in the review. Autoscale includes SL/TP and zone references so supporting levels cannot fall outside the chart.
+
+
+## 2026-09-13 — Pro340 local application assistant
+
+Legacy mentor read obsolete Mapping contracts after the Pro337 replacement and several wrappers could replace the answer path. Replaced active mentor loading with a single local assistant, explicitly persisted the new Mapping snapshot for other pages, removed remote-provider fallback from public ask, and connected Academy dynamic loading. Guided summary now retains review lesson titles. News translation completion updates its assistant snapshot.

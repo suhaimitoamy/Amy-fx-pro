@@ -44,7 +44,7 @@ test('deprecated connectivity runtime remains available for reference but safe v
 test('all primary modules install the shared provider/bootstrap chain', async () => {
   for (const page of modulePages) {
     const html = await read(page);
-    const count = html.split('data-amyfx-provider-detection="v1"').length - 1;
+    const count = html.split('data-amy-local-assistant="v1"').length - 1;
     assert.equal(count, 1, `${page} provider runtime count`);
   }
 });

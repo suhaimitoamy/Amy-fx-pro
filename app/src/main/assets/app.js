@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'intel', title: 'Berita', badge: 'News', icon: 'intel', desc: 'Berita dan liquidity heatmap XAU/USD', target: 'apps/market-intel/index.html' },
     { id: 'jurnal', title: 'Jurnal Trading', badge: 'Jurnal', icon: 'journal', desc: 'Catat jurnal, evaluasi performa, dan riwayat trading', target: 'apps/journal/index.html' },
     { id: 'academy', title: 'Tutorial Trading', badge: 'Learning', icon: 'academy', desc: 'Materi belajar trading dalam aplikasi', target: 'apps/academy/index.html' },
-    { id: 'indikator', title: 'Indikator TradingView', badge: 'Library', icon: 'indicator', desc: 'Library indikator dan file Pine Script', target: 'internal' }
   ];
 
   function showLoadingOverlay() {

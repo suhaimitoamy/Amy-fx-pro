@@ -326,8 +326,9 @@ async function loadNews(silent = false) {
     status.textContent = `${data.news.length} berita relevan • ${formatTime(data.updated)}`;
     panelLoadedAt.news = Date.now();
     window.AmyFXIntel?.write('news', { updated: data.updated, capturedAt: data.updated, source: 'VERCEL_NEWS', items: sortedNews.slice(0, 10) });
+    try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({updated:data.updated,items:sortedNews.slice(0,20)})); } catch {}
     renderNews(sortedNews);
-    autoTranslateNewsItems(sortedNews);
+    autoTranslateNewsItems(sortedNews).then(() => { try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({updated:data.updated,items:sortedNews.slice(0,20)})); } catch {} });
     if (pendingNewsId) {
       activateTab('news');
       if (!focusNewsItem(pendingNewsId)) {
