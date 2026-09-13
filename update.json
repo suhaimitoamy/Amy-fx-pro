@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.340/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.341/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Menu utama menjadi empat: Mapping, Berita, Jurnal Trading, Tutorial Trading.",
-    "Asisten lokal tanpa API AI/LLM: membaca Mapping baru, berita tersimpan, jurnal dan progres belajar; pencarian materi Academy.",
-    "Data candle dan berita dilengkapi waktu sumber; data lama tidak dianggap live."
+    "Perbaikan beranda blank saat pertama dibuka dan pemulihan tab tersimpan.",
+    "Harga candle, BSL dan SSL Berita tersinkron dengan model Mapping; waktu sumber dan status data tetap terlihat.",
+    "Heatmap zona BSL/SSL dengan jumlah level swing dan jarak harga; bukan volume order.",
+    "Panel kaca lebih terang di Beranda, Mapping, Jurnal, Berita dan Academy."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.340/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.341/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950340,
-  "latest_version_name": "2.0.0-pro.340",
+  "latest_version_code": 950341,
+  "latest_version_name": "2.0.0-pro.341",
   "mandatory": false,
   "releaseDate": "2026-09-13",
   "release_notes": [
-    "Menu utama menjadi empat: Mapping, Berita, Jurnal Trading, Tutorial Trading.",
-    "Asisten lokal tanpa API AI/LLM: membaca Mapping baru, berita tersimpan, jurnal dan progres belajar; pencarian materi Academy.",
-    "Data candle dan berita dilengkapi waktu sumber; data lama tidak dianggap live."
+    "Perbaikan beranda blank saat pertama dibuka dan pemulihan tab tersimpan.",
+    "Harga candle, BSL dan SSL Berita tersinkron dengan model Mapping; waktu sumber dan status data tetap terlihat.",
+    "Heatmap zona BSL/SSL dengan jumlah level swing dan jarak harga; bukan volume order.",
+    "Panel kaca lebih terang di Beranda, Mapping, Jurnal, Berita dan Academy."
   ],
-  "sha256": "3af71bbe25893f15411d380cc77938b5fd33f0f477f0a32a4df536d173f3f0b8",
-  "version": "2.0.0-pro.340",
-  "versionCode": 950340
+  "sha256": "8f59f72ecb22ed384c5c390ea20e9a1927cd3e17ad9910b9ee6b4fde80d7943c",
+  "version": "2.0.0-pro.341",
+  "versionCode": 950341
 }
