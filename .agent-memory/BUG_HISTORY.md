@@ -427,3 +427,8 @@ Legacy mentor read obsolete Mapping contracts after the Pro337 replacement and s
 
 
 Pro341 release verified: PR #3 merged as 89f147daa947632da15a21da5bd5b7ee5e8a297f. Signed release workflow34788293012 and main lint34788292968 succeeded. All128 JS files, Android tests/lint/build, existing signer continuity and published endpoint gates passed. Active update.json is enabled at 2.0.0-pro.341 /950341; APK digest matches manifest SHA-256 8f59f72ecb22ed384c5c390ea20e9a1927cd3e17ad9910b9ee6b4fde80d7943c. Earlier Pro341 publication-pending notes are resolved. Browser/device appearance and native notification receipt remain unobserved. Internal validation was aligned from Node20 to the repository-required Node22 after its old runtime failed to import stripTypeScriptTypes. Legacy Learning Preview and1.5.8 PR checks lacked their old signing cache; Pro release used its existing signer and passed verification.
+
+
+## 2026-09-14 — Pro342 Mapping restoration
+
+Pro342 fixes the missing server Scalper setups on the replacement ICT page. It restores device-scoped BUY/SELL levels, pending/active/terminal status, history and preferences. Live inspection found latest server runs FAILED with Supabase504 Gateway Timeout; this pre-existing backend failure remains unresolved and is displayed fail-closed. Fresh HTTP timestamps never substitute for engine completion or per-setup evaluation.

@@ -6,7 +6,7 @@ const price=v=>Number.isFinite(v)?v.toFixed(2):'—';
 const date=t=>t?new Date(t*1000).toLocaleString('id-ID',{timeZone:'Asia/Singapore',hour12:false})+' WITA':'—';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let current=null, raw=null, controller=null, generation=0, timer=null, priceLines=[];
-let chart=null, series=null, chartKey='';
+let chart=null, series=null, chartKey='', scalperPlan=null;
 try {
   if (window.LightweightCharts) {
     chart=window.LightweightCharts.createChart($('chart'),{autoSize:true,layout:{background:{color:'#131e2d'},textColor:'#b9c9dc'},
@@ -28,10 +28,14 @@ function draw(result) {
   const key=result.tf+JSON.stringify(result.candles);
   if(key!==chartKey){const initial=!chartKey;series.setData(result.candles);chartKey=key;if(initial)chart.timeScale().fitContent();}
   priceLines.forEach(l=>series.removePriceLine(l));priceLines=[];
-  if(result.plan) for(const [key,title,color] of [['entry','ENTRY','#8bb9ff'],['sl','SL','#ff8f9b'],['tp','TARGET','#65d5b1']]) {
-    priceLines.push(series.createPriceLine({price:result.plan[key],title,color,lineWidth:1,axisLabelVisible:true}));
+  const plan=scalperPlan||result.plan;
+  $('chart-caption').textContent=scalperPlan?`Scalper · ${scalperPlan.label}`:'Candle tertutup · model ICT';
+  if(plan) for(const [key,title,color] of [['entry','ENTRY','#8bb9ff'],['sl','SL','#ff8f9b'],['tp1','TP1','#65d5b1'],['tp','TARGET','#65d5b1']]) {
+    if(!Number.isFinite(plan[key]))continue;
+    priceLines.push(series.createPriceLine({price:plan[key],title,color,lineWidth:1,axisLabelVisible:true}));
   }
 }
+window.addEventListener('amyfx:scalper-chart-plan',event=>{scalperPlan=event.detail;if(current)draw(current);});
 function render(result) {
   current=result;
   $('connection').textContent=result.fresh?'Candle terkini':'Data belum siap';

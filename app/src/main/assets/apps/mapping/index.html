@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0c1320"><title>Amy FX · ICT Mapping</title>
+<meta name="theme-color" content="#0c1320"><title>Amy FX · Mapping Scalper</title>
 <script src="../shared/amyfx-theme-controller.js"></script>
 <link rel="stylesheet" href="css/ict-workspace.css">
 <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css">
@@ -10,25 +10,27 @@
 <link rel="stylesheet" href="../shared/amyfx-components.css">
 </head>
 <body class="amyfx-module amyfx-module--ict">
-<header><a href="../../index.html" aria-label="Kembali ke beranda">‹</a><div><small>AMY FX PRO</small><h1>ICT Mapping</h1></div><span id="connection" role="status">Memuat</span></header>
+<header><a href="../../index.html" aria-label="Kembali ke beranda">‹</a><div><small>AMY FX PRO</small><h1>Mapping Scalper</h1></div><span id="connection" role="status">Memuat</span></header>
 <main id="app">
 <section class="toolbar"><div><strong>XAU/USD</strong><p>Struktur H1 · Eksekusi <span id="tf-label">M15</span></p></div><label>Timeframe<select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option></select></label><button id="refresh">Perbarui</button></section>
 <nav aria-label="Panel mapping"><button data-tab="Dashboard" aria-selected="true">Ringkasan</button><button data-tab="Analyze" aria-selected="false">Bukti analisis</button><button data-tab="History" aria-selected="false">Riwayat model</button></nav>
 <p id="error" role="alert" hidden></p>
 <section id="Dashboard" class="panel">
-<article class="decision"><small>KEPUTUSAN SAAT INI</small><h2 id="signal">WAIT</h2><p id="reason">Mengambil candle tertutup dari sumber pasar…</p><p id="source" class="muted">Belum ada analisis.</p></article>
+<article id="scalper-panel"><div class="section-heading"><h2>Rencana BUY &amp; SELL</h2><span id="scalper-state" role="status">Menghubungkan</span></div><p id="scalper-summary"></p><p class="muted">Setup asli layanan Scalper Supabase · simulasi strategi, bukan transaksi akun broker.</p><div class="toolbar"><label>Arah<select id="scalper-filter"><option value="ALL">BUY &amp; SELL</option><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label><button id="scalper-refresh">Perbarui setup</button></div><p id="scalper-source" class="muted"></p><div id="scalper-requested"></div><div id="scalper-setups"></div></article>
+<details class="model-context"><summary>Konteks model ICT lokal</summary><p>Model tambahan ini terpisah dari setup Scalper server di atas.</p><article class="decision"><small>KEPUTUSAN MODEL ICT LOKAL</small><h2 id="signal">WAIT</h2><p id="reason">Mengambil candle tertutup dari sumber pasar…</p><p id="source" class="muted">Belum ada analisis.</p></article>
 <div class="metrics"><article><small>STRUKTUR H1</small><strong id="bias">—</strong></article><article><small>SESI NEW YORK</small><strong id="session">—</strong></article><article><small>TAHAP SETUP</small><strong id="stage">DATA</strong></article></div>
-<article><div class="section-heading"><h2>Peta harga</h2><span id="chart-caption">Candle tertutup</span></div><div id="chart" aria-label="Chart candlestick dengan level setup"></div><p class="muted">Garis entry, SL, dan target mengikuti satu setup. Geser atau cubit chart untuk melihat bukti harga.</p></article>
-<article><h2>Rencana entry</h2><p id="plan-state">Belum ada setup.</p><dl id="plan-levels"></dl><p id="plan-note" class="muted"></p></article>
-<article><h2>Urutan konfirmasi</h2><ol id="checklist"><li>Menunggu data.</li></ol></article>
+</details><article><div class="section-heading"><h2>Peta harga</h2><span id="chart-caption">Candle tertutup</span></div><div id="chart" aria-label="Chart candlestick dengan level setup"></div><p id="scalper-selected-note" class="muted"></p><button id="scalper-clear">Kembali ke level model ICT</button><p class="muted">Garis entry, SL, dan target mengikuti satu setup. Geser atau cubit chart untuk melihat bukti harga.</p></article>
+<details class="model-context"><summary>Rencana dan konfirmasi model ICT lokal</summary><article><h2>Rencana entry</h2><p id="plan-state">Belum ada setup.</p><dl id="plan-levels"></dl><p id="plan-note" class="muted"></p></article>
+<article><h2>Urutan konfirmasi</h2><ol id="checklist"><li>Menunggu data.</li></ol></article></details><details class="model-context"><summary>Pengaturan metode Scalper</summary><div id="scalper-methods"></div></details>
 </section>
 <section id="Analyze" class="panel" hidden><article><h2>Bukti candle</h2><div id="evidence"></div></article><article><h2>Likuiditas belum tersentuh</h2><div id="liquidity"></div></article><article><h2>Aturan model</h2><p>Struktur H1 menjadi konteks. Setup memerlukan sweep dan reclaim, MSS dengan displacement, FVG tiga candle yang mengapit MSS, lalu retest midpoint FVG pada candle berikutnya.</p><p>BUY hanya dalam discount H1; SELL hanya dalam premium. Target adalah swing lawan terdekat yang belum tersentuh, minimal 2R. SL berada di luar wick sweep dengan buffer 0,15 ATR.</p><p>Displacement: body minimal 0,8 ATR dan 60% rentang candle. Swing dikonfirmasi dua candle di kanan dan kiri. Entry London 02.00–05.00 atau New York 07.00–10.00 waktu New York, mengikuti DST.</p><p>Setup menunggu maksimal 12 candle; posisi simulasi maksimal 48 candle. Gap data membuat hasil tidak diketahui. Candle fill sekaligus TP dinyatakan ambigu; SL dan TP bersamaan diselesaikan SL lebih dulu.</p><p class="muted">Ini definisi operasional model berbasis konsep ICT, bukan formula resmi atau bukti profitabilitas. Parameter belum dioptimalkan. Berita ekonomi dan spread broker harus diperiksa sebelum entry.</p><a href="../market-intel/index.html">Buka berita pasar →</a></article></section>
-<section id="History" class="panel" hidden><article><h2>Riwayat simulasi model</h2><p class="muted">Replay candle dalam jendela data yang dimuat. Bukan transaksi akun, bukan riwayat lengkap, dan belum memasukkan spread, komisi, atau slippage.</p><div id="history"></div></article><article><h2>Riwayat Scalper sebelumnya</h2><p>Statistik layanan Scalper menggunakan strategi terpisah dan bukan hasil model mapping baru.</p><a href="scalper-stats.html">Buka arsip Scalper →</a></article></section>
+<section id="History" class="panel" hidden><article><h2>Riwayat Scalper server · 24 jam</h2><p>Entry dan hasil berasal dari lifecycle Supabase. Bukan transaksi akun broker.</p><div id="scalper-history"></div><a href="scalper-stats.html">Buka statistik dan arsip lengkap →</a></article><article><h2>Riwayat simulasi model</h2><p class="muted">Replay candle dalam jendela data yang dimuat. Bukan transaksi akun, bukan riwayat lengkap, dan belum memasukkan spread, komisi, atau slippage.</p><div id="history"></div></article><article><h2>Riwayat Scalper sebelumnya</h2><p>Statistik layanan Scalper menggunakan strategi terpisah dan bukan hasil model mapping baru.</p><a href="scalper-stats.html">Buka arsip Scalper →</a></article></section>
 <footer>ICT Sweep → MSS → FVG · Model v1 · Tidak ada probabilitas atau keuntungan yang dijanjikan.</footer>
 </main>
 <script src="../academy/trading-practice/vendor/lightweight-charts.standalone.production.js"></script>
 <script src="js/scanner-visibility-gate.js"></script>
 <script src="js/notification-route-sync.js"></script>
 <script type="module" src="js/ict-workspace/app.js"></script>
+<script type="module" src="js/ict-workspace/scalper-panel.js"></script>
 <script src="../shared/amy-local-assistant.js"></script>
 </body></html>
