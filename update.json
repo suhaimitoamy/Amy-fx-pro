@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.341/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.342/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Perbaikan beranda blank saat pertama dibuka dan pemulihan tab tersimpan.",
-    "Harga candle, BSL dan SSL Berita tersinkron dengan model Mapping; waktu sumber dan status data tetap terlihat.",
-    "Heatmap zona BSL/SSL dengan jumlah level swing dan jarak harga; bukan volume order.",
-    "Panel kaca lebih terang di Beranda, Mapping, Jurnal, Berita dan Academy."
+    "Mapping: setup BUY/SELL asli Supabase dengan entry, SL, TP1/TP2, zona dan status.",
+    "Peta harga tetap tersedia dengan pilihan overlay level setup server.",
+    "Riwayat server, filter arah, metode perangkat dan penanda data terlambat; model ICT lokal menjadi konteks terpisah."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.341/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.342/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950341,
-  "latest_version_name": "2.0.0-pro.341",
+  "latest_version_code": 950342,
+  "latest_version_name": "2.0.0-pro.342",
   "mandatory": false,
-  "releaseDate": "2026-09-13",
+  "releaseDate": "2026-09-14",
   "release_notes": [
-    "Perbaikan beranda blank saat pertama dibuka dan pemulihan tab tersimpan.",
-    "Harga candle, BSL dan SSL Berita tersinkron dengan model Mapping; waktu sumber dan status data tetap terlihat.",
-    "Heatmap zona BSL/SSL dengan jumlah level swing dan jarak harga; bukan volume order.",
-    "Panel kaca lebih terang di Beranda, Mapping, Jurnal, Berita dan Academy."
+    "Mapping: setup BUY/SELL asli Supabase dengan entry, SL, TP1/TP2, zona dan status.",
+    "Peta harga tetap tersedia dengan pilihan overlay level setup server.",
+    "Riwayat server, filter arah, metode perangkat dan penanda data terlambat; model ICT lokal menjadi konteks terpisah."
   ],
-  "sha256": "8f59f72ecb22ed384c5c390ea20e9a1927cd3e17ad9910b9ee6b4fde80d7943c",
-  "version": "2.0.0-pro.341",
-  "versionCode": 950341
+  "sha256": "4ed94c2c97c2100934b43fcb5a330a7542da1de39263a51a35a8de794a5340ce",
+  "version": "2.0.0-pro.342",
+  "versionCode": 950342
 }
