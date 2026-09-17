@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.344/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.345/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Candle Replay: ganti timeframe selalu memperbarui candle.",
-    "Panel alat gambar kini memiliki tombol Tutup dan menutup otomatis setelah memilih alat.",
-    "Versi sebelumnya menambahkan peta harga langsung di Beranda."
+    "Tombol × Hapus langsung di chart untuk objek terpilih, mendukung Undo.",
+    "Validasi arah LONG/SHORT, label Entry/TP/SL dan tombol Tutup menu Objek.",
+    "Perbaikan pergantian timeframe Replay dan penyesuaian warna tema terang Beranda."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.344/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.345/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950344,
-  "latest_version_name": "2.0.0-pro.344",
+  "latest_version_code": 950345,
+  "latest_version_name": "2.0.0-pro.345",
   "mandatory": false,
   "releaseDate": "2026-09-17",
   "release_notes": [
-    "Candle Replay: ganti timeframe selalu memperbarui candle.",
-    "Panel alat gambar kini memiliki tombol Tutup dan menutup otomatis setelah memilih alat.",
-    "Versi sebelumnya menambahkan peta harga langsung di Beranda."
+    "Tombol × Hapus langsung di chart untuk objek terpilih, mendukung Undo.",
+    "Validasi arah LONG/SHORT, label Entry/TP/SL dan tombol Tutup menu Objek.",
+    "Perbaikan pergantian timeframe Replay dan penyesuaian warna tema terang Beranda."
   ],
-  "sha256": "f83c0bf03b18fe6488475113e517196f1cc7721abab14d4bfc157d6d540651e8",
-  "version": "2.0.0-pro.344",
-  "versionCode": 950344
+  "sha256": "38e70ef675fe2b875ca072962bf6655ae7636abb85927b38ea8608fb1bd96e96",
+  "version": "2.0.0-pro.345",
+  "versionCode": 950345
 }
