@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.342/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.343/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping: setup BUY/SELL asli Supabase dengan entry, SL, TP1/TP2, zona dan status.",
-    "Peta harga tetap tersedia dengan pilihan overlay level setup server.",
-    "Riwayat server, filter arah, metode perangkat dan penanda data terlambat; model ICT lokal menjadi konteks terpisah."
+    "Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.",
+    "Pilihan M5/M15, level model ICT lokal dan status candle terlambat.",
+    "Logika strategi server tidak berubah; eksperimen 2R tidak ikut rilis."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.342/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.343/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950342,
-  "latest_version_name": "2.0.0-pro.342",
+  "latest_version_code": 950343,
+  "latest_version_name": "2.0.0-pro.343",
   "mandatory": false,
-  "releaseDate": "2026-09-14",
+  "releaseDate": "2026-09-17",
   "release_notes": [
-    "Mapping: setup BUY/SELL asli Supabase dengan entry, SL, TP1/TP2, zona dan status.",
-    "Peta harga tetap tersedia dengan pilihan overlay level setup server.",
-    "Riwayat server, filter arah, metode perangkat dan penanda data terlambat; model ICT lokal menjadi konteks terpisah."
+    "Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.",
+    "Pilihan M5/M15, level model ICT lokal dan status candle terlambat.",
+    "Logika strategi server tidak berubah; eksperimen 2R tidak ikut rilis."
   ],
-  "sha256": "4ed94c2c97c2100934b43fcb5a330a7542da1de39263a51a35a8de794a5340ce",
-  "version": "2.0.0-pro.342",
-  "versionCode": 950342
+  "sha256": "5333ea156608adfac25cc2b745ca2ea56e2b826eff4b6f3fff46c44304a822f8",
+  "version": "2.0.0-pro.343",
+  "versionCode": 950343
 }
