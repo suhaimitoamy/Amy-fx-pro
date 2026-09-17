@@ -1,5 +1,9 @@
 # TODO Memory
 
+## 2026-09-17 — Pro344 replay fix
+Pro344 awaits separate push/release permission, signed Android build and on-device timeframe/menu/fullscreen verification. Local branch fix/replay-gesture-menu in /root/Amy-fx-pro-home-chart. update.json remains published Pro343.
+
+
 ## 2026-09-17 — Pro343 home chart
 
 Pro343: confirm CI signed release/manifest after push and visually smoke-test Android home chart, pinch, scroll, tab return, offline and theme. Browser access to local preview was blocked by private-address policy; no visual validation claim.

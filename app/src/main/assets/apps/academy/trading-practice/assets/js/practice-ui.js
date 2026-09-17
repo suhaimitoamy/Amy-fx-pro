@@ -58,7 +58,20 @@
       text('drawingStatus', state.message || (state.activeTool ? 'Alat gambar aktif.' : 'Gesture chart aktif.'));
     }
     var toolbar = document.querySelector('.drawing-menu');
+    function closeTools() {
+      if (!toolbar) return;
+      toolbar.removeAttribute('open');
+      toolbar.querySelector('summary')?.focus();
+    }
     if (toolbar) {
+      var grid = toolbar.querySelector('.drawing-menu-grid') || toolbar;
+      var close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'drawing-menu-close';
+      close.textContent = '× Tutup';
+      close.setAttribute('aria-label', 'Tutup alat gambar');
+      close.addEventListener('click', closeTools);
+      grid.insertBefore(close, grid.firstChild);
       var styles = document.createElement('div');
       styles.className = 'drawing-style-controls';
       styles.innerHTML = '<label>Warna <input type="color" data-style="color" value="#60a5fa"></label><label>Ketebalan <input type="range" data-style="width" min="1" max="8" value="2"></label><label>Opasitas <input type="range" data-style="opacity" min="0.1" max="1" step="0.1" value="1"></label>';
@@ -82,8 +95,7 @@
     document.querySelectorAll('[data-drawing-tool]').forEach(function (button) {
       button.addEventListener('click', function () {
         chart.setTool(button.dataset.drawingTool);
-        var menu = button.closest('details');
-        if (menu) menu.removeAttribute('open');
+        closeTools();
       });
     });
     var clear = byId('clearDrawings');
@@ -95,7 +107,7 @@
     var undo = byId('undoDrawing');
     if (undo) undo.addEventListener('click', function () { chart.undo(); });
     var finish = byId('finishDrawing');
-    if (finish) finish.addEventListener('click', function () { chart.setTool(null); });
+    if (finish) finish.addEventListener('click', function () { chart.setTool(null); closeTools(); });
     if (byId('replayWorkspace')) bindReplayWorkspace(chart);
     sync({ activeTool: chart.activeTool, selectedId: chart.selectedId, message: 'Gesture chart aktif. ' + chart.drawings.length + ' gambar tersimpan.' });
   }

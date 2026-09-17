@@ -1,5 +1,9 @@
 # Feature History
 
+## 2026-09-17 — Pro344 replay fix
+Pro344 /950344 prepared locally: sticky × Tutup button in drawing tools, focus returns to summary; Gesture Chart closes panel. Existing tool selection still auto-closes. Saved drawings preserved by tests.
+
+
 ## 2026-09-17 — Pro343 home chart
 
 Pro343 home price chart: M5/M15, manual/60s visible refresh, local ICT plan levels, source timestamp/WITA, stale/error states and light/dark theme. All four module shortcuts remain. Focused18 tests passed; all130 JavaScript regression files passed (exit0). Visual Android validation remains unobserved.

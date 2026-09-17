@@ -1,5 +1,9 @@
 # Bug History
 
+## 2026-09-17 — Pro344 replay fix
+Confirmed stale drawing gesture blocked new timeframe candles. Invalid pointerup now cancels safely; pointerup completion flushes queued updates even for first taps/short paths. Added executable regressions. All131 JS test files pass;19 focused tests pass. Android visual verification pending.
+
+
 ## 2026-09-17 — Pro343 verification
 
 Preserved the tested adjacent version/app/updater script sequence after regression exposed the insertion conflict. Shared chart now fits first nonempty data after timeframe reset/offline recovery. Full130-file regression passes. Browser private-address block prevented visual validation.

@@ -218,9 +218,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.
-          - Pilihan M5/M15, level model ICT lokal, tema terang/gelap dan pembaruan candle dengan status keterlambatan.
-          - Mapping dan logika strategi server tetap dipertahankan; eksperimen 2R tidak ikut rilis ini.
+          - Ganti timeframe di Candle Replay kini selalu memperbarui candle.
+          - Panel alat gambar memiliki tombol Tutup dan menutup otomatis setelah memilih alat.
+          - Versi sebelumnya menambahkan peta harga langsung di Beranda; Mapping tetap tersedia.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
@@ -270,7 +270,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.','Pilihan M5/M15, level model ICT lokal dan status candle terlambat.','Logika strategi server tidak berubah; eksperimen 2R tidak ikut rilis.']
+          notes=['Candle Replay: ganti timeframe selalu memperbarui candle.','Panel alat gambar kini memiliki tombol Tutup dan menutup otomatis setelah memilih alat.','Versi sebelumnya menambahkan peta harga langsung di Beranda.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

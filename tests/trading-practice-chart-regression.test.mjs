@@ -132,6 +132,39 @@ function createRuntime() {
   return { runtime, chartCalls, container: node('section'), localValues };
 }
 
+test('pointer release outside plot clears gesture and delivers queued timeframe candles', () => {
+  const {runtime,container,chartCalls}=createRuntime();
+  const chart=new runtime.AmyCandleChart.CandleChart(container,{});
+  const old=[{time:0,open:100,high:102,low:99,close:101}];
+  const next=[{time:60,open:101,high:103,low:100,close:102}];
+  chart.setCandles(old);
+  chart.setTool('trend');
+  chart.pointFromEvent=()=>({x:10,y:10,time:0,price:100});
+  chart.handlePointerDown({pointerId:1,preventDefault(){},stopPropagation(){}});
+  chart.setCandles(next,true);
+  assert.equal(chartCalls.data[0].time,0);
+  chart.pointFromEvent=()=>null;
+  chart.handlePointerUp({pointerId:1,preventDefault(){}});
+  assert.equal(chart.gestureStart,null);
+  assert.equal(chart.pendingCandles,null);
+  assert.equal(chartCalls.data[0].time,60);
+});
+
+test('first tap of a multi-point drawing flushes candles without losing its anchor', () => {
+  const {runtime,container,chartCalls}=createRuntime();
+  const chart=new runtime.AmyCandleChart.CandleChart(container,{});
+  chart.setCandles([{time:0,open:100,high:102,low:99,close:101}]);
+  chart.setTool('trend');chart.findDrawingAt=()=>null;
+  chart.pointFromEvent=()=>({x:10,y:10,time:0,price:100});
+  const event={pointerId:1,preventDefault(){},stopPropagation(){}};
+  chart.handlePointerDown(event);
+  chart.setCandles([{time:60,open:101,high:103,low:100,close:102}],true);
+  chart.handlePointerUp(event);
+  assert.ok(chart.tapAnchor);
+  assert.equal(chart.gestureStart,null);
+  assert.equal(chartCalls.data[0].time,60);
+});
+
 test('four-digit XAUUSD prices and the current-price label have a dedicated unclipped axis', () => {
   const { runtime, chartCalls, container } = createRuntime();
   const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'price-axis-test' });

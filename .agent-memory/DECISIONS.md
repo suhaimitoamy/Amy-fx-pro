@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-17 — Pro344 replay fix
+Pro344 local only: user authorized fixes/tests/version bump, no push/deploy. Shared drawing pointer-end cleanup releases queued candles while retaining multi-tap anchors; invalid endpoints use cancellation. Drawing menu close is shared with Chart Analysis. No replay aggregation/strategy changes.
+
+
 ## 2026-09-17 — Pro343 home chart
 
 Pro343 adds a direct home candlestick chart using the same Mapping provider/model and extracted presentation helper. It is closed-candle data, not a live tick. Home M5/M15 refresh pauses off-page/hidden; late requests cannot repaint disposed charts. Local Discipline 2R work is excluded. Existing CI activates update.json only after signed publication.

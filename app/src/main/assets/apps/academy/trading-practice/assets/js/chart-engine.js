@@ -926,6 +926,8 @@
     if (!this.activeTool) return;
     event.preventDefault();
     var point = this.pointFromEvent(event);
+    if (!point) { this.handlePointerCancel(event); return; }
+    try {
     if (this.activeTool === 'select') {
       if (this.dragState && point) this.handlePointerMove(event);
       if (this.dragState && this.dragState.remembered) {
@@ -983,6 +985,12 @@
       this.hoverPoint = point;
       this.renderDrawings();
       this.notify(tool === 'parallelChannel' ? 'Tap titik ketiga untuk menentukan lebar kanal.' : 'Tap titik ketiga untuk menentukan Stop Loss.');
+    }
+    } finally {
+      // Pointer ended: keep multi-tap anchors, but never block queued candles.
+      this.gestureStart = null;
+      this.draftPath = null;
+      this.flushPendingCandles();
     }
   };
 
