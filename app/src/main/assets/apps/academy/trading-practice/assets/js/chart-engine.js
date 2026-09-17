@@ -420,6 +420,12 @@
       this.notify('Titik gambar belum lengkap.');
       return null;
     }
+    var position = this.model.positionStats(drawing);
+    if (position && !position.valid) {
+      this.setTool(type);
+      this.notify(type === 'longPosition' ? 'LONG: mulai Entry, lalu TP di atas dan SL di bawah Entry.' : 'SHORT: mulai Entry, lalu TP di bawah dan SL di atas Entry.');
+      return null;
+    }
     if (!this.isDrawingVisible(drawing)) {
       this.notify('Drawing replay tidak boleh melewati cursor aktif.');
       return null;
@@ -546,8 +552,9 @@
     var stop = points[2];
     if (!entry || !target || !stop) return;
     var endX = Math.max(entry.x + 12, target.x, stop.x);
-    var targetColor = '#22c55e';
-    var stopColor = '#ef4444';
+    var stats = this.model.positionStats(drawing);
+    var targetColor = stats.valid ? '#22c55e' : '#94a3b8';
+    var stopColor = stats.valid ? '#ef4444' : '#94a3b8';
     group.appendChild(this.svgElement('rect', {
       x: Math.min(entry.x, endX), y: Math.min(entry.y, target.y), width: Math.abs(endX - entry.x), height: Math.max(1, Math.abs(target.y - entry.y)),
       fill: targetColor, 'fill-opacity': .16, stroke: targetColor, 'stroke-width': 1
@@ -557,10 +564,15 @@
       fill: stopColor, 'fill-opacity': .14, stroke: stopColor, 'stroke-width': 1
     }));
     this.appendLine(group, { x: entry.x, y: entry.y }, { x: endX, y: entry.y }, { stroke: '#facc15', 'stroke-width': 2 });
-    var stats = this.model.positionStats(drawing);
-    this.appendLabel(group, entry.x + 5, entry.y - 13, (drawing.type === 'longPosition' ? 'LONG' : 'SHORT') + ' · Entry ' + priceText(stats.entry), { stroke: '#facc15' });
-    this.appendLabel(group, endX - 106, target.y, 'TP ' + priceText(stats.target), { stroke: targetColor, color: targetColor });
-    this.appendLabel(group, endX - 106, stop.y, 'SL ' + priceText(stats.stop) + (stats.rr == null ? '' : ' · ' + stats.rr.toFixed(2) + 'R'), { stroke: stopColor, color: stopColor });
+    var labels = [
+      {y:entry.y,text:(drawing.type === 'longPosition' ? 'LONG' : 'SHORT') + ' · Entry ' + priceText(stats.entry) + (stats.valid ? ' · '+stats.rr.toFixed(2)+'R' : ' · TIDAK VALID'),color:'#facc15'},
+      {y:target.y,text:'TP '+priceText(stats.target),color:targetColor},
+      {y:stop.y,text:'SL '+priceText(stats.stop),color:stopColor}
+    ].sort(function(a,b){return a.y-b.y;});
+    var bottom = this.plotHeight()-13;
+    labels.forEach(function(label,i){label.labelY=Math.max(13,Math.min(bottom,label.y),i?labels[i-1].labelY+24:13);});
+    if(labels[2].labelY>bottom){labels[2].labelY=bottom;for(var i=1;i>=0;i--)labels[i].labelY=Math.min(labels[i].labelY,labels[i+1].labelY-24);}
+    labels.forEach(function(label){this.appendLabel(group,entry.x+5,label.labelY,label.text,{stroke:label.color,color:label.color});},this);
   };
 
   CandleChart.prototype.renderDrawing = function (drawing, draft) {
@@ -900,6 +912,11 @@
           deltaTime = Math.min(deltaTime, this.drawingTimeBoundary - latestTime);
         }
         next = this.model.move(this.dragState.original, deltaTime, point.price - this.dragState.startPoint.price);
+      }
+      var position = this.model.positionStats(next);
+      if (position && !position.valid) {
+        this.notify('Level tidak valid: TP harus di sisi profit dan SL di sisi risiko.');
+        return;
       }
       var index = this.drawings.findIndex(function (drawing) { return drawing.id === next.id; });
       if (index >= 0) this.drawings[index] = next;

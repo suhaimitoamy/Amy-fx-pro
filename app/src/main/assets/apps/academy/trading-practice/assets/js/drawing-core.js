@@ -123,9 +123,11 @@
     var entry = normalized.points[0].price;
     var target = normalized.points[1].price;
     var stop = normalized.points[2].price;
-    var risk = Math.abs(entry - stop);
-    var reward = Math.abs(target - entry);
-    return { entry: entry, target: target, stop: stop, risk: risk, reward: reward, rr: risk > 0 ? reward / risk : null };
+    var sign = normalized.type === 'longPosition' ? 1 : -1;
+    var risk = (entry - stop) * sign;
+    var reward = (target - entry) * sign;
+    var valid = entry > 0 && target > 0 && stop > 0 && risk > 0 && reward > 0;
+    return { entry: entry, target: target, stop: stop, risk: risk, reward: reward, valid: valid, rr: valid ? reward / risk : null };
   }
 
   root.AmyPracticeDrawing = Object.freeze({

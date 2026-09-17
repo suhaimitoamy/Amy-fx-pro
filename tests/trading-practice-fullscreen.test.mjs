@@ -40,8 +40,22 @@ function runtime({ android = false, reject = false } = {}) {
   vm.runInNewContext(readFileSync(new URL('../app/src/main/assets/apps/academy/trading-practice/assets/js/practice-ui.js', import.meta.url), 'utf8'), { window: root, document: doc });
   const chart = { container, drawings: [], drawingStyle: {}, resize() { resizes++; }, isDrawingVisible: () => true };
   root.AmyPracticeUI.bindDrawingToolbar(chart);
-  return { root, doc, body, main, workspace, chart, button: ids.get('replayFullscreen'), requests: () => requests, resizes: () => resizes };
+  return { ids, root, doc, body, main, workspace, chart, button: ids.get('replayFullscreen'), requests: () => requests, resizes: () => resizes };
 }
+
+test('object close works in normal/fullscreen without changing drawings or fullscreen', () => {
+  const r = runtime({android:true});
+  const menu=r.ids.get('replayObjectMenu'), close=r.ids.get('closeObjectMenu');
+  const saved={id:'kept'};r.chart.drawings.push(saved);
+  for(const fullscreen of [false,true]) {
+    if(fullscreen)r.button.dispatch('click');
+    menu.open=true;close.dispatch('click');
+    assert.equal(menu.open,false);
+    assert.equal(r.ids.get('replayObjectSummary').focused,true);
+    assert.equal(r.workspace.classList.contains('is-fullscreen'),fullscreen);
+    assert.equal(r.chart.drawings[0],saved);
+  }
+});
 
 test('WebView fullscreen escapes transformed parent and restores the same workspace and scroll', () => {
   const r = runtime({ android: true });

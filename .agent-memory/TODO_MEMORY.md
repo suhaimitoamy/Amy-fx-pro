@@ -1,5 +1,13 @@
 # TODO Memory
 
+## Drawing fixes — branch publication authorized
+Amy authorized pushing Long/Short validation/labels and Object-menu close, without version bump. Publish on fix/replay-gesture-menu only; do not merge main or replace released Pro344 APK. This supersedes earlier no-push notes for these two fixes. Android visual verification remains pending.
+
+
+## Long/Short drawing local fix
+Local unpushed Long/Short fix: signed risk/reward validation; invalid creation and drag rejected; legacy invalid drawings retained with neutral fill and INVALID label; labels spaced.29 focused tests and all131 JS files pass. Still three-point entry/TP/SL interaction, not TradingView parity; device visual validation pending. No bump/commit/push authorized for this batch.
+
+
 ## 2026-09-17 — Pro344 replay fix
 Pro344 awaits separate push/release permission, signed Android build and on-device timeframe/menu/fullscreen verification. Local branch fix/replay-gesture-menu in /root/Amy-fx-pro-home-chart. update.json remains published Pro343.
 

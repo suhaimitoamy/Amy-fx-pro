@@ -165,6 +165,30 @@ test('first tap of a multi-point drawing flushes candles without losing its anch
   assert.equal(chartCalls.data[0].time,60);
 });
 
+test('positions reject inverted creation/drag, keep legacy data and space labels',()=>{
+ const {runtime,container}=createRuntime();
+ const model=runtime.AmyPracticeDrawing;
+ const chart=new runtime.AmyCandleChart.CandleChart(container,{});
+ chart.setCandles([{time:0,open:4900,high:4920,low:4880,close:4900},{time:120,open:4900,high:4920,low:4880,close:4900}]);
+ for(const [type,sign] of [['longPosition',1],['shortPosition',-1]]){
+  const points=[{time:0,price:4900},{time:120,price:4900+sign*10},{time:120,price:4900-sign*5}];
+  const valid=chart.addDrawing(type,points);assert.ok(valid);assert.equal(model.positionStats(valid).rr,2);
+  const bad=model.create(type,[points[0],points[2],points[1]]);
+  assert.equal(model.positionStats(bad).valid,false);assert.equal(model.positionStats(bad).rr,null);
+  assert.equal(chart.addDrawing(type,bad.points),null);
+  const before=JSON.stringify(bad);const group=chart.renderDrawing(bad);
+  assert.ok(group.querySelectorAll('text').some(n=>n.textContent.includes('TIDAK VALID')));assert.equal(JSON.stringify(bad),before);
+  chart.setTool('select');chart.dragState={id:valid.id,mode:'point',timeIndex:-1,priceIndex:1,startPoint:{x:0,y:0},original:model.clone(valid),remembered:false};
+  chart.pointFromEvent=()=>({x:20,y:20,time:120,price:4900-sign*10});
+  chart.handlePointerMove({preventDefault(){}});
+  assert.equal(model.positionStats(chart.drawings.find(d=>d.id===valid.id)).rr,2);
+  chart.handlePointerCancel();
+ }
+ const tiny=model.create('longPosition',[{time:0,price:4900},{time:120,price:4900.1},{time:120,price:4899.9}]);
+ const labels=chart.renderDrawing(tiny).querySelectorAll('text').map(n=>Number(n.getAttribute('y'))).sort((a,b)=>a-b);
+ assert.equal(labels.length,3);assert.ok(labels[1]-labels[0]>=24&&labels[2]-labels[1]>=24);
+});
+
 test('four-digit XAUUSD prices and the current-price label have a dedicated unclipped axis', () => {
   const { runtime, chartCalls, container } = createRuntime();
   const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'price-axis-test' });
@@ -335,7 +359,7 @@ test('every supported drawing type renders and can be selected through its paint
     horizontal: one, horizontalRay: one, entry: one, stop: one, target: one,
     text: one, note: one, priceNote: one,
     trend: two, fibonacci: two, priceRange: two, rectangle: two, arrow: two, circle: two,
-    parallelChannel: three, longPosition: three, shortPosition: three,
+    parallelChannel: three, longPosition: three, shortPosition: [three[0],three[2],three[1]],
     path: [{ time: 10, price: 4910 }, { time: 60, price: 4885 }, { time: 110, price: 4905 }]
   };
   const created = Object.entries(inputs).map(([type, points]) => chart.addDrawing(type, points, type === 'text' ? 'Teks terlihat' : ''));
