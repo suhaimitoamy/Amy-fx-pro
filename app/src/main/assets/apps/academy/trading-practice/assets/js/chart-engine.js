@@ -75,6 +75,22 @@
     this.overlay.setAttribute('aria-hidden', 'true');
     container.appendChild(this.host);
     container.appendChild(this.overlay);
+    this.deleteButton = document.createElement('button');
+    this.deleteButton.type = 'button';
+    this.deleteButton.className = 'practice-chart-delete';
+    this.deleteButton.textContent = '× Hapus';
+    this.deleteButton.setAttribute('aria-label', 'Hapus gambar terpilih');
+    this.deleteButton.hidden = true;
+    this.deleteButton.addEventListener('pointerdown', function (event) { event.stopPropagation(); });
+    this.deleteButton.addEventListener('click', function (event) {
+      event.stopPropagation();
+      if (this.deleteButton.hidden || this.dragState || this.gesturePointerId != null) return;
+      if (this.deleteSelected()) {
+        this.container.setAttribute('tabindex', '-1');
+        this.container.focus({ preventScroll: true });
+      }
+    }.bind(this));
+    container.appendChild(this.deleteButton);
 
     this.chart = root.LightweightCharts.createChart(this.host, {
       width: Math.max(280, container.clientWidth || 800),
@@ -759,7 +775,9 @@
       if (thirdGroup) this.overlay.appendChild(thirdGroup);
     }
     var selected = this.drawings.find(function (drawing) { return drawing.id === self.selectedId; });
-    if (this.activeTool === 'select' && selected) this.renderHandles(selected);
+    var selectable = this.activeTool === 'select' && selected && this.isDrawingVisible(selected);
+    this.deleteButton.hidden = !selectable || Boolean(this.dragState || this.gestureStart);
+    if (selectable) this.renderHandles(selected);
   };
 
   CandleChart.prototype.findDrawingAt = function (x, y) {
@@ -1110,6 +1128,7 @@
     this.chart.unsubscribeCrosshairMove(this.handleCrosshair);
     this.chart.unsubscribeClick(this.handleClick);
     this.removeTextEditor();
+    this.deleteButton.remove();
     this.chart.remove();
   };
 

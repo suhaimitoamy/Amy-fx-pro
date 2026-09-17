@@ -165,6 +165,50 @@ test('first tap of a multi-point drawing flushes candles without losing its anch
   assert.equal(chartCalls.data[0].time,60);
 });
 
+test('direct chart delete preserves other drawings, persistence and undo without menus', () => {
+  const { runtime, container, localValues } = createRuntime();
+  const chart = new runtime.AmyCandleChart.CandleChart(container, { storageKey: 'direct-delete' });
+  const button = chart.deleteButton;
+  assert.equal(button.hidden, true);
+  assert.equal(button.parentNode, container, 'inside chart in normal and fullscreen layouts');
+  assert.equal(button.type, 'button');
+  assert.equal(button.getAttribute('aria-label'), 'Hapus gambar terpilih');
+  chart.setCandles([0,120].map(time => ({time,open:4900,high:4910,low:4880,close:4900})));
+  const kept = chart.addDrawing('horizontal', [{time:0,price:4900}]);
+  const removed = chart.addDrawing('rectangle', [{time:0,price:4910},{time:120,price:4880}]);
+  const before = JSON.stringify(chart.drawings);
+  let stopped = 0;
+  button.dispatchEvent({type:'pointerdown',stopPropagation(){stopped++;}});
+  assert.equal(stopped, 1);
+  assert.equal(chart.dragState, null);
+  assert.equal(button.hidden, false);
+  button.dispatchEvent({type:'click',stopPropagation(){}});
+  assert.deepEqual(Array.from(chart.drawings, d=>d.id), [kept.id]);
+  assert.equal(JSON.parse(localValues.get('direct-delete')).length, 1);
+  assert.equal(button.hidden, true);
+  assert.equal(container.focused, true);
+  assert.equal(chart.undo(), true);
+  assert.equal(JSON.stringify(chart.drawings), before);
+  chart.selectDrawing(removed.id);
+  chart.handlePointerDown({clientX:0,clientY:90,pointerId:1,target:chart.overlay.querySelector('[data-drawing-id="'+removed.id+'"]'),preventDefault(){},stopPropagation(){}});
+  assert.equal(button.hidden, true, 'no accidental delete during resize/drag');
+  button.dispatchEvent({type:'click',stopPropagation(){}});
+  assert.equal(chart.drawings.length, 2);
+  chart.handlePointerCancel({pointerId:1});
+  assert.equal(button.hidden, false);
+  chart.handleClick({point:{x:250,y:250}});
+  assert.equal(button.hidden, true, 'blank-chart tap clears action');
+  chart.selectDrawing(removed.id);
+  chart.setDrawingTimeBoundary(0);
+  assert.equal(button.hidden, true, 'future drawing cannot be deleted by hidden action');
+  chart.setDrawingTimeBoundary(null);
+  chart.selectDrawing(kept.id);
+  chart.setTool(null);
+  assert.equal(button.hidden, true, 'gesture mode stays unobstructed');
+  chart.destroy();
+  assert.equal(button.parentNode, null);
+});
+
 test('positions reject inverted creation/drag, keep legacy data and space labels',()=>{
  const {runtime,container}=createRuntime();
  const model=runtime.AmyPracticeDrawing;
