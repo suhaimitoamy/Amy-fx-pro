@@ -215,9 +215,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Mapping kembali menampilkan setup Scalper Supabase: BUY/SELL, zona, entry, SL, TP1/TP2 dan status lifecycle.
-          - Peta harga dipertahankan; pilih setup untuk melihat level server. Model ICT lokal tersedia sebagai konteks terpisah.
-          - Riwayat server, filter arah, metode perangkat dan status data terlambat tersedia dalam Mapping.
+          - Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.
+          - Pilihan M5/M15, level model ICT lokal, tema terang/gelap dan pembaruan candle dengan status keterlambatan.
+          - Mapping dan logika strategi server tetap dipertahankan; eksperimen 2R tidak ikut rilis ini.
           - Signing mode: ${{ steps.signing.outputs.mode }}.
           - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
           NOTES
@@ -267,7 +267,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Mapping: setup BUY/SELL asli Supabase dengan entry, SL, TP1/TP2, zona dan status.','Peta harga tetap tersedia dengan pilihan overlay level setup server.','Riwayat server, filter arah, metode perangkat dan penanda data terlambat; model ICT lokal menjadi konteks terpisah.']
+          notes=['Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.','Pilihan M5/M15, level model ICT lokal dan status candle terlambat.','Logika strategi server tidak berubah; eksperimen 2R tidak ikut rilis.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

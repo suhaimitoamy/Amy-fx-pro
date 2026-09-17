@@ -1,5 +1,10 @@
 # Feature History
 
+## 2026-09-17 — Pro343 home chart
+
+Pro343 home price chart: M5/M15, manual/60s visible refresh, local ICT plan levels, source timestamp/WITA, stale/error states and light/dark theme. All four module shortcuts remain. Focused18 tests passed; all130 JavaScript regression files passed (exit0). Visual Android validation remains unobserved.
+
+
 ## Market Intel Client-Side Auto-Translation and Offline Cache
 - **Date:** 2026-09-13
 - **Status:** ✅ Implemented and tested; bump Pro339

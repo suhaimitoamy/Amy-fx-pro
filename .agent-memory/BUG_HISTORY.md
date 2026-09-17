@@ -1,5 +1,10 @@
 # Bug History
 
+## 2026-09-17 — Pro343 verification
+
+Preserved the tested adjacent version/app/updater script sequence after regression exposed the insertion conflict. Shared chart now fits first nonempty data after timeframe reset/offline recovery. Full130-file regression passes. Browser private-address block prevented visual validation.
+
+
 ## 2026-09-13 — Pro339 Market Intel client-side auto-translation with local cache
 
 - Cause: Google blocked unofficial serverless/cloud requests to `translate.googleapis.com` (HTTP 429/CAPTCHA), causing server-side translations to fail and fallback to English text.

@@ -1,5 +1,10 @@
 # Technical Decisions
 
+## 2026-09-17 — Pro343 home chart
+
+Pro343 adds a direct home candlestick chart using the same Mapping provider/model and extracted presentation helper. It is closed-candle data, not a live tick. Home M5/M15 refresh pauses off-page/hidden; late requests cannot repaint disposed charts. Local Discipline 2R work is excluded. Existing CI activates update.json only after signed publication.
+
+
 ## 2026-09-13 — Pro339 Client-side News Auto-Translation Architecture
 
 - Client-side translation is authoritative in Market Intel when feeds return untranslated or placeholder English text.

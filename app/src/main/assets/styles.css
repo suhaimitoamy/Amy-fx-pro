@@ -1,3 +1,12 @@
+.home-price-panel{min-width:0;margin-bottom:22px;padding:14px;border:1px solid var(--border-color,#607396);border-radius:16px;overflow:hidden}
+.home-price-panel .section-heading{flex-wrap:wrap;gap:8px}
+.home-price-panel p{font-size:12px;line-height:1.5;margin:8px 0;overflow-wrap:anywhere}
+.home-chart-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.home-chart-controls button,.home-chart-controls select{min-height:44px;padding:8px 12px;color:inherit;background:transparent;border:1px solid currentColor;border-radius:8px}
+#home-price-chart{width:100%;height:340px;min-width:0}
+#home-chart-error:empty{display:none}
+#home-chart-error{color:#e45c70}
+
 :root {
   --bg-color: #0a0a0a;
   --surface-color: rgba(20, 20, 20, 0.65);

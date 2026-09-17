@@ -1,5 +1,10 @@
 # TODO Memory
 
+## 2026-09-17 — Pro343 home chart
+
+Pro343: confirm CI signed release/manifest after push and visually smoke-test Android home chart, pinch, scroll, tab return, offline and theme. Browser access to local preview was blocked by private-address policy; no visual validation claim.
+
+
 ## Pending Tasks
 
 - [ ] Verify Market Intel auto-translation on real Android device after Pro339 release activation.

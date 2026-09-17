@@ -148,7 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return `<span class="app-icon ${type}">${svgs[type] || ''}</span>`;
   }
 
+  let disposeHomeChart=null;
   function setActive(target) {
+    disposeHomeChart?.();disposeHomeChart=null;
     navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
     try { localStorage.setItem('amy_root_tab', target); } catch (_) {}
   }
@@ -165,7 +167,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderHome() {
     setActive('beranda');
-    mainContent.innerHTML = `<div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
+    mainContent.innerHTML = `<section class="home-price-panel" aria-label="Peta harga XAU/USD">
+      <div class="section-heading"><h2>Peta harga · XAU/USD</h2><strong id="home-chart-price">—</strong></div>
+      <div class="home-chart-controls"><label>Timeframe <select id="home-chart-tf"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="home-chart-refresh">Perbarui</button></div>
+      <p id="home-chart-source" role="status">Memuat candle tertutup…</p><p id="home-chart-error" role="alert"></p>
+      <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
+      <p id="home-chart-note">Candle tertutup, bukan harga tick live.</p>
+    </section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
+    if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
   }
 
   function renderProjectList(title) {

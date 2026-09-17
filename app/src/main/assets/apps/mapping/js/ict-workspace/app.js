@@ -1,39 +1,19 @@
 import {analyze,MODEL} from './engine.js';
 import {loadCandles} from './data.js';
 import {makeSnapshot} from './snapshot.js';
+import {createPriceChart} from './chart-view.js';
 const $=id=>document.getElementById(id);
 const price=v=>Number.isFinite(v)?v.toFixed(2):'—';
 const date=t=>t?new Date(t*1000).toLocaleString('id-ID',{timeZone:'Asia/Singapore',hour12:false})+' WITA':'—';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let current=null, raw=null, controller=null, generation=0, timer=null, priceLines=[];
-let chart=null, series=null, chartKey='', scalperPlan=null;
-try {
-  if (window.LightweightCharts) {
-    chart=window.LightweightCharts.createChart($('chart'),{autoSize:true,layout:{background:{color:'#131e2d'},textColor:'#b9c9dc'},
-      grid:{vertLines:{color:'#202e40'},horzLines:{color:'#202e40'}},timeScale:{timeVisible:true},
-      rightPriceScale:{minimumWidth:65},handleScale:{pinch:true,axisPressedMouseMove:true},handleScroll:{vertTouchDrag:false}});
-    series=chart.addCandlestickSeries({upColor:'#65d5b1',downColor:'#ff8f9b',borderVisible:false,wickUpColor:'#65d5b1',wickDownColor:'#ff8f9b'});
-  } else $('chart').textContent='Chart tidak tersedia. Bukti harga tetap ditampilkan di tab analisis.';
-} catch { $('chart').textContent='Chart tidak berhasil dimuat. Periksa bukti candle di tab analisis.'; }
-function paintChartTheme() {
-  const light=document.documentElement.dataset.amyfxTheme==='light';
-  chart?.applyOptions({layout:{background:{color:light?'#edf1fc':'#293b60'},textColor:light?'#475977':'#ced9ed'},
-    grid:{vertLines:{color:light?'#dce3f2':'#3c5176'},horzLines:{color:light?'#dce3f2':'#3c5176'}}});
-}
-paintChartTheme();
-window.addEventListener('amyfx:theme-change',paintChartTheme);
+let current=null, raw=null, controller=null, generation=0, timer=null;
+let chart=null, scalperPlan=null;
+try { chart=createPriceChart($('chart')); }
+catch { $('chart').textContent='Chart tidak berhasil dimuat. Periksa bukti candle di tab analisis.'; }
 function record(title,body){return `<div class="record"><strong>${escape(title)}</strong><p>${escape(body)}</p></div>`;}
 function draw(result) {
-  if(!series)return;
-  const key=result.tf+JSON.stringify(result.candles);
-  if(key!==chartKey){const initial=!chartKey;series.setData(result.candles);chartKey=key;if(initial)chart.timeScale().fitContent();}
-  priceLines.forEach(l=>series.removePriceLine(l));priceLines=[];
-  const plan=scalperPlan||result.plan;
   $('chart-caption').textContent=scalperPlan?`Scalper · ${scalperPlan.label}`:'Candle tertutup · model ICT';
-  if(plan) for(const [key,title,color] of [['entry','ENTRY','#8bb9ff'],['sl','SL','#ff8f9b'],['tp1','TP1','#65d5b1'],['tp','TARGET','#65d5b1']]) {
-    if(!Number.isFinite(plan[key]))continue;
-    priceLines.push(series.createPriceLine({price:plan[key],title,color,lineWidth:1,axisLabelVisible:true}));
-  }
+  chart?.draw(result,scalperPlan||result.plan);
 }
 window.addEventListener('amyfx:scalper-chart-plan',event=>{scalperPlan=event.detail;if(current)draw(current);});
 function render(result) {
@@ -88,11 +68,11 @@ window.setTab=name=>{
   const tab=['Dashboard','Analyze','History'].includes(name)?name:'Analyze';
   document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==tab);
   document.querySelectorAll('[data-tab]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.tab===tab)));
-  if(tab==='Dashboard')chart?.applyOptions({autoSize:true});
+  if(tab==='Dashboard')chart?.resize();
 };
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>window.setTab(el.dataset.tab)));
 $('refresh').addEventListener('click',refresh);
-$('timeframe').addEventListener('change',()=>{raw=null;chartKey='';$('tf-label').textContent=$('timeframe').value;
+$('timeframe').addEventListener('change',()=>{raw=null;chart?.reset();$('tf-label').textContent=$('timeframe').value;
   render(analyze({candles:[],context:[],tf:$('timeframe').value,now:Date.now()/1000}));refresh();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;controller?.abort();clearTimeout(timer);}else refresh();});
 window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);});
