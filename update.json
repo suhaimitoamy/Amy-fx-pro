@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.343/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.344/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.",
-    "Pilihan M5/M15, level model ICT lokal dan status candle terlambat.",
-    "Logika strategi server tidak berubah; eksperimen 2R tidak ikut rilis."
+    "Candle Replay: ganti timeframe selalu memperbarui candle.",
+    "Panel alat gambar kini memiliki tombol Tutup dan menutup otomatis setelah memilih alat.",
+    "Versi sebelumnya menambahkan peta harga langsung di Beranda."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.343/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.344/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950343,
-  "latest_version_name": "2.0.0-pro.343",
+  "latest_version_code": 950344,
+  "latest_version_name": "2.0.0-pro.344",
   "mandatory": false,
   "releaseDate": "2026-09-17",
   "release_notes": [
-    "Peta harga XAU/USD langsung di Beranda tanpa membuka Mapping.",
-    "Pilihan M5/M15, level model ICT lokal dan status candle terlambat.",
-    "Logika strategi server tidak berubah; eksperimen 2R tidak ikut rilis."
+    "Candle Replay: ganti timeframe selalu memperbarui candle.",
+    "Panel alat gambar kini memiliki tombol Tutup dan menutup otomatis setelah memilih alat.",
+    "Versi sebelumnya menambahkan peta harga langsung di Beranda."
   ],
-  "sha256": "5333ea156608adfac25cc2b745ca2ea56e2b826eff4b6f3fff46c44304a822f8",
-  "version": "2.0.0-pro.343",
-  "versionCode": 950343
+  "sha256": "f83c0bf03b18fe6488475113e517196f1cc7721abab14d4bfc157d6d540651e8",
+  "version": "2.0.0-pro.344",
+  "versionCode": 950344
 }
