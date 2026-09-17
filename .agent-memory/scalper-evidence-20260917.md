@@ -22,6 +22,9 @@ Script scripts/replay-discipline-target.mjs; source/outputs stored in /root/.her
 
 Decision: do NOT deploy target changes based on these eight correlated known losers. Existing liquidity target remains production policy. Old2R experiment remains separate/unpushed, not promoted.
 
+## Boundary candidate (delegated finding, tested and rejected)
+Delegated lifecycle audit flagged discipline-lifecycle.mjs:41 fill-candle exclusion (`open_time > entryTime`) as a real behavioral difference from the generic lifecycle, with OHLC intrabar ambiguity noted. Pre-specified single-mutation test: include the fill candle (`>=`). Same locked8-entry replay: reproduced8/8 unchanged, slToTp0, tpToSl0, meetsAdoptionCriteria false. Reverted to baseline; recorded in /root/.hermes/backups/scalper-audit/boundary-variant.json. Exit evaluation boundary is not the historical loss driver for this cohort. Delegated SMR trace (signals.mjs→sweepAt:83→catch index.ts:209) and 7/7 combined focused tests match the deployed hotfix.
+
 ## Academy reference
 app/src/main/assets/apps/academy/bagian-29-backtest-advanced/target-dan-partial-take-profit-mengelola-hasil-secara-objektif.html lines45–115,134–159: targets tied to structure/liquidity; internal objectives for TP1, external for later objectives; partial/full exits have tradeoffs. Current Discipline detector only targets PDH/PDL/Asia extrema, not internal swing objectives. This supports further study, not proof2R is best.
 
