@@ -1,5 +1,8 @@
 # TODO Memory
 
+## 2026-09-17 — Scalper null-price hotfix
+Post-deploy cron17:39 UTC verified COMPLETED/ok=true. Continue one locked-cohort target sensitivity check; no production target change based on selected eight losses. Snapshot global170:58TP/77SL/6BE/10TIME_EXIT/16CANCELLED/3INVALIDATED, not broker trades or device-specific total. Discipline14SL/0TP, target RR medians M15~12.12/H1~7.03; changing TP to2R remains unproven. Reports/backups /root/.hermes/backups/scalper-audit/ and deployed-v11 source /root/.hermes/backups/scalper-deployed-v11/.
+
 ## 2026-09-17 — Pro345 preparation
 Pro345: verify home dark→light→dark on reporting device and direct chart delete in portrait/fullscreen. Home fix remains visually unverified; static CSS assertions cannot establish cascade/computed contrast. Branch push authorized; release/main merge not performed. Existing dirty preview-regression-failure.txt excluded.
 

@@ -75,8 +75,9 @@ function sweepAt(values, index) {
   const candle = values[index];
   const high = latestConfirmedSwing(values, index, 1, 'HIGH');
   const low = latestConfirmedSwing(values, index, 1, 'LOW');
-  const lowSweep = low && candle.low < low.price && candle.close > low.price;
-  const highSweep = high && candle.high > high.price && candle.close < high.price;
+  // Missing anchors are false, not null: equality below requires booleans.
+  const lowSweep = Boolean(low) && candle.low < low.price && candle.close > low.price;
+  const highSweep = Boolean(high) && candle.high > high.price && candle.close < high.price;
   if (lowSweep === highSweep) return null;
   return lowSweep
     ? { direction: 'BUY', side: 'SSL', level: low.price, extreme: candle.low, index, close_time: candle.close_time }

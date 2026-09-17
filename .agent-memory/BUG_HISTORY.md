@@ -1,5 +1,8 @@
 # Bug History
 
+## 2026-09-17 — Scalper null-price hotfix
+SMR sweepAt compared nullable low && ... with high && ... using strict equality. Missing HIGH plus existing non-swept LOW produced false !== null then dereferenced high.price. Reproduced on downloaded deployed v11 source: 2/4 tests fail with exact null.price error. Boolean anchors fail closed. Patched suite133 files/781 tests passed. Supabase CLI deploy succeeded; cron17:39 UTC verified COMPLETED, result.ok=true,error=null. No evidence this explains historical low WR.
+
 ## 2026-09-17 — Pro345 preparation
 Pro345 branch: direct on-chart × Hapus reuses deleteSelected, preserves other objects/storage/Undo and hides during gestures. Home light CSS adds legacy-surface/text overrides. Earlier broad root-cause claim is unconfirmed: shared components already override many home surfaces; no browser/device reproduction of reported home symptom. Browser bootstrap failed on filesystem hardlink permission. Targeted 28 tests pass (chart/fullscreen/version/static CSS contrast), not Android visual verification.
 
