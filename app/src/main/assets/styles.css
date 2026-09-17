@@ -659,6 +659,37 @@ pre {
 
 .skeleton { background: #1e1e1e; position: relative; overflow: hidden; border-radius: 8px; }
 .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%); transform: translateX(-100%); animation: shimmer 1.5s infinite; }
+
+/* Pro345: home light-theme readability — remap legacy dark-only tokens and surfaces. */
+html[data-amyfx-theme="light"] {
+  --bg-color: #eef4fa;
+  --surface-color: var(--amy-surface-solid);
+  --surface-soft: var(--amy-surface);
+  --text-main: #16233a;
+  --text-muted: #556680;
+  --border-color: rgba(46, 84, 126, 0.2);
+  --primary-gold: #1656b8;
+  --secondary-gold: #1656b8;
+  --glow-gold: rgba(33, 107, 219, 0.16);
+}
+html[data-amyfx-theme="light"] body { background-image: none; }
+html[data-amyfx-theme="light"] header { background: color-mix(in srgb, var(--amy-bg) 78%, transparent); text-shadow: none; }
+html[data-amyfx-theme="light"] .am-logo { background: var(--amy-surface-strong); box-shadow: none; }
+html[data-amyfx-theme="light"] .subtitle { color: #556680; }
+html[data-amyfx-theme="light"] .home-hero { background: var(--amy-surface); box-shadow: var(--amy-shadow-soft); }
+html[data-amyfx-theme="light"] .home-hero h2 { color: #16233a; }
+html[data-amyfx-theme="light"] .home-hero p,
+html[data-amyfx-theme="light"] .hero-status { color: #475977; }
+html[data-amyfx-theme="light"] .app-icon { background: var(--amy-surface-soft); box-shadow: none; }
+html[data-amyfx-theme="light"] .quick-card:hover,
+html[data-amyfx-theme="light"] .card:hover { background: var(--amy-surface-strong); }
+html[data-amyfx-theme="light"] .collection-tool,
+html[data-amyfx-theme="light"] .profile-card,
+html[data-amyfx-theme="light"] .stat-card { background: var(--amy-surface-solid); }
+html[data-amyfx-theme="light"] .stat-card { border-color: var(--amy-border); }
+html[data-amyfx-theme="light"] pre { background: #e7eef6; color: #172637; }
+html[data-amyfx-theme="light"] .skeleton { background: #dbe3ef; }
+html[data-amyfx-theme="light"] .nav-btn { color: #6b7a90; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 #amy-toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }

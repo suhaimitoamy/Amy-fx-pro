@@ -1,5 +1,8 @@
 # Bug History
 
+## 2026-09-17 — Pro345 preparation
+Pro345 branch: direct on-chart × Hapus reuses deleteSelected, preserves other objects/storage/Undo and hides during gestures. Home light CSS adds legacy-surface/text overrides. Earlier broad root-cause claim is unconfirmed: shared components already override many home surfaces; no browser/device reproduction of reported home symptom. Browser bootstrap failed on filesystem hardlink permission. Targeted 28 tests pass (chart/fullscreen/version/static CSS contrast), not Android visual verification.
+
 ## Drawing fixes — branch publication authorized
 Amy authorized pushing Long/Short validation/labels and Object-menu close, without version bump. Publish on fix/replay-gesture-menu only; do not merge main or replace released Pro344 APK. This supersedes earlier no-push notes for these two fixes. Android visual verification remains pending.
 

@@ -1,5 +1,8 @@
 # TODO Memory
 
+## 2026-09-17 — Pro345 preparation
+Pro345: verify home dark→light→dark on reporting device and direct chart delete in portrait/fullscreen. Home fix remains visually unverified; static CSS assertions cannot establish cascade/computed contrast. Branch push authorized; release/main merge not performed. Existing dirty preview-regression-failure.txt excluded.
+
 ## Drawing fixes — branch publication authorized
 Amy authorized pushing Long/Short validation/labels and Object-menu close, without version bump. Publish on fix/replay-gesture-menu only; do not merge main or replace released Pro344 APK. This supersedes earlier no-push notes for these two fixes. Android visual verification remains pending.
 

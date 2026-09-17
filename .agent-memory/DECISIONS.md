@@ -1,5 +1,8 @@
 # Technical Decisions
 
+## 2026-09-17 — Pro345 preparation
+Pro345 source 2.0.0-pro.345 /950345 includes bc96d0e8 position/menu fixes and 7fc4d1d7 direct-delete fix plus home light CSS. Amy authorized bump then push. Push fix/replay-gesture-menu only; no main merge or APK activation. Keep update.json at published344. No strategy/backend changes.
+
 ## 2026-09-17 — Pro344 replay fix
 Pro344 local only: user authorized fixes/tests/version bump, no push/deploy. Shared drawing pointer-end cleanup releases queued candles while retaining multi-tap anchors; invalid endpoints use cancellation. Drawing menu close is shared with Chart Analysis. No replay aggregation/strategy changes.
 

@@ -1,5 +1,8 @@
 # Feature History
 
+## 2026-09-17 — Pro345 preparation
+Pro345 branch adds a native HTML × Hapus button inside the selected-drawing chart, touch target >=44px, accessible label and focus return. Shared Replay/Chart Analysis implementation; no menu required.
+
 ## 2026-09-17 — Pro344 replay fix
 Pro344 /950344 prepared locally: sticky × Tutup button in drawing tools, focus returns to summary; Gesture Chart closes panel. Existing tool selection still auto-closes. Saved drawings preserved by tests.
 
