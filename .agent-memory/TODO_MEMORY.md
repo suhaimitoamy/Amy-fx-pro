@@ -1,5 +1,9 @@
 # TODO Memory
 
+## 2026-09-19 — Pro348
+
+Verify the five principal pages on the reporting Android device in portrait mode, especially sticky Mapping/News headers, custom-color contrast, long news text, and Journal/Academy one-column cards. Static regression tests cannot establish final Android WebView rendering or native update-notification receipt.
+
 ## 2026-09-19 — Pro347
 
 Verify news branding removal, app-focused notification deep links, custom colors, reset, and light-theme contrast on the reporting Android device after the signed Pro347 release activates. Source tests cannot establish final WebView color rendering or native notification receipt.

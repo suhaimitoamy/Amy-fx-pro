@@ -1,5 +1,11 @@
 # Bug History
 
+## 2026-09-19 — Inconsistent module UI and cramped mobile layouts
+
+- Resolved: Mapping used the `amyfx-module--ict` body class but omitted the `amyfx-module--mapping` design-system hook, so shared Mapping presentation rules did not apply.
+- Resolved: module-specific typography, spacing, card surfaces, and mobile grids produced uneven hierarchy and weak light-theme readability.
+- Fix: add a UI-only shared polish layer after the component stylesheet and apply responsive, semantic-token overrides without changing JavaScript or trading logic.
+
 ## 2026-09-19 — Market Intel source leakage and light-theme contrast
 
 - Resolved: news cards linked users to Telegram and displayed provider branding.

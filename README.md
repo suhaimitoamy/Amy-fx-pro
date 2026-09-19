@@ -14,8 +14,8 @@ Amy-fx-pro/main/update.json
 
 ## Current Version
 
-> **Source candidate:** `Amy FX Pro v2.0.0 build 347`
-> **Active update manifest:** `Amy FX Pro v2.0.0 build 346` (until signed Pro347 release activation)
+> **Source candidate:** `Amy FX Pro v2.0.0 build 348`
+> **Active update manifest:** `Amy FX Pro v2.0.0 build 347` (until signed Pro348 release activation)
 > **Source branch:** `main`
 > **Status:** Production development build
 
@@ -66,15 +66,15 @@ Arsitektur inti:
 | Properti | Nilai |
 |---|---|
 | Nama aplikasi | Amy FX Pro |
-| Source version | v2.0.0 build 347 |
-| Published update | v2.0.0 build 346 |
+| Source version | v2.0.0 build 348 |
+| Published update | v2.0.0 build 347 |
 | Branch utama | main |
 | Update channel | Amy-fx-pro/main/update.json |
 | Package continuity | com.amyelitesuite.learningpreview |
 
 ## Build Status
 
-Build 347 merupakan kandidat source. Perangkat tetap menerima build 346 sampai pipeline rilis bertanda tangan memverifikasi dan mengaktifkan manifest Pro347.
+Build 348 merupakan kandidat source. Perangkat tetap menerima build 347 sampai pipeline rilis bertanda tangan memverifikasi dan mengaktifkan manifest Pro348.
 
 Source, manifest update, dan dokumentasi wajib mengikuti build yang telah dipublikasikan agar tidak terjadi perbedaan antara source repository dan aplikasi pengguna.
 

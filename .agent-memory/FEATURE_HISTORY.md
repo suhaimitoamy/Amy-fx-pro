@@ -1,5 +1,9 @@
 # Feature History
 
+## 2026-09-19 — Pro348 unified application UI
+
+Home, Mapping, Market Intel, Journal, and Academy now share a clearer typographic hierarchy, consistent touch targets/cards, restrained sticky navigation, readable news expansion cues, and single-column small-screen layouts. The polish uses existing semantic theme tokens so System, Light, Dark, and custom colors remain compatible.
+
 ## 2026-09-19 — Pro347 custom colors
 
 Profile now provides persisted background, card, text, and accent color controls plus reset. Overrides are applied by the shared theme controller across Home and modules without replacing the existing System, Light, and Dark modes.

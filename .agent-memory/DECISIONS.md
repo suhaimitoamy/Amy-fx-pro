@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-19 — Pro348 UI-only consistency pass
+
+Pro348 is limited to presentation: shared typography, spacing, surfaces, responsive layout, and light-theme contrast across Home, Mapping, Market Intel, Journal, and Academy. Mapping now carries the shared `amyfx-module--mapping` hook while retaining `amyfx-module--ict`; no engine, mapping, market-source, notification, or persistence logic is changed. Source advances to 2.0.0-pro.348 / 950348 while the manifest remains on signed Pro347 until CI activation.
+
 ## 2026-09-19 — Pro347 news privacy and theme customization
 
 Market Intel retains its existing server-side news feed, but app-facing items are sanitized before rendering, caching, assistant sharing, and notification use. Telegram URLs, SM News 24 Jam branding, source fields, and outbound source links are not exposed in the app. The shared theme controller owns persisted custom background, surface, text, and accent colors while System/Light/Dark remain available. Source advances to 2.0.0-pro.347 / 950347; update.json remains on signed Pro346 until CI activation.

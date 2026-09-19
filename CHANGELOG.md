@@ -1,3 +1,9 @@
+## 2.0.0-pro.348
+
+- Menyatukan tipografi, jarak, radius kartu, header, navigasi, dan state kosong pada lima halaman utama.
+- Menghubungkan halaman Mapping ke sistem desain bersama tanpa mengubah engine, kalkulasi, atau alur data trading.
+- Meningkatkan keterbacaan mode terang serta menyusun ulang kartu Berita, Jurnal, dan Academy untuk layar ponsel.
+
 ## 2.0.0-pro.347
 
 - Menghapus tautan, label, dan branding sumber Telegram dari tampilan serta notifikasi berita; feed tetap dipakai secara internal.
