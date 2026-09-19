@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.348/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.349/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Menyatukan tipografi, header, jarak, kartu, navigasi, dan state antarmuka pada lima halaman utama.",
-    "Memperbaiki koneksi sistem desain Mapping tanpa mengubah engine atau kalkulasi trading.",
-    "Meningkatkan keterbacaan mode terang dan susunan mobile untuk Berita, Jurnal, dan Academy."
+    "Catatan keputusan Candle Replay kini tetap terbaca saat penyimpanan memakai fallback lokal.",
+    "Riwayat menampilkan bukti candle yang menyentuh SL atau TP: waktu, level, low dan high.",
+    "Jika SL dan TP tersentuh pada candle yang sama, hasil tetap konservatif: SL diprioritaskan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.348/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.349/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950348,
-  "latest_version_name": "2.0.0-pro.348",
+  "latest_version_code": 950349,
+  "latest_version_name": "2.0.0-pro.349",
   "mandatory": false,
   "releaseDate": "2026-09-19",
   "release_notes": [
-    "Menyatukan tipografi, header, jarak, kartu, navigasi, dan state antarmuka pada lima halaman utama.",
-    "Memperbaiki koneksi sistem desain Mapping tanpa mengubah engine atau kalkulasi trading.",
-    "Meningkatkan keterbacaan mode terang dan susunan mobile untuk Berita, Jurnal, dan Academy."
+    "Catatan keputusan Candle Replay kini tetap terbaca saat penyimpanan memakai fallback lokal.",
+    "Riwayat menampilkan bukti candle yang menyentuh SL atau TP: waktu, level, low dan high.",
+    "Jika SL dan TP tersentuh pada candle yang sama, hasil tetap konservatif: SL diprioritaskan."
   ],
-  "sha256": "cdc313d82533e6368a53fdbed5e68becdf206a13b1e32fd538de5744da8b7182",
-  "version": "2.0.0-pro.348",
-  "versionCode": 950348
+  "sha256": "f3d5a6aeea56774fcd4383f4c7c8cf50ab85c6956a20d2740c385e551f94b2ac",
+  "version": "2.0.0-pro.349",
+  "versionCode": 950349
 }
