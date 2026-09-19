@@ -14,7 +14,8 @@ Amy-fx-pro/main/update.json
 
 ## Current Version
 
-> **Latest application build:** `Amy FX Pro v2.0.0 build 332`
+> **Source candidate:** `Amy FX Pro v2.0.0 build 347`
+> **Active update manifest:** `Amy FX Pro v2.0.0 build 346` (until signed Pro347 release activation)
 > **Source branch:** `main`
 > **Status:** Production development build
 
@@ -30,7 +31,7 @@ Arsitektur inti:
 - Scanner, Entry Watch, lifecycle, dan notifikasi membaca canonical state.
 - Live market feed hanya memperbarui data realtime tanpa mengubah historical Mapping secara sepihak.
 
-## Feature Status Build 332
+## Feature Status
 
 ### Market Workspace
 
@@ -65,14 +66,15 @@ Arsitektur inti:
 | Properti | Nilai |
 |---|---|
 | Nama aplikasi | Amy FX Pro |
-| Version | v2.0.0 build 332 |
+| Source version | v2.0.0 build 347 |
+| Published update | v2.0.0 build 346 |
 | Branch utama | main |
 | Update channel | Amy-fx-pro/main/update.json |
 | Package continuity | com.amyelitesuite.learningpreview |
 
 ## Build Status
 
-Build 332 merupakan versi aplikasi terbaru pada perangkat.
+Build 347 merupakan kandidat source. Perangkat tetap menerima build 346 sampai pipeline rilis bertanda tangan memverifikasi dan mengaktifkan manifest Pro347.
 
 Source, manifest update, dan dokumentasi wajib mengikuti build yang telah dipublikasikan agar tidak terjadi perbedaan antara source repository dan aplikasi pengguna.
 

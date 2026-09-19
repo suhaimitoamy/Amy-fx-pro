@@ -1,3 +1,10 @@
+## 2.0.0-pro.347
+
+- Menghapus tautan, label, dan branding sumber Telegram dari tampilan serta notifikasi berita; feed tetap dipakai secara internal.
+- Menambahkan sanitasi defensif agar URL Telegram dan nama SM News 24 Jam tidak ikut tampil di isi berita.
+- Menambahkan personalisasi warna latar, kartu, teks, dan aksen di menu Profil dengan penyimpanan lintas modul dan tombol reset.
+- Menyelaraskan Market Intel dengan token tema bersama untuk memperbaiki keterbacaan mode terang.
+
 ## 2.0.0-pro.341
 
 - Fix blank home on first open and invalid saved root tabs.

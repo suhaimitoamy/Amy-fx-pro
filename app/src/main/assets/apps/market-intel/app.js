@@ -25,6 +25,25 @@ function newsTargetUrl(id) {
   return `${base}#news=${encodeURIComponent(id)}`;
 }
 
+function cleanNewsContent(value) {
+  return String(value || '')
+    .replace(/https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/\S+/gi, '')
+    .replace(/@?SM[\s_-]*News[\s_-]*(?:24h?|24[\s_-]*jam)?/gi, '')
+    .replace(/^\s*(?:sumber|source)\s*:\s*$/gim, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function prepareNewsItem(item) {
+  const prepared = { ...item };
+  prepared.textOriginal = cleanNewsContent(prepared.textOriginal);
+  prepared.text = cleanNewsContent(prepared.text) || prepared.textOriginal || 'Berita terbaru XAU/USD.';
+  delete prepared.link;
+  delete prepared.source;
+  return prepared;
+}
+
 function readNewsRoute() {
   try {
     const hash = (location.hash || '').replace(/^#/, '');
@@ -280,11 +299,11 @@ async function loadNews(silent = false) {
 
     if (!data.news || data.news.length === 0) {
       status.textContent = 'Tidak ada berita gold saat ini';
-      list.innerHTML = '<div class="empty-state">Belum ada breaking news untuk XAU/USD.<br><small>Data dari SM_News_24h</small></div>';
+      list.innerHTML = '<div class="empty-state">Belum ada breaking news untuk XAU/USD.</div>';
       return;
     }
 
-    const sortedNews = [...data.news].sort((a, b) => {
+    const sortedNews = data.news.map(prepareNewsItem).sort((a, b) => {
       const byId = Number(b.id || 0) - Number(a.id || 0);
       return byId || new Date(b.time || 0) - new Date(a.time || 0);
     });
@@ -356,7 +375,6 @@ function renderNews(sortedNews) {
     <article class="news-item" data-news-id="${escapeHtml(newsId(item))}" style="animation-delay:${i * 0.05}s" tabindex="0">
       <div class="news-time">${formatTime(item.time)}</div>
       <div class="news-text">${escapeHtml(item.text)}</div>
-      <a class="news-link" href="${escapeHtml(/^https:\/\//i.test(String(item.link || '')) ? item.link : 'https://t.me/SM_News_24h')}" target="_blank" rel="noopener noreferrer">Buka sumber: SM_News_24h ↗</a>
     </article>
   `).join('');
 }

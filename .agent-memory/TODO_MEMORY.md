@@ -1,5 +1,9 @@
 # TODO Memory
 
+## 2026-09-19 — Pro347
+
+Verify news branding removal, app-focused notification deep links, custom colors, reset, and light-theme contrast on the reporting Android device after the signed Pro347 release activates. Source tests cannot establish final WebView color rendering or native notification receipt.
+
 ## 2026-09-17 — Pro345 preparation
 Pro345: verify home dark→light→dark on reporting device and direct chart delete in portrait/fullscreen. Home fix remains visually unverified; static CSS assertions cannot establish cascade/computed contrast. Branch push authorized; release/main merge not performed. Existing dirty preview-regression-failure.txt excluded.
 

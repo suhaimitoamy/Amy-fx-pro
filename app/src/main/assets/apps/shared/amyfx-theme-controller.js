@@ -5,10 +5,46 @@
   window.__amyFxThemeController = true;
 
   const STORAGE_KEY = "amyfx.ui.theme.v1";
+  const CUSTOM_KEY = "amyfx.ui.colors.v1";
   const LEGACY_KEYS = ["amyfx.theme", "amy_theme"];
   const media = window.matchMedia?.("(prefers-color-scheme: light)");
   const root = document.documentElement;
   let preference = readPreference();
+
+  const CUSTOM_PROPERTIES = Object.freeze({
+    background: ["--amy-bg", "--amy-bg-secondary"],
+    surface: ["--amy-surface", "--amy-surface-strong", "--amy-surface-solid"],
+    text: ["--amy-text", "--amy-text-secondary", "--amy-text-muted"],
+    accent: ["--amy-accent", "--amy-accent-strong", "--amy-cyan"]
+  });
+  let customColors = readCustomColors();
+
+  function validColor(value) {
+    const color = String(value || "").trim();
+    return /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : "";
+  }
+
+  function readCustomColors() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "{}");
+      return Object.fromEntries(Object.keys(CUSTOM_PROPERTIES)
+        .map(key => [key, validColor(parsed?.[key])])
+        .filter(([, value]) => value));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function applyCustomColors() {
+    Object.entries(CUSTOM_PROPERTIES).forEach(([key, properties]) => {
+      const value = validColor(customColors[key]);
+      properties.forEach(property => {
+        if (value) root.style.setProperty(property, value);
+        else root.style.removeProperty(property);
+      });
+    });
+    root.toggleAttribute("data-amyfx-custom-colors", Object.keys(customColors).length > 0);
+  }
 
   function normalize(value) {
     const theme = String(value || "").toLowerCase();
@@ -69,6 +105,7 @@
     root.dataset.amyfxThemeChoice = preference;
     root.dataset.amyfxTheme = theme;
     root.style.colorScheme = theme;
+    applyCustomColors();
     updateThemeColor(theme);
     syncNative(theme);
     syncControls();
@@ -91,13 +128,27 @@
   root.dataset.amyfxThemeChoice = preference;
   root.dataset.amyfxTheme = resolvedTheme(preference);
   root.style.colorScheme = root.dataset.amyfxTheme;
+  applyCustomColors();
   updateThemeColor(root.dataset.amyfxTheme);
 
   window.AmyFXTheme = Object.freeze({
     key: STORAGE_KEY,
     get preference() { return preference; },
     get resolved() { return resolvedTheme(preference); },
+    get colors() { return Object.freeze({ ...customColors }); },
     set(value) { return apply(value, { persist: true }); },
+    setColors(values = {}) {
+      customColors = Object.fromEntries(Object.keys(CUSTOM_PROPERTIES)
+        .map(key => [key, validColor(values[key])])
+        .filter(([, value]) => value));
+      try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customColors)); } catch (_) {}
+      return apply(preference);
+    },
+    resetColors() {
+      customColors = {};
+      try { localStorage.removeItem(CUSTOM_KEY); } catch (_) {}
+      return apply(preference);
+    },
     apply
   });
 
@@ -113,6 +164,10 @@
 
   window.addEventListener("storage", event => {
     if (event.key === STORAGE_KEY) apply(event.newValue || "system");
+    if (event.key === CUSTOM_KEY) {
+      customColors = readCustomColors();
+      apply(preference);
+    }
   });
 
   if (document.readyState === "loading") {

@@ -1,5 +1,11 @@
 # Bug History
 
+## 2026-09-19 — Market Intel source leakage and light-theme contrast
+
+- Resolved: news cards linked users to Telegram and displayed provider branding.
+- Resolved: Market Intel redefined legacy dark-only colors after shared theme tokens, causing weak or invisible light-theme content.
+- Fix: sanitize app-facing news, remove outbound source links, and bind Market Intel primitives to shared semantic theme variables.
+
 ## 2026-09-17 — Pro345 preparation
 Pro345 branch: direct on-chart × Hapus reuses deleteSelected, preserves other objects/storage/Undo and hides during gestures. Home light CSS adds legacy-surface/text overrides. Earlier broad root-cause claim is unconfirmed: shared components already override many home surfaces; no browser/device reproduction of reported home symptom. Browser bootstrap failed on filesystem hardlink permission. Targeted 28 tests pass (chart/fullscreen/version/static CSS contrast), not Android visual verification.
 

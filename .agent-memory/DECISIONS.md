@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-19 — Pro347 news privacy and theme customization
+
+Market Intel retains its existing server-side news feed, but app-facing items are sanitized before rendering, caching, assistant sharing, and notification use. Telegram URLs, SM News 24 Jam branding, source fields, and outbound source links are not exposed in the app. The shared theme controller owns persisted custom background, surface, text, and accent colors while System/Light/Dark remain available. Source advances to 2.0.0-pro.347 / 950347; update.json remains on signed Pro346 until CI activation.
+
 ## 2026-09-17 — Pro345 preparation
 Pro345 source 2.0.0-pro.345 /950345 includes bc96d0e8 position/menu fixes and 7fc4d1d7 direct-delete fix plus home light CSS. Amy authorized bump then push. Push fix/replay-gesture-menu only; no main merge or APK activation. Keep update.json at published344. No strategy/backend changes.
 

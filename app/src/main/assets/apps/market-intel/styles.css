@@ -1,16 +1,16 @@
 /* ─── Amy FX — Market Intel Styles ───────────────── */
 :root {
-  --bg: #0a0a0a;
-  --bg-card: #111111;
-  --bg-card-hover: #1a1a1a;
-  --gold: #d4af37;
+  --bg: var(--amy-bg);
+  --bg-card: var(--amy-surface-solid);
+  --bg-card-hover: var(--amy-surface-strong);
+  --gold: var(--amy-accent);
   --gold-dim: rgba(212, 175, 55, 0.15);
   --gold-text: #c9a830;
   --red: #e74c3c;
   --green: #2ecc71;
-  --text: #ccc;
-  --text-dim: #888;
-  --border: #1a1a1a;
+  --text: var(--amy-text);
+  --text-dim: var(--amy-text-secondary);
+  --border: var(--amy-border);
   --radius: 10px;
 }
 

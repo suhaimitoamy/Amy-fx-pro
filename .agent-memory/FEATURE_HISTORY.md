@@ -1,5 +1,9 @@
 # Feature History
 
+## 2026-09-19 — Pro347 custom colors
+
+Profile now provides persisted background, card, text, and accent color controls plus reset. Overrides are applied by the shared theme controller across Home and modules without replacing the existing System, Light, and Dark modes.
+
 ## 2026-09-17 — Pro345 preparation
 Pro345 branch adds a native HTML × Hapus button inside the selected-drawing chart, touch target >=44px, accessible label and focus return. Shared Replay/Chart Analysis implementation; no menu required.
 
