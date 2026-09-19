@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.347/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.",
-    "Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.",
-    "Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi."
+    "Berita kini tampil fokus di aplikasi tanpa tautan, label, atau nama sumber Telegram.",
+    "Personalisasi warna latar, kartu, teks, dan aksen tersedia di menu Profil.",
+    "Kontras mode terang Market Intel diperbaiki menggunakan sistem tema bersama."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.347/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-09-19",
   "release_notes": [
-    "Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.",
-    "Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.",
-    "Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi."
+    "Berita kini tampil fokus di aplikasi tanpa tautan, label, atau nama sumber Telegram.",
+    "Personalisasi warna latar, kartu, teks, dan aksen tersedia di menu Profil.",
+    "Kontras mode terang Market Intel diperbaiki menggunakan sistem tema bersama."
   ],
   "sha256": "3dbe2140bc59e0a45513a805d2c296f6f4ce25fb7dea46c06e2409bc04c8b218",
   "version": "2.0.0-pro.347",
