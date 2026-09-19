@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.345/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.346/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Tombol × Hapus langsung di chart untuk objek terpilih, mendukung Undo.",
-    "Validasi arah LONG/SHORT, label Entry/TP/SL dan tombol Tutup menu Objek.",
-    "Perbaikan pergantian timeframe Replay dan penyesuaian warna tema terang Beranda."
+    "Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.",
+    "Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.",
+    "Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.345/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.346/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950345,
-  "latest_version_name": "2.0.0-pro.345",
+  "latest_version_code": 950346,
+  "latest_version_name": "2.0.0-pro.346",
   "mandatory": false,
-  "releaseDate": "2026-09-17",
+  "releaseDate": "2026-09-19",
   "release_notes": [
-    "Tombol × Hapus langsung di chart untuk objek terpilih, mendukung Undo.",
-    "Validasi arah LONG/SHORT, label Entry/TP/SL dan tombol Tutup menu Objek.",
-    "Perbaikan pergantian timeframe Replay dan penyesuaian warna tema terang Beranda."
+    "Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.",
+    "Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.",
+    "Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi."
   ],
-  "sha256": "38e70ef675fe2b875ca072962bf6655ae7636abb85927b38ea8608fb1bd96e96",
-  "version": "2.0.0-pro.345",
-  "versionCode": 950345
+  "sha256": "1e6cac10de1bc45a632c3681263e39d3a189dd32f97b2527fd063ae19db22b03",
+  "version": "2.0.0-pro.346",
+  "versionCode": 950346
 }
