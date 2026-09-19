@@ -187,12 +187,12 @@ Deno.serve(async (request) => {
     for(const candidate of candidates){const freshEnough=nowSeconds-Number(candidate.signal_candle_close_time)<=NOTIFICATION_AGE_SECONDS;const created=await insertSetup({...candidate,notification_enabled:freshEnough});if(!created)continue;inserted++;if(await insertEvent(created,{status:candidate.status,price:null,candle_time:candidate.signal_candle_open_time,result_r:null},created.notification_enabled===true))lifecycleEvents++;}
     let active=await loadActiveSetups();
     for(const current of active){let setup=current;
-      if(setup.status==="WAITING_TRIGGER"){
+      if(setup.status==="WAITING_TRIGGER"||setup.quality?.rebuild_version){
         const trigger=resolveTriggerEntry(setup,{m1,nowSeconds});
         if(trigger.event){const saved=await updateSetup(trigger.setup,setup);if(!saved)continue;setup=saved;if(await insertEvent(setup,trigger.event,setup.notification_enabled===true))lifecycleEvents++;continue;}
         if(trigger.nextOpen){const activatedResult=activateCandidate(setup,trigger.nextOpen);const saved=await updateSetup(activatedResult.setup,setup);if(!saved)continue;setup=saved;if(activatedResult.event&&await insertEvent(setup,activatedResult.event,setup.notification_enabled===true))lifecycleEvents++;activated+=setup.status==="ACTIVE"?1:0;continue;}
       }
-      if(["WAITING_NEXT_OPEN","ENTRY_READY"].includes(setup.status)){const nextOpen=findNextOpen(setup,{m1,m15});if(nextOpen){const activatedResult=activateCandidate(setup,nextOpen);const saved=await updateSetup(activatedResult.setup,setup);if(!saved)continue;setup=saved;if(activatedResult.event&&await insertEvent(setup,activatedResult.event,setup.notification_enabled===true))lifecycleEvents++;activated+=setup.status==="ACTIVE"?1:0;continue;}}
+      if(!setup.quality?.rebuild_version&&["WAITING_NEXT_OPEN","ENTRY_READY"].includes(setup.status)){const nextOpen=findNextOpen(setup,{m1,m15});if(nextOpen){const activatedResult=activateCandidate(setup,nextOpen);const saved=await updateSetup(activatedResult.setup,setup);if(!saved)continue;setup=saved;if(activatedResult.event&&await insertEvent(setup,activatedResult.event,setup.notification_enabled===true))lifecycleEvents++;activated+=setup.status==="ACTIVE"?1:0;continue;}}
       if(setup.status==="ACTIVE"||setup.status==="BE_ACTIVE"){
         if(setup.quality?.entry_locked!==true){const locked={...setup,quality:{...(setup.quality||{}),entry_locked:true,entry_locked_at:setup.entry_candle_open_time,entry_timestamp:setup.entry_candle_open_time,lifecycle_sequence:Number(setup.quality?.lifecycle_sequence||0)}};await updateSetup(locked,setup);continue;}
         const advanced=advanceSetupLifecycle(setup,m1,{evaluationSeconds:60});const nextSetup=advanced.setup;

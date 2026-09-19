@@ -218,12 +218,9 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Tombol × Hapus langsung di chart untuk objek terpilih, dengan dukungan Undo.
-          - Validasi arah LONG/SHORT dan pemisahan label Entry/TP/SL.
-          - Tombol Tutup pada menu Objek dan perbaikan pergantian timeframe Replay.
-          - Penyesuaian warna tema terang Beranda; verifikasi visual perangkat tetap diperlukan.
-          - Signing mode: ${{ steps.signing.outputs.mode }}.
-          - Signing certificate SHA-256: $AMYFX_SIGNING_CERT_SHA256.
+          - Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS berdasarkan audit WR server.
+          - Konfirmasi struktur/retest, entry sesudah deteksi, batas reward/risk, dan expiry entry.
+          - Riwayat dan lifecycle setup lama dipertahankan; hasil baru belum membuktikan peningkatan WR.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber
@@ -271,7 +268,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Tombol × Hapus langsung di chart untuk objek terpilih, mendukung Undo.','Validasi arah LONG/SHORT, label Entry/TP/SL dan tombol Tutup menu Objek.','Perbaikan pergantian timeframe Replay dan penyesuaian warna tema terang Beranda.']
+          notes=['Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.','Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.','Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

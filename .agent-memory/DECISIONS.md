@@ -344,3 +344,7 @@ Pro341 release verified: PR #3 merged as 89f147daa947632da15a21da5bd5b7ee5e8a297
 ## 2026-09-14 — Pro342 Mapping restoration
 
 Pro342 restores the deployed Supabase Scalper lifecycle as a read-only Mapping panel. Existing ICT chart/model/snapshot remain separate; user-selected server levels overlay the preserved chart. No backend strategies, thresholds or other application modules change. Source342 uses the existing signed release pipeline; update.json activates only after publication.
+
+
+## 2026-09-19 — Pro346 scalper rebuild
+User requested rebuilding active drivers with WR below50% and version bump for update notification. Global retained outcomes identify Discipline, AMD, Range Expansion and Retest BOS. Version STRUCTURAL-2026-09-V1 replaces only those detectors and routes new setups to isolated causal/risk-validated lifecycle; old setups and archived models remain unchanged. Source346; signed pipeline owns manifest activation. See docs/SCALPER_PRO346_REBUILD.md.

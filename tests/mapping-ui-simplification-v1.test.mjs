@@ -27,11 +27,12 @@ test('Mapping no longer persists analysis, setup, or event-log history', async (
   assert.doesNotMatch(main, /window\.downloadLogs/);
 });
 
-test('Profile owns market API information and notification test controls', async () => {
+test('Profile preserves Pro345 removal of market API and notification test rows', async () => {
   const home = await read('app/src/main/assets/index.html');
   const profileSettings = await read('app/src/main/assets/profile-system-settings-v1.js');
   assert.match(home, /profile-system-settings-v1\.js/);
-  assert.match(profileSettings, /Data Market API/);
+  assert.doesNotMatch(profileSettings, /Data Market API/);
+  assert.doesNotMatch(profileSettings, /dataset\.profileAction\s*=\s*['"]test-notification/);
   assert.match(profileSettings, /test-notification/);
   assert.match(profileSettings, /showNotificationWithUrl/);
 });
