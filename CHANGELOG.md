@@ -1,3 +1,9 @@
+## 2.0.0-pro.349
+
+- Memperbaiki pembacaan catatan Candle Replay ketika penyimpanan jatuh ke fallback lokal setelah transaksi IndexedDB gagal.
+- Menambahkan bukti hasil SL/TP di Riwayat: level, waktu candle, rentang low/high, dan penanda candle ambigu.
+- Mempertahankan aturan konservatif: jika SL dan TP tersentuh pada candle yang sama, hasil dicatat sebagai SL.
+
 ## 2.0.0-pro.348
 
 - Menyatukan tipografi, jarak, radius kartu, header, navigasi, dan state kosong pada lima halaman utama.

@@ -1,5 +1,9 @@
 # Feature History
 
+## 2026-09-20 — Pro349 replay persistence and evidence
+
+Pro349 adds resilient IndexedDB/localStorage trade reconciliation plus auditable SL/TP evidence in local replay history. The evidence records the touched level, closing candle timestamp and low/high range, including an explicit ambiguous-candle marker. No strategy, candle source, or decision geometry changes.
+
 ## 2026-09-19 — Pro348 unified application UI
 
 Home, Mapping, Market Intel, Journal, and Academy now share a clearer typographic hierarchy, consistent touch targets/cards, restrained sticky navigation, readable news expansion cues, and single-column small-screen layouts. The polish uses existing semantic theme tokens so System, Light, Dark, and custom colors remain compatible.

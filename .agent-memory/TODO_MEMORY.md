@@ -1,5 +1,9 @@
 # TODO Memory
 
+## 2026-09-20 — Pro349
+
+Verify on the reporting Android device that a replay decision survives app/page restart and that advancing into TP, SL, and same-candle SL+TP cases updates Riwayat with the expected timestamp and low/high evidence. CI can validate persistence contracts and rendering source but cannot prove device storage behavior or native update-notification receipt.
+
 ## 2026-09-19 — Pro348
 
 Verify the five principal pages on the reporting Android device in portrait mode, especially sticky Mapping/News headers, custom-color contrast, long news text, and Journal/Academy one-column cards. Static regression tests cannot establish final Android WebView rendering or native update-notification receipt.

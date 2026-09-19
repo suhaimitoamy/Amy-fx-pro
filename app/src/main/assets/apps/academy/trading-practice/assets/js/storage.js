@@ -91,7 +91,12 @@
   }
 
   async function get(store, id) {
-    try { return await withStore(store, 'readonly', function (objectStore) { return objectStore.get(id); }); }
+    try {
+      var value = await withStore(store, 'readonly', function (objectStore) { return objectStore.get(id); });
+      if (value != null) return value;
+      if (store === STORES.packs || store === STORES.packFiles) return null;
+      return readFallback(store).find(function (item) { return item && item.id === id; }) || null;
+    }
     catch (_) {
       if (store === STORES.packs || store === STORES.packFiles) return null;
       return readFallback(store).find(function (item) { return item && item.id === id; }) || null;
@@ -99,7 +104,14 @@
   }
 
   async function getAll(store) {
-    try { return await withStore(store, 'readonly', function (objectStore) { return objectStore.getAll(); }); }
+    try {
+      var primary = await withStore(store, 'readonly', function (objectStore) { return objectStore.getAll(); });
+      if (store === STORES.packs || store === STORES.packFiles) return primary;
+      var merged = new Map();
+      readFallback(store).forEach(function (item) { if (item && item.id) merged.set(item.id, item); });
+      primary.forEach(function (item) { if (item && item.id) merged.set(item.id, item); });
+      return Array.from(merged.values());
+    }
     catch (_) {
       if (store === STORES.packs || store === STORES.packFiles) return [];
       return readFallback(store);

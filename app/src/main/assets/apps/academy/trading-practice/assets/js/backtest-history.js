@@ -13,6 +13,15 @@
   function decision(trade) {
     return esc(trade.bias) + (trade.locked ? '<small class="history-lock">TERKUNCI</small>' : '');
   }
+  function outcome(trade) {
+    var evidence = trade && trade.outcomeEvidence;
+    if (!evidence || !['SL', 'TP'].includes(evidence.type)) return esc(trade.result);
+    var label = evidence.type + ' tersentuh';
+    var detail = 'Level ' + level(evidence.level) + ' · candle ' + core.formatWita(evidence.candleTime, true) +
+      ' · L/H ' + level(evidence.candleLow) + ' / ' + level(evidence.candleHigh);
+    if (evidence.ambiguous) detail += ' · SL diprioritaskan karena SL dan TP tersentuh pada candle yang sama';
+    return '<strong>' + esc(label) + '</strong><small class="history-evidence">' + esc(detail) + '</small>';
+  }
 
   function renderTrades() {
     var result = ui.byId('resultFilter').value;
@@ -20,7 +29,7 @@
     var filtered = allTrades.filter(function (trade) { return (!result || trade.result === result) && (!timeframe || trade.timeframe === timeframe); });
     var rows = ui.byId('historyRows');
     rows.innerHTML = filtered.map(function (trade) {
-      return '<tr data-trade-id="' + esc(trade.id) + '"><td>' + esc(core.formatWita(trade.tradeTime, true)) + '</td><td>' + esc(trade.timeframe) + '</td><td>' + decision(trade) + '</td><td>' + level(trade.entry) + ' / ' + level(trade.stopLoss) + ' / ' + level(trade.takeProfit) + '</td><td class="' + resultClass(trade.result) + '">' + esc(trade.result) + '</td><td>' + rValue(trade.plannedR) + ' / ' + rValue(trade.r) + '</td><td title="' + esc(trade.notes) + '">' + esc((trade.notes || '—').slice(0, 60)) + '</td><td><button type="button" data-delete-trade="' + esc(trade.id) + '">Hapus</button></td></tr>';
+      return '<tr data-trade-id="' + esc(trade.id) + '"><td>' + esc(core.formatWita(trade.tradeTime, true)) + '</td><td>' + esc(trade.timeframe) + '</td><td>' + decision(trade) + '</td><td>' + level(trade.entry) + ' / ' + level(trade.stopLoss) + ' / ' + level(trade.takeProfit) + '</td><td class="' + resultClass(trade.result) + '">' + outcome(trade) + '</td><td>' + rValue(trade.plannedR) + ' / ' + rValue(trade.r) + '</td><td title="' + esc(trade.notes) + '">' + esc((trade.notes || '—').slice(0, 60)) + '</td><td><button type="button" data-delete-trade="' + esc(trade.id) + '">Hapus</button></td></tr>';
     }).join('');
     if (!filtered.length) rows.innerHTML = '<tr><td colspan="8" class="empty-state">Belum ada catatan yang cocok.</td></tr>';
     rows.querySelectorAll('[data-delete-trade]').forEach(function (button) {

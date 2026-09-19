@@ -1,5 +1,11 @@
 # Bug History
 
+## 2026-09-20 — Candle Replay notes could disappear and SL/TP lacked evidence
+
+- Resolved: a trade written to localStorage fallback could be hidden when later IndexedDB reads succeeded but did not contain that record.
+- Resolved: terminal replay history exposed only WIN/LOSS without the candle time, touched level, candle range, or ambiguous-candle rule.
+- Fix: merge fallback trades into successful IndexedDB reads and persist explicit SL/TP outcome evidence. Same-candle SL/TP remains conservatively resolved as SL.
+
 ## 2026-09-19 — Inconsistent module UI and cramped mobile layouts
 
 - Resolved: Mapping used the `amyfx-module--ict` body class but omitted the `amyfx-module--mapping` design-system hook, so shared Mapping presentation rules did not apply.

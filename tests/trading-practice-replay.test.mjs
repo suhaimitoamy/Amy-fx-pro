@@ -76,6 +76,23 @@ test('manual trade resolves only from later candles and chooses SL on an ambiguo
   assert.equal(result.closedAt, 120);
   assert.equal(result.resolution, 'SL_FIRST_AMBIGUOUS_CANDLE');
   assert.equal(result.r, -1);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.outcomeEvidence)), {
+    type: 'SL', level: 99, candleTime: 120, candleHigh: 104, candleLow: 98, ambiguous: true
+  });
+});
+
+test('winning replay trade records auditable TP candle evidence', () => {
+  const trade = context.AmyPracticeTrades.create({
+    symbol: 'XAUUSD', timeframe: 'M1', tradeTime: 60,
+    bias: 'BUY', entry: 101, stopLoss: 99, takeProfit: 103, currentPrice: 101
+  });
+  const result = context.AmyPracticeTrades.evaluate(trade, [
+    { time: 120, open: 101, high: 103.5, low: 100.5, close: 103 }
+  ]);
+  assert.equal(result.result, 'WIN');
+  assert.deepEqual(JSON.parse(JSON.stringify(result.outcomeEvidence)), {
+    type: 'TP', level: 103, candleTime: 120, candleHigh: 103.5, candleLow: 100.5, ambiguous: false
+  });
 });
 
 test('historical and live candles merge continuously, update same bucket, deduplicate, and order', () => {
@@ -241,10 +258,62 @@ test('IndexedDB write resolves only after the transaction commit event', async (
   assert.equal(resolved, true);
 });
 
+test('fallback trade remains readable when IndexedDB is available but does not contain it', async () => {
+  const shared = new Map();
+  const runtime = {
+    console,
+    localStorage: {
+      getItem: key => shared.has(key) ? shared.get(key) : null,
+      setItem: (key, value) => shared.set(key, String(value))
+    },
+    indexedDB: {
+      open() {
+        const request = {};
+        queueMicrotask(() => {
+          request.result = {
+            objectStoreNames: { contains: () => true },
+            transaction() {
+              const transaction = {
+                objectStore() {
+                  return {
+                    get() { const op = {}; queueMicrotask(() => { op.result = undefined; op.onsuccess(); }); return op; },
+                    getAll() { const op = {}; queueMicrotask(() => { op.result = []; op.onsuccess(); }); return op; }
+                  };
+                }
+              };
+              queueMicrotask(() => transaction.oncomplete());
+              return transaction;
+            }
+          };
+          request.onsuccess();
+        });
+        return request;
+      }
+    },
+    setTimeout,
+    clearTimeout,
+    queueMicrotask
+  };
+  runtime.globalThis = runtime;
+  vm.createContext(runtime);
+  vm.runInContext(readFileSync(new URL('storage.js', base), 'utf8'), runtime, { filename: 'storage.js' });
+  shared.set('amy.practice.v1.trades', JSON.stringify([{ id: 'fallback-trade', createdAt: 1, bias: 'WAIT' }]));
+  assert.equal((await runtime.AmyPracticeStorage.getTrade('fallback-trade')).bias, 'WAIT');
+  assert.equal((await runtime.AmyPracticeStorage.listTrades())[0].id, 'fallback-trade');
+});
+
 test('replay outcomes are isolated to the active historical pack', () => {
   const source = readFileSync(new URL('candle-replay.js', base), 'utf8');
   assert.match(source, /item\.sourceId === payload\.sourceId/);
   assert.doesNotMatch(source, /!item\.sourceId \|\| item\.sourceId === payload\.sourceId/);
+});
+
+test('history renders SL/TP candle evidence instead of an unsubstantiated result label', () => {
+  const source = readFileSync(new URL('backtest-history.js', base), 'utf8');
+  assert.match(source, /outcomeEvidence/);
+  assert.match(source, /candleHigh/);
+  assert.match(source, /candleLow/);
+  assert.match(source, /SL diprioritaskan/);
 });
 
 

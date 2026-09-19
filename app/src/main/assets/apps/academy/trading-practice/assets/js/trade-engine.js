@@ -98,6 +98,11 @@
         next.r = -1;
         next.closedAt = candle.time;
         next.resolution = targetHit ? 'SL_FIRST_AMBIGUOUS_CANDLE' : 'SL_HIT';
+        next.outcomeEvidence = {
+          type: 'SL', level: Number(next.stopLoss), candleTime: candle.time,
+          candleHigh: Number(candle.high), candleLow: Number(candle.low),
+          ambiguous: Boolean(targetHit)
+        };
         break;
       }
       if (targetHit) {
@@ -105,6 +110,11 @@
         next.r = Number(next.plannedR || 0);
         next.closedAt = candle.time;
         next.resolution = 'TP_HIT';
+        next.outcomeEvidence = {
+          type: 'TP', level: Number(next.takeProfit), candleTime: candle.time,
+          candleHigh: Number(candle.high), candleLow: Number(candle.low),
+          ambiguous: false
+        };
         break;
       }
     }

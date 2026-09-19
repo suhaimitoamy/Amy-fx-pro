@@ -95,6 +95,7 @@ body.practice-page { background: var(--practice-bg); color: var(--practice-text)
 .decision-lock-state[data-state="locked"] { border-color:rgba(34,197,94,.65); background:rgba(34,197,94,.09); }
 .decision-lock-state[data-state="locked"] span,.decision-lock-state[data-state="locked"] strong { color:#bbf7d0; }
 .decision-lock-state[data-state="error"] { border-color:rgba(251,113,133,.7); }
+.history-evidence { display:block; margin-top:4px; color:var(--practice-muted); font-size:.72rem; line-height:1.35; white-space:normal; min-width:190px; }
 .replay-controls { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .replay-controls button { min-height: 44px; border: 1px solid #314159; background: #0a111b; color: var(--practice-text); border-radius: 10px; font-weight: 800; cursor: pointer; }
 .replay-slider { width: 100%; accent-color: var(--practice-accent); }

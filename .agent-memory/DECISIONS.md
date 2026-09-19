@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-20 — Pro349 replay outcome evidence
+
+Candle Replay keeps its existing deterministic decision identity and conservative same-candle rule. Trade fallback records are reconciled with IndexedDB reads, and terminal outcomes carry immutable candle evidence (SL/TP level, candle time, low/high, ambiguity) for display in local history. Source advances to 2.0.0-pro.349 / 950349; update.json remains on signed Pro348 until CI publishes and activates Pro349.
+
 ## 2026-09-19 — Pro348 UI-only consistency pass
 
 Pro348 is limited to presentation: shared typography, spacing, surfaces, responsive layout, and light-theme contrast across Home, Mapping, Market Intel, Journal, and Academy. Mapping now carries the shared `amyfx-module--mapping` hook while retaining `amyfx-module--ict`; no engine, mapping, market-source, notification, or persistence logic is changed. Source advances to 2.0.0-pro.348 / 950348 while the manifest remains on signed Pro347 until CI activation.
