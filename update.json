@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.348/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.",
-    "Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.",
-    "Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi."
+    "Menyatukan tipografi, header, jarak, kartu, navigasi, dan state antarmuka pada lima halaman utama.",
+    "Memperbaiki koneksi sistem desain Mapping tanpa mengubah engine atau kalkulasi trading.",
+    "Meningkatkan keterbacaan mode terang dan susunan mobile untuk Berita, Jurnal, dan Academy."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.348/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-09-19",
   "release_notes": [
-    "Rebuild Discipline Scalper, AMD, Range Expansion dan Retest BOS.",
-    "Entry kausal, konfirmasi struktur/retest, validasi risiko dan batas waktu entry.",
-    "Riwayat lama tetap tersimpan. Performa versi baru masih perlu evaluasi."
+    "Menyatukan tipografi, header, jarak, kartu, navigasi, dan state antarmuka pada lima halaman utama.",
+    "Memperbaiki koneksi sistem desain Mapping tanpa mengubah engine atau kalkulasi trading.",
+    "Meningkatkan keterbacaan mode terang dan susunan mobile untuk Berita, Jurnal, dan Academy."
   ],
   "sha256": "cdc313d82533e6368a53fdbed5e68becdf206a13b1e32fd538de5744da8b7182",
   "version": "2.0.0-pro.348",
