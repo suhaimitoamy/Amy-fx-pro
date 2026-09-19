@@ -172,5 +172,5 @@ test('AMD detects the shortest valid accumulation window and emits an M30 midpoi
   assert.equal(amd.quality.accumulation_window, 6);
   assert.equal(amd.quality.entry_model, 'FVG_MIDPOINT_LIMIT');
   assert.equal(amd.quality.fvg_midpoint, 101.5);
-  assert.equal(amd.quality.pattern_gate, 'AMD_DISTRIBUTION');
+  assert.equal(amd.quality.pattern_gate, 'STRUCTURAL-2026-09-V1');
 });

@@ -1,3 +1,4 @@
+import { REBUILD_VERSION, rebuiltGeometry } from './rebuilt-drivers.mjs';
 import { normalizeCandles } from './candles.mjs';
 
 const EPSILON = 1e-9;
@@ -310,6 +311,13 @@ export function evaluatePatternGate(candidate, rows, suppliedConfig = DEFAULT_PA
   }
   if (config.driver_enabled?.[driverId] !== true) {
     return { candidate: null, telemetry: telemetry(candidate, false, 'DRIVER_KILL_SWITCH', [`driver_enabled.${driverId}=false`], null, config) };
+  }
+
+  if (candidate?.quality?.rebuild_version === REBUILD_VERSION) {
+    const geometry = rebuiltGeometry(candidate);
+    const valid = candidate.quality.structural_confirmation === true && Boolean(geometry);
+    const accepted = valid ? { ...candidate, buffer_atr: .18, quality: { ...candidate.quality, pattern_gate: REBUILD_VERSION, reward_r_at_signal: geometry.reward_r } } : null;
+    return { candidate: accepted, telemetry: telemetry(candidate, valid, REBUILD_VERSION, valid ? [] : ['structural_risk_reward_invalid'], geometry, config) };
   }
 
   if (driverId === 'DISCIPLINE_SCALPER') {

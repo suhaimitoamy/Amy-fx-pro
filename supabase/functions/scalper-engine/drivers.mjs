@@ -1,3 +1,4 @@
+import { REBUILD_VERSION, REBUILT_DRIVERS, detectRebuiltCandidates } from './rebuilt-drivers.mjs';
 import { h1OrderFlowAt, normalizeCandles, timestampSeconds } from './candles.mjs';
 import {
   AMD_CONFIG_VERSION,
@@ -16,13 +17,13 @@ export const DRIVER_REGISTRY = Object.freeze([
   { enabled: true, id: 'CRT', name: 'CRT', version: BASE_CONFIG_VERSION, timeframes: ['H4'] },
   { enabled: true, id: 'ORDER_BLOCK', name: 'Order Block', version: REPAIR_CONFIG_VERSION, timeframes: ['M15', 'M30', 'H1', 'H4'] },
   { enabled: true, id: 'BREAKER_BLOCK', name: 'Breaker Block', version: REPAIR_CONFIG_VERSION, timeframes: ['M30', 'H1', 'H4'] },
-  { enabled: true, id: 'RETEST_BOS', name: 'Retest BOS', version: REPAIR_CONFIG_VERSION, timeframes: ['H1', 'H4'] },
+  { enabled: true, id: 'RETEST_BOS', name: 'Retest BOS', version: REBUILD_VERSION, timeframes: ['H1', 'H4'] },
   { enabled: true, id: 'TRENDLINE_BREAK_RETEST', name: 'Trendline Break & Retest', version: BASE_CONFIG_VERSION, timeframes: ['M30', 'H1', 'H4'] },
   { enabled: true, id: 'EMA_PULLBACK', name: 'EMA Pullback', version: REPAIR_CONFIG_VERSION, timeframes: ['H1', 'H4'] },
   { enabled: true, id: 'FALSE_BREAKOUT', name: 'False Breakout / Judas Swing', version: BASE_CONFIG_VERSION, timeframes: ['M15', 'H1', 'H4'] },
-  { enabled: true, id: 'RANGE_EXPANSION', name: 'Range Expansion', version: BASE_CONFIG_VERSION, timeframes: ['M15', 'M30', 'H1', 'H4'] },
-  { enabled: true, id: 'AMD', name: 'AMD', version: AMD_CONFIG_VERSION, timeframes: ['M30', 'H1'] },
-  { enabled: true, id: 'DISCIPLINE_SCALPER', name: 'Discipline Scalper', version: 'DISCIPLINE-2026-V1', timeframes: ['H4', 'H1', 'M15', 'M5'] }
+  { enabled: true, id: 'RANGE_EXPANSION', name: 'Range Expansion', version: REBUILD_VERSION, timeframes: ['M15', 'M30', 'H1', 'H4'] },
+  { enabled: true, id: 'AMD', name: 'AMD', version: REBUILD_VERSION, timeframes: ['M30', 'H1'] },
+  { enabled: true, id: 'DISCIPLINE_SCALPER', name: 'Discipline Scalper', version: REBUILD_VERSION, timeframes: ['H4', 'H1', 'M15', 'M5'] }
 ]);
 
 export const TIMEFRAME_SECONDS = Object.freeze({ M1: 60, M5: 300, M15: 900, M30: 1800, H1: 3600, H4: 14400 });
@@ -198,17 +199,6 @@ function detectBreaker(rows,timeframe,h1,minSignalTime){
   }
   return out;
 }
-function detectRetestBos(rows,timeframe,h1,minSignalTime){
-  const values=normalizeCandles(rows,TIMEFRAME_SECONDS[timeframe]); const atr=atrSeries(values); const out=[]; const d=driver('RETEST_BOS');
-  for(let i=6;i<values.length;i++){
-    const prior=values.slice(i-5,i),high=Math.max(...prior.map(c=>c.high)),low=Math.min(...prior.map(c=>c.low)); const c=values[i]; const direction=c.close>high?'BUY':c.close<low?'SELL':null; if(!direction)continue; const level=direction==='BUY'?high:low;
-    for(let j=i+1;j<values.length&&values[j].open_time-c.close_time<=3*DAY;j++){
-      const r=values[j],touch=direction==='BUY'?r.low<=level&&r.close>level:r.high>=level&&r.close<level; if(!touch)continue;
-      if(withinSignalWindow(r,minSignalTime)){const width=Math.max((atr[j]||atr[i])*.08,EPSILON),bottom=level-width,top=level+width;const item=buildCandidate({driver:d,timeframe,direction,signal:r,anchor:`BOS:${c.open_time}:${stableLevel(level)}`,bottom,top,stopReference:direction==='BUY'?Math.min(r.low,bottom):Math.max(r.high,top),atrValue:atr[j]||atr[i],h1,reason:'Structure break followed by first valid retest and close on breakout side',quality:{bos_level:level,bos_candle_open_time:c.open_time,first_retest:true}});if(item)out.push(item);} break;
-    }
-  }
-  return out;
-}
 function linePrice(a,b,index){const slope=(b.price-a.price)/(b.index-a.index);return a.price+slope*(index-a.index);}
 function detectTrendline(rows,timeframe,h1,minSignalTime){
   const values=normalizeCandles(rows,TIMEFRAME_SECONDS[timeframe]); const atr=atrSeries(values); const out=[]; const d=driver('TRENDLINE_BREAK_RETEST');
@@ -249,113 +239,13 @@ function detectFalseBreakout(rows,timeframe,h1,minSignalTime,series={}){
   }
   return out;
 }
-function rollingSpan(values,start,length){const part=values.slice(start,start+length);return part.length===length?Math.max(...part.map(c=>c.high))-Math.min(...part.map(c=>c.low)):NaN;}
-function detectRangeExpansion(rows,timeframe,h1,minSignalTime){
-  const values=normalizeCandles(rows,TIMEFRAME_SECONDS[timeframe]); const atr=atrSeries(values); const out=[]; const d=driver('RANGE_EXPANSION');
-  for(let i=27;i<values.length;i++){
-    const compression=values.slice(i-6,i),baseline=values.slice(i-26,i-6),c=values[i];const compHigh=Math.max(...compression.map(x=>x.high)),compLow=Math.min(...compression.map(x=>x.low)),compSpan=compHigh-compLow;
-    const spans=[];for(let s=i-26;s<=i-12;s++)spans.push(rollingSpan(values,s,6));const baselineSpan=median(spans),compAvgRange=mean(compression.map(range)),baseAvgRange=mean(baseline.map(range)),compAvgBody=mean(compression.map(body));
-    const compressed=Number.isFinite(baselineSpan)&&compSpan<=baselineSpan*.65&&compAvgRange<=baseAvgRange*.70;if(!compressed)continue;
-    const direction=c.close>compHigh?'BUY':c.close<compLow?'SELL':null;if(!direction||body(c)<Math.max(compAvgBody*1.5,(atr[i]||0)*.6)||!withinSignalWindow(c,minSignalTime))continue;
-    const item=buildCandidate({driver:d,timeframe,direction,signal:c,anchor:`RANGE:${compression[0].open_time}:${compression.at(-1).open_time}`,bottom:compLow,top:compHigh,stopReference:direction==='BUY'?compLow:compHigh,atrValue:atr[i],h1,reason:'Six-candle compression followed by large-body close outside the range',quality:{compression_start:compression[0].open_time,compression_end:compression.at(-1).close_time,compression_span:compSpan,baseline_span:baselineSpan,breakout_body:body(c)}});if(item)out.push(item);
-  }
-  return out;
-}
-
-function closeStrength(candle,direction){const span=range(candle);return direction==='BUY'?(candle.close-candle.low)/span:(candle.high-candle.close)/span;}
-function detectAmd(rows,timeframe,h1,minSignalTime){
-  const values=normalizeCandles(rows,TIMEFRAME_SECONDS[timeframe]);const atr=atrSeries(values);const out=[];const d=driver('AMD');
-  const windows=timeframe==='M30'?[6,8,12]:[4,6,8];
-  for(let i=Math.max(...windows);i<values.length-2;i++){
-    const manipulation=values[i],localAtr=atr[i];if(!(localAtr>EPSILON))continue;
-    const ranges=[];
-    for(const length of windows){const accumulation=values.slice(i-length,i);if(accumulation.length!==length)continue;const high=Math.max(...accumulation.map(c=>c.high)),low=Math.min(...accumulation.map(c=>c.low)),span=high-low,spanAtr=span/localAtr;if(spanAtr>=2&&spanAtr<=3)ranges.push({length,high,low,span,spanAtr,start:accumulation[0].open_time,end:accumulation.at(-1).close_time});}
-    const selected=ranges.sort((a,b)=>a.length-b.length)[0];if(!selected)continue;
-    const sweepDistance=.03*localAtr;
-    const sweepLow=manipulation.low<=selected.low-sweepDistance&&manipulation.close>selected.low&&manipulation.close<selected.high;
-    const sweepHigh=manipulation.high>=selected.high+sweepDistance&&manipulation.close<selected.high&&manipulation.close>selected.low;
-    if(sweepLow===sweepHigh)continue;
-    const direction=sweepLow?'BUY':'SELL';
-    const wick=direction==='BUY'?Math.min(manipulation.open,manipulation.close)-manipulation.low:manipulation.high-Math.max(manipulation.open,manipulation.close);
-    const wickRatio=Math.max(0,wick)/range(manipulation);if(!inclusive(wickRatio,.30,.75))continue;
-    const accumulationMid=(selected.high+selected.low)/2;
-    for(let j=i+2;j<values.length&&j<=i+7;j++){
-      const first=values[j-2],distribution=values[j-1],confirmation=values[j];
-      const bullish=confirmation.low>first.high,bearish=confirmation.high<first.low;
-      if(direction==='BUY'?!bullish:!bearish)continue;
-      const fvgBottom=direction==='BUY'?first.high:confirmation.high,fvgTop=direction==='BUY'?confirmation.low:first.low;
-      const distributionAtr=atr[j-1]||localAtr,widthAtr=(fvgTop-fvgBottom)/distributionAtr;
-      const aligned=directionCandle(distribution,direction);
-      const midpointCross=direction==='BUY'?distribution.close>accumulationMid:distribution.close<accumulationMid;
-      const bodyAtr=body(distribution)/distributionAtr;
-      const strength=closeStrength(distribution,direction);
-      const distanceAtr=Math.abs(distribution.close-manipulation.close)/distributionAtr;
-      if(!aligned||!midpointCross||bodyAtr<.50||strength<.65||distanceAtr<.80||!inclusive(widthAtr,.05,.50))continue;
-      const invalidBeforeConfirmation=values.slice(i+1,j+1).some(c=>direction==='BUY'?c.low<manipulation.low:c.high>manipulation.high);
-      if(invalidBeforeConfirmation)break;
-      if(!withinSignalWindow(confirmation,minSignalTime))break;
-      const entry=(fvgBottom+fvgTop)/2;
-      const anchor=`AMD:${timeframe}:${manipulation.open_time}:${stableLevel(fvgBottom)}:${stableLevel(fvgTop)}`;
-      const item=buildCandidate({driver:d,timeframe,direction,signal:confirmation,anchor,bottom:fvgBottom,top:fvgTop,stopReference:direction==='BUY'?manipulation.low:manipulation.high,atrValue:atr[j]||distributionAtr,h1,reason:'AMD accumulation, one-sided manipulation, and aligned distribution FVG',status:'WAITING_TRIGGER',quality:{
-        entry_model:'FVG_MIDPOINT_LIMIT',planned_entry_price:entry,feature_candle_open_time:distribution.open_time,
-        accumulation_window:selected.length,accumulation_start:selected.start,accumulation_end:selected.end,accumulation_high:selected.high,accumulation_low:selected.low,accumulation_span_atr:selected.spanAtr,
-        manipulation_open_time:manipulation.open_time,manipulation_close_time:manipulation.close_time,manipulation_extreme:direction==='BUY'?manipulation.low:manipulation.high,manipulation_wick_ratio:wickRatio,
-        distribution_open_time:distribution.open_time,distribution_body_atr:bodyAtr,distribution_close_strength:strength,distribution_distance_atr:distanceAtr,
-        fvg_bottom:fvgBottom,fvg_top:fvgTop,fvg_midpoint:entry,fvg_width_atr:widthAtr,
-        trigger_wait_seconds:timeframe==='M30'?16*3600:24*3600,cancel_before_fill_on_manipulation_break:true,amd_detector_passed:true,
-      }});if(item)out.push(item);break;
-    }
-  }
-  return out;
-}
-
-// Every context window ends before the signal: no forming HTF/session candles.
-function detectDisciplineScalper(rows,timeframe,h1,minSignalTime,series={}) {
-  const values=normalizeCandles(rows,TIMEFRAME_SECONDS[timeframe]);
-  const h4=normalizeCandles(series.H4||[],14400);
-  const m15=normalizeCandles(series.M15||[],900);
-  if(h4.length<20)return [];
-  const atr=atrSeries(values),out=[],d=driver('DISCIPLINE_SCALPER');
-  for(let i=14;i<values.length;i++){
-    const c=values[i],a=atr[i];
-    if(!withinSignalWindow(c,minSignalTime)||!(a>0))continue;
-    const context=h4.filter(x=>x.close_time<=c.open_time);
-    if(context.length<20)continue;
-    const last=context.at(-1),ema=emaSeries(context,20).at(-1);
-    const bias=last.close>ema?'BUY':last.close<ema?'SELL':null;
-    if(!bias)continue;
-    const day=Math.floor(c.open_time/DAY)*DAY;
-    const previous=context.filter(x=>x.open_time>=day-DAY&&x.close_time<=day);
-    // Use the most recent completed 22:00–06:00 UTC session.
-    const asiaEnd=c.open_time>=day+6*3600?day+6*3600:day-DAY+6*3600;
-    const asia=m15.filter(x=>x.open_time>=asiaEnd-8*3600&&x.close_time<=asiaEnd);
-    const levels=[];
-    if(previous.length===6){levels.push({name:'PDH',price:Math.max(...previous.map(x=>x.high)),side:'HIGH'},{name:'PDL',price:Math.min(...previous.map(x=>x.low)),side:'LOW'});}
-    if(asia.length===32){levels.push({name:'ASIA_HIGH',price:Math.max(...asia.map(x=>x.high)),side:'HIGH'},{name:'ASIA_LOW',price:Math.min(...asia.map(x=>x.low)),side:'LOW'});}
-    for(const level of levels){
-      const p=level.price,tolerance=a*.5;
-      if(c.low>p||c.high<p)continue;
-      const lowerWick=Math.min(c.open,c.close)-c.low,upperWick=c.high-Math.max(c.open,c.close);
-      const sweep=level.side==='LOW'?c.low<p&&p-c.low<=tolerance&&c.close>p&&lowerWick>=body(c)*.6:c.high>p&&c.high-p<=tolerance&&c.close<p&&upperWick>=body(c)*.6;
-      const broke=body(c)/range(c)>.6&&(level.side==='HIGH'?c.open<=p&&c.close>p&&c.close-p<=tolerance:c.open>=p&&c.close<p&&p-c.close<=tolerance);
-      if(!sweep&&!broke)continue;
-      const side=sweep?(level.side==='LOW'?'BUY':'SELL'):(level.side==='HIGH'?'BUY':'SELL');
-      if(side!==bias)continue;
-      const targets=levels.map(x=>x.price).filter(x=>side==='BUY'?x>p+EPSILON:x<p-EPSILON).sort((x,y)=>Math.abs(x-p)-Math.abs(y-p));
-      if(!targets.length)continue;
-      const stopReference=sweep?(side==='BUY'?c.low:c.high):(side==='BUY'?p-EPSILON:p+EPSILON);
-      const item=buildCandidate({driver:d,timeframe,direction:side,signal:c,anchor:`DISCIPLINE:${day}:${level.name}:${sweep?'SWEEP':'BREAK'}`,bottom:p-a*.08,top:p+a*.08,stopReference,atrValue:a,h1,status:'WAITING_TRIGGER',reason:`${level.name} ${sweep?'sweep':'break'} aligned with closed H4 EMA20`,quality:{discipline_detector_passed:true,lifecycle_policy:'DISCIPLINE_LIQUIDITY_V1',entry_model:'LIQUIDITY_RETEST_LIMIT',planned_entry_price:p,liquidity_target:targets[0],liquidity_level:p,liquidity_name:level.name,trigger_kind:sweep?'SWEEP':'BREAK',h4_ema20:ema,h4_close_time:last.close_time,trigger_wait_seconds:86400}});
-      if(item)out.push({...item,htf_bias:side==='BUY'?'BULLISH':'BEARISH',htf_candle_close_time:last.close_time});
-    }
-  }
-  return out;
-}
-
-const DETECTORS={DISCIPLINE_SCALPER:detectDisciplineScalper,FVG:detectFvg,CRT:detectCrt,ORDER_BLOCK:detectOrderBlock,BREAKER_BLOCK:detectBreaker,RETEST_BOS:detectRetestBos,TRENDLINE_BREAK_RETEST:detectTrendline,EMA_PULLBACK:detectEmaPullback,FALSE_BREAKOUT:detectFalseBreakout,RANGE_EXPANSION:detectRangeExpansion,AMD:detectAmd};
+const DETECTORS={FVG:detectFvg,CRT:detectCrt,ORDER_BLOCK:detectOrderBlock,BREAKER_BLOCK:detectBreaker,TRENDLINE_BREAK_RETEST:detectTrendline,EMA_PULLBACK:detectEmaPullback,FALSE_BREAKOUT:detectFalseBreakout};
 
 export function evaluateMultiDriverCandidates({ series={}, h1=[], nowSeconds=Math.floor(Date.now()/1000), maxSignalAgeSeconds=21600, config=DEFAULT_PATTERN_CONFIG }={}){
+  if(config?.enabled===false||DRIVER_REGISTRY.every(d=>series.config?.enabledDrivers?.[d.id]===false||config?.driver_enabled?.[d.id]===false))return {candidates:[],telemetry:[],raw_count:0,rejected_count:0};
+  const cutoff=timestampSeconds(nowSeconds);series={...series,...Object.fromEntries(Object.entries(TIMEFRAME_SECONDS).filter(([tf])=>Array.isArray(series[tf])).map(([tf,seconds])=>[tf,normalizeCandles(series[tf],seconds).filter(c=>c.close_time<=cutoff)]))};h1=normalizeCandles(h1,3600).filter(c=>c.close_time<=cutoff);
   const resolvedConfig=resolvePatternConfig(config);const minimum=timestampSeconds(nowSeconds)-Math.max(900,Number(maxSignalAgeSeconds)||0);const accepted=[];const telemetry=[];let rawCount=0;
-  for(const registration of DRIVER_REGISTRY){if(registration.enabled===false||series.config?.enabledDrivers?.[registration.id]===false||resolvedConfig.driver_enabled?.[registration.id]===false)continue;for(const timeframe of registration.timeframes){const rows=series[timeframe]||[];if(!rows.length)continue;try{const raw=DETECTORS[registration.id](rows,timeframe,h1,minimum,series);rawCount+=raw.length;for(const candidate of raw){const result=evaluatePatternGate(candidate,rows,resolvedConfig);telemetry.push(result.telemetry);if(result.candidate)accepted.push(result.candidate);}}catch(error){console.error('scalper_driver_failed',{driver:registration.id,timeframe,error:String(error)});}}}
+  for(const registration of DRIVER_REGISTRY){if(registration.enabled===false||series.config?.enabledDrivers?.[registration.id]===false||resolvedConfig.driver_enabled?.[registration.id]===false)continue;for(const timeframe of registration.timeframes){const rows=series[timeframe]||[];if(!rows.length)continue;try{const raw=REBUILT_DRIVERS.includes(registration.id)?detectRebuiltCandidates({driver:registration,timeframe,rows,h1,series,minSignalTime:minimum,buildCandidate}):DETECTORS[registration.id](rows,timeframe,h1,minimum,series);rawCount+=raw.length;for(const candidate of raw){const result=evaluatePatternGate(candidate,rows,resolvedConfig);telemetry.push(result.telemetry);if(result.candidate)accepted.push(result.candidate);}}catch(error){console.error('scalper_driver_failed',{driver:registration.id,timeframe,error:String(error)});}}}
   const candidates=[...new Map(accepted.filter(Boolean).map(item=>[item.id,item])).values()].sort((a,b)=>a.signal_candle_close_time-b.signal_candle_close_time||a.priority-b.priority);
   return {candidates,telemetry,raw_count:rawCount,rejected_count:telemetry.filter(item=>item?.accepted===false).length};
 }

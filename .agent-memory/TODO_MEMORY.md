@@ -123,3 +123,7 @@ Pro341 release verified: PR #3 merged as 89f147daa947632da15a21da5bd5b7ee5e8a297
 ## 2026-09-14 — Pro342 Mapping restoration
 
 Pro342: confirm signed release/manifest activation and native update receipt. Verify Android Mapping selection, filters, timeframe and resume. Investigate existing Supabase Scalper504 failures; restored UI cannot supply new signals while engine remains failed. No database or backend function changes made.
+
+
+## 2026-09-19 — Pro346
+Observe new STRUCTURAL-2026-09-V1 results separately from old history; run held-out replay with broker costs before performance claims. Verify native update receipt on device after signed Pro346 release activation. Archived IFVG_LEGACY and FVG_BUY_HIGH_QUALITY remain retired.

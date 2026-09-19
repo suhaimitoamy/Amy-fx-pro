@@ -9,13 +9,14 @@ function fixture(kind='SWEEP',sell=false){
   let M15=Array.from({length:32},(_,i)=>candle(day-7200+i*900,109,115,103,110,900));
   let M5=Array.from({length:16},(_,i)=>candle(signal-(16-i)*300,101,102,100,101,300));
   M5.push(kind==='SWEEP'?candle(signal,101,102,99.5,101.5,300):candle(signal,114.8,116,114.6,115.9,300));
+  if(kind==='SWEEP')M5.push(candle(signal+300,101.5,103,100.5,102.8,300));
   if(sell){const mirror=rows=>rows.map(c=>({...c,open:220-c.open,high:220-c.low,low:220-c.high,close:220-c.close}));H4=mirror(H4);M15=mirror(M15);M5=mirror(M5);}
-  return {series:{H4,M15,M5},nowSeconds:signal+300,maxSignalAgeSeconds:300};
+  return {series:{H4,M15,M5},nowSeconds:signal+600,maxSignalAgeSeconds:300};
 }
 function discipline(input){return evaluateScalperCandidates(input).candidates.filter(c=>c.driver_id==='DISCIPLINE_SCALPER'&&c.timeframe==='M5');}
-for(const kind of ['SWEEP','BREAK'])for(const sell of [false,true])test(`${kind} ${sell?'SELL':'BUY'} has causal liquidity entry, structural stop and next target`,()=>{
-  const found=discipline(fixture(kind,sell));assert.ok(found.length);
-  const c=found[0];assert.equal(c.direction,sell?'SELL':'BUY');assert.equal(c.quality.trigger_kind,kind);assert.equal(c.buffer_atr,.18);
+for(const kind of ['SWEEP','BREAK'])for(const sell of [false,true])test(`${kind} ${sell?'SELL':'BUY'} ${kind==='BREAK'?'is rejected without sweep and confirmation':'requires sweep then confirmation before liquidity entry'}`,()=>{
+  const found=discipline(fixture(kind,sell));if(kind==='BREAK'){assert.deepEqual(found,[]);return;}assert.ok(found.length);
+  const c=found[0];assert.equal(c.direction,sell?'SELL':'BUY');assert.equal(c.quality.confirmation_open_time,signal+300);assert.equal(c.buffer_atr,.18);
   const q=c.quality;assert.ok(sell?q.liquidity_target<q.planned_entry_price:q.liquidity_target>q.planned_entry_price);
   const extended=fixture(kind,sell);extended.series.H4.push(candle(signal+86400,1,10000,0,9999,14400));assert.deepEqual(discipline(extended),found);
 });
@@ -41,11 +42,11 @@ test('device capabilities are isolated; no token is persisted into candidate sco
 test('entry waits for a later retest, target remains liquidity, ambiguous exit resolves SL',()=>{
   const candidate=discipline(fixture())[0],entry=candidate.quality.planned_entry_price;
   const early=candle(signal,entry,entry+1,entry-.1,entry,60);
-  assert.equal(resolveTriggerEntry(candidate,{m1:[early],nowSeconds:signal+300}).nextOpen,null);
-  const later=candle(signal+360,entry+.2,entry+.5,entry-.1,entry+.3,60);
-  const filled=resolveTriggerEntry(candidate,{m1:[later],nowSeconds:signal+420});assert.equal(filled.nextOpen.price,entry);
+  assert.equal(resolveTriggerEntry(candidate,{m1:[early],nowSeconds:signal+600}).nextOpen,null);
+  const later=candle(signal+660,entry+.2,entry+.5,entry-.1,entry+.3,60);
+  const filled=resolveTriggerEntry(candidate,{m1:[later],nowSeconds:signal+720});assert.equal(filled.nextOpen.price,entry);
   const active=activateCandidate(candidate,filled.nextOpen).setup;assert.equal(active.target_price,candidate.quality.liquidity_target);assert.equal(active.break_even_trigger,null);
-  const bar=candle(signal+480,entry,active.target_price+1,active.stop_loss-1,entry,60);
+  const bar=candle(signal+780,entry,active.target_price+1,active.stop_loss-1,entry,60);
   const result=advanceSetupLifecycle(active,[bar]);assert.equal(result.setup.status,'SL_HIT');assert.equal(result.setup.result_r,-1);
   assert.equal(activateCandidate(result.setup,filled.nextOpen).setup.status,'SL_HIT');
 });
