@@ -63,9 +63,28 @@ test('Replay history links stay on Replay and new decisions appear immediately a
   assert.match(rt.node('replayHistoryRows').innerHTML, /BUY.*M1/);
   assert.match(rt.node('replayHistoryRows').innerHTML, /Aktif · menunggu SL\/TP/);
   assert.match(rt.node('replayHistoryRows').innerHTML, /catatan &lt;entry&gt;/);
+  assert.match(rt.node('replayHistoryRows').innerHTML, /data-delete-replay-trade/);
   const fresh = runtime(rt.shared);
   await fresh.ctx.testReplay.renderHistory();
   assert.equal(fresh.node('replayHistoryRows').innerHTML, rt.node('replayHistoryRows').innerHTML);
+});
+
+test('terminal Replay records from older builds receive missing SL/TP candle evidence', async () => {
+  const rt = runtime();
+  const old = rt.ctx.AmyPracticeTrades.create({
+    symbol: 'XAUUSD', timeframe: 'M1', sourceId: 'pack-a', tradeTime: 60,
+    bias: 'BUY', entry: 100, stopLoss: 98, takeProfit: 102, currentPrice: 100, lockDecision: true
+  });
+  delete old.outcomeEvidence;
+  old.result = 'WIN';
+  old.r = old.plannedR;
+  old.closedAt = 120;
+  await rt.ctx.AmyPracticeStorage.saveTrade(old);
+  await rt.ctx.testReplay.render(payload(120, [candle(60, 99, 101), candle(120, 99, 103)]));
+  const repaired = await rt.ctx.AmyPracticeStorage.getTrade(old.id);
+  assert.equal(repaired.result, 'WIN');
+  assert.equal(repaired.outcomeEvidence.type, 'TP');
+  assert.match(rt.node('replayHistoryRows').innerHTML, /Bukti TP/);
 });
 
 for (const [bias, low, high, expected] of [['BUY',99,103,'TP'], ['BUY',97,101,'SL'], ['SELL',97,101,'TP'], ['SELL',99,103,'SL'], ['BUY',97,103,'SL']]) {

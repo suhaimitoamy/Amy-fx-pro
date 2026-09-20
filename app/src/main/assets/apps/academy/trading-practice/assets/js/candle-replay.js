@@ -78,16 +78,36 @@
         '<p class="' + tone + '">' + label + '</p>' +
         (trade.bias === 'WAIT' ? '' : '<p>Entry ' + core.price(trade.entry) + ' · SL ' + core.price(trade.stopLoss) + ' · TP ' + core.price(trade.takeProfit) + '</p>') +
         detail + '<p>' + escapeHtml(trade.notes || 'Tanpa catatan') + '</p>' +
-        '<small>Pack: ' + escapeHtml(trade.sourceId || 'Data lama') + '</small></article>';
+        '<div class="replay-history-footer"><small>Pack: ' + escapeHtml(trade.sourceId || 'Data lama') + '</small>' +
+        '<button type="button" class="replay-history-delete" data-delete-replay-trade="' + escapeHtml(trade.id) + '" aria-label="Hapus keputusan Replay ini">Hapus</button></div></article>';
     }).join('') || '<p class="empty-state">Belum ada keputusan Replay tersimpan. Isi Catat keputusan lalu tekan Kunci keputusan.</p>';
     if (rows.innerHTML !== markup) rows.innerHTML = markup;
     ui.text('replayHistoryStatus', trades.length + ' keputusan Replay · semua pack dan timeframe');
   }
 
+  async function deleteHistoryTrade(event) {
+    var button = event.target.closest('[data-delete-replay-trade]');
+    if (!button || !confirm('Hapus keputusan Replay ini dari perangkat?')) return;
+    var id = button.dataset.deleteReplayTrade;
+    button.disabled = true;
+    try {
+      await storage.deleteTrade(id);
+      var form = ui.byId('tradeForm');
+      if (form.dataset.lockedDecisionId === id) delete form.dataset.lockedDecisionId;
+      await renderHistory();
+      if (latestPayload) await syncDecisionState(latestPayload);
+      ui.status('replayHistoryStatus', 'Keputusan Replay berhasil dihapus.', false, true);
+    } catch (error) {
+      button.disabled = false;
+      ui.status('replayHistoryStatus', error.message || 'Riwayat gagal dihapus.', true);
+    }
+  }
+
   async function updateOutcomes(payload) {
     var trades = await storage.listTrades();
     var matching = trades.filter(function (item) {
-      return isReplayTrade(item) && item.symbol === payload.symbol && item.result === 'OPEN' && item.bias !== 'WAIT' &&
+      var needsEvidenceRepair = ['WIN', 'LOSS'].includes(item.result) && !item.outcomeEvidence;
+      return isReplayTrade(item) && item.symbol === payload.symbol && (item.result === 'OPEN' || needsEvidenceRepair) && item.bias !== 'WAIT' &&
         item.sourceId === payload.sourceId;
     });
     var candlesByTimeframe = {};
@@ -100,7 +120,10 @@
         candlesByTimeframe[trade.timeframe] = data.candles;
       }
       var evaluated = window.AmyPracticeTrades.evaluate(trade, candlesByTimeframe[trade.timeframe]);
-      if (evaluated.result !== trade.result || evaluated.entryStatus !== trade.entryStatus) await storage.saveTrade(evaluated);
+      if (evaluated.result !== trade.result || evaluated.entryStatus !== trade.entryStatus ||
+          JSON.stringify(evaluated.outcomeEvidence || null) !== JSON.stringify(trade.outcomeEvidence || null)) {
+        await storage.saveTrade(evaluated);
+      }
     }
   }
 
@@ -246,6 +269,7 @@
   async function init() {
     ui.tradeReady(false);
     ui.byId('tradeForm').addEventListener('submit', saveTrade);
+    ui.byId('replayHistoryRows').addEventListener('click', deleteHistoryTrade);
     await renderHistory();
     var saved = storage.loadReplayState() || {};
     ui.byId('timeframe').value = saved.timeframe || 'M15';
@@ -305,4 +329,3 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { init().catch(function (error) { ui.status('replayStatus', error.message, true); }); }, { once: true });
   else init().catch(function (error) { ui.status('replayStatus', error.message, true); });
 })();
-

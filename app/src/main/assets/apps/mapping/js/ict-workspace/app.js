@@ -33,11 +33,13 @@ function render(result) {
   $('checklist').innerHTML=[`${result.context.direction==='WAIT'?'○':'✓'} Struktur H1: ${$('bias').textContent}`,
     `${p?'✓':'○'} Sweep dan reclaim likuiditas`,`${p?'✓':'○'} Displacement + MSS terkonfirmasi`,
     `${p?'✓':'○'} FVG sesuai dealing range dan target ≥ 2R`,`${p?.filledAt?'✓':'○'} Retest setelah pembentukan FVG`].map(x=>`<li>${escape(x)}</li>`).join('');
-  $('evidence').innerHTML=record('Struktur H1',`Break terakhir ${date(result.context.lastBreak?.brokenAt)} · level ${price(result.context.lastBreak?.level)}`)+
-    record('Dealing range H1',`Low ${price(result.context.low)} · midpoint ${price(result.context.midpoint)} · high ${price(result.context.high)}`)+
+  $('evidence').innerHTML=record('Arah H1',`${$('bias').textContent} · break ${price(result.context.lastBreak?.level)} · ${date(result.context.lastBreak?.brokenAt)}`)+
+    record('Area H1',`${price(result.context.low)} · mid ${price(result.context.midpoint)} · ${price(result.context.high)}`)+
     (p?record('Sweep',`${date(p.sweep.time)} · level ${price(p.sweep.level)} · wick ${price(p.sweep.extreme)}`)+
-    record('MSS',`${date(p.mss.time)} · close melewati ${price(p.mss.level)}`)+record('FVG',`${price(p.fvg.low)}–${price(p.fvg.high)} · terbentuk ${date(p.createdAt)}`):record('Setup',result.reason));
-  $('liquidity').innerHTML=result.levels.map(l=>record(l.kind==='high'?'Buy-side liquidity':'Sell-side liquidity',`${price(l.level)} · pivot ${date(l.time)} · konfirmasi ${date(l.confirmed)}`)).join('')||'<p>Belum ada level terkonfirmasi yang belum tersentuh.</p>';
+    record('MSS',`${price(p.mss.level)} · ${date(p.mss.time)}`)+record('FVG',`${price(p.fvg.low)}–${price(p.fvg.high)} · ${date(p.createdAt)}`):record('Status setup',result.reason));
+  const currentClose=result.candles.at(-1)?.close;
+  const nearestLevels=result.levels.slice().sort((a,b)=>Math.abs(Number(a.level)-Number(currentClose))-Math.abs(Number(b.level)-Number(currentClose))).slice(0,6);
+  $('liquidity').innerHTML=nearestLevels.map(l=>record(l.kind==='high'?'BSL':'SSL',`${price(l.level)} · pivot ${date(l.time)}`)).join('')||'<p>Belum ada level terkonfirmasi yang belum tersentuh.</p>';
   $('history').innerHTML=result.history.slice().reverse().slice(0,30).map(h=>record(`${h.direction} · ${h.status}`,`${date(h.createdAt)} · entry ${price(h.entry)} · SL ${price(h.sl)} · TP ${price(h.tp)}${Number.isFinite(h.r)?' · '+h.r.toFixed(2)+'R bruto':''}${h.ambiguous?' · urutan intrabar ambigu':''}`)).join('')||'<p>Belum ada setup selesai dalam jendela candle ini.</p>';
   draw(result);
   // New versioned snapshot: no legacy direction, forecast, or execution writers.

@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-20 — Pro351 Replay evidence repair and focused mobile UI
+
+Pro351 reconstructs missing SL/TP candle evidence only for locked Replay terminal records when the matching historical pack is replayed, without regressing a terminal result during rewind. Replay deletion removes both IndexedDB and fallback copies. Academy reading-resume cards render only on the Academy/Belajar Trading home. Mapping Analyze keeps primary evidence visible while liquidity and model rules are collapsed and limited to the nearest useful levels. Source advances to 2.0.0-pro.351 / 950351; update.json remains on signed Pro350 until CI publishes and activates Pro351.
+
 ## 2026-09-20 — Pro350 Replay history
 
 Pro350 keeps Replay history inside candle-replay.html and reads existing locked decision records without migration. Outcome writes are serialized and positions retain their original timeframe when the cursor advances in another timeframe. Save captures the clicked cursor and pauses playback. Newest updatedAt wins across IndexedDB/localStorage. Source 2.0.0-pro.350 / 950350; existing signed CI activates update.json only after publication.

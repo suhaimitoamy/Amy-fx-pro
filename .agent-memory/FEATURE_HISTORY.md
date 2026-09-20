@@ -1,5 +1,9 @@
 # Feature History
 
+## 2026-09-20 — Pro351 Replay history controls and focused Mapping
+
+Candle Replay now offers a per-record Hapus action, repairs missing historical TP/SL evidence when its matching pack reaches the outcome candle, and reliably removes mirrored local-storage records. Mapping Analyze presents a compact evidence-first view with secondary details collapsed for mobile.
+
 ## 2026-09-20 — Pro350 Replay history
 
 Replay now shows all locally saved replay decisions across packs/timeframes directly below its workspace, with WAIT, waiting-fill, active, TP and SL labels, notes, levels and timestamp/low/high evidence. Chart Analysis records are excluded; original decision identities remain readable.

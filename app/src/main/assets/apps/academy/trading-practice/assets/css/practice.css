@@ -210,3 +210,6 @@ body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):no
 .replay-history-item { padding: 12px; border: 1px solid var(--amy-border, #53617a); border-radius: 10px; overflow-wrap: anywhere; }
 .replay-history-item p { margin: 6px 0; }
 .replay-history-item small { opacity: .8; }
+.replay-history-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+.replay-history-delete { min-width:72px; min-height:40px; padding:7px 12px; border:1px solid rgba(251,113,133,.55); border-radius:9px; background:rgba(251,113,133,.09); color:var(--practice-danger); font:inherit; font-weight:800; cursor:pointer; }
+.replay-history-delete:disabled { opacity:.5; cursor:wait; }

@@ -73,4 +73,5 @@ test('Academy reading history is available on home and nested lessons', () => {
   ]) {
     assert.ok(history.includes(marker), `Academy history marker missing: ${marker}`);
   }
+  assert.match(history, /if \(!\/\^\(\?:index\\\.html\)\?\$\/i\.test\(page\)\) return/);
 });

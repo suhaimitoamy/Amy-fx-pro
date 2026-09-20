@@ -1,5 +1,9 @@
 # TODO Memory
 
+## 2026-09-20 — Pro351
+
+After the signed release activates, verify on the reporting Android device: an older terminal Replay record gains TP/SL evidence after its matching pack reaches the candle, deletion survives restart, Trading Practice has no Academy “Terakhir Dibaca” card, and Mapping Analyze remains readable in portrait. Native update notification receipt still requires device observation.
+
 ## 2026-09-20 — Pro350 Replay history
 
 Verify Pro350 on the reporting Android device: save entry, open inline Riwayat, advance to SL/TP, switch timeframe, restart the app and inspect retained history. Native update notification receipt and device storage behavior require device observation. Release verification completed: source commit 9f43bdaea406f07c7673759dab1f3a08ff15cab1; signed workflow 35483550772 and lint workflow 35483550693 succeeded. All 136 JavaScript regression files pass. APK identity/signer and published endpoint gates passed. Active update.json is enabled at 2.0.0-pro.350 / 950350; release asset digest matches manifest SHA-256 26408fa3682197cc995c863d11e2ba35cbcd827b4576fea7e4b63e2cb391a513. Real Android rendering and receipt of native update notification remain unobserved.

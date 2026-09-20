@@ -1,5 +1,12 @@
 # Bug History
 
+## 2026-09-20 — Pro351 Replay history and mobile density
+
+- Terminal Replay records created before outcome evidence existed were skipped because only OPEN records were evaluated. Matching records now reconstruct deterministic SL/TP candle evidence without losing the stored terminal result on rewind.
+- Successful IndexedDB deletion left an older localStorage fallback copy able to reappear. Deletion now clears both stores.
+- Academy resume history could render on nested Trading Practice index pages. It is now scoped to the Academy/Belajar Trading home.
+- Mapping Analyze exposed secondary liquidity/rule text at full length. Primary evidence remains visible; secondary detail is collapsed and liquidity is limited to the six nearest levels.
+
 ## 2026-09-20 — Pro350 Replay history
 
 Pro349 still navigated Replay history to the shared page and rendered no history on Replay itself. Added immediate/reloadable inline history with entry/SL/TP and candle evidence. Fixed stale IndexedDB overriding a newer fallback outcome, asynchronous save cursor drift, and reevaluation of candles before a previously persisted entry fill. Existing records and terminal outcomes remain intact. Validation: all 136 JavaScript regression files pass, including executable save/reload/rewind, BUY/SELL SL/TP, ambiguous candle, cross-timeframe, storage reconciliation and cursor-race cases.

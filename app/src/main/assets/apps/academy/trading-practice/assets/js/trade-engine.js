@@ -81,8 +81,16 @@
   }
 
   function evaluate(record, candles) {
-    if (!record || record.result !== 'OPEN' || !['BUY', 'SELL'].includes(record.bias)) return record;
+    if (!record || !['BUY', 'SELL'].includes(record.bias)) return record;
+    var needsEvidenceRepair = ['WIN', 'LOSS'].includes(record.result) && !record.outcomeEvidence;
+    if (record.result !== 'OPEN' && !needsEvidenceRepair) return record;
     var next = Object.assign({}, record);
+    if (needsEvidenceRepair) {
+      next.result = 'OPEN';
+      next.r = null;
+      delete next.closedAt;
+      delete next.resolution;
+    }
     var sequence = core.normalizeCandles(candles).filter(function (candle) { return candle.time > Number(record.tradeTime || 0) && (record.entryActivatedAt == null || candle.time >= Number(record.entryActivatedAt)); });
     for (var i = 0; i < sequence.length; i += 1) {
       var candle = sequence[i];
@@ -118,6 +126,7 @@
         break;
       }
     }
+    if (needsEvidenceRepair && next.result === 'OPEN') return record;
     next.updatedAt = Date.now();
     return next;
   }

@@ -310,6 +310,52 @@ test('fallback trade remains readable and newer outcomes win over stale IndexedD
   assert.equal((await runtime.AmyPracticeStorage.listTrades())[0].result, 'LOSS');
 });
 
+test('deleting a trade clears both IndexedDB and fallback copies', async () => {
+  const shared = new Map();
+  let primary = { id: 'delete-me', updatedAt: 20 };
+  const runtime = {
+    console,
+    localStorage: {
+      getItem: key => shared.has(key) ? shared.get(key) : null,
+      setItem: (key, value) => shared.set(key, String(value))
+    },
+    indexedDB: {
+      open() {
+        const request = {};
+        queueMicrotask(() => {
+          request.result = {
+            objectStoreNames: { contains: () => true },
+            transaction() {
+              const transaction = {
+                objectStore() {
+                  return {
+                    delete() { const op = {}; queueMicrotask(() => { primary = null; op.onsuccess(); }); return op; },
+                    getAll() { const op = {}; queueMicrotask(() => { op.result = primary ? [primary] : []; op.onsuccess(); }); return op; }
+                  };
+                }
+              };
+              queueMicrotask(() => queueMicrotask(() => transaction.oncomplete()));
+              return transaction;
+            }
+          };
+          request.onsuccess();
+        });
+        return request;
+      }
+    },
+    setTimeout,
+    clearTimeout,
+    queueMicrotask
+  };
+  runtime.globalThis = runtime;
+  vm.createContext(runtime);
+  vm.runInContext(readFileSync(new URL('storage.js', base), 'utf8'), runtime, { filename: 'storage.js' });
+  shared.set('amy.practice.v1.trades', JSON.stringify([{ id: 'delete-me', updatedAt: 10 }]));
+  await runtime.AmyPracticeStorage.deleteTrade('delete-me');
+  assert.deepEqual(JSON.parse(shared.get('amy.practice.v1.trades')), []);
+  assert.deepEqual(JSON.parse(JSON.stringify(await runtime.AmyPracticeStorage.listTrades())), []);
+});
+
 test('replay outcomes are isolated to the active historical pack', () => {
   const source = readFileSync(new URL('candle-replay.js', base), 'utf8');
   assert.match(source, /item\.sourceId === payload\.sourceId/);

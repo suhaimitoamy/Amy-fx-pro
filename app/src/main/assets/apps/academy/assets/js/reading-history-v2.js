@@ -190,6 +190,8 @@
   }
 
   function renderResumeCard() {
+    var page = relativePath(location.href);
+    if (!/^(?:index\.html)?$/i.test(page)) return;
     var last = readJson(LAST_KEY, null);
     if (!last || !last.path || !last.title) return;
     var history = readJson(HISTORY_KEY, []);
@@ -200,8 +202,6 @@
       container.innerHTML = resumeCardHtml(last, history);
       return;
     }
-    var homeLike = /(?:^|\/)(?:index\.html|daftar-materi\.html)?$/i.test(relativePath(location.href));
-    if (!homeLike) return;
     var host = document.querySelector('main.container');
     var hero = host && host.querySelector('.hero, .section-heading');
     if (!host) return;

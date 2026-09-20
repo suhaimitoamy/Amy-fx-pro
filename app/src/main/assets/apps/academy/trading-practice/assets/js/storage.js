@@ -124,7 +124,12 @@
   }
 
   async function remove(store, id) {
-    try { await withStore(store, 'readwrite', function (objectStore) { return objectStore.delete(id); }); }
+    try {
+      await withStore(store, 'readwrite', function (objectStore) { return objectStore.delete(id); });
+      if (store !== STORES.packs && store !== STORES.packFiles) {
+        writeFallback(store, readFallback(store).filter(function (item) { return item && item.id !== id; }));
+      }
+    }
     catch (_) {
       if (store === STORES.packs || store === STORES.packFiles) throw _;
       writeFallback(store, readFallback(store).filter(function (item) { return item && item.id !== id; }));
