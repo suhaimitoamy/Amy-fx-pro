@@ -258,8 +258,9 @@ test('IndexedDB write resolves only after the transaction commit event', async (
   assert.equal(resolved, true);
 });
 
-test('fallback trade remains readable when IndexedDB is available but does not contain it', async () => {
+test('fallback trade remains readable and newer outcomes win over stale IndexedDB records', async () => {
   const shared = new Map();
+  let primary;
   const runtime = {
     console,
     localStorage: {
@@ -276,12 +277,12 @@ test('fallback trade remains readable when IndexedDB is available but does not c
               const transaction = {
                 objectStore() {
                   return {
-                    get() { const op = {}; queueMicrotask(() => { op.result = undefined; op.onsuccess(); }); return op; },
-                    getAll() { const op = {}; queueMicrotask(() => { op.result = []; op.onsuccess(); }); return op; }
+                    get() { const op = {}; queueMicrotask(() => { op.result = primary; op.onsuccess(); }); return op; },
+                    getAll() { const op = {}; queueMicrotask(() => { op.result = primary ? [primary] : []; op.onsuccess(); }); return op; }
                   };
                 }
               };
-              queueMicrotask(() => transaction.oncomplete());
+              queueMicrotask(() => queueMicrotask(() => transaction.oncomplete()));
               return transaction;
             }
           };
@@ -300,6 +301,13 @@ test('fallback trade remains readable when IndexedDB is available but does not c
   shared.set('amy.practice.v1.trades', JSON.stringify([{ id: 'fallback-trade', createdAt: 1, bias: 'WAIT' }]));
   assert.equal((await runtime.AmyPracticeStorage.getTrade('fallback-trade')).bias, 'WAIT');
   assert.equal((await runtime.AmyPracticeStorage.listTrades())[0].id, 'fallback-trade');
+  primary = { id: 'fallback-trade', result: 'OPEN', updatedAt: 10 };
+  shared.set('amy.practice.v1.trades', JSON.stringify([{ ...primary, result: 'WIN', updatedAt: 20 }]));
+  assert.equal((await runtime.AmyPracticeStorage.getTrade(primary.id)).result, 'WIN');
+  assert.equal((await runtime.AmyPracticeStorage.listTrades())[0].result, 'WIN');
+  primary = { ...primary, result: 'LOSS', updatedAt: 30 };
+  assert.equal((await runtime.AmyPracticeStorage.getTrade(primary.id)).result, 'LOSS');
+  assert.equal((await runtime.AmyPracticeStorage.listTrades())[0].result, 'LOSS');
 });
 
 test('replay outcomes are isolated to the active historical pack', () => {

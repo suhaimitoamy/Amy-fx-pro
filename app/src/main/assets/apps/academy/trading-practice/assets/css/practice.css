@@ -204,3 +204,9 @@ body.replay-fullscreen > :not(#replayWorkspace):not(.practice-drawing-editor):no
 #reviewTopics summary { cursor:pointer; }
 #guidedSummary { scroll-margin-top:80px; }
 #nextExercise, #endSession { margin-top:12px; width:100%; }
+
+.replay-history { margin-top: 16px; scroll-margin-top: 80px; }
+.replay-history-list { display: grid; gap: 12px; max-height: 480px; overflow-y: auto; }
+.replay-history-item { padding: 12px; border: 1px solid var(--amy-border, #53617a); border-radius: 10px; overflow-wrap: anywhere; }
+.replay-history-item p { margin: 6px 0; }
+.replay-history-item small { opacity: .8; }

@@ -1,5 +1,9 @@
 # TODO Memory
 
+## 2026-09-20 — Pro350 Replay history
+
+Verify Pro350 on the reporting Android device: save entry, open inline Riwayat, advance to SL/TP, switch timeframe, restart the app and inspect retained history. Native update notification receipt and device storage behavior require device observation. Signed release/manifest verification pending at source preparation.
+
 ## 2026-09-20 — Pro349
 
 Verify on the reporting Android device that a replay decision survives app/page restart and that advancing into TP, SL, and same-candle SL+TP cases updates Riwayat with the expected timestamp and low/high evidence. CI can validate persistence contracts and rendering source but cannot prove device storage behavior or native update-notification receipt.

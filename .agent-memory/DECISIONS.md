@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-20 — Pro350 Replay history
+
+Pro350 keeps Replay history inside candle-replay.html and reads existing locked decision records without migration. Outcome writes are serialized and positions retain their original timeframe when the cursor advances in another timeframe. Save captures the clicked cursor and pauses playback. Newest updatedAt wins across IndexedDB/localStorage. Source 2.0.0-pro.350 / 950350; existing signed CI activates update.json only after publication.
+
 ## 2026-09-20 — Pro349 replay outcome evidence
 
 Candle Replay keeps its existing deterministic decision identity and conservative same-candle rule. Trade fallback records are reconciled with IndexedDB reads, and terminal outcomes carry immutable candle evidence (SL/TP level, candle time, low/high, ambiguity) for display in local history. Source advances to 2.0.0-pro.349 / 950349; update.json remains on signed Pro348 until CI publishes and activates Pro349.

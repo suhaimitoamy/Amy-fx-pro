@@ -268,7 +268,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Catatan keputusan Candle Replay kini tetap terbaca saat penyimpanan memakai fallback lokal.','Riwayat menampilkan bukti candle yang menyentuh SL atau TP: waktu, level, low dan high.','Jika SL dan TP tersentuh pada candle yang sama, hasil tetap konservatif: SL diprioritaskan.']
+          notes=['Riwayat entry kini tampil langsung di Candle Replay, tanpa berpindah ke Chart Analysis.','Keputusan baru langsung terlihat dengan status menunggu entry, aktif, TP atau SL serta bukti candle.','Hasil tetap diperbarui saat ganti timeframe dan catatan terbaru tidak tertutup data penyimpanan lama.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

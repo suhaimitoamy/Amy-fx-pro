@@ -15,12 +15,15 @@ for (const scenario of ['new', 'locked', 'failure']) {
     let state;
     let writes = 0;
     const context = {
+      savingDecision: false, playing: false, replay: { pause() {} },
+      async renderHistory() {},
       latestPayload: { symbol: 'XAUUSD', timeframe: 'M15', cursor: 120, candles: [], sourceId: 'sample' },
       chart: { setTradeLevels() {} },
       core: { formatWita: String },
       storage: { async getTrade() { return persisted; } },
       window: { AmyPracticeTrades: { decisionId() { return record.id; } } },
       ui: {
+        text() {},
         currentCandle() { return null; },
         byId() { return {}; },
         status() {},

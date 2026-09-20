@@ -1,6 +1,6 @@
 // Amy FX Pro — ICT Sweep / MSS / FVG workspace, closed-candle model v1.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-pro.349', code: 950349 });
+  const VERSION = Object.freeze({ name: '2.0.0-pro.350', code: 950350 });
   window.AmyFXAppVersion = VERSION;
   window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
   function displayVersionName(name) {

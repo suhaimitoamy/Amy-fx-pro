@@ -83,7 +83,7 @@
   function evaluate(record, candles) {
     if (!record || record.result !== 'OPEN' || !['BUY', 'SELL'].includes(record.bias)) return record;
     var next = Object.assign({}, record);
-    var sequence = core.normalizeCandles(candles).filter(function (candle) { return candle.time > Number(record.tradeTime || 0); });
+    var sequence = core.normalizeCandles(candles).filter(function (candle) { return candle.time > Number(record.tradeTime || 0) && (record.entryActivatedAt == null || candle.time >= Number(record.entryActivatedAt)); });
     for (var i = 0; i < sequence.length; i += 1) {
       var candle = sequence[i];
       if (next.entryStatus !== 'ACTIVE') {

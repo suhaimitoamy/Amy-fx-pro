@@ -1,3 +1,9 @@
+## 2.0.0-pro.350
+
+- Keep entry history inside Candle Replay; show saved decisions immediately and after reload.
+- Show waiting/active/TP/SL states with preserved candle evidence across timeframe changes.
+- Preserve newer fallback outcomes, pin saves to the clicked cursor and exclude pre-fill candles from later outcome checks.
+
 ## 2.0.0-pro.349
 
 - Memperbaiki pembacaan catatan Candle Replay ketika penyimpanan jatuh ke fallback lokal setelah transaksi IndexedDB gagal.

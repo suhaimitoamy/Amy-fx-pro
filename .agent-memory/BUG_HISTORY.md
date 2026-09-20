@@ -1,5 +1,9 @@
 # Bug History
 
+## 2026-09-20 — Pro350 Replay history
+
+Pro349 still navigated Replay history to the shared page and rendered no history on Replay itself. Added immediate/reloadable inline history with entry/SL/TP and candle evidence. Fixed stale IndexedDB overriding a newer fallback outcome, asynchronous save cursor drift, and reevaluation of candles before a previously persisted entry fill. Existing records and terminal outcomes remain intact. Validation: all 136 JavaScript regression files pass, including executable save/reload/rewind, BUY/SELL SL/TP, ambiguous candle, cross-timeframe, storage reconciliation and cursor-race cases.
+
 ## 2026-09-20 — Candle Replay notes could disappear and SL/TP lacked evidence
 
 - Resolved: a trade written to localStorage fallback could be hidden when later IndexedDB reads succeeded but did not contain that record.

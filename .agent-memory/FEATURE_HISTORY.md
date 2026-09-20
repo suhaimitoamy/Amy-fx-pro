@@ -1,5 +1,9 @@
 # Feature History
 
+## 2026-09-20 — Pro350 Replay history
+
+Replay now shows all locally saved replay decisions across packs/timeframes directly below its workspace, with WAIT, waiting-fill, active, TP and SL labels, notes, levels and timestamp/low/high evidence. Chart Analysis records are excluded; original decision identities remain readable.
+
 ## 2026-09-20 — Pro349 replay persistence and evidence
 
 Pro349 adds resilient IndexedDB/localStorage trade reconciliation plus auditable SL/TP evidence in local replay history. The evidence records the touched level, closing candle timestamp and low/high range, including an explicit ambiguous-candle marker. No strategy, candle source, or decision geometry changes.

@@ -90,12 +90,17 @@
     }
   }
 
+  function newest(primary, fallback) {
+    if (!primary) return fallback || null;
+    if (!fallback) return primary;
+    return Number(fallback.updatedAt || fallback.createdAt || 0) > Number(primary.updatedAt || primary.createdAt || 0) ? fallback : primary;
+  }
+
   async function get(store, id) {
     try {
       var value = await withStore(store, 'readonly', function (objectStore) { return objectStore.get(id); });
-      if (value != null) return value;
-      if (store === STORES.packs || store === STORES.packFiles) return null;
-      return readFallback(store).find(function (item) { return item && item.id === id; }) || null;
+      if (store === STORES.packs || store === STORES.packFiles) return value || null;
+      return newest(value, readFallback(store).find(function (item) { return item && item.id === id; }));
     }
     catch (_) {
       if (store === STORES.packs || store === STORES.packFiles) return null;
@@ -109,7 +114,7 @@
       if (store === STORES.packs || store === STORES.packFiles) return primary;
       var merged = new Map();
       readFallback(store).forEach(function (item) { if (item && item.id) merged.set(item.id, item); });
-      primary.forEach(function (item) { if (item && item.id) merged.set(item.id, item); });
+      primary.forEach(function (item) { if (item && item.id) merged.set(item.id, newest(item, merged.get(item.id))); });
       return Array.from(merged.values());
     }
     catch (_) {
