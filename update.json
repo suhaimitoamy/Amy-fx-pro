@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.349/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.350/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Catatan keputusan Candle Replay kini tetap terbaca saat penyimpanan memakai fallback lokal.",
-    "Riwayat menampilkan bukti candle yang menyentuh SL atau TP: waktu, level, low dan high.",
-    "Jika SL dan TP tersentuh pada candle yang sama, hasil tetap konservatif: SL diprioritaskan."
+    "Riwayat entry kini tampil langsung di Candle Replay, tanpa berpindah ke Chart Analysis.",
+    "Keputusan baru langsung terlihat dengan status menunggu entry, aktif, TP atau SL serta bukti candle.",
+    "Hasil tetap diperbarui saat ganti timeframe dan catatan terbaru tidak tertutup data penyimpanan lama."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.349/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.350/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950349,
-  "latest_version_name": "2.0.0-pro.349",
+  "latest_version_code": 950350,
+  "latest_version_name": "2.0.0-pro.350",
   "mandatory": false,
-  "releaseDate": "2026-09-19",
+  "releaseDate": "2026-09-20",
   "release_notes": [
-    "Catatan keputusan Candle Replay kini tetap terbaca saat penyimpanan memakai fallback lokal.",
-    "Riwayat menampilkan bukti candle yang menyentuh SL atau TP: waktu, level, low dan high.",
-    "Jika SL dan TP tersentuh pada candle yang sama, hasil tetap konservatif: SL diprioritaskan."
+    "Riwayat entry kini tampil langsung di Candle Replay, tanpa berpindah ke Chart Analysis.",
+    "Keputusan baru langsung terlihat dengan status menunggu entry, aktif, TP atau SL serta bukti candle.",
+    "Hasil tetap diperbarui saat ganti timeframe dan catatan terbaru tidak tertutup data penyimpanan lama."
   ],
-  "sha256": "f3d5a6aeea56774fcd4383f4c7c8cf50ab85c6956a20d2740c385e551f94b2ac",
-  "version": "2.0.0-pro.349",
-  "versionCode": 950349
+  "sha256": "26408fa3682197cc995c863d11e2ba35cbcd827b4576fea7e4b63e2cb391a513",
+  "version": "2.0.0-pro.350",
+  "versionCode": 950350
 }
