@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.350/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.351/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Riwayat entry kini tampil langsung di Candle Replay, tanpa berpindah ke Chart Analysis.",
-    "Keputusan baru langsung terlihat dengan status menunggu entry, aktif, TP atau SL serta bukti candle.",
-    "Hasil tetap diperbarui saat ganti timeframe dan catatan terbaru tidak tertutup data penyimpanan lama."
+    "Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.",
+    "Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.",
+    "Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.350/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.351/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950350,
-  "latest_version_name": "2.0.0-pro.350",
+  "latest_version_code": 950351,
+  "latest_version_name": "2.0.0-pro.351",
   "mandatory": false,
   "releaseDate": "2026-09-20",
   "release_notes": [
-    "Riwayat entry kini tampil langsung di Candle Replay, tanpa berpindah ke Chart Analysis.",
-    "Keputusan baru langsung terlihat dengan status menunggu entry, aktif, TP atau SL serta bukti candle.",
-    "Hasil tetap diperbarui saat ganti timeframe dan catatan terbaru tidak tertutup data penyimpanan lama."
+    "Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.",
+    "Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.",
+    "Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas."
   ],
-  "sha256": "26408fa3682197cc995c863d11e2ba35cbcd827b4576fea7e4b63e2cb391a513",
-  "version": "2.0.0-pro.350",
-  "versionCode": 950350
+  "sha256": "dae8018ab9c02905af4001321f751dc32a4dee767438f75f5416979cf2301f1c",
+  "version": "2.0.0-pro.351",
+  "versionCode": 950351
 }
