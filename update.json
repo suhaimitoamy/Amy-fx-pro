@@ -1,23 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.351/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.352/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.",
-    "Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.",
-    "Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas."
+    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.351/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.352/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950351,
-  "latest_version_name": "2.0.0-pro.351",
+  "latest_version_code": 950352,
+  "latest_version_name": "2.0.0-pro.352",
   "mandatory": false,
-  "releaseDate": "2026-09-20",
+  "releaseDate": "2026-09-21",
   "release_notes": [
-    "Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.",
-    "Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.",
-    "Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas."
+    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
   ],
-  "sha256": "dae8018ab9c02905af4001321f751dc32a4dee767438f75f5416979cf2301f1c",
-  "version": "2.0.0-pro.351",
-  "versionCode": 950351
+  "sha256": "1b9bb4d0052a9126b8ec9fb031e0c3aa8cdd7b4f414b45e74c9c4282aeceaf71",
+  "version": "2.0.0-pro.352",
+  "versionCode": 950352
 }
