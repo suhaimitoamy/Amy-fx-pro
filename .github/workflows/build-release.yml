@@ -4,16 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       versionName:
-        description: "Version Name (e.g., 1.5.8)"
+        description: "Version Name (e.g., 2.0.0-pro.354)"
         required: true
-        default: "1.5.8"
+        default: "2.0.0-pro.354"
       versionCode:
         description: "Version Code (must increase)"
         required: true
-        default: "49"
+        default: "950354"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: build-release-${{ github.ref }}
@@ -43,11 +43,16 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install Android SDK 35 (manual — compatible with Node 24 runner)
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/*/bin/sdkmanager"
+            SDKMANAGER=$(ls $SDKMANAGER 2>/dev/null | head -1)
+          fi
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Restore permanent Amy FX signing key
         id: signing-cache
@@ -124,3 +129,31 @@ jobs:
           if 0x7109871A not in ids:
               raise SystemExit("APK Signature Scheme v2 tidak ditemukan")
           PY
+
+      - name: Rename APK and generate SHA256
+        run: |
+          set -euo pipefail
+          cp app/build/outputs/apk/release/app-release.apk AmyFX-Pro-latest.apk
+          sha256sum AmyFX-Pro-latest.apk | tee AmyFX-Pro-latest.apk.sha256
+
+      - name: Publish GitHub Release with APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="amyfx-pro-${AMYFX_VERSION_NAME}"
+          SHA256="$(cat AmyFX-Pro-latest.apk.sha256 | awk '{print $1}')"
+          gh release create "$TAG" \
+            "AmyFX-Pro-latest.apk#AmyFX-Pro-latest.apk" \
+            "AmyFX-Pro-latest.apk.sha256#AmyFX-Pro-latest.apk.sha256" \
+            --title "Amy FX Pro ${AMYFX_VERSION_NAME}" \
+            --notes "## Amy FX Pro ${AMYFX_VERSION_NAME}
+
+          **Version Code:** ${AMYFX_VERSION_CODE}
+
+          **SHA256:** \`${SHA256}\`
+
+          ### Perubahan
+          $(cat CHANGELOG.md | awk '/^## '"${AMYFX_VERSION_NAME}"'/{found=1; next} found && /^## /{exit} found{print}')
+          " \
+            --repo "$GITHUB_REPOSITORY"
