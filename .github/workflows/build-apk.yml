@@ -218,9 +218,7 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.
-          - Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.
-          - Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas.
+          - Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber
@@ -268,7 +266,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.','Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.','Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas.']
+          notes=['Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE

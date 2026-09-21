@@ -1,3 +1,14 @@
+## 2.0.0-pro.352
+
+- Membersihkan teks disclaimer dan keterangan yang tidak diperlukan pada Menu Utama, Mapping, Berita, dan Academy.
+- Menjaga tampilan workspace tetap fokus dan rapi tanpa clutter visual.
+
+## 2.0.0-pro.351
+
+- Riwayat Candle Replay memperbaiki bukti TP/SL lama dan menyediakan hapus per keputusan.
+- Kartu terakhir dibaca hanya tampil di halaman Belajar Trading, bukan Trading Practice.
+- Analisis Mapping memprioritaskan bukti inti dan menyimpan detail sekunder dalam panel ringkas.
+
 ## 2.0.0-pro.350
 
 - Keep entry history inside Candle Replay; show saved decisions immediately and after reload.

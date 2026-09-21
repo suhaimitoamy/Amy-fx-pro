@@ -20,7 +20,7 @@ test('home chart fetches without visiting Mapping; shared source and stale failu
   let failed=false;const calls=[];
   const h=mount(async(tf)=>{calls.push(tf);if(failed)throw Error('offline');return {candles:[{time:1800000000,close:2500}],degraded:false};});
   await flush();assert.deepEqual(calls,['M15','H1']);assert.equal(h.node('home-chart-price').textContent,'2500.00');
-  assert.match(h.node('home-chart-note').textContent,/bukan harga tick live/);
+  assert.equal(h.node('home-chart-note').textContent,'');
   failed=true;await h.node('home-chart-refresh').click();assert.match(h.node('home-chart-source').textContent,/Referensi lama/);
   assert.equal(h.node('home-chart-price').textContent,'2500.00');assert.match(h.node('home-chart-error').textContent,/gagal/);
   assert.equal([...h.timers.values()].filter(t=>t.ms===60000).length,1);

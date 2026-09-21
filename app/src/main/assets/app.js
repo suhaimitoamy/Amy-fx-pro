@@ -3,10 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const navBtns = document.querySelectorAll('.nav-btn');
 
   const projects = [
-    { id: 'mapping', title: 'Mapping', badge: 'Mapping', icon: 'mapping', desc: 'Mapping market & chart untuk analisis peluang', target: 'apps/mapping/index.html' },
-    { id: 'intel', title: 'Berita', badge: 'News', icon: 'intel', desc: 'Berita dan liquidity heatmap XAU/USD', target: 'apps/market-intel/index.html' },
-    { id: 'jurnal', title: 'Jurnal Trading', badge: 'Jurnal', icon: 'journal', desc: 'Catat jurnal, evaluasi performa, dan riwayat trading', target: 'apps/journal/index.html' },
-    { id: 'academy', title: 'Tutorial Trading', badge: 'Learning', icon: 'academy', desc: 'Materi belajar trading dalam aplikasi', target: 'apps/academy/index.html' },
+    { id: 'mapping', title: 'Mapping', badge: 'Mapping', icon: 'mapping', desc: '', target: 'apps/mapping/index.html' },
+    { id: 'intel', title: 'Berita', badge: 'News', icon: 'intel', desc: '', target: 'apps/market-intel/index.html' },
+    { id: 'jurnal', title: 'Jurnal Trading', badge: 'Jurnal', icon: 'journal', desc: '', target: 'apps/journal/index.html' },
+    { id: 'academy', title: 'Tutorial Trading', badge: 'Learning', icon: 'academy', desc: '', target: 'apps/academy/index.html' },
   ];
 
   function showLoadingOverlay() {
@@ -157,12 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function projectCard(item) {
     const badgeIcon = badgeSvgs[item.badge] || '';
-    return `<button class="card project-card" data-open="${item.id}" data-module="${item.id}">${icon(item.icon)}<span class="card-content"><h3>${item.title}</h3><p>${item.desc}</p><span class="badge">${badgeIcon} ${item.badge}</span></span><span class="chevron" aria-hidden="true">›</span></button>`;
+    const descMarkup = item.desc ? `<p>${item.desc}</p>` : '';
+    return `<button class="card project-card" data-open="${item.id}" data-module="${item.id}">${icon(item.icon)}<span class="card-content"><h3>${item.title}</h3>${descMarkup}<span class="badge">${badgeIcon} ${item.badge}</span></span><span class="chevron" aria-hidden="true">›</span></button>`;
   }
 
   function quickCard(item, wide = false) {
     const badgeIcon = badgeSvgs[item.badge] || '';
-    return `<button class="quick-card${wide ? ' quick-card--wide' : ''}" data-open="${item.id}" data-module="${item.id}">${icon(item.icon)}<span><strong>${item.title}</strong><small>${item.desc}</small></span><span class="chevron" aria-hidden="true">›</span></button>`;
+    const descMarkup = item.desc ? `<small>${item.desc}</small>` : '';
+    return `<button class="quick-card${wide ? ' quick-card--wide' : ''}" data-open="${item.id}" data-module="${item.id}">${icon(item.icon)}<span><strong>${item.title}</strong>${descMarkup}</span><span class="chevron" aria-hidden="true">›</span></button>`;
   }
 
   function renderHome() {
@@ -172,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="home-chart-controls"><label>Timeframe <select id="home-chart-tf"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="home-chart-refresh">Perbarui</button></div>
       <p id="home-chart-source" role="status">Memuat candle tertutup…</p><p id="home-chart-error" role="alert"></p>
       <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
-      <p id="home-chart-note">Candle tertutup, bukan harga tick live.</p>
+      <p id="home-chart-note"></p>
     </section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
     if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
   }

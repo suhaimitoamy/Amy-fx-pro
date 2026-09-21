@@ -73,7 +73,7 @@ test('production page has one engine authority, complete local assets and access
  assert.match(app,/id!==generation/);assert.match(app,/controller\?\.abort/);
  assert.match(app,/degraded:true/);assert.match(app,/visibilitychange/);
  assert.doesNotMatch(app,/setInterval|Math\.random|startBackgroundScanner/);
- assert.match(html,/Bukan transaksi akun/);assert.match(html,/spread, komisi/);
+ assert.doesNotMatch(html,/Bukan transaksi akun/);assert.doesNotMatch(html,/spread, komisi/);
  assert.match(html,/class="model-context analysis-secondary"/);
  assert.match(html,/Struktur → sweep → MSS → FVG/);
  assert.match(app,/slice\(0,6\)/);

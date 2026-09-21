@@ -25,7 +25,7 @@ export function initializeMethods(){
       const remote=await request('GET');
       if(localStorage.getItem(DIRTY)==='1'||!remote.registered){await request('PUT',read());localStorage.removeItem(DIRTY);}
       else localStorage.setItem(KEY,JSON.stringify(remote.enabledDrivers));
-      message='Tersinkron · berlaku pada scan berikutnya.';
+      message='';
     }catch(_){message='Belum tersinkron. Pengaturan server belum berubah.';}
     emit();
   })();queue=ready;return ready;
@@ -38,7 +38,7 @@ export function toggleMethod(id){
   message='Menyinkronkan…';emit();
   queue=queue.catch(()=>{}).then(async()=>{
     const snapshot=JSON.stringify(read());
-    try{await request('PUT',JSON.parse(snapshot));if(JSON.stringify(read())===snapshot)localStorage.removeItem(DIRTY);message='Tersinkron · berlaku pada scan berikutnya.';}
+    try{await request('PUT',JSON.parse(snapshot));if(JSON.stringify(read())===snapshot)localStorage.removeItem(DIRTY);message='';}
     catch(_){message='Belum tersinkron. Pengaturan server belum berubah.';}
     emit();
   });
@@ -47,7 +47,7 @@ export function toggleMarkup(id){
   const on=methodEnabled(id);
   return `<button type="button" role="switch" aria-checked="${on}" aria-label="Aktifkan metode ${id}" data-method-toggle="${id}" style="border:0;border-radius:18px;padding:7px 14px;background:${on?'#15803d':'#64748b'};color:white">${on?'ON':'OFF'}</button><small style="display:block">${on?'ON':'OFF · DISABLED'}</small>`;
 }
-export function methodControls(){return `<section class="card"><h2>Metode perangkat ini</h2><p>OFF menghentikan scan baru. Setup aktif dan riwayat tetap dipertahankan.</p><p data-method-sync role="status">${message}</p>${METHODS.map(d=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:10px"><span>${d.name.replaceAll('&','&amp;')}</span><span>${toggleMarkup(d.id)}</span></div>`).join('')}</section>`;}
+export function methodControls(){return `<section class="card"><h2>Metode perangkat ini</h2><p data-method-sync role="status">${message}</p>${METHODS.map(d=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:10px"><span>${d.name.replaceAll('&','&amp;')}</span><span>${toggleMarkup(d.id)}</span></div>`).join('')}</section>`;}
 document.addEventListener('click',event=>{const button=event.target.closest('[data-method-toggle]');if(!button)return;event.stopPropagation();toggleMethod(button.dataset.methodToggle);},true);
 window.addEventListener('online',()=>{ready=null;void initializeMethods();});
 window.addEventListener('storage',event=>{if(event.key===KEY)emit();});
