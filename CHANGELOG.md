@@ -1,9 +1,3 @@
-## 2.0.0-pro.353
-
-- Personalisasi Kaca & Tampilan: Menggabungkan pengaturan tampilan dan personalisasi warna menjadi satu panel glassmorphism terpadu.
-- Kontrol Transparansi Kaca: Menambahkan slider transparansi kaca akrilik, pilihan latar belakang transparan, dan preview efek kaca secara real-time.
-- Preset Kaca Berwarna: Menyediakan koleksi preset kaca estetik (Obsidian, Kristal Es, Safir Cobalt, Zamrud Hutan, Royal Amethyst, Amber Gold).
-
 ## 2.0.0-pro.352
 
 - Membersihkan teks disclaimer dan keterangan yang tidak diperlukan pada Menu Utama, Mapping, Berita, dan Academy.
