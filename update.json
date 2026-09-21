@@ -1,19 +1,21 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.352/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
+    "fix(profile): perbaiki panel customisasi warna & kaca tidak muncul di halaman profil",
+    "Fitur glassmorphism Pro353 dipertahankan: preset kaca berwarna, slider transparansi, dan preview efek kaca"
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.352/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950352,
-  "latest_version_name": "2.0.0-pro.352",
+  "latest_version_code": 950354,
+  "latest_version_name": "2.0.0-pro.354",
   "mandatory": false,
   "releaseDate": "2026-09-21",
   "release_notes": [
-    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
+    "fix(profile): perbaiki panel customisasi warna & kaca tidak muncul di halaman profil",
+    "Fitur glassmorphism Pro353 dipertahankan: preset kaca berwarna, slider transparansi, dan preview efek kaca"
   ],
-  "sha256": "85b8a552bcd7b5e76b3ad29f980369c9201b92d935287781251baa7dfc0ff9be",
-  "version": "2.0.0-pro.352",
-  "versionCode": 950352
+  "sha256": "",
+  "version": "2.0.0-pro.354",
+  "versionCode": 950354
 }

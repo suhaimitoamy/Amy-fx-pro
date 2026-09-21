@@ -1,3 +1,15 @@
+## 2.0.0-pro.354
+
+- fix(profile): perbaiki bug panel customisasi warna & kaca tidak muncul di halaman Profil.
+- Akar masalah Pro353: `selector.replaceWith(section)` menghapus `.theme-selector` dari DOM sehingga panel tidak dapat di-inject ulang.
+- Semua fitur glassmorphism Pro353 dipertahankan: preset kaca berwarna (Obsidian, Kristal Es, Safir, dll.), slider transparansi, dan preview efek kaca real-time.
+
+## 2.0.0-pro.353
+
+- Personalisasi Kaca & Tampilan: Menggabungkan pengaturan tampilan dan personalisasi warna menjadi satu panel glassmorphism terpadu.
+- Kontrol Transparansi Kaca: Menambahkan slider transparansi kaca akrilik, pilihan latar belakang transparan, dan preview efek kaca secara real-time.
+- Preset Kaca Berwarna: Menyediakan koleksi preset kaca estetik (Obsidian, Kristal Es, Safir Cobalt, Zamrud Hutan, Royal Amethyst, Amber Gold).
+
 ## 2.0.0-pro.352
 
 - Membersihkan teks disclaimer dan keterangan yang tidak diperlukan pada Menu Utama, Mapping, Berita, dan Academy.
