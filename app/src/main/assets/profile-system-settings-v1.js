@@ -106,12 +106,15 @@
         <div class="color-customizer-grid">
           ${[
             ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
-          ].map(([key, label]) => `
-            <label>
+          ].map(([key, label]) => {
+            const val = colors[key] || defaults[key];
+            return `
+            <div class="color-pick-item" data-color-cell="${key}">
               <span>${label}</span>
-              <input type="color" data-theme-color="${key}" value="${colors[key] || defaults[key]}" aria-label="Warna ${label.toLowerCase()}">
-            </label>
-          `).join('')}
+              <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
+              <span class="color-hex-val" data-hex-for="${key}">${val.toUpperCase()}</span>
+            </div>
+          `;}).join('')}
         </div>
       </div>
 
@@ -146,7 +149,6 @@
     `;
 
     selector.insertAdjacentElement('afterend', section);
-    window.AmyFXTheme?.apply?.();
     updatePreviewCard(section);
   }
 
@@ -180,6 +182,13 @@
   document.addEventListener('click', event => {
     if (event.target.closest('[data-profile-action="test-notification"]')) testNotification();
 
+    const colorCell = event.target.closest('[data-color-cell]');
+    if (colorCell && event.target.tagName !== 'INPUT') {
+      const input = colorCell.querySelector('input[type="color"]');
+      input?.click?.();
+      return;
+    }
+
     const resetBtn = event.target.closest('[data-theme-colors-reset]');
     if (resetBtn) {
       window.AmyFXTheme?.resetColors?.();
@@ -188,7 +197,11 @@
         const defaults = getThemeDefaults();
         panel.querySelectorAll('[data-theme-color]').forEach(input => {
           const key = input.dataset.themeColor;
-          if (defaults[key]) input.value = defaults[key];
+          if (defaults[key]) {
+            input.value = defaults[key];
+            const hexSpan = panel.querySelector(`[data-hex-for="${key}"]`);
+            if (hexSpan) hexSpan.textContent = defaults[key].toUpperCase();
+          }
         });
         const slider = panel.querySelector('[data-theme-glass-opacity]');
         if (slider) slider.value = defaults.opacity;
@@ -219,7 +232,11 @@
         if (panel) {
           panel.querySelectorAll('[data-theme-color]').forEach(input => {
             const key = input.dataset.themeColor;
-            if (preset[key]) input.value = preset[key];
+            if (preset[key]) {
+              input.value = preset[key];
+              const hexSpan = panel.querySelector(`[data-hex-for="${key}"]`);
+              if (hexSpan) hexSpan.textContent = preset[key].toUpperCase();
+            }
           });
           const slider = panel.querySelector('[data-theme-glass-opacity]');
           if (slider) slider.value = preset.opacity;
@@ -249,12 +266,16 @@
     }
   });
 
-  document.addEventListener('input', event => {
+  function handleColorOrOpacity(event) {
     const colorInput = event.target.closest?.('[data-theme-color]');
     if (colorInput) {
-      const values = { ...(window.AmyFXTheme?.colors || {}), [colorInput.dataset.themeColor]: colorInput.value };
+      const key = colorInput.dataset.themeColor;
+      const val = colorInput.value;
+      const values = { ...(window.AmyFXTheme?.colors || {}), [key]: val };
       window.AmyFXTheme?.setColors?.(values);
       const panel = document.querySelector('[data-amyfx-color-settings]');
+      const hexSpan = panel?.querySelector(`[data-hex-for="${key}"]`);
+      if (hexSpan) hexSpan.textContent = val.toUpperCase();
       updatePreviewCard(panel);
       return;
     }
@@ -268,14 +289,37 @@
       updatePreviewCard(panel);
       return;
     }
-  });
+  }
 
-  window.addEventListener('amyfx:theme-change', () => {
+  document.addEventListener('input', handleColorOrOpacity);
+  document.addEventListener('change', handleColorOrOpacity);
+
+  window.addEventListener('amyfx:theme-change', event => {
     const panel = document.querySelector('[data-amyfx-color-settings]');
-    if (panel) {
-      panel.remove();
-      injectSettings();
+    if (!panel) return;
+
+    // Update theme choice active classes without replacing the panel
+    const activePref = window.AmyFXTheme?.preference || 'system';
+    panel.querySelectorAll('[data-amyfx-theme-choice]').forEach(btn => {
+      const isActive = btn.dataset.amyfxThemeChoice === activePref;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    // Update presets grid in-place
+    const presetsGrid = panel.querySelector('.glass-presets-grid');
+    if (presetsGrid) {
+      const presets = getActivePresets();
+      const currentPreset = window.AmyFXTheme?.colors?.preset || '';
+      presetsGrid.innerHTML = presets.map(p => `
+        <button type="button" class="glass-preset-btn ${currentPreset === p.id ? 'is-active' : ''}" data-glass-preset="${p.id}" title="${p.name}">
+          <span class="glass-preset-swatch" style="background:${p.surface}; box-shadow: 0 0 8px ${p.accent};"></span>
+          <span>${p.name}</span>
+        </button>
+      `).join('');
     }
+
+    updatePreviewCard(panel);
   });
 
   const main = document.getElementById('main-content');

@@ -1,3 +1,9 @@
+## 2.0.0-pro.356
+
+- fix(palette): Perbaiki bug pop up color picker di palet warna utama (Latar, Kaca, Teks, Aksen) yang menutup otomatis setelah 1 detik. Panel customisasi warna kini dipertahankan stabil tanpa me-remove DOM elemen yang sedang aktif, dan struktur cell diperbarui tanpa wrapping label ganda.
+- fix(profile): Hapus baris teks profil yang tidak diperlukan: AMY Global AI Settings, Status Koneksi, dan Scanner Mapping.
+- feat(theme): Sinkronisasi tema secara in-place tanpa mereset struktur input dan tambahkan indikator kode warna HEX secara real-time.
+
 ## 2.0.0-pro.355
 
 - feat(ui): Natural UI Overhaul — tampilan lebih bersih dan natural, tidak lagi terasa "AI-generated".

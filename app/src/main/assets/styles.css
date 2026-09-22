@@ -816,13 +816,21 @@ html[data-amyfx-theme="light"] .nav-btn { color: #6b7a90; }
   gap: 10px;
   margin-top: 4px;
 }
-.color-customizer-grid label {
+.color-customizer-grid label,
+.color-customizer-grid .color-pick-item {
   display: grid;
   justify-items: center;
   gap: 6px;
   color: var(--amy-text-secondary);
   font-size: 0.7rem;
   font-weight: 600;
+  cursor: pointer;
+}
+.color-hex-val {
+  font-size: 0.62rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  opacity: 0.75;
+  letter-spacing: 0.5px;
 }
 .color-customizer-grid input[type="color"] {
   width: 100%;

@@ -216,12 +216,14 @@
       if (values.preset) next.preset = String(values.preset);
       customColors = next;
       try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customColors)); } catch (_) {}
-      return apply(preference);
+      applyCustomColors();
+      return preference;
     },
     resetColors() {
       customColors = {};
       try { localStorage.removeItem(CUSTOM_KEY); } catch (_) {}
-      return apply(preference);
+      applyCustomColors();
+      return preference;
     },
     apply
   });

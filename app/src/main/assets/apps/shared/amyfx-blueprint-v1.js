@@ -988,18 +988,8 @@
   }
 
   function ensureProfileSettings() {
-    if (moduleName !== "home") return;
-    const main = document.getElementById("main-content");
-    const list = main?.querySelector(".profile-list");
-    if (!list || list.querySelector("[data-profile-action='global-ai']")) return;
-    const settings = globalSettings();
-    const row = document.createElement("button");
-    row.type = "button";
-    row.className = "profile-row";
-    row.dataset.profileAction = "global-ai";
-    row.innerHTML = `<span class="tool-icon">AMY</span><span><strong>Global AI Settings</strong><small>${settings.key_refs.length} key • ${NativeVault.available() ? "Secure vault aktif" : "Vault perlu update"}</small></span><span class="chevron">›</span>`;
-    row.addEventListener("click", () => window.dispatchEvent(new CustomEvent("amyfx:open-mentor")));
-    list.insertAdjacentElement("afterbegin", row);
+    // Global AI Settings row removed from profile per user request
+    return;
   }
 
   let domScheduled = false;
