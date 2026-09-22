@@ -218,7 +218,8 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy.
+          - Natural UI Overhaul: tampilan lebih bersih, natural, dan profesional.
+          - Navigasi bawah full-width flat, kartu solid surface, dan background bersih tanpa efek berlebihan.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber
@@ -266,7 +267,7 @@ jobs:
           if int(data.get('latest_version_code',0))>code:
               raise SystemExit('Refusing update manifest downgrade')
           url='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/releases/download/'+os.environ['AMYFX_RELEASE_TAG']+'/AmyFX-Pro-latest.apk'
-          notes=['Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy.']
+          notes=['Natural UI Overhaul: tampilan lebih bersih, natural, dan profesional.', 'Navigasi bawah full-width flat, kartu solid surface, dan background bersih tanpa efek berlebihan.']
           data.update(latest_version_code=code,latest_version_name=name,versionCode=code,version=name,apk_url=url,downloadUrl=url,enabled=True,releaseDate=datetime.date.today().isoformat(),release_notes=notes,changelog=notes,sha256=hashlib.sha256(pathlib.Path('AmyFX-Pro-latest.apk').read_bytes()).hexdigest())
           path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           PYUPDATE
