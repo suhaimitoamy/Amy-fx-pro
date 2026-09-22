@@ -1,3 +1,15 @@
+## 2.0.0-pro.355
+
+- feat(ui): Natural UI Overhaul — tampilan lebih bersih dan natural, tidak lagi terasa "AI-generated".
+- fix(nav): Bottom navigasi diubah ke full-width flat — hapus floating pill border-radius 24px.
+- fix(card): Semua card dan panel kini memakai solid surface — glass morphism dikurangi drastis, hanya header & nav.
+- fix(bg): Background disederhanakan menjadi 1 gradient — hapus 5–6 lapis radial + repeating gradient "AI wallpaper".
+- fix(radius): Border radius dinormalisasi ke 8–14px (sebelumnya 20–24px seragam).
+- fix(typography): Font weight dinormalisasi max 700; letter-spacing dikurangi; hapus text-transform uppercase pada label.
+- fix(color): Palette warna lebih natural — accent biru lebih redup, buy/sell tidak neon, glow effect dihapus.
+- fix(hero): Hapus ghost text "AMY" dan circle glow dekoratif di hero card beranda.
+- fix(logo): App logo lebih clean tanpa box-shadow berlebihan.
+
 ## 2.0.0-pro.354
 
 - fix(profile): perbaiki bug panel customisasi warna & kaca tidak muncul di halaman Profil.
