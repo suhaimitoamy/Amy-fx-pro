@@ -1,32 +1,19 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Natural UI Overhaul: tampilan lebih bersih dan natural seperti aplikasi mobile profesional.",
-    "Bottom navigasi sekarang full-width dan flat — tidak lagi floating pill.",
-    "Card dan panel menggunakan surface solid — glass morphism dikurangi drastis.",
-    "Background disederhanakan menjadi 1 gradient — tidak ada lagi 6 lapis efek AI.",
-    "Border radius dirapikan (8–14px) untuk tampilan lebih manusiawi.",
-    "Tipografi dinormalisasi — font weight dan letter-spacing lebih natural.",
-    "Warna accent dan status lebih redup dan natural, tidak neon.",
-    "Hapus semua dekorasi glow, ghost text, dan circle overlay di hero card."
+    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950355,
-  "latest_version_name": "2.0.0-pro.355",
+  "latest_version_code": 950354,
+  "latest_version_name": "2.0.0-pro.354",
   "mandatory": false,
-  "releaseDate": "2026-09-22",
+  "releaseDate": "2026-09-21",
   "release_notes": [
-    "Natural UI Overhaul: tampilan lebih bersih dan natural seperti aplikasi mobile profesional.",
-    "Bottom navigasi sekarang full-width dan flat — tidak lagi floating pill.",
-    "Card dan panel menggunakan surface solid — glass morphism dikurangi drastis.",
-    "Background disederhanakan menjadi 1 gradient — tidak ada lagi 6 lapis efek AI.",
-    "Border radius dirapikan (8–14px) untuk tampilan lebih manusiawi.",
-    "Tipografi dinormalisasi — font weight dan letter-spacing lebih natural.",
-    "Warna accent dan status lebih redup dan natural, tidak neon.",
-    "Hapus semua dekorasi glow, ghost text, dan circle overlay di hero card."
+    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
   ],
-  "version": "2.0.0-pro.355",
-  "versionCode": 950355
+  "sha256": "ef69e69bd7530e8b96a3a4f0bbd7e7bdd8c8246b16e5c5acd874e8cedeeff285",
+  "version": "2.0.0-pro.354",
+  "versionCode": 950354
 }
