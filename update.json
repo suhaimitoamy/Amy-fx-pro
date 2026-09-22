@@ -1,5 +1,5 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.355/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
   "changelog": [
     "Natural UI Overhaul: tampilan lebih bersih dan natural seperti aplikasi mobile profesional.",
     "Bottom navigasi sekarang full-width dan flat — tidak lagi floating pill.",
@@ -10,7 +10,7 @@
     "Warna accent dan status lebih redup dan natural, tidak neon.",
     "Hapus semua dekorasi glow, ghost text, dan circle overlay di hero card."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.355/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
   "latest_version_code": 950355,
