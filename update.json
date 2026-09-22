@@ -1,19 +1,21 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.355/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
+    "Natural UI Overhaul: tampilan lebih bersih, natural, dan profesional.",
+    "Navigasi bawah full-width flat, kartu solid surface, dan background bersih tanpa efek berlebihan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.354/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.355/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950354,
-  "latest_version_name": "2.0.0-pro.354",
+  "latest_version_code": 950355,
+  "latest_version_name": "2.0.0-pro.355",
   "mandatory": false,
-  "releaseDate": "2026-09-21",
+  "releaseDate": "2026-09-22",
   "release_notes": [
-    "Penyederhanaan tampilan: membersihkan teks keterangan dan disclaimer pada Menu Utama, Mapping, Berita, dan Academy."
+    "Natural UI Overhaul: tampilan lebih bersih, natural, dan profesional.",
+    "Navigasi bawah full-width flat, kartu solid surface, dan background bersih tanpa efek berlebihan."
   ],
-  "sha256": "ef69e69bd7530e8b96a3a4f0bbd7e7bdd8c8246b16e5c5acd874e8cedeeff285",
-  "version": "2.0.0-pro.354",
-  "versionCode": 950354
+  "sha256": "bcd0f14a69d47799bb2b4df6a9f2eb50c93b1973669682153e0164facb527d1b",
+  "version": "2.0.0-pro.355",
+  "versionCode": 950355
 }
