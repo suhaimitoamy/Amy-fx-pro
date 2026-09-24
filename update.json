@@ -1,21 +1,21 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.355/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.357/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Natural UI Overhaul: tampilan lebih bersih, natural, dan profesional.",
-    "Navigasi bawah full-width flat, kartu solid surface, dan background bersih tanpa efek berlebihan."
+    "Mapping Gold XAU/USD menampilkan konteks H1, area dan kontrol M15, konfirmasi M1, serta skenario utama dan alternatif.",
+    "Asisten eksekusi dan notifikasi server kini menjelaskan perubahan konteks; tidak menerbitkan setup baru."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.355/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.357/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950355,
-  "latest_version_name": "2.0.0-pro.355",
+  "latest_version_code": 950357,
+  "latest_version_name": "2.0.0-pro.357",
   "mandatory": false,
-  "releaseDate": "2026-09-22",
+  "releaseDate": "2026-09-24",
   "release_notes": [
-    "Natural UI Overhaul: tampilan lebih bersih, natural, dan profesional.",
-    "Navigasi bawah full-width flat, kartu solid surface, dan background bersih tanpa efek berlebihan."
+    "Mapping Gold XAU/USD menampilkan konteks H1, area dan kontrol M15, konfirmasi M1, serta skenario utama dan alternatif.",
+    "Asisten eksekusi dan notifikasi server kini menjelaskan perubahan konteks; tidak menerbitkan setup baru."
   ],
-  "sha256": "bcd0f14a69d47799bb2b4df6a9f2eb50c93b1973669682153e0164facb527d1b",
-  "version": "2.0.0-pro.355",
-  "versionCode": 950355
+  "sha256": "dd92802328c8ff51eca301e6dc549228f85a74e44c0fef42bb882c6b761c280e",
+  "version": "2.0.0-pro.357",
+  "versionCode": 950357
 }
