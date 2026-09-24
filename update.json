@@ -1,21 +1,21 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.358/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.359/AmyFX-Pro-latest.apk",
   "changelog": [
     "Mapping Gold XAU/USD menampilkan konteks H1, area dan kontrol M15, konfirmasi M1, serta skenario utama dan alternatif.",
     "Asisten eksekusi dan notifikasi server kini menjelaskan perubahan konteks; tidak menerbitkan setup baru."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.358/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.359/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950358,
-  "latest_version_name": "2.0.0-pro.358",
+  "latest_version_code": 950359,
+  "latest_version_name": "2.0.0-pro.359",
   "mandatory": false,
   "releaseDate": "2026-09-24",
   "release_notes": [
     "Mapping Gold XAU/USD menampilkan konteks H1, area dan kontrol M15, konfirmasi M1, serta skenario utama dan alternatif.",
     "Asisten eksekusi dan notifikasi server kini menjelaskan perubahan konteks; tidak menerbitkan setup baru."
   ],
-  "sha256": "68b971597666684a966216653f20997128f950582f71ffc3116981bb01fbb1bc",
-  "version": "2.0.0-pro.358",
-  "versionCode": 950358
+  "sha256": "e19acaf63bf9798f0ce48fed48dd6ab415329db89621f39fd9f0ad3a8b5ef2b9",
+  "version": "2.0.0-pro.359",
+  "versionCode": 950359
 }
