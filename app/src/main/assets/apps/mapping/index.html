@@ -13,19 +13,19 @@
 <body class="amyfx-module amyfx-module--mapping amyfx-module--ict">
 <header><a href="../../index.html" aria-label="Kembali ke beranda">‹</a><div><small>AMY FX PRO · XAU/USD</small><h1>Konteks Pasar Gold</h1></div><span id="connection" role="status">Memuat</span></header>
 <main id="app">
-<section class="toolbar"><div><strong>XAU/USD</strong><p id="source">Menunggu candle tertutup.</p></div><label>Peta candle<select id="timeframe"><option value="M15">M15</option><option value="M1">M1</option></select></label><button id="refresh">Perbarui</button></section>
+<section class="toolbar"><div><strong>XAU/USD</strong><p id="source">Menunggu candle tertutup.</p></div><label>Peta candle<select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option><option value="M1">M1</option></select></label><button id="refresh">Perbarui</button></section>
 <nav aria-label="Panel Mapping"><button data-tab="Dashboard" aria-selected="true">Konteks</button><button data-tab="Analyze" aria-selected="false">Bukti</button><button data-tab="History" aria-selected="false">Arsip</button></nav>
 <p id="error" role="alert" hidden></p>
 <section id="Dashboard" class="panel">
-  <article class="context-hero"><div class="section-heading"><h2>KONTEKS PASAR</h2><span id="context-state" role="status">Menghubungkan</span></div><strong id="market-state">MENUNGGU DATA</strong><p id="market-story">Amy sedang memeriksa H1, M15, dan M1.</p><small id="context-source"></small></article>
-  <div class="context-grid"><article><small>H1 · BIAS INTRADAY</small><strong id="h1-bias">—</strong><p id="h1-health">—</p></article><article><small>M15 · AREA PENTING</small><strong id="m15-poi">—</strong><p id="m15-range">—</p></article><article><small>M15 · KONTROL</small><strong id="m15-control">—</strong><p id="m15-risk">—</p></article><article><small>M1 · KONFIRMASI</small><strong id="m1-confirmation">—</strong><p id="m1-evidence">—</p></article></div>
+  <article class="context-hero"><div class="section-heading"><h2>KONTEKS PASAR</h2><span id="context-state" role="status">Menghubungkan</span></div><strong id="market-state">MENUNGGU DATA</strong><p id="market-story">Amy sedang memeriksa H1, M15, dan M5.</p><small id="context-source"></small></article>
+  <div class="context-grid"><article><small>H1 · BIAS INTRADAY</small><strong id="h1-bias">—</strong><p id="h1-health">—</p></article><article><small>M15 · AREA PENTING</small><strong id="m15-poi">—</strong><p id="m15-range">—</p></article><article><small>M15 · KONTROL</small><strong id="m15-control">—</strong><p id="m15-risk">—</p></article><article><small>M5 · KONFIRMASI</small><strong id="m5-confirmation">—</strong><p id="m5-evidence">—</p></article></div>
   <article><div class="section-heading"><h2>Skenario utama</h2><span id="primary-status">MENUNGGU</span></div><div id="primary-scenario" class="scenario"></div></article>
   <details class="model-context"><summary>Skenario alternatif</summary><div id="alternative-scenario" class="scenario"></div></details>
   <article class="execution"><small>ASISTEN EKSEKUSI MANUAL</small><h2 id="execution-status">BELUM SIAP</h2><p id="execution-reason">Menunggu bukti candle.</p><ul id="execution-checklist"></ul><p id="news-awareness" class="muted"></p></article>
   <article><div class="section-heading"><h2>Peta harga</h2><span id="chart-caption">Candle tertutup</span></div><div id="chart" aria-label="Chart candlestick dan area konteks pasar"></div><p class="muted">Area dan batas invalidasi adalah referensi struktur. Tidak ada order otomatis.</p></article>
 </section>
 <section id="Analyze" class="panel" hidden>
-  <article class="analysis-priority"><div class="section-heading"><h2>Bukti struktur</h2><span>H1 → M15 → M1</span></div><div id="evidence" class="evidence-grid"></div></article>
+  <article class="analysis-priority"><div class="section-heading"><h2>Bukti struktur</h2><span>H1 → M15 → M5</span></div><div id="evidence" class="evidence-grid"></div></article>
   <article><h2>Likuiditas eksternal dan internal</h2><div id="liquidity"></div></article>
   <article><h2>Kondisi Gold</h2><div id="gold-condition"></div><a href="../market-intel/index.html">Periksa berita dan kalender ekonomi →</a></article>
 </section>

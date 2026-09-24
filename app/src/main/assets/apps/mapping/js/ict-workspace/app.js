@@ -9,7 +9,7 @@ try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}
 function draw(){
   const tf=$('timeframe').value,candles=raw?.tf===tf?normalize(raw.values,tf,Date.now()/1000).candles:[];
   chart?.draw({tf,candles,plan:null},overlay);
-  const last=candles.at(-1),duration=tf==='M1'?60:900;
+  const last=candles.at(-1),duration=tf==='M1'?60:tf==='M5'?300:900;
   $('source').textContent=last?`Candle ${tf} terakhir ditutup ${new Date((last.time+duration)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false})} WITA`:'Menunggu candle tertutup.';
   $('chart-caption').textContent=last?'Candle tertutup · referensi':'Belum ada candle valid';
 }

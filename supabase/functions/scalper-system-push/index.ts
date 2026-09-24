@@ -62,9 +62,10 @@ Deno.serve(async request=>{
     const messenger=firebase();let sent=0,failed=0;
     for(const event of events){
       // Never turn a stale snapshot or an archived setup into a live alert.
-      const sourceM1=Number(event.context?.source?.M1);
+      const sourceM=Number(event.context?.source?.M5||event.context?.source?.M1);
+      const maxAge=event.context?.source?.M5?900:180;
       if(event.context?.fresh!==true||event.context?.version!=='amyfx-gold-context-v1'||
-         !Number.isFinite(sourceM1)||Math.abs(Date.now()/1000-sourceM1)>180)continue;
+         !Number.isFinite(sourceM)||Math.abs(Date.now()/1000-sourceM)>maxAge)continue;
       let eventFailed=false;
       for(const device of targets){
         if(!await claim(event.event_key,device.id))continue;

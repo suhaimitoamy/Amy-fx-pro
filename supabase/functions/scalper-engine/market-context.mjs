@@ -119,9 +119,9 @@ export function liquidity(m15,d1,points=swings(m15),nowSeconds=Math.floor(Date.n
   });
 }
 
-export function confirmation(m1,zone,side) {
-  if(!zone||!side||m1.length<18) return {status:'WAITING',sweep:null,mss:null,microFvg:null};
-  const recent=m1.slice(-45).filter(c=>c.close_time>=zone.formedAt);
+export function confirmation(candles,zone,side) {
+  if(!zone||!side||candles.length<18) return {status:'WAITING',sweep:null,mss:null,microFvg:null};
+  const recent=candles.slice(-45).filter(c=>c.close_time>=zone.formedAt);
   let touch=-1,sweep=null,mss=null,microFvg=null;
   for(let i=6;i<recent.length;i++) {
     const c=recent[i],prior=recent.slice(i-6,i);
@@ -141,7 +141,9 @@ export function confirmation(m1,zone,side) {
     }
   }
   const lastTime=latest(recent)?.close_time;
-  const valid=sweep && lastTime-sweep.time<=15*60;
+  const interval=recent.length>=2?Math.round(recent[1].open_time-recent[0].open_time):60;
+  const sweepWindow=Math.max(15*60,interval*12);
+  const valid=sweep && lastTime-sweep.time<=sweepWindow;
   const failed=sweep && recent.slice(sweep.index+1).some(c=>side==='BUY'?c.close<zone.low||c.close<sweep.extreme:c.close>zone.high||c.close>sweep.extreme);
   if(failed)return {status:'FAILED',sweep:{time:sweep.time,level:sweep.level,extreme:sweep.extreme},mss:null,microFvg:null};
   return {status:valid&&mss&&microFvg?'CONFIRMED':valid?'CONFIRMING':'WAITING',sweep:valid?{time:sweep.time,level:sweep.level,extreme:sweep.extreme}:null,
@@ -157,18 +159,29 @@ function goldSession(nowSeconds){
   return hour>=2&&hour<5?'LONDON':hour>=7&&hour<11?'NEW YORK':'DI LUAR JAM INTI';
 }
 
-export function buildMarketContext({h1=[],m15=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000)}={}) {
-  const H=closedCandles(h1,nowSeconds),M=closedCandles(m15,nowSeconds),L=closedCandles(m1,nowSeconds),D=closedCandles(d1,nowSeconds);
-  const source={H1:latest(H)?.close_time||null,M15:latest(M)?.close_time||null,M1:latest(L)?.close_time||null,D1:latest(D)?.close_time||null};
-  const fresh=H.length>=30&&M.length>=40&&L.length>=40&&source.H1&&source.M15&&source.M1&&
+export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000)}={}) {
+  const isM5=Array.isArray(m5)&&m5.length>0;
+  const confCandles=isM5?m5:m1;
+  const tfName=isM5?'M5':'M1';
+  const H=closedCandles(h1,nowSeconds),M=closedCandles(m15,nowSeconds),C=closedCandles(confCandles,nowSeconds),D=closedCandles(d1,nowSeconds);
+  const closedM1=isM5&&m1&&m1.length?closedCandles(m1,nowSeconds):null;
+  const source={H1:latest(H)?.close_time||null,M15:latest(M)?.close_time||null,
+    M5:isM5?(latest(C)?.close_time||null):null,
+    M1:!isM5?(latest(C)?.close_time||null):(latest(closedM1||[])?.close_time||latest(C)?.close_time||null),
+    D1:latest(D)?.close_time||null};
+  if(isM5&&!source.M5&&source.M1)source.M5=source.M1;
+  if(!source.M1&&source.M5)source.M1=source.M5;
+  const confTime=isM5?source.M5:source.M1;
+  const maxConfAge=isM5?900:180;
+  const fresh=H.length>=30&&M.length>=40&&C.length>=40&&source.H1&&source.M15&&confTime&&
     nowSeconds-source.H1>=0&&nowSeconds-source.H1<=3*3600&&nowSeconds-source.M15>=0&&nowSeconds-source.M15<=35*60&&
-    nowSeconds-source.M1>=0&&nowSeconds-source.M1<=180;
+    nowSeconds-confTime>=0&&nowSeconds-confTime<=maxConfAge;
   const base={version:CONTEXT_VERSION,symbol:'XAU/USD',generatedAt:new Date(nowSeconds*1000).toISOString(),source,fresh:Boolean(fresh),
     session:goldSession(nowSeconds),
     news:{status:'UNVERIFIED',note:'Kalender berita berdampak tinggi belum terhubung; periksa berita sebelum eksekusi.'}};
   if(!fresh) return {...base,h1:{bias:'NEUTRAL',health:'WEAKENING'},m15:{control:'BALANCED',poi:null},
-    m1:{status:'WAITING'},liquidity:[],volatility:{condition:'UNKNOWN',atr:null},marketState:'DATA TERLAMBAT',
-    primary:null,alternative:null,execution:{status:'NOT READY',checklist:[],reason:'Candle H1, M15, atau M1 belum lengkap atau terlambat.'},
+    m5:{status:'WAITING'},m1:{status:'WAITING'},liquidity:[],volatility:{condition:'UNKNOWN',atr:null},marketState:'DATA TERLAMBAT',
+    primary:null,alternative:null,execution:{status:'NOT READY',checklist:[],reason:`Candle H1, M15, atau ${tfName} belum lengkap atau terlambat.`},
     narrative:'Data candle tertutup belum cukup segar untuk membentuk konteks pasar.',event:null};
   const h=structure(H),m=structure(M),mp=swings(M),allZones=zones(M,mp),levels=liquidity(M,D,mp,nowSeconds);
   const side=h.bias==='BULLISH'?'BUY':h.bias==='BEARISH'?'SELL':m.bias==='BULLISH'?'BUY':m.bias==='BEARISH'?'SELL':null;
@@ -182,7 +195,7 @@ export function buildMarketContext({h1=[],m15=[],m1=[],d1=[],nowSeconds=Math.flo
     .sort((a,b)=>Math.max(0,close-a.high,a.low-close)-Math.max(0,close-b.high,b.low-close)||b.formedAt-a.formedAt)[0]||null;
   const poi=side?choose(side):null,alternatePoi=side?choose(opposite):null;
   const near=poi&&Math.max(0,poi.low-close,close-poi.high)<=vol;
-  const confirming=confirmation(L,poi,side);
+  const confirming=confirmation(C,poi,side);
   if(poi&&((side==='BUY'&&latest(M).close<poi.low)||(side==='SELL'&&latest(M).close>poi.high)))confirming.status='FAILED';
   const aligned=side&&h.bias!=='NEUTRAL'&&(side==='BUY'?control==='BUYER':control==='SELLER');
   if(h.bias!=='NEUTRAL'&&!aligned)h.health=h.health==='INVALIDATED'?'INVALIDATED':'WEAKENING';
@@ -193,12 +206,12 @@ export function buildMarketContext({h1=[],m15=[],m1=[],d1=[],nowSeconds=Math.flo
     reasons:[isAlternative?'Dapat dipertimbangkan hanya setelah skenario utama batal':`Bias H1 ${h.bias==='BULLISH'?'naik':h.bias==='BEARISH'?'turun':'netral'}`,
       isAlternative?`M15 harus beralih ke ${s==='BUY'?'pembeli':'penjual'}`:`Kontrol M15 ${control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang'}`,
       z?`${z.label} M15 ${z.low.toFixed(2)}–${z.high.toFixed(2)} (${z.lifecycle})`:'Belum ada area M15 valid'],
-    waiting:z?'Tunggu harga merespons area M15 dan sweep + MSS + displacement/FVG M1.':'Tunggu POI M15 yang valid.',
+    waiting:z?`Tunggu harga merespons area M15 dan sweep + MSS + displacement/FVG ${tfName}.`:'Tunggu POI M15 yang valid.',
     status:z?'WAITING CONFIRMATION':'NO VALID POI'}:null;
   const checklist=[{label:'H1 searah dengan M15',ok:Boolean(aligned)},
     {label:'POI M15 valid dan dekat harga',ok:Boolean(poi&&near)},
-    {label:'Likuiditas M1 disapu dan direbut kembali',ok:Boolean(confirming.sweep)},
-    {label:'M1 MSS, displacement, dan micro FVG',ok:confirming.status==='CONFIRMED'},
+    {label:`Likuiditas ${tfName} disapu dan direbut kembali`,ok:Boolean(confirming.sweep)},
+    {label:`${tfName} MSS, displacement, dan micro FVG`,ok:confirming.status==='CONFIRMED'},
     {label:'Batas invalidasi tersedia',ok:Boolean(poi)}];
   const ready=checklist.every(x=>x.ok);
   const direction=h.bias==='BULLISH'?'Naik':h.bias==='BEARISH'?'Turun':'Netral';
@@ -210,20 +223,20 @@ export function buildMarketContext({h1=[],m15=[],m1=[],d1=[],nowSeconds=Math.flo
     `Menunggu: ${checklist.find(x=>!x.ok)?.label||'bukti tambahan'}.`;
   const narrative=`Gold H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':h.health==='INVALIDATED'?'batal':'melemah'}). M15 dikuasai ${controlling}. `+
     (poi?`Area ${poi.label} ${poi.low.toFixed(2)}–${poi.high.toFixed(2)} berstatus ${poi.lifecycle.toLowerCase()}. `:'Belum ada area M15 valid. ')+
-    `Konfirmasi M1 ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
+    `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
   const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready;
   const phase=ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
   const event=signal&&phase!=='NONE'?{key:[CONTEXT_VERSION,phase,h.bias,h.health,m.bias,m.lastBreak?.time||0,poi?.id||'none',poi?.lifecycle||'none'].join(':'),
     title:`Konteks Gold · ${phase==='CONFLICT'?'M15 berlawanan H1':phase==='READY'?'Siap ditinjau':'Mendekati area M15'}`,
-    body:`H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':'melemah'}), M15 ${controlling}. ${poi?`Area ${poi.low.toFixed(2)}–${poi.high.toFixed(2)}.`:'Area belum valid.'} M1 ${confirming.status==='CONFIRMED'?'terkonfirmasi':'belum terkonfirmasi'}. ${ready?'Siap ditinjau manual.':'Belum siap dieksekusi.'}`}:null;
+    body:`H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':'melemah'}), M15 ${controlling}. ${poi?`Area ${poi.low.toFixed(2)}–${poi.high.toFixed(2)}.`:'Area belum valid.'} ${tfName} ${confirming.status==='CONFIRMED'?'terkonfirmasi':'belum terkonfirmasi'}. ${ready?'Siap ditinjau manual.':'Belum siap dieksekusi.'}`}:null;
   const alternative=scenario(opposite,alternatePoi,altTarget,true);
   if(alternative)alternative.activation=[
     poi?`Close M15 ${side==='BUY'?'di bawah':'di atas'} ${Number(side==='BUY'?poi.low:poi.high).toFixed(2)} membatalkan area utama.`:'Area utama belum terbentuk; tunggu level invalidasi.',
     `M15 membentuk kontrol ${opposite==='BUY'?'buyer':'seller'} dan mempertahankannya.`,
-    `M1 menunjukkan sweep, MSS, displacement, serta micro FVG ${opposite==='BUY'?'bullish':'bearish'}.`
+    `${tfName} menunjukkan sweep, MSS, displacement, serta micro FVG ${opposite==='BUY'?'bullish':'bearish'}.`
   ];
   return {...base,price:round(close),h1:h,m15:{control,structure:m.bias,lastBreak:m.lastBreak,poi,
-      opposingControl:Boolean(h.bias!=='NEUTRAL'&&!aligned)},m1:confirming,liquidity:levels,
+      opposingControl:Boolean(h.bias!=='NEUTRAL'&&!aligned)},m5:confirming,m1:confirming,liquidity:levels,
     volatility:{condition:highVolatility?'HIGH VOLATILITY':'NORMAL',atr:round(vol)},marketState:state,
     primary:scenario(side,poi,target),alternative,
     execution:{status,checklist,reason},narrative,event};

@@ -44,12 +44,17 @@
   function mapping(q,m,now){
     const context=root.AmyMarketContext||read('amyfx.market-context.v1');
     if(context?.version==='amyfx-gold-context-v1'){
-      const age=now/1000-Number(context.source?.M1);
-      const fresh=context.fresh===true&&age>=0&&age<=180;
-      if(!fresh)return 'Konteks Gold terakhir sudah lama. Buka Mapping dan tunggu data H1, M15, dan M1 yang baru.';
+      const isM5=Boolean(context.source?.M5);
+      const confSource=Number(context.source?.M5||context.source?.M1);
+      const maxAge=isM5?900:180;
+      const age=now/1000-confSource;
+      const tfName=isM5?'M5':'M1';
+      const fresh=context.fresh===true&&age>=0&&age<=maxAge;
+      if(!fresh)return `Konteks Gold terakhir sudah lama. Buka Mapping dan tunggu data H1, M15, dan ${tfName} yang baru.`;
       const p=context.primary;
       const area=p?.area?`${number(p.area.low)}–${number(p.area.high)}`:'belum ada area valid';
-      return `Konteks Gold: H1 ${{BULLISH:'naik',BEARISH:'turun'}[context.h1?.bias]||'netral'} (${{HEALTHY:'kuat',WEAKENING:'melemah',INVALIDATED:'batal'}[context.h1?.health]||'belum jelas'}); M15 ${{BUYER:'pembeli',SELLER:'penjual'}[context.m15?.control]||'seimbang'}; M1 ${{CONFIRMED:'terkonfirmasi',CONFIRMING:'sedang dikonfirmasi',FAILED:'gagal'}[context.m1?.status]||'menunggu'}. `+
+      const conf=context.m5||context.m1;
+      return `Konteks Gold: H1 ${{BULLISH:'naik',BEARISH:'turun'}[context.h1?.bias]||'netral'} (${{HEALTHY:'kuat',WEAKENING:'melemah',INVALIDATED:'batal'}[context.h1?.health]||'belum jelas'}); M15 ${{BUYER:'pembeli',SELLER:'penjual'}[context.m15?.control]||'seimbang'}; ${tfName} ${{CONFIRMED:'terkonfirmasi',CONFIRMING:'sedang dikonfirmasi',FAILED:'gagal'}[conf?.status]||'menunggu'}. `+
         `Skenario utama ${p?.label||'belum tersedia'}, area ${area}, invalidasi ${number(p?.invalidation)}. `+
         `Asisten eksekusi: ${context.execution?.status==='READY TO REVIEW'?'siap ditinjau':'belum siap'}. ${context.execution?.reason||''} ${context.news?.note||''}`;
     }

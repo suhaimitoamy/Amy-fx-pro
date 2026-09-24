@@ -102,7 +102,32 @@ test('active path no longer inserts trade setups or sends legacy setup notificat
   assert.doesNotMatch(push,/amyfx_preview_scalper_events\?/);
   assert.match(push,/notification_type:'market_context'/);
   assert.match(push,/Number\(match\[1\]\)>=357/);
-  assert.match(push,/Math\.abs\(Date\.now\(\)\/1000-sourceM1\)>180/);
+  assert.match(push,/Math\.abs\(Date\.now\(\)\/1000-sourceM\)>maxAge/);
   assert.doesNotMatch(mapping,/scalper-panel\.js|id="signal"|Rencana entry/);
   assert.match(mapping,/context-panel\.js/);
+});
+
+test('M5 confirmation timeframe provides 900s freshness window and populates context.m5 and context.m1',()=>{
+  const m5Input={
+    nowSeconds:now,
+    h1:candles(3600,60,3300,.25,2),
+    m15:candles(900,100,3345,-.18,1.8),
+    m5:candles(300,60,3325,-.04,.7),
+    d1:candles(86400,10,3290,1,2)
+  };
+  const context=buildMarketContext(m5Input);
+  assert.equal(context.fresh,true);
+  assert.ok(context.source.M5);
+  assert.ok(context.m5);
+  assert.ok(context.m1);
+  assert.equal(context.m5.status,context.m1.status);
+  assert.match(context.narrative,/Konfirmasi M5/);
+  const payload={
+    ok:true,
+    mode:'market_context',
+    context,
+    engine:{status:'COMPLETED',completed_at:new Date(now*1000).toISOString(),result:{engine:'amyfx-gold-context-v1'}}
+  };
+  assert.equal(currentContext(payload,(now+500)*1000),context);
+  assert.equal(currentContext(payload,(now+950)*1000),null);
 });

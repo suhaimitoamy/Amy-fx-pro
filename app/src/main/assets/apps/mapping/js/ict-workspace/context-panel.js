@@ -25,8 +25,10 @@ function empty(reason){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
   $('market-state').textContent='KONTEKS BELUM TERSEDIA';$('market-story').textContent=reason;
   $('context-source').textContent='Candle lama tidak menjadi dasar keputusan baru.';
-  for(const id of ['h1-bias','h1-health','m15-poi','m15-range','m15-control','m15-risk','m1-confirmation','m1-evidence'])$(id).textContent='—';
-  $('primary-status').textContent='MENUNGGU';$('primary-scenario').textContent='Tunggu candle H1, M15, dan M1 yang segar.';
+  for(const id of ['h1-bias','h1-health','m15-poi','m15-range','m15-control','m15-risk','m1-confirmation','m1-evidence','m5-confirmation','m5-evidence']){
+    const el=$(id);if(el)el.textContent='—';
+  }
+  $('primary-status').textContent='MENUNGGU';$('primary-scenario').textContent='Tunggu candle H1, M15, dan M5 yang segar.';
   $('alternative-scenario').textContent='Belum ada skenario alternatif yang dapat ditinjau.';
   $('execution-status').textContent='BELUM SIAP';$('execution-reason').textContent=reason;
   $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
@@ -37,16 +39,23 @@ function empty(reason){
 function render(){
   const c=failed?null:currentContext(payload);
   if(!c){empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');return;}
+  const tf=c.source?.M5?'M5':'M1';
+  const confTime=c.source?.M5||c.source?.M1;
+  const confObj=c.m5||c.m1;
   $('connection').textContent='Candle server terkini';$('context-state').textContent='KONTEKS · BUKAN SINYAL';
   $('market-state').textContent=c.marketState||'MENUNGGU';$('market-story').textContent=c.narrative||'Menunggu penjelasan server.';
-  $('context-source').textContent=`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · M1 ${time(c.source.M1)}`;
+  $('context-source').textContent=`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`;
   $('h1-bias').textContent=id(c.h1?.bias||'NEUTRAL');$('h1-health').textContent=`Kesehatan: ${id(c.h1?.health)}`;
   $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
   $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';
   $('m15-control').textContent=id(c.m15?.control||'BALANCED');
   $('m15-risk').textContent=c.m15?.opposingControl?'Peringatan: M15 melawan bias H1.':'Pantau perubahan struktur M15.';
-  $('m1-confirmation').textContent=id(c.m1?.status||'WAITING');
-  $('m1-evidence').textContent=c.m1?.sweep?`Sweep ${number(c.m1.sweep.level)} · MSS ${number(c.m1.mss?.level)}`:'Menunggu sweep di area M15.';
+  const confStatus=id(confObj?.status||'WAITING');
+  const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep di area M15.';
+  if($('m5-confirmation'))$('m5-confirmation').textContent=confStatus;
+  if($('m1-confirmation'))$('m1-confirmation').textContent=confStatus;
+  if($('m5-evidence'))$('m5-evidence').textContent=confEvidence;
+  if($('m1-evidence'))$('m1-evidence').textContent=confEvidence;
   $('primary-status').textContent=id(c.primary?.status||'WAITING');$('primary-scenario').innerHTML=scenario(c.primary);
   $('alternative-scenario').innerHTML=scenario(c.alternative,true);
   $('execution-status').textContent=id(c.execution?.status||'NOT READY');$('execution-reason').textContent=c.execution?.reason||'Menunggu bukti.';
@@ -55,7 +64,7 @@ function render(){
   $('evidence').innerHTML=row('H1 · HH/HL/LH/LL',`${c.h1?.highPattern||'—'} / ${c.h1?.lowPattern||'—'} · ${c.h1?.lastBreak?.type||'belum ada break'} di ${number(c.h1?.lastBreak?.level)}`)+
     row('M15 · struktur',`${c.m15?.structure||'NEUTRAL'} · ${c.m15?.lastBreak?.type||'belum ada break'} di ${number(c.m15?.lastBreak?.level)}`)+
     row('POI · siklus',c.m15?.poi?`${c.m15.poi.label} ${number(c.m15.poi.low)}–${number(c.m15.poi.high)} · ${c.m15.poi.lifecycle}`:'Tidak ada zona valid')+
-    row('M1 · bukti',`${c.m1?.status||'WAITING'} · sweep ${number(c.m1?.sweep?.level)} · MSS ${number(c.m1?.mss?.level)} · micro FVG ${c.m1?.microFvg?`${number(c.m1.microFvg.low)}–${number(c.m1.microFvg.high)}`:'—'}`);
+    row(`${tf} · bukti`,`${confObj?.status||'WAITING'} · sweep ${number(confObj?.sweep?.level)} · MSS ${number(confObj?.mss?.level)} · micro FVG ${confObj?.microFvg?`${number(confObj.microFvg.low)}–${number(confObj.microFvg.high)}`:'—'}`);
   $('liquidity').innerHTML=(c.liquidity||[]).map(item=>row(`${item.label} · ${item.status}`,number(item.level))).join('')||'<p>Belum ada level eksternal/internal yang tervalidasi.</p>';
   $('gold-condition').innerHTML=row('Volatilitas',`${id(c.volatility?.condition||'UNKNOWN')} · ATR M15 ${number(c.volatility?.atr)}`)+row('Sesi',c.session||'Belum tersedia')+row('Berita berdampak tinggi',c.news?.note||'Belum diverifikasi');
   window.AmyMarketContext=Object.freeze(c);

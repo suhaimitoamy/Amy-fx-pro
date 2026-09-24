@@ -51,12 +51,23 @@ Deno.serve(async request=>{
   try {
     run=await acquireRun(now);
     if(!run)return json({ok:true,skipped:true,reason:'minute_already_processed',engine:CONTEXT_VERSION});
-    const refreshes=await Promise.all([refresh('1min',500),refresh('15min',700),refresh('1h',500)]);
-    // Daily levels are useful context, but a provider-side D1 outage cannot block M1/M15/H1 awareness.
+    const refreshes=await Promise.all([
+      refresh('5min',500),
+      refresh('15min',700),
+      refresh('1h',500),
+      refresh('1min',500).catch(()=>({interval:'1min',latestOpenTime:null}))
+    ]);
+    // Daily levels are useful context, but a provider-side D1 outage cannot block M5/M15/H1 awareness.
     const daily=await refresh('1day',70).catch(()=>({interval:'1day',latestOpenTime:null}));
     refreshes.push(daily);
-    const [m1,m15,h1,d1]=await Promise.all([load('M1',500),load('M15',700),load('H1',500),load('D1',70)]);
-    const context=buildMarketContext({m1,m15,h1,d1,nowSeconds:now});
+    const [m5,m15,h1,d1,m1]=await Promise.all([
+      load('M5',500),
+      load('M15',700),
+      load('H1',500),
+      load('D1',70),
+      load('M1',100).catch(()=>[])
+    ]);
+    const context=buildMarketContext({m5,m15,h1,d1,m1,nowSeconds:now});
     const queued=await enqueue(context);
     const result={ok:context.fresh,engine:CONTEXT_VERSION,mode:'market_context',context,market_refresh:refreshes,queued};
     await finishRun(run.run_bucket,result);
