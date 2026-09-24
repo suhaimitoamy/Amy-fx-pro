@@ -31,6 +31,7 @@ function empty(reason){
   $('execution-status').textContent='BELUM SIAP';$('execution-reason').textContent=reason;
   $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
   $('gold-condition').textContent='Menunggu data volatilitas.';$('news-awareness').textContent='Periksa berita berdampak tinggi secara manual.';
+  try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
   window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
 }
 function render(){
