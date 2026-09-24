@@ -589,7 +589,12 @@ function hideLoading() {
 }
 
 // ─── Economic Calendar Engine ─────────────────────────────
-const CALENDAR_ENDPOINT = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+const CALENDAR_ENDPOINTS = [
+  'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/economic-calendar',
+  'https://amy-fx.vercel.app/api/calendar',
+  'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://nfs.faireconomy.media/ff_calendar_thisweek.json'),
+  'https://nfs.faireconomy.media/ff_calendar_thisweek.json'
+];
 const CALENDAR_CACHE_KEY = 'amy_economic_calendar_v1';
 let calendarEvents = [];
 let currentCalendarFilter = 'all';
@@ -629,41 +634,45 @@ function saveCalendarToCache(events) {
 async function loadCalendar(silent = false) {
   const status = document.getElementById('calendar-status');
   if (!status) return;
-  if (!silent) status.textContent = 'Memuat jadwal kalender ekonomi...';
+  if (!silent && calendarEvents.length === 0) status.textContent = 'Memuat jadwal kalender ekonomi...';
+
+  const cached = getCachedCalendar();
+  if (cached?.events?.length > 0 && calendarEvents.length === 0) {
+    calendarEvents = cached.events;
+    renderCalendar();
+  }
 
   try {
     const signal = beginRequest('calendar');
     let data = null;
 
-    try {
-      const res = await fetch(CALENDAR_ENDPOINT, { signal });
-      if (res.ok) {
-        data = await res.json();
+    for (const url of CALENDAR_ENDPOINTS) {
+      try {
+        const res = await fetch(url, { signal });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && json.length > 0) {
+            data = json;
+            break;
+          }
+        }
+      } catch (fetchErr) {
+        if (fetchErr.name === 'AbortError') return;
       }
-    } catch (fetchErr) {
-      if (fetchErr.name === 'AbortError') return;
     }
 
     if (Array.isArray(data) && data.length > 0) {
       calendarEvents = data;
       saveCalendarToCache(data);
-    } else {
-      const cached = getCachedCalendar();
-      if (cached?.events?.length > 0) {
-        calendarEvents = cached.events;
-      }
-    }
-
-    panelLoadedAt.calendar = Date.now();
-    renderCalendar();
-  } catch (err) {
-    if (err.name === 'AbortError') return;
-    if (status) status.textContent = 'Gagal memuat kalender. Menampilkan data tersimpan.';
-    const cached = getCachedCalendar();
-    if (cached?.events?.length > 0) {
+      panelLoadedAt.calendar = Date.now();
+      renderCalendar();
+    } else if (calendarEvents.length === 0 && cached?.events?.length > 0) {
       calendarEvents = cached.events;
       renderCalendar();
     }
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    if (status && calendarEvents.length === 0) status.textContent = 'Gagal memuat kalender. Coba lagi nanti.';
   } finally {
     hideLoading();
   }
