@@ -1,5 +1,23 @@
 # Technical Decisions
 
+## 2026-09-24 — Pro361 Economic Calendar Automation & Market Intel Overhaul
+
+- **Context & Problem**:
+  1. Status berita di Gold Mapping Cockpit sebelumnya berstatus statis `UNVERIFIED`, memaksa trader memeriksa berita eksternal secara manual untuk menghindari spread blowout/slippage.
+  2. Tab Market Intel memiliki 3 tab (`Berita`, `Heatmap`, `Likuiditas`). Panel `Heatmap` & `Likuiditas` menampilkan BSL/SSL lama yang tumpang tindih dengan perhitungan presisi di tab Gold Mapping utama, sementara informasi fundamental penting (kalender rilis ekonomi & hitung mundur) tidak tersedia.
+- **Decision & Architecture**:
+  1. **Economic Calendar Feed**: Mengintegrasikan JSON feed gratis dari Forex Factory (Fair Economy Media: `https://nfs.faireconomy.media/ff_calendar_thisweek.json`) tanpa API key dan tanpa batasan kuota.
+  2. **Automated News Lock Gate**:
+     - Fungsi `evaluateEconomicCalendar(calendar, nowSeconds)` di `supabase/functions/scalper-engine/market-context.mjs` mengevaluasi rilis berita USD berdampak tinggi/medium.
+     - Jika rilis berita High-Impact USD berada dalam rentang -15 menit hingga +30 menit dari waktu sekarang: status berubah ke `NEWS_LOCK`, dan eksekusi dikunci otomatis ke `NOT READY` dengan alasan proteksi akun.
+     - Dalam rentang 30–120 menit: berstatus `UPCOMING` dengan peringatan waktu hitung mundur.
+     - Jika tidak ada berita dekat: berstatus `SAFE` (kondisi scalping aman).
+  3. **Market Intel Tab Redesign (Option A)**:
+     - Mengeliminasi total panel `Heatmap` dan `Likuiditas` dari Market Intel.
+     - Memfokuskan Market Intel 100% pada 2 tab inti: `Berita` (News stream) dan `Kalender` (Economic Calendar).
+     - Menyediakan filter cepat (`Semua`, `High Impact 🔴`, `Medium 🟠`, `USD Only 🇺🇸`), pengelompokan tanggal, jam lokal WITA (`Asia/Makassar`), dan badge hitung mundur real-time.
+  4. **Release**: Bump versi ke `2.0.0-pro.361` (code `950361`), deploy fungsi Supabase `scalper-engine` (`--no-verify-jwt`), commit, dan pantau CI build sampai APK terbit dan `update.json` teraktivasi.
+
 ## 2026-09-24 — Pro359 Gold Market Context M5 Confirmation Transition
 
 - **Problem**: Konfirmasi M1 memiliki batas kesegaran 180 detik, sedangkan feed provider TwelveData/Supabase memperbarui candle secara batch setiap 3–5 menit. Hal ini menyebabkan `fresh: false` secara persisten dan dashboard menampilkan `WAIT · data belum siap / KONTEKS BELUM TERSEDIA`.

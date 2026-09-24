@@ -1,5 +1,23 @@
 # Feature History
 
+## 2026-09-24 — Pro361 Automated Economic Calendar & Market Intel Overhaul
+
+- **Update 1: Automated Economic Calendar & News Lock Safety Gate:**
+  - Integrated Forex Factory / Fair Economy Media free JSON feed (`https://nfs.faireconomy.media/ff_calendar_thisweek.json`).
+  - Added `evaluateEconomicCalendar(calendar, nowSeconds)` in `supabase/functions/scalper-engine/market-context.mjs`.
+  - Replaced static `UNVERIFIED` news status with dynamic real-time states: `SAFE`, `UPCOMING`, `MEDIUM_ALERT`, and `NEWS_LOCK`.
+  - Built-in News Lock gate: If a High-Impact USD news event is within -15m to +30m, `execution.status` is automatically locked to `NOT READY` to protect traders from wide spreads, slippage, and whipsaws.
+  - Added warning indicators and badges (`.news-lock`, `.news-warning`, `.news-safe`) in the Gold Mapping Cockpit (`context-panel.js` and `ict-workspace.css`).
+  - Edge function `scalper-engine` fetches calendar in parallel with candle loads without adding latency.
+
+- **Update 2: Market Intel Redesign (Option A Execution):**
+  - Fully removed redundant legacy Heatmap and Liquidity panels from Market Intel.
+  - Focused Market Intel 100% on **Berita (News)** and **Kalender Ekonomi (Economic Calendar)**.
+  - Added interactive filtering (`[Semua]`, `[High Impact 🔴]`, `[Medium 🟠]`, `[USD Only 🇺🇸]`).
+  - Grouped releases by local day (`📅 Kamis, 24 Sep`) with local clock times (`Asia/Makassar` / WITA).
+  - Dynamic countdown badges: `🔴 Sedang Rilis / Volatilitas Tinggi` (imminent pulse), `⏳ Rilis 35m lagi`, `✓ Selesai`.
+  - Offline cache fallback (`amy_economic_calendar_v1`) in `localStorage` for zero-latency instant opening.
+
 ## 2026-09-24 — Pro360 Trading Buddy notification copy overhaul
 
 - Push notification messages for Gold market context transformed from stiff server-log jargon into lively, trader-friendly copy (Gaya Trading Buddy).

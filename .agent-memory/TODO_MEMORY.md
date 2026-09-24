@@ -1,5 +1,21 @@
 # TODO Memory
 
+## 2026-09-24 — Pro361 Release & Verification Checklist
+
+- [x] **Pro361 Released**:
+  1. Economic Calendar integration: Forex Factory feed parsed, auto-updating with offline cache in Market Intel.
+  2. News Lock Gate: `scalper-engine` evaluates USD events, locks execution to `NOT READY` when within -15m to +30m of High-Impact USD release.
+  3. Market Intel Redesign: Fully removed Heatmap & Liquidity panels (Option A), dedicated 100% to Berita & Kalender with filter pills, date groupings, countdown badges, and local time.
+  4. CI build completed (Run `36015938496`), signed APK `2.0.0-pro.361` (`950361`) published, and `update.json` activated.
+- [ ] **Physical Device Verification (Pro 361)**:
+  1. Buka aplikasi di HP Android dan verifikasi pop-up update versi Pro 361 muncul otomatis.
+  2. Buka tab **Market Intel (Berita & Kalender)**:
+     - Verifikasi hanya ada 2 tab: `Berita` dan `Kalender`.
+     - Cek tab `Kalender`: pastikan rilis berita minggu ini tampil lengkap dengan bendera negara, badge High/Med/Low, jam WIB/WITA, dan hitung mundur ("Rilis dlm Xm" / "Sedang Rilis").
+     - Uji tombol filter: `[High Impact 🔴]`, `[Medium 🟠]`, dan `[USD Only 🇺🇸]`.
+  3. Buka tab **Mapping (Konteks Gold)**:
+     - Periksa status `Berita berdampak tinggi`: pastikan berstatus `SAFE` atau menampilkan hitung mundur berita USD terdekat jika ada event.
+
 ## 2026-09-24 — Pro360 & Pro359 Verification & Next Steps
 
 - [x] **Pro359**: Lower timeframe confirmation transitioned from M1 to M5 with 900s freshness window, fixing the empty dashboard issue. Backwards-compatible `.m5` & `.m1` exposed. Released via CI.
