@@ -38,6 +38,19 @@ async function enqueue(context:any){
     body:JSON.stringify({event_key:event.key,candle_close_time:context.source.M15,title:event.title,body:event.body,context})});
   return Array.isArray(rows)&&rows.length>0;
 }
+async function fetchCalendar(): Promise<any[]> {
+  try {
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),2500);
+    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{signal:controller.signal});
+    clearTimeout(timeout);
+    if(!res.ok)return [];
+    return await res.json();
+  } catch (_) {
+    return [];
+  }
+}
+
 async function push(){
   const response=await fetch(`${SUPABASE_URL}/functions/v1/scalper-system-push`,{method:'POST',headers:{Authorization:`Bearer ${SERVICE_ROLE_KEY}`,'Content-Type':'application/json'},body:'{}'});
   return {ok:response.ok,status:response.status};
@@ -60,14 +73,15 @@ Deno.serve(async request=>{
     // Daily levels are useful context, but a provider-side D1 outage cannot block M5/M15/H1 awareness.
     const daily=await refresh('1day',70).catch(()=>({interval:'1day',latestOpenTime:null}));
     refreshes.push(daily);
-    const [m5,m15,h1,d1,m1]=await Promise.all([
+    const [m5,m15,h1,d1,m1,calendar]=await Promise.all([
       load('M5',500),
       load('M15',700),
       load('H1',500),
       load('D1',70),
-      load('M1',100).catch(()=>[])
+      load('M1',100).catch(()=>[]),
+      fetchCalendar().catch(()=>[])
     ]);
-    const context=buildMarketContext({m5,m15,h1,d1,m1,nowSeconds:now});
+    const context=buildMarketContext({m5,m15,h1,d1,m1,nowSeconds:now,calendar});
     const queued=await enqueue(context);
     const result={ok:context.fresh,engine:CONTEXT_VERSION,mode:'market_context',context,market_refresh:refreshes,queued};
     await finishRun(run.run_bucket,result);

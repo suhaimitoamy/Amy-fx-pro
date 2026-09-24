@@ -28,7 +28,7 @@ test('market intel page loads the ICT consumer without starting the legacy heatm
   assert.match(html, /<script type="module" src="ict-intel\.js"><\/script>/);
   assert.doesNotMatch(html, /<script src="heatmap-v2\.js"/);
   assert.ok(html.indexOf('data-amyfx-market-contract="v2"') < html.indexOf('<script src="app.js"></script>'));
-  assert.match(html, /Mapping ICT/);
+  assert.match(html, /Kalender/);
 });
 
 test('dynamic heatmap refreshes independently and tracks strength changes', () => {

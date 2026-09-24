@@ -60,7 +60,11 @@ function render(){
   $('alternative-scenario').innerHTML=scenario(c.alternative,true);
   $('execution-status').textContent=id(c.execution?.status||'NOT READY');$('execution-reason').textContent=c.execution?.reason||'Menunggu bukti.';
   $('execution-checklist').innerHTML=(c.execution?.checklist||[]).map(item=>`<li>${item.ok?'✓':'○'} ${esc(item.label)}</li>`).join('');
-  $('news-awareness').textContent=c.news?.note||'Status berita berdampak tinggi belum diverifikasi.';
+  const newsEl=$('news-awareness');
+  if(newsEl){
+    newsEl.textContent=c.news?.note||'Status berita berdampak tinggi belum diverifikasi.';
+    newsEl.className='muted '+(c.news?.status==='NEWS_LOCK'?'news-lock':c.news?.status==='UPCOMING'?'news-warning':c.news?.status==='SAFE'?'news-safe':'');
+  }
   $('evidence').innerHTML=row('H1 · HH/HL/LH/LL',`${c.h1?.highPattern||'—'} / ${c.h1?.lowPattern||'—'} · ${c.h1?.lastBreak?.type||'belum ada break'} di ${number(c.h1?.lastBreak?.level)}`)+
     row('M15 · struktur',`${c.m15?.structure||'NEUTRAL'} · ${c.m15?.lastBreak?.type||'belum ada break'} di ${number(c.m15?.lastBreak?.level)}`)+
     row('POI · siklus',c.m15?.poi?`${c.m15.poi.label} ${number(c.m15.poi.low)}–${number(c.m15.poi.high)} · ${c.m15.poi.lifecycle}`:'Tidak ada zona valid')+

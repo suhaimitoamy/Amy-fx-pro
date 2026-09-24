@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {buildMarketContext,confirmation,liquidity,structure,zones} from '../supabase/functions/scalper-engine/market-context.mjs';
+import {buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar} from '../supabase/functions/scalper-engine/market-context.mjs';
 import {currentContext} from '../app/src/main/assets/apps/mapping/js/ict-workspace/context-model.js';
 
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;
@@ -130,4 +130,41 @@ test('M5 confirmation timeframe provides 900s freshness window and populates con
   };
   assert.equal(currentContext(payload,(now+500)*1000),context);
   assert.equal(currentContext(payload,(now+950)*1000),null);
+});
+
+test('economic calendar integration detects safe, upcoming, and news lock states', () => {
+  // Empty calendar -> UNVERIFIED
+  assert.equal(evaluateEconomicCalendar([], now).status, 'UNVERIFIED');
+
+  // Safe calendar (no high/med nearby)
+  const safeCalendar = [
+    { country: 'USD', impact: 'Low', title: 'Crude Oil Inventories', date: new Date((now + 600) * 1000).toISOString() },
+    { country: 'EUR', impact: 'High', title: 'ECB Rate', date: new Date((now + 600) * 1000).toISOString() }
+  ];
+  const safeResult = evaluateEconomicCalendar(safeCalendar, now);
+  assert.equal(safeResult.status, 'SAFE');
+  assert.match(safeResult.note, /Kondisi scalping aman/);
+
+  // Upcoming High-Impact USD (e.g. 45 mins ahead)
+  const upcomingCalendar = [
+    { country: 'USD', impact: 'High', title: 'US CPI m/m', date: new Date((now + 45 * 60) * 1000).toISOString(), forecast: '0.2%', previous: '0.3%' }
+  ];
+  const upcomingResult = evaluateEconomicCalendar(upcomingCalendar, now);
+  assert.equal(upcomingResult.status, 'UPCOMING');
+  assert.match(upcomingResult.note, /US CPI m\/m rilis dalam 45 menit/);
+
+  // Critical News Lock (10 mins ahead)
+  const lockCalendar = [
+    { country: 'USD', impact: 'High', title: 'Non-Farm Payrolls', date: new Date((now + 10 * 60) * 1000).toISOString() }
+  ];
+  const lockResult = evaluateEconomicCalendar(lockCalendar, now);
+  assert.equal(lockResult.status, 'NEWS_LOCK');
+  assert.match(lockResult.note, /NEWS LOCK AKTIF/);
+
+  // Context build with lock calendar locks execution
+  const context = buildMarketContext({ ...input(), calendar: lockCalendar });
+  assert.equal(context.news.status, 'NEWS_LOCK');
+  assert.equal(context.execution.status, 'NOT READY');
+  assert.match(context.execution.reason, /News Lock Aktif/);
+  assert.equal(context.event?.title, '⛔ News Lock Aktif: Hindari Entry Scalping!');
 });

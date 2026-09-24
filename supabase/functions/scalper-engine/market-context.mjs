@@ -159,7 +159,109 @@ function goldSession(nowSeconds){
   return hour>=2&&hour<5?'LONDON':hour>=7&&hour<11?'NEW YORK':'DI LUAR JAM INTI';
 }
 
-export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000)}={}) {
+export function evaluateEconomicCalendar(calendar, nowSeconds) {
+  if (!Array.isArray(calendar) || calendar.length === 0) {
+    return {
+      status: 'UNVERIFIED',
+      impact: 'UNKNOWN',
+      event: null,
+      diffMinutes: null,
+      note: 'Kalender berita berdampak tinggi belum terhubung; periksa berita sebelum eksekusi.'
+    };
+  }
+
+  const usdEvents = [];
+  for (const item of calendar) {
+    if (String(item.country).toUpperCase() !== 'USD') continue;
+    const impact = String(item.impact || '').toLowerCase();
+    if (impact !== 'high' && impact !== 'medium') continue;
+
+    const eventTime = Math.floor(new Date(item.date).getTime() / 1000);
+    if (!Number.isFinite(eventTime)) continue;
+
+    const diffMinutes = Math.round((eventTime - nowSeconds) / 60);
+    usdEvents.push({
+      title: item.title,
+      country: 'USD',
+      impact: item.impact,
+      eventTime,
+      diffMinutes,
+      forecast: item.forecast || '',
+      previous: item.previous || ''
+    });
+  }
+
+  if (usdEvents.length === 0) {
+    return {
+      status: 'SAFE',
+      impact: 'LOW',
+      event: null,
+      diffMinutes: null,
+      note: '🟢 SAFE / CLEAR: Tidak ada berita USD berdampak tinggi dalam waktu dekat. Kondisi scalping aman.'
+    };
+  }
+
+  // Sort by closest in time to now (absolute difference)
+  usdEvents.sort((a, b) => Math.abs(a.diffMinutes) - Math.abs(b.diffMinutes));
+
+  // Critical safety buffer: -15 min (recent release) to +30 min (upcoming release) for High Impact
+  const highCritical = usdEvents.find(e => String(e.impact).toLowerCase() === 'high' && e.diffMinutes >= -15 && e.diffMinutes <= 30);
+  if (highCritical) {
+    const isPast = highCritical.diffMinutes < 0;
+    const isNow = highCritical.diffMinutes === 0;
+    const timing = isNow ? 'sedang rilis saat ini' : (isPast ? `${Math.abs(highCritical.diffMinutes)}m yang lalu` : `dalam ${highCritical.diffMinutes} menit`);
+    return {
+      status: 'NEWS_LOCK',
+      impact: 'HIGH',
+      event: highCritical.title,
+      diffMinutes: highCritical.diffMinutes,
+      forecast: highCritical.forecast,
+      previous: highCritical.previous,
+      note: `⛔ NEWS LOCK AKTIF: Rilis ${highCritical.title} (${timing}). Hindari entry scalping akibat risiko slippage & lonjakan spread.`
+    };
+  }
+
+  // Upcoming High Impact within 30 to 120 minutes
+  const highUpcoming = usdEvents.find(e => String(e.impact).toLowerCase() === 'high' && e.diffMinutes > 30 && e.diffMinutes <= 120);
+  if (highUpcoming) {
+    return {
+      status: 'UPCOMING',
+      impact: 'HIGH',
+      event: highUpcoming.title,
+      diffMinutes: highUpcoming.diffMinutes,
+      forecast: highUpcoming.forecast,
+      previous: highUpcoming.previous,
+      note: `⚠️ WASPADA BERITA: ${highUpcoming.title} rilis dalam ${highUpcoming.diffMinutes} menit${highUpcoming.forecast ? ` (Forecast: ${highUpcoming.forecast})` : ''}. Siapkan trailing/TP sebelum rilis.`
+    };
+  }
+
+  // Critical safety buffer for Medium Impact: -10 min to +15 min
+  const medCritical = usdEvents.find(e => String(e.impact).toLowerCase() === 'medium' && e.diffMinutes >= -10 && e.diffMinutes <= 15);
+  if (medCritical) {
+    const isPast = medCritical.diffMinutes < 0;
+    const isNow = medCritical.diffMinutes === 0;
+    const timing = isNow ? 'sedang rilis saat ini' : (isPast ? `${Math.abs(medCritical.diffMinutes)}m yang lalu` : `dalam ${medCritical.diffMinutes} menit`);
+    return {
+      status: 'MEDIUM_ALERT',
+      impact: 'MEDIUM',
+      event: medCritical.title,
+      diffMinutes: medCritical.diffMinutes,
+      forecast: medCritical.forecast,
+      previous: medCritical.previous,
+      note: `⚡ INFO BERITA: ${medCritical.title} (${timing}). Waspadai fluktuasi jangka pendek.`
+    };
+  }
+
+  return {
+    status: 'SAFE',
+    impact: 'LOW',
+    event: null,
+    diffMinutes: null,
+    note: '🟢 SAFE / CLEAR: Tidak ada berita USD berdampak tinggi dalam waktu dekat. Kondisi scalping aman.'
+  };
+}
+
+export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000),calendar=[]}={}) {
   const isM5=Array.isArray(m5)&&m5.length>0;
   const confCandles=isM5?m5:m1;
   const tfName=isM5?'M5':'M1';
@@ -176,9 +278,10 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   const fresh=H.length>=30&&M.length>=40&&C.length>=40&&source.H1&&source.M15&&confTime&&
     nowSeconds-source.H1>=0&&nowSeconds-source.H1<=3*3600&&nowSeconds-source.M15>=0&&nowSeconds-source.M15<=35*60&&
     nowSeconds-confTime>=0&&nowSeconds-confTime<=maxConfAge;
+  const newsContext=evaluateEconomicCalendar(calendar,nowSeconds);
   const base={version:CONTEXT_VERSION,symbol:'XAU/USD',generatedAt:new Date(nowSeconds*1000).toISOString(),source,fresh:Boolean(fresh),
     session:goldSession(nowSeconds),
-    news:{status:'UNVERIFIED',note:'Kalender berita berdampak tinggi belum terhubung; periksa berita sebelum eksekusi.'}};
+    news:newsContext};
   if(!fresh) return {...base,h1:{bias:'NEUTRAL',health:'WEAKENING'},m15:{control:'BALANCED',poi:null},
     m5:{status:'WAITING'},m1:{status:'WAITING'},liquidity:[],volatility:{condition:'UNKNOWN',atr:null},marketState:'DATA TERLAMBAT',
     primary:null,alternative:null,execution:{status:'NOT READY',checklist:[],reason:`Candle H1, M15, atau ${tfName} belum lengkap atau terlambat.`},
@@ -214,27 +317,32 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     {label:`${tfName} MSS, displacement, dan micro FVG`,ok:confirming.status==='CONFIRMED'},
     {label:'Batas invalidasi tersedia',ok:Boolean(poi)}];
   const ready=checklist.every(x=>x.ok);
+  const isNewsLock=newsContext.status==='NEWS_LOCK';
   const direction=h.bias==='BULLISH'?'Naik':h.bias==='BEARISH'?'Turun':'Netral';
   const controlling=control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang';
   const state=h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()} · tekanan ${controlling} di M15`:poi&&near?`H1 ${direction.toLowerCase()} · dekat area M15`:`H1 ${direction.toLowerCase()} · menunggu area`;
-  const status=ready?'READY TO REVIEW':'NOT READY';
-  const reason=ready?'Semua bukti candle terpenuhi. Tinjau spread dan kalender berita secara manual.':
+  const status=isNewsLock?'NOT READY':(ready?'READY TO REVIEW':'NOT READY');
+  const reason=isNewsLock?`⛔ News Lock Aktif: Rilis ${newsContext.event} ${newsContext.diffMinutes<=0?'sedang rilis / baru saja rilis':`dalam ${newsContext.diffMinutes} menit`}. Hindari entry untuk mencegah slippage & spread melebar.`:
+    (ready?'Semua bukti candle terpenuhi. Tinjau spread dan kalender berita secara manual.':
     h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()}, tetapi M15 dikuasai ${controlling}. Risiko perubahan arah perlu dipantau.`:
-    `Menunggu: ${checklist.find(x=>!x.ok)?.label||'bukti tambahan'}.`;
+    `Menunggu: ${checklist.find(x=>!x.ok)?.label||'bukti tambahan'}.`);
   const narrative=`Gold H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':h.health==='INVALIDATED'?'batal':'melemah'}). M15 dikuasai ${controlling}. `+
     (poi?`Area ${poi.label} ${poi.low.toFixed(2)}–${poi.high.toFixed(2)} berstatus ${poi.lifecycle.toLowerCase()}. `:'Belum ada area M15 valid. ')+
-    `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
-  const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready;
-  const phase=ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
-  const eventTitle=phase==='CONFLICT'?'⚠️ Hati-hati! M15 Mulai Melawan Arah H1':
+    `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${isNewsLock?'⛔ News Lock aktif; tunda eksekusi hingga pasar stabil.':ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
+  const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready||isNewsLock;
+  const phase=isNewsLock?'NEWS_LOCK':ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
+  const eventTitle=phase==='NEWS_LOCK'?'⛔ News Lock Aktif: Hindari Entry Scalping!':
+    phase==='CONFLICT'?'⚠️ Hati-hati! M15 Mulai Melawan Arah H1':
     phase==='READY'?`⚡ Konfirmasi ${tfName} Muncul! Siap Ditinjau`:
     `🔔 Gold Mendekati Zona ${side==='BUY'?'Beli':'Jual'}!`;
-  const eventBody=phase==='CONFLICT'?
+  const eventBody=phase==='NEWS_LOCK'?
+    `Rilis ${newsContext.event} ${newsContext.diffMinutes<=0?'sedang berlangsung':'sebentar lagi'}. Seluruh eksekusi ditahan otomatis demi melindungi akun dari spread melebar & slippage.`:
+    phase==='CONFLICT'?
     `${control==='BUYER'?'Buyer':'Seller'} mulai masuk di M15 padahal tren besar H1 masih ${direction.toLowerCase()}. Jangan buru-buru open posisi, rawan jebakan.`:
     phase==='READY'?
     `Ada sapuan likuiditas & pantulan di ${confirming.sweep?confirming.sweep.level.toFixed(2):'area M15'}. Skenario ${side||'GOLD'} layak kamu cek di MT4/MT5. Batas invalidasi di ${poi?(side==='BUY'?poi.low.toFixed(2):poi.high.toFixed(2)):'—'}.`:
     `Harga lagi masuk area ${poi?`${poi.low.toFixed(2)}–${poi.high.toFixed(2)}`:'M15'}. Tren H1 masih ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':'melemah'}). Standby dulu, kita tunggu reaksi candle ${tfName} ya.`;
-  const event=signal&&phase!=='NONE'?{key:[CONTEXT_VERSION,phase,h.bias,h.health,m.bias,m.lastBreak?.time||0,poi?.id||'none',poi?.lifecycle||'none'].join(':'),
+  const event=signal&&phase!=='NONE'?{key:[CONTEXT_VERSION,phase,phase==='NEWS_LOCK'?newsContext.event:h.bias,h.health,m.bias,m.lastBreak?.time||0,poi?.id||'none',poi?.lifecycle||'none'].join(':'),
     title:eventTitle,
     body:eventBody}:null;
   const alternative=scenario(opposite,alternatePoi,altTarget,true);

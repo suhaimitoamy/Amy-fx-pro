@@ -85,19 +85,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupTabs();
   setupNewsInteractions();
+  setupCalendarFilters();
   window.AmyFXLoading?.start({
     delay: 350,
     timeout: 12000,
     message: 'Memuat data market…',
     retry: () => location.reload()
   });
-  Promise.allSettled([loadNews(), loadHeatmap()])
+  Promise.allSettled([loadNews(), loadCalendar()])
     .finally(() => window.AmyFXLoading?.stop());
 
   // Auto-refresh
   setInterval(() => {
     if (document.hidden) return;
     if (currentTab === 'news') loadNews(true);
+    else if (currentTab === 'calendar') loadCalendar(true);
     else if (currentTab === 'heatmap') loadHeatmap(true);
     else if (currentTab === 'liquidity') loadLiquidity(true);
   }, REFRESH_INTERVAL);
@@ -106,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.toggle('webview-idle', document.hidden);
     if (!document.hidden) {
       if (currentTab === 'news' && shouldRefresh('news', REFRESH_INTERVAL)) loadNews(true);
+      if (currentTab === 'calendar' && shouldRefresh('calendar', REFRESH_INTERVAL)) loadCalendar(true);
       if (currentTab === 'heatmap' && shouldRefresh('heatmap', REFRESH_INTERVAL)) loadHeatmap(true);
       if (currentTab === 'liquidity' && shouldRefresh('liquidity', REFRESH_INTERVAL)) loadLiquidity(true);
     }
@@ -130,13 +133,14 @@ function setupTabs() {
 }
 
 function activateTab(tab) {
-  if (!['news', 'heatmap', 'liquidity'].includes(tab)) return;
+  if (!['news', 'calendar', 'heatmap', 'liquidity'].includes(tab)) return;
   currentTab = tab;
   document.querySelectorAll('.intel-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.intel-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
-  if (tab === 'heatmap' && shouldRefresh('heatmap')) loadHeatmap();
-  else if (tab === 'liquidity' && shouldRefresh('liquidity')) loadLiquidity();
+  if (tab === 'calendar' && shouldRefresh('calendar')) loadCalendar();
   else if (tab === 'news' && shouldRefresh('news')) loadNews();
+  else if (tab === 'heatmap' && shouldRefresh('heatmap')) loadHeatmap();
+  else if (tab === 'liquidity' && shouldRefresh('liquidity')) loadLiquidity();
 }
 
 function setupNewsInteractions() {
@@ -582,4 +586,194 @@ function openLink(url) {
 function hideLoading() {
   const overlay = document.getElementById('loading-overlay');
   if (overlay) overlay.style.display = 'none';
+}
+
+// ─── Economic Calendar Engine ─────────────────────────────
+const CALENDAR_ENDPOINT = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+const CALENDAR_CACHE_KEY = 'amy_economic_calendar_v1';
+let calendarEvents = [];
+let currentCalendarFilter = 'all';
+
+const COUNTRY_FLAGS = {
+  USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵',
+  CAD: '🇨🇦', AUD: '🇦🇺', NZD: '🇳🇿', CHF: '🇨🇭', CNY: '🇨🇳'
+};
+
+function setupCalendarFilters() {
+  document.querySelectorAll('.cal-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cal-filter').forEach(b => b.classList.toggle('active', b === btn));
+      currentCalendarFilter = btn.dataset.filter || 'all';
+      renderCalendar();
+    });
+  });
+}
+
+function getCachedCalendar() {
+  try {
+    const raw = localStorage.getItem(CALENDAR_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveCalendarToCache(events) {
+  try {
+    if (Array.isArray(events) && events.length > 0) {
+      localStorage.setItem(CALENDAR_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), events }));
+    }
+  } catch (_) {}
+}
+
+async function loadCalendar(silent = false) {
+  const status = document.getElementById('calendar-status');
+  if (!status) return;
+  if (!silent) status.textContent = 'Memuat jadwal kalender ekonomi...';
+
+  try {
+    const signal = beginRequest('calendar');
+    let data = null;
+
+    try {
+      const res = await fetch(CALENDAR_ENDPOINT, { signal });
+      if (res.ok) {
+        data = await res.json();
+      }
+    } catch (fetchErr) {
+      if (fetchErr.name === 'AbortError') return;
+    }
+
+    if (Array.isArray(data) && data.length > 0) {
+      calendarEvents = data;
+      saveCalendarToCache(data);
+    } else {
+      const cached = getCachedCalendar();
+      if (cached?.events?.length > 0) {
+        calendarEvents = cached.events;
+      }
+    }
+
+    panelLoadedAt.calendar = Date.now();
+    renderCalendar();
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    if (status) status.textContent = 'Gagal memuat kalender. Menampilkan data tersimpan.';
+    const cached = getCachedCalendar();
+    if (cached?.events?.length > 0) {
+      calendarEvents = cached.events;
+      renderCalendar();
+    }
+  } finally {
+    hideLoading();
+  }
+}
+
+function computeEventCountdown(eventTimeMs) {
+  const diffMinutes = Math.round((eventTimeMs - Date.now()) / 60000);
+  if (diffMinutes >= -15 && diffMinutes <= 15) {
+    return { text: '🔴 Sedang Rilis / Volatilitas Tinggi', className: 'imminent' };
+  }
+  if (diffMinutes > 15 && diffMinutes <= 60) {
+    return { text: `⏳ Rilis ${diffMinutes}m lagi`, className: 'soon' };
+  }
+  if (diffMinutes > 60 && diffMinutes <= 24 * 60) {
+    const hours = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    return { text: `⏳ Rilis ${hours}j ${mins}m lagi`, className: 'soon' };
+  }
+  if (diffMinutes < -15) {
+    return { text: '✓ Selesai', className: 'done' };
+  }
+  return { text: '⏳ Terjadwal', className: 'future' };
+}
+
+function renderCalendar() {
+  const list = document.getElementById('calendar-list');
+  const status = document.getElementById('calendar-status');
+  if (!list) return;
+
+  if (!calendarEvents || calendarEvents.length === 0) {
+    list.innerHTML = '<div class="empty-state">Tidak ada jadwal kalender ekonomi tersedia saat ini.</div>';
+    if (status) status.textContent = 'Data kalender belum tersedia.';
+    return;
+  }
+
+  // Filter events
+  const filtered = calendarEvents.filter(item => {
+    const impact = String(item.impact || '').toLowerCase();
+    const country = String(item.country || '').toUpperCase();
+    if (currentCalendarFilter === 'high') return impact === 'high';
+    if (currentCalendarFilter === 'medium') return impact === 'medium';
+    if (currentCalendarFilter === 'usd') return country === 'USD';
+    return true;
+  });
+
+  if (status) {
+    status.textContent = `${filtered.length} rilis ekonomi • Sinkronisasi otomatis`;
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state">Tidak ada rilis berita untuk filter yang dipilih.</div>';
+    return;
+  }
+
+  // Group events by local date string
+  const groups = new Map();
+  for (const item of filtered) {
+    const d = new Date(item.date);
+    const dateKey = Number.isFinite(d.getTime())
+      ? d.toLocaleDateString('id-ID', { timeZone: 'Asia/Makassar', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+      : 'Tanggal Tidak Diketahui';
+
+    if (!groups.has(dateKey)) groups.set(dateKey, []);
+    groups.get(dateKey).push(item);
+  }
+
+  const html = [];
+  groups.forEach((items, dateLabel) => {
+    html.push(`<div class="calendar-group">`);
+    html.push(`<div class="calendar-date-header"><span>📅 ${escapeHtml(dateLabel)}</span><small>${items.length} rilis</small></div>`);
+
+    items.forEach(ev => {
+      const d = new Date(ev.date);
+      const timeMs = d.getTime();
+      const timeStr = Number.isFinite(timeMs)
+        ? d.toLocaleTimeString('en-GB', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit' }) + ' WITA'
+        : '—';
+      const countdown = Number.isFinite(timeMs) ? computeEventCountdown(timeMs) : { text: '', className: '' };
+      const impact = String(ev.impact || '').toLowerCase();
+      const flag = COUNTRY_FLAGS[ev.country] || '🌐';
+      const isHigh = impact === 'high';
+      const isMed = impact === 'medium';
+      const impactClass = isHigh ? 'high' : (isMed ? 'medium' : 'low');
+      const impactLabel = isHigh ? 'High Impact' : (isMed ? 'Medium' : (ev.impact || 'Low'));
+
+      html.push(`
+        <article class="calendar-card impact-${impactClass}">
+          <div class="cal-top">
+            <div class="cal-badge-wrap">
+              <span class="cal-currency">${flag} ${escapeHtml(ev.country)}</span>
+              <span class="impact-tag ${impactClass}">${impactLabel}</span>
+            </div>
+            <div class="cal-time-wrap">
+              <span class="cal-time">⏰ ${timeStr}</span>
+            </div>
+          </div>
+          <h2 class="cal-title">${escapeHtml(ev.title)}</h2>
+          <div class="cal-bottom">
+            <div class="cal-numbers">
+              <span>Forecast: <strong class="cal-val">${escapeHtml(ev.forecast || '—')}</strong></span>
+              <span>Previous: <strong class="cal-val">${escapeHtml(ev.previous || '—')}</strong></span>
+            </div>
+            ${countdown.text ? `<span class="cal-countdown ${countdown.className}">${countdown.text}</span>` : ''}
+          </div>
+        </article>
+      `);
+    });
+
+    html.push(`</div>`);
+  });
+
+  list.innerHTML = html.join('');
 }
