@@ -1,5 +1,18 @@
 # Bug History
 
+## 2026-09-24 — Pro362 Kalender Ekonomi Kosong Akibat Blokir CORS di Android WebView
+
+- **Symptoms**: Tab Kalender Ekonomi pada Market Intel menampilkan pesan kosong:
+  `Data kalender belum tersedia.`
+  `Tidak ada jadwal kalender ekonomi tersedia saat ini.`
+- **Root Cause**: Feed Forex Factory `https://nfs.faireconomy.media/ff_calendar_thisweek.json` disajikan oleh Cloudflare CDN tanpa header `Access-Control-Allow-Origin: *`. Akibatnya, `fetch()` dari Android WebView diblokir oleh kebijakan CORS browser dan melempar `TypeError: Failed to fetch`.
+- **Resolution**:
+  1. Membuat dan mendeploy Supabase Edge Function `economic-calendar` (`supabase/functions/economic-calendar/index.ts`) yang mengambil feed Forex Factory dan mengembalikannya dengan header CORS `Access-Control-Allow-Origin: *`.
+  2. Menambahkan serverless endpoint fallback `api/calendar.js` di Vercel.
+  3. Memperbarui `loadCalendar()` di `app.js` dengan multi-endpoint fallback chain (`CALENDAR_ENDPOINTS`): Supabase proxy → Vercel proxy → AllOrigins CORS proxy → direct fetch.
+  4. Memperbarui cache-first render agar saat data sudah pernah tersimpan, langsung muncul instan tanpa jeda loading.
+  5. Bump versi ke `2.0.0-pro.362` (`950362`), lulus CI workflow Run `36018003253`, dan `update.json` teraktivasi.
+
 ## 2026-09-24 — Pro359 Dashboard Gold Kosong Akibat Timeout Kesegaran M1
 
 - **Symptoms**: Layar Mapping Gold XAU/USD menampilkan `WAIT · data belum siap` dan `KONTEKS BELUM TERSEDIA / Evaluasi server belum lengkap atau candle tertutup sudah terlambat` dengan semua kartu bernilai strip (`—`) meskipun app version sudah di-bump 2 kali.
