@@ -108,7 +108,7 @@ jobs:
           cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4.0.4
         with:
           # SDK 'tools' package was removed upstream; only platform-tools is needed.
           packages: platform-tools

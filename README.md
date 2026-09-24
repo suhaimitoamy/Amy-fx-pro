@@ -9,13 +9,13 @@ Amy FX Pro adalah **hybrid trading workspace untuk XAU/USD** yang menggabungkan 
 | Properti | Nilai |
 |---|---|
 | Source branch | `main` |
-| Source version | `2.0.0-pro.356` / `950356` |
+| Candidate source version | `2.0.0-pro.357` / `950357` (PR #5) |
 | Active published update | `2.0.0-pro.355` / `950355` |
 | Update channel | `main/update.json` |
 | Android package continuity | `com.amyelitesuite.learningpreview` |
 | Runtime | Android WebView + HTML/CSS/JS + Vercel serverless |
 
-Source saat ini sudah berada di **Pro356**, sementara manifest pembaruan yang aktif masih **Pro355** sampai pipeline signed release memublikasikan dan mengaktifkan build berikutnya.
+Pro357 disiapkan di cabang review. `main` masih Pro356 dan manifest aktif masih Pro355. Paket Android `com.amyelitesuite.learningpreview` dipertahankan dari baseline `Amy FX Preview` pada `personal/amyfx-private` (`2.0.0-pro.316`) agar pembaruan tetap kompatibel. Kanal pembaruan sumber: `Amy-fx-pro/main/update.json`. APK Pro357 belum diterbitkan.
 
 ## Architecture
 
@@ -38,23 +38,17 @@ Struktur utama:
 - `app/src/main/assets/apps/indikator/` — library indikator/Pine Script.
 - `api/` — Vercel serverless endpoints.
 
-## Canonical Mapping
+## Mapping Gold Pro357
 
-Mapping menggunakan prinsip deterministic, closed-candle analysis:
+Kandidat Mapping XAU/USD membaca H1 sebagai bias intraday, M15 sebagai area dan kontrol, serta M1 sebagai bukti konfirmasi. Skenario utama dan alternatif berisi alasan, rentang harga, syarat aktivasi, serta batas invalidasi bila tersedia. Semua keputusan memakai candle tertutup; jika data terlambat, status kembali ke **belum siap**. Berita berdampak tinggi belum terhubung ke kalender, sehingga aplikasi meminta pemeriksaan manual.
 
-- Candle diproses sequentially.
-- Tidak menggunakan future candle.
-- Tidak membuat interpolation atau synthetic gap candle untuk mengisi data.
-- Canonical Mapping menjadi sumber arah/struktur yang dikonsumsi UI dan consumer terkait.
-- Scanner, Entry Watch, lifecycle, dan execution-related consumers tidak boleh menciptakan directional authority baru di atas canonical Mapping.
-- Live tick digunakan untuk kebutuhan realtime/display dan tidak boleh mengubah fakta historical closed-candle Mapping.
-- Last valid Mapping tetap dapat dipertahankan ketika provider sementara stale sampai closed candle valid yang lebih baru tersedia.
+Mesin setup lama tetap tersedia sebagai arsip tanpa menerbitkan setup baru. Fungsi Supabase produksi masih versi lama sampai perubahan produksi disetujui dan dipasang; sumber Pro357 di PR ini belum mengubah notifikasi pada perangkat.
 
 ## Main Modules
 
 ### Mapping
 
-Market-context workspace untuk membaca Final Bias, struktur, liquidity, dealing range, predictive events, dan evidence dari closed candles. Tampilan Analyze mengutamakan primary evidence dan menjaga secondary detail tetap ringkas untuk mobile.
+Konteks Gold berbahasa Indonesia: bias H1, POI dan kontrol M15, konfirmasi M1, likuiditas, dua skenario manual, dan asisten kesiapan eksekusi. Tab Bukti menyajikan asal struktur dan harga; tab Arsip menampilkan riwayat setup lama.
 
 ### Scanner
 
@@ -116,6 +110,12 @@ Source version dan published update adalah dua state yang berbeda.
 Karena itu README tidak boleh menganggap candidate source sudah menjadi active published build sebelum pipeline selesai.
 
 ## Current Release Notes
+
+### Pro357 candidate (PR #5)
+
+- Bangun konteks H1/M15/M1, skenario utama/alternatif, dan batas invalidasi untuk scalping Gold.
+- Siapkan notifikasi perubahan konteks hanya untuk APK Pro357+; jangan mengirim setup baru setelah fungsi server disetujui dan dipasang.
+- Sumber `2.0.0-pro.357` / `950357` menunggu deployment fungsi dan APK bertanda tangan; manifest tetap Pro355.
 
 ### Pro356 source
 
