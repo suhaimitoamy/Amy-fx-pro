@@ -40,7 +40,7 @@ class AmyFirebaseMessagingService : FirebaseMessagingService() {
         val eventKey = data["event_key"].orEmpty()
         if (eventKey.isBlank()) return
         val title = data["title"].orEmpty().ifBlank { "Konteks Gold · Amy FX Pro" }
-        val body = data["body"].orEmpty().ifBlank { "Kondisi H1, M15, atau M1 berubah. Buka Mapping untuk melihat bukti." }
+        val body = data["body"].orEmpty().ifBlank { "Kondisi pasar Gold berubah. Buka Mapping untuk melihat konfirmasi M5 dan strukturnya." }
         val suppliedTarget = data["target_url"].orEmpty()
         val targetUrl = if (suppliedTarget.startsWith("https://appassets.androidplatform.net/assets/apps/mapping/"))
             suppliedTarget else "https://appassets.androidplatform.net/assets/apps/mapping/index.html#context"

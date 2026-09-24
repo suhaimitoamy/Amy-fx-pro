@@ -226,9 +226,17 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
   const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready;
   const phase=ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
+  const eventTitle=phase==='CONFLICT'?'⚠️ Hati-hati! M15 Mulai Melawan Arah H1':
+    phase==='READY'?`⚡ Konfirmasi ${tfName} Muncul! Siap Ditinjau`:
+    `🔔 Gold Mendekati Zona ${side==='BUY'?'Beli':'Jual'}!`;
+  const eventBody=phase==='CONFLICT'?
+    `${control==='BUYER'?'Buyer':'Seller'} mulai masuk di M15 padahal tren besar H1 masih ${direction.toLowerCase()}. Jangan buru-buru open posisi, rawan jebakan.`:
+    phase==='READY'?
+    `Ada sapuan likuiditas & pantulan di ${confirming.sweep?confirming.sweep.level.toFixed(2):'area M15'}. Skenario ${side||'GOLD'} layak kamu cek di MT4/MT5. Batas invalidasi di ${poi?(side==='BUY'?poi.low.toFixed(2):poi.high.toFixed(2)):'—'}.`:
+    `Harga lagi masuk area ${poi?`${poi.low.toFixed(2)}–${poi.high.toFixed(2)}`:'M15'}. Tren H1 masih ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':'melemah'}). Standby dulu, kita tunggu reaksi candle ${tfName} ya.`;
   const event=signal&&phase!=='NONE'?{key:[CONTEXT_VERSION,phase,h.bias,h.health,m.bias,m.lastBreak?.time||0,poi?.id||'none',poi?.lifecycle||'none'].join(':'),
-    title:`Konteks Gold · ${phase==='CONFLICT'?'M15 berlawanan H1':phase==='READY'?'Siap ditinjau':'Mendekati area M15'}`,
-    body:`H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':'melemah'}), M15 ${controlling}. ${poi?`Area ${poi.low.toFixed(2)}–${poi.high.toFixed(2)}.`:'Area belum valid.'} ${tfName} ${confirming.status==='CONFIRMED'?'terkonfirmasi':'belum terkonfirmasi'}. ${ready?'Siap ditinjau manual.':'Belum siap dieksekusi.'}`}:null;
+    title:eventTitle,
+    body:eventBody}:null;
   const alternative=scenario(opposite,alternatePoi,altTarget,true);
   if(alternative)alternative.activation=[
     poi?`Close M15 ${side==='BUY'?'di bawah':'di atas'} ${Number(side==='BUY'?poi.low:poi.high).toFixed(2)} membatalkan area utama.`:'Area utama belum terbentuk; tunggu level invalidasi.',
