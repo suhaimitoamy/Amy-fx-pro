@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {buildMarketContext,confirmation,liquidity,zones} from '../supabase/functions/scalper-engine/market-context.mjs';
+import {buildMarketContext,confirmation,liquidity,structure,zones} from '../supabase/functions/scalper-engine/market-context.mjs';
 import {currentContext} from '../app/src/main/assets/apps/mapping/js/ict-workspace/context-model.js';
 
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;
@@ -27,6 +27,19 @@ test('M15 reversal raises an early warning while H1 remains bullish, never a buy
   assert.match(context.event.title,/M15 berlawanan H1/);
   assert.ok(context.alternative.activation.some(x=>x.includes(context.primary.invalidation.toFixed(2))));
   assert.equal(context.news.status,'UNVERIFIED');
+});
+
+test('historical structure break classification cannot read swings confirmed later',()=>{
+  const base=now-6*3600;
+  const closes=[100,100,106,103,103,103];
+  const bars=closes.map((close,i)=>({open_time:base+i*3600,close_time:base+(i+1)*3600,
+    open:close,high:close+1,low:close-1,close}));
+  const highs=[{level:105,index:0,confirmedAt:bars[1].close_time},
+    {level:104,index:3,confirmedAt:bars[4].close_time},
+    {level:103,index:4,confirmedAt:bars[5].close_time}];
+  const result=structure(bars,{highs,lows:[]});
+  assert.equal(result.lastBreak?.time,bars[2].close_time);
+  assert.equal(result.lastBreak?.type,'BOS');
 });
 
 test('stale and malformed candles cannot produce scenarios or notifications',()=>{

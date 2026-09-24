@@ -42,10 +42,11 @@ export function structure(candles, points=swings(candles)) {
   let lastBreak=null;
   for(let i=1;i<candles.length;i++) {
     const c=candles[i],prev=candles[i-1];
-    const high=highs.filter(p=>p.confirmedAt<=c.open_time&&p.index<i).at(-1);
-    const low=lows.filter(p=>p.confirmedAt<=c.open_time&&p.index<i).at(-1);
-    if(high && prev.close<=high.level && c.close>high.level) lastBreak={side:'BULLISH',type:(lastBreak?.side==='BEARISH'||!lastBreak&&highs.at(-1)?.level<highs.at(-2)?.level)?'MSS':'BOS',level:high.level,time:c.close_time};
-    if(low && prev.close>=low.level && c.close<low.level) lastBreak={side:'BEARISH',type:(lastBreak?.side==='BULLISH'||!lastBreak&&lows.at(-1)?.level>lows.at(-2)?.level)?'MSS':'BOS',level:low.level,time:c.close_time};
+    const confirmedHighs=highs.filter(p=>p.confirmedAt<=c.open_time&&p.index<i);
+    const confirmedLows=lows.filter(p=>p.confirmedAt<=c.open_time&&p.index<i);
+    const high=confirmedHighs.at(-1),low=confirmedLows.at(-1);
+    if(high && prev.close<=high.level && c.close>high.level) lastBreak={side:'BULLISH',type:(lastBreak?.side==='BEARISH'||!lastBreak&&confirmedHighs.at(-1)?.level<confirmedHighs.at(-2)?.level)?'MSS':'BOS',level:high.level,time:c.close_time};
+    if(low && prev.close>=low.level && c.close<low.level) lastBreak={side:'BEARISH',type:(lastBreak?.side==='BULLISH'||!lastBreak&&confirmedLows.at(-1)?.level>confirmedLows.at(-2)?.level)?'MSS':'BOS',level:low.level,time:c.close_time};
   }
   const h=highs.at(-1),h0=highs.at(-2),l=lows.at(-1),l0=lows.at(-2);
   const sequence=h&&h0&&l&&l0?(h.level>h0.level&&l.level>l0.level?'BULLISH':h.level<h0.level&&l.level<l0.level?'BEARISH':'NEUTRAL'):'NEUTRAL';
