@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-24 — Pro357 signer continuity
+
+The installed Amy FX Pro lineage is the Pro signer used by the verified Pro350 release: alias `amyfxpro`, SHA-256 `97:E0:B1:B6:F6:A1:B3:98:59:00:69:7F:97:63:51:B6:09:BD:BC:ED:19:07:FE:EC:90:49:EC:8F:D7:B5:02:32`. The active Pro workflow must never prefer the retired Preview debug signer `47:C2:…:AD:C7` or accept an unpinned cache certificate. It reads `AMYFX_PRO_KEYSTORE_BASE64` when provisioned, otherwise uses the existing Pro cache as a temporary fallback, and fails closed on absence or mismatch. Legacy Learning Preview and 1.5.8 validation jobs are scoped away from unrelated Pro pull requests.
+
 ## 2026-09-20 — Pro351 Replay evidence repair and focused mobile UI
 
 Pro351 reconstructs missing SL/TP candle evidence only for locked Replay terminal records when the matching historical pack is replayed, without regressing a terminal result during rewind. Replay deletion removes both IndexedDB and fallback copies. Academy reading-resume cards render only on the Academy/Belajar Trading home. Mapping Analyze keeps primary evidence visible while liquidity and model rules are collapsed and limited to the nearest useful levels. Source advances to 2.0.0-pro.351 / 950351; update.json remains on signed Pro350 until CI publishes and activates Pro351.

@@ -1,5 +1,10 @@
 # TODO Memory
 
+## 2026-09-24 — Pro signer durable backup
+
+- [ ] Provision `AMYFX_PRO_KEYSTORE_BASE64` from the exact existing `amyfxpro` keystore whose SHA-256 certificate is `97:E0:B1:B6:F6:A1:B3:98:59:00:69:7F:97:63:51:B6:09:BD:BC:ED:19:07:FE:EC:90:49:EC:8F:D7:B5:02:32`. Until then, the verified main-branch Actions cache remains a fallback and release fails closed if that cache is unavailable.
+- [ ] After Pro357 merges, confirm the release log reports the pinned signer and that the installed Pro350 accepts the APK as an in-place update.
+
 ## 2026-09-20 — Pro351
 
 After the signed release activates, verify on the reporting Android device: an older terminal Replay record gains TP/SL evidence after its matching pack reaches the candle, deletion survives restart, Trading Practice has no Academy “Terakhir Dibaca” card, and Mapping Analyze remains readable in portrait. Native update notification receipt still requires device observation.

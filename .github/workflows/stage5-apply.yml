@@ -27,7 +27,8 @@ env:
 
 jobs:
   validate-release:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # This is the archived 1.5.8/com.amyelitesuite line, not the current Pro release line.
+    if: github.event_name != 'pull_request' || github.head_ref == 'agent/amyfx-stage5-release'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 

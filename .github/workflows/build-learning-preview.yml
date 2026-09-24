@@ -51,6 +51,8 @@ concurrency:
 
 jobs:
   build-preview:
+    # Legacy Learning Preview validation must not gate current Amy FX Pro pull requests.
+    if: github.event_name != 'pull_request' || github.head_ref == 'feature/learning-context-stage1'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:

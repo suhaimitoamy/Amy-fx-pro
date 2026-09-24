@@ -32,6 +32,7 @@ env:
   AMYFX_KEYSTORE_PATH: /tmp/amyfx-pro-signing.keystore
   AMYFX_KEYSTORE_PASSWORD: android
   AMYFX_KEY_PASSWORD: android
+  AMYFX_SIGNING_CERT_SHA256: "97:E0:B1:B6:F6:A1:B3:98:59:00:69:7F:97:63:51:B6:09:BD:BC:ED:19:07:FE:EC:90:49:EC:8F:D7:B5:02:32"
   TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
 
 jobs:
@@ -116,59 +117,42 @@ jobs:
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Try Preview signing-key continuity
-        id: preview-key
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: amy-fx-debug-keystore-v1
-
-      - name: Restore Amy FX Pro signing key
+      - name: Restore Amy FX Pro signing-key cache fallback
         id: pro-key
-        if: steps.preview-key.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ~/.android/amyfx-pro.keystore
           key: amy-fx-pro-signing-key-v1
 
-      - name: Prepare persistent signing identity
+      - name: Prepare permanent Amy FX Pro signing identity
         id: signing
         shell: bash
+        env:
+          AMYFX_PRO_KEYSTORE_BASE64: ${{ secrets.AMYFX_PRO_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
-          mkdir -p "$HOME/.android"
-          if [ "${{ steps.preview-key.outputs.cache-hit }}" = "true" ]; then
-            cp "$HOME/.android/debug.keystore" "$AMYFX_KEYSTORE_PATH"
-            echo 'AMYFX_KEY_ALIAS=androiddebugkey' >> "$GITHUB_ENV"
-            echo 'mode=preview-continuity' >> "$GITHUB_OUTPUT"
-          else
-            if [ "${{ steps.pro-key.outputs.cache-hit }}" != "true" ]; then
-              echo 'Permanent signing key missing; refusing to replace the installed app signer.'
-              exit 1
-            fi
+          if [ -n "${AMYFX_PRO_KEYSTORE_BASE64:-}" ]; then
+            printf '%s' "$AMYFX_PRO_KEYSTORE_BASE64" | base64 --decode > "$AMYFX_KEYSTORE_PATH"
+            source_mode='repository-secret'
+          elif [ "${{ steps.pro-key.outputs.cache-hit }}" = 'true' ]; then
             cp "$HOME/.android/amyfx-pro.keystore" "$AMYFX_KEYSTORE_PATH"
-            echo 'AMYFX_KEY_ALIAS=amyfxpro' >> "$GITHUB_ENV"
-            echo 'mode=pro-signer' >> "$GITHUB_OUTPUT"
+            source_mode='cache-fallback'
+          else
+            echo 'Permanent Amy FX Pro signing key missing. Configure AMYFX_PRO_KEYSTORE_BASE64; refusing to change the installed app signer.'
+            exit 1
           fi
+          chmod 600 "$AMYFX_KEYSTORE_PATH"
+          echo 'AMYFX_KEY_ALIAS=amyfxpro' >> "$GITHUB_ENV"
+          echo "mode=$source_mode" >> "$GITHUB_OUTPUT"
 
-      - name: Save new Amy FX Pro signing key
-        if: steps.signing.outputs.generated == 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.android/amyfx-pro.keystore
-          key: amy-fx-pro-signing-key-v1
-
-      - name: Verify signing identity
-        if: env.AMYFX_VERSION_CODE != '950329'
+      - name: Verify pinned Pro signing identity
         shell: bash
         run: |
           set -euo pipefail
           actual="$(keytool -list -v -keystore "$AMYFX_KEYSTORE_PATH" -storepass "$AMYFX_KEYSTORE_PASSWORD" -alias "$AMYFX_KEY_ALIAS" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1)"
           test -n "$actual"
-          echo "AMYFX_SIGNING_CERT_SHA256=$actual" >> "$GITHUB_ENV"
-          if [ "${{ steps.signing.outputs.mode }}" = 'preview-continuity' ]; then
-            test "$actual" = '47:C2:32:BC:44:FA:63:C9:2F:FE:41:1F:71:40:40:4C:09:AA:2A:9C:BF:82:B1:85:9A:86:0B:85:56:7B:AD:C7'
-          fi
+          test "$actual" = "$AMYFX_SIGNING_CERT_SHA256"
+          echo "Verified Amy FX Pro signer: $actual"
 
       - name: Build signed APK (329 skips tests by request)
         shell: bash

@@ -1,5 +1,10 @@
 # Bug History
 
+## 2026-09-24 — Pro357 PR signing checks used a retired certificate
+
+- Cause: the Learning Preview and archived 1.5.8 workflows gated every Pro pull request on the expired `amy-fx-debug-keystore-v1` cache and old `47:C2:…:AD:C7` certificate. The active Pro workflow could also prefer that old signer if its cache reappeared and did not pin the current Pro cache certificate.
+- Fix: legacy jobs now run only for their own branches, while the active Pro release restores only `amy-fx-pro-signing-key-v1` (or the durable Pro keystore secret), pins the verified Pro350 certificate `97:E0:…:02:32`, and fails instead of generating or accepting another identity.
+
 ## 2026-09-20 — Pro351 Replay history and mobile density
 
 - Terminal Replay records created before outcome evidence existed were skipped because only OPEN records were evaluated. Matching records now reconstruct deterministic SL/TP candle evidence without losing the stored terminal result on rewind.
