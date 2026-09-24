@@ -25,6 +25,14 @@
 - File serverless baru harus **independen** — copy logic yang diperlukan, jangan import dari file lain.
 - `API_BASE` di `apps/market-intel/app.js` hardcoded ke `https://amy-fx.vercel.app/api` — jangan ubah tanpa izin.
 - Semua panel Market Intel (News, Heatmap, Liquidity) harus independen satu sama lain — error di satu panel tidak boleh mempengaruhi panel lain.
+- **Candle Freshness Thresholds**: Jangan menetapkan batas kesegaran candle (freshness TTL) lebih ketat daripada latensi batch provider data. Feed Supabase `market-candles` memperbarui data setiap 3–5 menit; konfirmasi lower timeframe M5 menggunakan toleransi 900 detik (15 menit), bukan 180 detik M1.
+- **Supabase Edge Function Deployment**:
+  1. Salin sementara `config.toml` dari `/root/amy-market-data/supabase/config.toml` ke `supabase/config.toml`.
+  2. Jalankan `supabase functions deploy <nama-fungsi> --no-verify-jwt --project-ref wliecyxzlwhmtftnfnps`.
+  3. Hapus kembali `supabase/config.toml` dan `supabase/.temp/` setelah deployment selesai agar tidak masuk git tracking.
+- **Sinkronisasi Versi Rilis & CI Monitoring**:
+  1. Kenaikan versi APK wajib disinkronkan di 4 file: `app/build.gradle.kts`, `app/src/main/assets/app-version.js`, `app/src/main/assets/update-checker.js`, dan `tests/pro348-ui-polish.test.mjs`.
+  2. Saat user meminta update aplikasi, agen **wajib memantau** GitHub Actions workflow (`build-apk.yml`) hingga selesai, memastikan release APK terbit, dan memverifikasi `update.json` pada branch `main` telah aktif terupdate.
 
 ## Memory Rules
 

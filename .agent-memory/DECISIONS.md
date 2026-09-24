@@ -1,5 +1,14 @@
 # Technical Decisions
 
+## 2026-09-24 — Pro359 Gold Market Context M5 Confirmation Transition
+
+- **Problem**: Konfirmasi M1 memiliki batas kesegaran 180 detik, sedangkan feed provider TwelveData/Supabase memperbarui candle secara batch setiap 3–5 menit. Hal ini menyebabkan `fresh: false` secara persisten dan dashboard menampilkan `WAIT · data belum siap / KONTEKS BELUM TERSEDIA`.
+- **Decision**:
+  1. Mengalihkan lower timeframe confirmation dari M1 ke M5 dengan batas kesegaran 900 detik (15 menit).
+  2. Mempertahankan backward compatibility dengan menyediakan properti `context.m5` dan `context.m1` secara bersamaan di payload Supabase Edge Functions (`scalper-engine`, `scalper-setups`, `scalper-system-push`).
+  3. Memperbarui UI Mapping Gold (`context-model.js`, `context-panel.js`, `index.html`) untuk menampilkan konfirmasi M5 dan alur bukti struktur H1 → M15 → M5.
+  4. Bump versi ke `2.0.0-pro.359` (build `950359`), deploy fungsi Supabase dengan `--no-verify-jwt`, dan aktifkan rilis via CI workflow ke `update.json`.
+
 ## 2026-09-24 — Pro357 signer continuity
 
 The installed Amy FX Pro lineage is the Pro signer used by the verified Pro350 release: alias `amyfxpro`, SHA-256 `97:E0:B1:B6:F6:A1:B3:98:59:00:69:7F:97:63:51:B6:09:BD:BC:ED:19:07:FE:EC:90:49:EC:8F:D7:B5:02:32`. The active Pro workflow must never prefer the retired Preview debug signer `47:C2:…:AD:C7` or accept an unpinned cache certificate. It reads `AMYFX_PRO_KEYSTORE_BASE64` when provisioned, otherwise uses the existing Pro cache as a temporary fallback, and fails closed on absence or mismatch. Legacy Learning Preview and 1.5.8 validation jobs are scoped away from unrelated Pro pull requests.

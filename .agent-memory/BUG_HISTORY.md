@@ -1,5 +1,16 @@
 # Bug History
 
+## 2026-09-24 — Pro359 Dashboard Gold Kosong Akibat Timeout Kesegaran M1
+
+- **Symptoms**: Layar Mapping Gold XAU/USD menampilkan `WAIT · data belum siap` dan `KONTEKS BELUM TERSEDIA / Evaluasi server belum lengkap atau candle tertutup sudah terlambat` dengan semua kartu bernilai strip (`—`) meskipun app version sudah di-bump 2 kali.
+- **Root Cause**: Feed data market provider memperbarui candle tertutup dengan jeda batch 3–5 menit (180–300 detik). Logika `buildMarketContext` dan `context-model.js` menerapkan pengecekan ketat `now - source.M1 <= 180`, sehingga data hampir selalu dinilai basi (`fresh: false`) dan memicu fallback `empty()`.
+- **Resolution**:
+  1. Mengganti timeframe konfirmasi dari M1 ke M5 di `supabase/functions/scalper-engine/market-context.mjs` dan `index.ts`.
+  2. Memperluas toleransi kesegaran M5 menjadi 900 detik (15 menit) di backend dan client `context-model.js`.
+  3. Memperbarui `scalper-system-push` agar tidak mendrop event push M5 yang valid.
+  4. Memperbarui kartu UI Mapping (`context-panel.js` dan `index.html`) menjadi `M5 · KONFIRMASI`.
+  5. Seluruh 137 test suites lulus dan data langsung tampil terisi (`fresh: true`).
+
 ## 2026-09-24 — Pro357 PR signing checks used a retired certificate
 
 - Cause: the Learning Preview and archived 1.5.8 workflows gated every Pro pull request on the expired `amy-fx-debug-keystore-v1` cache and old `47:C2:…:AD:C7` certificate. The active Pro workflow could also prefer that old signer if its cache reappeared and did not pin the current Pro cache certificate.
