@@ -248,3 +248,7 @@ Pro341 release verified: PR #3 merged as 89f147daa947632da15a21da5bd5b7ee5e8a297
 ## 2026-09-14 — Pro342 Mapping restoration
 
 Pro342 Mapping: BUY/SELL filter, entry/SL/TP1/TP2 and zones from Supabase, explicit lifecycle and source age, selected setup chart overlay, 24-hour server history and existing full archive/method controls. All129 JavaScript regression files passed; five dedicated restore tests cover geometry, stale/terminal state, authoritative removal, device headers and provider failure. Browser preview blocked by ERR_BLOCKED_BY_CLIENT. Signed release pending.
+
+## 2026-09-24 — Pro357 prepared on review branch
+
+The Gold context workspace presents H1 bias and health, M15 control and POI lifecycle, M1 evidence, primary/alternative manual scenarios with numeric invalidation, liquidity levels, session/ATR context, narrative, and execution readiness. Supabase source functions generate context snapshots and context-only FCM events; archived setups remain accessible without issuing new active setups. Assistant and Market Intel no longer build a live plan from the retired local signal generator. Production deployment and signed APK release are pending approval; local JavaScript regression suite passed 137/137.

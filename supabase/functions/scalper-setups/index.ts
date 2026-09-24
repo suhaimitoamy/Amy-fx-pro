@@ -30,7 +30,6 @@ const lifecycleSequence = {
   INVALIDATED: 100,
   CANCELLED: 100,
 };
-const readiness = { ACTIVE: 0, BE_ACTIVE: 1, ENTRY_READY: 2, WAITING_NEXT_OPEN: 3, WAITING_TRIGGER: 4 };
 function publicSetup(row) {
   const quality = row.quality && typeof row.quality === "object" ? row.quality : {};
   const driverId = row.driver_id || quality.driver_id || row.model;
@@ -94,11 +93,6 @@ function publicSetup(row) {
     isLegacy: !row.driver_id || Number(row.schema_version || 1) < 3 || row.engine_version !== "amyfx-preview-scalper-pattern-v3.0",
   };
 }
-function rankRows(rows) {
-  return [...rows].sort((a,b) => (readiness[a.status] ?? 9) - (readiness[b.status] ?? 9)
-    || Number(a.priority_display ?? a.priority ?? 99) - Number(b.priority_display ?? b.priority ?? 99)
-    || Number(b.signal_candle_close_time || 0) - Number(a.signal_candle_close_time || 0));
-}
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
@@ -110,7 +104,6 @@ Deno.serve(async (request) => {
     const cutoff=preferences[0]?.created_at;
     const historyScope=scope&&cutoff?`&or=(device_scope.eq.${scope},and(device_scope.is.null,created_at.lt.${encodeURIComponent(cutoff)}))`:activeScope;
     const url = new URL(request.url);
-    const limit = Math.min(Math.max(Number.parseInt(url.searchParams.get("limit") || "20", 10) || 20, 1), 100);
     const historyLimit = Math.min(Math.max(Number.parseInt(url.searchParams.get("history_limit") || "500", 10) || 500, 1), 2000);
     const includeAllHistory = url.searchParams.get("history") === "all";
     const setupId = String(url.searchParams.get("setup_id") || "").trim();
@@ -120,31 +113,33 @@ Deno.serve(async (request) => {
     const selectedRequest = setupId
       ? rest(`amyfx_preview_scalper_setups?select=${select}${historyScope}&id=eq.${encodeURIComponent(setupId)}&limit=1`)
       : Promise.resolve([]);
-    const [active, history, selectedRows, lastRun] = await Promise.all([
-      rest(`amyfx_preview_scalper_setups?select=${select}${activeScope}&status=in.(WAITING_TRIGGER,WAITING_NEXT_OPEN,ENTRY_READY,ACTIVE,BE_ACTIVE)&order=signal_candle_close_time.desc&limit=${limit}`),
+    const [history, selectedRows, lastRun] = await Promise.all([
       rest(`amyfx_preview_scalper_setups?select=${select}${historyScope}&status=in.(TP_HIT,SL_HIT,BE_HIT,TIME_EXIT,INVALIDATED,CANCELLED)${historyTimeFilter}&order=exit_time.desc&limit=${historyLimit}`),
       selectedRequest,
       rest("amyfx_preview_scalper_runs?select=status,started_at,completed_at,result,error&order=run_bucket.desc&limit=1"),
     ]);
-    const activeRows = rankRows(Array.isArray(active) ? active : []);
     const historyRows = Array.isArray(history) ? history : [];
     const selectedRow = Array.isArray(selectedRows) ? selectedRows[0] || null : null;
-    const primary = activeRows[0] || null;
+    const run = Array.isArray(lastRun) ? lastRun[0] || null : null;
+    const context = run?.status === 'COMPLETED' && run?.result?.engine === 'amyfx-gold-context-v1'
+      ? run.result.context || null : null;
     const publicHistory = historyRows.map(publicSetup);
     return json({
       ok: true,
-      mode: "preview_simulation",
+      mode: "market_context",
+      context,
       deviceScope: scope,
       generatedAt: new Date().toISOString(),
-      primary: primary ? publicSetup(primary) : null,
+      primary: null,
       selected: selectedRow ? publicSetup(selectedRow) : null,
-      active: activeRows.map(publicSetup),
+      // Historical archive remains available; retired setup rows are never presented as new trades.
+      active: [],
       history: publicHistory,
       recent: publicHistory,
       historyCount: publicHistory.length,
       historyPermanent: includeAllHistory,
       limits: { recommendedActive: null, riskUnits: null, history: historyLimit },
-      engine: Array.isArray(lastRun) ? lastRun[0] || null : null,
+      engine: run,
     });
   } catch (error) {
     console.error("scalper-setups failed", error);

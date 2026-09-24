@@ -61,7 +61,7 @@ test('provider rejects errors and preserves staleness metadata',async()=>{
  const got=await loadCandles('M5',null,response({values:[bar(t)],source:'stale-cache'}));
  assert.equal(got.degraded,true);assert.deepEqual(got.candles,[bar(t)]);
 });
-test('production page has one engine authority, complete local assets and accessible navigation',()=>{
+test('production page has one market context authority, complete local assets and accessible navigation',()=>{
  const html=readFileSync(root+'index.html','utf8');
  const app=readFileSync(root+'js/ict-workspace/app.js','utf8');
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(x=>x[1]);
@@ -71,12 +71,13 @@ test('production page has one engine authority, complete local assets and access
  for(const tab of ['Dashboard','Analyze','History'])assert.ok(html.includes(`id="${tab}"`));
  assert.match(html,/aria-label="Kembali ke beranda"/);assert.match(html,/role="alert"/);
  assert.match(app,/id!==generation/);assert.match(app,/controller\?\.abort/);
- assert.match(app,/degraded:true/);assert.match(app,/visibilitychange/);
+ assert.match(app,/response\.degraded/);assert.match(app,/visibilitychange/);
  assert.doesNotMatch(app,/setInterval|Math\.random|startBackgroundScanner/);
  assert.doesNotMatch(html,/Bukan transaksi akun/);assert.doesNotMatch(html,/spread, komisi/);
- assert.match(html,/class="model-context analysis-secondary"/);
- assert.match(html,/Struktur → sweep → MSS → FVG/);
- assert.match(app,/slice\(0,6\)/);
+ assert.match(html,/context-panel\.js/);
+ assert.match(html,/id="execution-checklist"/);
+ assert.doesNotMatch(html,/id="signal"|scalper-panel\.js/);
+ assert.match(app,/amyfx:market-context/);
 });
 function scenario(){
  const start=t-38*300;

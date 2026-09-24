@@ -42,6 +42,19 @@
     return found;
   }
   function mapping(q,m,now){
+    const context=root.AmyMarketContext||read('amyfx.market-context.v1');
+    if(context?.version==='amyfx-gold-context-v1'){
+      const age=now/1000-Number(context.source?.M1);
+      const fresh=context.fresh===true&&age>=0&&age<=180;
+      if(!fresh)return 'Konteks Gold terakhir sudah lama. Buka Mapping dan tunggu data H1, M15, dan M1 yang baru.';
+      const p=context.primary;
+      const area=p?.area?`${number(p.area.low)}–${number(p.area.high)}`:'belum ada area valid';
+      return `Konteks Gold: H1 ${{BULLISH:'naik',BEARISH:'turun'}[context.h1?.bias]||'netral'} (${{HEALTHY:'kuat',WEAKENING:'melemah',INVALIDATED:'batal'}[context.h1?.health]||'belum jelas'}); M15 ${{BUYER:'pembeli',SELLER:'penjual'}[context.m15?.control]||'seimbang'}; M1 ${{CONFIRMED:'terkonfirmasi',CONFIRMING:'sedang dikonfirmasi',FAILED:'gagal'}[context.m1?.status]||'menunggu'}. `+
+        `Skenario utama ${p?.label||'belum tersedia'}, area ${area}, invalidasi ${number(p?.invalidation)}. `+
+        `Asisten eksekusi: ${context.execution?.status==='READY TO REVIEW'?'siap ditinjau':'belum siap'}. ${context.execution?.reason||''} ${context.news?.note||''}`;
+    }
+    // Old cached entry plans from Pro356 are retired after the context migration.
+    if(m?.model==='ICT-SWEEP-MSS-FVG-1')return 'Rencana entry versi lama sudah tidak berlaku. Buka Mapping untuk konteks Gold terbaru.';
     if(!m)return 'Belum ada snapshot Mapping baru. Buka Mapping dan tunggu analisis selesai, lalu tanya lagi.';
     const seconds={M5:300,M15:900}[m.tf]||900;
     const end=Number(m.sourceTime)*1000+seconds*1000;

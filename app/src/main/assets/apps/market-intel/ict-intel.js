@@ -1,11 +1,35 @@
-import {analyze} from '../mapping/js/ict-workspace/engine.js';
 import {loadCandles} from '../mapping/js/ict-workspace/data.js';
-import {SNAPSHOT_KEY,makeSnapshot,validSnapshot,isFresh,liquidityBands,nearestLevels} from '../mapping/js/ict-workspace/snapshot.js';
+import {SNAPSHOT_KEY,validSnapshot,isFresh,liquidityBands,nearestLevels} from '../mapping/js/ict-workspace/snapshot.js';
 const $=id=>document.getElementById(id);
 const price=n=>Number.isFinite(n)?n.toFixed(2):'—';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const time=t=>t?new Date(t*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false})+' WITA':'—';
 let snapshot=null,request=null,controller=null,timer=null,failed=false,filter='all';
+// This page maps unswept levels only. Trade-plan generation belongs to the retired model.
+function liquidityOnly(rows,now){
+  const byTime=new Map();
+  for(const raw of rows||[]){
+    const value=raw.time??raw.datetime??raw.open_time;
+    const iso=String(value).replace(' ','T');
+    const t=Number(value)>1e10?Number(value)/1000:Number(value)||Date.parse(/Z$|[+-]\d\d:?\d\d$/.test(iso)?iso:`${iso}Z`)/1000;
+    const c={time:t,open:Number(raw.open),high:Number(raw.high),low:Number(raw.low),close:Number(raw.close)};
+    if(raw.is_closed===false||raw.isClosed===false||raw.synthetic||raw.amyfxSyntheticCurrent||
+       !Number.isFinite(t)||!Object.values(c).every(Number.isFinite)||t+900>now-10||c.low<=0||c.low>Math.min(c.open,c.close)||c.high<Math.max(c.open,c.close))continue;
+    byTime.set(t,c);
+  }
+  const candles=[...byTime.values()].sort((a,b)=>a.time-b.time),levels=[];
+  for(let i=2;i<candles.length-2;i++)for(const kind of ['high','low']){
+    const c=candles[i],window=candles.slice(i-2,i+3);
+    const pivot=window.every((x,index)=>index===2||(kind==='high'?c.high>x.high:c.low<x.low));
+    if(!pivot)continue;
+    const level=c[kind],later=candles.slice(i+3);
+    if(later.some(x=>kind==='high'?x.high>=level:x.low<=level))continue;
+    levels.push({kind,level,time:c.time,confirmed:candles[i+2].time,used:false});
+  }
+  const last=candles.at(-1),fresh=Boolean(last&&now-(last.time+900)>=0&&now-(last.time+900)<=1020);
+  return {model:'ICT-SWEEP-MSS-FVG-1',tf:'M15',signal:'WAIT',fresh,sourceTime:last?.time||null,
+    capturedAt:now*1000,close:last?.close||null,levels,reason:'Level likuiditas saja; skenario terbaru tersedia di Mapping.',plan:null};
+}
 try { const cached=JSON.parse(localStorage.getItem(SNAPSHOT_KEY)||'null');if(validSnapshot(cached))snapshot=cached; } catch {}
 function paint() {
   const valid=validSnapshot(snapshot),fresh=isFresh(snapshot)&&!failed;
@@ -29,12 +53,13 @@ async function refresh() {
   if(request)return request;
   controller=new AbortController();const activeController=controller;
   const timeout=setTimeout(()=>activeController.abort(),20000);
-  const tf=snapshot?.tf||'M15';
+  const tf='M15';
   request=(async()=>{
     try {
-      const [entry,context]=await Promise.all([loadCandles(tf,activeController.signal),loadCandles('H1',activeController.signal)]);
+      const entry=await loadCandles(tf,activeController.signal);
       if(activeController.signal.aborted)return;
-      const next=makeSnapshot(analyze({candles:entry.candles,context:context.candles,tf,degraded:entry.degraded||context.degraded,now:Date.now()/1000}));
+      const next=liquidityOnly(entry.candles,Date.now()/1000);
+      if(entry.degraded)next.fresh=false;
       if(!validSnapshot(next))throw new Error('Data Mapping belum cukup');
       if(snapshot?.tf===next.tf && snapshot.sourceTime>next.sourceTime)throw new Error('Respons lebih lama dari snapshot');
       snapshot=next;failed=false;

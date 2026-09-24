@@ -49,12 +49,14 @@ function intel(loadCandles,analyze,cached=snapshot) {
  const code=readFileSync('app/src/main/assets/apps/market-intel/ict-intel.js','utf8').replace(/^import .*;\n/gm,'');
  vm.runInNewContext(code,context);return {context,nodes,listeners};
 }
-test('Intel paints cached Mapping immediately, deduplicates refresh, and updates all three views together',async()=>{
+test('Intel paints cached levels, fetches M15 once, and updates all three views together',async()=>{
  let release,calls=0;const gate=new Promise(r=>release=r);
- const result={...snapshot,sourceTime:snapshot.sourceTime+300,candles:[{close:2502}],plan:null};
- const {context,nodes}=intel(async()=>{calls++;await gate;return {candles:[],degraded:false};},()=>result);
+ const end=Math.floor((Date.now()/1000-30)/900)*900;
+ const candles=Array.from({length:9},(_,i)=>({open_time:end-(9-i)*900,open:2500,close:i===8?2502:2500,
+  high:i===2?2504:i===8?2503:2501,low:i===2?2497:2498}));
+ const {context,nodes}=intel(async()=>{calls++;await gate;return {candles,degraded:false};});
  assert.match(nodes.get('market-command-strip').innerHTML,/2500.00/);
- const first=context.AmyICTIntel.refresh(),second=context.AmyICTIntel.refresh();assert.equal(calls,2);
+ const first=context.AmyICTIntel.refresh(),second=context.AmyICTIntel.refresh();assert.equal(calls,1);
  release();await Promise.all([first,second]);
  assert.match(nodes.get('market-command-strip').innerHTML,/2502.00/);
  assert.match(nodes.get('heatmap-canvas').innerHTML,/2502.00/);
@@ -73,5 +75,6 @@ test('active Intel shares the Mapping provider without a legacy fetch router or 
  const html=readFileSync('app/src/main/assets/apps/market-intel/index.html','utf8');
  assert.doesNotMatch(html,/<script[^>]+(?:private-market-api-router|heatmap-v2)\.js/);
  const code=readFileSync('app/src/main/assets/apps/market-intel/ict-intel.js','utf8');
- assert.match(code,/mapping\/js\/ict-workspace\/data.js/);assert.match(code,/mapping\/js\/ict-workspace\/engine.js/);
+ assert.match(code,/mapping\/js\/ict-workspace\/data.js/);assert.match(code,/liquidityOnly/);
+ assert.doesNotMatch(code,/import \{analyze\}/);
 });

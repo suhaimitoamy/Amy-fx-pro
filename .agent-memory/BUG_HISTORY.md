@@ -486,6 +486,10 @@ Pro341 release verified: PR #3 merged as 89f147daa947632da15a21da5bd5b7ee5e8a297
 
 Pro342 fixes the missing server Scalper setups on the replacement ICT page. It restores device-scoped BUY/SELL levels, pending/active/terminal status, history and preferences. Live inspection found latest server runs FAILED with Supabase504 Gateway Timeout; this pre-existing backend failure remains unresolved and is displayed fail-closed. Fresh HTTP timestamps never substitute for engine completion or per-setup evaluation.
 
+## 2026-09-24 — Pro357 mapping awareness repair prepared
+
+The previous active Scalper/Mapping path reported a BUY/SELL setup after sweep, MSS and FVG even when M15 already opposed H1. The new context engine reports H1 weakening plus M15 opposing control before M1 execution readiness, retains exact area/invalidation prices only when a valid POI exists, and prevents a swept liquidity level from becoming active again after price retraces. Old APKs interpret unknown FCM data payloads as news; the new push filter restricts market-context delivery to Pro357+ registrations. All 137 JavaScript regression files pass locally. The live functions still run the old implementation because automatic approval review rejected production deployment; no claim of live repair is made.
+
 
 ## 2026-09-19 — Pro346 scalper fixes
 Replaced rolling-five-bar pseudo-BOS, immediate expansion chasing and Discipline EPSILON breakout stops; AMD/new limit fills start after persisted detection. Added first-touch invalidation, expiry, actual-entry RR checks, conservative limit-bar TP handling and adverse stop gaps. Preserved deployed SMR boolean-anchor fix missing from repository. Deterministic regression validation does not establish improved WR.

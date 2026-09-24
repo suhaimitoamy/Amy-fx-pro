@@ -24,14 +24,14 @@ test('preferences PUT/GET isolates two devices and rejects invalid boolean input
   const b=await (await handler(req('b'.repeat(64),'GET'))).json();assert.equal(a.enabledDrivers.FVG,false);assert.equal(b.enabledDrivers.FVG,true);
   assert.equal((await handler(req('b'.repeat(64),'PUT',{enabledDrivers:{FVG:'false'}}))).status,400);
 });
-test('setups reader applies owner scope to active, selected and history SQL requests',async()=>{
+test('retired setups reader scopes selected and history and does not fetch live setups',async()=>{
   const urls=[];
   const handler=server('supabase/functions/scalper-setups/index.ts',async(url)=>{urls.push(String(url));return Response.json(String(url).includes('device_preferences')?[{created_at:'2026-09-05T00:00:00Z'}]:[]);});
   const request=new Request('https://test?setup_id=another-device-row&history=all',{headers:{'x-amy-device-token':'a'.repeat(64)}});
   assert.equal((await handler(request)).status,200);
   const scope=await deviceScope(request);
   const queries=urls.filter(x=>x.includes('amyfx_preview_scalper_setups?'));
-  assert.equal(queries.length,3);assert.ok(queries.every(url=>url.includes(scope)));
-  assert.ok(queries.find(x=>x.includes('WAITING_TRIGGER')).includes('device_scope=eq.'+scope));
+  assert.equal(queries.length,2);assert.ok(queries.every(url=>url.includes(scope)));
+  assert.ok(queries.every(x=>!x.includes('WAITING_TRIGGER')));
   assert.ok(queries.find(x=>x.includes('another-device-row')).includes('created_at.lt.'));
 });

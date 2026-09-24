@@ -2,7 +2,7 @@
 // not claims of an official ICT formula or historically proven profitability.
 export const MODEL = Object.freeze({ id: 'ICT-SWEEP-MSS-FVG-1', pivot: 2, atr: 14,
   bodyAtr: 0.8, bodyRatio: 0.6, stopAtr: 0.15, minRR: 2, expiryBars: 12, holdBars: 48 });
-export const DURATIONS = Object.freeze({ M5: 300, M15: 900, H1: 3600 });
+export const DURATIONS = Object.freeze({ M1: 60, M5: 300, M15: 900, H1: 3600 });
 export function timestamp(value) {
   if (typeof value === 'number' || /^\d+(\.\d+)?$/.test(String(value))) {
     const n = Number(value); return n > 1e11 ? n / 1000 : n;

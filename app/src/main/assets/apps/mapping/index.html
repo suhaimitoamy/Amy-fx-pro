@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0c1320"><title>Amy FX · Mapping Scalper</title>
+<meta name="theme-color" content="#0c1320"><title>Amy FX Pro · Konteks Gold</title>
 <script src="../shared/amyfx-theme-controller.js"></script>
 <link rel="stylesheet" href="css/ict-workspace.css">
 <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css">
@@ -11,27 +11,31 @@
 <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
 </head>
 <body class="amyfx-module amyfx-module--mapping amyfx-module--ict">
-<header><a href="../../index.html" aria-label="Kembali ke beranda">‹</a><div><small>AMY FX PRO</small><h1>Mapping Scalper</h1></div><span id="connection" role="status">Memuat</span></header>
+<header><a href="../../index.html" aria-label="Kembali ke beranda">‹</a><div><small>AMY FX PRO · XAU/USD</small><h1>Konteks Pasar Gold</h1></div><span id="connection" role="status">Memuat</span></header>
 <main id="app">
-<section class="toolbar"><div><strong>XAU/USD</strong><span id="tf-label" style="display:none">M15</span></div><label>Timeframe<select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option></select></label><button id="refresh">Perbarui</button></section>
-<nav aria-label="Panel mapping"><button data-tab="Dashboard" aria-selected="true">Ringkasan</button><button data-tab="Analyze" aria-selected="false">Bukti analisis</button><button data-tab="History" aria-selected="false">Riwayat model</button></nav>
+<section class="toolbar"><div><strong>XAU/USD</strong><p id="source">Menunggu candle tertutup.</p></div><label>Peta candle<select id="timeframe"><option value="M15">M15</option><option value="M1">M1</option></select></label><button id="refresh">Perbarui</button></section>
+<nav aria-label="Panel Mapping"><button data-tab="Dashboard" aria-selected="true">Konteks</button><button data-tab="Analyze" aria-selected="false">Bukti</button><button data-tab="History" aria-selected="false">Arsip</button></nav>
 <p id="error" role="alert" hidden></p>
 <section id="Dashboard" class="panel">
-<article id="scalper-panel"><div class="section-heading"><h2>Rencana BUY &amp; SELL</h2><span id="scalper-state" role="status">Menghubungkan</span></div><p id="scalper-summary"></p><div class="toolbar"><label>Arah<select id="scalper-filter"><option value="ALL">BUY &amp; SELL</option><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label><button id="scalper-refresh">Perbarui setup</button></div><p id="scalper-source" class="muted"></p><div id="scalper-requested"></div><div id="scalper-setups"></div></article>
-<details class="model-context"><summary>Konteks model ICT lokal</summary><article class="decision"><small>KEPUTUSAN MODEL ICT LOKAL</small><h2 id="signal">WAIT</h2><p id="reason">Mengambil candle tertutup dari sumber pasar…</p><p id="source" class="muted">Belum ada analisis.</p></article>
-<div class="metrics"><article><small>STRUKTUR H1</small><strong id="bias">—</strong></article><article><small>SESI NEW YORK</small><strong id="session">—</strong></article><article><small>TAHAP SETUP</small><strong id="stage">DATA</strong></article></div>
-</details><article><div class="section-heading"><h2>Peta harga</h2><span id="chart-caption">Candle tertutup</span></div><div id="chart" aria-label="Chart candlestick dengan level setup"></div><p id="scalper-selected-note" class="muted"></p><button id="scalper-clear">Kembali ke level model ICT</button></article>
-<details class="model-context"><summary>Rencana dan konfirmasi model ICT lokal</summary><article><h2>Rencana entry</h2><p id="plan-state">Belum ada setup.</p><dl id="plan-levels"></dl><p id="plan-note" class="muted"></p></article>
-<article><h2>Urutan konfirmasi</h2><ol id="checklist"><li>Menunggu data.</li></ol></article></details><details class="model-context"><summary>Pengaturan metode Scalper</summary><div id="scalper-methods"></div></details>
+  <article class="context-hero"><div class="section-heading"><h2>KONTEKS PASAR</h2><span id="context-state" role="status">Menghubungkan</span></div><strong id="market-state">MENUNGGU DATA</strong><p id="market-story">Amy sedang memeriksa H1, M15, dan M1.</p><small id="context-source"></small></article>
+  <div class="context-grid"><article><small>H1 · BIAS INTRADAY</small><strong id="h1-bias">—</strong><p id="h1-health">—</p></article><article><small>M15 · AREA PENTING</small><strong id="m15-poi">—</strong><p id="m15-range">—</p></article><article><small>M15 · KONTROL</small><strong id="m15-control">—</strong><p id="m15-risk">—</p></article><article><small>M1 · KONFIRMASI</small><strong id="m1-confirmation">—</strong><p id="m1-evidence">—</p></article></div>
+  <article><div class="section-heading"><h2>Skenario utama</h2><span id="primary-status">MENUNGGU</span></div><div id="primary-scenario" class="scenario"></div></article>
+  <details class="model-context"><summary>Skenario alternatif</summary><div id="alternative-scenario" class="scenario"></div></details>
+  <article class="execution"><small>ASISTEN EKSEKUSI MANUAL</small><h2 id="execution-status">BELUM SIAP</h2><p id="execution-reason">Menunggu bukti candle.</p><ul id="execution-checklist"></ul><p id="news-awareness" class="muted"></p></article>
+  <article><div class="section-heading"><h2>Peta harga</h2><span id="chart-caption">Candle tertutup</span></div><div id="chart" aria-label="Chart candlestick dan area konteks pasar"></div><p class="muted">Area dan batas invalidasi adalah referensi struktur. Tidak ada order otomatis.</p></article>
 </section>
-<section id="Analyze" class="panel" hidden><article class="analysis-priority"><div class="section-heading"><h2>Bukti utama</h2><span>Struktur → sweep → MSS → FVG</span></div><div id="evidence" class="evidence-grid"></div></article><details class="model-context analysis-secondary"><summary>Level likuiditas terdekat</summary><div id="liquidity"></div></details><details class="model-context analysis-secondary"><summary>Aturan dan batas model</summary><ul class="analysis-rules"><li>H1 menentukan konteks; entry memerlukan sweep, MSS, FVG, lalu retest.</li><li>BUY di discount dan SELL di premium, dengan target minimal 2R.</li><li>Setup kedaluwarsa setelah 12 candle; posisi simulasi setelah 48 candle.</li><li>Jika SL dan TP tersentuh bersamaan, hasil dihitung SL lebih dulu.</li></ul><p class="muted">Model ini bukan transaksi broker atau jaminan profit. Periksa spread dan berita sebelum entry.</p><a href="../market-intel/index.html">Periksa berita pasar →</a></details></section>
-<section id="History" class="panel" hidden><article><h2>Riwayat Scalper server · 24 jam</h2><div id="scalper-history"></div><a href="scalper-stats.html">Buka statistik dan arsip lengkap →</a></article><article><h2>Riwayat simulasi model</h2><div id="history"></div></article><article><h2>Riwayat Scalper sebelumnya</h2><p>Statistik layanan Scalper menggunakan strategi terpisah dan bukan hasil model mapping baru.</p><a href="scalper-stats.html">Buka arsip Scalper →</a></article></section>
+<section id="Analyze" class="panel" hidden>
+  <article class="analysis-priority"><div class="section-heading"><h2>Bukti struktur</h2><span>H1 → M15 → M1</span></div><div id="evidence" class="evidence-grid"></div></article>
+  <article><h2>Likuiditas eksternal dan internal</h2><div id="liquidity"></div></article>
+  <article><h2>Kondisi Gold</h2><div id="gold-condition"></div><a href="../market-intel/index.html">Periksa berita dan kalender ekonomi →</a></article>
+</section>
+<section id="History" class="panel" hidden><article><h2>Arsip setup lama</h2><p>Riwayat simulasi dari sistem sebelumnya tersedia untuk ditinjau. Tidak ada setup baru yang diterbitkan.</p><div id="history"></div><a href="scalper-stats.html">Buka arsip lengkap →</a></article></section>
 <footer></footer>
 </main>
 <script src="../academy/trading-practice/vendor/lightweight-charts.standalone.production.js"></script>
 <script src="js/scanner-visibility-gate.js"></script>
 <script src="js/notification-route-sync.js"></script>
 <script type="module" src="js/ict-workspace/app.js"></script>
-<script type="module" src="js/ict-workspace/scalper-panel.js"></script>
+<script type="module" src="js/ict-workspace/context-panel.js"></script>
 <script src="../shared/amy-local-assistant.js"></script>
 </body></html>

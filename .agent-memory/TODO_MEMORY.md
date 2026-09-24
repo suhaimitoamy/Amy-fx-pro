@@ -147,3 +147,9 @@ Pro342: confirm signed release/manifest activation and native update receipt. Ve
 
 ## 2026-09-19 — Pro346
 Observe new STRUCTURAL-2026-09-V1 results separately from old history; run held-out replay with broker costs before performance claims. Verify native update receipt on device after signed Pro346 release activation. Archived IFVG_LEGACY and FVG_BUY_HIGH_QUALITY remain retired.
+
+## 2026-09-24 — Pro357 activation pending approval
+
+- Deploy the already prepared `scalper-system-push`, `scalper-setups`, then `scalper-engine` Edge Functions only after approval for production replacement and FCM side effects; retain existing `verify_jwt=false` cron compatibility and service-role check on push.
+- Verify a fresh `amyfx-gold-context-v1` result in `amyfx_preview_scalper_runs`, confirm no new setup row and no legacy setup notification, and check Pro357+ token delivery only after app registration.
+- Merge the reviewed PR to main to trigger the signed APK workflow; verify package/version/signer, release asset digest and `update.json` at `2.0.0-pro.357` / `950357`, then observe Android notification/UI on a device.

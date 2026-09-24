@@ -119,7 +119,7 @@ test('Mapping header is one fixed-size dot and legacy header fields stay hidden'
   assert.doesNotMatch(html, /id="top-wib"|id="top-wita"/);
 });
 
-test('Scalper backend persists entry before lifecycle evaluation and uses optimistic state writes', async () => {
+test('retired Scalper lifecycle stays in the archive while active server publishes context', async () => {
   const engine = await read('supabase/functions/scalper-engine/index.ts');
   const signals = await read('supabase/functions/scalper-engine/signals.mjs');
   const drivers = await read('supabase/functions/scalper-engine/drivers.mjs');
@@ -127,11 +127,9 @@ test('Scalper backend persists entry before lifecycle evaluation and uses optimi
   const lifecycle = await read('supabase/functions/scalper-engine/lifecycle.mjs');
   const api = await read('supabase/functions/scalper-setups/index.ts');
 
-  assert.match(engine, /activateCandidate\(setup,nextOpen\)/);
-  assert.match(engine, /revision:\s*`eq\.\$\{expectedRevision\}`/);
-  assert.match(engine, /updated_at:\s*`eq\.\$\{expected\.updated_at\}`/);
-  assert.match(engine, /status:\s*`eq\.\$\{expected\.status\}`/);
-  assert.match(engine, /if\s*\(\s*!saved\s*\)\s*continue/);
+  assert.match(engine, /buildMarketContext/);
+  assert.doesNotMatch(engine, /activateCandidate\(setup,nextOpen\)|evaluateScalperCandidates/);
+  assert.match(engine, /amyfx_market_context_events/);
   assert.match(signals, /detectMultiDriverCandidates/);
   assert.match(drivers, /stop_basis_label:'Structural Invalidation \+ ATR Buffer'/);
   assert.match(drivers, /buffer_atr:0\.18/);
@@ -142,4 +140,6 @@ test('Scalper backend persists entry before lifecycle evaluation and uses optimi
   assert.match(api, /lifecycleSequence/);
   assert.match(api, /sourceCandleTimestamp/);
   assert.match(api, /stopBasis/);
+  assert.match(api, /mode: "market_context"/);
+  assert.match(api, /active: \[\]/);
 });

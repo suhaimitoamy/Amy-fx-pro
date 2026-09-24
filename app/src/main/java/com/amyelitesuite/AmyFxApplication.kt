@@ -42,11 +42,11 @@ class AmyFxApplication : android.app.Application() {
         manager.createNotificationChannel(newsChannel)
 
         val scalperChannel = NotificationChannel(
-            SCALPER_CHANNEL_ID,
-            "Amy FX Scalper Signals",
+            MARKET_CONTEXT_CHANNEL_ID,
+            "Amy FX Market Context",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Sinyal simulasi 10 driver BT6/BT6.1 + AMD dari Amy FX Preview"
+            description = "Perubahan struktur dan area penting Gold XAU/USD"
             enableVibration(true)
             enableLights(true)
             lightColor = Color.rgb(212, 175, 55)
@@ -82,6 +82,7 @@ class AmyFxApplication : android.app.Application() {
     companion object {
         const val NEWS_CHANNEL_ID = "amy_news_v2"
         const val SCALPER_CHANNEL_ID = "amy_scalper_v1"
+        const val MARKET_CONTEXT_CHANNEL_ID = "amy_market_context_v1"
         const val PREVIEW_APPLICATION_ID = "com.amyelitesuite.learningpreview"
     }
 }
