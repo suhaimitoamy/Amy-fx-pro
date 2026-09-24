@@ -1,5 +1,22 @@
 # Feature History
 
+## 2026-09-24 — Pro360 Trading Buddy notification copy overhaul
+
+- Push notification messages for Gold market context transformed from stiff server-log jargon into lively, trader-friendly copy (Gaya Trading Buddy).
+- 3 Distinct Event Alert Categories:
+  1. 🔔 *Gold Mendekati Zona [Beli/Jual]!* (Harga masuk radius 1x ATR area M15).
+  2. ⚡ *Konfirmasi M5 Muncul! Siap Ditinjau* (Sweep + MSS terpenuhi di M5, mencantumkan level sweep dan invalidasi).
+  3. ⚠️ *Hati-hati! M15 Mulai Melawan Arah H1* (Peringatan dini saat M15 berbalik arah melawan H1).
+- Updated in `supabase/functions/scalper-engine/market-context.mjs` and Android `AmyFirebaseMessagingService.kt` fallback text.
+
+## 2026-09-24 — Pro359 Gold market context M5 transition and resilient freshness
+
+- Transitioned lower timeframe confirmation from M1 to M5 with 900s (15-minute) freshness TTL in `market-context.mjs`, `context-model.js`, and `scalper-system-push`.
+- Resolved persistent empty dashboard issue (`WAIT · data belum siap / KONTEKS BELUM TERSEDIA`) caused by third-party feed 3–5 minute batching delays.
+- Maintained backward compatibility by exposing both `.m5` and `.m1` in the context payload.
+- Updated Mapping UI cards to `M5 · KONFIRMASI` and structural evidence flow `H1 → M15 → M5`.
+- Updated Tanya Amy local assistant to read M5 confirmation.
+
 ## 2026-09-20 — Pro351 Replay history controls and focused Mapping
 
 Candle Replay now offers a per-record Hapus action, repairs missing historical TP/SL evidence when its matching pack reaches the outcome candle, and reliably removes mirrored local-storage records. Mapping Analyze presents a compact evidence-first view with secondary details collapsed for mobile.

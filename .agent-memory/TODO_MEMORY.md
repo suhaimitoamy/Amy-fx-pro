@@ -1,5 +1,14 @@
 # TODO Memory
 
+## 2026-09-24 — Pro360 & Pro359 Verification & Next Steps
+
+- [x] **Pro359**: Lower timeframe confirmation transitioned from M1 to M5 with 900s freshness window, fixing the empty dashboard issue. Backwards-compatible `.m5` & `.m1` exposed. Released via CI.
+- [x] **Pro360**: Gold market context notification copy overhauled to "Trading Buddy" style (3 distinct event types). Edge Function deployed to Supabase. Released via CI and activated in `update.json`.
+- [ ] **Physical Device Verification**:
+  1. Confirm pop-up update to Pro 360 appears upon opening app.
+  2. Confirm Mapping tab loads populated Gold market context with M5 confirmation card.
+  3. Confirm background push notification arrival when price approaches M15 POI (*Gold Mendekati Zona*) or completes M5 sweep (*Konfirmasi M5 Muncul*).
+
 ## 2026-09-24 — Pro signer durable backup
 
 - [ ] Provision `AMYFX_PRO_KEYSTORE_BASE64` from the exact existing `amyfxpro` keystore whose SHA-256 certificate is `97:E0:B1:B6:F6:A1:B3:98:59:00:69:7F:97:63:51:B6:09:BD:BC:ED:19:07:FE:EC:90:49:EC:8F:D7:B5:02:32`. Until then, the verified main-branch Actions cache remains a fallback and release fails closed if that cache is unavailable.
