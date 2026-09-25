@@ -13,7 +13,7 @@ export function mountHomeChart(root) {
     view.draw(result);
     const last=result.candles.at(-1);
     $('home-chart-price').textContent=last?last.close.toFixed(2):'—';
-    $('home-chart-source').textContent=last?`${tf} · Candle ${new Date(result.sourceTime*1000).toLocaleString('id-ID',{timeZone:'Asia/Singapore',hour12:false})} WITA · ${result.fresh?'Candle terkini':'Referensi lama / data terlambat'}`:'Belum ada candle. Periksa koneksi lalu tekan Perbarui.';
+    $('home-chart-source').textContent=last?`${tf} · Candle ${new Date(result.sourceTime*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false})} WITA · ${result.fresh?'Candle terkini':'Referensi lama / data terlambat'}`:'Belum ada candle. Periksa koneksi lalu tekan Perbarui.';
     if($('home-chart-note'))$('home-chart-note').textContent=result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
   }
   function stop(){generation++;controller?.abort();clearTimeout(timer);}

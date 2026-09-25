@@ -43,7 +43,7 @@ async function devices(){
     const page=await rest(`device_tokens?${params}`);
     // Older APKs treat an unknown data-only FCM type as a news alert. Wait for Pro357 registration.
     all.push(...page.filter(device=>{
-      const match=/^2\.0\.0-pro\.(\d+)$/.exec(String(device.app_version||''));
+      const match=/\b2\.0\.0-pro\.(\d+)/.exec(String(device.app_version||''));
       return match && Number(match[1])>=357;
     }));
     if(page.length<500)break;

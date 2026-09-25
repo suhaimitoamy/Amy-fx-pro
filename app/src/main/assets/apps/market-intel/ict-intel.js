@@ -30,7 +30,20 @@ function liquidityOnly(rows,now){
   return {model:'ICT-SWEEP-MSS-FVG-1',tf:'M15',signal:'WAIT',fresh,sourceTime:last?.time||null,
     capturedAt:now*1000,close:last?.close||null,levels,reason:'Level likuiditas saja; skenario terbaru tersedia di Mapping.',plan:null};
 }
-try { const cached=JSON.parse(localStorage.getItem(SNAPSHOT_KEY)||'null');if(validSnapshot(cached))snapshot=cached; } catch {}
+try {
+  const cached=JSON.parse(localStorage.getItem(SNAPSHOT_KEY)||'null');
+  if(validSnapshot(cached))snapshot=cached;
+  else {
+    const serverCtx=JSON.parse(localStorage.getItem('amyfx.market-context.v1')||'null');
+    if(serverCtx?.fresh&&serverCtx.price&&Array.isArray(serverCtx.liquidity)){
+      const levels=serverCtx.liquidity.filter(l=>Number.isFinite(l.level)&&l.status==='ACTIVE').map(l=>({
+        kind:l.side==='BUY'?'high':'low',level:l.level,time:l.sourceTime||Date.now()/1000,confirmed:l.sourceTime||Date.now()/1000,used:false
+      }));
+      snapshot={model:'ICT-SWEEP-MSS-FVG-1',tf:'M15',signal:'WAIT',fresh:true,sourceTime:serverCtx.source?.M15||Date.now()/1000,
+        capturedAt:Date.now(),close:serverCtx.price,levels,reason:'Likuiditas aktif dari konteks pasar Amy FX.',plan:null};
+    }
+  }
+} catch {}
 function paint() {
   const valid=validSnapshot(snapshot),fresh=isFresh(snapshot)&&!failed;
   const levels=nearestLevels(snapshot),bands=liquidityBands(snapshot),close=snapshot?.close;

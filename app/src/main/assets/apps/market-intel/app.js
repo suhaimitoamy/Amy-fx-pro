@@ -1014,8 +1014,9 @@ async function loadCalendar(silent = false) {
         const res = await fetch(url, { signal });
         if (res.ok) {
           const json = await res.json();
-          if (Array.isArray(json) && json.length > 0) {
-            data = json;
+          const items = Array.isArray(json) ? json : (Array.isArray(json?.events) ? json.events : []);
+          if (items.length > 0) {
+            data = items;
             break;
           }
         }

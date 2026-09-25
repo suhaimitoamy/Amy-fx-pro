@@ -1,23 +1,27 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.365/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.366/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan mesin briefing 5 poin terintegrasi (USD & The Fed, Safe Haven, Sentimen Pasar, News Kalender Terhubung, dan Kesimpulan Fundamental).",
-    "Kalender Ekonomi: Integrasi live data kalender USD (Forecast & Previous) langsung ke analisis arah Gold.",
-    "UI & Performa: Tampilan kartu briefing modern responsif dan render instan tanpa loading screen."
+    "Mapping & Konteks Pasar: Perbaikan netralisasi bias H1 saat batas invalidasi tertembus (tidak lagi memaksakan arah berlawanan).",
+    "Struktur Break: Memperbaiki durasi penguncian recentBreak dan mencegah sumbu candle (wick) membakar level sebelum close bodi.",
+    "Sinkronisasi Antar-Modul: Integrasi peta likuiditas Market Intel dengan snapshot konteks pasar live server.",
+    "Jurnal & Analitik: Kurva pertumbuhan ekuitas kini menggunakan nilai R-multiple realistis jika PnL mata uang tidak diisi.",
+    "Backend & Push: Peningkatan toleransi regex versi APK untuk push notifikasi konteks pasar."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.365/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.366/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950365,
-  "latest_version_name": "2.0.0-pro.365",
+  "latest_version_code": 950366,
+  "latest_version_name": "2.0.0-pro.366",
   "mandatory": false,
   "releaseDate": "2026-09-25",
   "release_notes": [
-    "Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan mesin briefing 5 poin terintegrasi (USD & The Fed, Safe Haven, Sentimen Pasar, News Kalender Terhubung, dan Kesimpulan Fundamental).",
-    "Kalender Ekonomi: Integrasi live data kalender USD (Forecast & Previous) langsung ke analisis arah Gold.",
-    "UI & Performa: Tampilan kartu briefing modern responsif dan render instan tanpa loading screen."
+    "Mapping & Konteks Pasar: Perbaikan netralisasi bias H1 saat batas invalidasi tertembus (tidak lagi memaksakan arah berlawanan).",
+    "Struktur Break: Memperbaiki durasi penguncian recentBreak dan mencegah sumbu candle (wick) membakar level sebelum close bodi.",
+    "Sinkronisasi Antar-Modul: Integrasi peta likuiditas Market Intel dengan snapshot konteks pasar live server.",
+    "Jurnal & Analitik: Kurva pertumbuhan ekuitas kini menggunakan nilai R-multiple realistis jika PnL mata uang tidak diisi.",
+    "Backend & Push: Peningkatan toleransi regex versi APK untuk push notifikasi konteks pasar."
   ],
-  "sha256": "4e79142391eb1af6da7ca8872d87e01c0e89e144afc395494dcdb624517dc420",
-  "version": "2.0.0-pro.365",
-  "versionCode": 950365
+  "sha256": "18f95e92b85cab3ac26ac322855aa44353c6d25a06d9001d7563693f493ce71b",
+  "version": "2.0.0-pro.366",
+  "versionCode": 950366
 }

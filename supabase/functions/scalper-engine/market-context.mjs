@@ -50,14 +50,18 @@ export function structure(candles, points=swings(candles)) {
   }
   const h=highs.at(-1),h0=highs.at(-2),l=lows.at(-1),l0=lows.at(-2);
   const sequence=h&&h0&&l&&l0?(h.level>h0.level&&l.level>l0.level?'BULLISH':h.level<h0.level&&l.level<l0.level?'BEARISH':'NEUTRAL'):'NEUTRAL';
-  const recentBreak=lastBreak && latest(candles).close_time-lastBreak.time<=24*3600;
-  const bias=recentBreak?lastBreak.side:sequence;
+  const breakAge=lastBreak?latest(candles).close_time-lastBreak.time:Infinity;
+  const recentBreak=lastBreak && (breakAge<=8*3600 || (sequence==='NEUTRAL'&&breakAge<=24*3600));
+  let bias=recentBreak?lastBreak.side:sequence;
   let health=bias==='NEUTRAL'?'WEAKENING':'HEALTHY';
   if(bias!=='NEUTRAL' && sequence!=='NEUTRAL' && sequence!==bias) health='WEAKENING';
   if(bias==='BULLISH'&&h&&h0&&h.level<h0.level||bias==='BEARISH'&&l&&l0&&l.level>l0.level)health='WEAKENING';
   const protectedLevel=bias==='BULLISH'?l?.level:bias==='BEARISH'?h?.level:null;
   if(bias==='BULLISH' && protectedLevel!=null && latest(candles).close<protectedLevel ||
-     bias==='BEARISH' && protectedLevel!=null && latest(candles).close>protectedLevel) health='INVALIDATED';
+     bias==='BEARISH' && protectedLevel!=null && latest(candles).close>protectedLevel) {
+    health='INVALIDATED';
+    bias='NEUTRAL';
+  }
   return {bias,health,sequence,lastBreak,protectedLevel:round(protectedLevel),swingHigh:round(h?.level),swingLow:round(l?.level),
     highPattern:h&&h0?(h.level>h0.level?'HH':'LH'):null,lowPattern:l&&l0?(l.level>l0.level?'HL':'LL'):null};
 }
@@ -287,7 +291,8 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     primary:null,alternative:null,execution:{status:'NOT READY',checklist:[],reason:`Candle H1, M15, atau ${tfName} belum lengkap atau terlambat.`},
     narrative:'Data candle tertutup belum cukup segar untuk membentuk konteks pasar.',event:null};
   const h=structure(H),m=structure(M),mp=swings(M),allZones=zones(M,mp),levels=liquidity(M,D,mp,nowSeconds);
-  const side=h.bias==='BULLISH'?'BUY':h.bias==='BEARISH'?'SELL':m.bias==='BULLISH'?'BUY':m.bias==='BEARISH'?'SELL':null;
+  const hValid=h.bias!=='NEUTRAL'&&h.health!=='INVALIDATED';
+  const side=hValid?(h.bias==='BULLISH'?'BUY':'SELL'):(m.bias==='BULLISH'?'BUY':m.bias==='BEARISH'?'SELL':null);
   const opposite=side==='BUY'?'SELL':side==='SELL'?'BUY':null,control=m.bias==='BULLISH'?'BUYER':m.bias==='BEARISH'?'SELLER':'BALANCED';
   const close=latest(M).close,vol=atr(M),oldVols=[];
   for(let i=Math.max(15,M.length-100);i<M.length;i++){const x=atr(M,i);if(x)oldVols.push(x);}
@@ -300,13 +305,13 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   const near=poi&&Math.max(0,poi.low-close,close-poi.high)<=vol;
   const confirming=confirmation(C,poi,side);
   if(poi&&((side==='BUY'&&latest(M).close<poi.low)||(side==='SELL'&&latest(M).close>poi.high)))confirming.status='FAILED';
-  const aligned=side&&h.bias!=='NEUTRAL'&&(side==='BUY'?control==='BUYER':control==='SELLER');
+  const aligned=side&&hValid&&(side==='BUY'?control==='BUYER':control==='SELLER');
   if(h.bias!=='NEUTRAL'&&!aligned)h.health=h.health==='INVALIDATED'?'INVALIDATED':'WEAKENING';
   const target=levels.filter(l=>l.status==='ACTIVE'&&l.side===side).sort((a,b)=>Math.abs(a.level-close)-Math.abs(b.level-close))[0]||null;
   const altTarget=levels.filter(l=>l.status==='ACTIVE'&&l.side===opposite).sort((a,b)=>Math.abs(a.level-close)-Math.abs(b.level-close))[0]||null;
   const scenario=(s,z,t,isAlternative=false)=>s?{side:s,label:s==='BUY'?'BELI GOLD':'JUAL GOLD',area:z?{low:z.low,high:z.high}:null,
     poiType:z?.kind||null,poiStatus:z?.lifecycle||null,target:t?.level||null,invalidation:z?(s==='BUY'?z.low:z.high):null,
-    reasons:[isAlternative?'Dapat dipertimbangkan hanya setelah skenario utama batal':`Bias H1 ${h.bias==='BULLISH'?'naik':h.bias==='BEARISH'?'turun':'netral'}`,
+    reasons:[isAlternative?'Dapat dipertimbangkan hanya setelah skenario utama batal':`Bias H1 ${h.bias==='BULLISH'?'naik':h.bias==='BEARISH'?'turun':'netral'}${h.health==='INVALIDATED'?' (batal)':''}`,
       isAlternative?`M15 harus beralih ke ${s==='BUY'?'pembeli':'penjual'}`:`Kontrol M15 ${control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang'}`,
       z?`${z.label} M15 ${z.low.toFixed(2)}–${z.high.toFixed(2)} (${z.lifecycle})`:'Belum ada area M15 valid'],
     waiting:z?`Tunggu harga merespons area M15 dan sweep + MSS + displacement/FVG ${tfName}.`:'Tunggu POI M15 yang valid.',
@@ -318,7 +323,7 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     {label:'Batas invalidasi tersedia',ok:Boolean(poi)}];
   const ready=checklist.every(x=>x.ok);
   const isNewsLock=newsContext.status==='NEWS_LOCK';
-  const direction=h.bias==='BULLISH'?'Naik':h.bias==='BEARISH'?'Turun':'Netral';
+  const direction=h.health==='INVALIDATED'?'Batal':h.bias==='BULLISH'?'Naik':h.bias==='BEARISH'?'Turun':'Netral';
   const controlling=control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang';
   const state=h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()} · tekanan ${controlling} di M15`:poi&&near?`H1 ${direction.toLowerCase()} · dekat area M15`:`H1 ${direction.toLowerCase()} · menunggu area`;
   const status=isNewsLock?'NOT READY':(ready?'READY TO REVIEW':'NOT READY');

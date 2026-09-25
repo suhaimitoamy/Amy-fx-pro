@@ -61,7 +61,7 @@ export function structure(cs) {
     const low=levels.filter(x=>x.kind==='low'&&!x.used).at(-1);
     if (high && c.close>high.level) { direction='BUY'; lastBreak={ ...high, brokenAt:c.time }; }
     if (low && c.close<low.level) { direction='SELL'; lastBreak={ ...low, brokenAt:c.time }; }
-    for (const l of levels) if (l.kind==='high' ? c.high>=l.level : c.low<=l.level) l.used=true;
+    for (const l of levels) if (l.kind==='high' ? c.close>l.level : c.close<l.level) l.used=true;
     levels.push(...pivots(cs,i));
   }
   const high=levels.filter(x=>x.kind==='high').at(-1), low=levels.filter(x=>x.kind==='low').at(-1);
