@@ -37,3 +37,4 @@ __pycache__/
 *.log
 .vercel
 .env*
+supabase/.temp/

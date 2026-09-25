@@ -14,17 +14,19 @@
   <link rel="stylesheet" href="../shared/amyfx-theme.css" data-amyfx-theme="v1">
   <link rel="stylesheet" href="../shared/amyfx-components.css" data-amyfx-components="v1">
   <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
+  <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
 </head>
 <body class="amyfx-module amyfx-module--intel">
   <div class="intel-container">
     <section id="market-command-strip" class="amy-command-strip" aria-label="Market command strip"></section>
     <header class="intel-header">
       <a class="intel-back" href="../../index.html" aria-label="Kembali ke Amy FX"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
-      <div class="intel-header__copy"><h1>Berita &amp; Kalender</h1></div>
+      <div class="intel-header__copy"><h1>Market Intel &amp; Sentimen</h1></div>
     </header>
     <nav class="intel-tabs">
       <button class="intel-tab active" data-tab="news">Berita</button>
       <button class="intel-tab" data-tab="calendar">Kalender</button>
+      <button class="intel-tab" data-tab="sentiment">Sentimen The Fed</button>
     </nav>
     <section id="intel-briefing" class="amy-briefing" aria-live="polite"></section>
     <section id="panel-news" class="intel-panel active">
@@ -40,6 +42,10 @@
       </div>
       <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>
       <div id="calendar-list" class="calendar-list"></div>
+    </section>
+    <section id="panel-sentiment" class="intel-panel">
+      <div class="status-bar" id="sentiment-status">Memuat data sentimen The Fed (CME FedWatch)...</div>
+      <div id="sentiment-content" class="sentiment-wrap"></div>
     </section>
     <div id="loading-overlay" class="loading-overlay" hidden>
       <div class="spinner"></div>

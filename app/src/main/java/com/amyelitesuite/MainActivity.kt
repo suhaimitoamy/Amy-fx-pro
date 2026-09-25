@@ -597,30 +597,8 @@ class MainActivity : Activity() {
     }
 
     private fun injectHomeButtonForLocalModule(url: String?) {
-        if (url == null || !url.contains("/apps/")) return
-        webView.evaluateJavascript("""
-            (function(){
-              if (document.getElementById('amy-fx-home-button')) return;
-              var btn = document.createElement('button');
-              btn.id = 'amy-fx-home-button';
-              btn.textContent = '← Amy FX';
-              btn.style.position = 'fixed';
-              btn.style.left = '12px';
-              btn.style.bottom = '80px';
-              btn.style.zIndex = '2147483647';
-              btn.style.border = '1px solid rgba(212,175,55,.55)';
-              btn.style.borderRadius = '999px';
-              btn.style.background = 'rgba(10,10,10,.88)';
-              btn.style.color = '#d4af37';
-              btn.style.fontWeight = '800';
-              btn.style.fontSize = '12px';
-              btn.style.padding = '8px 12px';
-              btn.style.boxShadow = '0 6px 18px rgba(0,0,0,.35)';
-              btn.onclick = function(){ if (window.Android && window.Android.goHome) { window.Android.goHome(); } else { location.href = '${APP_ASSET_PREFIX}index.html'; } };
-              document.body.appendChild(btn);
-              document.body.style.setProperty('--amy-native-back-height','28px');
-            })();
-        """.trimIndent(), null)
+        // Floating DOM back button is retired in favor of native header back buttons.
+        return
     }
 
     private fun dp(value: Int): Int {
@@ -785,13 +763,17 @@ class MainActivity : Activity() {
                     putExtra("bsl", cleanBsl)
                     putExtra("ssl", cleanSsl)
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    mContext.startForegroundService(intent)
-                } else {
-                    mContext.startService(intent)
-                }
+                // ScannerService is a retired compatibility stub; never call startForegroundService
+                mContext.startService(intent)
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun setSwipeRefreshEnabled(enabled: Boolean) {
+            (mContext as Activity).runOnUiThread {
+                this@MainActivity.swipeRefreshLayout.isEnabled = enabled
             }
         }
 

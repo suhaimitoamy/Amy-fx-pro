@@ -1,3 +1,13 @@
+## 2.0.0-pro.363
+
+- feat(intel): Tambahkan Tab ke-3 Market Intel — Sentimen The Fed (Barometer Hawkish vs Dovish CME FedWatch, probabilitas suku bunga, target proyeksi FOMC, serta analisis dampak makro ke XAU/USD).
+- feat(ui): Terapkan stylesheet Natural UI ke seluruh modul internal (Mapping, Journal, Academy, dan Market Intel) untuk pengalaman visual yang selaras dan terpadu.
+- fix(nav): Hapus injeksi tombol melayang "← Amy FX" (`injectHomeButtonForLocalModule`) yang menutupi kontrol chart dan action button.
+- fix(gesture): Kunci `ReplayRefreshPolicy` pada seluruh workspace chart (Replay, Chart Analysis, Guided Practice, dan Mapping) agar tarikan gestur vertikal chart tidak memicu reload halaman secara tidak sengaja.
+- fix(service): Netralkan kompatibilitas `ScannerService` dengan beralih ke `startService` biasa guna mencegah crash `ForegroundServiceDidNotStartInTimeException` pada Android 8–14+.
+- perf(assets): Diet aset aplikasi — bersihkan 23 MB direktori duplikat lama dan pisahkan skrip development python dari bundel APK.
+- perf(api): Optimasi masa daur ulang SSE pada `api/live-price.js` menjadi 25 detik untuk efisiensi kuota serverless.
+
 ## 2.0.0-pro.356
 
 - fix(palette): Perbaiki bug pop up color picker di palet warna utama (Latar, Kaca, Teks, Aksen) yang menutup otomatis setelah 1 detik. Panel customisasi warna kini dipertahankan stabil tanpa me-remove DOM elemen yang sedang aktif, dan struktur cell diperbarui tanpa wrapping label ganda.

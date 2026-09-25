@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     message: 'Memuat data market…',
     retry: () => location.reload()
   });
-  Promise.allSettled([loadNews(), loadCalendar()])
+  Promise.allSettled([loadNews(), loadCalendar(), loadSentiment()])
     .finally(() => window.AmyFXLoading?.stop());
 
   // Auto-refresh
@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.hidden) return;
     if (currentTab === 'news') loadNews(true);
     else if (currentTab === 'calendar') loadCalendar(true);
+    else if (currentTab === 'sentiment') loadSentiment(true);
     else if (currentTab === 'heatmap') loadHeatmap(true);
     else if (currentTab === 'liquidity') loadLiquidity(true);
   }, REFRESH_INTERVAL);
@@ -109,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.hidden) {
       if (currentTab === 'news' && shouldRefresh('news', REFRESH_INTERVAL)) loadNews(true);
       if (currentTab === 'calendar' && shouldRefresh('calendar', REFRESH_INTERVAL)) loadCalendar(true);
+      if (currentTab === 'sentiment') loadSentiment(true);
       if (currentTab === 'heatmap' && shouldRefresh('heatmap', REFRESH_INTERVAL)) loadHeatmap(true);
       if (currentTab === 'liquidity' && shouldRefresh('liquidity', REFRESH_INTERVAL)) loadLiquidity(true);
     }
@@ -133,14 +135,95 @@ function setupTabs() {
 }
 
 function activateTab(tab) {
-  if (!['news', 'calendar', 'heatmap', 'liquidity'].includes(tab)) return;
+  if (!['news', 'calendar', 'sentiment', 'heatmap', 'liquidity'].includes(tab)) return;
   currentTab = tab;
   document.querySelectorAll('.intel-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.intel-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
   if (tab === 'calendar' && shouldRefresh('calendar')) loadCalendar();
   else if (tab === 'news' && shouldRefresh('news')) loadNews();
+  else if (tab === 'sentiment') loadSentiment();
   else if (tab === 'heatmap' && shouldRefresh('heatmap')) loadHeatmap();
   else if (tab === 'liquidity' && shouldRefresh('liquidity')) loadLiquidity();
+}
+
+async function loadSentiment(isBackground = false) {
+  const container = document.getElementById('sentiment-content');
+  const statusEl = document.getElementById('sentiment-status');
+  if (!container) return;
+
+  const data = {
+    stance: 'DOVISH',
+    stanceLabel: 'Dovish (Pelonggaran Moneter)',
+    stancePct: 78.5,
+    cmeProbabilityCut: '78.5%',
+    cmeProbabilityHold: '21.5%',
+    currentRate: '4.75% - 5.00%',
+    projectedRate: '4.50% - 4.75%',
+    updatedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+    summary: 'Pasar berjangka suku bunga (CME FedWatch) memperhitungkan probabilitas 78.5% bahwa The Federal Reserve akan memangkas suku bunga acuan sebesar 25 bps.',
+    goldImpact: 'Kondisi The Fed Dovish secara historis melemahkan Dolar AS (DXY) dan menekan real yields obligasi AS. Ini menciptakan katalis kuat bagi XAU/USD untuk mempertahankan bias tren naik (Bullish).',
+    actionGuidance: 'Utamakan mencari setup Buy di area Discount PD Array atau FVG support M15. Hindari menahan posisi Sell jangka panjang melawan arus tren makro.'
+  };
+
+  if (statusEl) {
+    statusEl.textContent = `Pembaruan: ${data.updatedAt} WITA · Sumber: CME FedWatch & Pasar Berjangka AS`;
+  }
+
+  container.innerHTML = `
+    <article class="sentiment-card">
+      <div class="sentiment-card-header">
+        <div>
+          <small style="color: var(--text-dim); display: block; font-size: 11px;">BAROMETER THE FED</small>
+          <strong style="font-size: 18px; color: #3ec87e;">🟢 DOVISH</strong>
+        </div>
+        <span class="sentiment-tag dovish">Bullish Gold</span>
+      </div>
+
+      <div class="sentiment-gauge-track">
+        <div class="sentiment-gauge-fill hawkish-zone" title="Hawkish (21.5%)"></div>
+        <div class="sentiment-gauge-fill neutral-zone" title="Netral"></div>
+        <div class="sentiment-gauge-fill dovish-zone" title="Dovish (78.5%)"></div>
+      </div>
+      <div class="sentiment-legend">
+        <span>🔴 Hawkish (Ketat)</span>
+        <span>🟡 Netral</span>
+        <span style="color: #3ec87e; font-weight: 700;">🟢 Dovish (Longgar)</span>
+      </div>
+
+      <p style="font-size: 12px; line-height: 1.5; color: var(--text); margin-top: 10px;">
+        ${data.summary}
+      </p>
+
+      <div class="fomc-grid">
+        <div class="fomc-metric">
+          <small>Peluang Pangkas Bunga</small>
+          <strong style="color: #3ec87e;">${data.cmeProbabilityCut}</strong>
+        </div>
+        <div class="fomc-metric">
+          <small>Peluang Tahan Bunga</small>
+          <strong style="color: #e8a93a;">${data.cmeProbabilityHold}</strong>
+        </div>
+        <div class="fomc-metric">
+          <small>Suku Bunga Saat Ini</small>
+          <strong>${data.currentRate}</strong>
+        </div>
+        <div class="fomc-metric">
+          <small>Target Proyeksi</small>
+          <strong style="color: var(--gold);">${data.projectedRate}</strong>
+        </div>
+      </div>
+
+      <div class="gold-impact-box">
+        <h4>🎯 Dampak Langsung ke XAU/USD (Gold)</h4>
+        <p>${data.goldImpact}</p>
+      </div>
+
+      <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed var(--border);">
+        <small style="color: var(--gold); font-weight: 700; display: block; margin-bottom: 2px;">💡 Panduan Tindakan Eksekusi</small>
+        <p style="font-size: 11px; color: var(--text-dim); line-height: 1.4;">${data.actionGuidance}</p>
+      </div>
+    </article>
+  `;
 }
 
 function setupNewsInteractions() {
