@@ -1,3 +1,10 @@
+## 2.0.0-pro.364
+
+- feat(intel): Transformasi Tab ke-3 Market Intel menjadi Kompas Fundamental Harian XAU/USD terintegrasi Rantai Efek Domino Makro (CPI ➔ NFP ➔ The Fed ➔ DXY ➔ Gold) dan Skenario Playbook berita.
+- feat(calendar): Default kalender ekonomi otomatis fokus ke Gold Macro Drivers (USD High & Medium Impact), serta penataan cerdas lencana agenda pidato / non-data konsensus.
+- perf(intel): Hapus blocking loading screen pada Market Intel dan implementasikan Instant Cache Render (Stale-While-Revalidate) untuk perpindahan tab secepat kilat.
+- feat(academy): Perbarui dataset candlestick Candle Replay & 60 bank soal Guided Practice menggunakan data real XAU/USD modern 2025/2026 ($2.600+).
+
 ## 2.0.0-pro.363
 
 - feat(intel): Tambahkan Tab ke-3 Market Intel — Sentimen The Fed (Barometer Hawkish vs Dovish CME FedWatch, probabilitas suku bunga, target proyeksi FOMC, serta analisis dampak makro ke XAU/USD).

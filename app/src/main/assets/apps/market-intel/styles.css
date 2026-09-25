@@ -782,4 +782,153 @@ body {
   color: var(--text);
 }
 
+/* ─── Macro Domino Chain & Case Study ─── */
+.macro-chain-wrap {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.macro-chain-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.chain-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.chain-content {
+  flex: 1;
+}
+.chain-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.chain-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.chain-connector {
+  text-align: center;
+  color: var(--gold);
+  font-size: 14px;
+  margin: -4px 0;
+  opacity: 0.7;
+}
+
+.case-study-box {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 14px;
+}
+.case-study-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #60a5fa;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.case-study-text {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+/* ─── If-Then Playbook Matrix ─── */
+.if-then-wrap {
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+.if-then-header {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.if-then-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.if-then-card {
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid transparent;
+}
+.if-then-card.scenario-hot {
+  background: rgba(240, 85, 104, 0.08);
+  border-color: rgba(240, 85, 104, 0.25);
+}
+.if-then-card.scenario-cool {
+  background: rgba(62, 200, 126, 0.08);
+  border-color: rgba(62, 200, 126, 0.25);
+}
+.scenario-label {
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.scenario-hot .scenario-label { color: #f05568; }
+.scenario-cool .scenario-label { color: #3ec87e; }
+.scenario-desc {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* ─── Calendar Badges ─── */
+.cal-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.cal-pill-speech {
+  background: rgba(147, 51, 234, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+}
+.cal-pill-holiday {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.cal-pill-nondata {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

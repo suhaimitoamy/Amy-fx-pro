@@ -86,14 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   setupNewsInteractions();
   setupCalendarFilters();
-  window.AmyFXLoading?.start({
-    delay: 350,
-    timeout: 12000,
-    message: 'Memuat data market…',
-    retry: () => location.reload()
-  });
-  Promise.allSettled([loadNews(), loadCalendar(), loadSentiment()])
-    .finally(() => window.AmyFXLoading?.stop());
+
+  // Instant render from local cache first, then sync in background
+  loadSentiment();
+  loadCalendar();
+  loadNews();
 
   // Auto-refresh
   setInterval(() => {
@@ -151,6 +148,23 @@ async function loadSentiment(isBackground = false) {
   const statusEl = document.getElementById('sentiment-status');
   if (!container) return;
 
+  const now = Date.now();
+  const cached = getCachedCalendar();
+  const events = (cached?.events || calendarEvents || []);
+  const usdEvents = events.filter(e => String(e.country || '').toUpperCase() === 'USD');
+
+  // Filter upcoming high/medium USD events
+  const upcomingUsd = usdEvents.filter(e => {
+    const t = new Date(e.date).getTime();
+    return Number.isFinite(t) && t >= (now - 3600000 * 2) && t <= (now + 86400000 * 3);
+  });
+
+  const topUpcoming = upcomingUsd.find(e => String(e.impact).toLowerCase() === 'high') || upcomingUsd[0];
+  const upcomingTitle = topUpcoming ? escapeHtml(topUpcoming.title) : 'Rilis Makro Ekonomi AS Terjadwal';
+  const upcomingTime = topUpcoming
+    ? new Date(topUpcoming.date).toLocaleTimeString('en-GB', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit' }) + ' WITA'
+    : 'Sesi New York';
+
   const data = {
     stance: 'DOVISH',
     stanceLabel: 'Dovish (Pelonggaran Moneter)',
@@ -159,24 +173,24 @@ async function loadSentiment(isBackground = false) {
     cmeProbabilityHold: '21.5%',
     currentRate: '4.75% - 5.00%',
     projectedRate: '4.50% - 4.75%',
-    updatedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-    summary: 'Pasar berjangka suku bunga (CME FedWatch) memperhitungkan probabilitas 78.5% bahwa The Federal Reserve akan memangkas suku bunga acuan sebesar 25 bps.',
+    updatedAt: new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit' }),
+    summary: 'Pasar berjangka suku bunga (CME FedWatch) memperhitungkan probabilitas 78.5% bahwa The Federal Reserve berada pada siklus pelonggaran moneter (pemangkasan suku bunga acuan). Kondisi ini menekan imbal hasil obligasi AS dan DXY.',
     goldImpact: 'Kondisi The Fed Dovish secara historis melemahkan Dolar AS (DXY) dan menekan real yields obligasi AS. Ini menciptakan katalis kuat bagi XAU/USD untuk mempertahankan bias tren naik (Bullish).',
     actionGuidance: 'Utamakan mencari setup Buy di area Discount PD Array atau FVG support M15. Hindari menahan posisi Sell jangka panjang melawan arus tren makro.'
   };
 
   if (statusEl) {
-    statusEl.textContent = `Pembaruan: ${data.updatedAt} WITA · Sumber: CME FedWatch & Pasar Berjangka AS`;
+    statusEl.textContent = `Pembaruan: ${data.updatedAt} WITA • Kalender Tersinkron: ${usdEvents.length} data USD • CME FedWatch`;
   }
 
   container.innerHTML = `
     <article class="sentiment-card">
       <div class="sentiment-card-header">
         <div>
-          <small style="color: var(--text-dim); display: block; font-size: 11px;">BAROMETER THE FED</small>
-          <strong style="font-size: 18px; color: #3ec87e;">🟢 DOVISH</strong>
+          <small style="color: var(--text-dim); display: block; font-size: 11px;">KOMPAS FUNDAMENTAL HARIAN</small>
+          <strong style="font-size: 18px; color: #3ec87e;">🟢 BIAS BULLISH GOLD</strong>
         </div>
-        <span class="sentiment-tag dovish">Bullish Gold</span>
+        <span class="sentiment-tag dovish">Dovish Fed Cycle</span>
       </div>
 
       <div class="sentiment-gauge-track">
@@ -213,14 +227,85 @@ async function loadSentiment(isBackground = false) {
         </div>
       </div>
 
-      <div class="gold-impact-box">
-        <h4>🎯 Dampak Langsung ke XAU/USD (Gold)</h4>
-        <p>${data.goldImpact}</p>
+      <!-- ─── Rantai Efek Korelasi Makro (Macro Domino Chain) ─── -->
+      <div class="macro-chain-wrap">
+        <div style="font-size: 12px; font-weight: 800; color: var(--gold); margin-top: 6px;">
+          ⛓️ Rantai Efek Domino Makro Penggerak Emas
+        </div>
+        
+        <div class="macro-chain-step">
+          <div class="chain-num">1</div>
+          <div class="chain-content">
+            <div class="chain-title">Inflasi (CPI &amp; Core PCE)</div>
+            <div class="chain-desc">Jika inflasi melandai ➔ The Fed leluasa pangkas suku bunga. Jika inflasi naik panas ➔ The Fed dipaksa bersikap Hawkish menahan suku bunga tinggi.</div>
+          </div>
+        </div>
+        <div class="chain-connector">▼</div>
+
+        <div class="macro-chain-step">
+          <div class="chain-num">2</div>
+          <div class="chain-content">
+            <div class="chain-title">Kebijakan Suku Bunga The Fed</div>
+            <div class="chain-desc">Suku bunga tinggi menyedot likuiditas global ke perbankan AS. Suku bunga rendah mendorong investor memburu aset lindung nilai riil.</div>
+          </div>
+        </div>
+        <div class="chain-connector">▼</div>
+
+        <div class="macro-chain-step">
+          <div class="chain-num">3</div>
+          <div class="chain-content">
+            <div class="chain-title">Indeks Dolar (DXY) &amp; Imbal Hasil Obligasi (US 10Y Yields)</div>
+            <div class="chain-desc">Obligasi memberikan bunga kupon pasti. Saat yield obligasi turun, memegang aset tanpa yield (seperti Emas) menjadi jauh lebih menarik.</div>
+          </div>
+        </div>
+        <div class="chain-connector">▼</div>
+
+        <div class="macro-chain-step">
+          <div class="chain-num">4</div>
+          <div class="chain-content">
+            <div class="chain-title">Dampak Langsung ke XAU/USD (Gold)</div>
+            <div class="chain-desc">XAU/USD bergerak berkebalikan (inverse) dengan DXY dan Real Yields. DXY turun + Yields anjlok = Ledakan reli pembelian emas!</div>
+          </div>
+        </div>
       </div>
 
-      <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed var(--border);">
-        <small style="color: var(--gold); font-weight: 700; display: block; margin-bottom: 2px;">💡 Panduan Tindakan Eksekusi</small>
-        <p style="font-size: 11px; color: var(--text-dim); line-height: 1.4;">${data.actionGuidance}</p>
+      <!-- ─── Studi Kasus Efek Berantai: CPI ➔ NFP ➔ Gold ─── -->
+      <div class="case-study-box">
+        <div class="case-study-title">⚡ Contoh Efek Berantai: Rilis CPI ➔ Antisipasi NFP ➔ Arah Gold</div>
+        <p class="case-study-text">
+          Jika data <strong>CPI sebelumnya keluar panas (inflasi tinggi)</strong>, ekspektasi pemangkasan bunga meredup dan Dolar menguat menekan emas. 
+          Namun, ketika rilis data tenaga kerja <strong>(NFP) berikutnya keluar mengecewakan (low payrolls / pengangguran naik)</strong>, pasar langsung menyimpulkan ekonomi melemah. Dolar seketika kehilangan tenaganya, memicu aksi borong emas <em>(V-Shape Reversal)</em> dari zona diskon HTF.
+        </p>
+      </div>
+
+      <!-- ─── If-Then Playbook Matrix ─── -->
+      <div class="if-then-wrap">
+        <div class="if-then-header">
+          <span>🎯 Skenario Playbook: Menghadapi ${upcomingTitle} (${upcomingTime})</span>
+        </div>
+        <div class="if-then-grid">
+          <div class="if-then-card scenario-hot">
+            <div class="scenario-label">🔴 Skenario A: Hasil &gt; Ekspektasi</div>
+            <div class="scenario-desc">
+              Data AS Panas ➔ DXY Menguat ➔ Yields Naik.<br>
+              <strong>Dampak Gold: Tertekan Turun (Sell-off)</strong>.<br>
+              <em>Aksi: Cari konfirmasi Sell di zona Premium sesudah sapuan likuiditas atas.</em>
+            </div>
+          </div>
+          <div class="if-then-card scenario-cool">
+            <div class="scenario-label">🟢 Skenario B: Hasil &lt; Ekspektasi</div>
+            <div class="scenario-desc">
+              Data AS Dingin ➔ DXY Melemah ➔ Yields Turun.<br>
+              <strong>Dampak Gold: Melesat Naik (Bullish)</strong>.<br>
+              <em>Aksi: Cari konfirmasi Buy di zona Diskon / FVG Support.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gold-impact-box">
+        <h4>🎯 Panduan Eksekusi SMC / ICT di Chart</h4>
+        <p>${data.actionGuidance} Gunakan fundamental untuk menentukan arah angin tren, dan gunakan sapuan likuiditas (Judas Swing) sesi London/NY untuk mencari entry presisi di M15/M5.</p>
       </div>
     </article>
   `;
@@ -373,7 +458,21 @@ async function autoTranslateNewsItems(sortedNews) {
 async function loadNews(silent = false) {
   const status = document.getElementById('news-status');
   const list = document.getElementById('news-list');
-  if (!silent) status.textContent = 'Memuat berita...';
+  if (!silent && !list.children.length) status.textContent = 'Memuat berita...';
+
+  // Instant render from local cache if DOM is currently empty
+  if (list && !list.children.length) {
+    try {
+      const cachedRaw = localStorage.getItem('amyfx.assistant.news.v1');
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw);
+        if (cached && Array.isArray(cached.items) && cached.items.length > 0) {
+          renderNews(cached.items);
+          if (status) status.textContent = `${cached.items.length} berita (tersimpan) • Sinkronisasi latar belakang…`;
+        }
+      }
+    } catch (_) {}
+  }
 
   try {
     const minuteKey = Math.floor(Date.now() / 60000);
@@ -680,7 +779,7 @@ const CALENDAR_ENDPOINTS = [
 ];
 const CALENDAR_CACHE_KEY = 'amy_economic_calendar_v1';
 let calendarEvents = [];
-let currentCalendarFilter = 'all';
+let currentCalendarFilter = 'gold';
 
 const COUNTRY_FLAGS = {
   USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵',
@@ -691,7 +790,7 @@ function setupCalendarFilters() {
   document.querySelectorAll('.cal-filter').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.cal-filter').forEach(b => b.classList.toggle('active', b === btn));
-      currentCalendarFilter = btn.dataset.filter || 'all';
+      currentCalendarFilter = btn.dataset.filter || 'gold';
       renderCalendar();
     });
   });
@@ -749,9 +848,11 @@ async function loadCalendar(silent = false) {
       saveCalendarToCache(data);
       panelLoadedAt.calendar = Date.now();
       renderCalendar();
+      loadSentiment(true);
     } else if (calendarEvents.length === 0 && cached?.events?.length > 0) {
       calendarEvents = cached.events;
       renderCalendar();
+      loadSentiment(true);
     }
   } catch (err) {
     if (err.name === 'AbortError') return;
@@ -795,14 +896,17 @@ function renderCalendar() {
   const filtered = calendarEvents.filter(item => {
     const impact = String(item.impact || '').toLowerCase();
     const country = String(item.country || '').toUpperCase();
+    const isGoldDriver = country === 'USD' && (impact === 'high' || impact === 'medium');
+
+    if (currentCalendarFilter === 'gold') return isGoldDriver;
     if (currentCalendarFilter === 'high') return impact === 'high';
     if (currentCalendarFilter === 'medium') return impact === 'medium';
     if (currentCalendarFilter === 'usd') return country === 'USD';
-    return true;
+    return true; // 'all'
   });
 
   if (status) {
-    status.textContent = `${filtered.length} rilis ekonomi • Sinkronisasi otomatis`;
+    status.textContent = `${filtered.length} rilis ekonomi • Sinkronisasi otomatis (WITA)`;
   }
 
   if (filtered.length === 0) {
@@ -841,6 +945,25 @@ function renderCalendar() {
       const impactClass = isHigh ? 'high' : (isMed ? 'medium' : 'low');
       const impactLabel = isHigh ? 'High Impact' : (isMed ? 'Medium' : (ev.impact || 'Low'));
 
+      const titleLower = String(ev.title || '').toLowerCase();
+      const isSpeech = titleLower.includes('speaks') || titleLower.includes('speech') || titleLower.includes('testifies');
+      const isHoliday = impact === 'holiday' || titleLower.includes('holiday');
+      const hasNumbers = Boolean(ev.forecast || ev.previous);
+
+      let numbersHtml = '';
+      if (isSpeech) {
+        numbersHtml = `<span class="cal-badge-pill cal-pill-speech">🎙️ Pidato / Sentimen Kebijakan</span>`;
+      } else if (isHoliday) {
+        numbersHtml = `<span class="cal-badge-pill cal-pill-holiday">🏦 Libur Pasar / Bank Tutup</span>`;
+      } else if (!hasNumbers) {
+        numbersHtml = `<span class="cal-badge-pill cal-pill-nondata">📋 Agenda Non-Data Konsensus</span>`;
+      } else {
+        numbersHtml = `
+          <span>Forecast: <strong class="cal-val">${escapeHtml(ev.forecast || '—')}</strong></span>
+          <span>Previous: <strong class="cal-val">${escapeHtml(ev.previous || '—')}</strong></span>
+        `;
+      }
+
       html.push(`
         <article class="calendar-card impact-${impactClass}">
           <div class="cal-top">
@@ -855,8 +978,7 @@ function renderCalendar() {
           <h2 class="cal-title">${escapeHtml(ev.title)}</h2>
           <div class="cal-bottom">
             <div class="cal-numbers">
-              <span>Forecast: <strong class="cal-val">${escapeHtml(ev.forecast || '—')}</strong></span>
-              <span>Previous: <strong class="cal-val">${escapeHtml(ev.previous || '—')}</strong></span>
+              ${numbersHtml}
             </div>
             ${countdown.text ? `<span class="cal-countdown ${countdown.className}">${countdown.text}</span>` : ''}
           </div>

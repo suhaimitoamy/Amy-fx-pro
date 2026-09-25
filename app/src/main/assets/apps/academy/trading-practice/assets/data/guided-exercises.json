@@ -25,65 +25,65 @@
       },
       "candles": [
         {
-          "time": 1704067200,
-          "open": 100,
-          "high": 103,
-          "low": 99,
-          "close": 102
+          "time": 1767225600,
+          "open": 2650,
+          "high": 2653,
+          "low": 2649,
+          "close": 2652
         },
         {
-          "time": 1704068100,
-          "open": 102,
-          "high": 104,
-          "low": 100,
-          "close": 101
+          "time": 1767226500,
+          "open": 2652,
+          "high": 2654,
+          "low": 2650,
+          "close": 2651
         },
         {
-          "time": 1704069000,
-          "open": 101,
-          "high": 103,
-          "low": 100,
-          "close": 102
+          "time": 1767227400,
+          "open": 2651,
+          "high": 2653,
+          "low": 2650,
+          "close": 2652
         },
         {
-          "time": 1704069900,
-          "open": 102,
-          "high": 104,
-          "low": 101,
-          "close": 103
+          "time": 1767228300,
+          "open": 2652,
+          "high": 2654,
+          "low": 2651,
+          "close": 2653
         },
         {
-          "time": 1704070800,
-          "open": 103,
-          "high": 113,
-          "low": 102,
-          "close": 112
+          "time": 1767229200,
+          "open": 2653,
+          "high": 2663,
+          "low": 2652,
+          "close": 2662
         },
         {
-          "time": 1704071700,
-          "open": 112,
-          "high": 115,
-          "low": 109,
-          "close": 114
+          "time": 1767230100,
+          "open": 2662,
+          "high": 2665,
+          "low": 2659,
+          "close": 2664
         }
       ],
       "markers": [
         {
-          "time": 1704069900,
+          "time": 1767228300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704070800,
+          "time": 1767229200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704071700,
+          "time": 1767230100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -92,12 +92,12 @@
       ],
       "levels": [
         {
-          "price": 104,
+          "price": 2654,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 109,
+          "price": 2659,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -134,65 +134,65 @@
       },
       "candles": [
         {
-          "time": 1704153600,
-          "open": 100,
-          "high": 103,
-          "low": 99,
-          "close": 102
+          "time": 1767312000,
+          "open": 2650,
+          "high": 2653,
+          "low": 2649,
+          "close": 2652
         },
         {
-          "time": 1704154500,
-          "open": 102,
-          "high": 104,
-          "low": 100,
-          "close": 101
+          "time": 1767312900,
+          "open": 2652,
+          "high": 2654,
+          "low": 2650,
+          "close": 2651
         },
         {
-          "time": 1704155400,
-          "open": 101,
-          "high": 103,
-          "low": 100,
-          "close": 102
+          "time": 1767313800,
+          "open": 2651,
+          "high": 2653,
+          "low": 2650,
+          "close": 2652
         },
         {
-          "time": 1704156300,
-          "open": 102,
-          "high": 104,
-          "low": 101,
-          "close": 103
+          "time": 1767314700,
+          "open": 2652,
+          "high": 2654,
+          "low": 2651,
+          "close": 2653
         },
         {
-          "time": 1704157200,
-          "open": 103,
-          "high": 113,
-          "low": 102,
-          "close": 112
+          "time": 1767315600,
+          "open": 2653,
+          "high": 2663,
+          "low": 2652,
+          "close": 2662
         },
         {
-          "time": 1704158100,
-          "open": 112,
-          "high": 115,
-          "low": 109,
-          "close": 114
+          "time": 1767316500,
+          "open": 2662,
+          "high": 2665,
+          "low": 2659,
+          "close": 2664
         }
       ],
       "markers": [
         {
-          "time": 1704156300,
+          "time": 1767314700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704157200,
+          "time": 1767315600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704158100,
+          "time": 1767316500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -201,12 +201,12 @@
       ],
       "levels": [
         {
-          "price": 104,
+          "price": 2654,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 109,
+          "price": 2659,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -243,65 +243,65 @@
       },
       "candles": [
         {
-          "time": 1704240000,
-          "open": 100,
-          "high": 103,
-          "low": 99,
-          "close": 102
+          "time": 1767398400,
+          "open": 2650,
+          "high": 2653,
+          "low": 2649,
+          "close": 2652
         },
         {
-          "time": 1704240900,
-          "open": 102,
-          "high": 104,
-          "low": 100,
-          "close": 101
+          "time": 1767399300,
+          "open": 2652,
+          "high": 2654,
+          "low": 2650,
+          "close": 2651
         },
         {
-          "time": 1704241800,
-          "open": 101,
-          "high": 103,
-          "low": 100,
-          "close": 102
+          "time": 1767400200,
+          "open": 2651,
+          "high": 2653,
+          "low": 2650,
+          "close": 2652
         },
         {
-          "time": 1704242700,
-          "open": 102,
-          "high": 104,
-          "low": 101,
-          "close": 103
+          "time": 1767401100,
+          "open": 2652,
+          "high": 2654,
+          "low": 2651,
+          "close": 2653
         },
         {
-          "time": 1704243600,
-          "open": 103,
-          "high": 113,
-          "low": 102,
-          "close": 112
+          "time": 1767402000,
+          "open": 2653,
+          "high": 2663,
+          "low": 2652,
+          "close": 2662
         },
         {
-          "time": 1704244500,
-          "open": 112,
-          "high": 115,
-          "low": 109,
-          "close": 114
+          "time": 1767402900,
+          "open": 2662,
+          "high": 2665,
+          "low": 2659,
+          "close": 2664
         }
       ],
       "markers": [
         {
-          "time": 1704242700,
+          "time": 1767401100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704243600,
+          "time": 1767402000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704244500,
+          "time": 1767402900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -310,12 +310,12 @@
       ],
       "levels": [
         {
-          "price": 104,
+          "price": 2654,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 109,
+          "price": 2659,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -352,65 +352,65 @@
       },
       "candles": [
         {
-          "time": 1704326400,
-          "open": 100,
-          "high": 103,
-          "low": 99,
-          "close": 102
+          "time": 1767484800,
+          "open": 2650,
+          "high": 2653,
+          "low": 2649,
+          "close": 2652
         },
         {
-          "time": 1704327300,
-          "open": 102,
-          "high": 104,
-          "low": 100,
-          "close": 101
+          "time": 1767485700,
+          "open": 2652,
+          "high": 2654,
+          "low": 2650,
+          "close": 2651
         },
         {
-          "time": 1704328200,
-          "open": 101,
-          "high": 103,
-          "low": 100,
-          "close": 102
+          "time": 1767486600,
+          "open": 2651,
+          "high": 2653,
+          "low": 2650,
+          "close": 2652
         },
         {
-          "time": 1704329100,
-          "open": 102,
-          "high": 104,
-          "low": 101,
-          "close": 103
+          "time": 1767487500,
+          "open": 2652,
+          "high": 2654,
+          "low": 2651,
+          "close": 2653
         },
         {
-          "time": 1704330000,
-          "open": 103,
-          "high": 113,
-          "low": 102,
-          "close": 112
+          "time": 1767488400,
+          "open": 2653,
+          "high": 2663,
+          "low": 2652,
+          "close": 2662
         },
         {
-          "time": 1704330900,
-          "open": 112,
-          "high": 115,
-          "low": 109,
-          "close": 114
+          "time": 1767489300,
+          "open": 2662,
+          "high": 2665,
+          "low": 2659,
+          "close": 2664
         }
       ],
       "markers": [
         {
-          "time": 1704329100,
+          "time": 1767487500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704330000,
+          "time": 1767488400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704330900,
+          "time": 1767489300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -419,12 +419,12 @@
       ],
       "levels": [
         {
-          "price": 104,
+          "price": 2654,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 109,
+          "price": 2659,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -461,65 +461,65 @@
       },
       "candles": [
         {
-          "time": 1704412800,
-          "open": 100,
-          "high": 103,
-          "low": 99,
-          "close": 102
+          "time": 1767571200,
+          "open": 2650,
+          "high": 2653,
+          "low": 2649,
+          "close": 2652
         },
         {
-          "time": 1704413700,
-          "open": 102,
-          "high": 104,
-          "low": 100,
-          "close": 101
+          "time": 1767572100,
+          "open": 2652,
+          "high": 2654,
+          "low": 2650,
+          "close": 2651
         },
         {
-          "time": 1704414600,
-          "open": 101,
-          "high": 103,
-          "low": 100,
-          "close": 102
+          "time": 1767573000,
+          "open": 2651,
+          "high": 2653,
+          "low": 2650,
+          "close": 2652
         },
         {
-          "time": 1704415500,
-          "open": 102,
-          "high": 104,
-          "low": 101,
-          "close": 103
+          "time": 1767573900,
+          "open": 2652,
+          "high": 2654,
+          "low": 2651,
+          "close": 2653
         },
         {
-          "time": 1704416400,
-          "open": 103,
-          "high": 113,
-          "low": 102,
-          "close": 112
+          "time": 1767574800,
+          "open": 2653,
+          "high": 2663,
+          "low": 2652,
+          "close": 2662
         },
         {
-          "time": 1704417300,
-          "open": 112,
-          "high": 115,
-          "low": 109,
-          "close": 114
+          "time": 1767575700,
+          "open": 2662,
+          "high": 2665,
+          "low": 2659,
+          "close": 2664
         }
       ],
       "markers": [
         {
-          "time": 1704415500,
+          "time": 1767573900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704416400,
+          "time": 1767574800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704417300,
+          "time": 1767575700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -528,12 +528,12 @@
       ],
       "levels": [
         {
-          "price": 104,
+          "price": 2654,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 109,
+          "price": 2659,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -570,65 +570,65 @@
       },
       "candles": [
         {
-          "time": 1704499200,
-          "open": 100,
-          "high": 103,
-          "low": 99,
-          "close": 102
+          "time": 1767657600,
+          "open": 2650,
+          "high": 2653,
+          "low": 2649,
+          "close": 2652
         },
         {
-          "time": 1704500100,
-          "open": 102,
-          "high": 104,
-          "low": 100,
-          "close": 101
+          "time": 1767658500,
+          "open": 2652,
+          "high": 2654,
+          "low": 2650,
+          "close": 2651
         },
         {
-          "time": 1704501000,
-          "open": 101,
-          "high": 103,
-          "low": 100,
-          "close": 102
+          "time": 1767659400,
+          "open": 2651,
+          "high": 2653,
+          "low": 2650,
+          "close": 2652
         },
         {
-          "time": 1704501900,
-          "open": 102,
-          "high": 104,
-          "low": 101,
-          "close": 103
+          "time": 1767660300,
+          "open": 2652,
+          "high": 2654,
+          "low": 2651,
+          "close": 2653
         },
         {
-          "time": 1704502800,
-          "open": 103,
-          "high": 113,
-          "low": 102,
-          "close": 112
+          "time": 1767661200,
+          "open": 2653,
+          "high": 2663,
+          "low": 2652,
+          "close": 2662
         },
         {
-          "time": 1704503700,
-          "open": 112,
-          "high": 115,
-          "low": 109,
-          "close": 114
+          "time": 1767662100,
+          "open": 2662,
+          "high": 2665,
+          "low": 2659,
+          "close": 2664
         }
       ],
       "markers": [
         {
-          "time": 1704501900,
+          "time": 1767660300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704502800,
+          "time": 1767661200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704503700,
+          "time": 1767662100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -637,12 +637,12 @@
       ],
       "levels": [
         {
-          "price": 104,
+          "price": 2654,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 109,
+          "price": 2659,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -679,65 +679,65 @@
       },
       "candles": [
         {
-          "time": 1704585600,
-          "open": 140,
-          "high": 141,
-          "low": 137,
-          "close": 138
+          "time": 1767744000,
+          "open": 2690,
+          "high": 2691,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704586500,
-          "open": 138,
-          "high": 140,
-          "low": 136,
-          "close": 139
+          "time": 1767744900,
+          "open": 2688,
+          "high": 2690,
+          "low": 2686,
+          "close": 2689
         },
         {
-          "time": 1704587400,
-          "open": 139,
-          "high": 140,
-          "low": 137,
-          "close": 138
+          "time": 1767745800,
+          "open": 2689,
+          "high": 2690,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704588300,
-          "open": 138,
-          "high": 139,
-          "low": 136,
-          "close": 137
+          "time": 1767746700,
+          "open": 2688,
+          "high": 2689,
+          "low": 2686,
+          "close": 2687
         },
         {
-          "time": 1704589200,
-          "open": 137,
-          "high": 138,
-          "low": 127,
-          "close": 128
+          "time": 1767747600,
+          "open": 2687,
+          "high": 2688,
+          "low": 2677,
+          "close": 2678
         },
         {
-          "time": 1704590100,
-          "open": 128,
-          "high": 131,
-          "low": 125,
-          "close": 126
+          "time": 1767748500,
+          "open": 2678,
+          "high": 2681,
+          "low": 2675,
+          "close": 2676
         }
       ],
       "markers": [
         {
-          "time": 1704588300,
+          "time": 1767746700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704589200,
+          "time": 1767747600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704590100,
+          "time": 1767748500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -746,12 +746,12 @@
       ],
       "levels": [
         {
-          "price": 131,
+          "price": 2681,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 136,
+          "price": 2686,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -788,65 +788,65 @@
       },
       "candles": [
         {
-          "time": 1704672000,
-          "open": 140,
-          "high": 141,
-          "low": 137,
-          "close": 138
+          "time": 1767830400,
+          "open": 2690,
+          "high": 2691,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704672900,
-          "open": 138,
-          "high": 140,
-          "low": 136,
-          "close": 139
+          "time": 1767831300,
+          "open": 2688,
+          "high": 2690,
+          "low": 2686,
+          "close": 2689
         },
         {
-          "time": 1704673800,
-          "open": 139,
-          "high": 140,
-          "low": 137,
-          "close": 138
+          "time": 1767832200,
+          "open": 2689,
+          "high": 2690,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704674700,
-          "open": 138,
-          "high": 139,
-          "low": 136,
-          "close": 137
+          "time": 1767833100,
+          "open": 2688,
+          "high": 2689,
+          "low": 2686,
+          "close": 2687
         },
         {
-          "time": 1704675600,
-          "open": 137,
-          "high": 138,
-          "low": 127,
-          "close": 128
+          "time": 1767834000,
+          "open": 2687,
+          "high": 2688,
+          "low": 2677,
+          "close": 2678
         },
         {
-          "time": 1704676500,
-          "open": 128,
-          "high": 131,
-          "low": 125,
-          "close": 126
+          "time": 1767834900,
+          "open": 2678,
+          "high": 2681,
+          "low": 2675,
+          "close": 2676
         }
       ],
       "markers": [
         {
-          "time": 1704674700,
+          "time": 1767833100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704675600,
+          "time": 1767834000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704676500,
+          "time": 1767834900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -855,12 +855,12 @@
       ],
       "levels": [
         {
-          "price": 131,
+          "price": 2681,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 136,
+          "price": 2686,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -897,65 +897,65 @@
       },
       "candles": [
         {
-          "time": 1704758400,
-          "open": 140,
-          "high": 141,
-          "low": 137,
-          "close": 138
+          "time": 1767916800,
+          "open": 2690,
+          "high": 2691,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704759300,
-          "open": 138,
-          "high": 140,
-          "low": 136,
-          "close": 139
+          "time": 1767917700,
+          "open": 2688,
+          "high": 2690,
+          "low": 2686,
+          "close": 2689
         },
         {
-          "time": 1704760200,
-          "open": 139,
-          "high": 140,
-          "low": 137,
-          "close": 138
+          "time": 1767918600,
+          "open": 2689,
+          "high": 2690,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704761100,
-          "open": 138,
-          "high": 139,
-          "low": 136,
-          "close": 137
+          "time": 1767919500,
+          "open": 2688,
+          "high": 2689,
+          "low": 2686,
+          "close": 2687
         },
         {
-          "time": 1704762000,
-          "open": 137,
-          "high": 138,
-          "low": 127,
-          "close": 128
+          "time": 1767920400,
+          "open": 2687,
+          "high": 2688,
+          "low": 2677,
+          "close": 2678
         },
         {
-          "time": 1704762900,
-          "open": 128,
-          "high": 131,
-          "low": 125,
-          "close": 126
+          "time": 1767921300,
+          "open": 2678,
+          "high": 2681,
+          "low": 2675,
+          "close": 2676
         }
       ],
       "markers": [
         {
-          "time": 1704761100,
+          "time": 1767919500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704762000,
+          "time": 1767920400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704762900,
+          "time": 1767921300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -964,12 +964,12 @@
       ],
       "levels": [
         {
-          "price": 131,
+          "price": 2681,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 136,
+          "price": 2686,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -1006,65 +1006,65 @@
       },
       "candles": [
         {
-          "time": 1704844800,
-          "open": 140,
-          "high": 141,
-          "low": 137,
-          "close": 138
+          "time": 1768003200,
+          "open": 2690,
+          "high": 2691,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704845700,
-          "open": 138,
-          "high": 140,
-          "low": 136,
-          "close": 139
+          "time": 1768004100,
+          "open": 2688,
+          "high": 2690,
+          "low": 2686,
+          "close": 2689
         },
         {
-          "time": 1704846600,
-          "open": 139,
-          "high": 140,
-          "low": 137,
-          "close": 138
+          "time": 1768005000,
+          "open": 2689,
+          "high": 2690,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704847500,
-          "open": 138,
-          "high": 139,
-          "low": 136,
-          "close": 137
+          "time": 1768005900,
+          "open": 2688,
+          "high": 2689,
+          "low": 2686,
+          "close": 2687
         },
         {
-          "time": 1704848400,
-          "open": 137,
-          "high": 138,
-          "low": 127,
-          "close": 128
+          "time": 1768006800,
+          "open": 2687,
+          "high": 2688,
+          "low": 2677,
+          "close": 2678
         },
         {
-          "time": 1704849300,
-          "open": 128,
-          "high": 131,
-          "low": 125,
-          "close": 126
+          "time": 1768007700,
+          "open": 2678,
+          "high": 2681,
+          "low": 2675,
+          "close": 2676
         }
       ],
       "markers": [
         {
-          "time": 1704847500,
+          "time": 1768005900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704848400,
+          "time": 1768006800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704849300,
+          "time": 1768007700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1073,12 +1073,12 @@
       ],
       "levels": [
         {
-          "price": 131,
+          "price": 2681,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 136,
+          "price": 2686,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -1115,65 +1115,65 @@
       },
       "candles": [
         {
-          "time": 1704931200,
-          "open": 140,
-          "high": 141,
-          "low": 137,
-          "close": 138
+          "time": 1768089600,
+          "open": 2690,
+          "high": 2691,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704932100,
-          "open": 138,
-          "high": 140,
-          "low": 136,
-          "close": 139
+          "time": 1768090500,
+          "open": 2688,
+          "high": 2690,
+          "low": 2686,
+          "close": 2689
         },
         {
-          "time": 1704933000,
-          "open": 139,
-          "high": 140,
-          "low": 137,
-          "close": 138
+          "time": 1768091400,
+          "open": 2689,
+          "high": 2690,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1704933900,
-          "open": 138,
-          "high": 139,
-          "low": 136,
-          "close": 137
+          "time": 1768092300,
+          "open": 2688,
+          "high": 2689,
+          "low": 2686,
+          "close": 2687
         },
         {
-          "time": 1704934800,
-          "open": 137,
-          "high": 138,
-          "low": 127,
-          "close": 128
+          "time": 1768093200,
+          "open": 2687,
+          "high": 2688,
+          "low": 2677,
+          "close": 2678
         },
         {
-          "time": 1704935700,
-          "open": 128,
-          "high": 131,
-          "low": 125,
-          "close": 126
+          "time": 1768094100,
+          "open": 2678,
+          "high": 2681,
+          "low": 2675,
+          "close": 2676
         }
       ],
       "markers": [
         {
-          "time": 1704933900,
+          "time": 1768092300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1704934800,
+          "time": 1768093200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1704935700,
+          "time": 1768094100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1182,12 +1182,12 @@
       ],
       "levels": [
         {
-          "price": 131,
+          "price": 2681,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 136,
+          "price": 2686,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -1224,65 +1224,65 @@
       },
       "candles": [
         {
-          "time": 1705017600,
-          "open": 140,
-          "high": 141,
-          "low": 137,
-          "close": 138
+          "time": 1768176000,
+          "open": 2690,
+          "high": 2691,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1705018500,
-          "open": 138,
-          "high": 140,
-          "low": 136,
-          "close": 139
+          "time": 1768176900,
+          "open": 2688,
+          "high": 2690,
+          "low": 2686,
+          "close": 2689
         },
         {
-          "time": 1705019400,
-          "open": 139,
-          "high": 140,
-          "low": 137,
-          "close": 138
+          "time": 1768177800,
+          "open": 2689,
+          "high": 2690,
+          "low": 2687,
+          "close": 2688
         },
         {
-          "time": 1705020300,
-          "open": 138,
-          "high": 139,
-          "low": 136,
-          "close": 137
+          "time": 1768178700,
+          "open": 2688,
+          "high": 2689,
+          "low": 2686,
+          "close": 2687
         },
         {
-          "time": 1705021200,
-          "open": 137,
-          "high": 138,
-          "low": 127,
-          "close": 128
+          "time": 1768179600,
+          "open": 2687,
+          "high": 2688,
+          "low": 2677,
+          "close": 2678
         },
         {
-          "time": 1705022100,
-          "open": 128,
-          "high": 131,
-          "low": 125,
-          "close": 126
+          "time": 1768180500,
+          "open": 2678,
+          "high": 2681,
+          "low": 2675,
+          "close": 2676
         }
       ],
       "markers": [
         {
-          "time": 1705020300,
+          "time": 1768178700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705021200,
+          "time": 1768179600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705022100,
+          "time": 1768180500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1291,12 +1291,12 @@
       ],
       "levels": [
         {
-          "price": 131,
+          "price": 2681,
           "title": "Batas bawah zona",
           "color": "#94a3b8"
         },
         {
-          "price": 136,
+          "price": 2686,
           "title": "Batas atas zona",
           "color": "#94a3b8"
         }
@@ -1333,65 +1333,65 @@
       },
       "candles": [
         {
-          "time": 1705104000,
-          "open": 140,
-          "high": 143,
-          "low": 139,
-          "close": 142
+          "time": 1768262400,
+          "open": 2690,
+          "high": 2693,
+          "low": 2689,
+          "close": 2692
         },
         {
-          "time": 1705104900,
-          "open": 142,
-          "high": 150,
-          "low": 141,
-          "close": 146
+          "time": 1768263300,
+          "open": 2692,
+          "high": 2700,
+          "low": 2691,
+          "close": 2696
         },
         {
-          "time": 1705105800,
-          "open": 146,
-          "high": 147,
-          "low": 142,
-          "close": 143
+          "time": 1768264200,
+          "open": 2696,
+          "high": 2697,
+          "low": 2692,
+          "close": 2693
         },
         {
-          "time": 1705106700,
-          "open": 143,
-          "high": 150,
-          "low": 142,
-          "close": 146
+          "time": 1768265100,
+          "open": 2693,
+          "high": 2700,
+          "low": 2692,
+          "close": 2696
         },
         {
-          "time": 1705107600,
-          "open": 146,
-          "high": 147,
-          "low": 143,
-          "close": 144
+          "time": 1768266000,
+          "open": 2696,
+          "high": 2697,
+          "low": 2693,
+          "close": 2694
         },
         {
-          "time": 1705108500,
-          "open": 144,
-          "high": 153,
-          "low": 143,
-          "close": 147
+          "time": 1768266900,
+          "open": 2694,
+          "high": 2703,
+          "low": 2693,
+          "close": 2697
         }
       ],
       "markers": [
         {
-          "time": 1705104900,
+          "time": 1768263300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705106700,
+          "time": 1768265100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705108500,
+          "time": 1768266900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1400,7 +1400,7 @@
       ],
       "levels": [
         {
-          "price": 150,
+          "price": 2700,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -1437,65 +1437,65 @@
       },
       "candles": [
         {
-          "time": 1705190400,
-          "open": 140,
-          "high": 143,
-          "low": 139,
-          "close": 142
+          "time": 1768348800,
+          "open": 2690,
+          "high": 2693,
+          "low": 2689,
+          "close": 2692
         },
         {
-          "time": 1705191300,
-          "open": 142,
-          "high": 150,
-          "low": 141,
-          "close": 146
+          "time": 1768349700,
+          "open": 2692,
+          "high": 2700,
+          "low": 2691,
+          "close": 2696
         },
         {
-          "time": 1705192200,
-          "open": 146,
-          "high": 147,
-          "low": 142,
-          "close": 143
+          "time": 1768350600,
+          "open": 2696,
+          "high": 2697,
+          "low": 2692,
+          "close": 2693
         },
         {
-          "time": 1705193100,
-          "open": 143,
-          "high": 150,
-          "low": 142,
-          "close": 146
+          "time": 1768351500,
+          "open": 2693,
+          "high": 2700,
+          "low": 2692,
+          "close": 2696
         },
         {
-          "time": 1705194000,
-          "open": 146,
-          "high": 147,
-          "low": 143,
-          "close": 144
+          "time": 1768352400,
+          "open": 2696,
+          "high": 2697,
+          "low": 2693,
+          "close": 2694
         },
         {
-          "time": 1705194900,
-          "open": 144,
-          "high": 153,
-          "low": 143,
-          "close": 147
+          "time": 1768353300,
+          "open": 2694,
+          "high": 2703,
+          "low": 2693,
+          "close": 2697
         }
       ],
       "markers": [
         {
-          "time": 1705191300,
+          "time": 1768349700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705193100,
+          "time": 1768351500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705194900,
+          "time": 1768353300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1504,7 +1504,7 @@
       ],
       "levels": [
         {
-          "price": 150,
+          "price": 2700,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -1541,65 +1541,65 @@
       },
       "candles": [
         {
-          "time": 1705276800,
-          "open": 140,
-          "high": 143,
-          "low": 139,
-          "close": 142
+          "time": 1768435200,
+          "open": 2690,
+          "high": 2693,
+          "low": 2689,
+          "close": 2692
         },
         {
-          "time": 1705277700,
-          "open": 142,
-          "high": 150,
-          "low": 141,
-          "close": 146
+          "time": 1768436100,
+          "open": 2692,
+          "high": 2700,
+          "low": 2691,
+          "close": 2696
         },
         {
-          "time": 1705278600,
-          "open": 146,
-          "high": 147,
-          "low": 142,
-          "close": 143
+          "time": 1768437000,
+          "open": 2696,
+          "high": 2697,
+          "low": 2692,
+          "close": 2693
         },
         {
-          "time": 1705279500,
-          "open": 143,
-          "high": 150,
-          "low": 142,
-          "close": 146
+          "time": 1768437900,
+          "open": 2693,
+          "high": 2700,
+          "low": 2692,
+          "close": 2696
         },
         {
-          "time": 1705280400,
-          "open": 146,
-          "high": 147,
-          "low": 143,
-          "close": 144
+          "time": 1768438800,
+          "open": 2696,
+          "high": 2697,
+          "low": 2693,
+          "close": 2694
         },
         {
-          "time": 1705281300,
-          "open": 144,
-          "high": 153,
-          "low": 143,
-          "close": 147
+          "time": 1768439700,
+          "open": 2694,
+          "high": 2703,
+          "low": 2693,
+          "close": 2697
         }
       ],
       "markers": [
         {
-          "time": 1705277700,
+          "time": 1768436100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705279500,
+          "time": 1768437900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705281300,
+          "time": 1768439700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1608,7 +1608,7 @@
       ],
       "levels": [
         {
-          "price": 150,
+          "price": 2700,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -1645,65 +1645,65 @@
       },
       "candles": [
         {
-          "time": 1705363200,
-          "open": 140,
-          "high": 143,
-          "low": 139,
-          "close": 142
+          "time": 1768521600,
+          "open": 2690,
+          "high": 2693,
+          "low": 2689,
+          "close": 2692
         },
         {
-          "time": 1705364100,
-          "open": 142,
-          "high": 150,
-          "low": 141,
-          "close": 146
+          "time": 1768522500,
+          "open": 2692,
+          "high": 2700,
+          "low": 2691,
+          "close": 2696
         },
         {
-          "time": 1705365000,
-          "open": 146,
-          "high": 147,
-          "low": 142,
-          "close": 143
+          "time": 1768523400,
+          "open": 2696,
+          "high": 2697,
+          "low": 2692,
+          "close": 2693
         },
         {
-          "time": 1705365900,
-          "open": 143,
-          "high": 150,
-          "low": 142,
-          "close": 146
+          "time": 1768524300,
+          "open": 2693,
+          "high": 2700,
+          "low": 2692,
+          "close": 2696
         },
         {
-          "time": 1705366800,
-          "open": 146,
-          "high": 147,
-          "low": 143,
-          "close": 144
+          "time": 1768525200,
+          "open": 2696,
+          "high": 2697,
+          "low": 2693,
+          "close": 2694
         },
         {
-          "time": 1705367700,
-          "open": 144,
-          "high": 153,
-          "low": 143,
-          "close": 147
+          "time": 1768526100,
+          "open": 2694,
+          "high": 2703,
+          "low": 2693,
+          "close": 2697
         }
       ],
       "markers": [
         {
-          "time": 1705364100,
+          "time": 1768522500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705365900,
+          "time": 1768524300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705367700,
+          "time": 1768526100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1712,7 +1712,7 @@
       ],
       "levels": [
         {
-          "price": 150,
+          "price": 2700,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -1749,65 +1749,65 @@
       },
       "candles": [
         {
-          "time": 1705449600,
-          "open": 140,
-          "high": 143,
-          "low": 139,
-          "close": 142
+          "time": 1768608000,
+          "open": 2690,
+          "high": 2693,
+          "low": 2689,
+          "close": 2692
         },
         {
-          "time": 1705450500,
-          "open": 142,
-          "high": 150,
-          "low": 141,
-          "close": 146
+          "time": 1768608900,
+          "open": 2692,
+          "high": 2700,
+          "low": 2691,
+          "close": 2696
         },
         {
-          "time": 1705451400,
-          "open": 146,
-          "high": 147,
-          "low": 142,
-          "close": 143
+          "time": 1768609800,
+          "open": 2696,
+          "high": 2697,
+          "low": 2692,
+          "close": 2693
         },
         {
-          "time": 1705452300,
-          "open": 143,
-          "high": 150,
-          "low": 142,
-          "close": 146
+          "time": 1768610700,
+          "open": 2693,
+          "high": 2700,
+          "low": 2692,
+          "close": 2696
         },
         {
-          "time": 1705453200,
-          "open": 146,
-          "high": 147,
-          "low": 143,
-          "close": 144
+          "time": 1768611600,
+          "open": 2696,
+          "high": 2697,
+          "low": 2693,
+          "close": 2694
         },
         {
-          "time": 1705454100,
-          "open": 144,
-          "high": 153,
-          "low": 143,
-          "close": 147
+          "time": 1768612500,
+          "open": 2694,
+          "high": 2703,
+          "low": 2693,
+          "close": 2697
         }
       ],
       "markers": [
         {
-          "time": 1705450500,
+          "time": 1768608900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705452300,
+          "time": 1768610700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705454100,
+          "time": 1768612500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1816,7 +1816,7 @@
       ],
       "levels": [
         {
-          "price": 150,
+          "price": 2700,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -1853,65 +1853,65 @@
       },
       "candles": [
         {
-          "time": 1705536000,
-          "open": 140,
-          "high": 143,
-          "low": 139,
-          "close": 142
+          "time": 1768694400,
+          "open": 2690,
+          "high": 2693,
+          "low": 2689,
+          "close": 2692
         },
         {
-          "time": 1705536900,
-          "open": 142,
-          "high": 150,
-          "low": 141,
-          "close": 146
+          "time": 1768695300,
+          "open": 2692,
+          "high": 2700,
+          "low": 2691,
+          "close": 2696
         },
         {
-          "time": 1705537800,
-          "open": 146,
-          "high": 147,
-          "low": 142,
-          "close": 143
+          "time": 1768696200,
+          "open": 2696,
+          "high": 2697,
+          "low": 2692,
+          "close": 2693
         },
         {
-          "time": 1705538700,
-          "open": 143,
-          "high": 150,
-          "low": 142,
-          "close": 146
+          "time": 1768697100,
+          "open": 2693,
+          "high": 2700,
+          "low": 2692,
+          "close": 2696
         },
         {
-          "time": 1705539600,
-          "open": 146,
-          "high": 147,
-          "low": 143,
-          "close": 144
+          "time": 1768698000,
+          "open": 2696,
+          "high": 2697,
+          "low": 2693,
+          "close": 2694
         },
         {
-          "time": 1705540500,
-          "open": 144,
-          "high": 153,
-          "low": 143,
-          "close": 147
+          "time": 1768698900,
+          "open": 2694,
+          "high": 2703,
+          "low": 2693,
+          "close": 2697
         }
       ],
       "markers": [
         {
-          "time": 1705536900,
+          "time": 1768695300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705538700,
+          "time": 1768697100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705540500,
+          "time": 1768698900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -1920,7 +1920,7 @@
       ],
       "levels": [
         {
-          "price": 150,
+          "price": 2700,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -1957,65 +1957,65 @@
       },
       "candles": [
         {
-          "time": 1705622400,
-          "open": 180,
-          "high": 181,
-          "low": 177,
-          "close": 178
+          "time": 1768780800,
+          "open": 2730,
+          "high": 2731,
+          "low": 2727,
+          "close": 2728
         },
         {
-          "time": 1705623300,
-          "open": 178,
-          "high": 179,
-          "low": 170,
-          "close": 174
+          "time": 1768781700,
+          "open": 2728,
+          "high": 2729,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705624200,
-          "open": 174,
-          "high": 178,
-          "low": 173,
-          "close": 177
+          "time": 1768782600,
+          "open": 2724,
+          "high": 2728,
+          "low": 2723,
+          "close": 2727
         },
         {
-          "time": 1705625100,
-          "open": 177,
-          "high": 178,
-          "low": 170,
-          "close": 174
+          "time": 1768783500,
+          "open": 2727,
+          "high": 2728,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705626000,
-          "open": 174,
-          "high": 177,
-          "low": 173,
-          "close": 176
+          "time": 1768784400,
+          "open": 2724,
+          "high": 2727,
+          "low": 2723,
+          "close": 2726
         },
         {
-          "time": 1705626900,
-          "open": 176,
-          "high": 177,
-          "low": 167,
-          "close": 173
+          "time": 1768785300,
+          "open": 2726,
+          "high": 2727,
+          "low": 2717,
+          "close": 2723
         }
       ],
       "markers": [
         {
-          "time": 1705623300,
+          "time": 1768781700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705625100,
+          "time": 1768783500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705626900,
+          "time": 1768785300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2024,7 +2024,7 @@
       ],
       "levels": [
         {
-          "price": 170,
+          "price": 2720,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -2061,65 +2061,65 @@
       },
       "candles": [
         {
-          "time": 1705708800,
-          "open": 180,
-          "high": 181,
-          "low": 177,
-          "close": 178
+          "time": 1768867200,
+          "open": 2730,
+          "high": 2731,
+          "low": 2727,
+          "close": 2728
         },
         {
-          "time": 1705709700,
-          "open": 178,
-          "high": 179,
-          "low": 170,
-          "close": 174
+          "time": 1768868100,
+          "open": 2728,
+          "high": 2729,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705710600,
-          "open": 174,
-          "high": 178,
-          "low": 173,
-          "close": 177
+          "time": 1768869000,
+          "open": 2724,
+          "high": 2728,
+          "low": 2723,
+          "close": 2727
         },
         {
-          "time": 1705711500,
-          "open": 177,
-          "high": 178,
-          "low": 170,
-          "close": 174
+          "time": 1768869900,
+          "open": 2727,
+          "high": 2728,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705712400,
-          "open": 174,
-          "high": 177,
-          "low": 173,
-          "close": 176
+          "time": 1768870800,
+          "open": 2724,
+          "high": 2727,
+          "low": 2723,
+          "close": 2726
         },
         {
-          "time": 1705713300,
-          "open": 176,
-          "high": 177,
-          "low": 167,
-          "close": 173
+          "time": 1768871700,
+          "open": 2726,
+          "high": 2727,
+          "low": 2717,
+          "close": 2723
         }
       ],
       "markers": [
         {
-          "time": 1705709700,
+          "time": 1768868100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705711500,
+          "time": 1768869900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705713300,
+          "time": 1768871700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2128,7 +2128,7 @@
       ],
       "levels": [
         {
-          "price": 170,
+          "price": 2720,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -2165,65 +2165,65 @@
       },
       "candles": [
         {
-          "time": 1705795200,
-          "open": 180,
-          "high": 181,
-          "low": 177,
-          "close": 178
+          "time": 1768953600,
+          "open": 2730,
+          "high": 2731,
+          "low": 2727,
+          "close": 2728
         },
         {
-          "time": 1705796100,
-          "open": 178,
-          "high": 179,
-          "low": 170,
-          "close": 174
+          "time": 1768954500,
+          "open": 2728,
+          "high": 2729,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705797000,
-          "open": 174,
-          "high": 178,
-          "low": 173,
-          "close": 177
+          "time": 1768955400,
+          "open": 2724,
+          "high": 2728,
+          "low": 2723,
+          "close": 2727
         },
         {
-          "time": 1705797900,
-          "open": 177,
-          "high": 178,
-          "low": 170,
-          "close": 174
+          "time": 1768956300,
+          "open": 2727,
+          "high": 2728,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705798800,
-          "open": 174,
-          "high": 177,
-          "low": 173,
-          "close": 176
+          "time": 1768957200,
+          "open": 2724,
+          "high": 2727,
+          "low": 2723,
+          "close": 2726
         },
         {
-          "time": 1705799700,
-          "open": 176,
-          "high": 177,
-          "low": 167,
-          "close": 173
+          "time": 1768958100,
+          "open": 2726,
+          "high": 2727,
+          "low": 2717,
+          "close": 2723
         }
       ],
       "markers": [
         {
-          "time": 1705796100,
+          "time": 1768954500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705797900,
+          "time": 1768956300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705799700,
+          "time": 1768958100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2232,7 +2232,7 @@
       ],
       "levels": [
         {
-          "price": 170,
+          "price": 2720,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -2269,65 +2269,65 @@
       },
       "candles": [
         {
-          "time": 1705881600,
-          "open": 180,
-          "high": 181,
-          "low": 177,
-          "close": 178
+          "time": 1769040000,
+          "open": 2730,
+          "high": 2731,
+          "low": 2727,
+          "close": 2728
         },
         {
-          "time": 1705882500,
-          "open": 178,
-          "high": 179,
-          "low": 170,
-          "close": 174
+          "time": 1769040900,
+          "open": 2728,
+          "high": 2729,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705883400,
-          "open": 174,
-          "high": 178,
-          "low": 173,
-          "close": 177
+          "time": 1769041800,
+          "open": 2724,
+          "high": 2728,
+          "low": 2723,
+          "close": 2727
         },
         {
-          "time": 1705884300,
-          "open": 177,
-          "high": 178,
-          "low": 170,
-          "close": 174
+          "time": 1769042700,
+          "open": 2727,
+          "high": 2728,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705885200,
-          "open": 174,
-          "high": 177,
-          "low": 173,
-          "close": 176
+          "time": 1769043600,
+          "open": 2724,
+          "high": 2727,
+          "low": 2723,
+          "close": 2726
         },
         {
-          "time": 1705886100,
-          "open": 176,
-          "high": 177,
-          "low": 167,
-          "close": 173
+          "time": 1769044500,
+          "open": 2726,
+          "high": 2727,
+          "low": 2717,
+          "close": 2723
         }
       ],
       "markers": [
         {
-          "time": 1705882500,
+          "time": 1769040900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705884300,
+          "time": 1769042700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705886100,
+          "time": 1769044500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2336,7 +2336,7 @@
       ],
       "levels": [
         {
-          "price": 170,
+          "price": 2720,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -2373,65 +2373,65 @@
       },
       "candles": [
         {
-          "time": 1705968000,
-          "open": 180,
-          "high": 181,
-          "low": 177,
-          "close": 178
+          "time": 1769126400,
+          "open": 2730,
+          "high": 2731,
+          "low": 2727,
+          "close": 2728
         },
         {
-          "time": 1705968900,
-          "open": 178,
-          "high": 179,
-          "low": 170,
-          "close": 174
+          "time": 1769127300,
+          "open": 2728,
+          "high": 2729,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705969800,
-          "open": 174,
-          "high": 178,
-          "low": 173,
-          "close": 177
+          "time": 1769128200,
+          "open": 2724,
+          "high": 2728,
+          "low": 2723,
+          "close": 2727
         },
         {
-          "time": 1705970700,
-          "open": 177,
-          "high": 178,
-          "low": 170,
-          "close": 174
+          "time": 1769129100,
+          "open": 2727,
+          "high": 2728,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1705971600,
-          "open": 174,
-          "high": 177,
-          "low": 173,
-          "close": 176
+          "time": 1769130000,
+          "open": 2724,
+          "high": 2727,
+          "low": 2723,
+          "close": 2726
         },
         {
-          "time": 1705972500,
-          "open": 176,
-          "high": 177,
-          "low": 167,
-          "close": 173
+          "time": 1769130900,
+          "open": 2726,
+          "high": 2727,
+          "low": 2717,
+          "close": 2723
         }
       ],
       "markers": [
         {
-          "time": 1705968900,
+          "time": 1769127300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1705970700,
+          "time": 1769129100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1705972500,
+          "time": 1769130900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2440,7 +2440,7 @@
       ],
       "levels": [
         {
-          "price": 170,
+          "price": 2720,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -2477,65 +2477,65 @@
       },
       "candles": [
         {
-          "time": 1706054400,
-          "open": 180,
-          "high": 181,
-          "low": 177,
-          "close": 178
+          "time": 1769212800,
+          "open": 2730,
+          "high": 2731,
+          "low": 2727,
+          "close": 2728
         },
         {
-          "time": 1706055300,
-          "open": 178,
-          "high": 179,
-          "low": 170,
-          "close": 174
+          "time": 1769213700,
+          "open": 2728,
+          "high": 2729,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1706056200,
-          "open": 174,
-          "high": 178,
-          "low": 173,
-          "close": 177
+          "time": 1769214600,
+          "open": 2724,
+          "high": 2728,
+          "low": 2723,
+          "close": 2727
         },
         {
-          "time": 1706057100,
-          "open": 177,
-          "high": 178,
-          "low": 170,
-          "close": 174
+          "time": 1769215500,
+          "open": 2727,
+          "high": 2728,
+          "low": 2720,
+          "close": 2724
         },
         {
-          "time": 1706058000,
-          "open": 174,
-          "high": 177,
-          "low": 173,
-          "close": 176
+          "time": 1769216400,
+          "open": 2724,
+          "high": 2727,
+          "low": 2723,
+          "close": 2726
         },
         {
-          "time": 1706058900,
-          "open": 176,
-          "high": 177,
-          "low": 167,
-          "close": 173
+          "time": 1769217300,
+          "open": 2726,
+          "high": 2727,
+          "low": 2717,
+          "close": 2723
         }
       ],
       "markers": [
         {
-          "time": 1706055300,
+          "time": 1769213700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706057100,
+          "time": 1769215500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706058900,
+          "time": 1769217300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2544,7 +2544,7 @@
       ],
       "levels": [
         {
-          "price": 170,
+          "price": 2720,
           "title": "Level A/B",
           "color": "#94a3b8"
         }
@@ -2581,65 +2581,65 @@
       },
       "candles": [
         {
-          "time": 1706140800,
-          "open": 180,
-          "high": 184,
-          "low": 179,
-          "close": 183
+          "time": 1769299200,
+          "open": 2730,
+          "high": 2734,
+          "low": 2729,
+          "close": 2733
         },
         {
-          "time": 1706141700,
-          "open": 183,
-          "high": 190,
-          "low": 182,
-          "close": 188
+          "time": 1769300100,
+          "open": 2733,
+          "high": 2740,
+          "low": 2732,
+          "close": 2738
         },
         {
-          "time": 1706142600,
-          "open": 188,
-          "high": 189,
-          "low": 182,
-          "close": 184
+          "time": 1769301000,
+          "open": 2738,
+          "high": 2739,
+          "low": 2732,
+          "close": 2734
         },
         {
-          "time": 1706143500,
-          "open": 184,
-          "high": 186,
-          "low": 181,
-          "close": 183
+          "time": 1769301900,
+          "open": 2734,
+          "high": 2736,
+          "low": 2731,
+          "close": 2733
         },
         {
-          "time": 1706144400,
-          "open": 183,
-          "high": 192,
-          "low": 182,
-          "close": 189
+          "time": 1769302800,
+          "open": 2733,
+          "high": 2742,
+          "low": 2732,
+          "close": 2739
         },
         {
-          "time": 1706145300,
-          "open": 189,
-          "high": 197,
-          "low": 188,
-          "close": 196
+          "time": 1769303700,
+          "open": 2739,
+          "high": 2747,
+          "low": 2738,
+          "close": 2746
         }
       ],
       "markers": [
         {
-          "time": 1706141700,
+          "time": 1769300100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706144400,
+          "time": 1769302800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706145300,
+          "time": 1769303700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2648,7 +2648,7 @@
       ],
       "levels": [
         {
-          "price": 190,
+          "price": 2740,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -2685,65 +2685,65 @@
       },
       "candles": [
         {
-          "time": 1706227200,
-          "open": 180,
-          "high": 184,
-          "low": 179,
-          "close": 183
+          "time": 1769385600,
+          "open": 2730,
+          "high": 2734,
+          "low": 2729,
+          "close": 2733
         },
         {
-          "time": 1706228100,
-          "open": 183,
-          "high": 190,
-          "low": 182,
-          "close": 188
+          "time": 1769386500,
+          "open": 2733,
+          "high": 2740,
+          "low": 2732,
+          "close": 2738
         },
         {
-          "time": 1706229000,
-          "open": 188,
-          "high": 189,
-          "low": 182,
-          "close": 184
+          "time": 1769387400,
+          "open": 2738,
+          "high": 2739,
+          "low": 2732,
+          "close": 2734
         },
         {
-          "time": 1706229900,
-          "open": 184,
-          "high": 186,
-          "low": 181,
-          "close": 183
+          "time": 1769388300,
+          "open": 2734,
+          "high": 2736,
+          "low": 2731,
+          "close": 2733
         },
         {
-          "time": 1706230800,
-          "open": 183,
-          "high": 192,
-          "low": 182,
-          "close": 189
+          "time": 1769389200,
+          "open": 2733,
+          "high": 2742,
+          "low": 2732,
+          "close": 2739
         },
         {
-          "time": 1706231700,
-          "open": 189,
-          "high": 197,
-          "low": 188,
-          "close": 196
+          "time": 1769390100,
+          "open": 2739,
+          "high": 2747,
+          "low": 2738,
+          "close": 2746
         }
       ],
       "markers": [
         {
-          "time": 1706228100,
+          "time": 1769386500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706230800,
+          "time": 1769389200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706231700,
+          "time": 1769390100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2752,7 +2752,7 @@
       ],
       "levels": [
         {
-          "price": 190,
+          "price": 2740,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -2789,65 +2789,65 @@
       },
       "candles": [
         {
-          "time": 1706313600,
-          "open": 180,
-          "high": 184,
-          "low": 179,
-          "close": 183
+          "time": 1769472000,
+          "open": 2730,
+          "high": 2734,
+          "low": 2729,
+          "close": 2733
         },
         {
-          "time": 1706314500,
-          "open": 183,
-          "high": 190,
-          "low": 182,
-          "close": 188
+          "time": 1769472900,
+          "open": 2733,
+          "high": 2740,
+          "low": 2732,
+          "close": 2738
         },
         {
-          "time": 1706315400,
-          "open": 188,
-          "high": 189,
-          "low": 182,
-          "close": 184
+          "time": 1769473800,
+          "open": 2738,
+          "high": 2739,
+          "low": 2732,
+          "close": 2734
         },
         {
-          "time": 1706316300,
-          "open": 184,
-          "high": 186,
-          "low": 181,
-          "close": 183
+          "time": 1769474700,
+          "open": 2734,
+          "high": 2736,
+          "low": 2731,
+          "close": 2733
         },
         {
-          "time": 1706317200,
-          "open": 183,
-          "high": 192,
-          "low": 182,
-          "close": 189
+          "time": 1769475600,
+          "open": 2733,
+          "high": 2742,
+          "low": 2732,
+          "close": 2739
         },
         {
-          "time": 1706318100,
-          "open": 189,
-          "high": 197,
-          "low": 188,
-          "close": 196
+          "time": 1769476500,
+          "open": 2739,
+          "high": 2747,
+          "low": 2738,
+          "close": 2746
         }
       ],
       "markers": [
         {
-          "time": 1706314500,
+          "time": 1769472900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706317200,
+          "time": 1769475600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706318100,
+          "time": 1769476500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2856,7 +2856,7 @@
       ],
       "levels": [
         {
-          "price": 190,
+          "price": 2740,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -2893,65 +2893,65 @@
       },
       "candles": [
         {
-          "time": 1706400000,
-          "open": 180,
-          "high": 184,
-          "low": 179,
-          "close": 183
+          "time": 1769558400,
+          "open": 2730,
+          "high": 2734,
+          "low": 2729,
+          "close": 2733
         },
         {
-          "time": 1706400900,
-          "open": 183,
-          "high": 190,
-          "low": 182,
-          "close": 188
+          "time": 1769559300,
+          "open": 2733,
+          "high": 2740,
+          "low": 2732,
+          "close": 2738
         },
         {
-          "time": 1706401800,
-          "open": 188,
-          "high": 189,
-          "low": 182,
-          "close": 184
+          "time": 1769560200,
+          "open": 2738,
+          "high": 2739,
+          "low": 2732,
+          "close": 2734
         },
         {
-          "time": 1706402700,
-          "open": 184,
-          "high": 186,
-          "low": 181,
-          "close": 183
+          "time": 1769561100,
+          "open": 2734,
+          "high": 2736,
+          "low": 2731,
+          "close": 2733
         },
         {
-          "time": 1706403600,
-          "open": 183,
-          "high": 192,
-          "low": 182,
-          "close": 189
+          "time": 1769562000,
+          "open": 2733,
+          "high": 2742,
+          "low": 2732,
+          "close": 2739
         },
         {
-          "time": 1706404500,
-          "open": 189,
-          "high": 197,
-          "low": 188,
-          "close": 196
+          "time": 1769562900,
+          "open": 2739,
+          "high": 2747,
+          "low": 2738,
+          "close": 2746
         }
       ],
       "markers": [
         {
-          "time": 1706400900,
+          "time": 1769559300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706403600,
+          "time": 1769562000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706404500,
+          "time": 1769562900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -2960,7 +2960,7 @@
       ],
       "levels": [
         {
-          "price": 190,
+          "price": 2740,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -2997,65 +2997,65 @@
       },
       "candles": [
         {
-          "time": 1706486400,
-          "open": 180,
-          "high": 184,
-          "low": 179,
-          "close": 183
+          "time": 1769644800,
+          "open": 2730,
+          "high": 2734,
+          "low": 2729,
+          "close": 2733
         },
         {
-          "time": 1706487300,
-          "open": 183,
-          "high": 190,
-          "low": 182,
-          "close": 188
+          "time": 1769645700,
+          "open": 2733,
+          "high": 2740,
+          "low": 2732,
+          "close": 2738
         },
         {
-          "time": 1706488200,
-          "open": 188,
-          "high": 189,
-          "low": 182,
-          "close": 184
+          "time": 1769646600,
+          "open": 2738,
+          "high": 2739,
+          "low": 2732,
+          "close": 2734
         },
         {
-          "time": 1706489100,
-          "open": 184,
-          "high": 186,
-          "low": 181,
-          "close": 183
+          "time": 1769647500,
+          "open": 2734,
+          "high": 2736,
+          "low": 2731,
+          "close": 2733
         },
         {
-          "time": 1706490000,
-          "open": 183,
-          "high": 192,
-          "low": 182,
-          "close": 189
+          "time": 1769648400,
+          "open": 2733,
+          "high": 2742,
+          "low": 2732,
+          "close": 2739
         },
         {
-          "time": 1706490900,
-          "open": 189,
-          "high": 197,
-          "low": 188,
-          "close": 196
+          "time": 1769649300,
+          "open": 2739,
+          "high": 2747,
+          "low": 2738,
+          "close": 2746
         }
       ],
       "markers": [
         {
-          "time": 1706487300,
+          "time": 1769645700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706490000,
+          "time": 1769648400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706490900,
+          "time": 1769649300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3064,7 +3064,7 @@
       ],
       "levels": [
         {
-          "price": 190,
+          "price": 2740,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3101,65 +3101,65 @@
       },
       "candles": [
         {
-          "time": 1706572800,
-          "open": 180,
-          "high": 184,
-          "low": 179,
-          "close": 183
+          "time": 1769731200,
+          "open": 2730,
+          "high": 2734,
+          "low": 2729,
+          "close": 2733
         },
         {
-          "time": 1706573700,
-          "open": 183,
-          "high": 190,
-          "low": 182,
-          "close": 188
+          "time": 1769732100,
+          "open": 2733,
+          "high": 2740,
+          "low": 2732,
+          "close": 2738
         },
         {
-          "time": 1706574600,
-          "open": 188,
-          "high": 189,
-          "low": 182,
-          "close": 184
+          "time": 1769733000,
+          "open": 2738,
+          "high": 2739,
+          "low": 2732,
+          "close": 2734
         },
         {
-          "time": 1706575500,
-          "open": 184,
-          "high": 186,
-          "low": 181,
-          "close": 183
+          "time": 1769733900,
+          "open": 2734,
+          "high": 2736,
+          "low": 2731,
+          "close": 2733
         },
         {
-          "time": 1706576400,
-          "open": 183,
-          "high": 192,
-          "low": 182,
-          "close": 189
+          "time": 1769734800,
+          "open": 2733,
+          "high": 2742,
+          "low": 2732,
+          "close": 2739
         },
         {
-          "time": 1706577300,
-          "open": 189,
-          "high": 197,
-          "low": 188,
-          "close": 196
+          "time": 1769735700,
+          "open": 2739,
+          "high": 2747,
+          "low": 2738,
+          "close": 2746
         }
       ],
       "markers": [
         {
-          "time": 1706573700,
+          "time": 1769732100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706576400,
+          "time": 1769734800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706577300,
+          "time": 1769735700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3168,7 +3168,7 @@
       ],
       "levels": [
         {
-          "price": 190,
+          "price": 2740,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3205,65 +3205,65 @@
       },
       "candles": [
         {
-          "time": 1706659200,
-          "open": 220,
-          "high": 221,
-          "low": 216,
-          "close": 217
+          "time": 1769817600,
+          "open": 2770,
+          "high": 2771,
+          "low": 2766,
+          "close": 2767
         },
         {
-          "time": 1706660100,
-          "open": 217,
-          "high": 218,
-          "low": 210,
-          "close": 212
+          "time": 1769818500,
+          "open": 2767,
+          "high": 2768,
+          "low": 2760,
+          "close": 2762
         },
         {
-          "time": 1706661000,
-          "open": 212,
-          "high": 218,
-          "low": 211,
-          "close": 216
+          "time": 1769819400,
+          "open": 2762,
+          "high": 2768,
+          "low": 2761,
+          "close": 2766
         },
         {
-          "time": 1706661900,
-          "open": 216,
-          "high": 219,
-          "low": 214,
-          "close": 217
+          "time": 1769820300,
+          "open": 2766,
+          "high": 2769,
+          "low": 2764,
+          "close": 2767
         },
         {
-          "time": 1706662800,
-          "open": 217,
-          "high": 218,
-          "low": 208,
-          "close": 211
+          "time": 1769821200,
+          "open": 2767,
+          "high": 2768,
+          "low": 2758,
+          "close": 2761
         },
         {
-          "time": 1706663700,
-          "open": 211,
-          "high": 212,
-          "low": 203,
-          "close": 204
+          "time": 1769822100,
+          "open": 2761,
+          "high": 2762,
+          "low": 2753,
+          "close": 2754
         }
       ],
       "markers": [
         {
-          "time": 1706660100,
+          "time": 1769818500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706662800,
+          "time": 1769821200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706663700,
+          "time": 1769822100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3272,7 +3272,7 @@
       ],
       "levels": [
         {
-          "price": 210,
+          "price": 2760,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3309,65 +3309,65 @@
       },
       "candles": [
         {
-          "time": 1706745600,
-          "open": 220,
-          "high": 221,
-          "low": 216,
-          "close": 217
+          "time": 1769904000,
+          "open": 2770,
+          "high": 2771,
+          "low": 2766,
+          "close": 2767
         },
         {
-          "time": 1706746500,
-          "open": 217,
-          "high": 218,
-          "low": 210,
-          "close": 212
+          "time": 1769904900,
+          "open": 2767,
+          "high": 2768,
+          "low": 2760,
+          "close": 2762
         },
         {
-          "time": 1706747400,
-          "open": 212,
-          "high": 218,
-          "low": 211,
-          "close": 216
+          "time": 1769905800,
+          "open": 2762,
+          "high": 2768,
+          "low": 2761,
+          "close": 2766
         },
         {
-          "time": 1706748300,
-          "open": 216,
-          "high": 219,
-          "low": 214,
-          "close": 217
+          "time": 1769906700,
+          "open": 2766,
+          "high": 2769,
+          "low": 2764,
+          "close": 2767
         },
         {
-          "time": 1706749200,
-          "open": 217,
-          "high": 218,
-          "low": 208,
-          "close": 211
+          "time": 1769907600,
+          "open": 2767,
+          "high": 2768,
+          "low": 2758,
+          "close": 2761
         },
         {
-          "time": 1706750100,
-          "open": 211,
-          "high": 212,
-          "low": 203,
-          "close": 204
+          "time": 1769908500,
+          "open": 2761,
+          "high": 2762,
+          "low": 2753,
+          "close": 2754
         }
       ],
       "markers": [
         {
-          "time": 1706746500,
+          "time": 1769904900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706749200,
+          "time": 1769907600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706750100,
+          "time": 1769908500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3376,7 +3376,7 @@
       ],
       "levels": [
         {
-          "price": 210,
+          "price": 2760,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3413,65 +3413,65 @@
       },
       "candles": [
         {
-          "time": 1706832000,
-          "open": 220,
-          "high": 221,
-          "low": 216,
-          "close": 217
+          "time": 1769990400,
+          "open": 2770,
+          "high": 2771,
+          "low": 2766,
+          "close": 2767
         },
         {
-          "time": 1706832900,
-          "open": 217,
-          "high": 218,
-          "low": 210,
-          "close": 212
+          "time": 1769991300,
+          "open": 2767,
+          "high": 2768,
+          "low": 2760,
+          "close": 2762
         },
         {
-          "time": 1706833800,
-          "open": 212,
-          "high": 218,
-          "low": 211,
-          "close": 216
+          "time": 1769992200,
+          "open": 2762,
+          "high": 2768,
+          "low": 2761,
+          "close": 2766
         },
         {
-          "time": 1706834700,
-          "open": 216,
-          "high": 219,
-          "low": 214,
-          "close": 217
+          "time": 1769993100,
+          "open": 2766,
+          "high": 2769,
+          "low": 2764,
+          "close": 2767
         },
         {
-          "time": 1706835600,
-          "open": 217,
-          "high": 218,
-          "low": 208,
-          "close": 211
+          "time": 1769994000,
+          "open": 2767,
+          "high": 2768,
+          "low": 2758,
+          "close": 2761
         },
         {
-          "time": 1706836500,
-          "open": 211,
-          "high": 212,
-          "low": 203,
-          "close": 204
+          "time": 1769994900,
+          "open": 2761,
+          "high": 2762,
+          "low": 2753,
+          "close": 2754
         }
       ],
       "markers": [
         {
-          "time": 1706832900,
+          "time": 1769991300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706835600,
+          "time": 1769994000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706836500,
+          "time": 1769994900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3480,7 +3480,7 @@
       ],
       "levels": [
         {
-          "price": 210,
+          "price": 2760,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3517,65 +3517,65 @@
       },
       "candles": [
         {
-          "time": 1706918400,
-          "open": 220,
-          "high": 221,
-          "low": 216,
-          "close": 217
+          "time": 1770076800,
+          "open": 2770,
+          "high": 2771,
+          "low": 2766,
+          "close": 2767
         },
         {
-          "time": 1706919300,
-          "open": 217,
-          "high": 218,
-          "low": 210,
-          "close": 212
+          "time": 1770077700,
+          "open": 2767,
+          "high": 2768,
+          "low": 2760,
+          "close": 2762
         },
         {
-          "time": 1706920200,
-          "open": 212,
-          "high": 218,
-          "low": 211,
-          "close": 216
+          "time": 1770078600,
+          "open": 2762,
+          "high": 2768,
+          "low": 2761,
+          "close": 2766
         },
         {
-          "time": 1706921100,
-          "open": 216,
-          "high": 219,
-          "low": 214,
-          "close": 217
+          "time": 1770079500,
+          "open": 2766,
+          "high": 2769,
+          "low": 2764,
+          "close": 2767
         },
         {
-          "time": 1706922000,
-          "open": 217,
-          "high": 218,
-          "low": 208,
-          "close": 211
+          "time": 1770080400,
+          "open": 2767,
+          "high": 2768,
+          "low": 2758,
+          "close": 2761
         },
         {
-          "time": 1706922900,
-          "open": 211,
-          "high": 212,
-          "low": 203,
-          "close": 204
+          "time": 1770081300,
+          "open": 2761,
+          "high": 2762,
+          "low": 2753,
+          "close": 2754
         }
       ],
       "markers": [
         {
-          "time": 1706919300,
+          "time": 1770077700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1706922000,
+          "time": 1770080400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1706922900,
+          "time": 1770081300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3584,7 +3584,7 @@
       ],
       "levels": [
         {
-          "price": 210,
+          "price": 2760,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3621,65 +3621,65 @@
       },
       "candles": [
         {
-          "time": 1707004800,
-          "open": 220,
-          "high": 221,
-          "low": 216,
-          "close": 217
+          "time": 1770163200,
+          "open": 2770,
+          "high": 2771,
+          "low": 2766,
+          "close": 2767
         },
         {
-          "time": 1707005700,
-          "open": 217,
-          "high": 218,
-          "low": 210,
-          "close": 212
+          "time": 1770164100,
+          "open": 2767,
+          "high": 2768,
+          "low": 2760,
+          "close": 2762
         },
         {
-          "time": 1707006600,
-          "open": 212,
-          "high": 218,
-          "low": 211,
-          "close": 216
+          "time": 1770165000,
+          "open": 2762,
+          "high": 2768,
+          "low": 2761,
+          "close": 2766
         },
         {
-          "time": 1707007500,
-          "open": 216,
-          "high": 219,
-          "low": 214,
-          "close": 217
+          "time": 1770165900,
+          "open": 2766,
+          "high": 2769,
+          "low": 2764,
+          "close": 2767
         },
         {
-          "time": 1707008400,
-          "open": 217,
-          "high": 218,
-          "low": 208,
-          "close": 211
+          "time": 1770166800,
+          "open": 2767,
+          "high": 2768,
+          "low": 2758,
+          "close": 2761
         },
         {
-          "time": 1707009300,
-          "open": 211,
-          "high": 212,
-          "low": 203,
-          "close": 204
+          "time": 1770167700,
+          "open": 2761,
+          "high": 2762,
+          "low": 2753,
+          "close": 2754
         }
       ],
       "markers": [
         {
-          "time": 1707005700,
+          "time": 1770164100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707008400,
+          "time": 1770166800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707009300,
+          "time": 1770167700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3688,7 +3688,7 @@
       ],
       "levels": [
         {
-          "price": 210,
+          "price": 2760,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3725,65 +3725,65 @@
       },
       "candles": [
         {
-          "time": 1707091200,
-          "open": 220,
-          "high": 221,
-          "low": 216,
-          "close": 217
+          "time": 1770249600,
+          "open": 2770,
+          "high": 2771,
+          "low": 2766,
+          "close": 2767
         },
         {
-          "time": 1707092100,
-          "open": 217,
-          "high": 218,
-          "low": 210,
-          "close": 212
+          "time": 1770250500,
+          "open": 2767,
+          "high": 2768,
+          "low": 2760,
+          "close": 2762
         },
         {
-          "time": 1707093000,
-          "open": 212,
-          "high": 218,
-          "low": 211,
-          "close": 216
+          "time": 1770251400,
+          "open": 2762,
+          "high": 2768,
+          "low": 2761,
+          "close": 2766
         },
         {
-          "time": 1707093900,
-          "open": 216,
-          "high": 219,
-          "low": 214,
-          "close": 217
+          "time": 1770252300,
+          "open": 2766,
+          "high": 2769,
+          "low": 2764,
+          "close": 2767
         },
         {
-          "time": 1707094800,
-          "open": 217,
-          "high": 218,
-          "low": 208,
-          "close": 211
+          "time": 1770253200,
+          "open": 2767,
+          "high": 2768,
+          "low": 2758,
+          "close": 2761
         },
         {
-          "time": 1707095700,
-          "open": 211,
-          "high": 212,
-          "low": 203,
-          "close": 204
+          "time": 1770254100,
+          "open": 2761,
+          "high": 2762,
+          "low": 2753,
+          "close": 2754
         }
       ],
       "markers": [
         {
-          "time": 1707092100,
+          "time": 1770250500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707094800,
+          "time": 1770253200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707095700,
+          "time": 1770254100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3792,7 +3792,7 @@
       ],
       "levels": [
         {
-          "price": 210,
+          "price": 2760,
           "title": "Swing A",
           "color": "#94a3b8"
         }
@@ -3829,58 +3829,58 @@
       },
       "candles": [
         {
-          "time": 1707177600,
-          "open": 224,
-          "high": 228,
-          "low": 220,
-          "close": 226
+          "time": 1770336000,
+          "open": 2774,
+          "high": 2778,
+          "low": 2770,
+          "close": 2776
         },
         {
-          "time": 1707178500,
-          "open": 226,
-          "high": 235,
-          "low": 225,
-          "close": 233
+          "time": 1770336900,
+          "open": 2776,
+          "high": 2785,
+          "low": 2775,
+          "close": 2783
         },
         {
-          "time": 1707179400,
-          "open": 233,
-          "high": 240,
-          "low": 230,
-          "close": 235
+          "time": 1770337800,
+          "open": 2783,
+          "high": 2790,
+          "low": 2780,
+          "close": 2785
         },
         {
-          "time": 1707180300,
-          "open": 235,
-          "high": 236,
-          "low": 224,
-          "close": 226
+          "time": 1770338700,
+          "open": 2785,
+          "high": 2786,
+          "low": 2774,
+          "close": 2776
         },
         {
-          "time": 1707181200,
-          "open": 226,
-          "high": 228,
-          "low": 223,
-          "close": 225
+          "time": 1770339600,
+          "open": 2776,
+          "high": 2778,
+          "low": 2773,
+          "close": 2775
         }
       ],
       "markers": [
         {
-          "time": 1707177600,
+          "time": 1770336000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707179400,
+          "time": 1770337800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707181200,
+          "time": 1770339600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3889,17 +3889,17 @@
       ],
       "levels": [
         {
-          "price": 220,
+          "price": 2770,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 230,
+          "price": 2780,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -3934,58 +3934,58 @@
       },
       "candles": [
         {
-          "time": 1707264000,
-          "open": 224,
-          "high": 228,
-          "low": 220,
-          "close": 226
+          "time": 1770422400,
+          "open": 2774,
+          "high": 2778,
+          "low": 2770,
+          "close": 2776
         },
         {
-          "time": 1707264900,
-          "open": 226,
-          "high": 235,
-          "low": 225,
-          "close": 233
+          "time": 1770423300,
+          "open": 2776,
+          "high": 2785,
+          "low": 2775,
+          "close": 2783
         },
         {
-          "time": 1707265800,
-          "open": 233,
-          "high": 240,
-          "low": 230,
-          "close": 235
+          "time": 1770424200,
+          "open": 2783,
+          "high": 2790,
+          "low": 2780,
+          "close": 2785
         },
         {
-          "time": 1707266700,
-          "open": 235,
-          "high": 236,
-          "low": 224,
-          "close": 226
+          "time": 1770425100,
+          "open": 2785,
+          "high": 2786,
+          "low": 2774,
+          "close": 2776
         },
         {
-          "time": 1707267600,
-          "open": 226,
-          "high": 228,
-          "low": 223,
-          "close": 225
+          "time": 1770426000,
+          "open": 2776,
+          "high": 2778,
+          "low": 2773,
+          "close": 2775
         }
       ],
       "markers": [
         {
-          "time": 1707264000,
+          "time": 1770422400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707265800,
+          "time": 1770424200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707267600,
+          "time": 1770426000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -3994,17 +3994,17 @@
       ],
       "levels": [
         {
-          "price": 220,
+          "price": 2770,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 230,
+          "price": 2780,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4039,58 +4039,58 @@
       },
       "candles": [
         {
-          "time": 1707350400,
-          "open": 224,
-          "high": 228,
-          "low": 220,
-          "close": 226
+          "time": 1770508800,
+          "open": 2774,
+          "high": 2778,
+          "low": 2770,
+          "close": 2776
         },
         {
-          "time": 1707351300,
-          "open": 226,
-          "high": 235,
-          "low": 225,
-          "close": 233
+          "time": 1770509700,
+          "open": 2776,
+          "high": 2785,
+          "low": 2775,
+          "close": 2783
         },
         {
-          "time": 1707352200,
-          "open": 233,
-          "high": 240,
-          "low": 230,
-          "close": 235
+          "time": 1770510600,
+          "open": 2783,
+          "high": 2790,
+          "low": 2780,
+          "close": 2785
         },
         {
-          "time": 1707353100,
-          "open": 235,
-          "high": 236,
-          "low": 224,
-          "close": 226
+          "time": 1770511500,
+          "open": 2785,
+          "high": 2786,
+          "low": 2774,
+          "close": 2776
         },
         {
-          "time": 1707354000,
-          "open": 226,
-          "high": 228,
-          "low": 223,
-          "close": 225
+          "time": 1770512400,
+          "open": 2776,
+          "high": 2778,
+          "low": 2773,
+          "close": 2775
         }
       ],
       "markers": [
         {
-          "time": 1707350400,
+          "time": 1770508800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707352200,
+          "time": 1770510600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707354000,
+          "time": 1770512400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4099,17 +4099,17 @@
       ],
       "levels": [
         {
-          "price": 220,
+          "price": 2770,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 230,
+          "price": 2780,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4144,58 +4144,58 @@
       },
       "candles": [
         {
-          "time": 1707436800,
-          "open": 224,
-          "high": 228,
-          "low": 220,
-          "close": 226
+          "time": 1770595200,
+          "open": 2774,
+          "high": 2778,
+          "low": 2770,
+          "close": 2776
         },
         {
-          "time": 1707437700,
-          "open": 226,
-          "high": 235,
-          "low": 225,
-          "close": 233
+          "time": 1770596100,
+          "open": 2776,
+          "high": 2785,
+          "low": 2775,
+          "close": 2783
         },
         {
-          "time": 1707438600,
-          "open": 233,
-          "high": 240,
-          "low": 230,
-          "close": 235
+          "time": 1770597000,
+          "open": 2783,
+          "high": 2790,
+          "low": 2780,
+          "close": 2785
         },
         {
-          "time": 1707439500,
-          "open": 235,
-          "high": 236,
-          "low": 224,
-          "close": 226
+          "time": 1770597900,
+          "open": 2785,
+          "high": 2786,
+          "low": 2774,
+          "close": 2776
         },
         {
-          "time": 1707440400,
-          "open": 226,
-          "high": 228,
-          "low": 223,
-          "close": 225
+          "time": 1770598800,
+          "open": 2776,
+          "high": 2778,
+          "low": 2773,
+          "close": 2775
         }
       ],
       "markers": [
         {
-          "time": 1707436800,
+          "time": 1770595200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707438600,
+          "time": 1770597000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707440400,
+          "time": 1770598800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4204,17 +4204,17 @@
       ],
       "levels": [
         {
-          "price": 220,
+          "price": 2770,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 230,
+          "price": 2780,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4249,58 +4249,58 @@
       },
       "candles": [
         {
-          "time": 1707523200,
-          "open": 224,
-          "high": 228,
-          "low": 220,
-          "close": 226
+          "time": 1770681600,
+          "open": 2774,
+          "high": 2778,
+          "low": 2770,
+          "close": 2776
         },
         {
-          "time": 1707524100,
-          "open": 226,
-          "high": 235,
-          "low": 225,
-          "close": 233
+          "time": 1770682500,
+          "open": 2776,
+          "high": 2785,
+          "low": 2775,
+          "close": 2783
         },
         {
-          "time": 1707525000,
-          "open": 233,
-          "high": 240,
-          "low": 230,
-          "close": 235
+          "time": 1770683400,
+          "open": 2783,
+          "high": 2790,
+          "low": 2780,
+          "close": 2785
         },
         {
-          "time": 1707525900,
-          "open": 235,
-          "high": 236,
-          "low": 224,
-          "close": 226
+          "time": 1770684300,
+          "open": 2785,
+          "high": 2786,
+          "low": 2774,
+          "close": 2776
         },
         {
-          "time": 1707526800,
-          "open": 226,
-          "high": 228,
-          "low": 223,
-          "close": 225
+          "time": 1770685200,
+          "open": 2776,
+          "high": 2778,
+          "low": 2773,
+          "close": 2775
         }
       ],
       "markers": [
         {
-          "time": 1707523200,
+          "time": 1770681600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707525000,
+          "time": 1770683400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707526800,
+          "time": 1770685200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4309,17 +4309,17 @@
       ],
       "levels": [
         {
-          "price": 220,
+          "price": 2770,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 230,
+          "price": 2780,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4354,58 +4354,58 @@
       },
       "candles": [
         {
-          "time": 1707609600,
-          "open": 224,
-          "high": 228,
-          "low": 220,
-          "close": 226
+          "time": 1770768000,
+          "open": 2774,
+          "high": 2778,
+          "low": 2770,
+          "close": 2776
         },
         {
-          "time": 1707610500,
-          "open": 226,
-          "high": 235,
-          "low": 225,
-          "close": 233
+          "time": 1770768900,
+          "open": 2776,
+          "high": 2785,
+          "low": 2775,
+          "close": 2783
         },
         {
-          "time": 1707611400,
-          "open": 233,
-          "high": 240,
-          "low": 230,
-          "close": 235
+          "time": 1770769800,
+          "open": 2783,
+          "high": 2790,
+          "low": 2780,
+          "close": 2785
         },
         {
-          "time": 1707612300,
-          "open": 235,
-          "high": 236,
-          "low": 224,
-          "close": 226
+          "time": 1770770700,
+          "open": 2785,
+          "high": 2786,
+          "low": 2774,
+          "close": 2776
         },
         {
-          "time": 1707613200,
-          "open": 226,
-          "high": 228,
-          "low": 223,
-          "close": 225
+          "time": 1770771600,
+          "open": 2776,
+          "high": 2778,
+          "low": 2773,
+          "close": 2775
         }
       ],
       "markers": [
         {
-          "time": 1707609600,
+          "time": 1770768000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707611400,
+          "time": 1770769800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707613200,
+          "time": 1770771600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4414,17 +4414,17 @@
       ],
       "levels": [
         {
-          "price": 220,
+          "price": 2770,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 230,
+          "price": 2780,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4459,58 +4459,58 @@
       },
       "candles": [
         {
-          "time": 1707696000,
-          "open": 244,
-          "high": 248,
-          "low": 240,
-          "close": 246
+          "time": 1770854400,
+          "open": 2794,
+          "high": 2798,
+          "low": 2790,
+          "close": 2796
         },
         {
-          "time": 1707696900,
-          "open": 246,
-          "high": 255,
-          "low": 245,
-          "close": 253
+          "time": 1770855300,
+          "open": 2796,
+          "high": 2805,
+          "low": 2795,
+          "close": 2803
         },
         {
-          "time": 1707697800,
-          "open": 253,
-          "high": 260,
-          "low": 250,
-          "close": 255
+          "time": 1770856200,
+          "open": 2803,
+          "high": 2810,
+          "low": 2800,
+          "close": 2805
         },
         {
-          "time": 1707698700,
-          "open": 255,
-          "high": 256,
-          "low": 244,
-          "close": 246
+          "time": 1770857100,
+          "open": 2805,
+          "high": 2806,
+          "low": 2794,
+          "close": 2796
         },
         {
-          "time": 1707699600,
-          "open": 246,
-          "high": 256,
-          "low": 243,
-          "close": 255
+          "time": 1770858000,
+          "open": 2796,
+          "high": 2806,
+          "low": 2793,
+          "close": 2805
         }
       ],
       "markers": [
         {
-          "time": 1707696000,
+          "time": 1770854400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707697800,
+          "time": 1770856200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707699600,
+          "time": 1770858000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4519,17 +4519,17 @@
       ],
       "levels": [
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 250,
+          "price": 2800,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 260,
+          "price": 2810,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4564,58 +4564,58 @@
       },
       "candles": [
         {
-          "time": 1707782400,
-          "open": 244,
-          "high": 248,
-          "low": 240,
-          "close": 246
+          "time": 1770940800,
+          "open": 2794,
+          "high": 2798,
+          "low": 2790,
+          "close": 2796
         },
         {
-          "time": 1707783300,
-          "open": 246,
-          "high": 255,
-          "low": 245,
-          "close": 253
+          "time": 1770941700,
+          "open": 2796,
+          "high": 2805,
+          "low": 2795,
+          "close": 2803
         },
         {
-          "time": 1707784200,
-          "open": 253,
-          "high": 260,
-          "low": 250,
-          "close": 255
+          "time": 1770942600,
+          "open": 2803,
+          "high": 2810,
+          "low": 2800,
+          "close": 2805
         },
         {
-          "time": 1707785100,
-          "open": 255,
-          "high": 256,
-          "low": 244,
-          "close": 246
+          "time": 1770943500,
+          "open": 2805,
+          "high": 2806,
+          "low": 2794,
+          "close": 2796
         },
         {
-          "time": 1707786000,
-          "open": 246,
-          "high": 256,
-          "low": 243,
-          "close": 255
+          "time": 1770944400,
+          "open": 2796,
+          "high": 2806,
+          "low": 2793,
+          "close": 2805
         }
       ],
       "markers": [
         {
-          "time": 1707782400,
+          "time": 1770940800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707784200,
+          "time": 1770942600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707786000,
+          "time": 1770944400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4624,17 +4624,17 @@
       ],
       "levels": [
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 250,
+          "price": 2800,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 260,
+          "price": 2810,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4669,58 +4669,58 @@
       },
       "candles": [
         {
-          "time": 1707868800,
-          "open": 244,
-          "high": 248,
-          "low": 240,
-          "close": 246
+          "time": 1771027200,
+          "open": 2794,
+          "high": 2798,
+          "low": 2790,
+          "close": 2796
         },
         {
-          "time": 1707869700,
-          "open": 246,
-          "high": 255,
-          "low": 245,
-          "close": 253
+          "time": 1771028100,
+          "open": 2796,
+          "high": 2805,
+          "low": 2795,
+          "close": 2803
         },
         {
-          "time": 1707870600,
-          "open": 253,
-          "high": 260,
-          "low": 250,
-          "close": 255
+          "time": 1771029000,
+          "open": 2803,
+          "high": 2810,
+          "low": 2800,
+          "close": 2805
         },
         {
-          "time": 1707871500,
-          "open": 255,
-          "high": 256,
-          "low": 244,
-          "close": 246
+          "time": 1771029900,
+          "open": 2805,
+          "high": 2806,
+          "low": 2794,
+          "close": 2796
         },
         {
-          "time": 1707872400,
-          "open": 246,
-          "high": 256,
-          "low": 243,
-          "close": 255
+          "time": 1771030800,
+          "open": 2796,
+          "high": 2806,
+          "low": 2793,
+          "close": 2805
         }
       ],
       "markers": [
         {
-          "time": 1707868800,
+          "time": 1771027200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707870600,
+          "time": 1771029000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707872400,
+          "time": 1771030800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4729,17 +4729,17 @@
       ],
       "levels": [
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 250,
+          "price": 2800,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 260,
+          "price": 2810,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4774,58 +4774,58 @@
       },
       "candles": [
         {
-          "time": 1707955200,
-          "open": 244,
-          "high": 248,
-          "low": 240,
-          "close": 246
+          "time": 1771113600,
+          "open": 2794,
+          "high": 2798,
+          "low": 2790,
+          "close": 2796
         },
         {
-          "time": 1707956100,
-          "open": 246,
-          "high": 255,
-          "low": 245,
-          "close": 253
+          "time": 1771114500,
+          "open": 2796,
+          "high": 2805,
+          "low": 2795,
+          "close": 2803
         },
         {
-          "time": 1707957000,
-          "open": 253,
-          "high": 260,
-          "low": 250,
-          "close": 255
+          "time": 1771115400,
+          "open": 2803,
+          "high": 2810,
+          "low": 2800,
+          "close": 2805
         },
         {
-          "time": 1707957900,
-          "open": 255,
-          "high": 256,
-          "low": 244,
-          "close": 246
+          "time": 1771116300,
+          "open": 2805,
+          "high": 2806,
+          "low": 2794,
+          "close": 2796
         },
         {
-          "time": 1707958800,
-          "open": 246,
-          "high": 256,
-          "low": 243,
-          "close": 255
+          "time": 1771117200,
+          "open": 2796,
+          "high": 2806,
+          "low": 2793,
+          "close": 2805
         }
       ],
       "markers": [
         {
-          "time": 1707955200,
+          "time": 1771113600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1707957000,
+          "time": 1771115400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1707958800,
+          "time": 1771117200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4834,17 +4834,17 @@
       ],
       "levels": [
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 250,
+          "price": 2800,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 260,
+          "price": 2810,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4879,58 +4879,58 @@
       },
       "candles": [
         {
-          "time": 1708041600,
-          "open": 244,
-          "high": 248,
-          "low": 240,
-          "close": 246
+          "time": 1771200000,
+          "open": 2794,
+          "high": 2798,
+          "low": 2790,
+          "close": 2796
         },
         {
-          "time": 1708042500,
-          "open": 246,
-          "high": 255,
-          "low": 245,
-          "close": 253
+          "time": 1771200900,
+          "open": 2796,
+          "high": 2805,
+          "low": 2795,
+          "close": 2803
         },
         {
-          "time": 1708043400,
-          "open": 253,
-          "high": 260,
-          "low": 250,
-          "close": 255
+          "time": 1771201800,
+          "open": 2803,
+          "high": 2810,
+          "low": 2800,
+          "close": 2805
         },
         {
-          "time": 1708044300,
-          "open": 255,
-          "high": 256,
-          "low": 244,
-          "close": 246
+          "time": 1771202700,
+          "open": 2805,
+          "high": 2806,
+          "low": 2794,
+          "close": 2796
         },
         {
-          "time": 1708045200,
-          "open": 246,
-          "high": 256,
-          "low": 243,
-          "close": 255
+          "time": 1771203600,
+          "open": 2796,
+          "high": 2806,
+          "low": 2793,
+          "close": 2805
         }
       ],
       "markers": [
         {
-          "time": 1708041600,
+          "time": 1771200000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1708043400,
+          "time": 1771201800,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1708045200,
+          "time": 1771203600,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -4939,17 +4939,17 @@
       ],
       "levels": [
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 250,
+          "price": 2800,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 260,
+          "price": 2810,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -4984,58 +4984,58 @@
       },
       "candles": [
         {
-          "time": 1708128000,
-          "open": 244,
-          "high": 248,
-          "low": 240,
-          "close": 246
+          "time": 1771286400,
+          "open": 2794,
+          "high": 2798,
+          "low": 2790,
+          "close": 2796
         },
         {
-          "time": 1708128900,
-          "open": 246,
-          "high": 255,
-          "low": 245,
-          "close": 253
+          "time": 1771287300,
+          "open": 2796,
+          "high": 2805,
+          "low": 2795,
+          "close": 2803
         },
         {
-          "time": 1708129800,
-          "open": 253,
-          "high": 260,
-          "low": 250,
-          "close": 255
+          "time": 1771288200,
+          "open": 2803,
+          "high": 2810,
+          "low": 2800,
+          "close": 2805
         },
         {
-          "time": 1708130700,
-          "open": 255,
-          "high": 256,
-          "low": 244,
-          "close": 246
+          "time": 1771289100,
+          "open": 2805,
+          "high": 2806,
+          "low": 2794,
+          "close": 2796
         },
         {
-          "time": 1708131600,
-          "open": 246,
-          "high": 256,
-          "low": 243,
-          "close": 255
+          "time": 1771290000,
+          "open": 2796,
+          "high": 2806,
+          "low": 2793,
+          "close": 2805
         }
       ],
       "markers": [
         {
-          "time": 1708128000,
+          "time": 1771286400,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "A"
         },
         {
-          "time": 1708129800,
+          "time": 1771288200,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
           "text": "B"
         },
         {
-          "time": 1708131600,
+          "time": 1771290000,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5044,17 +5044,17 @@
       ],
       "levels": [
         {
-          "price": 240,
+          "price": 2790,
           "title": "Range low",
           "color": "#94a3b8"
         },
         {
-          "price": 250,
+          "price": 2800,
           "title": "Equilibrium",
           "color": "#94a3b8"
         },
         {
-          "price": 260,
+          "price": 2810,
           "title": "Range high",
           "color": "#94a3b8"
         }
@@ -5089,37 +5089,37 @@
       },
       "candles": [
         {
-          "time": 1708214400,
-          "open": 268,
-          "high": 272,
-          "low": 267,
-          "close": 271
+          "time": 1771372800,
+          "open": 2818,
+          "high": 2822,
+          "low": 2817,
+          "close": 2821
         },
         {
-          "time": 1708215300,
-          "open": 271,
-          "high": 274,
-          "low": 268,
-          "close": 272
+          "time": 1771373700,
+          "open": 2821,
+          "high": 2824,
+          "low": 2818,
+          "close": 2822
         },
         {
-          "time": 1708216200,
-          "open": 272,
-          "high": 273,
-          "low": 267,
-          "close": 269
+          "time": 1771374600,
+          "open": 2822,
+          "high": 2823,
+          "low": 2817,
+          "close": 2819
         },
         {
-          "time": 1708217100,
-          "open": 269,
-          "high": 272,
-          "low": 268,
-          "close": 270
+          "time": 1771375500,
+          "open": 2819,
+          "high": 2822,
+          "low": 2818,
+          "close": 2820
         }
       ],
       "markers": [
         {
-          "time": 1708217100,
+          "time": 1771375500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5128,17 +5128,17 @@
       ],
       "levels": [
         {
-          "price": 270,
+          "price": 2820,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 265,
+          "price": 2815,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5172,37 +5172,37 @@
       },
       "candles": [
         {
-          "time": 1708300800,
-          "open": 268,
-          "high": 272,
-          "low": 267,
-          "close": 271
+          "time": 1771459200,
+          "open": 2818,
+          "high": 2822,
+          "low": 2817,
+          "close": 2821
         },
         {
-          "time": 1708301700,
-          "open": 271,
-          "high": 274,
-          "low": 268,
-          "close": 272
+          "time": 1771460100,
+          "open": 2821,
+          "high": 2824,
+          "low": 2818,
+          "close": 2822
         },
         {
-          "time": 1708302600,
-          "open": 272,
-          "high": 273,
-          "low": 267,
-          "close": 269
+          "time": 1771461000,
+          "open": 2822,
+          "high": 2823,
+          "low": 2817,
+          "close": 2819
         },
         {
-          "time": 1708303500,
-          "open": 269,
-          "high": 272,
-          "low": 268,
-          "close": 270
+          "time": 1771461900,
+          "open": 2819,
+          "high": 2822,
+          "low": 2818,
+          "close": 2820
         }
       ],
       "markers": [
         {
-          "time": 1708303500,
+          "time": 1771461900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5211,17 +5211,17 @@
       ],
       "levels": [
         {
-          "price": 270,
+          "price": 2820,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 265,
+          "price": 2815,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5255,37 +5255,37 @@
       },
       "candles": [
         {
-          "time": 1708387200,
-          "open": 268,
-          "high": 272,
-          "low": 267,
-          "close": 271
+          "time": 1771545600,
+          "open": 2818,
+          "high": 2822,
+          "low": 2817,
+          "close": 2821
         },
         {
-          "time": 1708388100,
-          "open": 271,
-          "high": 274,
-          "low": 268,
-          "close": 272
+          "time": 1771546500,
+          "open": 2821,
+          "high": 2824,
+          "low": 2818,
+          "close": 2822
         },
         {
-          "time": 1708389000,
-          "open": 272,
-          "high": 273,
-          "low": 267,
-          "close": 269
+          "time": 1771547400,
+          "open": 2822,
+          "high": 2823,
+          "low": 2817,
+          "close": 2819
         },
         {
-          "time": 1708389900,
-          "open": 269,
-          "high": 272,
-          "low": 268,
-          "close": 270
+          "time": 1771548300,
+          "open": 2819,
+          "high": 2822,
+          "low": 2818,
+          "close": 2820
         }
       ],
       "markers": [
         {
-          "time": 1708389900,
+          "time": 1771548300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5294,17 +5294,17 @@
       ],
       "levels": [
         {
-          "price": 270,
+          "price": 2820,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 265,
+          "price": 2815,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5338,37 +5338,37 @@
       },
       "candles": [
         {
-          "time": 1708473600,
-          "open": 268,
-          "high": 272,
-          "low": 267,
-          "close": 271
+          "time": 1771632000,
+          "open": 2818,
+          "high": 2822,
+          "low": 2817,
+          "close": 2821
         },
         {
-          "time": 1708474500,
-          "open": 271,
-          "high": 274,
-          "low": 268,
-          "close": 272
+          "time": 1771632900,
+          "open": 2821,
+          "high": 2824,
+          "low": 2818,
+          "close": 2822
         },
         {
-          "time": 1708475400,
-          "open": 272,
-          "high": 273,
-          "low": 267,
-          "close": 269
+          "time": 1771633800,
+          "open": 2822,
+          "high": 2823,
+          "low": 2817,
+          "close": 2819
         },
         {
-          "time": 1708476300,
-          "open": 269,
-          "high": 272,
-          "low": 268,
-          "close": 270
+          "time": 1771634700,
+          "open": 2819,
+          "high": 2822,
+          "low": 2818,
+          "close": 2820
         }
       ],
       "markers": [
         {
-          "time": 1708476300,
+          "time": 1771634700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5377,17 +5377,17 @@
       ],
       "levels": [
         {
-          "price": 270,
+          "price": 2820,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 265,
+          "price": 2815,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5421,37 +5421,37 @@
       },
       "candles": [
         {
-          "time": 1708560000,
-          "open": 268,
-          "high": 272,
-          "low": 267,
-          "close": 271
+          "time": 1771718400,
+          "open": 2818,
+          "high": 2822,
+          "low": 2817,
+          "close": 2821
         },
         {
-          "time": 1708560900,
-          "open": 271,
-          "high": 274,
-          "low": 268,
-          "close": 272
+          "time": 1771719300,
+          "open": 2821,
+          "high": 2824,
+          "low": 2818,
+          "close": 2822
         },
         {
-          "time": 1708561800,
-          "open": 272,
-          "high": 273,
-          "low": 267,
-          "close": 269
+          "time": 1771720200,
+          "open": 2822,
+          "high": 2823,
+          "low": 2817,
+          "close": 2819
         },
         {
-          "time": 1708562700,
-          "open": 269,
-          "high": 272,
-          "low": 268,
-          "close": 270
+          "time": 1771721100,
+          "open": 2819,
+          "high": 2822,
+          "low": 2818,
+          "close": 2820
         }
       ],
       "markers": [
         {
-          "time": 1708562700,
+          "time": 1771721100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5460,17 +5460,17 @@
       ],
       "levels": [
         {
-          "price": 270,
+          "price": 2820,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 265,
+          "price": 2815,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5504,37 +5504,37 @@
       },
       "candles": [
         {
-          "time": 1708646400,
-          "open": 268,
-          "high": 272,
-          "low": 267,
-          "close": 271
+          "time": 1771804800,
+          "open": 2818,
+          "high": 2822,
+          "low": 2817,
+          "close": 2821
         },
         {
-          "time": 1708647300,
-          "open": 271,
-          "high": 274,
-          "low": 268,
-          "close": 272
+          "time": 1771805700,
+          "open": 2821,
+          "high": 2824,
+          "low": 2818,
+          "close": 2822
         },
         {
-          "time": 1708648200,
-          "open": 272,
-          "high": 273,
-          "low": 267,
-          "close": 269
+          "time": 1771806600,
+          "open": 2822,
+          "high": 2823,
+          "low": 2817,
+          "close": 2819
         },
         {
-          "time": 1708649100,
-          "open": 269,
-          "high": 272,
-          "low": 268,
-          "close": 270
+          "time": 1771807500,
+          "open": 2819,
+          "high": 2822,
+          "low": 2818,
+          "close": 2820
         }
       ],
       "markers": [
         {
-          "time": 1708649100,
+          "time": 1771807500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5543,17 +5543,17 @@
       ],
       "levels": [
         {
-          "price": 270,
+          "price": 2820,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 265,
+          "price": 2815,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5587,37 +5587,37 @@
       },
       "candles": [
         {
-          "time": 1708732800,
-          "open": 288,
-          "high": 292,
-          "low": 287,
-          "close": 291
+          "time": 1771891200,
+          "open": 2838,
+          "high": 2842,
+          "low": 2837,
+          "close": 2841
         },
         {
-          "time": 1708733700,
-          "open": 291,
-          "high": 294,
-          "low": 288,
-          "close": 292
+          "time": 1771892100,
+          "open": 2841,
+          "high": 2844,
+          "low": 2838,
+          "close": 2842
         },
         {
-          "time": 1708734600,
-          "open": 292,
-          "high": 293,
-          "low": 287,
-          "close": 289
+          "time": 1771893000,
+          "open": 2842,
+          "high": 2843,
+          "low": 2837,
+          "close": 2839
         },
         {
-          "time": 1708735500,
-          "open": 289,
-          "high": 292,
-          "low": 288,
-          "close": 290
+          "time": 1771893900,
+          "open": 2839,
+          "high": 2842,
+          "low": 2838,
+          "close": 2840
         }
       ],
       "markers": [
         {
-          "time": 1708735500,
+          "time": 1771893900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5626,17 +5626,17 @@
       ],
       "levels": [
         {
-          "price": 290,
+          "price": 2840,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 295,
+          "price": 2845,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5670,37 +5670,37 @@
       },
       "candles": [
         {
-          "time": 1708819200,
-          "open": 288,
-          "high": 292,
-          "low": 287,
-          "close": 291
+          "time": 1771977600,
+          "open": 2838,
+          "high": 2842,
+          "low": 2837,
+          "close": 2841
         },
         {
-          "time": 1708820100,
-          "open": 291,
-          "high": 294,
-          "low": 288,
-          "close": 292
+          "time": 1771978500,
+          "open": 2841,
+          "high": 2844,
+          "low": 2838,
+          "close": 2842
         },
         {
-          "time": 1708821000,
-          "open": 292,
-          "high": 293,
-          "low": 287,
-          "close": 289
+          "time": 1771979400,
+          "open": 2842,
+          "high": 2843,
+          "low": 2837,
+          "close": 2839
         },
         {
-          "time": 1708821900,
-          "open": 289,
-          "high": 292,
-          "low": 288,
-          "close": 290
+          "time": 1771980300,
+          "open": 2839,
+          "high": 2842,
+          "low": 2838,
+          "close": 2840
         }
       ],
       "markers": [
         {
-          "time": 1708821900,
+          "time": 1771980300,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5709,17 +5709,17 @@
       ],
       "levels": [
         {
-          "price": 290,
+          "price": 2840,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 295,
+          "price": 2845,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5753,37 +5753,37 @@
       },
       "candles": [
         {
-          "time": 1708905600,
-          "open": 288,
-          "high": 292,
-          "low": 287,
-          "close": 291
+          "time": 1772064000,
+          "open": 2838,
+          "high": 2842,
+          "low": 2837,
+          "close": 2841
         },
         {
-          "time": 1708906500,
-          "open": 291,
-          "high": 294,
-          "low": 288,
-          "close": 292
+          "time": 1772064900,
+          "open": 2841,
+          "high": 2844,
+          "low": 2838,
+          "close": 2842
         },
         {
-          "time": 1708907400,
-          "open": 292,
-          "high": 293,
-          "low": 287,
-          "close": 289
+          "time": 1772065800,
+          "open": 2842,
+          "high": 2843,
+          "low": 2837,
+          "close": 2839
         },
         {
-          "time": 1708908300,
-          "open": 289,
-          "high": 292,
-          "low": 288,
-          "close": 290
+          "time": 1772066700,
+          "open": 2839,
+          "high": 2842,
+          "low": 2838,
+          "close": 2840
         }
       ],
       "markers": [
         {
-          "time": 1708908300,
+          "time": 1772066700,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5792,17 +5792,17 @@
       ],
       "levels": [
         {
-          "price": 290,
+          "price": 2840,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 295,
+          "price": 2845,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5836,37 +5836,37 @@
       },
       "candles": [
         {
-          "time": 1708992000,
-          "open": 288,
-          "high": 292,
-          "low": 287,
-          "close": 291
+          "time": 1772150400,
+          "open": 2838,
+          "high": 2842,
+          "low": 2837,
+          "close": 2841
         },
         {
-          "time": 1708992900,
-          "open": 291,
-          "high": 294,
-          "low": 288,
-          "close": 292
+          "time": 1772151300,
+          "open": 2841,
+          "high": 2844,
+          "low": 2838,
+          "close": 2842
         },
         {
-          "time": 1708993800,
-          "open": 292,
-          "high": 293,
-          "low": 287,
-          "close": 289
+          "time": 1772152200,
+          "open": 2842,
+          "high": 2843,
+          "low": 2837,
+          "close": 2839
         },
         {
-          "time": 1708994700,
-          "open": 289,
-          "high": 292,
-          "low": 288,
-          "close": 290
+          "time": 1772153100,
+          "open": 2839,
+          "high": 2842,
+          "low": 2838,
+          "close": 2840
         }
       ],
       "markers": [
         {
-          "time": 1708994700,
+          "time": 1772153100,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5875,17 +5875,17 @@
       ],
       "levels": [
         {
-          "price": 290,
+          "price": 2840,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 295,
+          "price": 2845,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -5919,37 +5919,37 @@
       },
       "candles": [
         {
-          "time": 1709078400,
-          "open": 288,
-          "high": 292,
-          "low": 287,
-          "close": 291
+          "time": 1772236800,
+          "open": 2838,
+          "high": 2842,
+          "low": 2837,
+          "close": 2841
         },
         {
-          "time": 1709079300,
-          "open": 291,
-          "high": 294,
-          "low": 288,
-          "close": 292
+          "time": 1772237700,
+          "open": 2841,
+          "high": 2844,
+          "low": 2838,
+          "close": 2842
         },
         {
-          "time": 1709080200,
-          "open": 292,
-          "high": 293,
-          "low": 287,
-          "close": 289
+          "time": 1772238600,
+          "open": 2842,
+          "high": 2843,
+          "low": 2837,
+          "close": 2839
         },
         {
-          "time": 1709081100,
-          "open": 289,
-          "high": 292,
-          "low": 288,
-          "close": 290
+          "time": 1772239500,
+          "open": 2839,
+          "high": 2842,
+          "low": 2838,
+          "close": 2840
         }
       ],
       "markers": [
         {
-          "time": 1709081100,
+          "time": 1772239500,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -5958,17 +5958,17 @@
       ],
       "levels": [
         {
-          "price": 290,
+          "price": 2840,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 295,
+          "price": 2845,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }
@@ -6002,37 +6002,37 @@
       },
       "candles": [
         {
-          "time": 1709164800,
-          "open": 288,
-          "high": 292,
-          "low": 287,
-          "close": 291
+          "time": 1772323200,
+          "open": 2838,
+          "high": 2842,
+          "low": 2837,
+          "close": 2841
         },
         {
-          "time": 1709165700,
-          "open": 291,
-          "high": 294,
-          "low": 288,
-          "close": 292
+          "time": 1772324100,
+          "open": 2841,
+          "high": 2844,
+          "low": 2838,
+          "close": 2842
         },
         {
-          "time": 1709166600,
-          "open": 292,
-          "high": 293,
-          "low": 287,
-          "close": 289
+          "time": 1772325000,
+          "open": 2842,
+          "high": 2843,
+          "low": 2837,
+          "close": 2839
         },
         {
-          "time": 1709167500,
-          "open": 289,
-          "high": 292,
-          "low": 288,
-          "close": 290
+          "time": 1772325900,
+          "open": 2839,
+          "high": 2842,
+          "low": 2838,
+          "close": 2840
         }
       ],
       "markers": [
         {
-          "time": 1709167500,
+          "time": 1772325900,
           "position": "aboveBar",
           "color": "#60a5fa",
           "shape": "circle",
@@ -6041,17 +6041,17 @@
       ],
       "levels": [
         {
-          "price": 290,
+          "price": 2840,
           "title": "Entry",
           "color": "#94a3b8"
         },
         {
-          "price": 295,
+          "price": 2845,
           "title": "SL",
           "color": "#94a3b8"
         },
         {
-          "price": 280,
+          "price": 2830,
           "title": "TP",
           "color": "#94a3b8"
         }

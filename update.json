@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.363/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.364/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Market Intel: Menambahkan Tab ke-3 Sentimen The Fed (Barometer Hawkish vs Dovish CME FedWatch untuk Gold XAU/USD).",
-    "Penyeragaman tema visual Natural UI di seluruh modul (Mapping, Journal, Academy, Intel) dan pembersihan tombol mengambang.",
-    "Perlindungan gesture chart terhadap pull-to-refresh dan netralisasi stabilitas ScannerService.",
-    "Optimasi ukuran aset aplikasi (diet assets)."
+    "Academy: Pembaruan data candlestick Candle Replay & Guided Practice menggunakan dataset modern XAU/USD 2025/2026 ($2.600+).",
+    "Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan Rantai Efek Domino Makro (CPI, NFP, Fed, DXY ke Emas) dan Skenario Playbook.",
+    "Kalender Ekonomi: Default filter fokus ke Gold (USD High & Medium), penataan lencana pidato/non-data.",
+    "Performa: Eliminasi blocking loading screen pada Market Intel, render instan dari cache lokal."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.363/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.364/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950363,
-  "latest_version_name": "2.0.0-pro.363",
+  "latest_version_code": 950364,
+  "latest_version_name": "2.0.0-pro.364",
   "mandatory": false,
   "releaseDate": "2026-09-25",
   "release_notes": [
-    "Market Intel: Menambahkan Tab ke-3 Sentimen The Fed (Barometer Hawkish vs Dovish CME FedWatch untuk Gold XAU/USD).",
-    "Penyeragaman tema visual Natural UI di seluruh modul (Mapping, Journal, Academy, Intel) dan pembersihan tombol mengambang.",
-    "Perlindungan gesture chart terhadap pull-to-refresh dan netralisasi stabilitas ScannerService.",
-    "Optimasi ukuran aset aplikasi (diet assets)."
+    "Academy: Pembaruan data candlestick Candle Replay & Guided Practice menggunakan dataset modern XAU/USD 2025/2026 ($2.600+).",
+    "Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan Rantai Efek Domino Makro (CPI, NFP, Fed, DXY ke Emas) dan Skenario Playbook.",
+    "Kalender Ekonomi: Default filter fokus ke Gold (USD High & Medium), penataan lencana pidato/non-data.",
+    "Performa: Eliminasi blocking loading screen pada Market Intel, render instan dari cache lokal."
   ],
   "sha256": "a013785b60c2e1a5e636862c825a9a66f509883075b14313c51f0633a2a70032",
-  "version": "2.0.0-pro.363",
-  "versionCode": 950363
+  "version": "2.0.0-pro.364",
+  "versionCode": 950364
 }

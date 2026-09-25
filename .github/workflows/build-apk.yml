@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Market Intel: Menambahkan Tab ke-3 Sentimen The Fed (Barometer Hawkish vs Dovish CME FedWatch untuk Gold XAU/USD).
-          - Penyeragaman tema visual Natural UI di seluruh modul (Mapping, Journal, Academy, Intel) dan pembersihan tombol melayang.
-          - Perlindungan gesture chart terhadap pull-to-refresh dan netralisasi stabilitas ScannerService.
-          - Optimasi ukuran aset aplikasi (diet assets).
+          - Academy: Pembaruan data candlestick Candle Replay & Guided Practice menggunakan dataset modern XAU/USD 2025/2026 ($2.600+).
+          - Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan Rantai Efek Domino Makro (CPI, NFP, Fed, DXY ke Emas) dan Skenario Playbook.
+          - Kalender Ekonomi: Default filter fokus ke Gold (USD High & Medium), penataan lencana pidato/non-data.
+          - Performa: Eliminasi blocking loading screen pada Market Intel, render instan dari cache lokal.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber
