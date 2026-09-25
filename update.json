@@ -21,7 +21,7 @@
     "Jurnal & Analitik: Kurva pertumbuhan ekuitas kini menggunakan nilai R-multiple realistis jika PnL mata uang tidak diisi.",
     "Backend & Push: Peningkatan toleransi regex versi APK untuk push notifikasi konteks pasar."
   ],
-  "sha256": "18f95e92b85cab3ac26ac322855aa44353c6d25a06d9001d7563693f493ce71b",
+  "sha256": "db0cc005ddd4adbff14f351ad64c18e31580abc924ee801ef02376b9ea1aa7fb",
   "version": "2.0.0-pro.366",
   "versionCode": 950366
 }
