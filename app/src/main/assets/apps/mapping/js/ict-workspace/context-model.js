@@ -10,6 +10,6 @@ export function currentContext(payload,now=Date.now()) {
   const maxCompletedAge=isM5?600000:150000;
   if(!Number.isFinite(completed)||now-completed< -30000||now-completed>maxCompletedAge)return null;
   if(![m,m15,h1].every(Number.isFinite)||!m||!m15||!h1)return null;
-  if(now/1000-m<0||now/1000-m>maxAge||now/1000-m15>2100||now/1000-h1>10800)return null;
+  if(now/1000-m < -30||now/1000-m>maxAge||now/1000-m15 < -30||now/1000-m15>2100||now/1000-h1 < -30||now/1000-h1>10800)return null;
   return context;
 }

@@ -1360,6 +1360,7 @@ function renderStatistics(items) {
         ${makeJournalStat("Total Loss", formatTradeAmount(journalStats.totalLoss), "money")}
         ${makeJournalStat("Net P/L", formatTradeAmount(journalStats.netProfit), "target")}
       </div>
+      ${window.AmyJournalAnalytics?.renderEquitySVG ? window.AmyJournalAnalytics.renderEquitySVG(state.journals) : ''}
     </section>
 
     <section class="stats-panel calendar-panel">

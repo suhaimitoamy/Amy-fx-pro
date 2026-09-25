@@ -26,7 +26,7 @@ function liquidityOnly(rows,now){
     if(later.some(x=>kind==='high'?x.high>=level:x.low<=level))continue;
     levels.push({kind,level,time:c.time,confirmed:candles[i+2].time,used:false});
   }
-  const last=candles.at(-1),fresh=Boolean(last&&now-(last.time+900)>=0&&now-(last.time+900)<=1020);
+  const last=candles.at(-1),fresh=Boolean(last&&now-(last.time+900)>=-30&&now-(last.time+900)<=1020);
   return {model:'ICT-SWEEP-MSS-FVG-1',tf:'M15',signal:'WAIT',fresh,sourceTime:last?.time||null,
     capturedAt:now*1000,close:last?.close||null,levels,reason:'Level likuiditas saja; skenario terbaru tersedia di Mapping.',plan:null};
 }

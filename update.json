@@ -1,27 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.366/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.367/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping & Konteks Pasar: Perbaikan netralisasi bias H1 saat batas invalidasi tertembus (tidak lagi memaksakan arah berlawanan).",
-    "Struktur Break: Memperbaiki durasi penguncian recentBreak dan mencegah sumbu candle (wick) membakar level sebelum close bodi.",
-    "Sinkronisasi Antar-Modul: Integrasi peta likuiditas Market Intel dengan snapshot konteks pasar live server.",
-    "Jurnal & Analitik: Kurva pertumbuhan ekuitas kini menggunakan nilai R-multiple realistis jika PnL mata uang tidak diisi.",
-    "Backend & Push: Peningkatan toleransi regex versi APK untuk push notifikasi konteks pasar."
+    "Mapping & Konteks: Penambahan toleransi clock skew (sinkronisasi waktu perangkat) agar konteks pasar tidak hilang saat jam perangkat sedikit berbeda.",
+    "Jurnal Trading: Integrasi kurva pertumbuhan ekuitas otomatis di Dasbor Statistik dengan dukungan nilai profit/loss dan R-multiple.",
+    "Market Intel: Toleransi kesegaran data likuiditas diperkuat terhadap drift waktu jaringan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.366/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.367/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950366,
-  "latest_version_name": "2.0.0-pro.366",
+  "latest_version_code": 950367,
+  "latest_version_name": "2.0.0-pro.367",
   "mandatory": false,
   "releaseDate": "2026-09-25",
   "release_notes": [
-    "Mapping & Konteks Pasar: Perbaikan netralisasi bias H1 saat batas invalidasi tertembus (tidak lagi memaksakan arah berlawanan).",
-    "Struktur Break: Memperbaiki durasi penguncian recentBreak dan mencegah sumbu candle (wick) membakar level sebelum close bodi.",
-    "Sinkronisasi Antar-Modul: Integrasi peta likuiditas Market Intel dengan snapshot konteks pasar live server.",
-    "Jurnal & Analitik: Kurva pertumbuhan ekuitas kini menggunakan nilai R-multiple realistis jika PnL mata uang tidak diisi.",
-    "Backend & Push: Peningkatan toleransi regex versi APK untuk push notifikasi konteks pasar."
+    "Mapping & Konteks: Penambahan toleransi clock skew (sinkronisasi waktu perangkat) agar konteks pasar tidak hilang saat jam perangkat sedikit berbeda.",
+    "Jurnal Trading: Integrasi kurva pertumbuhan ekuitas otomatis di Dasbor Statistik dengan dukungan nilai profit/loss dan R-multiple.",
+    "Market Intel: Toleransi kesegaran data likuiditas diperkuat terhadap drift waktu jaringan."
   ],
   "sha256": "db0cc005ddd4adbff14f351ad64c18e31580abc924ee801ef02376b9ea1aa7fb",
-  "version": "2.0.0-pro.366",
-  "versionCode": 950366
+  "version": "2.0.0-pro.367",
+  "versionCode": 950367
 }

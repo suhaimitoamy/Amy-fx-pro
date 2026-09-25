@@ -22,11 +22,17 @@ window.AmyJournalAnalytics = {
   },
   equity(entries){
     let balance = 0;
-    const list = Array.isArray(entries)?entries:[];
-    const hasMoney = list.some(x => x.pnlMoney != null && Number.isFinite(Number(x.pnlMoney)) && Number(x.pnlMoney) !== 0);
+    const list = (Array.isArray(entries)?entries:[]).filter(x => ['Win','Loss','Breakeven'].includes(x.result));
+    const hasMoney = list.some(x => {
+      const m = x.pnlMoney != null && x.pnlMoney !== '' ? Number(x.pnlMoney) : ((Number(x.profit)||0) - (Number(x.loss)||0));
+      return Number.isFinite(m) && m !== 0;
+    });
     return list.map(x => {
-      const delta = (hasMoney && x.pnlMoney != null && Number.isFinite(Number(x.pnlMoney)))
-        ? Number(x.pnlMoney)
+      const explicitMoney = x.pnlMoney != null && x.pnlMoney !== '' ? Number(x.pnlMoney) : null;
+      const calcMoney = (x.profit || x.loss) ? ((Number(x.profit)||0) - (Number(x.loss)||0)) : null;
+      const moneyVal = explicitMoney != null && Number.isFinite(explicitMoney) ? explicitMoney : (calcMoney != null && Number.isFinite(calcMoney) ? calcMoney : null);
+      const delta = (hasMoney && moneyVal != null)
+        ? moneyVal
         : (x.result === 'Win' ? Number(x.riskReward || 2) : x.result === 'Loss' ? -1 : 0);
       balance += delta;
       return {time:x.analysisTime || x.createdAt || new Date().toISOString(), balance, unit: hasMoney ? '$' : 'R'};
