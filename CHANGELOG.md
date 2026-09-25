@@ -1,3 +1,9 @@
+## 2.0.0-pro.365
+
+- feat(intel): Tab Kompas Fundamental XAU/USD dengan Briefing Harian Terstruktur 5 Poin (USD & The Fed, Safe Haven, Sentimen Pasar Scorecard, News Kalender Terhubung, dan Kesimpulan Fundamental).
+- feat(calendar): Integrasi dinamis angka kalender ekonomi USD hari ini (Forecast & Previous riil) langsung ke skenario reaksi pasar dan bias arah emas.
+- feat(ui): Tata letak kartu briefing modern berstandar institusi, responsif untuk layar HP, dan render instan tanpa loading screen.
+
 ## 2.0.0-pro.364
 
 - feat(intel): Transformasi Tab ke-3 Market Intel menjadi Kompas Fundamental Harian XAU/USD terintegrasi Rantai Efek Domino Makro (CPI ➔ NFP ➔ The Fed ➔ DXY ➔ Gold) dan Skenario Playbook berita.

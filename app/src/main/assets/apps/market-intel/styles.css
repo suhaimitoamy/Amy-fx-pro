@@ -673,237 +673,305 @@ body {
   50% { opacity: 0.8; transform: scale(1.02); }
 }
 
-/* ─── The Fed Sentiment Styles ─────────── */
+/* ─── 5-Point Fundamental Briefing Styles ─────────── */
 .sentiment-wrap {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.sentiment-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  position: relative;
-  overflow: hidden;
+.fundamental-briefing-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
 }
-.sentiment-card-header {
+.briefing-main-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-}
-.sentiment-tag {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-.sentiment-tag.dovish {
-  background: rgba(62, 200, 126, 0.16);
-  color: #3ec87e;
-  border: 1px solid rgba(62, 200, 126, 0.35);
-}
-.sentiment-tag.hawkish {
-  background: rgba(240, 85, 104, 0.16);
-  color: #f05568;
-  border: 1px solid rgba(240, 85, 104, 0.35);
-}
-.sentiment-tag.neutral {
-  background: rgba(232, 169, 58, 0.16);
-  color: #e8a93a;
-  border: 1px solid rgba(232, 169, 58, 0.35);
-}
-.sentiment-gauge-track {
-  width: 100%;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-  margin: 14px 0 8px;
-  display: flex;
-}
-.sentiment-gauge-fill {
-  height: 100%;
-  transition: width 0.5s ease;
-}
-.sentiment-gauge-fill.hawkish-zone { width: 30%; background: #f05568; opacity: 0.7; }
-.sentiment-gauge-fill.neutral-zone { width: 30%; background: #e8a93a; opacity: 0.7; }
-.sentiment-gauge-fill.dovish-zone { width: 40%; background: #3ec87e; opacity: 0.9; }
-.sentiment-legend {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-bottom: 8px;
-}
-.fomc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-top: 10px;
-}
-.fomc-metric {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-}
-.fomc-metric small {
-  display: block;
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-bottom: 4px;
-}
-.fomc-metric strong {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
-}
-.gold-impact-box {
-  background: rgba(212, 175, 55, 0.08);
+  padding: 10px 14px;
+  background: rgba(212, 175, 55, 0.06);
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 8px;
-  padding: 12px;
-  margin-top: 12px;
 }
-.gold-impact-box h4 {
-  font-size: 13px;
+.briefing-kicker {
+  font-size: 10px;
+  font-weight: 800;
   color: var(--gold);
-  margin-bottom: 4px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
 }
-.gold-impact-box p {
-  font-size: 12px;
-  line-height: 1.5;
+.briefing-headline {
+  font-size: 13.5px;
+  font-weight: 800;
   color: var(--text);
+  margin: 0;
+  line-height: 1.35;
 }
-
-/* ─── Macro Domino Chain & Case Study ─── */
-.macro-chain-wrap {
-  margin-top: 14px;
+.briefing-sync-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(62, 200, 126, 0.15);
+  color: #3ec87e;
+  border: 1px solid rgba(62, 200, 126, 0.35);
+  white-space: nowrap;
+}
+.briefing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.briefing-card.card-primary {
+  border-left: 3px solid #ff7875;
+}
+.briefing-card.card-conclusion {
+  background: rgba(232, 169, 58, 0.05);
+  border: 1px solid rgba(232, 169, 58, 0.35);
+}
+.card-head {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.card-title-wrap {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
-.macro-chain-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-.chain-num {
+.card-step-num {
   width: 22px;
   height: 22px;
   border-radius: 50%;
   background: rgba(212, 175, 55, 0.2);
   color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
   flex-shrink: 0;
-  margin-top: 1px;
 }
-.chain-content {
-  flex: 1;
-}
-.chain-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.chain-desc {
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.45;
-}
-.chain-connector {
-  text-align: center;
-  color: var(--gold);
-  font-size: 14px;
-  margin: -4px 0;
-  opacity: 0.7;
-}
-
-.case-study-box {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 14px;
-}
-.case-study-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
+.card-title {
+  font-size: 13px;
   font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+.bias-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+.bias-pill.bearish {
+  background: rgba(240, 85, 104, 0.16);
+  color: #ff7875;
+  border: 1px solid rgba(240, 85, 104, 0.35);
+}
+.bias-pill.bullish {
+  background: rgba(62, 200, 126, 0.16);
+  color: #3ec87e;
+  border: 1px solid rgba(62, 200, 126, 0.35);
+}
+.bias-pill.neutral {
+  background: rgba(232, 169, 58, 0.16);
+  color: #e8a93a;
+  border: 1px solid rgba(232, 169, 58, 0.35);
+}
+.bias-pill.mixed {
+  background: rgba(96, 165, 250, 0.16);
   color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+}
+.bias-pill.highlight {
+  background: rgba(212, 175, 55, 0.16);
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+.card-desc {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+.briefing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.briefing-list li {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+.briefing-list li strong {
+  color: var(--text);
+}
+.card-impact-section {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 8px;
+}
+.card-impact-section strong {
+  font-size: 11px;
+  color: var(--gold);
+  display: block;
   margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
-.case-study-text {
+.briefing-note-box {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 6px;
+  padding: 8px 10px;
   font-size: 11.5px;
+  line-height: 1.45;
   color: #cbd5e1;
-  line-height: 1.5;
+  margin-top: 10px;
 }
-
-/* ─── If-Then Playbook Matrix ─── */
-.if-then-wrap {
-  margin-top: 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-}
-.if-then-header {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--gold);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.if-then-grid {
+.scorecard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-.if-then-card {
+@media (max-width: 480px) {
+  .scorecard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.scorecard-item {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
-  padding: 10px;
-  border: 1px solid transparent;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.if-then-card.scenario-hot {
-  background: rgba(240, 85, 104, 0.08);
-  border-color: rgba(240, 85, 104, 0.25);
-}
-.if-then-card.scenario-cool {
-  background: rgba(62, 200, 126, 0.08);
-  border-color: rgba(62, 200, 126, 0.25);
-}
-.scenario-label {
-  font-size: 11px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-.scenario-hot .scenario-label { color: #f05568; }
-.scenario-cool .scenario-label { color: #3ec87e; }
-.scenario-desc {
+.score-label {
   font-size: 10.5px;
   color: var(--text-dim);
-  line-height: 1.4;
+  font-weight: 600;
+}
+.score-value {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.briefing-events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.briefing-event-item {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 10px;
+}
+.event-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.event-item-time {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.event-item-tag {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+}
+.event-item-tag.tag-high {
+  background: rgba(255, 77, 79, 0.16);
+  color: #ff7875;
+  border: 1px solid rgba(255, 77, 79, 0.35);
+}
+.event-item-tag.tag-med {
+  background: rgba(250, 173, 20, 0.16);
+  color: #faad14;
+  border: 1px solid rgba(250, 173, 20, 0.35);
+}
+.event-item-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.event-item-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.event-item-numbers strong {
+  color: var(--text);
+}
+.event-item-numbers strong.act-live {
+  color: #3ec87e;
+}
+.reaction-guide-box {
+  background: rgba(212, 175, 55, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.reaction-title {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.card-watch-footer {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  padding: 6px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.conclusion-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(232, 169, 58, 0.2);
+  color: var(--gold);
+  border: 1px solid rgba(232, 169, 58, 0.4);
+  white-space: nowrap;
+}
+.conclusion-guide {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0;
 }
 
 /* ─── Calendar Badges ─── */

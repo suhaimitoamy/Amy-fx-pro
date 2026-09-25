@@ -143,171 +143,352 @@ function activateTab(tab) {
   else if (tab === 'liquidity' && shouldRefresh('liquidity')) loadLiquidity();
 }
 
+// ─── Dynamic 5-Point Fundamental Briefing Engine ──────────────
+function parseCalendarNumber(str) {
+  if (!str || str === '—' || str === '--') return null;
+  const match = String(str).match(/([+-]?\d+(?:\.\d+)?)/);
+  return match ? parseFloat(match[1]) : null;
+}
+
+function analyzeMacroEvent(ev) {
+  if (!ev) return null;
+  const title = String(ev.title || '').trim();
+  const titleLower = title.toLowerCase();
+  const fVal = parseCalendarNumber(ev.forecast);
+  const pVal = parseCalendarNumber(ev.previous);
+  const aVal = parseCalendarNumber(ev.actual);
+
+  let category = 'other';
+  let bias = 'NEUTRAL';
+  let scenarioDesc = '';
+
+  if (titleLower.includes('unemployment claims') || titleLower.includes('jobless claims')) {
+    category = 'claims';
+    if (fVal !== null && pVal !== null && fVal > pVal) {
+      bias = 'BULLISH_BOUNCE';
+      scenarioDesc = 'Proyeksi kenaikan klaim pengangguran mengindikasikan pasar tenaga kerja AS mulai mendingin, membuka peluang nafas lega bagi Gold.';
+    } else {
+      bias = 'BEARISH_PRESSURE';
+      scenarioDesc = 'Klaim pengangguran masih rendah mencerminkan pasar tenaga kerja AS yang solid, menjaga Dolar AS tetap perkasa menekan Gold.';
+    }
+  } else if (titleLower.includes('cpi') || titleLower.includes('pce') || titleLower.includes('inflation')) {
+    category = 'inflation';
+    bias = (fVal !== null && pVal !== null && fVal > pVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+    scenarioDesc = 'Data inflasi sangat menentukan arah suku bunga The Fed. Inflasi panas menekan emas, sedangkan inflasi melandai mendorong reli emas.';
+  } else if (titleLower.includes('non-farm') || titleLower.includes('payrolls') || titleLower.includes('unemployment rate')) {
+    category = 'labor';
+    bias = 'VOLATILE';
+    scenarioDesc = 'Rilis data ketenagakerjaan tier-1 menciptakan volatilitas tinggi dan menentukan ekspektasi pelonggaran moneter The Fed.';
+  } else if (titleLower.includes('fomc') || titleLower.includes('rate decision') || titleLower.includes('powell')) {
+    category = 'fomc';
+    bias = 'FED_POLICY';
+    scenarioDesc = 'Sinyal arah suku bunga dan pernyataan ketua The Fed menjadi kompas utama pergerakan Dolar AS dan imbal hasil obligasi riil.';
+  } else if (titleLower.includes('pmi')) {
+    category = 'pmi';
+    bias = (fVal !== null && pVal !== null && fVal > 50) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+    scenarioDesc = 'Indeks manufaktur & jasa mengukur ekspansi ekonomi AS yang memicu penguatan Dolar jika berada di atas 50.';
+  }
+
+  return { title, category, bias, scenarioDesc, fVal, pVal, aVal };
+}
+
 async function loadSentiment(isBackground = false) {
   const container = document.getElementById('sentiment-content');
   const statusEl = document.getElementById('sentiment-status');
   if (!container) return;
 
-  const now = Date.now();
+  const now = new Date();
+  const timeZone = 'Asia/Makassar';
+  
+  // Format Tanggal & Jam WITA
+  const dateStrWita = now.toLocaleDateString('id-ID', {
+    timeZone,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  const todayYMD = now.toLocaleDateString('en-CA', { timeZone });
+  const timeStrWita = now.toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }) + ' WITA';
+
   const cached = getCachedCalendar();
   const events = (cached?.events || calendarEvents || []);
   const usdEvents = events.filter(e => String(e.country || '').toUpperCase() === 'USD');
 
-  // Filter upcoming high/medium USD events
-  const upcomingUsd = usdEvents.filter(e => {
-    const t = new Date(e.date).getTime();
-    return Number.isFinite(t) && t >= (now - 3600000 * 2) && t <= (now + 86400000 * 3);
+  // Filter event USD hari ini (WITA)
+  const todayUsd = usdEvents.filter(e => {
+    const d = new Date(e.date);
+    if (!Number.isFinite(d.getTime())) return false;
+    return d.toLocaleDateString('en-CA', { timeZone }) === todayYMD;
   });
 
-  const topUpcoming = upcomingUsd.find(e => String(e.impact).toLowerCase() === 'high') || upcomingUsd[0];
-  const upcomingTitle = topUpcoming ? escapeHtml(topUpcoming.title) : 'Rilis Makro Ekonomi AS Terjadwal';
-  const upcomingTime = topUpcoming
-    ? new Date(topUpcoming.date).toLocaleTimeString('en-GB', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit' }) + ' WITA'
-    : 'Sesi New York';
+  // Urutkan event berdasarkan jam
+  todayUsd.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const data = {
-    stance: 'DOVISH',
-    stanceLabel: 'Dovish (Pelonggaran Moneter)',
-    stancePct: 78.5,
-    cmeProbabilityCut: '78.5%',
-    cmeProbabilityHold: '21.5%',
-    currentRate: '4.75% - 5.00%',
-    projectedRate: '4.50% - 4.75%',
-    updatedAt: new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit' }),
-    summary: 'Pasar berjangka suku bunga (CME FedWatch) memperhitungkan probabilitas 78.5% bahwa The Federal Reserve berada pada siklus pelonggaran moneter (pemangkasan suku bunga acuan). Kondisi ini menekan imbal hasil obligasi AS dan DXY.',
-    goldImpact: 'Kondisi The Fed Dovish secara historis melemahkan Dolar AS (DXY) dan menekan real yields obligasi AS. Ini menciptakan katalis kuat bagi XAU/USD untuk mempertahankan bias tren naik (Bullish).',
-    actionGuidance: 'Utamakan mencari setup Buy di area Discount PD Array atau FVG support M15. Hindari menahan posisi Sell jangka panjang melawan arus tren makro.'
-  };
+  // Prioritaskan event High & Medium
+  const importantToday = todayUsd.filter(e => {
+    const imp = String(e.impact || '').toLowerCase();
+    return imp === 'high' || imp === 'medium';
+  });
+
+  // Ambil event utama hari ini
+  const mainEvent = importantToday[0] || todayUsd[0] || usdEvents.find(e => {
+    const t = new Date(e.date).getTime();
+    return Number.isFinite(t) && t >= now.getTime();
+  });
+
+  const eventAnalysis = analyzeMacroEvent(mainEvent);
+
+  // Periksa sentimen berita untuk safe haven & geopolitik
+  let newsTextCombined = '';
+  try {
+    const rawNews = localStorage.getItem('amyfx.assistant.news.v1');
+    if (rawNews) {
+      const parsedNews = JSON.parse(rawNews);
+      if (Array.isArray(parsedNews?.items)) {
+        newsTextCombined = parsedNews.items.map(n => String(n.text || '')).join(' ').toLowerCase();
+      }
+    }
+  } catch (_) {}
+
+  const hasGeopolitics = newsTextCombined.includes('perang') || newsTextCombined.includes('geopolit') ||
+    newsTextCombined.includes('timur tengah') || newsTextCombined.includes('israel') ||
+    newsTextCombined.includes('iran') || newsTextCombined.includes('serangan') ||
+    newsTextCombined.includes('russia') || newsTextCombined.includes('ukraina');
+
+  const hasEnergyRisk = newsTextCombined.includes('minyak') || newsTextCombined.includes('oil') ||
+    newsTextCombined.includes('brent') || newsTextCombined.includes('opec') || newsTextCombined.includes('energi');
+
+  // Sintesis Status Scorecard
+  let usdScore = '🟢 Cenderung Kuat';
+  let yieldScore = '🟢 Menjadi Tekanan untuk Emas';
+  let riskScore = '⚖️ Campuran — Pasar Menanti Data';
+  let goldBias = '↘️ Netral Cenderung Bearish (Jangka Pendek)';
+  let conclusionBias = '⚠️ WAIT / SELL ON RALLY';
+  let conclusionGuide = 'Secara fundamental, mencari setup SELL ON RALLY di zona resistance/supply lebih masuk akal hari ini. Namun, hindari mengejar posisi sell di harga bawah (diskon) sebelum terjadi pullback atau sapuan likuiditas atas.';
+
+  if (eventAnalysis?.category === 'claims' && eventAnalysis.fVal !== null && eventAnalysis.pVal !== null && eventAnalysis.fVal > eventAnalysis.pVal) {
+    conclusionGuide = `Bias harian tetap waspada Sell on Rally di zona supply, namun jangan mengejar sell di harga bawah sebelum rilis data jam ${new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' })} WITA karena ada potensi pantulan teknikal jika klaim naik ke ${mainEvent.forecast}.`;
+  } else if (eventAnalysis?.bias === 'BULLISH_BOUNCE') {
+    usdScore = '🔴 Cenderung Melemah';
+    yieldScore = '🔴 Mereda — Memberi Ruang Reli Emas';
+    goldBias = '↗️ Netral Cenderung Bullish';
+    conclusionBias = '🟢 BUY ON DIPS';
+    conclusionGuide = 'Data AS mengindikasikan pendinginan ekonomi. Cari konfirmasi Buy di zona Diskon PD Array atau demand support sesudah likuiditas bawah diambil.';
+  }
 
   if (statusEl) {
-    statusEl.textContent = `Pembaruan: ${data.updatedAt} WITA • Kalender Tersinkron: ${usdEvents.length} data USD • CME FedWatch`;
+    statusEl.textContent = `Pembaruan: ${timeStrWita} • Kalender Tersinkron: ${usdEvents.length} Data USD • Live Engine`;
+  }
+
+  // Generate HTML 5 Poin Sesuai Template Institusi
+  let eventListHtml = '';
+  if (importantToday.length > 0) {
+    eventListHtml = importantToday.map(ev => {
+      const evDate = new Date(ev.date);
+      const timeStr = Number.isFinite(evDate.getTime())
+        ? evDate.toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }) + ' WITA'
+        : 'Sesi NY';
+      const imp = String(ev.impact || '').toLowerCase();
+      const impLabel = imp === 'high' ? 'High Impact' : 'Medium Impact';
+      const impClass = imp === 'high' ? 'tag-high' : 'tag-med';
+      const hasActual = Boolean(ev.actual && ev.actual !== '--' && ev.actual !== '—');
+
+      return `
+        <div class="briefing-event-item">
+          <div class="event-item-top">
+            <span class="event-item-time">🇺🇸 ⏰ ${escapeHtml(timeStr)}</span>
+            <span class="event-item-tag ${impClass}">${impLabel}</span>
+          </div>
+          <div class="event-item-title">${escapeHtml(ev.title)}</div>
+          <div class="event-item-numbers">
+            <span>Forecast: <strong>${escapeHtml(ev.forecast || '—')}</strong></span>
+            <span>Previous: <strong>${escapeHtml(ev.previous || '—')}</strong></span>
+            <span>Actual: <strong class="${hasActual ? 'act-live' : ''}">${escapeHtml(ev.actual || '—')}</strong></span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else if (mainEvent) {
+    const evDate = new Date(mainEvent.date);
+    const timeStr = Number.isFinite(evDate.getTime())
+      ? evDate.toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }) + ' WITA'
+      : 'Sesi Mendatang';
+    eventListHtml = `
+      <div class="briefing-event-item">
+        <div class="event-item-top">
+          <span class="event-item-time">🇺🇸 ⏰ ${escapeHtml(timeStr)}</span>
+          <span class="event-item-tag tag-med">Event Terdekat</span>
+        </div>
+        <div class="event-item-title">${escapeHtml(mainEvent.title)}</div>
+        <div class="event-item-numbers">
+          <span>Forecast: <strong>${escapeHtml(mainEvent.forecast || '—')}</strong></span>
+          <span>Previous: <strong>${escapeHtml(mainEvent.previous || '—')}</strong></span>
+          <span>Actual: <strong>${escapeHtml(mainEvent.actual || '—')}</strong></span>
+        </div>
+      </div>
+    `;
+  } else {
+    eventListHtml = `
+      <div class="briefing-empty-events">
+        ℹ️ Tidak ada rilis data tier-1 AS terjadwal malam ini. Pergerakan Gold murni dipandu oleh teknikal dan dinamika likuiditas pasar.
+      </div>
+    `;
+  }
+
+  // Skenario reaksi dinamis untuk event utama
+  let scenarioReactionHtml = '';
+  if (mainEvent && (mainEvent.forecast || mainEvent.previous)) {
+    const fStr = mainEvent.forecast || 'Forecast';
+    const pStr = mainEvent.previous || 'Previous';
+    const isClaims = String(mainEvent.title || '').toLowerCase().includes('claims');
+
+    if (isClaims) {
+      scenarioReactionHtml = `
+        <div class="reaction-guide-box">
+          <div class="reaction-title">📊 Skenario Reaksi Gold Terhadap ${escapeHtml(mainEvent.title)}:</div>
+          <ul class="briefing-list">
+            <li><strong>Jika Actual &gt; ${escapeHtml(fStr)} (Klaim Naik / Buruk):</strong> USD melemah ➔ Gold berpeluang memantul naik (Pullback / Reli).</li>
+            <li><strong>Jika Actual &lt; ${escapeHtml(pStr)} (Klaim Turun / Bagus):</strong> USD semakin perkasa ➔ Tekanan jual ke Gold berlanjut ke bawah.</li>
+          </ul>
+        </div>
+      `;
+    } else {
+      scenarioReactionHtml = `
+        <div class="reaction-guide-box">
+          <div class="reaction-title">📊 Skenario Reaksi Gold Terhadap ${escapeHtml(mainEvent.title)}:</div>
+          <ul class="briefing-list">
+            <li><strong>Jika Actual &gt; ${escapeHtml(fStr)} (Data AS Panas):</strong> DXY &amp; Yield menguat ➔ Tekanan turun (*Bearish pressure*) untuk Gold.</li>
+            <li><strong>Jika Actual &lt; ${escapeHtml(fStr)} (Data AS Dingin):</strong> DXY melemah ➔ Memberi katalis dorongan naik (*Bullish boost*) untuk Gold.</li>
+          </ul>
+        </div>
+      `;
+    }
   }
 
   container.innerHTML = `
-    <article class="sentiment-card">
-      <div class="sentiment-card-header">
+    <div class="fundamental-briefing-wrap">
+      <!-- Header Briefing -->
+      <div class="briefing-main-header">
         <div>
-          <small style="color: var(--text-dim); display: block; font-size: 11px;">KOMPAS FUNDAMENTAL HARIAN</small>
-          <strong style="font-size: 18px; color: #3ec87e;">🟢 BIAS BULLISH GOLD</strong>
+          <span class="briefing-kicker">KOMPAS FUNDAMENTAL XAU/USD</span>
+          <h2 class="briefing-headline">Fundamental XAU/USD (Gold vs USD) Hari Ini — ${escapeHtml(dateStrWita)}</h2>
         </div>
-        <span class="sentiment-tag dovish">Dovish Fed Cycle</span>
+        <div class="briefing-sync-badge">🟢 Kalender Terhubung</div>
       </div>
 
-      <div class="sentiment-gauge-track">
-        <div class="sentiment-gauge-fill hawkish-zone" title="Hawkish (21.5%)"></div>
-        <div class="sentiment-gauge-fill neutral-zone" title="Netral"></div>
-        <div class="sentiment-gauge-fill dovish-zone" title="Dovish (78.5%)"></div>
-      </div>
-      <div class="sentiment-legend">
-        <span>🔴 Hawkish (Ketat)</span>
-        <span>🟡 Netral</span>
-        <span style="color: #3ec87e; font-weight: 700;">🟢 Dovish (Longgar)</span>
-      </div>
-
-      <p style="font-size: 12px; line-height: 1.5; color: var(--text); margin-top: 10px;">
-        ${data.summary}
-      </p>
-
-      <div class="fomc-grid">
-        <div class="fomc-metric">
-          <small>Peluang Pangkas Bunga</small>
-          <strong style="color: #3ec87e;">${data.cmeProbabilityCut}</strong>
-        </div>
-        <div class="fomc-metric">
-          <small>Peluang Tahan Bunga</small>
-          <strong style="color: #e8a93a;">${data.cmeProbabilityHold}</strong>
-        </div>
-        <div class="fomc-metric">
-          <small>Suku Bunga Saat Ini</small>
-          <strong>${data.currentRate}</strong>
-        </div>
-        <div class="fomc-metric">
-          <small>Target Proyeksi</small>
-          <strong style="color: var(--gold);">${data.projectedRate}</strong>
-        </div>
-      </div>
-
-      <!-- ─── Rantai Efek Korelasi Makro (Macro Domino Chain) ─── -->
-      <div class="macro-chain-wrap">
-        <div style="font-size: 12px; font-weight: 800; color: var(--gold); margin-top: 6px;">
-          ⛓️ Rantai Efek Domino Makro Penggerak Emas
-        </div>
-        
-        <div class="macro-chain-step">
-          <div class="chain-num">1</div>
-          <div class="chain-content">
-            <div class="chain-title">Inflasi (CPI &amp; Core PCE)</div>
-            <div class="chain-desc">Jika inflasi melandai ➔ The Fed leluasa pangkas suku bunga. Jika inflasi naik panas ➔ The Fed dipaksa bersikap Hawkish menahan suku bunga tinggi.</div>
+      <!-- 1. Faktor Utama: USD & The Fed -->
+      <article class="briefing-card card-primary">
+        <div class="card-head">
+          <div class="card-title-wrap">
+            <span class="card-step-num">1</span>
+            <h3 class="card-title">Faktor Utama: USD &amp; The Fed</h3>
           </div>
+          <span class="bias-pill bearish">Bearish Pressure Untuk Gold</span>
         </div>
-        <div class="chain-connector">▼</div>
-
-        <div class="macro-chain-step">
-          <div class="chain-num">2</div>
-          <div class="chain-content">
-            <div class="chain-title">Kebijakan Suku Bunga The Fed</div>
-            <div class="chain-desc">Suku bunga tinggi menyedot likuiditas global ke perbankan AS. Suku bunga rendah mendorong investor memburu aset lindung nilai riil.</div>
-          </div>
-        </div>
-        <div class="chain-connector">▼</div>
-
-        <div class="macro-chain-step">
-          <div class="chain-num">3</div>
-          <div class="chain-content">
-            <div class="chain-title">Indeks Dolar (DXY) &amp; Imbal Hasil Obligasi (US 10Y Yields)</div>
-            <div class="chain-desc">Obligasi memberikan bunga kupon pasti. Saat yield obligasi turun, memegang aset tanpa yield (seperti Emas) menjadi jauh lebih menarik.</div>
-          </div>
-        </div>
-        <div class="chain-connector">▼</div>
-
-        <div class="macro-chain-step">
-          <div class="chain-num">4</div>
-          <div class="chain-content">
-            <div class="chain-title">Dampak Langsung ke XAU/USD (Gold)</div>
-            <div class="chain-desc">XAU/USD bergerak berkebalikan (inverse) dengan DXY dan Real Yields. DXY turun + Yields anjlok = Ledakan reli pembelian emas!</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ─── Studi Kasus Efek Berantai: CPI ➔ NFP ➔ Gold ─── -->
-      <div class="case-study-box">
-        <div class="case-study-title">⚡ Contoh Efek Berantai: Rilis CPI ➔ Antisipasi NFP ➔ Arah Gold</div>
-        <p class="case-study-text">
-          Jika data <strong>CPI sebelumnya keluar panas (inflasi tinggi)</strong>, ekspektasi pemangkasan bunga meredup dan Dolar menguat menekan emas. 
-          Namun, ketika rilis data tenaga kerja <strong>(NFP) berikutnya keluar mengecewakan (low payrolls / pengangguran naik)</strong>, pasar langsung menyimpulkan ekonomi melemah. Dolar seketika kehilangan tenaganya, memicu aksi borong emas <em>(V-Shape Reversal)</em> dari zona diskon HTF.
+        <p class="card-desc">
+          Saat ini emas masih mendapat tekanan dari ekspektasi kebijakan moneter AS yang ketat. 
+          ${mainEvent && (mainEvent.forecast || mainEvent.previous) ? `Pasar hari ini mencermati data <strong>${escapeHtml(mainEvent.title)}</strong> (Forecast: ${escapeHtml(mainEvent.forecast || '—')} vs Previous: ${escapeHtml(mainEvent.previous || '—')}).` : ''} 
+          Kekuatan Dolar dan yield obligasi AS membuat emas menjadi kurang menarik bagi investor pencari imbal hasil kupon.
         </p>
-      </div>
-
-      <!-- ─── If-Then Playbook Matrix ─── -->
-      <div class="if-then-wrap">
-        <div class="if-then-header">
-          <span>🎯 Skenario Playbook: Menghadapi ${upcomingTitle} (${upcomingTime})</span>
+        <div class="card-impact-section">
+          <strong>Dampak ke XAU/USD:</strong>
+          <ul class="briefing-list">
+            <li><strong>USD Kuat:</strong> Menjadi tekanan turun utama pada harga emas.</li>
+            <li><strong>Yield Naik:</strong> Investor institusi mengalihkan modal ke aset berbunga.</li>
+            <li><strong>Kecenderungan Gold:</strong> Mengalami koreksi atau konsolidasi menanti kejelasan katalis berikutnya.</li>
+          </ul>
         </div>
-        <div class="if-then-grid">
-          <div class="if-then-card scenario-hot">
-            <div class="scenario-label">🔴 Skenario A: Hasil &gt; Ekspektasi</div>
-            <div class="scenario-desc">
-              Data AS Panas ➔ DXY Menguat ➔ Yields Naik.<br>
-              <strong>Dampak Gold: Tertekan Turun (Sell-off)</strong>.<br>
-              <em>Aksi: Cari konfirmasi Sell di zona Premium sesudah sapuan likuiditas atas.</em>
-            </div>
+      </article>
+
+      <!-- 2. Faktor Safe Haven (Penahan Penurunan) -->
+      <article class="briefing-card">
+        <div class="card-head">
+          <div class="card-title-wrap">
+            <span class="card-step-num">2</span>
+            <h3 class="card-title">Faktor Safe Haven (Penahan Penurunan)</h3>
           </div>
-          <div class="if-then-card scenario-cool">
-            <div class="scenario-label">🟢 Skenario B: Hasil &lt; Ekspektasi</div>
-            <div class="scenario-desc">
-              Data AS Dingin ➔ DXY Melemah ➔ Yields Turun.<br>
-              <strong>Dampak Gold: Melesat Naik (Bullish)</strong>.<br>
-              <em>Aksi: Cari konfirmasi Buy di zona Diskon / FVG Support.</em>
-            </div>
+          <span class="bias-pill neutral">Bantalan Dukungan</span>
+        </div>
+        <p class="card-desc">
+          Meskipun tertekan oleh Dolar, emas tetap memiliki bantalan penahan penurunan yang mencegah kejatuhan harga tanpa henti:
+        </p>
+        <ul class="briefing-list">
+          <li><strong>Ketidakpastian Geopolitik:</strong> ${hasGeopolitics ? 'Tensi geopolitik global aktif menjaga minat lindung nilai institusi.' : 'Konflik global dan dinamika regional menahan penurunan drastis emas.'}</li>
+          <li><strong>Risiko Inflasi Energi:</strong> ${hasEnergyRisk ? 'Harga energi dan komoditas minyak mentah memicu kekhawatiran inflasi jangka menengah.' : 'Potensi lonjakan biaya energi sewaktu-waktu dapat memantik inflasi kembali.'}</li>
+          <li><strong>Permintaan Aset Aman:</strong> Pembelian emas fisik oleh bank-bank sentral dunia tetap menjadi fondasi jangka panjang.</li>
+        </ul>
+        <div class="briefing-note-box">
+          ℹ️ <strong>Catatan Komparasi:</strong> Untuk saat ini faktor safe haven masih kalah dominan dibanding tekanan dari imbal hasil obligasi dan penguatan Dolar AS.
+        </div>
+      </article>
+
+      <!-- 3. Sentimen Pasar Hari Ini -->
+      <article class="briefing-card">
+        <div class="card-head">
+          <div class="card-title-wrap">
+            <span class="card-step-num">3</span>
+            <h3 class="card-title">Sentimen Pasar Hari Ini</h3>
+          </div>
+          <span class="bias-pill mixed">Scorecard Harian</span>
+        </div>
+        <div class="scorecard-grid">
+          <div class="scorecard-item">
+            <span class="score-label">💵 USD</span>
+            <span class="score-value">${usdScore}</span>
+          </div>
+          <div class="scorecard-item">
+            <span class="score-label">📈 Yield US Treasury</span>
+            <span class="score-value">${yieldScore}</span>
+          </div>
+          <div class="scorecard-item">
+            <span class="score-label">🌐 Risk Sentiment</span>
+            <span class="score-value">${riskScore}</span>
+          </div>
+          <div class="scorecard-item">
+            <span class="score-label">🧭 Gold Bias Fundamental</span>
+            <span class="score-value">${goldBias}</span>
           </div>
         </div>
-      </div>
+      </article>
 
-      <div class="gold-impact-box">
-        <h4>🎯 Panduan Eksekusi SMC / ICT di Chart</h4>
-        <p>${data.actionGuidance} Gunakan fundamental untuk menentukan arah angin tren, dan gunakan sapuan likuiditas (Judas Swing) sesi London/NY untuk mencari entry presisi di M15/M5.</p>
-      </div>
-    </article>
+      <!-- 4. News yang Perlu Diperhatikan -->
+      <article class="briefing-card">
+        <div class="card-head">
+          <div class="card-title-wrap">
+            <span class="card-step-num">4</span>
+            <h3 class="card-title">News yang Perlu Diperhatikan (Sesi New York &amp; London)</h3>
+          </div>
+          <span class="bias-pill highlight">Jadwal Kalender Terhubung</span>
+        </div>
+        <p class="card-desc">
+          Rilis data ekonomi AS terjadwal dari kalender ekonomi yang menjadi penggerak volatilitas malam ini:
+        </p>
+        <div class="briefing-events-container">
+          ${eventListHtml}
+        </div>
+        ${scenarioReactionHtml}
+        <div class="card-watch-footer">
+          ⚠️ <strong>Pantau Khusus:</strong> Pernyataan pejabat The Fed, pergerakan indeks DXY, dan arah yield US 10-Year.
+        </div>
+      </article>
+
+      <!-- 5. Kesimpulan Fundamental -->
+      <article class="briefing-card card-conclusion">
+        <div class="card-head">
+          <div class="card-title-wrap">
+            <span class="card-step-num">5</span>
+            <h3 class="card-title">Kesimpulan Fundamental</h3>
+          </div>
+          <span class="conclusion-badge">${conclusionBias}</span>
+        </div>
+        <div class="conclusion-content">
+          <p class="conclusion-guide">
+            ${conclusionGuide}
+          </p>
+        </div>
+      </article>
+    </div>
   `;
 }
 
