@@ -202,7 +202,7 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Academy: Pembaruan data candlestick Candle Replay & Guided Practice menggunakan dataset modern XAU/USD 2025/2026 ($2.600+).
+          - Academy: Pembaruan data candlestick Candle Replay & Guided Practice menggunakan dataset modern XAU/USD 2025/2026 (USD 2.600+).
           - Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan Rantai Efek Domino Makro (CPI, NFP, Fed, DXY ke Emas) dan Skenario Playbook.
           - Kalender Ekonomi: Default filter fokus ke Gold (USD High & Medium), penataan lencana pidato/non-data.
           - Performa: Eliminasi blocking loading screen pada Market Intel, render instan dari cache lokal.
