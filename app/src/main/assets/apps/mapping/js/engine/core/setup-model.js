@@ -71,14 +71,18 @@ export function modelSweepMssFvg(cs, tf, ctx) {
       qualityScore: validFvg.qualityScore,
       status: validFvg.status,
       components: {
-        model: 'Sweep → MSS → FVG',
+        model: 'Sweep → MSS → FVG (Deep OTE)',
+        driverId: 'HIGH_WINRATE_SNIPER_70',
+        driverName: 'High-WR Sniper (Deep OTE 75%–78.6%)',
+        fibEntry: 0.786,
+        quickScalpRR: 0.8,
         sweep: sweep.type,
         sweepLevel: sweep.level,
         sweepIndex: sweep.index,
         mss: 'Valid',
         mssIndex: mss.index,
         fvgIndex: validFvg.index,
-        entry: `FVG ${validFvg.qualityLabel}`,
+        entry: `FVG ${validFvg.qualityLabel} · Deep OTE`,
         htf: htfAligned ? 'aligned' : htfConflict ? 'conflict' : 'neutral'
       }
     }

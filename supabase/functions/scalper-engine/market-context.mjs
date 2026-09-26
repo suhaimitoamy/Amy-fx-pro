@@ -329,24 +329,27 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   const status=isNewsLock?'NOT READY':(ready?'READY TO REVIEW':'NOT READY');
   const reason=isNewsLock?`⛔ News Lock Aktif: Rilis ${newsContext.event} ${newsContext.diffMinutes<=0?'sedang rilis / baru saja rilis':`dalam ${newsContext.diffMinutes} menit`}. Hindari entry untuk mencegah slippage & spread melebar.`:
     (ready?'Semua bukti candle terpenuhi. Tinjau spread dan kalender berita secara manual.':
-    h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()}, tetapi M15 dikuasai ${controlling}. Risiko perubahan arah perlu dipantau.`:
+    h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()}, M15 membentuk pantulan cepat (${controlling}). Setup scalp kilat atau tunggu konfirmasi searah.`:
     `Menunggu: ${checklist.find(x=>!x.ok)?.label||'bukti tambahan'}.`);
   const narrative=`Gold H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':h.health==='INVALIDATED'?'batal':'melemah'}). M15 dikuasai ${controlling}. `+
     (poi?`Area ${poi.label} ${poi.low.toFixed(2)}–${poi.high.toFixed(2)} berstatus ${poi.lifecycle.toLowerCase()}. `:'Belum ada area M15 valid. ')+
     `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${isNewsLock?'⛔ News Lock aktif; tunda eksekusi hingga pasar stabil.':ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
   const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready||isNewsLock;
   const phase=isNewsLock?'NEWS_LOCK':ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
-  const eventTitle=phase==='NEWS_LOCK'?'⛔ News Lock Aktif: Hindari Entry Scalping!':
-    phase==='CONFLICT'?'⚠️ Hati-hati! M15 Mulai Melawan Arah H1':
-    phase==='READY'?`⚡ Konfirmasi ${tfName} Muncul! Siap Ditinjau`:
-    `🔔 Gold Mendekati Zona ${side==='BUY'?'Beli':'Jual'}!`;
+  const counterSide=control==='BUYER'?'BUY':'SELL';
+  const targetLevel=target?target.toFixed(2):(poi?(side==='BUY'?(poi.high+2).toFixed(2):(poi.low-2).toFixed(2)):'target terdekat');
+  const entryLevel=poi?`${poi.low.toFixed(2)}–${poi.high.toFixed(2)}`:'area M15';
+  const eventTitle=phase==='NEWS_LOCK'?'🛡️ Tahan Dulu: Pasar Lagi Liar':
+    phase==='CONFLICT'?`⚡ Scalp Kilat: ${counterSide} XAUUSD`:
+    phase==='READY'?`🟢 Peluru Utama: ${side||'BUY'} XAUUSD`:
+    `🔔 Intip XAUUSD: Masuk Area ${side==='BUY'?'BUY':'SELL'}`;
   const eventBody=phase==='NEWS_LOCK'?
-    `Rilis ${newsContext.event} ${newsContext.diffMinutes<=0?'sedang berlangsung':'sebentar lagi'}. Seluruh eksekusi ditahan otomatis demi melindungi akun dari spread melebar & slippage.`:
+    `Rilis ${newsContext.event||'berita'} ${newsContext.diffMinutes<=0?'sedang berlangsung':'sebentar lagi'}. Jangan dipaksa masuk, pantau dulu dari pinggir.`:
     phase==='CONFLICT'?
-    `${control==='BUYER'?'Buyer':'Seller'} mulai masuk di M15 padahal tren besar H1 masih ${direction.toLowerCase()}. Jangan buru-buru open posisi, rawan jebakan.`:
+    `Pantulan cepat lawan arah H1. TP tipis di ${targetLevel}, dapat profit langsung amankan ya!`:
     phase==='READY'?
-    `Ada sapuan likuiditas & pantulan di ${confirming.sweep?confirming.sweep.level.toFixed(2):'area M15'}. Skenario ${side||'GOLD'} layak kamu cek di MT4/MT5. Batas invalidasi di ${poi?(side==='BUY'?poi.low.toFixed(2):poi.high.toFixed(2)):'—'}.`:
-    `Harga lagi masuk area ${poi?`${poi.low.toFixed(2)}–${poi.high.toFixed(2)}`:'M15'}. Tren H1 masih ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':'melemah'}). Standby dulu, kita tunggu reaksi candle ${tfName} ya.`;
+    `H1 & M15 kompak ${direction.toLowerCase()}. Area ${entryLevel}, TP ${targetLevel}. Setup mantap, pasang & santai!`:
+    `Harga masuk zona pantau ${entryLevel}. Standby tunggu reaksi candle ya!`;
   const event=signal&&phase!=='NONE'?{key:[CONTEXT_VERSION,phase,phase==='NEWS_LOCK'?newsContext.event:h.bias,h.health,m.bias,m.lastBreak?.time||0,poi?.id||'none',poi?.lifecycle||'none'].join(':'),
     title:eventTitle,
     body:eventBody}:null;

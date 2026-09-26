@@ -9,3 +9,16 @@
 #news-awareness.news-lock{color:#ff7875!important;font-weight:700;padding:6px 10px;background:rgba(255,77,79,0.15);border-radius:6px;border:1px solid rgba(255,77,79,0.35);display:block;margin-top:8px}
 #news-awareness.news-warning{color:#ffc53d!important;font-weight:600;padding:6px 10px;background:rgba(250,173,20,0.15);border-radius:6px;border:1px solid rgba(250,173,20,0.35);display:block;margin-top:8px}
 #news-awareness.news-safe{color:#73d13d!important;font-weight:500}
+.driver-tournament-card{border-color:var(--accent)}
+.driver-tournament-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.driver-item{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.driver-item.leader{border-color:var(--accent);background:rgba(139,185,255,0.05)}
+.driver-header{display:flex;align-items:center;gap:8px;font-size:14px}
+.driver-rank{font-weight:800;color:var(--accent);min-width:24px}
+.driver-name{flex:1;font-size:13px}
+.driver-badge{font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
+.driver-badge.active{background:rgba(101,213,177,0.18);color:var(--buy);border:1px solid var(--buy)}
+.driver-badge.scalp{background:rgba(255,143,155,0.18);color:var(--sell);border:1px solid var(--sell)}
+.driver-meta{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px}
+.driver-meta strong{color:var(--text)}
+.driver-desc{margin:4px 0 0;font-size:11px;color:var(--muted)}

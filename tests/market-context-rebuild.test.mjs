@@ -24,7 +24,7 @@ test('M15 reversal raises an early warning while H1 remains bullish, never a buy
   assert.equal(context.execution.status,'NOT READY');
   assert.equal(context.primary.side,'BUY');
   assert.equal(context.alternative.side,'SELL');
-  assert.match(context.event.title,/M15 Mulai Melawan Arah H1/);
+  assert.match(context.event.title,/Scalp Kilat: SELL XAUUSD/);
   assert.ok(context.alternative.activation.some(x=>x.includes(context.primary.invalidation.toFixed(2))));
   assert.equal(context.news.status,'UNVERIFIED');
 });
@@ -166,5 +166,5 @@ test('economic calendar integration detects safe, upcoming, and news lock states
   assert.equal(context.news.status, 'NEWS_LOCK');
   assert.equal(context.execution.status, 'NOT READY');
   assert.match(context.execution.reason, /News Lock Aktif/);
-  assert.equal(context.event?.title, '⛔ News Lock Aktif: Hindari Entry Scalping!');
+  assert.equal(context.event?.title, '🛡️ Tahan Dulu: Pasar Lagi Liar');
 });

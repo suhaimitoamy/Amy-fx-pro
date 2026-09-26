@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.367/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.368/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping & Konteks: Penambahan toleransi clock skew (sinkronisasi waktu perangkat) agar konteks pasar tidak hilang saat jam perangkat sedikit berbeda.",
-    "Jurnal Trading: Integrasi kurva pertumbuhan ekuitas otomatis di Dasbor Statistik dengan dukungan nilai profit/loss dan R-multiple.",
-    "Market Intel: Toleransi kesegaran data likuiditas diperkuat terhadap drift waktu jaringan."
+    "Turnamen Driver Top 1–5: Integrasi klasemen 5 driver unggulan (High-WR Sniper OTE 78.6% Win Rate ~75%) di Peta Konteks Gold.",
+    "Notifikasi Cerdas & Ringkas: Pembaruan narasi notifikasi seluler yang lebih bersahabat (Grade A+ Peluru Utama, Scalp Kilat, dan Tahan Dulu saat pasar liar).",
+    "Eksekusi Presisi: Optimasi zona diskon Deep OTE (75%–78.6%) dan proteksi Breakeven 1.0R untuk menekan risiko drawdown."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.367/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.368/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950367,
-  "latest_version_name": "2.0.0-pro.367",
+  "latest_version_code": 950368,
+  "latest_version_name": "2.0.0-pro.368",
   "mandatory": false,
-  "releaseDate": "2026-09-25",
+  "releaseDate": "2026-09-26",
   "release_notes": [
-    "Mapping & Konteks: Penambahan toleransi clock skew (sinkronisasi waktu perangkat) agar konteks pasar tidak hilang saat jam perangkat sedikit berbeda.",
-    "Jurnal Trading: Integrasi kurva pertumbuhan ekuitas otomatis di Dasbor Statistik dengan dukungan nilai profit/loss dan R-multiple.",
-    "Market Intel: Toleransi kesegaran data likuiditas diperkuat terhadap drift waktu jaringan."
+    "Turnamen Driver Top 1–5: Integrasi klasemen 5 driver unggulan (High-WR Sniper OTE 78.6% Win Rate ~75%) di Peta Konteks Gold.",
+    "Notifikasi Cerdas & Ringkas: Pembaruan narasi notifikasi seluler yang lebih bersahabat (Grade A+ Peluru Utama, Scalp Kilat, dan Tahan Dulu saat pasar liar).",
+    "Eksekusi Presisi: Optimasi zona diskon Deep OTE (75%–78.6%) dan proteksi Breakeven 1.0R untuk menekan risiko drawdown."
   ],
   "sha256": "6054badfa257150379afb300d3bc79b886e9fcc68a9da8346b153601bf91678a",
-  "version": "2.0.0-pro.367",
-  "versionCode": 950367
+  "version": "2.0.0-pro.368",
+  "versionCode": 950368
 }

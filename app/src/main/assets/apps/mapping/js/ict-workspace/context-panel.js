@@ -21,6 +21,56 @@ function scenario(s,alternative=false){
     `<p>${esc(alternative?'Aktif setelah seluruh syarat alternatif terpenuhi.':s.waiting)}</p>`+
     (alternative&&s.activation?`<ul>${s.activation.map(rule=>`<li>${esc(rule)}</li>`).join('')}</ul>`:'');
 }
+const DEFAULT_TOURNAMENT_DRIVERS = [
+  { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', winRate: 78.6, rr: 0.8, score: 1540, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
+  { id: 'AI_ADAPTIVE_SMART_DRIVER', name: 'Adaptive Smart Driver', winRate: 68.9, rr: 1.6, score: 1495, status: 'STANDBY', desc: 'Runner Trend 1.6R · Trailing Breakeven 0.8R' },
+  { id: 'SWING_CHOCH_OTE', name: 'Swing CHoCH + OTE', winRate: 77.8, rr: 0.8, score: 1470, status: 'STANDBY', desc: 'Displacement 2x ATR · 75% Fib Entry Level' },
+  { id: 'MULTI_DRIVER_ENSEMBLE', name: 'Multi-Driver Ensemble', winRate: 64.6, rr: 0.8, score: 1430, status: 'STANDBY', desc: 'Confluence Mesh 72.5% Fib · Min ATR 2.5' },
+  { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', winRate: 77.4, rr: 0.7, score: 1410, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' }
+];
+function getTournamentDrivers() {
+  try {
+    const raw = localStorage.getItem('amyfx.driver-tournament.v1');
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return DEFAULT_TOURNAMENT_DRIVERS;
+}
+function renderTournament(c) {
+  const container = $('driver-tournament-list');
+  const badge = $('tournament-leader-badge');
+  if (!container) return;
+  const drivers = getTournamentDrivers();
+  const ready = c?.execution?.status === 'READY TO REVIEW';
+  const conflict = Boolean(c?.m15?.opposingControl);
+  if (ready) {
+    drivers[0].status = 'TRIGGERED (NAVIGATOR)';
+    for (let i = 1; i < drivers.length; i++) drivers[i].status = 'STANDBY';
+  } else if (conflict) {
+    drivers[0].status = 'SCALP KILAT';
+    for (let i = 1; i < drivers.length; i++) drivers[i].status = 'STANDBY';
+  } else {
+    for (const d of drivers) d.status = 'STANDBY';
+  }
+  if (badge) {
+    badge.textContent = `NAVIGATOR: ${drivers[0].name.toUpperCase()}`;
+    badge.style.color = ready ? 'var(--buy)' : conflict ? 'var(--accent)' : 'var(--muted)';
+  }
+  container.innerHTML = drivers.map((d, idx) => `
+    <div class="driver-item ${idx === 0 ? 'leader' : ''}">
+      <div class="driver-header">
+        <span class="driver-rank">#${idx + 1}</span>
+        <strong class="driver-name">${esc(d.name)}</strong>
+        <span class="driver-badge ${d.status.includes('TRIGGERED') ? 'active' : d.status === 'SCALP KILAT' ? 'scalp' : ''}">${esc(d.status)}</span>
+      </div>
+      <div class="driver-meta">
+        <span>WR: <strong>${d.winRate}%</strong></span>
+        <span>R:R: <strong>1:${d.rr}</strong></span>
+        <span>Skor: <strong>${d.score} pts</strong></span>
+      </div>
+      <p class="driver-desc">${esc(d.desc)}</p>
+    </div>
+  `).join('');
+}
 function empty(reason){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
   $('market-state').textContent='KONTEKS BELUM TERSEDIA';$('market-story').textContent=reason;
@@ -33,6 +83,7 @@ function empty(reason){
   $('execution-status').textContent='BELUM SIAP';$('execution-reason').textContent=reason;
   $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
   $('gold-condition').textContent='Menunggu data volatilitas.';$('news-awareness').textContent='Periksa berita berdampak tinggi secara manual.';
+  renderTournament(null);
   try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
   window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
 }
@@ -49,7 +100,7 @@ function render(){
   $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
   $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';
   $('m15-control').textContent=id(c.m15?.control||'BALANCED');
-  $('m15-risk').textContent=c.m15?.opposingControl?'Peringatan: M15 melawan bias H1.':'Pantau perubahan struktur M15.';
+  $('m15-risk').textContent=c.m15?.opposingControl?'⚡ Scalp Kilat: Pantulan cepat lawan H1 · TP tipis & amankan segera':'🟢 Grade A+: Pantau struktur searah H1 · Setup mantap & santai';
   const confStatus=id(confObj?.status||'WAITING');
   const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep di area M15.';
   if($('m5-confirmation'))$('m5-confirmation').textContent=confStatus;
@@ -60,6 +111,7 @@ function render(){
   $('alternative-scenario').innerHTML=scenario(c.alternative,true);
   $('execution-status').textContent=id(c.execution?.status||'NOT READY');$('execution-reason').textContent=c.execution?.reason||'Menunggu bukti.';
   $('execution-checklist').innerHTML=(c.execution?.checklist||[]).map(item=>`<li>${item.ok?'✓':'○'} ${esc(item.label)}</li>`).join('');
+  renderTournament(c);
   const newsEl=$('news-awareness');
   if(newsEl){
     newsEl.textContent=c.news?.note||'Status berita berdampak tinggi belum diverifikasi.';
