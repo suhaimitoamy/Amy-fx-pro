@@ -17,7 +17,7 @@
     "Reset Skor Poin Turnamen: Seluruh skor poin ke-6 driver di-reset dari 0 pts untuk memulai babak kompetisi baru secara adil.",
     "Aktivasi Mandiri 6 Driver: Memastikan seluruh 6 driver turnamen menyala dan aktif secara mandiri tanpa ada yang terkunci di mode Standby."
   ],
-  "sha256": "b1711e23fae8e4b00cdd414f39fa15360edf5c858aa57481c416e06b92dc4c28",
+  "sha256": "bc76c783237933e8cc0944669e7f31ed1adfa4ee6a9e653d4fc64516b424497b",
   "version": "2.0.0-pro.370",
   "versionCode": 950370
 }
