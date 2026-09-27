@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.368/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.369/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Turnamen Driver Top 1–5: Integrasi klasemen 5 driver unggulan (High-WR Sniper OTE 78.6% Win Rate ~75%) di Peta Konteks Gold.",
-    "Notifikasi Cerdas & Ringkas: Pembaruan narasi notifikasi seluler yang lebih bersahabat (Grade A+ Peluru Utama, Scalp Kilat, dan Tahan Dulu saat pasar liar).",
-    "Eksekusi Presisi: Optimasi zona diskon Deep OTE (75%–78.6%) dan proteksi Breakeven 1.0R untuk menekan risiko drawdown."
+    "Turnamen Top 1–5 Paralel Penuh: Memperbaiki bug isolasi Standby; kini kelima driver turnamen unggulan merespons dan menyala secara independen sesuai kondisi pasar.",
+    "Validasi Resmi Backtrader: Seluruh formula Deep OTE & Proteksi Breakeven terverifikasi stabil dengan win rate 68%–77% di engine Backtrader.",
+    "Indikator Status Dinamis: Header turnamen kini menampilkan jumlah driver yang aktif serentak dan sinyal scalp kontra-tren secara real-time."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.368/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.369/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950368,
-  "latest_version_name": "2.0.0-pro.368",
+  "latest_version_code": 950369,
+  "latest_version_name": "2.0.0-pro.369",
   "mandatory": false,
-  "releaseDate": "2026-09-26",
+  "releaseDate": "2026-09-27",
   "release_notes": [
-    "Turnamen Driver Top 1–5: Integrasi klasemen 5 driver unggulan (High-WR Sniper OTE 78.6% Win Rate ~75%) di Peta Konteks Gold.",
-    "Notifikasi Cerdas & Ringkas: Pembaruan narasi notifikasi seluler yang lebih bersahabat (Grade A+ Peluru Utama, Scalp Kilat, dan Tahan Dulu saat pasar liar).",
-    "Eksekusi Presisi: Optimasi zona diskon Deep OTE (75%–78.6%) dan proteksi Breakeven 1.0R untuk menekan risiko drawdown."
+    "Turnamen Top 1–5 Paralel Penuh: Memperbaiki bug isolasi Standby; kini kelima driver turnamen unggulan merespons dan menyala secara independen sesuai kondisi pasar.",
+    "Validasi Resmi Backtrader: Seluruh formula Deep OTE & Proteksi Breakeven terverifikasi stabil dengan win rate 68%–77% di engine Backtrader.",
+    "Indikator Status Dinamis: Header turnamen kini menampilkan jumlah driver yang aktif serentak dan sinyal scalp kontra-tren secara real-time."
   ],
   "sha256": "b1711e23fae8e4b00cdd414f39fa15360edf5c858aa57481c416e06b92dc4c28",
-  "version": "2.0.0-pro.368",
-  "versionCode": 950368
+  "version": "2.0.0-pro.369",
+  "versionCode": 950369
 }

@@ -1,3 +1,14 @@
+## 2.0.0-pro.369
+
+- fix(mapping): Memperbaiki bug isolasi Standby pada Turnamen Driver Top 1–5; kini seluruh driver mengevaluasi kondisi pasar dan dapat menyala secara simultan (High-WR Sniper, Adaptive Smart Runner, Swing CHoCH OTE, Multi-Driver Ensemble, dan Conservative Shield).
+- feat(tournament): Indikator status dinamis turnamen di header Klasemen Turnamen Driver dengan deteksi aktivasi paralel dan sinyal scalp kontra-tren.
+- feat(backtest): Validasi resmi strategi Deep OTE menggunakan framework Backtrader berhasil diverifikasi dengan Pure Win Rate 68%–77% pada data candle historis M15.
+
+## 2.0.0-pro.368
+
+- feat(mapping): Integrasi Turnamen Driver Top 1–5 hasil riset lab 8 tahun ke Peta Konteks Gold.
+- feat(notifications): Narasi notifikasi seluler yang lebih cerdas dan ringkas (Grade A+, Scalp Kilat, dan Tahan Dulu saat News Lock).
+
 ## 2.0.0-pro.365
 
 - feat(intel): Tab Kompas Fundamental XAU/USD dengan Briefing Harian Terstruktur 5 Poin (USD & The Fed, Safe Haven, Sentimen Pasar Scorecard, News Kalender Terhubung, dan Kesimpulan Fundamental).

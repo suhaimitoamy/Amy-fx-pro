@@ -19,6 +19,7 @@
 .driver-badge{font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
 .driver-badge.active{background:rgba(101,213,177,0.18);color:var(--buy);border:1px solid var(--buy)}
 .driver-badge.scalp{background:rgba(255,143,155,0.18);color:var(--sell);border:1px solid var(--sell)}
+.driver-badge.lock{background:rgba(255,120,117,0.12);color:#ff7875;border:1px solid rgba(255,120,117,0.3)}
 .driver-meta{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px}
 .driver-meta strong{color:var(--text)}
 .driver-desc{margin:4px 0 0;font-size:11px;color:var(--muted)}

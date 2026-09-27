@@ -42,34 +42,122 @@ function renderTournament(c) {
   const drivers = getTournamentDrivers();
   const ready = c?.execution?.status === 'READY TO REVIEW';
   const conflict = Boolean(c?.m15?.opposingControl);
-  if (ready) {
-    drivers[0].status = 'TRIGGERED (NAVIGATOR)';
-    for (let i = 1; i < drivers.length; i++) drivers[i].status = 'STANDBY';
-  } else if (conflict) {
-    drivers[0].status = 'SCALP KILAT';
-    for (let i = 1; i < drivers.length; i++) drivers[i].status = 'STANDBY';
+  const h1Health = c?.h1?.health || 'UNKNOWN';
+  const h1Bias = c?.h1?.bias || 'NEUTRAL';
+  const poi = c?.m15?.poi;
+  const confirming = c?.m5 || c?.m1;
+  const isHighVol = c?.volatility?.condition === 'HIGH VOLATILITY';
+  const isNewsLock = c?.news?.status === 'NEWS_LOCK';
+  const mssBreak = c?.m15?.lastBreak?.type === 'MSS';
+
+  // Driver 1: High-WR Sniper 70 (Deep OTE 78.6%)
+  if (isNewsLock) {
+    drivers[0].status = 'STANDBY (NEWS LOCK)';
+  } else if (ready) {
+    drivers[0].status = 'TRIGGERED (OTE 78.6%)';
+  } else if (poi && (confirming?.sweep || confirming?.status === 'CONFIRMED')) {
+    drivers[0].status = 'OTE RETESTING';
+  } else if (poi) {
+    drivers[0].status = 'MONITORING DEEP OTE';
   } else {
-    for (const d of drivers) d.status = 'STANDBY';
+    drivers[0].status = 'STANDBY';
   }
+
+  // Driver 2: AI Adaptive Smart Driver (Runner Trend 1.6R)
+  if (isNewsLock) {
+    drivers[1].status = 'STANDBY (NEWS LOCK)';
+  } else if (ready && h1Health === 'HEALTHY' && !conflict) {
+    drivers[1].status = 'RUNNER TRIGGERED (1.6R)';
+  } else if (h1Health === 'HEALTHY' && !conflict && h1Bias !== 'NEUTRAL') {
+    drivers[1].status = 'TREND ARMED (RUNNER)';
+  } else if (conflict) {
+    drivers[1].status = 'OFFLINE (CHOPPY/PULLBACK)';
+  } else {
+    drivers[1].status = 'STANDBY';
+  }
+
+  // Driver 3: Swing CHoCH + OTE (Displacement 2x ATR / Reversals)
+  if (isNewsLock) {
+    drivers[2].status = 'STANDBY (NEWS LOCK)';
+  } else if (mssBreak || conflict) {
+    if (confirming?.status === 'CONFIRMED' || ready) {
+      drivers[2].status = 'CHOCH TRIGGERED (SCALP)';
+    } else {
+      drivers[2].status = 'CHOCH DETECTED (M15)';
+    }
+  } else if (ready) {
+    drivers[2].status = 'CONFIRMED (OTE 75%)';
+  } else {
+    drivers[2].status = 'STANDBY';
+  }
+
+  // Driver 4: Multi-Driver Ensemble (Confluence Mesh 72.5% Fib)
+  if (isNewsLock) {
+    drivers[3].status = 'STANDBY (NEWS LOCK)';
+  } else if (ready && (isHighVol || confirming?.sweep)) {
+    drivers[3].status = 'CONFLUENCE TRIGGERED';
+  } else if (isHighVol) {
+    drivers[3].status = 'HIGH VOLATILITY ARMED';
+  } else if (confirming?.sweep) {
+    drivers[3].status = 'SWEEP RECLAIMED';
+  } else {
+    drivers[3].status = 'STANDBY';
+  }
+
+  // Driver 5: Conservative Shield (Low Drawdown 0.7R)
+  if (isNewsLock || conflict) {
+    drivers[4].status = 'DEFENSIVE LOCK (WAIT)';
+  } else if (ready && !conflict && h1Health === 'HEALTHY') {
+    drivers[4].status = 'SHIELD TRIGGERED (0.7R)';
+  } else if (!conflict && !isNewsLock && h1Bias !== 'NEUTRAL') {
+    drivers[4].status = 'SHIELD ARMED';
+  } else {
+    drivers[4].status = 'STANDBY';
+  }
+
+  const activeDrivers = drivers.filter(d => 
+    d.status.includes('TRIGGERED') || d.status.includes('ARMED') || 
+    d.status.includes('RETESTING') || d.status.includes('CONFIRMED') ||
+    d.status.includes('DETECTED')
+  );
+
   if (badge) {
-    badge.textContent = `NAVIGATOR: ${drivers[0].name.toUpperCase()}`;
-    badge.style.color = ready ? 'var(--buy)' : conflict ? 'var(--accent)' : 'var(--muted)';
+    if (activeDrivers.length > 0) {
+      badge.textContent = `TURNAMEN: ${activeDrivers.length}/5 DRIVER AKTIF`;
+      badge.style.color = ready ? 'var(--buy)' : 'var(--accent)';
+    } else if (conflict) {
+      badge.textContent = 'SCALP KILAT (KONTRA-TREN)';
+      badge.style.color = 'var(--sell)';
+    } else if (isNewsLock) {
+      badge.textContent = 'NEWS LOCK AKTIF';
+      badge.style.color = '#ff7875';
+    } else {
+      badge.textContent = 'STANDBY: 5/5 MEMANTAU';
+      badge.style.color = 'var(--muted)';
+    }
   }
-  container.innerHTML = drivers.map((d, idx) => `
-    <div class="driver-item ${idx === 0 ? 'leader' : ''}">
-      <div class="driver-header">
-        <span class="driver-rank">#${idx + 1}</span>
-        <strong class="driver-name">${esc(d.name)}</strong>
-        <span class="driver-badge ${d.status.includes('TRIGGERED') ? 'active' : d.status === 'SCALP KILAT' ? 'scalp' : ''}">${esc(d.status)}</span>
+
+  container.innerHTML = drivers.map((d, idx) => {
+    const isActive = d.status.includes('TRIGGERED') || d.status.includes('ARMED') || d.status.includes('RETESTING') || d.status.includes('CONFIRMED');
+    const isScalp = d.status.includes('SCALP') || d.status.includes('CHOCH') || d.status.includes('VOLATILITY');
+    const isLock = d.status.includes('LOCK') || d.status.includes('OFFLINE');
+    const badgeClass = isActive ? 'active' : isScalp ? 'scalp' : isLock ? 'lock' : '';
+    return `
+      <div class="driver-item ${idx === 0 ? 'leader' : ''}">
+        <div class="driver-header">
+          <span class="driver-rank">#${idx + 1}</span>
+          <strong class="driver-name">${esc(d.name)}</strong>
+          <span class="driver-badge ${badgeClass}">${esc(d.status)}</span>
+        </div>
+        <div class="driver-meta">
+          <span>WR: <strong>${d.winRate}%</strong></span>
+          <span>R:R: <strong>1:${d.rr}</strong></span>
+          <span>Skor: <strong>${d.score} pts</strong></span>
+        </div>
+        <p class="driver-desc">${esc(d.desc)}</p>
       </div>
-      <div class="driver-meta">
-        <span>WR: <strong>${d.winRate}%</strong></span>
-        <span>R:R: <strong>1:${d.rr}</strong></span>
-        <span>Skor: <strong>${d.score} pts</strong></span>
-      </div>
-      <p class="driver-desc">${esc(d.desc)}</p>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 function empty(reason){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
