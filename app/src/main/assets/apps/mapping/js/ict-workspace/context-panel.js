@@ -22,15 +22,16 @@ function scenario(s,alternative=false){
     (alternative&&s.activation?`<ul>${s.activation.map(rule=>`<li>${esc(rule)}</li>`).join('')}</ul>`:'');
 }
 const DEFAULT_TOURNAMENT_DRIVERS = [
-  { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', winRate: 78.6, rr: 0.8, score: 1540, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
-  { id: 'AI_ADAPTIVE_SMART_DRIVER', name: 'Adaptive Smart Driver', winRate: 68.9, rr: 1.6, score: 1495, status: 'STANDBY', desc: 'Runner Trend 1.6R · Trailing Breakeven 0.8R' },
-  { id: 'SWING_CHOCH_OTE', name: 'Swing CHoCH + OTE', winRate: 77.8, rr: 0.8, score: 1470, status: 'STANDBY', desc: 'Displacement 2x ATR · 75% Fib Entry Level' },
-  { id: 'MULTI_DRIVER_ENSEMBLE', name: 'Multi-Driver Ensemble', winRate: 64.6, rr: 0.8, score: 1430, status: 'STANDBY', desc: 'Confluence Mesh 72.5% Fib · Min ATR 2.5' },
-  { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', winRate: 77.4, rr: 0.7, score: 1410, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' }
+  { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', winRate: 78.6, rr: 0.8, score: 0, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
+  { id: 'AI_ADAPTIVE_SMART_DRIVER', name: 'Adaptive Smart Driver', winRate: 68.9, rr: 1.6, score: 0, status: 'STANDBY', desc: 'Runner Trend 1.6R · Trailing Breakeven 0.8R' },
+  { id: 'SWING_CHOCH_OTE', name: 'Swing CHoCH + OTE', winRate: 77.8, rr: 0.8, score: 0, status: 'STANDBY', desc: 'Displacement 2x ATR · 75% Fib Entry Level' },
+  { id: 'MULTI_DRIVER_ENSEMBLE', name: 'Multi-Driver Ensemble', winRate: 64.6, rr: 0.8, score: 0, status: 'STANDBY', desc: 'Confluence Mesh 72.5% Fib · Min ATR 2.5' },
+  { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', winRate: 77.4, rr: 0.7, score: 0, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' },
+  { id: 'HUMAN_MTF_RAPID_SCALPER', name: 'Human MTF Rapid Scalper', winRate: 54.4, rr: 1.3, score: 0, status: 'STANDBY', desc: 'Sesi London & NY · 3–5 Setup/Hari · Cut Loss Dini -0.35R (Catatan: WR Rendah ~54%, RR Tinggi 1.3R)' }
 ];
 function getTournamentDrivers() {
   try {
-    const raw = localStorage.getItem('amyfx.driver-tournament.v1');
+    const raw = localStorage.getItem('amyfx.driver-tournament.v2');
     if (raw) return JSON.parse(raw);
   } catch (_) {}
   return DEFAULT_TOURNAMENT_DRIVERS;
@@ -115,15 +116,30 @@ function renderTournament(c) {
     drivers[4].status = 'STANDBY';
   }
 
+  // Driver 6: Human MTF Rapid Scalper (3–5 Setup/Hari, RR 1:1.3R, Early Cut Loss -0.35R)
+  if (isNewsLock) {
+    drivers[5].status = 'STANDBY (NEWS LOCK)';
+  } else if (h1Bias !== 'NEUTRAL') {
+    if (confirming?.status === 'CONFIRMED' || ready) {
+      drivers[5].status = 'RAPID TRIGGERED (1.3R)';
+    } else if (conflict) {
+      drivers[5].status = 'EARLY CUT WATCH (-0.35R)';
+    } else {
+      drivers[5].status = 'RAPID ARMED (3-5X/HARI)';
+    }
+  } else {
+    drivers[5].status = 'STANDBY';
+  }
+
   const activeDrivers = drivers.filter(d => 
     d.status.includes('TRIGGERED') || d.status.includes('ARMED') || 
     d.status.includes('RETESTING') || d.status.includes('CONFIRMED') ||
-    d.status.includes('DETECTED')
+    d.status.includes('DETECTED') || d.status.includes('WATCH')
   );
 
   if (badge) {
     if (activeDrivers.length > 0) {
-      badge.textContent = `TURNAMEN: ${activeDrivers.length}/5 DRIVER AKTIF`;
+      badge.textContent = `TURNAMEN: ${activeDrivers.length}/6 DRIVER AKTIF`;
       badge.style.color = ready ? 'var(--buy)' : 'var(--accent)';
     } else if (conflict) {
       badge.textContent = 'SCALP KILAT (KONTRA-TREN)';
@@ -132,7 +148,7 @@ function renderTournament(c) {
       badge.textContent = 'NEWS LOCK AKTIF';
       badge.style.color = '#ff7875';
     } else {
-      badge.textContent = 'STANDBY: 5/5 MEMANTAU';
+      badge.textContent = 'STANDBY: 6/6 MEMANTAU';
       badge.style.color = 'var(--muted)';
     }
   }

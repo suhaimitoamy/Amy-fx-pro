@@ -1,3 +1,9 @@
+## 2.0.0-pro.370
+
+- feat(mapping): Menambahkan Driver #6 "Human MTF Rapid Scalper" (Sesi London & NY, frekuensi tinggi 3–5 setup/hari, RR 1:1.3R, cut loss dini -0.35R, dengan catatan WR wajar ~54% murni).
+- feat(tournament): Reset seluruh skor poin 6 Driver Turnamen menjadi 0 pts agar kompetisi klasemen dimulai dari garis start yang sama.
+- fix(tournament): Validasi evaluasi paralel seluruh 6 driver — tidak ada driver yang terkunci di status Standby secara sepihak saat pasar aktif.
+
 ## 2.0.0-pro.369
 
 - fix(mapping): Memperbaiki bug isolasi Standby pada Turnamen Driver Top 1–5; kini seluruh driver mengevaluasi kondisi pasar dan dapat menyala secara simultan (High-WR Sniper, Adaptive Smart Runner, Swing CHoCH OTE, Multi-Driver Ensemble, dan Conservative Shield).

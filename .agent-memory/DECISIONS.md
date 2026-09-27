@@ -1,5 +1,17 @@
 # Technical Decisions
 
+## 2026-09-27 — Pro369 Top 1-5 Parallel Activation & Multi-Pair Research Roadmap (On-Hold)
+
+- **Context & Bug Fix**:
+  1. Ditemukan bug pengunci di `context-panel.js` (baris 47 & 50) di mana driver turnamen #2 sampai #5 dipaksa loop ke status `STANDBY`.
+  2. Logika diperbaiki agar kelima driver mengevaluasi kondisi pasar secara independen & paralel (High-WR Sniper, Adaptive Smart Runner, Swing CHoCH OTE, Multi-Driver Ensemble, dan Conservative Shield).
+  3. Versi resmi di-bump ke `2.0.0-pro.369` (code `950369`), 138 unit tes lulus 100%, dan rilis dipush ke repository.
+- **Riset Backtrader & Target 3+ Setup/Hari**:
+  1. Validasi 8 tahun (2019-2026) basket Top 1-5 di Backtrader mencatatkan $100 -> $26,179,699 (261,797x) dengan Pure WR 63.6% di timeframe M15 (~3.5 trade/minggu).
+  2. Pengujian M5 single pair untuk mengejar >= 3 trade/hari membuktikan bahwa win rate anjlok ke 37%-43% akibat noise tinggi dan siklus harian Gold yang terbatas (1-2 wave/hari).
+  3. Solusi ideal: Diversifikasi Multi-Pair (XAU/USD + EUR/USD + GBP/USD) yang hanya memakai ~192 request/hari dari 800 kuota gratis TwelveData.
+  4. **Status Ide:** Atas instruksi user, ide multi-pair ini **DIARSIPKAN (ON HOLD / ZERO RISK)** di `/sdcard/Download/lab backtest/RESEARCH_ROADMAP_MULTIPAIR.md`. Sistem tetap fokus di single-pair XAU/USD tanpa menambah beban risiko.
+
 ## 2026-09-24 — Pro361 Economic Calendar Automation & Market Intel Overhaul
 
 - **Context & Problem**:
