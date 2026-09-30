@@ -2,7 +2,8 @@
 
 ## 2026-09-30 — Pro374 Mapping audit fixes
 
-- [ ] Verify Pro374 signed Actions release, APK checksum and activation of update.json.
+- [x] Pro374 (950374) released: 139 regression files passed locally and Actions run 36689049436 succeeded. APK identity/signer and public download gates passed; update.json activated and downloaded APK SHA-256 matches d20dc579d73fc10d54e2e2624650aeea19fce5b436ad36c18d49c8dff40ecec9.
+- [x] Backend scalper-engine v21 deployed; health and fresh scalper-setups context expose policyVersion mapping-audit-pro374.
 - [ ] Physical device: confirm update popup, offline WAIT/cleared overlays, six model cards and eligible A+ presentation. Real independent evaluation of the six research models remains unavailable; UI reports this explicitly.
 
 ## 2026-09-24 — Pro361 Release & Verification Checklist
