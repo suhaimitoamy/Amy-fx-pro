@@ -327,3 +327,8 @@ Local Pro379 verification: all142 regression files passed. Chromium touch price/
 
 
 Pro379 release verification completed: source6b6d447ead4e60b1f12957e42f0c20f543241af7, signed Actions36707758513 and lint36707758575 succeeded. Public update.json enabled at2.0.0-pro.379/950379. Downloaded32,670,665-byte APK SHA-256ff37cbe0180131239ae56fa46bb9b1b07c28a62f323e79d295922b91d80136ae matches public manifest/checksum; eight affected/fullscreen assets match source and canonical trading engine remains byte-identical to backend. All142 regression files and Chromium touch price/time-axis scaling, double-tap/Auto harga reset, overlay alignment, refresh-preserved viewport and existing fullscreen/pinch/pan/Back/Escape/theme/offline checks passed. Earlier Pro379 release-pending notes resolved. Actual Android device gestures and update notification receipt remain unobserved.
+ 
+ 
+## 2026-09-30 — Pro380 Academy Curriculum Restructure
+ 
+Restructured Amy FX Academy from 665 fragmented HTML files down to 56 files (91% reduction in fragmentation). Implemented university-style 3 Semester structure with 36 Pertemuan (~1 Jam / SKS per Pertemuan). 569 sub-chapters consolidated into 36 master modules with chapter badges, desktop sticky sidebar TOC with scroll-spy highlight, mobile expandable drawer TOC, quiz container, and smooth next/prev navigation. Cleaned duplicates and stubs, synchronized 36-entry registry, and audited 1,360 links with zero broken links.

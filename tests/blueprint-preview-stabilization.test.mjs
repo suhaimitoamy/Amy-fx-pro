@@ -73,7 +73,7 @@ test('journal review belongs to Journal and market freshness comes from canonica
 test('academy principal page has valid section boundary and complete final foundation link', async () => {
   const academy = await read('app/src/main/assets/apps/academy/index.html');
   assert.doesNotMatch(academy, /href="[^"]*<section/i);
-  assert.match(academy, /href="bagian-15-menjadi-trader-mandiri\/index\.html">Buka Materi →<\/a><\/article><\/section>/);
+  assert.match(academy, /href="bagian-15-menjadi-trader-mandiri\/index\.html">(?:Buka Materi|Buka Pertemuan) →<\/a><\/article>\s*<\/section>/);
 });
 
 test('release workflow validates stabilization without touching production main', async () => {

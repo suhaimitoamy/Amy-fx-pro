@@ -450,3 +450,8 @@ Mapping enables vertTouchDrag/horzTouchDrag plus explicit price/time axis drag a
 
 
 Pro379 release verification completed: source6b6d447ead4e60b1f12957e42f0c20f543241af7, signed Actions36707758513 and lint36707758575 succeeded. Public update.json enabled at2.0.0-pro.379/950379. Downloaded32,670,665-byte APK SHA-256ff37cbe0180131239ae56fa46bb9b1b07c28a62f323e79d295922b91d80136ae matches public manifest/checksum; eight affected/fullscreen assets match source and canonical trading engine remains byte-identical to backend. All142 regression files and Chromium touch price/time-axis scaling, double-tap/Auto harga reset, overlay alignment, refresh-preserved viewport and existing fullscreen/pinch/pan/Back/Escape/theme/offline checks passed. Earlier Pro379 release-pending notes resolved. Actual Android device gestures and update notification receipt remain unobserved.
+ 
+ 
+## 2026-09-30 — Pro380 Academy Curriculum Restructure
+ 
+Restructure Amy FX Academy from 665 fragmented HTML files into 3 Semesters and 36 Pertemuan (~1 Jam / SKS per Pertemuan) without losing any educational material. Consolidate 569 sub-chapters into 36 interactive master modules with desktop sidebar TOC, mobile drawer TOC, and verified navigation. Purge clone directories and stubs. Maintain zero broken links across 1,360 checked internal references. Release Pro380 (950380).

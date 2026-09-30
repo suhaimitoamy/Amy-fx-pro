@@ -335,11 +335,11 @@
     var pBar = document.getElementById('academyProgressBar');
     var pText = document.getElementById('academyProgressText');
     if (pBar && pText) {
-      var totalBagian = 36;
-      var count = readSet.length;
+      var totalBagian = 35;
+      var count = Math.min(totalBagian, readSet.length);
       var pct = Math.min(100, Math.round((count / totalBagian) * 100));
       pBar.style.width = pct + '%';
-      pText.textContent = 'Membaca ' + count + ' dari ' + totalBagian + ' Bagian (' + pct + '%)';
+      pText.textContent = 'Menyelesaikan ' + count + ' dari ' + totalBagian + ' Pertemuan (' + pct + '%)';
     }
   }
 
@@ -350,6 +350,7 @@
     sInput.addEventListener('input', function() {
       var query = this.value.toLowerCase().trim();
       var panels = document.querySelectorAll('.panel');
+      var dividers = document.querySelectorAll('.semester-divider');
 
       panels.forEach(function(panel) {
         var text = panel.textContent.toLowerCase();
@@ -358,6 +359,10 @@
         } else {
           panel.style.display = 'none';
         }
+      });
+
+      dividers.forEach(function(div) {
+        div.style.display = query ? 'none' : 'block';
       });
     });
   }
@@ -377,11 +382,23 @@
         
         var filter = btn.dataset.filter;
         var panels = document.querySelectorAll('.panel');
+        var dividers = document.querySelectorAll('.semester-divider');
+
         panels.forEach(function(panel) {
-          if (filter === 'Semua' || panel.dataset.category === filter) {
+          var cats = (panel.dataset.category || '').split(',').map(function(s){ return s.trim(); });
+          if (filter === 'Semua' || cats.indexOf(filter) !== -1 || panel.dataset.category === filter) {
             panel.style.display = 'block';
           } else {
             panel.style.display = 'none';
+          }
+        });
+
+        dividers.forEach(function(div) {
+          var targetSem = div.dataset.semester;
+          if (filter === 'Semua' || filter === targetSem) {
+            div.style.display = 'block';
+          } else {
+            div.style.display = 'none';
           }
         });
       });

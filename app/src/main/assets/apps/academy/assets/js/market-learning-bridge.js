@@ -317,7 +317,12 @@
 
   function cleanTitle(path) {
     if (!path) return '';
-    const filename = path.split('/').pop().replace(/\.html$/, '');
+    const parts = path.split('/');
+    const folder = parts.length > 1 ? parts[0] : '';
+    const filename = parts.pop().replace(/\.html$/, '');
+    if (filename === 'index' && folder) {
+      return topicLabel(folder.replace(/^bagian-\d+-?/, ''));
+    }
     return topicLabel(filename);
   }
 
@@ -336,11 +341,11 @@
     if (document.querySelector('.chapter-nav-box')) return;
 
     const currentPath = getCurrentPath();
-    if (!currentPath || currentPath.endsWith('/index.html')) return;
+    if (!currentPath) return;
 
     const lessonKeys = Object.keys(registry?.lessons || {}).filter(k => {
       const cfg = registry.lessons[k];
-      return cfg && cfg.enabled && cfg.topic !== 'index' && !k.endsWith('/index.html');
+      return cfg && cfg.enabled && cfg.topic !== 'index';
     });
 
     const currentIndex = lessonKeys.indexOf(currentPath);

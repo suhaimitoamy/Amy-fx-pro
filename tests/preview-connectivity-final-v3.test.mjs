@@ -19,7 +19,7 @@ const files = {
   intel: 'app/src/main/assets/apps/shared/market-intelligence.js',
   marketContract: 'app/src/main/assets/apps/shared/amyfx-market-state-contract-v1.js',
   academyAuth: 'app/src/main/assets/apps/academy/assets/js/auth.js',
-  academyLesson: 'app/src/main/assets/apps/academy/bagian-15-menjadi-trader-mandiri/dari-belajar-ke-eksekusi.html',
+  academyLesson: 'app/src/main/assets/apps/academy/bagian-15-menjadi-trader-mandiri/index.html',
   journal: 'app/src/main/assets/apps/journal/app.js',
   mapping: 'app/src/main/assets/apps/mapping/js/api/market-data.js',
   updater: 'app/src/main/assets/update-checker.js'

@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.
-          - Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.
-          - Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.
-          - Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual.
+          - Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan).
+          - Konsolidasi materi: 569 file bab digabung ke dalam 36 modul master interaktif dengan navigasi bab dan drawer TOC.
+          - Pembersihan modul duplikat dan optimasi aset aplikasi (pengurangan 91% jumlah file HTML terfragmentasi).
+          - Navigasi antar-materi terintegrasi penuh tanpa link rusak di WebView Android.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber

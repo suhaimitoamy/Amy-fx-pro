@@ -20,7 +20,7 @@
       ],
       "principle": "FVG tiga candle memakai wick A dan C yang tidak overlap, dengan displacement pada B.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -129,7 +129,7 @@
       ],
       "principle": "B berada di tengah dan memiliki body besar; gap dibuktikan oleh wick A dan C.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -238,7 +238,7 @@
       ],
       "principle": "Batas gap adalah high A dan low C untuk bullish, low A dan high C untuk bearish. Di sini: 104.00–109.00.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -347,7 +347,7 @@
       ],
       "principle": "CE = (batas bawah + batas atas) / 2. CE bukan jaminan harga akan bereaksi.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -456,7 +456,7 @@
       ],
       "principle": "Formasi FVG dan retest adalah dua peristiwa berbeda. Chart belum memuat candle setelah pembentukan.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -565,7 +565,7 @@
       ],
       "principle": "Chart membuktikan geometri FVG saja. Bias HTF, risiko dan konfirmasi entry harus dinilai terpisah.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -674,7 +674,7 @@
       ],
       "principle": "FVG tiga candle memakai wick A dan C yang tidak overlap, dengan displacement pada B.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -783,7 +783,7 @@
       ],
       "principle": "B berada di tengah dan memiliki body besar; gap dibuktikan oleh wick A dan C.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -892,7 +892,7 @@
       ],
       "principle": "Batas gap adalah high A dan low C untuk bullish, low A dan high C untuk bearish. Di sini: 131.00–136.00.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -1001,7 +1001,7 @@
       ],
       "principle": "CE = (batas bawah + batas atas) / 2. CE bukan jaminan harga akan bereaksi.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -1110,7 +1110,7 @@
       ],
       "principle": "Formasi FVG dan retest adalah dua peristiwa berbeda. Chart belum memuat candle setelah pembentukan.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -1219,7 +1219,7 @@
       ],
       "principle": "Chart membuktikan geometri FVG saja. Bias HTF, risiko dan konfirmasi entry harus dinilai terpisah.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/fair-value-gap-fvg-celah-imbalance.html",
+        "href": "../bagian-20-idm-inducement-masterclass/index.html#fair-value-gap-fvg-celah-imbalance",
         "title": "Fair Value Gap (FVG)"
       },
       "candles": [
@@ -1328,7 +1328,7 @@
       ],
       "principle": "Equal highs/lows adalah acuan potensi kumpulan stop, bukan pengamatan langsung seluruh order pasar.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -1432,7 +1432,7 @@
       ],
       "principle": "C melewati level referensi dengan wick lalu close kembali di sisi sebelumnya.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -1536,7 +1536,7 @@
       ],
       "principle": "Bandingkan kedua wick A dan B: keduanya tepat di level acuan yang ditandai.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -1640,7 +1640,7 @@
       ],
       "principle": "C menembus 150.00, tetapi close di 147.00. Posisi close terhadap level membedakan reclaim dari close-through.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -1744,7 +1744,7 @@
       ],
       "principle": "Sweep adalah kejadian harga. Konfirmasi sesudahnya belum terlihat di chart.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -1848,7 +1848,7 @@
       ],
       "principle": "Tidak ada candle setelah C. Jangan mengasumsikan MSS atau hasil trade yang belum terjadi.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -1952,7 +1952,7 @@
       ],
       "principle": "Equal highs/lows adalah acuan potensi kumpulan stop, bukan pengamatan langsung seluruh order pasar.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -2056,7 +2056,7 @@
       ],
       "principle": "C melewati level referensi dengan wick lalu close kembali di sisi sebelumnya.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -2160,7 +2160,7 @@
       ],
       "principle": "Bandingkan kedua wick A dan B: keduanya tepat di level acuan yang ditandai.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -2264,7 +2264,7 @@
       ],
       "principle": "C menembus 170.00, tetapi close di 173.00. Posisi close terhadap level membedakan reclaim dari close-through.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -2368,7 +2368,7 @@
       ],
       "principle": "Sweep adalah kejadian harga. Konfirmasi sesudahnya belum terlihat di chart.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -2472,7 +2472,7 @@
       ],
       "principle": "Tidak ada candle setelah C. Jangan mengasumsikan MSS atau hasil trade yang belum terjadi.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/equal-highs-dan-equal-lows.html",
+        "href": "../bagian-17-fvg-masterclass/index.html#equal-highs-dan-equal-lows",
         "title": "Equal highs, equal lows dan liquidity"
       },
       "candles": [
@@ -2576,7 +2576,7 @@
       ],
       "principle": "Baca close C terhadap garis swing A, bukan hanya wick tertinggi/terendah.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -2680,7 +2680,7 @@
       ],
       "principle": "B menembus swing tetapi close kembali; C baru close melewati level.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -2784,7 +2784,7 @@
       ],
       "principle": "Level 190.00 berasal dari wick swing A yang terbentuk sebelum breakout.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -2888,7 +2888,7 @@
       ],
       "principle": "Break berbasis close harus dibuktikan oleh penutupan melewati swing yang sudah ada.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -2992,7 +2992,7 @@
       ],
       "principle": "Arah break terlihat, tetapi BOS continuation versus MSS reversal memerlukan struktur/tren sebelumnya.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3096,7 +3096,7 @@
       ],
       "principle": "Retest harus terjadi sesudah break; tidak boleh memakai candle B sebelum break C sebagai retest.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3200,7 +3200,7 @@
       ],
       "principle": "Baca close C terhadap garis swing A, bukan hanya wick tertinggi/terendah.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3304,7 +3304,7 @@
       ],
       "principle": "B menembus swing tetapi close kembali; C baru close melewati level.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3408,7 +3408,7 @@
       ],
       "principle": "Level 210.00 berasal dari wick swing A yang terbentuk sebelum breakout.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3512,7 +3512,7 @@
       ],
       "principle": "Break berbasis close harus dibuktikan oleh penutupan melewati swing yang sudah ada.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3616,7 +3616,7 @@
       ],
       "principle": "Arah break terlihat, tetapi BOS continuation versus MSS reversal memerlukan struktur/tren sebelumnya.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3720,7 +3720,7 @@
       ],
       "principle": "Retest harus terjadi sesudah break; tidak boleh memakai candle B sebelum break C sebagai retest.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/market-structure-dasar.html",
+        "href": "../bagian-02-membaca-chart/index.html#market-structure-dasar",
         "title": "Market structure dasar"
       },
       "candles": [
@@ -3824,7 +3824,7 @@
       ],
       "principle": "Premium di atas midpoint; discount di bawah midpoint dari range yang dinyatakan dalam soal.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -3929,7 +3929,7 @@
       ],
       "principle": "Equilibrium = (range high + range low) / 2.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4034,7 +4034,7 @@
       ],
       "principle": "Posisi = (close − low) / (high − low). Close 225.00, low 220.00, high 240.00.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4139,7 +4139,7 @@
       ],
       "principle": "External atas adalah high pembentuk range B; midpoint adalah level internal.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4244,7 +4244,7 @@
       ],
       "principle": "Premium/discount adalah lokasi relatif terhadap range terpilih, bukan sinyal mandiri.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4349,7 +4349,7 @@
       ],
       "principle": "Persentase lokasi bergantung pada pasangan batas range. Chart ini hanya menunjukkan range yang ditetapkan.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4454,7 +4454,7 @@
       ],
       "principle": "Premium di atas midpoint; discount di bawah midpoint dari range yang dinyatakan dalam soal.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4559,7 +4559,7 @@
       ],
       "principle": "Equilibrium = (range high + range low) / 2.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4664,7 +4664,7 @@
       ],
       "principle": "Posisi = (close − low) / (high − low). Close 255.00, low 240.00, high 260.00.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4769,7 +4769,7 @@
       ],
       "principle": "External atas adalah high pembentuk range B; midpoint adalah level internal.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4874,7 +4874,7 @@
       ],
       "principle": "Premium/discount adalah lokasi relatif terhadap range terpilih, bukan sinyal mandiri.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -4979,7 +4979,7 @@
       ],
       "principle": "Persentase lokasi bergantung pada pasangan batas range. Chart ini hanya menunjukkan range yang ditetapkan.",
       "lesson": {
-        "href": "../bagian-05-smart-money-concept/premium-dan-discount.html",
+        "href": "../bagian-05-smart-money-concept/index.html#premium-dan-discount",
         "title": "Premium, discount dan dealing range"
       },
       "candles": [
@@ -5084,7 +5084,7 @@
       ],
       "principle": "Risiko harga = nilai absolut entry − SL. Nilai uang per poin belum diberikan.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5167,7 +5167,7 @@
       ],
       "principle": "Reward harga = nilai absolut TP − entry.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5250,7 +5250,7 @@
       ],
       "principle": "Reward 10 poin dibagi risiko 5 poin = 2R, belum memperhitungkan biaya.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5333,7 +5333,7 @@
       ],
       "principle": "BUY: SL < entry < TP. SELL: TP < entry < SL. Validasi geometri tidak membuktikan kualitas sinyal.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5416,7 +5416,7 @@
       ],
       "principle": "Candle sebelum/saat keputusan bukan hasil trade ke depan. Jangan mengisi outcome tanpa data lanjutan.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5499,7 +5499,7 @@
       ],
       "principle": "Reward kotor 10 poin − biaya 1 poin = 9 poin. RR kotor bukan hasil bersih setelah biaya.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5582,7 +5582,7 @@
       ],
       "principle": "Risiko harga = nilai absolut entry − SL. Nilai uang per poin belum diberikan.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5665,7 +5665,7 @@
       ],
       "principle": "Reward harga = nilai absolut TP − entry.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5748,7 +5748,7 @@
       ],
       "principle": "Reward 10 poin dibagi risiko 5 poin = 2R, belum memperhitungkan biaya.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5831,7 +5831,7 @@
       ],
       "principle": "BUY: SL < entry < TP. SELL: TP < entry < SL. Validasi geometri tidak membuktikan kualitas sinyal.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5914,7 +5914,7 @@
       ],
       "principle": "Candle sebelum/saat keputusan bukan hasil trade ke depan. Jangan mengisi outcome tanpa data lanjutan.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [
@@ -5997,7 +5997,7 @@
       ],
       "principle": "Reward kotor 10 poin − biaya 1 poin = 9 poin. RR kotor bukan hasil bersih setelah biaya.",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/cara-menentukan-sltp-gold.html",
+        "href": "../bagian-10-xauusd-playbook/index.html#cara-menentukan-sltp-gold",
         "title": "Menentukan SL dan TP Gold"
       },
       "candles": [

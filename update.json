@@ -1,10 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.379/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.",
-    "Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.",
-    "Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.",
-    "Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual."
+    "Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan).",
+    "Konsolidasi materi: 569 file bab digabung ke dalam 36 modul master interaktif dengan navigasi bab dan drawer TOC.",
+    "Pembersihan modul duplikat dan optimasi aset aplikasi (pengurangan 91% jumlah file HTML terfragmentasi).",
+    "Navigasi antar-materi terintegrasi penuh tanpa link rusak di WebView Android."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.379/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.",
-    "Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.",
-    "Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.",
-    "Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual."
+    "Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan).",
+    "Konsolidasi materi: 569 file bab digabung ke dalam 36 modul master interaktif dengan navigasi bab dan drawer TOC.",
+    "Pembersihan modul duplikat dan optimasi aset aplikasi (pengurangan 91% jumlah file HTML terfragmentasi).",
+    "Navigasi antar-materi terintegrasi penuh tanpa link rusak di WebView Android."
   ],
   "sha256": "ff37cbe0180131239ae56fa46bb9b1b07c28a62f323e79d295922b91d80136ae",
   "version": "2.0.0-pro.379",
