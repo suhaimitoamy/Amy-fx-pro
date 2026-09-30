@@ -350,3 +350,6 @@ Restructured Amy FX Academy from 665 fragmented HTML files down to 56 files (91%
 ## 2026-09-30 — Pro382 six-driver evaluation
 
 Pro382 / 950382: six-drivers.mjs, six-driver-lifecycle.mjs; backend persistence + telemetry; enam toggle; setup/level chart/riwayat; BE Adaptive, conditional early cut Rapid, risk policy Shield. Tambah migration constraint enam model dan regression/replay tools. Validasi dan publikasi dicatat setelah selesai.
+
+
+Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507d762ab; signed Actions36792997261 and lint36792997230 succeeded. Public update.json enabled at2.0.0-pro.382/950382. Downloaded31,534,089-byte APK SHA25634f42b0f0e34995e7df9ff0a425e3e68b74ec59acfa531f08f0ea007d4b32b3f matches manifest/checksum; all11 changed assets match source.146 regression files pass. Production engine25/setup-reader11/preferences2 active; five engine files byte-identical to source and successful live run returns all6 driver evaluations. Browser360/390 light/dark, toggles, detail refresh, selected chart, offline and overflow checks pass. Replay240 M5 with synthetic calendar produced one Rapid candidate; not a profitability backtest. Earlier build/deployment-pending notes are resolved. Actual Android update receipt remains unobserved.
