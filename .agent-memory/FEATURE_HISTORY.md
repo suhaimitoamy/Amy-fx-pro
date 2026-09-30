@@ -287,3 +287,8 @@ Pro342 Mapping: BUY/SELL filter, entry/SL/TP1/TP2 and zones from Supabase, expli
 ## 2026-09-24 — Pro357 prepared on review branch
 
 The Gold context workspace presents H1 bias and health, M15 control and POI lifecycle, M1 evidence, primary/alternative manual scenarios with numeric invalidation, liquidity levels, session/ATR context, narrative, and execution readiness. Supabase source functions generate context snapshots and context-only FCM events; archived setups remain accessible without issuing new active setups. Assistant and Market Intel no longer build a live plan from the retired local signal generator. Production deployment and signed APK release are pending approval; local JavaScript regression suite passed 137/137.
+
+
+## 2026-09-30 — Pro375 AMY ICT complete Mapping
+
+Implemented shared closed-candle Dashboard V2 (bias, locked invalidation, range/EQ, liquidity sweep, DOL, POI lifecycle), dual entry scores/near-invalid penalty, 16-row including header bias dashboard, score panel, narration and Strong/Ready markers. Added ICT reference MSS/BOS, displacement, OB/breakers/polarity, FVG/Implied FVG/BPR/VI, liquidity boxes, NWOG/NDOG, eight-level Fibonacci, D/W/M pivots, exact NY midnight and Asia range plus DST-aware killzones. Forty-six persisted display controls; chart candles now come from the same backend analysis snapshot. Local 140-file regression and 28 dedicated cases pass; Chromium mobile dark/light/all-controls/offline checks pass without page errors or overflow. See docs/mapping/AMY_ICT_PRO375.md for causal corrections and provider-period semantics.

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar,dealingRange,calculateConfluenceScore} from '../supabase/functions/scalper-engine/market-context.mjs';
+// Archived Pro374 baseline; the active M15-first engine is covered by mapping-amy-ict-pro375.test.mjs.
+import {buildLegacyMarketContext as buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar,dealingRange,calculateConfluenceScore} from '../supabase/functions/scalper-engine/market-context.mjs';
 import {currentContext} from '../app/src/main/assets/apps/mapping/js/ict-workspace/context-model.js';
 
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;

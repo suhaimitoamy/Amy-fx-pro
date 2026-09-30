@@ -189,3 +189,11 @@ Observe new STRUCTURAL-2026-09-V1 results separately from old history; run held-
 - Deploy the already prepared `scalper-system-push`, `scalper-setups`, then `scalper-engine` Edge Functions only after approval for production replacement and FCM side effects; retain existing `verify_jwt=false` cron compatibility and service-role check on push.
 - Verify a fresh `amyfx-gold-context-v1` result in `amyfx_preview_scalper_runs`, confirm no new setup row and no legacy setup notification, and check Pro357+ token delivery only after app registration.
 - Merge the reviewed PR to main to trigger the signed APK workflow; verify package/version/signer, release asset digest and `update.json` at `2.0.0-pro.357` / `950357`, then observe Android notification/UI on a device.
+
+
+## 2026-09-30 — Pro375 release verification
+
+- Source 2.0.0-pro.375 / 950375 prepared; deploy updated scalper-engine and verify the cron snapshot, then signed Actions/release/update.json activation.
+- Observe native update receipt and actual WebView gestures on the user's Android device. Compare against the user's TradingView broker/symbol/timezone; browser fixtures and causal tests do not establish identical broker data or profitability.
+
+Pro375 backend deployed as scalper-engine v22. Health and the scheduled COMPLETED/fresh scalper-setups snapshot expose amy-ict-complete-pro375 and context.amy. Real read-only feed validation supplies exact NY MO, locked Asia H/L and D/W/M pivots. Signed release/manifest verification remains pending at source publication.

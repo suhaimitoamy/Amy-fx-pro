@@ -49,7 +49,7 @@ test('shared chart renders actual candles and levels; teardown releases theme li
   const data=[],lines=[],removed=[];let fit=0,deleted=false;const events=new Map();
   const chart={applyOptions(){},addCandlestickSeries:()=>({setData:v=>data.push(v),createPriceLine:v=>{lines.push(v);return v;},removePriceLine:v=>removed.push(v)}),timeScale:()=>({fitContent(){fit++;}}),remove(){deleted=true;}};
   const context={window:{LightweightCharts:{createChart:()=>chart},addEventListener:(n,f)=>events.set(n,f),removeEventListener:n=>events.delete(n)},document:{documentElement:{dataset:{amyfxTheme:'light'}}}};
-  vm.runInNewContext(read('apps/mapping/js/ict-workspace/chart-view.js').replace('export function','function'),context);
+  vm.runInNewContext(read('apps/mapping/js/ict-workspace/chart-view.js').replace(/^import .*;\n/gm,'').replace('export function','function'),context);
   const view=context.createPriceChart({}),candles=[{time:1,open:100,high:102,low:99,close:101}];
   view.draw({tf:'M5',candles,plan:{entry:100,sl:95,tp:110}});assert.equal(data[0],candles);assert.equal(fit,1);assert.equal(lines.length,3);
   view.draw({tf:'M5',candles,plan:null});assert.equal(data.length,1);assert.equal(removed.length,3);

@@ -1,10 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.374/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping: Status offline mengunci WAIT dan membersihkan konteks serta garis chart yang kedaluwarsa.",
-    "Mapping: Label A+ hanya untuk bukti terkonfirmasi; target likuiditas wajib valid dan kalender harus mencakup minggu berjalan.",
-    "Mapping: FVG dan konfirmasi tidak melewati candle yang hilang; invalidasi BUY/SELL dihitung sesuai arah.",
-    "Driver: Status evaluasi dan statistik arsip ditampilkan sesuai bukti server, tanpa klaim trigger atau WR live yang belum tersedia."
+    "Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.",
+    "Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.",
+    "Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.",
+    "Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.374/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Mapping: Status offline mengunci WAIT dan membersihkan konteks serta garis chart yang kedaluwarsa.",
-    "Mapping: Label A+ hanya untuk bukti terkonfirmasi; target likuiditas wajib valid dan kalender harus mencakup minggu berjalan.",
-    "Mapping: FVG dan konfirmasi tidak melewati candle yang hilang; invalidasi BUY/SELL dihitung sesuai arah.",
-    "Driver: Status evaluasi dan statistik arsip ditampilkan sesuai bukti server, tanpa klaim trigger atau WR live yang belum tersedia."
+    "Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.",
+    "Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.",
+    "Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.",
+    "Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia."
   ],
   "sha256": "d20dc579d73fc10d54e2e2624650aeea19fce5b436ad36c18d49c8dff40ecec9",
   "version": "2.0.0-pro.374",

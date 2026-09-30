@@ -9,6 +9,31 @@ Gunakan skill ini sebagai **fondasi utama** setiap kali menganalisis, memodifika
 
 ---
 
+## Aturan aktif Pro375 — keputusan user 2026-09-30
+
+Instruksi user terbaru menyetujui integrasi seluruh skrip AMY ICT sampai visual lengkap.
+Bagian formula Pro373/374 di bawah adalah **riwayat**, bukan aturan aktif Pro375.
+Audit membuktikan Pro373/374 baru adaptasi sebagian; catatan lama “porting penuh”
+tidak menyatakan parity yang sudah terverifikasi.
+
+- Dashboard Bias V2 **M15** menjadi otoritas bias/locked invalidation/range/sweep/DOL/POI.
+- Closed **M5** menjadi trigger; H1 adalah konteks tambahan, bukan veto arah.
+- Scoring BUY/SELL terpisah mengikuti bobot skrip (mentah hingga 110, dibatasi 100),
+  penalti near invalid × 0.7, konteks Asia. Angka adalah poin, bukan peluang menang.
+- Formula minimum ketebalan Pro374 dan H1 invalidation guard historis tidak menjadi
+  filter rumus Dashboard V2 yang sudah disetujui user. News lock, verified calendar,
+  target terarah, geometri invalidasi dan readiness A+ tetap berlaku di lapisan aplikasi.
+- Satu engine portable `amy-ict.mjs`/`amy-ict.js`; chart membaca candle snapshot server
+  yang sama. ICT dasar diberi label referensi karena rumusnya berbeda dari Dashboard.
+- Sesuai candle tertutup: tidak ada self-retest formation bar, tidak ada level session
+  buatan saat data hilang, target DOL reached tidak kembali aktif setelah diambil.
+- Seluruh fitur visual ICT/AMY tersedia melalui 46 kontrol tampilan; kontrol tidak
+  mengubah keputusan server. Formula/batasan tercatat di `docs/mapping/AMY_ICT_PRO375.md`.
+- Patuhi user terbaru jika berbeda dari catatan historis. Jangan mengklaim broker parity,
+  hasil profit, notifikasi Android diterima, atau visual yang belum diamati.
+
+---
+
 ## 1. Konteks Sesi & Kronologi Perubahan Penting
 
 ### A. Latar Belakang Masalah (Audit Awal Sesi Pro 372)
@@ -118,3 +143,5 @@ Setiap kali sesi kerja selesai atau pengguna meminta penutupan/pembaharuan skill
 | **2026-09-30** | `2.0.0-pro.373` (`950373`) | Porting penuh TradingView `ICT Concepts [amygmgo]`: filter FVG $\ge 0.8$ poin, titik 50% CE garis putus-putus emas, Dealing Range (Diskon vs Premium), Confluence Scoring 8 lapis, eliminasi notifikasi Scalp Kilat. |
 | **2026-09-30** | `2.0.0-pro.374` (`950374`) | Audit integritas Mapping: reset status `BELUM SIAP` saat offline/cache, kejujuran model 6 driver (`BELUM DIEVALUASI`), pengetatan fungsi `aPlusEligible` (target terarah + berita valid), kontiguitas candle FVG/konfirmasi, dan isolasi invalidasi terarah. |
 | **2026-09-30** | Pembuatan Skill | Inisialisasi skill `amy-fx-mapping-ict` sebagai memori hidup berkelanjutan dan SOP auto-update sesi. |
+
+| **2026-09-30** | `2.0.0-pro.375` (`950375`) | Integrasi engine AMY Dashboard V2 M15/M5 bersama, H1 konteks tambahan, scoring BUY/SELL dan near-invalid, seluruh visual ICT/AMY. 140 file regresi dan browser mobile lulus; deployment scalper-engine v22. Klaim port penuh Pro373/374 ditandai historis dan superseded oleh audit/integrasi Pro375. |

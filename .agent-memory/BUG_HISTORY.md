@@ -526,3 +526,8 @@ The previous active Scalper/Mapping path reported a BUY/SELL setup after sweep, 
 
 ## 2026-09-19 — Pro346 scalper fixes
 Replaced rolling-five-bar pseudo-BOS, immediate expansion chasing and Discipline EPSILON breakout stops; AMD/new limit fills start after persisted detection. Added first-touch invalidation, expiry, actual-entry RR checks, conservative limit-bar TP handling and adverse stop gaps. Preserved deployed SMR boolean-anchor fix missing from repository. Deterministic regression validation does not establish improved WR.
+
+
+## 2026-09-30 — Pro375 integration corrections
+
+Fixed newly created zones immediately testing their own formation candle; retests require later closed bars. LTF momentum/ATR do not bridge missing feed candles. Missing midnight/Asia coverage is UNAVAILABLE, never an arbitrary fallback. Historical scoring uses key levels available at each trigger close. DOL reached is latched for that sweep/target. Avoid undefined timeToCoordinate at the final killzone candle. Backend M1 loads paginate below PostgREST row caps. Offline removal also clears all new overlay layers and scoring tables.

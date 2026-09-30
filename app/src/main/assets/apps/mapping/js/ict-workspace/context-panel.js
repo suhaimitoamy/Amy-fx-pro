@@ -99,9 +99,9 @@ function render(){
   $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';
   $('m15-control').textContent=id(c.m15?.control||'BALANCED');
   const aPlus = c.execution?.aPlusReady === true && c.execution?.status === 'READY TO REVIEW' && c.confluence?.score >= 75;
-  $('m15-risk').textContent=c.m15?.opposingControl?`⚠️ PULLBACK${drLoc}: Koreksi lawan arah H1 · Tahan diri, jangan pernah melawan trend`:aPlus?`🟢 Grade A+${drLoc}: Bukti lengkap${confScore}`:`SEARAH${drLoc} · BELUM A+${confScore}`;
+  $('m15-risk').textContent=aPlus?`🟢 Grade A+${drLoc}: Bukti lengkap${confScore}`:c.m15?.opposingControl?`H1 berlawanan · konteks tambahan${drLoc}${confScore}`:`BIAS M15${drLoc} · BELUM A+${confScore}`;
   const confStatus=id(confObj?.status||'WAITING');
-  const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep di area M15.';
+  const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep atau respons POI dan break/displacement M5.';
   if($('m5-confirmation'))$('m5-confirmation').textContent=confStatus;
   if($('m1-confirmation'))$('m1-confirmation').textContent=confStatus;
   if($('m5-evidence'))$('m5-evidence').textContent=confEvidence;

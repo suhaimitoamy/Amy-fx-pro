@@ -1,8 +1,9 @@
-// Closed-candle XAU/USD context. Built strictly according to ICT Concepts [amygmgo]
+import {analyzeAmy,AMY_POLICY} from './amy-ict.mjs';
+// Closed-candle XAU/USD context. Shared AMY Dashboard V2 decisions and ICT references.
 // Every threshold below is a configurable model heuristic aligned with ICT displacement,
 // dealing range, and multi-layer confluence scoring.
 export const CONTEXT_VERSION = 'amyfx-gold-context-v1';
-export const CONTEXT_POLICY = 'mapping-audit-pro374';
+export const CONTEXT_POLICY = AMY_POLICY;
 const PIVOT = 2;
 const round = value => Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
 const latest = rows => rows.at(-1);
@@ -507,7 +508,7 @@ export function aPlusEligible({ready,confluence,dr,target,side,price,news}) {
     (side==='BUY'?target.level>price:target.level<price));
 }
 
-export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000),calendar=[]}={}) {
+export function buildLegacyMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000),calendar=[]}={}) {
   const isM5=Array.isArray(m5)&&m5.length>0;
   const confCandles=isM5?m5:m1;
   const tfName=isM5?'M5':'M1';
@@ -671,4 +672,44 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     volatility:{condition:highVolatility?'HIGH VOLATILITY':'NORMAL',atr:round(vol)},confluence,marketState:state,
     primary:scenario(side,poi,target),alternative,
     execution:{status,checklist,reason,aPlusReady:isAplusReady},narrative:narrativeText,event};
+}
+
+// Compatibility envelope for existing server consumers; M15 now owns the decision.
+export function buildMarketContext(input={}) {
+  const now=input.nowSeconds??Math.floor(Date.now()/1000),H=closedCandles(input.h1,now,3600),M=closedCandles(input.m15,now,900),T=closedCandles(input.m5,now,300);
+  const source={H1:latest(H)?.close_time??null,M15:latest(M)?.close_time??null,M5:latest(T)?.close_time??null,M1:null,D1:null};
+  const fresh=H.length>=30&&M.length>=40&&T.length>=40&&now-source.H1<=10800&&now-source.M15<=2100&&now-source.M5<=900;
+  const news=evaluateEconomicCalendar(input.calendar||[],now),session=goldSession(now);
+  const base={version:CONTEXT_VERSION,policyVersion:CONTEXT_POLICY,symbol:'XAU/USD',generatedAt:new Date(now*1000).toISOString(),source,fresh:Boolean(fresh),news,session};
+  if(!fresh)return {...base,h1:{bias:'NEUTRAL',health:'WEAKENING'},m15:{control:'BALANCED',poi:null},m5:{status:'WAITING'},m1:{status:'WAITING'},primary:null,alternative:null,liquidity:[],volatility:{condition:'UNKNOWN',atr:null},confluence:{score:0,grade:'NO_SETUP'},marketState:'DATA TERLAMBAT',execution:{status:'NOT READY',aPlusReady:false,checklist:[],reason:'Candle H1, M15, atau M5 belum lengkap atau terlambat.'},narrative:'Menunggu candle tertutup yang segar.',event:null,amy:null};
+  const amy=analyzeAmy({...input,h1:H,m15:M,m5:T,nowSeconds:now}),d=amy.dashboard,e=amy.entry,t=amy.trigger;
+  const side=d.biasDir===1?'BUY':d.biasDir===-1?'SELL':null,poi=d.poi,price=d.candle.close;
+  const bias=dir=>dir===1?'BULLISH':dir===-1?'BEARISH':'NEUTRAL';
+  const h=structure(H),opposing=Boolean(side&&h.bias!=='NEUTRAL'&&h.bias!==bias(d.biasDir));
+  const dr={rangeHigh:d.rangeHigh,rangeLow:d.rangeLow,eq:d.eq,eqLow:d.eqLow,eqHigh:d.eqHigh,location:d.priceZone===1?'PREMIUM':d.priceZone===-1?'DISCOUNT':'EQUILIBRIUM',locationStatus:d.locationStatus};
+  const target=d.dolTarget!=null?{label:d.dolDir===1?'BSL':'SSL',level:d.dolTarget,side:d.dolDir===1?'BUY':'SELL',status:d.dolStatus===1?'ACTIVE':'TAKEN'}:null;
+  const validTarget=target?.status==='ACTIVE'&&target.side===side&&(side==='BUY'?target.level>price:target.level<price);
+  const invalidValid=d.invalidLevel!=null&&(side==='BUY'?d.invalidLevel<price:side==='SELL'?d.invalidLevel>price:false);
+  const alignedTrigger=side&&(side==='BUY'?t.bullBreak&&t.bullDisp:t.bearBreak&&t.bearDisp);
+  const checks=[{label:'ATR M15 tersedia dari candle berurutan',ok:Number.isFinite(d.atr)},
+    {label:'Bias M15 aktif dan belum invalid',ok:Boolean(side&&d.invalidStatus<2)},
+    {label:'POI searah bias dan respons harga',ok:Boolean(poi&&e.inPoi)},
+    {label:'Sweep segar searah bias',ok:Boolean(d.sweepStatus===1&&d.sweepDir===d.biasDir||t.sweepDir===d.biasDir&&d.biasDir)},
+    {label:'M5 break struktur dan displacement',ok:Boolean(alignedTrigger)},
+    {label:'Invalidasi M15 sesuai arah',ok:invalidValid},
+    {label:'Target likuiditas aktif searah',ok:Boolean(validTarget)},
+    {label:'Kalender minggu berjalan terverifikasi',ok:news.status!=='UNVERIFIED'},
+    {label:'Tidak ada news lock',ok:news.status!=='NEWS_LOCK'}];
+  const ready=checks.every(x=>x.ok),confluence={...e,breakdown:e.breakdown,score:e.score,grade:e.grade};
+  const aPlus=ready&&e.score>=75&&e.winDir===d.biasDir&&d.locationStatus===1&&news.status!=='UNVERIFIED'&&news.status!=='NEWS_LOCK';
+  const status=aPlus?'READY TO REVIEW':'NOT READY',reason=news.status==='NEWS_LOCK'?news.note:aPlus?'Bukti M15/M5 lengkap. Tinjau spread dan risiko secara manual.':`Menunggu: ${checks.find(x=>!x.ok)?.label||(d.locationStatus!==1?'lokasi discount/premium yang sesuai':'skor minimal 75 searah bias')}.`;
+  const scenario=side?{side,label:side==='BUY'?'BELI GOLD':'JUAL GOLD',area:poi?{low:poi.low,high:poi.high,ce:poi.ce}:null,poiType:poi?.kind??null,poiStatus:poi?.lifecycle??null,target:target?.level??null,invalidation:d.invalidLevel,reasons:[`Bias M15 ${bias(d.biasDir)}`,`H1 ${h.bias} · konteks tambahan`,poi?`${poi.kind} ${poi.lifecycle}`:'POI belum tersedia'],waiting:'Tunggu respons POI dan konfirmasi M5.',status:poi?'WAITING CONFIRMATION':'NO VALID POI'}:null;
+  const levels=liquidity(M,closedCandles(input.d1,now),swings(M),now);
+  for(const [label,level,side]of [['BSL',d.bsl,'BUY'],['SSL',d.ssl,'SELL'],['MO',amy.levels.midnightOpen,null],['ASIA H',amy.levels.asiaHigh,'BUY'],['ASIA L',amy.levels.asiaLow,'SELL']])if(level!=null)levels.push({label,level,side,status:'REFERENCE'});
+  const narrative=news.status==='NEWS_LOCK'?news.note:e.text+(opposing?'\nH1 berlawanan · konteks tambahan, pantau risiko.':'');
+  let event=null;
+  if(news.status==='NEWS_LOCK')event={key:[CONTEXT_POLICY,'NEWS_LOCK',news.event].join(':'),title:'🛡️ Tahan Dulu: News Lock',body:news.note};
+  else if(aPlus)event={key:[CONTEXT_POLICY,'A_PLUS_READY',side,poi.id,d.invalidLevel,d.dolTarget].join(':'),title:`🟢 Konfirmasi M15/M5: ${side} XAUUSD`,body:`Confluence ${e.score}/100 poin. Area ${poi.low.toFixed(2)}–${poi.high.toFixed(2)}; likuiditas ${target.level.toFixed(2)}. Tinjau manual.`};
+  const confirmation={status:alignedTrigger?'CONFIRMED':e.inPoi?'CONFIRMING':'WAITING',sweep:t.sweepDir?{level:t.sweptPrice,time:t.time}:d.sweepStatus===1?{level:d.sweep.price,time:d.sweep.time}:null,mss:alignedTrigger?{level:side==='BUY'?t.high:t.low,time:t.time}:null,microFvg:null};
+  return {...base,source:{...amy.source,M1:amy.source.M1||amy.source.M5},price,h1:h,m15:{control:d.biasDir===1?'BUYER':d.biasDir===-1?'SELLER':'BALANCED',structure:bias(d.biasDir),lastBreak:latest(amy.events),poi:poi?{...poi,label:`${poi.side} ${poi.kind}`} :null,opposingControl:opposing,dealingRange:dr,invalidLevel:d.invalidLevel,invalidStatus:d.invalidStatus},m5:confirmation,m1:confirmation,liquidity:levels,volatility:{condition:'NORMAL',atr:d.atr},confluence,marketState:news.status==='NEWS_LOCK'?'NEWS LOCK · TUNDA EKSEKUSI':d.invalidStatus===2?'STRUKTUR M15 BATAL':`${bias(d.biasDir)} · ${e.grade}`,primary:scenario,alternative:null,execution:{status,aPlusReady:aPlus,checklist:checks,reason},narrative,event,amy};
 }

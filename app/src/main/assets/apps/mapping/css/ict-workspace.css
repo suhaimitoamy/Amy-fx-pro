@@ -23,3 +23,14 @@
 .driver-meta{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px}
 .driver-meta strong{color:var(--text)}
 .driver-desc{margin:4px 0 0;font-size:11px;color:var(--muted)}
+
+/* AMY ICT overlays and closed-candle dashboard */
+#chart{position:relative;min-height:460px;isolation:isolate;}
+.ict-overlay{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.amy-dashboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin:12px 0 0;background:var(--border,#354c6b);}
+.amy-dashboard>div{display:grid;grid-template-columns:100px minmax(0,1fr);gap:8px;padding:9px;background:var(--surface,#142540);}
+.amy-dashboard dt{font-size:10px;font-weight:700;color:var(--muted,#aabbd5);}.amy-dashboard dd{margin:0;font-size:11px;overflow-wrap:anywhere;}
+.amy-narration{white-space:pre-line;line-height:1.7;}.amy-score-table{width:100%;font-size:12px;border-collapse:collapse;}.amy-score-table th,.amy-score-table td{padding:6px;text-align:left;border-bottom:1px solid var(--border,#354c6b);}
+.ict-settings{margin:12px 0;padding:12px;border:1px solid var(--border,#354c6b);border-radius:12px;}.ict-settings summary{cursor:pointer;font-weight:700;}
+#ict-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;}#ict-controls fieldset{min-width:0;border:1px solid var(--border,#354c6b);border-radius:10px;padding:10px;}#ict-controls legend{font-size:12px;}#ict-controls label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:9px 0;font-size:12px;}#ict-controls input[type=checkbox]{width:18px;height:18px;flex-shrink:0;}#ict-controls input[type=number]{width:65px;}#ict-controls select{max-width:140px;}#ict-controls button{grid-column:1/-1;}#ict-coverage{font-size:11px;overflow-wrap:anywhere;}
+@media(max-width:600px){.amy-dashboard{grid-template-columns:1fr;}#ict-controls{grid-template-columns:1fr;}#chart{min-height:460px;}.amy-dashboard>div{grid-template-columns:90px minmax(0,1fr);}}

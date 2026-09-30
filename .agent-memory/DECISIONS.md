@@ -419,3 +419,8 @@ Pro357 source replaces new Scalper setup publication with closed-candle XAU/USD 
 
 ## 2026-09-19 — Pro346 scalper rebuild
 User requested rebuilding active drivers with WR below50% and version bump for update notification. Global retained outcomes identify Discipline, AMD, Range Expansion and Retest BOS. Version STRUCTURAL-2026-09-V1 replaces only those detectors and routes new setups to isolated causal/risk-validated lifecycle; old setups and archived models remain unchanged. Source346; signed pipeline owns manifest activation. See docs/SCALPER_PRO346_REBUILD.md.
+
+
+## 2026-09-30 — Pro375 unified AMY ICT Mapping
+
+User explicitly authorized complete integration and signed release. Dashboard V2 M15 is the decision authority; closed M5 is the trigger, H1 additional context. Portable amy-ict.mjs is byte-synchronized to Android amy-ict.js. Chart, dashboard, scoring, narration and markers consume one server snapshot including its candle inputs. ICT base drawings remain separately labelled because their OB/FVG formulas differ from Dashboard V2. Preserve verified-calendar/news, directional target, geometry and A+ gates. Historical Pro374 tests remain a named archived baseline; dedicated Pro375 tests verify the current path. Scores are points, not probabilities.

@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+const {chromium}=await import(process.env.AMYFX_BROWSER_MODULE||'playwright');
+import {buildMarketContext} from '../supabase/functions/scalper-engine/market-context.mjs';
+import {writeFileSync} from 'node:fs';
+const now=Math.floor(Date.now()/1000);
+function bars(seconds,count,drift=.12){return Array.from({length:count},(_,i)=>{const close=3300+i*drift+Math.sin(i*Math.PI/4)*3,open=close-drift*.3,time=Math.floor(now/seconds)*seconds-(count-i)*seconds;return {open_time:time,close_time:time+seconds,open,high:Math.max(open,close)+.4,low:Math.min(open,close)-.4,close,is_closed:true};});}
+const input={nowSeconds:now,h1:bars(3600,60,.25),m15:bars(900,120,-.18),m5:bars(300,100,-.05),m1:bars(60,1800,.005),d1:bars(86400,70,1),calendar:[{country:'USD',impact:'High',title:'Fixture Calendar',date:new Date((now+6*3600)*1000).toISOString()}]};
+const c=buildMarketContext(input);writeFileSync('/tmp/amyfx375-browser-context.json',JSON.stringify(c));
+const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+await page.emulateMedia({colorScheme:'dark'});
+page.on('pageerror',e=>errors.push(e.stack));
+await page.route('**/scalper-setups?**',r=>r.fulfill({json:{ok:true,mode:'market_context',context:c,engine:{status:'COMPLETED',completed_at:new Date(now*1000).toISOString(),result:{engine:'amyfx-gold-context-v1'}},history:[]}}));
+await page.route('**/api/twelvedata?**',r=>{const tf=new URL(r.request().url()).searchParams.get('interval'),rows=bars({'15min':900,'5min':300,'1min':60}[tf]||900,120);return r.fulfill({json:{status:'ok',values:rows.map(x=>({datetime:new Date(x.open_time*1000).toISOString(),open:x.open,high:x.high,low:x.low,close:x.close})),source:'fixture-closed'}});});
+await page.goto((process.env.AMYFX_PREVIEW_URL||'http://127.0.0.1:8765')+'/apps/mapping/index.html');await page.waitForFunction(()=>Boolean(window.AmyMarketContext?.amy));await page.waitForSelector('.ict-overlay');
+await page.locator('#chart').scrollIntoViewIfNeeded();await page.waitForTimeout(500);
+await page.screenshot({path:'/tmp/amyfx375-chart-dark.png'});
+const report={errors,body:await page.locator('body').innerText().then(x=>x.length),dashboardRows:await page.locator('.amy-dashboard>div').count(),controls:await page.locator('[data-ict]').count(),canvas:await page.locator('.ict-overlay').evaluate(c=>({width:c.width,height:c.height})),overflow:await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)};
+await page.locator('.ict-settings summary').click();
+for(const key of ['bpr','vi','nwog','ndog','killzones','panel','displacement','bsl','ssl','polarity'])await page.locator(`[data-ict="${key}"]`).check();
+await page.locator('[data-ict="fib"]').selectOption('FVG');await page.locator('[data-ict="pivotMode"]').selectOption('All');await page.locator('[data-ict="pivotTf"]').selectOption('W');
+await page.locator('#timeframe').selectOption('M5');await page.waitForTimeout(250);await page.locator('#chart').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/amyfx375-chart-all.png'});
+await page.evaluate(()=>{document.documentElement.dataset.amyfxTheme='light';window.dispatchEvent(new Event('amyfx:theme-change'));});await page.screenshot({path:'/tmp/amyfx375-chart-light.png'});
+await page.setViewportSize({width:360,height:800});report.narrowOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+await page.getByRole('button',{name:'Bukti',exact:true}).click();report.evidence=await page.locator('#evidence .record').count();
+await page.getByRole('button',{name:'Konteks',exact:true}).click();await page.evaluate(()=>window.dispatchEvent(new Event('offline')));await page.waitForTimeout(100);
+report.offlineStatus=await page.locator('#execution-status').innerText();report.offlineContext=await page.evaluate(()=>window.AmyMarketContext);report.offlineCanvasCleared=await page.locator('.ict-overlay').evaluate(c=>{const data=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return data.every(v=>v===0);});
+report.errors=errors;assert.deepEqual(errors,[]);assert.equal(report.overflow,false);assert.equal(report.narrowOverflow,false);assert.equal(report.offlineStatus,'BELUM SIAP');assert.equal(report.offlineContext,null);assert.equal(report.offlineCanvasCleared,true);assert.equal(report.dashboardRows,15);assert.equal(report.controls,46);console.log(JSON.stringify(report));await browser.close();

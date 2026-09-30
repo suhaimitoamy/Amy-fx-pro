@@ -1,19 +1,24 @@
 import {loadCandles} from './data.js';
 import {normalize} from './engine.js';
 import {createPriceChart} from './chart-view.js';
+import {mountDisplay,renderAmy} from './ict-presentation.js';
 const $=id=>document.getElementById(id);
+let context=null,display=null;
 let chart=null,controller=null,generation=0,timer=null,overlay=null,raw=null;
 try{chart=createPriceChart($('chart'));}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
+display=mountDisplay(next=>{display=next;renderAmy(context?.amy,display,context?.news);draw();});
 // A cached trade plan from the previous application version must not be served as current context.
 try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}
 function draw(){
-  const tf=$('timeframe').value,candles=raw?.tf===tf?normalize(raw.values,tf,Date.now()/1000).candles:[];
-  chart?.draw({tf,candles,plan:null},overlay);
+  const tf=$('timeframe').value,serverCandles=context?.amy?.chartCandles?.[tf];
+  const candles=serverCandles?.length?serverCandles.map(c=>({time:c.open_time,open:c.open,high:c.high,low:c.low,close:c.close})):raw?.tf===tf?normalize(raw.values,tf,Date.now()/1000).candles:[];
+  chart?.draw({tf,candles,plan:null},overlay,context?.amy?{amy:context.amy,settings:display,news:context.news}:null);
+  const coverage=$('ict-coverage');if(coverage){const k=context?.amy?.levels,p=context?.amy?.pivots;coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display.pivotTf}: ${p?.[display.pivotTf]?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';}
   const last=candles.at(-1),duration=tf==='M1'?60:tf==='M5'?300:900;
   $('source').textContent=last?`Candle ${tf} terakhir ditutup ${new Date((last.time+duration)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false})} WITA`:'Menunggu candle tertutup.';
-  $('chart-caption').textContent=last?'Candle tertutup · referensi':'Belum ada candle valid';
+  $('chart-caption').textContent=last?(serverCandles?.length?'Candle server · engine yang sama':'Candle tertutup · referensi'):'Belum ada candle valid';
 }
-window.addEventListener('amyfx:market-context',event=>{const scenario=event.detail?.primary;
+window.addEventListener('amyfx:market-context',event=>{context=event.detail;renderAmy(context?.amy,display,context?.news);const scenario=context?.primary;
   overlay=scenario?.area?{area:scenario.area,invalidation:scenario.invalidation,target:scenario.target}:null;draw();});
 function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,60000);}
 async function refresh(){

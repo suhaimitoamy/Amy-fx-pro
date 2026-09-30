@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Mapping: Status offline mengunci WAIT dan membersihkan konteks serta garis chart yang kedaluwarsa.
-          - Mapping: Label A+ hanya untuk bukti terkonfirmasi; target likuiditas wajib valid dan kalender harus mencakup minggu berjalan.
-          - Mapping: FVG dan konfirmasi tidak melewati candle yang hilang; invalidasi BUY/SELL dihitung sesuai arah.
-          - Driver: Status evaluasi dan statistik arsip ditampilkan sesuai bukti server, tanpa klaim trigger atau WR live yang belum tersedia.
+          - Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.
+          - Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.
+          - Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.
+          - Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber

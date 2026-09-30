@@ -13,8 +13,10 @@ async function rest(path:string,init:RequestInit={}) {
 }
 async function load(timeframe:string,limit:number){
   const params=new URLSearchParams({select:'symbol,timeframe,open_time,close_time,open,high,low,close,is_closed',symbol:'eq.XAU/USD',timeframe:`eq.${timeframe}`,is_closed:'eq.true',order:'open_time.desc',limit:String(limit)});
-  const rows=await rest(`candles?${params}`);
-  return (Array.isArray(rows)?rows:[]).reverse();
+  const rows=[];
+  for(let offset=0;offset<limit;offset+=500){params.set('limit',String(Math.min(500,limit-offset)));params.set('offset',String(offset));
+    const page=await rest(`candles?${params}`);if(!Array.isArray(page))break;rows.push(...page);if(page.length<Math.min(500,limit-offset))break;}
+  return rows.reverse();
 }
 async function refresh(interval:string,outputsize:number){
   const query=new URLSearchParams({symbol:'XAU/USD',interval,outputsize:String(outputsize)});
@@ -68,17 +70,17 @@ Deno.serve(async request=>{
       refresh('5min',500),
       refresh('15min',700),
       refresh('1h',500),
-      refresh('1min',500).catch(()=>({interval:'1min',latestOpenTime:null}))
+      refresh('1min',2000).catch(()=>({interval:'1min',latestOpenTime:null}))
     ]);
     // Daily levels are useful context, but a provider-side D1 outage cannot block M5/M15/H1 awareness.
-    const daily=await refresh('1day',70).catch(()=>({interval:'1day',latestOpenTime:null}));
+    const daily=await refresh('1day',90).catch(()=>({interval:'1day',latestOpenTime:null}));
     refreshes.push(daily);
     const [m5,m15,h1,d1,m1,calendar]=await Promise.all([
       load('M5',500),
       load('M15',700),
       load('H1',500),
-      load('D1',70),
-      load('M1',100).catch(()=>[]),
+      load('D1',90),
+      load('M1',2000).catch(()=>[]),
       fetchCalendar().catch(()=>[])
     ]);
     const context=buildMarketContext({m5,m15,h1,d1,m1,nowSeconds:now,calendar});

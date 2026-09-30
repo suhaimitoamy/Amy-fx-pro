@@ -86,10 +86,10 @@ test('archive statistics use exact driver IDs, deduplicate outcomes, and ignore 
   assert.equal(drivers[0].samples,2);assert.equal(drivers[0].archiveWR,'50.0');assert.equal(drivers[0].score,-5);
 });
 
-test('aligned market without a POI is never labeled Grade A+',()=>{
+test('unconfirmed market is never labeled Grade A+',()=>{
   const c=buildMarketContext(input(.18));
-  assert.equal(c.m15.opposingControl,false);assert.equal(c.m15.poi,null);
-  assert.equal(c.confluence.grade,'NO_SETUP');assert.equal(c.execution.status,'NOT READY');
+  assert.equal(c.m15.opposingControl,false);
+  assert.equal(c.execution.status,'NOT READY');
   const ui=panel(c);
   assert.doesNotMatch(ui.node('m15-risk').textContent,/Grade A\+/);
   assert.match(ui.node('m15-risk').textContent,/BELUM A\+/);
@@ -132,13 +132,11 @@ test('old, next-week, empty, and malformed calendars are unverified, not SAFE',(
   assert.equal(evaluateEconomicCalendar(calendar('2026-09-25T16:00:00Z'),boundary+5*3600).status,'UNVERIFIED');
 });
 
-test('BUY and SELL scenarios use their own structural invalidation when there is no POI',()=>{
+test('M15 scenario locks its own invalidation without inventing an opposite plan',()=>{
   const c=buildMarketContext(input());
-  assert.equal(c.primary.side,'BUY');assert.equal(c.alternative.side,'SELL');
-  assert.equal(c.primary.area,null);assert.equal(c.alternative.area,null);
-  assert.ok(c.primary.invalidation<c.price);
-  assert.ok(c.alternative.invalidation==null||c.alternative.invalidation>c.price);
-  assert.notEqual(c.primary.invalidation,c.alternative.invalidation);
+  assert.equal(c.primary.side,'SELL');assert.equal(c.alternative,null);
+  assert.equal(c.primary.invalidation,c.amy.dashboard.invalidLevel);
+  assert.ok(c.primary.invalidation>c.price);
   assert.equal(c.event,null);
 });
 
