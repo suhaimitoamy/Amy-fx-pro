@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.377/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.378/AmyFX-Pro-latest.apk",
   "changelog": [
     "Chart Gold: tombol Fullscreen untuk melihat chart memenuhi layar.",
     "Tulisan harga, label ICT/AMY dan ringkasan chart lebih besar saat fullscreen.",
     "Mendukung tampilan tegak/mendatar, zoom dua jari dan geser chart; posisi zoom tetap saat keluar.",
     "Keluar lewat tombol Keluar atau Back; aturan trading, data candle dan kontrol visual tetap dipertahankan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.377/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.378/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950377,
-  "latest_version_name": "2.0.0-pro.377",
+  "latest_version_code": 950378,
+  "latest_version_name": "2.0.0-pro.378",
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Mendukung tampilan tegak/mendatar, zoom dua jari dan geser chart; posisi zoom tetap saat keluar.",
     "Keluar lewat tombol Keluar atau Back; aturan trading, data candle dan kontrol visual tetap dipertahankan."
   ],
-  "sha256": "1998d6efe381114b230d393db90f0a675dc2b7b6263f10f12775941796e7ed76",
-  "version": "2.0.0-pro.377",
-  "versionCode": 950377
+  "sha256": "516d95d6fd9bcfec15985dc6b8cc354e51480265d8ab0689936dce1947ce91bf",
+  "version": "2.0.0-pro.378",
+  "versionCode": 950378
 }
