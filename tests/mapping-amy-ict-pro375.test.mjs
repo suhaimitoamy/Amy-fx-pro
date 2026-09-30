@@ -57,3 +57,9 @@ test('market gaps restart lower-timeframe momentum confirmation',()=>{
   const input=fixture();input.m5=input.m5.map((c,i)=>i===78?{...c,open_time:c.open_time+10,close_time:c.close_time+10}:c);
   const c=buildMarketContext(input);assert.equal(c.amy.trigger.bullDisp,false);assert.equal(c.amy.trigger.bearDisp,false);assert.equal(c.execution.aPlusReady,false);assert.equal(c.event,null);
 });
+
+test('execution geometry uses latest closed M5 price and counter-bias scores are explicit',()=>{
+  const input=fixture();input.m15=candles(900,100,.18);input.m5=candles(300,80,-.04);
+  const c=buildMarketContext(input);assert.equal(c.price,input.m5.at(-1).close);assert.equal(c.execution.checklist.find(x=>x.label==='Invalidasi M15 sesuai arah').ok,false);assert.equal(c.execution.aPlusReady,false);
+  if(c.amy.entry.winDir!==c.amy.dashboard.biasDir&&c.amy.entry.winDir){assert.match(c.marketState,/BERLAWANAN BIAS/);assert.match(c.narrative,/berlawanan bias/);}
+});

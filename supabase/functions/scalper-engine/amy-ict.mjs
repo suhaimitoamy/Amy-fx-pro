@@ -1,6 +1,6 @@
 // AMY ICT engine: portable, deterministic, closed candles only. Browser copy is byte-checked.
 // Dashboard V2 owns decisions; ICT base objects are separately named visual references.
-export const AMY_POLICY = 'amy-ict-complete-pro375';
+export const AMY_POLICY = 'amy-ict-complete-pro376';
 export const DEFAULTS = Object.freeze({swingLen:3,freshBars:8,nearAtr:.35,dispMult:1.2,minSweepTicks:1,tick:.01,triggerSwing:3,triggerDisp:1,rejectWick:1.25,baseLen:5,obLength:10,useBody:true,visible:2});
 const last=a=>a.at(-1), finite=Number.isFinite;
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
@@ -183,7 +183,9 @@ export function entryScore(d,t,levels={},options={}){
   const dir=winDir||d.biasDir,target=d.dolTarget,nearPoi=poi&&distance(c.close,poi)>0&&distance(c.close,poi)<=(d.atr||0)*1.5;
   const nearDol=target!=null&&d.dolStatus===1&&Math.abs(c.close-target)<=(d.atr||0);
   const lines=[];let importance=0;
-  if(d.invalidStatus===2){lines.push('⚠ Setup batal',`Close melewati invalid ${number(d.invalidLevel)}`,'Tunggu struktur baru');importance=5;}
+  const m5Invalid=d.biasDir&&d.invalidLevel!=null&&(d.biasDir===1?c.close<d.invalidLevel:c.close>d.invalidLevel);
+  if(m5Invalid&&d.invalidStatus!==2){lines.push('⚠ Close M5 melewati invalid M15','Eksekusi ditahan; tunggu konfirmasi close M15');importance=5;}
+  else if(d.invalidStatus===2){lines.push('⚠ Setup batal',`Close melewati invalid ${number(d.invalidLevel)}`,'Tunggu struktur baru');importance=5;}
   else {
     if(rejectBuy||rejectSell){lines.push(`Rejection kuat dari ${poi.side} ${poi.kind}`,`Wick ${rejectBuy?'bawah':'atas'} panjang · konfirmasi ${rejectBuy?'BUY':'SELL'}`);importance=5;}
     else if(d.biasDir===1&&t.bullBreak&&t.bullDisp||d.biasDir===-1&&t.bearBreak&&t.bearDisp){lines.push(`Valid break ${d.biasDir===1?'bullish':'bearish'} dengan displacement`,'Struktur M5 terkonfirmasi');importance=4;}
@@ -207,7 +209,8 @@ export function entryScore(d,t,levels={},options={}){
     if(d.invalidLevel!=null&&importance>=3)lines.push(`Invalid jika close M15 ${d.biasDir===1?'di bawah':'di atas'} ${number(d.invalidLevel)}`);
     if(score>=40)lines.push(`Confluence ${score}/100 poin`);
   }
-  return {time:t.time,buy,sell,rawBuy:total(buyLayers),rawSell:total(sellLayers),winDir,score,grade,breakdown:{buy:buyLayers,sell:sellLayers},inPoi,rejectBuy,rejectSell,importance,dir,text:lines.join('\n')};
+  if(winDir&&d.biasDir&&winDir!==d.biasDir)lines.push(`Skor dominan ${winDir===1?'BUY':'SELL'} ${score}/100 berlawanan bias M15; tunggu struktur baru.`);
+  return {m5Invalid:Boolean(m5Invalid),time:t.time,buy,sell,rawBuy:total(buyLayers),rawSell:total(sellLayers),winDir,score,grade,breakdown:{buy:buyLayers,sell:sellLayers},inPoi,rejectBuy,rejectSell,importance,dir,text:lines.join('\n')};
 }
 export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={}}){
   const H=clean(h1,nowSeconds,3600),M=clean(m15,nowSeconds,900),T=clean(m5,nowSeconds,300),I=clean(m1,nowSeconds,60),D=clean(d1,nowSeconds);

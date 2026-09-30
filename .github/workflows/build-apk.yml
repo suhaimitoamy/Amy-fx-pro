@@ -206,6 +206,7 @@ jobs:
           - Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.
           - Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.
           - Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia.
+          - Entry Assistant: Skor lawan bias ditandai jelas; invalidasi dan target diperiksa terhadap close M5 terbaru.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber

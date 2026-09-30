@@ -93,7 +93,7 @@ function render(){
   $('context-source').textContent=`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`;
   const dr = c.m15?.dealingRange;
   const drLoc = dr?.location ? ` [${dr.location}]` : '';
-  const confScore = c.confluence ? ` · Skor: ${c.confluence.score}/100 (${c.confluence.grade})` : '';
+  const confScore = c.confluence ? ` · Skor: ${c.confluence.score}/100 (${c.confluence.grade})${c.confluence.winDir?` · dominan ${c.confluence.winDir===1?'BUY':'SELL'}`:''}` : '';
   $('h1-bias').textContent=id(c.h1?.bias||'NEUTRAL');$('h1-health').textContent=`Kesehatan: ${id(c.h1?.health)}`;
   $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label}${c.m15.poi.ce?` (CE: ${number(c.m15.poi.ce)})`:''} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
   $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';

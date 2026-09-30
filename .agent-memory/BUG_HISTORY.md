@@ -531,3 +531,7 @@ Replaced rolling-five-bar pseudo-BOS, immediate expansion chasing and Discipline
 ## 2026-09-30 — Pro375 integration corrections
 
 Fixed newly created zones immediately testing their own formation candle; retests require later closed bars. LTF momentum/ATR do not bridge missing feed candles. Missing midnight/Asia coverage is UNAVAILABLE, never an arbitrary fallback. Historical scoring uses key levels available at each trigger close. DOL reached is latched for that sweep/target. Avoid undefined timeToCoordinate at the final killzone candle. Backend M1 loads paginate below PostgREST row caps. Offline removal also clears all new overlay layers and scoring tables.
+
+## 2026-09-30 — Pro376 live-snapshot execution clarity
+
+A real snapshot had M15 BUY bias while the independent SELL confluence score was higher. Explicitly mark that counter-bias score in state/narration; it cannot create A+. Execution invalidation and target geometry now compare against the latest closed M5 price instead of the older M15 close. Entry/dashboard/chart consume the same warning text.

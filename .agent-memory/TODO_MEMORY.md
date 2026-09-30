@@ -197,3 +197,5 @@ Observe new STRUCTURAL-2026-09-V1 results separately from old history; run held-
 - Observe native update receipt and actual WebView gestures on the user's Android device. Compare against the user's TradingView broker/symbol/timezone; browser fixtures and causal tests do not establish identical broker data or profitability.
 
 Pro375 backend deployed as scalper-engine v22. Health and the scheduled COMPLETED/fresh scalper-setups snapshot expose amy-ict-complete-pro375 and context.amy. Real read-only feed validation supplies exact NY MO, locked Asia H/L and D/W/M pivots. Signed release/manifest verification remains pending at source publication.
+
+Pro375 signed release verified: Actions36695782397 success, active manifest950375, SHA-25629cdc5ee0619fcd7500d0173f52bd703cc4eae77e40cde90086c2a69b567badf. Pro376/950376 is the follow-up for explicit counter-bias score narration and latest closed M5 execution geometry, with29 dedicated cases. Keep published375 identity until signed376 activation.

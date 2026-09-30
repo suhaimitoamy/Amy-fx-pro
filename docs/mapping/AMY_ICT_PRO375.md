@@ -52,7 +52,9 @@ portable base algorithm; those objects never become a second decision authority.
    pasted script has different OB/FVG engines. Their geometries need not coincide.
 9. DOL reached stays reached for that sweep/target; a later pullback cannot turn
    an already taken target back into active liquidity.
-10. This is a finite replay of loaded history, as on a TradingView loaded chart.
+10. Execution geometry checks the latest closed M5 price, not the older M15 close.
+    A winning score against the M15 bias is explicitly labelled and cannot create A+.
+11. This is a finite replay of loaded history, as on a TradingView loaded chart.
    No claim of exact broker parity or verified profitability is made. Dataset/broker
    differences and the causal corrections above must be included in comparisons.
 
