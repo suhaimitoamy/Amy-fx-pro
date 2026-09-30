@@ -1,4 +1,6 @@
-import { DRIVER_REGISTRY } from '../scalper-engine/engine.mjs';
+import { DRIVER_REGISTRY as LEGACY_DRIVERS } from '../scalper-engine/engine.mjs';
+import { SIX_DRIVERS } from '../scalper-engine/six-drivers.mjs';
+const DRIVER_REGISTRY=[...LEGACY_DRIVERS,...SIX_DRIVERS.map(d=>({...d,timeframes:['M5']}))];
 import { deviceScope, normalizeDriverToggles } from '../_shared/scalper-device.mjs';
 const base=String(Deno.env.get('SUPABASE_URL')||'').replace(/\/$/,'');
 const key=String(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'');

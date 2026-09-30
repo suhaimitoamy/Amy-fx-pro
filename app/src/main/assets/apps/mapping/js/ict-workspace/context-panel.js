@@ -1,6 +1,8 @@
-import {deviceHeaders} from '../method-toggles.js';
+import {deviceHeaders,initializeMethods,methodControls} from '../method-toggles.js';
 import {ENDPOINT} from './scalper-model.js';
 import {currentContext} from './context-model.js';
+import {SIX_DRIVERS} from '../engine/six-driver-definitions.js';
+import {currentDriverEvaluation,driverSetupReady} from './driver-model.js';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -26,14 +28,7 @@ function renderScenario(element,value,alternative=false){
   element.innerHTML=scenario(value,alternative);
   if(open){const detail=element.querySelector?.('details');if(detail)detail.open=true;}
 }
-const DEFAULT_TOURNAMENT_DRIVERS = [
-  { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
-  { id: 'AI_ADAPTIVE_SMART_DRIVER', name: 'Adaptive Smart Driver', rr: 1.6, score: 0, status: 'STANDBY', desc: 'Runner Trend 1.6R · Trailing Breakeven 0.8R' },
-  { id: 'SWING_CHOCH_OTE', name: 'Swing CHoCH + OTE', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Displacement 2x ATR · 75% Fib Entry Level' },
-  { id: 'MULTI_DRIVER_ENSEMBLE', name: 'Multi-Driver Ensemble', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Confluence Mesh 72.5% Fib · Min ATR 2.5' },
-  { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', rr: 0.7, score: 0, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' },
-  { id: 'HUMAN_MTF_RAPID_SCALPER', name: 'Human MTF Rapid Scalper', rr: 1.3, score: 0, status: 'STANDBY', desc: 'Sesi London & NY · RR model 1.3R · Cut Loss model -0.35R' }
-];
+const DEFAULT_TOURNAMENT_DRIVERS = SIX_DRIVERS;
 function getTournamentDrivers(history = []) {
   const seen = new Set();
   const rows = (Array.isArray(history) ? history : []).filter(s => s?.id && s.symbol === 'XAU/USD' &&
@@ -46,25 +41,36 @@ function getTournamentDrivers(history = []) {
   });
 }
 function renderTournament(c) {
-  const container = $('driver-tournament-list'), badge = $('tournament-leader-badge');
-  if (!container) return;
-  const status = !c ? 'WAIT · DATA BELUM SIAP' : c.news?.status === 'NEWS_LOCK'
-    ? 'WAIT · NEWS LOCK' : 'BELUM DIEVALUASI';
-  if (badge) {
-    badge.textContent = !c ? 'MENUNGGU KONTEKS' : c.news?.status === 'NEWS_LOCK'
-      ? 'NEWS LOCK AKTIF' : 'Evaluasi strategi belum tersedia';
-    badge.style.color = 'var(--muted)';
-  }
-  const opened = new Set(Array.from(container.querySelectorAll?.('details[open]') || []).map(el=>el.dataset.driver));
-  container.innerHTML = getTournamentDrivers(payload?.history).map((d, idx) => `
-    <details class="driver-item" data-driver="${esc(d.id)}" ${opened.has(d.id)?'open':''}>
-      <summary class="driver-header"><span class="driver-rank">${idx+1}</span>
-        <strong class="driver-name">${esc(d.name)}</strong></summary><p class="driver-badge">${esc(status)}</p>
-      <div class="driver-meta"><span>WR live: <strong>belum tersedia</strong></span>
-        <span>WR arsip: <strong>${d.archiveWR == null ? '—' : d.archiveWR+'%'} (${d.samples} hasil TP/SL)</strong></span>
-        <span>Skor arsip: <strong>${d.score} pts</strong></span></div>
-      <p class="driver-desc">${esc(d.desc)}</p>
-    </details>`).join('');
+  const container=$('driver-tournament-list'),badge=$('tournament-leader-badge');
+  if(!container)return;
+  const evaluation=currentDriverEvaluation(payload,c);
+  const labels={DISABLED:'NONAKTIF',DATA_STALE:'DATA TERLAMBAT',NEWS_LOCK:'NEWS LOCK',CALENDAR_UNVERIFIED:'KALENDER BELUM VALID',WAITING_STRUCTURE:'MENUNGGU STRUKTUR',ARMED:'MENUNGGU RETEST',WAITING_M5_BREAK:'MENUNGGU BREAK M5',WAITING_TARGET:'MENUNGGU TARGET',CONFIRMED:'TERKONFIRMASI',RISK_PAUSED:'BATAS RISIKO',INVALIDATED:'BATAL',EXPIRED:'KEDALUWARSA',WAITING_TRIGGER:'MENUNGGU LIMIT',WAITING_NEXT_OPEN:'MENUNGGU OPEN',ACTIVE:'AKTIF · SIMULASI',BE_ACTIVE:'BE AKTIF · SIMULASI'};
+  if(badge){badge.textContent=!c?'MENUNGGU KONTEKS':!evaluation?'Evaluasi strategi belum tersedia':`${evaluation.drivers.filter(d=>d.state==='CONFIRMED').length}/6 driver terkonfirmasi · M5 ${time(evaluation.sourceTime)}`;badge.style.color='var(--muted)';}
+  const opened=new Set(Array.from(container.querySelectorAll?.('details[open]')||[]).map(el=>el.dataset.driver));
+  container.innerHTML=getTournamentDrivers(payload?.history).map((d,idx)=>{
+    const live=evaluation?.drivers.find(x=>x.id===d.id),stats=evaluation?.statistics?.[d.id];
+    const status=!c?'WAIT · DATA BELUM SIAP':c.news?.status==='NEWS_LOCK'?'WAIT · NEWS LOCK':live?labels[live.state]||live.state:'BELUM DIEVALUASI';
+    const plan=live?.plan;
+    return `<details class="driver-item" data-driver="${esc(d.id)}" ${opened.has(d.id)?'open':''}>
+      <summary class="driver-header"><span class="driver-rank">${idx+1}</span><strong class="driver-name">${esc(d.name)}</strong></summary>
+      <p class="driver-badge">${esc(status)}${live?.lifecycleStatus?' · '+esc(labels[live.lifecycleStatus]||live.lifecycleStatus):''}</p>
+      <p>${esc(live?.reason||'Menunggu evaluasi strategi dari server.')}</p><p class="driver-desc">${esc(d.desc)}</p>
+      <div class="driver-meta"><span>Kualitas: <strong>${live?esc(live.score)+'/100 poin':'—'}</strong></span>
+      <span>WR live: <strong>${stats?.measured?number(stats.winRate)+'% ('+stats.measured+' hasil)':'belum tersedia'}</strong></span>
+      <span>R bruto hari UTC: <strong>${stats?.measured?number(stats.totalR):'—'}</strong></span>
+      <span>WR arsip: <strong>${d.archiveWR==null?'—':d.archiveWR+'%'} (${d.samples} hasil TP/SL)</strong></span></div>
+      ${stats?.ambiguous?`<p>${esc(stats.ambiguous)} hasil ambigu tidak dimasukkan ke WR/R.</p>`:''}
+      ${plan?`<dl><div><dt>Zona ${esc(plan.direction)}</dt><dd>${number(plan.zoneLow)}–${number(plan.zoneHigh)}</dd></div><div><dt>Entry acuan / SL / TP</dt><dd>${number(plan.entry)} / ${number(plan.stopLoss)} / ${number(plan.target)}</dd></div><div><dt>Target likuiditas</dt><dd>${number(plan.liquidityTarget)}</dd></div></dl>`:''}
+      ${live?.checks?`<ul>${live.checks.map(x=>`<li>${x.ok?'✓':'○'} ${esc(x.label)}</li>`).join('')}</ul>`:''}
+      </details>`;
+  }).join('');
+}
+function renderDriverSetups(c){
+  const root=$('driver-setups'),summary=$('driver-summary');if(!root)return;
+  const e=currentDriverEvaluation(payload,c),items=c&&e?(payload?.active||[]):[];
+  if(summary)summary.textContent=!c?'Menunggu data server terkini.':!e?'Menunggu evaluasi driver.':items.length?`${items.length} rencana driver · evaluasi ${time(e.sourceTime)}`:'Belum ada trigger driver baru. Alasan tiap driver tersedia di Detail.';
+  root.innerHTML=items.map(s=>`<details class="inline-detail"><summary>${esc(s.driverName)} · ${esc(s.direction)} · ${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'MENUNGGU LIMIT':'MENUNGGU OPEN'):driverSetupReady(s,c)?'AKTIF · SIMULASI':'WAIT · PERIKSA DATA / BERITA'}</summary><p>Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}</p><p>${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'Limit Fib aktif setelah observasi; tunggu retest berikutnya.':'Entry acuan; harga final mengikuti open setelah observasi.'):'Harga milik posisi model; jangan mengejar entry yang sudah lewat.'}</p><button type="button" data-driver-plan="${esc(s.id)}">Tampilkan level di chart</button></details>`).join('');
+  window.dispatchEvent(new CustomEvent('amyfx:driver-setups',{detail:items}));
 }
 function empty(reason){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
@@ -78,7 +84,7 @@ function empty(reason){
   $('execution-status').textContent='BELUM SIAP';$('execution-reason').textContent=reason;
   $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
   $('gold-condition').textContent='Menunggu data volatilitas.';$('news-awareness').textContent='Periksa berita berdampak tinggi secara manual.';
-  renderTournament(null);
+  renderTournament(null);renderDriverSetups(null);
   {
     try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
     window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
@@ -115,7 +121,7 @@ function render(){
   renderScenario($('alternative-scenario'),c.alternative,true);
   $('execution-status').textContent=id(c.execution?.status||'NOT READY');$('execution-reason').textContent=c.execution?.reason||'Menunggu bukti.';
   $('execution-checklist').innerHTML=(c.execution?.checklist||[]).map(item=>`<li>${item.ok?'✓':'○'} ${esc(item.label)}</li>`).join('');
-  renderTournament(c);
+  renderTournament(c);renderDriverSetups(c);
   const newsEl=$('news-awareness');
   if(newsEl){
     newsEl.textContent=c.news?.status==='SAFE'?'Berita: tidak ada rilis berdampak tinggi di waktu dekat.':c.news?.status==='UNVERIFIED'?'Berita belum diverifikasi · periksa kalender.':c.news?.note||'Status berita belum diverifikasi.';
@@ -148,7 +154,7 @@ async function refresh(){
   const id=++generation;request?.abort();request=new AbortController();const active=request,signal=active.signal;
   const timeout=setTimeout(()=>active.abort(),15000);
   try{
-    const response=await fetch(`${ENDPOINT}?limit=1&history_limit=20`,{headers:{Accept:'application/json',...deviceHeaders()},signal,cache:'no-store'});
+    const response=await fetch(`${ENDPOINT}?limit=100&history_limit=100`,{headers:{Accept:'application/json',...deviceHeaders()},signal,cache:'no-store'});
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     const next=await response.json();if(next?.ok!==true||next?.mode!=='market_context')throw new Error('Kontrak konteks server tidak valid');
     if(id!==generation)return;payload=next;failed=false;render();renderArchive();
@@ -158,8 +164,14 @@ async function refresh(){
 window.addEventListener('amyfx:refresh-context',refresh);
 window.addEventListener('online',refresh);
 window.addEventListener('offline',()=>{generation++;request?.abort();clearTimeout(timer);failed=true;render();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else {render();refresh();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else {if($('driver-methods'))$('driver-methods').innerHTML=methodControls();
+window.addEventListener('amy-method-toggles',()=>{if($('driver-methods'))$('driver-methods').innerHTML=methodControls();refresh();});
+document.addEventListener('click',event=>{const button=event.target.closest?.('[data-driver-plan]');if(!button)return;const c=failed?null:currentContext(payload);if(!c)return;const s=(payload?.active||[]).find(x=>x.id===button.dataset.driverPlan);if(!s)return;window.dispatchEvent(new CustomEvent('amyfx:driver-plan',{detail:{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}}));window.setTab?.('Dashboard');$('chart').scrollIntoView?.({behavior:'smooth',block:'center'});});
+render();refresh();void initializeMethods();}});
 window.addEventListener('pagehide',()=>{generation++;request?.abort();clearTimeout(timer);});
 window.addEventListener('pageshow',event=>{if(event.persisted)refresh();});
 
-render();refresh();
+if($('driver-methods'))$('driver-methods').innerHTML=methodControls();
+window.addEventListener('amy-method-toggles',()=>{if($('driver-methods'))$('driver-methods').innerHTML=methodControls();refresh();});
+document.addEventListener('click',event=>{const button=event.target.closest?.('[data-driver-plan]');if(!button)return;const c=failed?null:currentContext(payload);if(!c)return;const s=(payload?.active||[]).find(x=>x.id===button.dataset.driverPlan);if(!s)return;window.dispatchEvent(new CustomEvent('amyfx:driver-plan',{detail:{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}}));window.setTab?.('Dashboard');$('chart').scrollIntoView?.({behavior:'smooth',block:'center'});});
+render();refresh();void initializeMethods();

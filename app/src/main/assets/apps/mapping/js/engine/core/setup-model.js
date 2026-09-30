@@ -71,18 +71,16 @@ export function modelSweepMssFvg(cs, tf, ctx) {
       qualityScore: validFvg.qualityScore,
       status: validFvg.status,
       components: {
-        model: 'Sweep → MSS → FVG (Deep OTE)',
-        driverId: 'HIGH_WINRATE_SNIPER_70',
-        driverName: 'High-WR Sniper (Deep OTE 75%–78.6%)',
-        fibEntry: 0.786,
-        quickScalpRR: 0.8,
+        // This generic model uses the FVG range and liquidity targets. It does
+        // not calculate the Sniper driver's OTE entry or fixed 0.8R exit.
+        model: 'Sweep → MSS → FVG',
         sweep: sweep.type,
         sweepLevel: sweep.level,
         sweepIndex: sweep.index,
         mss: 'Valid',
         mssIndex: mss.index,
         fvgIndex: validFvg.index,
-        entry: `FVG ${validFvg.qualityLabel} · Deep OTE`,
+        entry: `FVG ${validFvg.qualityLabel}`,
         htf: htfAligned ? 'aligned' : htfConflict ? 'conflict' : 'neutral'
       }
     }

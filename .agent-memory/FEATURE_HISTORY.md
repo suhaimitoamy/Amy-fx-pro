@@ -345,3 +345,8 @@ Pro379 release verification completed: source6b6d447ead4e60b1f12957e42f0c20f5432
 ## 2026-09-30 — Pro380 Academy Curriculum Restructure
  
 Restructured Amy FX Academy from 665 fragmented HTML files down to 56 files (91% reduction in fragmentation). Implemented university-style 3 Semester structure with 36 Pertemuan (~1 Jam / SKS per Pertemuan). 569 sub-chapters consolidated into 36 master modules with chapter badges, desktop sticky sidebar TOC with scroll-spy highlight, mobile expandable drawer TOC, quiz container, and smooth next/prev navigation. Cleaned duplicates and stubs, synchronized 36-entry registry, and audited 1,360 links with zero broken links.
+
+
+## 2026-09-30 — Pro382 six-driver evaluation
+
+Pro382 / 950382: six-drivers.mjs, six-driver-lifecycle.mjs; backend persistence + telemetry; enam toggle; setup/level chart/riwayat; BE Adaptive, conditional early cut Rapid, risk policy Shield. Tambah migration constraint enam model dan regression/replay tools. Validasi dan publikasi dicatat setelah selesai.

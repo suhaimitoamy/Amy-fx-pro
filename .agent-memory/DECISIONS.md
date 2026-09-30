@@ -464,3 +464,13 @@ Pro379 release verification completed: source6b6d447ead4e60b1f12957e42f0c20f5432
 ## 2026-09-30 — Pro380 Academy Curriculum Restructure
  
 Restructure Amy FX Academy from 665 fragmented HTML files into 3 Semesters and 36 Pertemuan (~1 Jam / SKS per Pertemuan) without losing any educational material. Consolidate 569 sub-chapters into 36 interactive master modules with desktop sidebar TOC, mobile drawer TOC, and verified navigation. Purge clone directories and stubs. Maintain zero broken links across 1,360 checked internal references. Release Pro380 (950380).
+
+
+## 2026-09-30 — Six-driver logic audit before gate changes (local)
+
+User prioritizes driver logic before scoring/gate changes. Source does not contain six independent detectors. Correct false Sniper attribution on generic Sweep/MSS/FVG; preserve its numerical plan and canonical engine. Six rule corrections are documented in docs/mapping/SIX_DRIVER_LOGIC_AUDIT.md as proposals, not invented implementations or profitability claims. No deployment or driver activation.
+
+
+## 2026-09-30 — Pro382 six-driver evaluation
+
+Pro382 mengaktifkan evaluasi enam driver nyata atas instruksi user. Kontrak operasional baru tercatat di docs/mapping/SIX_DRIVERS_PRO382.md; tidak mereplikasi artefak backtest eksternal. Skor bukan gate driver, H1 konteks, safety news/data/target tetap. Fib memakai limit setelah observasi; Rapid next-open. Satu model live/driver, arsip legacy dipertahankan, shared market plans difilter preferensi perangkat.

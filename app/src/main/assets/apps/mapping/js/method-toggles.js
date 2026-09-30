@@ -1,7 +1,8 @@
+import {SIX_DRIVERS} from './engine/six-driver-definitions.js';
 const KEY='amy_mapping_method_toggles';
 const DIRTY='amy_mapping_method_toggles_pending';
 const ENDPOINT='https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/scalper-preferences';
-export const METHODS=[['FVG','FVG'],['CRT','CRT'],['ORDER_BLOCK','Order Block'],['BREAKER_BLOCK','Breaker Block'],['RETEST_BOS','Retest BOS'],['TRENDLINE_BREAK_RETEST','Trendline Break & Retest'],['EMA_PULLBACK','EMA Pullback'],['FALSE_BREAKOUT','False Breakout / Judas Swing'],['RANGE_EXPANSION','Range Expansion'],['AMD','AMD'],['EXPANSION_RANGE_REENTRY','Expansion Range Re-entry'],['SMR_FIRST_RETEST','SMR / First Retest'],['DISCIPLINE_SCALPER','Discipline Scalper']].map(([id,name])=>({id,name}));
+export const METHODS=SIX_DRIVERS.map(d=>({id:d.id,name:d.name}));
 let message='',queue=Promise.resolve(),ready;
 function read(){try{const v=JSON.parse(localStorage.getItem(KEY)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch(_){return {};}}
 export function methodEnabled(id){return read()[id]!==false;}

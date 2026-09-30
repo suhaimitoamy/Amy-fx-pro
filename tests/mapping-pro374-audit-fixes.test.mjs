@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {aPlusEligible,buildMarketContext,closedCandles,confirmation,zones,evaluateEconomicCalendar,calculateConfluenceScore} from '../supabase/functions/scalper-engine/market-context.mjs';
+import {SIX_DRIVERS} from '../supabase/functions/scalper-engine/six-drivers.mjs';
+import {currentDriverEvaluation,driverSetupReady} from '../app/src/main/assets/apps/mapping/js/ict-workspace/driver-model.js';
 import {currentContext} from '../app/src/main/assets/apps/mapping/js/ict-workspace/context-model.js';
 
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;
@@ -24,7 +26,7 @@ function panel(context,storage=new Map()) {
     window:{addEventListener:(name,fn)=>listeners.set(name,fn),dispatchEvent:e=>events.push(e)},
     localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     CustomEvent:class {constructor(type,opts){this.type=type;this.detail=opts.detail;}},
-    currentContext:p=>currentContext(p,now*1000),deviceHeaders:()=>({}),ENDPOINT:'https://example.test',
+    currentContext:p=>currentContext(p,now*1000),deviceHeaders:()=>({}),ENDPOINT:'https://example.test',SIX_DRIVERS,currentDriverEvaluation,driverSetupReady,methodControls:()=>'',initializeMethods:async()=>{},
     fetch:()=>new Promise(()=>{}),AbortController,setTimeout:()=>1,clearTimeout(){}};
   vm.createContext(sandbox);
   const source=readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/context-panel.js','utf8').replace(/^import .*;\n/gm,'');

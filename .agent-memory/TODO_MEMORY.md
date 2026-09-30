@@ -239,3 +239,20 @@ Pro379 release verification completed: source6b6d447ead4e60b1f12957e42f0c20f5432
 ## 2026-09-30 — Pro380 Academy Curriculum Restructure
  
 Source 2.0.0-pro.380/950380 prepared. Verify signed Actions/release/APK/checksum and manifest activation; keep published 379 identity until CI completes. Observe Academy semester views, drawer TOC, module navigation, and update notification receipt on the actual Android device.
+
+
+## 2026-09-30 — Mapping driver expectation follow-up (local audit)
+
+- [ ] Clarify desired active driver architecture with user after the read-only no-setup diagnosis. If six-driver setups are required, specify and wire real detectors and per-driver telemetry/lifecycle; currently cards are references. No implementation authorized by this inspection request. See /workspace/mapping-driver-audit/DIAGNOSIS.md.
+
+
+## 2026-09-30 — Six-driver definitions follow-up (supersedes inspection-only scope above)
+
+User now requests driver audit/correction before global gates. Local false Sniper attribution corrected. Review missing entry/fill/expiry/exit contracts and external backtest rules for all six; implement real detectors and replay net-R outcomes before wiring production. Ensemble quorum/ATR units, Shield sizing and Rapid -0.35R exit semantics remain undefined. Do not treat audit proposals as approved historical strategies. See docs/mapping/SIX_DRIVER_LOGIC_AUDIT.md.
+
+
+## 2026-09-30 — Pro382 six-driver evaluation
+
+Pro382 menggantikan status lima detector tidak ada pada catatan audit sebelumnya. Enam detector dan integrasi sudah diimplementasikan. Verifikasi build signed/APK/manifest serta deployment live diperlukan sebelum menyebut rilis selesai. Validasi profitabilitas/biaya broker dan observasi nyata perangkat Android tetap belum tersedia; tidak menjanjikan setup harian.
+
+Validasi lokal Pro382: seluruh 146 file regresi lulus; 21 kasus driver/lifecycle + 2 kasus API baru, BUY/SELL keenam model. Browser mobile 360/390, enam kartu/toggle, filter OFF, refresh detail, mode gelap, offline dan tanpa overflow/pageerror. Replay 240 M5 produksi: satu kandidat Rapid; fixture kalender sintetis, bukan backtest profit. Migration constraint applied; scalper-engine25, scalper-setups11, scalper-preferences2 deployed. Build signed dan manifest masih menunggu publikasi.

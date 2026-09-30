@@ -40,6 +40,10 @@ export function mergeScalperHistory(...collections) {
 
 export function scalperTradeOutcome(setup) {
   const current = String(setup?.status || '').toUpperCase();
+  if (setup?.engineVersion === 'amyfx-six-drivers-pro382') {
+    if (setup.outcomeAmbiguous || !['TP_HIT','SL_HIT','BE_HIT','TIME_EXIT'].includes(current) || setup.resultR == null || !Number.isFinite(Number(setup.resultR))) return null;
+    return Number(setup.resultR) > 0 ? 'WIN' : Number(setup.resultR) < 0 ? 'LOSS' : 'BE';
+  }
   if (current === 'TP_HIT') return 'WIN';
   if (current === 'SL_HIT') return 'LOSS';
   if (current === 'BE_HIT') return 'BE';
@@ -75,6 +79,7 @@ export function scalperVaultStats(history) {
 
   const resolved = wins + losses;
   const totalTrades = resolved + breakeven;
+  const denominator = archive.some(s => s.engineVersion === 'amyfx-six-drivers-pro382') ? totalTrades : resolved;
   return Object.freeze({
     archiveCount: archive.length,
     totalTrades,
@@ -83,7 +88,7 @@ export function scalperVaultStats(history) {
     breakeven,
     excludedSetups: Math.max(0, archive.length - totalTrades),
     resolved,
-    winRate: resolved > 0 ? (wins / resolved) * 100 : null,
+    winRate: denominator > 0 ? (wins / denominator) * 100 : null,
     netR: resultSamples > 0 ? netR : null,
     resultSamples
   });

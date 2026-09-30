@@ -97,11 +97,13 @@ test('previous closed daily candle is PDH/PDL and context expires without server
   assert.equal(currentContext(payload,now*1000+181000),null);
 });
 
-test('active path no longer inserts trade setups or sends legacy setup notifications',()=>{
+test('active path evaluates the new drivers and keeps context-only notification policy',()=>{
   const engine=readFileSync('supabase/functions/scalper-engine/index.ts','utf8');
   const push=readFileSync('supabase/functions/scalper-system-push/index.ts','utf8');
   const mapping=readFileSync('app/src/main/assets/apps/mapping/index.html','utf8');
-  assert.doesNotMatch(engine,/amyfx_preview_scalper_setups\?on_conflict|evaluateScalperCandidates/);
+  assert.match(engine,/evaluateSixDrivers/);
+  assert.match(engine,/amyfx_preview_scalper_setups\?on_conflict/);
+  assert.doesNotMatch(engine,/evaluateScalperCandidates/);
   assert.doesNotMatch(push,/amyfx_preview_scalper_events\?/);
   assert.match(push,/notification_type:'market_context'/);
   assert.match(push,/Number\(match\[1\]\)>=357/);

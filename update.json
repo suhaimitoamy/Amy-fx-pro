@@ -1,10 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.381/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Kompas Fundamental: diangkat sebagai pusat Market Intel, tab default, dan prioritas pertama.",
-    "8 Poin Kompas Institusional: kecenderungan Gold, horizon analisis, 3 faktor dominan, bukti pendukung/bertentangan dengan link drilldown, skenario terstruktur, katalis berikutnya, dan jembatan eksekusi Mapping.",
-    "Hardening 11 Baseline Bug: isolasi parser berita, evaluasi Actual vs Forecast, kejujuran cache kalender, timeout koneksi 4s, dan sanitasi XSS penuh.",
-    "Pengalaman Berita & Kalender: penanganan deep link notifikasi, translasi kalimat tanpa truncate, dan retensi posisi baca saat refresh."
+    "Mapping: evaluasi enam driver dengan alasan menunggu dan setup dari server.",
+    "OTE/Fib nyata, CHoCH terkonfirmasi, quorum Ensemble dan batas risiko Shield.",
+    "Lifecycle simulasi: limit/open setelah observasi, TP/SL, BE Adaptive, early exit Rapid.",
+    "Statistik R bruto, hasil ambigu dikecualikan, skor bukan gate entry tambahan."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.381/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Kompas Fundamental: diangkat sebagai pusat Market Intel, tab default, dan prioritas pertama.",
-    "8 Poin Kompas Institusional: kecenderungan Gold, horizon analisis, 3 faktor dominan, bukti pendukung/bertentangan dengan link drilldown, skenario terstruktur, katalis berikutnya, dan jembatan eksekusi Mapping.",
-    "Hardening 11 Baseline Bug: isolasi parser berita, evaluasi Actual vs Forecast, kejujuran cache kalender, timeout koneksi 4s, dan sanitasi XSS penuh.",
-    "Pengalaman Berita & Kalender: penanganan deep link notifikasi, translasi kalimat tanpa truncate, dan retensi posisi baca saat refresh."
+    "Mapping: evaluasi enam driver dengan alasan menunggu dan setup dari server.",
+    "OTE/Fib nyata, CHoCH terkonfirmasi, quorum Ensemble dan batas risiko Shield.",
+    "Lifecycle simulasi: limit/open setelah observasi, TP/SL, BE Adaptive, early exit Rapid.",
+    "Statistik R bruto, hasil ambigu dikecualikan, skor bukan gate entry tambahan."
   ],
   "sha256": "fe37f0d80287e0d5a59a815d38f9c814b56ce4830030f8bca49b9a5a07c4a109",
   "version": "2.0.0-pro.381",

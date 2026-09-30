@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
+import {SIX_DRIVERS,SIX_ENGINE_VERSION} from '../supabase/functions/scalper-engine/six-drivers.mjs';
 import {DRIVER_REGISTRY} from '../supabase/functions/scalper-engine/engine.mjs';
 import {deviceScope,normalizeDriverToggles} from '../supabase/functions/_shared/scalper-device.mjs';
 function server(path,fetch){
   let handler;
   const code=readFileSync(new URL('../'+path,import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
-  vm.runInNewContext(stripTypeScriptTypes(code),{Deno:{env:{get:name=>name==='SUPABASE_URL'?'https://project.test':'test-only'},serve:h=>{handler=h;}},DRIVER_REGISTRY,deviceScope,normalizeDriverToggles,Request,Response,URL,URLSearchParams,crypto,TextEncoder,fetch,console});
+  vm.runInNewContext(stripTypeScriptTypes(code),{Deno:{env:{get:name=>name==='SUPABASE_URL'?'https://project.test':'test-only'},serve:h=>{handler=h;}},DRIVER_REGISTRY,LEGACY_DRIVERS:DRIVER_REGISTRY,SIX_DRIVERS,SIX_ENGINE_VERSION,deviceScope,normalizeDriverToggles,Request,Response,URL,URLSearchParams,crypto,TextEncoder,fetch,console});
   return handler;
 }
 test('preferences PUT/GET isolates two devices and rejects invalid boolean input',async()=>{
@@ -24,14 +25,14 @@ test('preferences PUT/GET isolates two devices and rejects invalid boolean input
   const b=await (await handler(req('b'.repeat(64),'GET'))).json();assert.equal(a.enabledDrivers.FVG,false);assert.equal(b.enabledDrivers.FVG,true);
   assert.equal((await handler(req('b'.repeat(64),'PUT',{enabledDrivers:{FVG:'false'}}))).status,400);
 });
-test('retired setups reader scopes selected and history and does not fetch live setups',async()=>{
+test('setups reader scopes device archives and shared new drivers, without exposing retired live rows',async()=>{
   const urls=[];
   const handler=server('supabase/functions/scalper-setups/index.ts',async(url)=>{urls.push(String(url));return Response.json(String(url).includes('device_preferences')?[{created_at:'2026-09-05T00:00:00Z'}]:[]);});
   const request=new Request('https://test?setup_id=another-device-row&history=all',{headers:{'x-amy-device-token':'a'.repeat(64)}});
   assert.equal((await handler(request)).status,200);
   const scope=await deviceScope(request);
   const queries=urls.filter(x=>x.includes('amyfx_preview_scalper_setups?'));
-  assert.equal(queries.length,2);assert.ok(queries.every(url=>url.includes(scope)));
-  assert.ok(queries.every(x=>!x.includes('WAITING_TRIGGER')));
+  assert.equal(queries.length,3);assert.ok(queries.every(url=>url.includes(scope)));
+  assert.ok(queries.find(x=>x.includes('WAITING_NEXT_OPEN')).includes('engine_version=eq.'+SIX_ENGINE_VERSION));
   assert.ok(queries.find(x=>x.includes('another-device-row')).includes('created_at.lt.'));
 });

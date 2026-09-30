@@ -191,7 +191,7 @@ function methodCard(method, index) {
       <div class="loss"><small>Loss</small><strong>${method.losses}</strong></div>
       <div><small>BE</small><strong>${method.breakeven}</strong></div>
       <div class="wr"><small>WR</small><strong>${winRate}</strong>${method.id ? toggleMarkup(method.id) : ''}</div>
-      <div><small>Net R</small><strong>${netR}</strong></div>
+      <div><small>R hasil model</small><strong>${netR}</strong></div>
     </div>
     <div class="stats-method-foot"><span>Loss rate <b>${lossRate}</b></span><span>Invalid/Batal <b>${method.excluded}</b></span></div>
     <div class="stats-method-open-hint"><span>${open ? 'Tutup daftar trade' : 'Ketuk untuk lihat semua trade'}</span><b aria-hidden="true">${open ? '−' : '＋'}</b></div>
@@ -243,7 +243,7 @@ function render() {
     </div>
     <div class="stats-secondary">
       <div><small>Breakeven</small><strong>${stats.breakeven}</strong></div>
-      <div><small>Net R</small><strong>${netR}</strong></div>
+      <div><small>R hasil model</small><strong>${netR}</strong></div>
       <div><small>Invalid / Batal</small><strong>${stats.excludedSetups}</strong></div>
     </div>
     <p class="stats-formula">WR = Win ÷ (Win + Loss). Breakeven, invalidated, dan cancelled tidak masuk denominator WR. Total Trade tetap memasukkan breakeven yang benar-benar selesai.</p>

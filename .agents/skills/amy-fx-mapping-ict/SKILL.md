@@ -9,6 +9,10 @@ Gunakan skill ini sebagai **fondasi utama** setiap kali menganalisis, memodifika
 
 ---
 
+## Tambahan aktif Pro382 — instruksi user setelah audit enam driver
+
+User meminta memperbaiki seluruh driver, menghubungkan evaluasi/lifecycle dan bump versi. Enam kartu kini detector server nyata; skor driver bukan gate tambahan. Dashboard AMY M15/M5 dan push A+ tetap terpisah. Aturan limit/next-open, risiko, sesi, outcome ambigu dan statistik bruto ada di `docs/mapping/SIX_DRIVERS_PRO382.md`. Keputusan Pro374 kartu referensi superseded untuk engine baru saja; arsip lama tidak diaktifkan kembali.
+
 ## Aturan aktif Pro375 — keputusan user 2026-09-30
 
 Instruksi user terbaru menyetujui integrasi seluruh skrip AMY ICT sampai visual lengkap.
@@ -166,3 +170,14 @@ Setiap kali sesi kerja selesai atau pengguna meminta penutupan/pembaharuan skill
 
 | **2026-09-30** | `2.0.0-pro.380` (`950380`) | Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan). Konsolidasi 569 file bab menjadi 36 modul master interaktif dengan navigasi bab dan drawer TOC. Pembersihan clone/duplikat bagian-30/36. 142 regresi lulus; verifikasi rilis menunggu CI. |
 | **2026-09-30** | `2.0.0-pro.381` (`950381`) | Kompas Fundamental sebagai pusat Market Intel, tab default, dan prioritas pertama. 8 Poin Kompas institusional, drilldown bukti Berita/Kalender, mitigasi 11 bug baseline, isolasi parser berita, evaluasi Actual vs Forecast, dan sequence guard translasi. 143 regresi lulus; verifikasi rilis menunggu CI. |
+
+| **2026-09-30** | Read-only driver diagnosis, source Pro381 | Production scalper-engine v24 equals source and runs context-only; six tournament cards are references, zero setup rows for their IDs. Last setup24 September; no setup creation during72h. Pro376788 snapshots have no A+, with M5/target gates predominant.143 regressions pass. Local audit notes only; no strategy/deployment changes. |
+
+
+| **2026-09-30** | Local six-driver logic audit, baseline Pro381 | User prioritizes driver logic before gates. Generic legacy Sweep/MSS/FVG had unsupported Sniper/Fib78.6%/0.8R attribution from Pro368; removed metadata only, geometry preserved. Five other detectors absent. docs/mapping/SIX_DRIVER_LOGIC_AUDIT.md records six corrected rule proposals, payoff break-even math and legacy2R integration conflict. No new detector, canonical-engine change, activation or deployment. |
+
+Validasi koreksi identitas driver lokal: npm test, seluruh144 file regresi lulus;21 pemeriksaan model/struktur terarah lulus. Patch belum dipublikasikan.
+
+| **2026-09-30** | `2.0.0-pro.382` (`950382`) sumber | Enam detector nyata, OTE limit, CHoCH/ATR, quorum Ensemble, risk policy Shield, sesi/early exit Rapid, BE Adaptive, persistence dan statistik bruto. Mapping menampilkan evaluasi/setup/toggle/chart; legacy arsip dipertahankan. Skor bukan gate driver. Lihat docs/mapping/SIX_DRIVERS_PRO382.md. Publikasi dan verifikasi live menyusul. |
+
+Validasi lokal Pro382: seluruh 146 file regresi lulus; 21 kasus driver/lifecycle + 2 kasus API baru, BUY/SELL keenam model. Browser mobile 360/390, enam kartu/toggle, filter OFF, refresh detail, mode gelap, offline dan tanpa overflow/pageerror. Replay 240 M5 produksi: satu kandidat Rapid; fixture kalender sintetis, bukan backtest profit. Migration constraint applied; scalper-engine25, scalper-setups11, scalper-preferences2 deployed. Build signed dan manifest masih menunggu publikasi.

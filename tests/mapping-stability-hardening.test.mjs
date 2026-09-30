@@ -141,5 +141,6 @@ test('retired Scalper lifecycle stays in the archive while active server publish
   assert.match(api, /sourceCandleTimestamp/);
   assert.match(api, /stopBasis/);
   assert.match(api, /mode: "market_context"/);
-  assert.match(api, /active: \[\]/);
+  assert.match(api, /engine_version=eq\.\$\{SIX_ENGINE_VERSION\}/);
+  assert.match(api, /WAITING_TRIGGER,WAITING_NEXT_OPEN,ACTIVE,BE_ACTIVE/);
 });

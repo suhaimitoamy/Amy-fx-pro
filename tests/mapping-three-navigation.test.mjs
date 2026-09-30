@@ -64,7 +64,7 @@ test('Scalper history reports active-method performance and prioritizes loss cou
     'Metode yang Perlu Dievaluasi',
     'PRIORITAS EVALUASI',
     'Loss rate',
-    'Net R',
+    'R hasil model',
     'function isLegacyIfvg(setup)',
     "model === 'IFVG_SCALPER'",
     'function visibleArchive()',
