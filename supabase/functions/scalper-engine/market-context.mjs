@@ -137,7 +137,7 @@ export function confirmation(candles,zone,side) {
       const breakLevel=side==='BUY'?Math.max(...prior.map(x=>x.high)):Math.min(...prior.map(x=>x.low));
       const displacement=Math.abs(c.close-c.open)>=(atr(recent,i)||Infinity)*0.7;
       if(!mss && displacement && (side==='BUY'?c.close>breakLevel:c.close<breakLevel))mss={time:c.close_time,level:round(breakLevel)};
-      if(mss && i>=2) {
+      if(mss && !microFvg && i>=2) {
         const first=recent[i-2];
         if(side==='BUY'&&first.high<c.low) microFvg={low:round(first.high),high:round(c.low),time:c.close_time};
         if(side==='SELL'&&first.low>c.high) microFvg={low:round(c.high),high:round(first.low),time:c.close_time};
@@ -337,7 +337,7 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready||isNewsLock;
   const phase=isNewsLock?'NEWS_LOCK':ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
   const counterSide=control==='BUYER'?'BUY':'SELL';
-  const targetLevel=target?target.toFixed(2):(poi?(side==='BUY'?(poi.high+2).toFixed(2):(poi.low-2).toFixed(2)):'target terdekat');
+  const targetLevel=target?Number(target.level).toFixed(2):(poi?(side==='BUY'?(poi.high+2).toFixed(2):(poi.low-2).toFixed(2)):'target terdekat');
   const entryLevel=poi?`${poi.low.toFixed(2)}–${poi.high.toFixed(2)}`:'area M15';
   const eventTitle=phase==='NEWS_LOCK'?'🛡️ Tahan Dulu: Pasar Lagi Liar':
     phase==='CONFLICT'?`⚡ Scalp Kilat: ${counterSide} XAUUSD`:

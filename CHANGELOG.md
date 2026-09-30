@@ -1,3 +1,11 @@
+## 2.0.0-pro.372
+
+- fix(mapping): Memperbaiki bug fatal crash kalkulasi targetLevel pada market-context engine Supabase.
+- fix(tournament): Otomasi kalkulasi skor Turnamen Driver (+10 saat TP, -15 saat SL) dari data riwayat setup tertutup.
+- fix(mapping): Memperbaiki deteksi MSS Driver #3 dengan validasi kesegaran break (8 jam) dan proximity filter POI Driver #1.
+- fix(offline): Mencegah penghapusan cache lokal saat terjadi gangguan jaringan sesaat pada panel Konteks.
+- fix(route): Mendukung rute deep link notifikasi `#context` dan `#scalper` pada sinkronisasi navigasi.
+
 ## 2.0.0-pro.371
 
 - feat(notification): Sinkronisasi penuh narasi notifikasi "Scalp Kilat" pada fase perlawanan arah (M15 vs H1) dan deployment runtime engine backend Supabase.

@@ -29,18 +29,51 @@ const DEFAULT_TOURNAMENT_DRIVERS = [
   { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', winRate: 77.4, rr: 0.7, score: 0, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' },
   { id: 'HUMAN_MTF_RAPID_SCALPER', name: 'Human MTF Rapid Scalper', winRate: 54.4, rr: 1.3, score: 0, status: 'STANDBY', desc: 'Sesi London & NY · 3–5 Setup/Hari · Cut Loss Dini -0.35R (Catatan: WR Rendah ~54%, RR Tinggi 1.3R)' }
 ];
-function getTournamentDrivers() {
+function getTournamentDrivers(history = []) {
+  let drivers = DEFAULT_TOURNAMENT_DRIVERS.map(d => ({ ...d }));
   try {
     const raw = localStorage.getItem('amyfx.driver-tournament.v2');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (Array.isArray(saved) && saved.length === drivers.length) {
+        drivers = saved.map((d, i) => ({ ...DEFAULT_TOURNAMENT_DRIVERS[i], ...d }));
+      }
+    }
   } catch (_) {}
-  return DEFAULT_TOURNAMENT_DRIVERS;
+
+  if (Array.isArray(history) && history.length > 0) {
+    const scoreMap = {};
+    for (const s of history) {
+      if (s.symbol && s.symbol !== 'XAU/USD') continue;
+      const id = String(s.driverId || s.model || s.driverName || '').toUpperCase();
+      let matchIdx = -1;
+      if (id.includes('SNIPER') || id.includes('OTE_78') || id.includes('DEEP_OTE')) matchIdx = 0;
+      else if (id.includes('ADAPTIVE') || id.includes('RUNNER')) matchIdx = 1;
+      else if (id.includes('CHOCH') || id.includes('SWING')) matchIdx = 2;
+      else if (id.includes('ENSEMBLE') || id.includes('MULTI')) matchIdx = 3;
+      else if (id.includes('SHIELD') || id.includes('CONSERVATIVE')) matchIdx = 4;
+      else if (id.includes('RAPID') || id.includes('HUMAN')) matchIdx = 5;
+
+      if (matchIdx >= 0) {
+        if (!scoreMap[matchIdx]) scoreMap[matchIdx] = 0;
+        if (s.status === 'TP_HIT') scoreMap[matchIdx] += 10;
+        else if (s.status === 'SL_HIT') scoreMap[matchIdx] -= 15;
+      }
+    }
+    for (const [idx, pts] of Object.entries(scoreMap)) {
+      if (drivers[idx]) drivers[idx].score = pts;
+    }
+    try {
+      localStorage.setItem('amyfx.driver-tournament.v2', JSON.stringify(drivers));
+    } catch (_) {}
+  }
+  return drivers;
 }
 function renderTournament(c) {
   const container = $('driver-tournament-list');
   const badge = $('tournament-leader-badge');
   if (!container) return;
-  const drivers = getTournamentDrivers();
+  const drivers = getTournamentDrivers(payload?.history);
   const ready = c?.execution?.status === 'READY TO REVIEW';
   const conflict = Boolean(c?.m15?.opposingControl);
   const h1Health = c?.h1?.health || 'UNKNOWN';
@@ -49,7 +82,12 @@ function renderTournament(c) {
   const confirming = c?.m5 || c?.m1;
   const isHighVol = c?.volatility?.condition === 'HIGH VOLATILITY';
   const isNewsLock = c?.news?.status === 'NEWS_LOCK';
-  const mssBreak = c?.m15?.lastBreak?.type === 'MSS';
+  const m15BreakTime = c?.m15?.lastBreak?.time;
+  const currentM15Time = c?.source?.M15 || Math.floor(Date.now() / 1000);
+  const isMssRecent = Boolean(m15BreakTime && (currentM15Time - m15BreakTime <= 8 * 3600));
+  const mssBreak = c?.m15?.lastBreak?.type === 'MSS' && isMssRecent;
+  const closePrice = Number(c?.price || 0);
+  const poiNear = poi && (closePrice <= 0 || Math.abs(closePrice - (poi.low + poi.high) / 2) <= (Number(c?.volatility?.atr || 2) * 2.5));
 
   // Driver 1: High-WR Sniper 70 (Deep OTE 78.6%)
   if (isNewsLock) {
@@ -58,7 +96,7 @@ function renderTournament(c) {
     drivers[0].status = 'TRIGGERED (OTE 78.6%)';
   } else if (poi && (confirming?.sweep || confirming?.status === 'CONFIRMED')) {
     drivers[0].status = 'OTE RETESTING';
-  } else if (poi) {
+  } else if (poi && poiNear) {
     drivers[0].status = 'MONITORING DEEP OTE';
   } else {
     drivers[0].status = 'STANDBY';
@@ -175,7 +213,7 @@ function renderTournament(c) {
     `;
   }).join('');
 }
-function empty(reason){
+function empty(reason, clearStorage = true){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
   $('market-state').textContent='KONTEKS BELUM TERSEDIA';$('market-story').textContent=reason;
   $('context-source').textContent='Candle lama tidak menjadi dasar keputusan baru.';
@@ -188,12 +226,27 @@ function empty(reason){
   $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
   $('gold-condition').textContent='Menunggu data volatilitas.';$('news-awareness').textContent='Periksa berita berdampak tinggi secara manual.';
   renderTournament(null);
-  try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
-  window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
+  if (clearStorage) {
+    try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
+    window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
+  }
 }
 function render(){
   const c=failed?null:currentContext(payload);
-  if(!c){empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');return;}
+  if(!c){
+    if (failed) {
+      try {
+        const cached = JSON.parse(localStorage.getItem('amyfx.market-context.v1') || 'null');
+        if (cached) {
+          $('connection').textContent = 'Koneksi terputus · cache lokal';
+          $('context-state').textContent = 'OFFLINE · DATA CACHE';
+          return;
+        }
+      } catch (_) {}
+    }
+    empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.', !failed);
+    return;
+  }
   const tf=c.source?.M5?'M5':'M1';
   const confTime=c.source?.M5||c.source?.M1;
   const confObj=c.m5||c.m1;
@@ -253,4 +306,11 @@ window.addEventListener('offline',()=>{failed=true;render();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else refresh();});
 window.addEventListener('pagehide',()=>{generation++;request?.abort();clearTimeout(timer);});
 window.addEventListener('pageshow',event=>{if(event.persisted)refresh();});
+
+try {
+  const cachedInitial = JSON.parse(localStorage.getItem('amyfx.market-context.v1') || 'null');
+  if (cachedInitial) {
+    payload = { ok: true, mode: 'market_context', engine: { status: 'COMPLETED', completed_at: new Date().toISOString(), result: { engine: 'amyfx-gold-context-v1' } }, context: cachedInitial };
+  }
+} catch (_) {}
 render();refresh();

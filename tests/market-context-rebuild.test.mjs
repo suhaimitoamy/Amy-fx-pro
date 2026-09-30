@@ -168,3 +168,12 @@ test('economic calendar integration detects safe, upcoming, and news lock states
   assert.match(context.execution.reason, /News Lock Aktif/);
   assert.equal(context.event?.title, '🛡️ Tahan Dulu: Pasar Lagi Liar');
 });
+
+test('active target level object does not crash buildMarketContext and formats price cleanly', () => {
+  const data = input();
+  // Set D1 so that PDH is active above current price
+  data.d1 = [{ open_time: now - 86400, close_time: now - 3600, open: 3300, high: 3390, low: 3280, close: 3310, is_closed: true }];
+  const ctx = buildMarketContext(data);
+  assert.ok(ctx.event);
+  assert.match(ctx.event.body, /TP tipis di 3390\.00/);
+});
