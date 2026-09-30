@@ -170,11 +170,22 @@ async function scrapeTelegram(limit, shouldTranslate = true) {
 
 function extractPosts(html) {
   const posts = [];
-  const msgRegex = /data-post="SM_News_24h\/(\d+)"[\s\S]*?<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>\s*(?:<div class="tgme_widget_message_author|<div class="tgme_widget_message_footer)/gi;
+  const postPattern = /data-post="SM_News_24h\/(\d+)"/g;
+  const indices = [];
+  let m;
+  while ((m = postPattern.exec(html)) !== null) {
+    indices.push({ id: m[1], index: m.index });
+  }
 
-  let match;
-  while ((match = msgRegex.exec(html)) !== null) {
-    const text = match[2]
+  for (let i = 0; i < indices.length; i++) {
+    const current = indices[i];
+    const nextIndex = (i + 1 < indices.length) ? indices[i + 1].index : html.length;
+    const postChunk = html.slice(current.index, nextIndex);
+
+    const textMatch = postChunk.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
+    if (!textMatch) continue;
+
+    const rawText = textMatch[1]
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<[^>]+>/g, '')
       .replace(/&amp;/g, '&')
@@ -186,23 +197,19 @@ function extractPosts(html) {
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
-    if (text.length < 20) continue;
+    if (rawText.length < 20) continue;
+
+    const timeMatch = postChunk.match(/datetime="([^"]+)"/i);
+    const time = timeMatch ? timeMatch[1] : '';
+
     posts.push({
-      id: match[1],
-      text,
-      link: `https://telegram.me/${TELEGRAM_SOURCE}/${match[1]}`,
-      time: extractTime(html, match.index, msgRegex.lastIndex)
+      id: current.id,
+      text: rawText,
+      link: `https://telegram.me/${TELEGRAM_SOURCE}/${current.id}`,
+      time
     });
   }
   return posts;
-}
-
-function extractTime(html, start, end) {
-  const block = html.slice(start, Math.min(html.length, end + 1600));
-  const current = block.match(/datetime="([^"]+)"/);
-  if (current) return current[1];
-  const before = html.slice(Math.max(0, start - 700), start);
-  return before.match(/datetime="([^"]+)"/)?.[1] || '';
 }
 
 function filterGold(posts, isRelevantNews) {

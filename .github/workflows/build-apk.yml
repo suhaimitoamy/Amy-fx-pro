@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan).
-          - Konsolidasi materi: 569 file bab digabung ke dalam 36 modul master interaktif dengan navigasi bab dan drawer TOC.
-          - Pembersihan modul duplikat dan optimasi aset aplikasi (pengurangan 91% jumlah file HTML terfragmentasi).
-          - Navigasi antar-materi terintegrasi penuh tanpa link rusak di WebView Android.
+          - Kompas Fundamental: diangkat sebagai pusat Market Intel, tab default, dan prioritas pertama.
+          - 8 Poin Kompas Institusional: kecenderungan Gold, horizon analisis, 3 faktor dominan, bukti pendukung/bertentangan dengan link drilldown, skenario terstruktur, katalis berikutnya, dan jembatan eksekusi Mapping.
+          - Hardening 11 Baseline Bug: isolasi parser berita, evaluasi Actual vs Forecast, kejujuran cache kalender, timeout koneksi 4s, dan sanitasi XSS penuh.
+          - Pengalaman Berita & Kalender: penanganan deep link notifikasi, translasi kalimat tanpa truncate, dan retensi posisi baca saat refresh.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber

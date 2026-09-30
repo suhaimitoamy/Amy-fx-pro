@@ -78,26 +78,34 @@ function decodeHtml(value: string) {
     .trim();
 }
 
-function extractTime(html: string, start: number, end: number) {
-  const block = html.slice(start, Math.min(html.length, end + 1600));
-  return block.match(/datetime="([^"]+)"/)?.[1]
-    || html.slice(Math.max(0, start - 700), start).match(/datetime="([^"]+)"/)?.[1]
-    || '';
-}
-
 function extractPosts(html: string) {
   const posts: Array<{ id: string; text: string; time: string; link: string }> = [];
-  const regex = /data-post="SM_News_24h\/(\d+)"[\s\S]*?<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>\s*(?:<div class="tgme_widget_message_author|<div class="tgme_widget_message_footer)/gi;
-  let match: RegExpExecArray | null;
+  const postPattern = /data-post="SM_News_24h\/(\d+)"/g;
+  const indices: Array<{ id: string; index: number }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = postPattern.exec(html)) !== null) {
+    indices.push({ id: m[1], index: m.index });
+  }
 
-  while ((match = regex.exec(html)) !== null) {
-    const text = decodeHtml(match[2]);
+  for (let i = 0; i < indices.length; i++) {
+    const current = indices[i];
+    const nextIndex = (i + 1 < indices.length) ? indices[i + 1].index : html.length;
+    const postChunk = html.slice(current.index, nextIndex);
+
+    const textMatch = postChunk.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
+    if (!textMatch) continue;
+
+    const text = decodeHtml(textMatch[1]);
     if (text.length < 20) continue;
+
+    const timeMatch = postChunk.match(/datetime="([^"]+)"/i);
+    const time = timeMatch ? timeMatch[1] : '';
+
     posts.push({
-      id: match[1],
+      id: current.id,
       text,
-      time: extractTime(html, match.index, regex.lastIndex),
-      link: `https://telegram.me/${SOURCE}/${match[1]}`
+      time,
+      link: `https://telegram.me/${SOURCE}/${current.id}`
     });
   }
 

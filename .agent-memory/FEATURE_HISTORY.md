@@ -1,6 +1,19 @@
 # Feature History
 
-## 2026-09-24 — Pro361 Automated Economic Calendar & Market Intel Overhaul
+## 2026-09-30 — Pro381 Market Intel Kompas Fundamental Architecture
+
+- **Kompas Fundamental Hub (Primary Priority & Default Tab):**
+  - Repositioned Kompas Fundamental (`data-tab="sentiment"`, `panel-sentiment`) as the central hub of Market Intel.
+  - Berita and Kalender remain operational as supporting evidence and catalyst schedules.
+  - Answers all 8 core institutional questions: Gold bias, horizon, 3 ranked dominant factors with clear reasoning, supporting vs opposing evidence columns, structured scenarios (main, reinforcing, invalidation), catalyst countdown, and mapping technical bridge.
+- **Supporting Evidence Drilldown:**
+  - One-click evidence links (`openEvidenceNews(id)` and `openEvidenceCalendar()`) connect directly from Kompas claims to timestamped news cards and calendar items.
+  - Reading position and expanded card states are preserved across news refreshes.
+- **Truthful Multi-State Indicators:**
+  - Synchronized state reports `🟢 Live Engine`, `🟡 Cache Lokal`, or `🟠 Cache Usang (>24 Jam)`. Missing data displays `🔴 Kalender Belum Terhubung`.
+- **Hardened Client Translation & Security:**
+  - Sentence chunking (≤450 chars) for MyMemory API with strict no-truncation caching policy.
+  - Strict HTML escaping across all dynamic macro variables.
 
 - **Update 1: Automated Economic Calendar & News Lock Safety Gate:**
   - Integrated Forex Factory / Fair Economy Media free JSON feed (`https://nfs.faireconomy.media/ff_calendar_thisweek.json`).

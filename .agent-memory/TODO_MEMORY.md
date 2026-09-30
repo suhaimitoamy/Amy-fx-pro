@@ -1,5 +1,13 @@
 # TODO Memory
 
+## 2026-09-30 — Pro381 Market Intel Kompas Overhaul
+
+- [x] Local implementation completed: Kompas Fundamental default hub, Berita as supporting evidence, Kalender as upcoming catalyst.
+- [x] 11 baseline bugs verified and resolved.
+- [x] Hardening test suite `tests/market-intel-kompas-hardening.test.mjs` created (12/12 passing).
+- [x] Full regression test suite verified: 143/143 test files passed 100%.
+- [ ] Version bump, git commit, push, and CI workflow monitoring (pending user review & approval).
+
 ## 2026-09-30 — Pro374 Mapping audit fixes
 
 - [x] Pro374 (950374) released: 139 regression files passed locally and Actions run 36689049436 succeeded. APK identity/signer and public download gates passed; update.json activated and downloaded APK SHA-256 matches d20dc579d73fc10d54e2e2624650aeea19fce5b436ad36c18d49c8dff40ecec9.

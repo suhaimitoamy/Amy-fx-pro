@@ -10,9 +10,11 @@ const API_BASE = 'https://amy-fx.vercel.app/api';
 const REFRESH_INTERVAL = 60 * 1000; // Auto-refresh setiap 1 menit
 
 // ─── State ───────────────────────────────────────────────
-let currentTab = 'news';
+let currentTab = 'sentiment';
 let pendingNewsId = '';
 let newsRouteRetries = 0;
+let newsFetchSequence = 0;
+let isCalendarLive = false;
 const requestControllers = {};
 const panelLoadedAt = {};
 
@@ -24,6 +26,29 @@ function newsTargetUrl(id) {
   const base = 'file:///android_asset/apps/market-intel/index.html';
   return `${base}#news=${encodeURIComponent(id)}`;
 }
+
+function isNewsRelevantForGold(item) {
+  if (!item) return false;
+  if (item.relevant === true) return true;
+  const text = (item.text || item.textOriginal || '').toLowerCase();
+  const goldKeywords = [
+    'gold', 'xau', 'emas', 'bullion', 'fed', 'fomc', 'powell',
+    'inflation', 'cpi', 'pce', 'treasury', 'yield', 'dxy', 'dollar',
+    'dolar', 'nfp', 'payroll', 'jobless', 'claims', 'war', 'perang',
+    'geopolit', 'safe haven', 'central bank', 'bank sentral',
+    'suku bunga', 'rate cut', 'rate hike'
+  ];
+  return goldKeywords.some(kw => text.includes(kw));
+}
+
+window.openEvidenceNews = function(id) {
+  activateTab('news');
+  focusNewsItem(id);
+};
+
+window.openEvidenceCalendar = function() {
+  activateTab('calendar');
+};
 
 function cleanNewsContent(value) {
   return String(value || '')
@@ -86,6 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   setupNewsInteractions();
   setupCalendarFilters();
+
+  if (pendingNewsId) {
+    activateTab('news');
+  } else {
+    activateTab('sentiment');
+  }
 
   // Instant render from local cache first, then sync in background
   loadSentiment();
@@ -157,6 +188,7 @@ function analyzeMacroEvent(ev) {
   const fVal = parseCalendarNumber(ev.forecast);
   const pVal = parseCalendarNumber(ev.previous);
   const aVal = parseCalendarNumber(ev.actual);
+  const isReleased = aVal !== null;
 
   let category = 'other';
   let bias = 'NEUTRAL';
@@ -164,32 +196,77 @@ function analyzeMacroEvent(ev) {
 
   if (titleLower.includes('unemployment claims') || titleLower.includes('jobless claims')) {
     category = 'claims';
-    if (fVal !== null && pVal !== null && fVal > pVal) {
-      bias = 'BULLISH_BOUNCE';
-      scenarioDesc = 'Proyeksi kenaikan klaim pengangguran mengindikasikan pasar tenaga kerja AS mulai mendingin, membuka peluang nafas lega bagi Gold.';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      if (refVal !== null && aVal > refVal) {
+        bias = 'BULLISH_BOUNCE';
+        scenarioDesc = `Klaim pengangguran aktual lebih tinggi dari proyeksi (${aVal}K vs ${refVal}K), mengindikasikan pasar tenaga kerja AS mulai mendingin dan membuka peluang nafas lega bagi Gold.`;
+      } else if (refVal !== null && aVal < refVal) {
+        bias = 'BEARISH_PRESSURE';
+        scenarioDesc = `Klaim pengangguran aktual lebih rendah dari proyeksi (${aVal}K vs ${refVal}K), mencerminkan pasar tenaga kerja AS yang masih solid dan menjaga Dolar AS tetap perkasa menekan Gold.`;
+      } else {
+        bias = 'NEUTRAL';
+        scenarioDesc = `Klaim pengangguran aktual keluar sesuai proyeksi (${aVal}K), reaksi pasar cenderung berimbang.`;
+      }
     } else {
-      bias = 'BEARISH_PRESSURE';
-      scenarioDesc = 'Klaim pengangguran masih rendah mencerminkan pasar tenaga kerja AS yang solid, menjaga Dolar AS tetap perkasa menekan Gold.';
+      if (fVal !== null && pVal !== null && fVal > pVal) {
+        bias = 'BULLISH_BOUNCE';
+        scenarioDesc = 'Proyeksi kenaikan klaim pengangguran mengindikasikan pasar tenaga kerja AS mulai mendingin, membuka peluang nafas lega bagi Gold.';
+      } else {
+        bias = 'BEARISH_PRESSURE';
+        scenarioDesc = 'Klaim pengangguran masih rendah mencerminkan pasar tenaga kerja AS yang solid, menjaga Dolar AS tetap perkasa menekan Gold.';
+      }
     }
   } else if (titleLower.includes('cpi') || titleLower.includes('pce') || titleLower.includes('inflation')) {
     category = 'inflation';
-    bias = (fVal !== null && pVal !== null && fVal > pVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
-    scenarioDesc = 'Data inflasi sangat menentukan arah suku bunga The Fed. Inflasi panas menekan emas, sedangkan inflasi melandai mendorong reli emas.';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      if (refVal !== null && aVal > refVal) {
+        bias = 'BEARISH_PRESSURE';
+        scenarioDesc = `Data inflasi aktual keluar lebih panas dari perkiraan (${aVal}% vs ${refVal}%), memperkuat ekspektasi suku bunga ketat The Fed dan menekan Gold.`;
+      } else if (refVal !== null && aVal < refVal) {
+        bias = 'BULLISH_BOUNCE';
+        scenarioDesc = `Data inflasi aktual melandai di bawah perkiraan (${aVal}% vs ${refVal}%), meredakan kekhawatiran suku bunga dan mendukung reli Gold.`;
+      } else {
+        bias = 'NEUTRAL';
+        scenarioDesc = `Data inflasi aktual sesuai konsensus (${aVal}%), fokus pasar beralih ke rincian komponen inti.`;
+      }
+    } else {
+      bias = (fVal !== null && pVal !== null && fVal > pVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = 'Data inflasi sangat menentukan arah suku bunga The Fed. Inflasi panas menekan emas, sedangkan inflasi melandai mendorong reli emas.';
+    }
   } else if (titleLower.includes('non-farm') || titleLower.includes('payrolls') || titleLower.includes('unemployment rate')) {
     category = 'labor';
-    bias = 'VOLATILE';
-    scenarioDesc = 'Rilis data ketenagakerjaan tier-1 menciptakan volatilitas tinggi dan menentukan ekspektasi pelonggaran moneter The Fed.';
+    if (isReleased) {
+      if (titleLower.includes('unemployment rate')) {
+        const refVal = fVal !== null ? fVal : pVal;
+        bias = (refVal !== null && aVal > refVal) ? 'BULLISH_BOUNCE' : 'BEARISH_PRESSURE';
+      } else {
+        const refVal = fVal !== null ? fVal : pVal;
+        bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      }
+      scenarioDesc = `Rilis aktual data tenaga kerja AS (${aVal}) telah memicu volatilitas tinggi pada DXY dan Gold.`;
+    } else {
+      bias = 'VOLATILE';
+      scenarioDesc = 'Rilis data ketenagakerjaan tier-1 menciptakan volatilitas tinggi dan menentukan ekspektasi pelonggaran moneter The Fed.';
+    }
   } else if (titleLower.includes('fomc') || titleLower.includes('rate decision') || titleLower.includes('powell')) {
     category = 'fomc';
     bias = 'FED_POLICY';
     scenarioDesc = 'Sinyal arah suku bunga dan pernyataan ketua The Fed menjadi kompas utama pergerakan Dolar AS dan imbal hasil obligasi riil.';
   } else if (titleLower.includes('pmi')) {
     category = 'pmi';
-    bias = (fVal !== null && pVal !== null && fVal > 50) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
-    scenarioDesc = 'Indeks manufaktur & jasa mengukur ekspansi ekonomi AS yang memicu penguatan Dolar jika berada di atas 50.';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : 50;
+      bias = (aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `Indeks PMI aktual (${aVal}) ${aVal > 50 ? 'mengonfirmasi ekspansi ekonomi AS yang mendukung USD' : 'mengindikasikan kontraksi ekonomi yang menopang Gold'}.`;
+    } else {
+      bias = (fVal !== null && pVal !== null && fVal > 50) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = 'Indeks manufaktur & jasa mengukur ekspansi ekonomi AS yang memicu penguatan Dolar jika berada di atas 50.';
+    }
   }
 
-  return { title, category, bias, scenarioDesc, fVal, pVal, aVal };
+  return { title, category, bias, scenarioDesc, fVal, pVal, aVal, isReleased };
 }
 
 async function loadSentiment(isBackground = false) {
@@ -199,7 +276,7 @@ async function loadSentiment(isBackground = false) {
 
   const now = new Date();
   const timeZone = 'Asia/Makassar';
-  
+
   // Format Tanggal & Jam WITA
   const dateStrWita = now.toLocaleDateString('id-ID', {
     timeZone,
@@ -214,6 +291,7 @@ async function loadSentiment(isBackground = false) {
   const cached = getCachedCalendar();
   const events = (cached?.events || calendarEvents || []);
   const usdEvents = events.filter(e => String(e.country || '').toUpperCase() === 'USD');
+  const hasEvents = usdEvents.length > 0;
 
   // Filter event USD hari ini (WITA)
   const todayUsd = usdEvents.filter(e => {
@@ -239,49 +317,222 @@ async function loadSentiment(isBackground = false) {
 
   const eventAnalysis = analyzeMacroEvent(mainEvent);
 
-  // Periksa sentimen berita untuk safe haven & geopolitik
-  let newsTextCombined = '';
+  // Ambil berita lokal untuk bukti geopolitik & energi
+  let newsItems = [];
   try {
     const rawNews = localStorage.getItem('amyfx.assistant.news.v1');
     if (rawNews) {
       const parsedNews = JSON.parse(rawNews);
       if (Array.isArray(parsedNews?.items)) {
-        newsTextCombined = parsedNews.items.map(n => String(n.text || '')).join(' ').toLowerCase();
+        newsItems = parsedNews.items;
       }
     }
   } catch (_) {}
 
-  const hasGeopolitics = newsTextCombined.includes('perang') || newsTextCombined.includes('geopolit') ||
-    newsTextCombined.includes('timur tengah') || newsTextCombined.includes('israel') ||
-    newsTextCombined.includes('iran') || newsTextCombined.includes('serangan') ||
-    newsTextCombined.includes('russia') || newsTextCombined.includes('ukraina');
+  const newsTextCombined = newsItems.map(n => String(n.text || n.textOriginal || '')).join(' ').toLowerCase();
 
-  const hasEnergyRisk = newsTextCombined.includes('minyak') || newsTextCombined.includes('oil') ||
-    newsTextCombined.includes('brent') || newsTextCombined.includes('opec') || newsTextCombined.includes('energi');
+  const geopoliticsItems = newsItems.filter(n => {
+    const t = (n.text || n.textOriginal || '').toLowerCase();
+    return t.includes('perang') || t.includes('war') || t.includes('geopolit') ||
+           t.includes('serangan') || t.includes('attack') || t.includes('israel') ||
+           t.includes('iran') || t.includes('russia') || t.includes('ukraina') ||
+           t.includes('timur tengah') || t.includes('middle east');
+  });
+  const hasGeopolitics = geopoliticsItems.length > 0;
 
-  // Sintesis Status Scorecard
+  const deescalationItems = newsItems.filter(n => {
+    const t = (n.text || n.textOriginal || '').toLowerCase();
+    return t.includes('gencatan senjata') || t.includes('ceasefire') || t.includes('damai') ||
+           t.includes('peace') || t.includes('deescalat') || t.includes('de-eskalasi');
+  });
+  const isDeescalation = deescalationItems.length > 0;
+
+  const energyItems = newsItems.filter(n => {
+    const t = (n.text || n.textOriginal || '').toLowerCase();
+    return t.includes('minyak') || t.includes('oil') || t.includes('brent') ||
+           t.includes('opec') || t.includes('energi') || t.includes('energy');
+  });
+  const hasEnergyRisk = energyItems.length > 0;
+
+  // Cache freshness check (Bug 3)
+  const cacheAgeMs = cached?.savedAt ? Date.now() - cached.savedAt : 0;
+  const isStaleCache = cacheAgeMs > 24 * 60 * 60 * 1000;
+
+  // Header Sync Badge (Bug 1 & 3)
+  let syncBadgeHtml = '';
+  if (!hasEvents) {
+    syncBadgeHtml = '<div class="briefing-sync-badge sync-disconnected">🔴 Kalender Belum Terhubung</div>';
+  } else if (isCalendarLive) {
+    syncBadgeHtml = '<div class="briefing-sync-badge sync-live">🟢 Kalender Terhubung (Live)</div>';
+  } else if (isStaleCache) {
+    syncBadgeHtml = '<div class="briefing-sync-badge sync-cache">🟠 Kalender Terhubung (Cache Usang >24 Jam)</div>';
+  } else {
+    syncBadgeHtml = '<div class="briefing-sync-badge sync-cache">🟡 Kalender Terhubung (Cache Lokal)</div>';
+  }
+
+  // Sintesis Status Scorecard & Kompas
   let usdScore = '🟢 Cenderung Kuat';
   let yieldScore = '🟢 Menjadi Tekanan untuk Emas';
   let riskScore = '⚖️ Campuran — Pasar Menanti Data';
   let goldBias = '↘️ Netral Cenderung Bearish (Jangka Pendek)';
+  let goldBiasClass = 'bearish';
   let conclusionBias = '⚠️ WAIT / SELL ON RALLY';
-  let conclusionGuide = 'Secara fundamental, mencari setup SELL ON RALLY di zona resistance/supply lebih masuk akal hari ini. Namun, hindari mengejar posisi sell di harga bawah (diskon) sebelum terjadi pullback atau sapuan likuiditas atas.';
+  let horizonStr = 'Sesi Berjalan';
+  let conclusionGuide = '';
+  let dom1Title = '';
+  let dom1Reason = '';
+  let dom2Title = '';
+  let dom2Reason = '';
+  let dom3Title = 'Imbal Hasil US Treasury 10-Year';
+  let dom3Reason = 'Korelasi negatif yield obligasi terhadap daya tarik emas non-yielding tetap menjadi faktor penentu arus modal institusi.';
+  let mainScenario = '';
+  let confirmCondition = '';
+  let invalidationCondition = '';
+  let mappingBridgeText = '';
 
-  if (eventAnalysis?.category === 'claims' && eventAnalysis.fVal !== null && eventAnalysis.pVal !== null && eventAnalysis.fVal > eventAnalysis.pVal) {
-    conclusionGuide = `Bias harian tetap waspada Sell on Rally di zona supply, namun jangan mengejar sell di harga bawah sebelum rilis data jam ${new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' })} WITA karena ada potensi pantulan teknikal jika klaim naik ke ${mainEvent.forecast}.`;
+  const isReleased = Boolean(eventAnalysis?.isReleased);
+
+  if (!hasEvents) {
+    // Baseline Bug 1: No data should NOT give SELL ON RALLY
+    usdScore = '⚪ Data Belum Tersedia';
+    yieldScore = '⚪ Menunggu Sinyal Pasar';
+    riskScore = '⚪ Data Netral / Tidak Ada Rilis';
+    goldBias = '⚪ Belum Cukup Data Fundamental Baru';
+    goldBiasClass = 'insufficient';
+    conclusionBias = '⚪ BELUM CUKUP DATA';
+    horizonStr = 'Menunggu Jadwal Katalis Baru';
+    conclusionGuide = 'Belum ada rilis data ekonomi AS atau data kalender belum tersinkronisasi. Analisis fundamental memerlukan data makro terverifikasi. Untuk sesi ini, fokuskan keputusan transaksi pada struktur teknikal Dealing Range dan konfirmasi Price Action di tab Mapping.';
+    dom1Title = 'Ketiadaan Katalis Makro AS Terjadwal';
+    dom1Reason = 'Belum ada rilis data ekonomi atau jadwal kalender belum tersinkronisasi.';
+    dom2Title = 'Struktur Likuiditas & Dealing Range';
+    dom2Reason = 'Pergerakan harga saat ini sepenuhnya dipandu oleh sapuan likuiditas teknis di chart.';
+    mainScenario = 'Disiplin menunggu konfirmasi Price Action ICT murni di zona PD Array Mapping.';
+    confirmCondition = 'Sinyal teknikal MSS valid di Dealing Range M5/M15.';
+    invalidationCondition = 'Munculnya breaking news atau kejutan data fundamental baru.';
+    mappingBridgeText = 'Tanpa data ekonomi tier-1 terjadwal, jangan paksakan bias arah fundamental. Tunggu konfirmasi sapuan likuiditas (BSL/SSL) dan entri di Diskon/Premium PD Array pada tab Mapping.';
   } else if (eventAnalysis?.bias === 'BULLISH_BOUNCE') {
-    usdScore = '🔴 Cenderung Melemah';
+    usdScore = isReleased ? '🔴 Melemah Pasca Rilis' : '🔴 Cenderung Melemah';
     yieldScore = '🔴 Mereda — Memberi Ruang Reli Emas';
     goldBias = '↗️ Netral Cenderung Bullish';
+    goldBiasClass = 'bullish';
     conclusionBias = '🟢 BUY ON DIPS';
-    conclusionGuide = 'Data AS mengindikasikan pendinginan ekonomi. Cari konfirmasi Buy di zona Diskon PD Array atau demand support sesudah likuiditas bawah diambil.';
+    horizonStr = isReleased ? 'Sesi Berjalan (Pasca Rilis Data)' : 'Menjelang Rilis Katalis Sesi Ini';
+    dom1Title = isReleased ? `Data Aktual: ${mainEvent.title}` : `Konsensus Proyeksi: ${mainEvent.title}`;
+    dom1Reason = eventAnalysis.scenarioDesc || 'Pendinginan ekonomi AS menekan Dolar dan membuka peluang penguatan Gold.';
+    mainScenario = isReleased
+      ? 'Mencari entri Buy on Dips pasca data dovish sesudah likuiditas bawah (SSL) tersapu.'
+      : 'Mencari peluang Buy on Dips di zona Diskon PD Array jika konsensus data terkonfirmasi.';
+    confirmCondition = isReleased
+      ? 'DXY menembus support dan yield 10-Year bergerak turun.'
+      : `Actual rilis ${mainEvent.forecast ? 'lebih dingin/lemah dari ' + mainEvent.forecast : 'melemah'}.`;
+    invalidationCondition = 'Harga gagal bertahan di atas demand kunci atau data lanjutan berbalik kuat.';
+    conclusionGuide = isReleased
+      ? `Data aktual ${mainEvent.title} (${mainEvent.actual}) mengonfirmasi pelemahan DXY. Cari konfirmasi Buy di zona Diskon PD Array atau demand support sesudah likuiditas bawah diambil.`
+      : `Konsensus proyeksi ${mainEvent.title} mengindikasikan pendinginan data AS. Cari konfirmasi Buy di zona Diskon PD Array sesudah likuiditas bawah diambil.`;
+    mappingBridgeText = 'Cari konfirmasi entri BUY di area Diskon PD Array (FVG/OB Bullish) sesudah Sell-Side Liquidity (SSL) tersapu.';
+  } else if (eventAnalysis?.bias === 'BEARISH_PRESSURE') {
+    usdScore = isReleased ? '🟢 Menguat Pasca Rilis' : '🟢 Cenderung Kuat';
+    yieldScore = '🟢 Menjadi Tekanan untuk Emas';
+    goldBias = '↘️ Netral Cenderung Bearish';
+    goldBiasClass = 'bearish';
+    conclusionBias = '⚠️ WAIT / SELL ON RALLY';
+    horizonStr = isReleased ? 'Sesi Berjalan (Pasca Rilis Data)' : 'Menjelang Rilis Katalis Sesi Ini';
+    dom1Title = isReleased ? `Data Aktual: ${mainEvent.title}` : `Konsensus Proyeksi: ${mainEvent.title}`;
+    dom1Reason = eventAnalysis.scenarioDesc || 'Kekuatan ekonomi dan Dolar AS membatasi potensi reli harga emas.';
+    mainScenario = 'Mencari setup SELL ON RALLY di zona Premium PD Array / Supply sesudah pullback atau sapuan likuiditas atas.';
+    confirmCondition = isReleased
+      ? 'DXY menembus resistance dan yield US 10-Year naik kuat.'
+      : `Actual rilis ${mainEvent.forecast ? 'lebih panas/kuat dari ' + mainEvent.forecast : 'menguat'}.`;
+    invalidationCondition = 'Sentimen geopolitik eskalatif mendadak atau kejutan data dovish yang menyapu zona supply.';
+    conclusionGuide = (eventAnalysis?.category === 'claims' && !isReleased && eventAnalysis.fVal !== null && eventAnalysis.pVal !== null && eventAnalysis.fVal > eventAnalysis.pVal)
+      ? `Bias harian tetap waspada Sell on Rally di zona supply, namun jangan mengejar sell di harga bawah sebelum rilis data jam ${new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' })} WITA karena ada potensi pantulan teknikal jika klaim naik ke ${escapeHtml(mainEvent.forecast)}.`
+      : `Secara fundamental, mencari setup SELL ON RALLY di zona resistance/supply lebih masuk akal hari ini. Namun, hindari mengejar posisi sell di harga bawah (diskon) sebelum terjadi pullback atau sapuan likuiditas atas.`;
+    mappingBridgeText = 'Fokus Sell on Rally di zona Premium PD Array (FVG/OB Bearish) sesudah Buy-Side Liquidity (BSL) tersapu. Hindari mengejar sell di harga diskon.';
+  } else {
+    usdScore = '⚖️ Konsolidasi / Campuran';
+    yieldScore = '⚖️ Bergerak Terbatas';
+    goldBias = '⚖️ Campuran / Menanti Katalis';
+    goldBiasClass = 'mixed';
+    conclusionBias = '⚖️ WAIT / NETRAL';
+    horizonStr = 'Sesi Berjalan';
+    dom1Title = mainEvent ? mainEvent.title : 'Dinamika Dolar AS & Suku Bunga';
+    dom1Reason = eventAnalysis?.scenarioDesc || 'Pasar menanti kejelasan rilis data ekonomi untuk menentukan arah tren berikutnya.';
+    mainScenario = 'Disiplin menunggu rilis data dan reaksi konfirmasi di Dealing Range.';
+    confirmCondition = 'Breakout struktur Dealing Range dengan volume dan momentum terkonfirmasi.';
+    invalidationCondition = 'Fakeout likuiditas dua arah (whipsaw) menjelang rilis.';
+    conclusionGuide = 'Faktor penggerak fundamental berada dalam kondisi berimbang. Tunggu kejelasan arah pasar dari reaksi rilis berita atau konfirmasi struktur Price Action di Mapping.';
+    mappingBridgeText = 'Pasar dalam fase konsolidasi/menanti katalis. Utamakan skenario range-bound atau tunggu sapuan likuiditas ekstrem sebelum entri.';
   }
 
+  // Dominant factor 2 (Safe Haven / Geopolitics)
+  if (hasGeopolitics && !isDeescalation) {
+    dom2Title = 'Tensi Geopolitik Global (Safe Haven Aktif)';
+    dom2Reason = 'Konflik dan tensi regional menopang minat lindung nilai institusi, bertindak sebagai bantalan penahan penurunan emas.';
+  } else if (isDeescalation) {
+    dom2Title = 'Peredaan Risiko Geopolitik (De-eskalasi)';
+    dom2Reason = 'Kabar gencatan senjata atau dialog damai meredakan premi risiko safe haven pada emas.';
+  } else {
+    dom2Title = 'Permintaan Safe Haven & Bank Sentral';
+    dom2Reason = 'Pembelian fisik jangka panjang oleh bank sentral menjadi fondasi penopang struktural.';
+  }
+
+  // Status line (Bug 1 & 3)
   if (statusEl) {
-    statusEl.textContent = `Pembaruan: ${timeStrWita} • Kalender Tersinkron: ${usdEvents.length} Data USD • Live Engine`;
+    if (!hasEvents) {
+      statusEl.textContent = `Pembaruan: ${timeStrWita} • Data Kalender Belum Tersedia • Mode Offline`;
+    } else if (isCalendarLive) {
+      statusEl.textContent = `Pembaruan: ${timeStrWita} • Kalender Tersinkron: ${usdEvents.length} Data USD • Live Engine`;
+    } else if (isStaleCache) {
+      statusEl.textContent = `Pembaruan: ${timeStrWita} • Kalender: ${usdEvents.length} Data USD (Cache Usang >24 Jam)`;
+    } else {
+      statusEl.textContent = `Pembaruan: ${timeStrWita} • Kalender: ${usdEvents.length} Data USD (Cache Lokal)`;
+    }
   }
 
-  // Generate HTML 5 Poin Sesuai Template Institusi
+  // Bukti Pendukung vs Bertentangan
+  const supportItems = [];
+  const opposeItems = [];
+
+  if (!hasEvents) {
+    supportItems.push('Belum ada data kalender ekonomi yang tersinkronisasi.');
+    opposeItems.push('Belum ada data fundamental pembatal yang terverifikasi.');
+  } else if (eventAnalysis?.bias === 'BEARISH_PRESSURE') {
+    supportItems.push(`Ekspektasi/Reaksi data AS (${escapeHtml(mainEvent?.title || 'Data Makro')}): Menopang kekuatan DXY & yield.`);
+    supportItems.push('Kekuatan yield US Treasury mengurangi daya tarik emas non-yielding.');
+    if (mainEvent) {
+      supportItems.push(`<button class="intel-evidence-link" onclick="openEvidenceCalendar()">📅 Bukti Kalender: ${escapeHtml(mainEvent.title)} (F: ${escapeHtml(mainEvent.forecast || '—')}, P: ${escapeHtml(mainEvent.previous || '—')})</button>`);
+    }
+    if (hasGeopolitics && !isDeescalation) {
+      opposeItems.push('Tensi geopolitik aktif memberikan bantalan safe haven penahan kejatuhan harga.');
+      const topGeo = geopoliticsItems[0];
+      if (topGeo) {
+        opposeItems.push(`<button class="intel-evidence-link" onclick="openEvidenceNews('${escapeHtml(newsId(topGeo))}')">📰 Bukti Berita: ${escapeHtml(truncate(topGeo.text || topGeo.textOriginal, 45))} [${escapeHtml(formatTime(topGeo.time))}]</button>`);
+      }
+    } else {
+      opposeItems.push('Akumulasi beli bank sentral dunia menjaga level harga struktural jangka panjang.');
+    }
+  } else if (eventAnalysis?.bias === 'BULLISH_BOUNCE') {
+    supportItems.push(`Ekspektasi/Reaksi data AS (${escapeHtml(mainEvent?.title || 'Data Makro')}): Sinyal pendinginan ekonomi AS melemahkan DXY.`);
+    if (mainEvent) {
+      supportItems.push(`<button class="intel-evidence-link" onclick="openEvidenceCalendar()">📅 Bukti Kalender: ${escapeHtml(mainEvent.title)} (F: ${escapeHtml(mainEvent.forecast || '—')}, P: ${escapeHtml(mainEvent.previous || '—')})</button>`);
+    }
+    if (hasGeopolitics) {
+      supportItems.push('Dukungan safe haven geopolitik memperkuat momentum kenaikan emas.');
+    }
+    opposeItems.push('Potensi Dolar AS menguat kembali jika rilis lanjutan melampaui ekspektasi.');
+    opposeItems.push('Tingkat suku bunga The Fed saat ini masih berada di zona restriktif.');
+  } else {
+    supportItems.push('Faktor teknis dan arus safe haven jangka panjang mendukung harga.');
+    opposeItems.push('Ekspektasi Dolar AS yang masih resilien membatasi ruang kenaikan agresif.');
+    if (mainEvent) {
+      supportItems.push(`<button class="intel-evidence-link" onclick="openEvidenceCalendar()">📅 Kalender Terdekat: ${escapeHtml(mainEvent.title)}</button>`);
+    }
+  }
+
+  const supportListHtml = supportItems.map(item => `<li>${item}</li>`).join('');
+  const opposeListHtml = opposeItems.map(item => `<li>${item}</li>`).join('');
+
+  // Generate Event List HTML
   let eventListHtml = '';
   if (importantToday.length > 0) {
     eventListHtml = importantToday.map(ev => {
@@ -339,8 +590,8 @@ async function loadSentiment(isBackground = false) {
   // Skenario reaksi dinamis untuk event utama
   let scenarioReactionHtml = '';
   if (mainEvent && (mainEvent.forecast || mainEvent.previous)) {
-    const fStr = mainEvent.forecast || 'Forecast';
-    const pStr = mainEvent.previous || 'Previous';
+    const fStr = escapeHtml(mainEvent.forecast || 'Forecast');
+    const pStr = escapeHtml(mainEvent.previous || 'Previous');
     const isClaims = String(mainEvent.title || '').toLowerCase().includes('claims');
 
     if (isClaims) {
@@ -348,8 +599,8 @@ async function loadSentiment(isBackground = false) {
         <div class="reaction-guide-box">
           <div class="reaction-title">📊 Skenario Reaksi Gold Terhadap ${escapeHtml(mainEvent.title)}:</div>
           <ul class="briefing-list">
-            <li><strong>Jika Actual &gt; ${escapeHtml(fStr)} (Klaim Naik / Buruk):</strong> USD melemah ➔ Gold berpeluang memantul naik (Pullback / Reli).</li>
-            <li><strong>Jika Actual &lt; ${escapeHtml(pStr)} (Klaim Turun / Bagus):</strong> USD semakin perkasa ➔ Tekanan jual ke Gold berlanjut ke bawah.</li>
+            <li><strong>Jika Actual &gt; ${fStr} (Klaim Naik / Buruk):</strong> USD melemah ➔ Gold berpeluang memantul naik (Pullback / Reli).</li>
+            <li><strong>Jika Actual &lt; ${pStr} (Klaim Turun / Bagus):</strong> USD semakin perkasa ➔ Tekanan jual ke Gold berlanjut ke bawah.</li>
           </ul>
         </div>
       `;
@@ -358,8 +609,8 @@ async function loadSentiment(isBackground = false) {
         <div class="reaction-guide-box">
           <div class="reaction-title">📊 Skenario Reaksi Gold Terhadap ${escapeHtml(mainEvent.title)}:</div>
           <ul class="briefing-list">
-            <li><strong>Jika Actual &gt; ${escapeHtml(fStr)} (Data AS Panas):</strong> DXY &amp; Yield menguat ➔ Tekanan turun (*Bearish pressure*) untuk Gold.</li>
-            <li><strong>Jika Actual &lt; ${escapeHtml(fStr)} (Data AS Dingin):</strong> DXY melemah ➔ Memberi katalis dorongan naik (*Bullish boost*) untuk Gold.</li>
+            <li><strong>Jika Actual &gt; ${fStr} (Data AS Panas):</strong> DXY &amp; Yield menguat ➔ Tekanan turun (*Bearish pressure*) untuk Gold.</li>
+            <li><strong>Jika Actual &lt; ${fStr} (Data AS Dingin):</strong> DXY melemah ➔ Memberi katalis dorongan naik (*Bullish boost*) untuk Gold.</li>
           </ul>
         </div>
       `;
@@ -373,8 +624,9 @@ async function loadSentiment(isBackground = false) {
         <div>
           <span class="briefing-kicker">KOMPAS FUNDAMENTAL XAU/USD</span>
           <h2 class="briefing-headline">Fundamental XAU/USD (Gold vs USD) Hari Ini — ${escapeHtml(dateStrWita)}</h2>
+          <div class="kompas-horizon-pill">Horizon Analisis: <strong>${escapeHtml(horizonStr)}</strong></div>
         </div>
-        <div class="briefing-sync-badge">🟢 Kalender Terhubung</div>
+        ${syncBadgeHtml}
       </div>
 
       <!-- 1. Faktor Utama: USD & The Fed -->
@@ -384,20 +636,29 @@ async function loadSentiment(isBackground = false) {
             <span class="card-step-num">1</span>
             <h3 class="card-title">Faktor Utama: USD &amp; The Fed</h3>
           </div>
-          <span class="bias-pill bearish">Bearish Pressure Untuk Gold</span>
+          <span class="bias-pill ${goldBiasClass}">${escapeHtml(goldBias)}</span>
         </div>
         <p class="card-desc">
-          Saat ini emas masih mendapat tekanan dari ekspektasi kebijakan moneter AS yang ketat. 
-          ${mainEvent && (mainEvent.forecast || mainEvent.previous) ? `Pasar hari ini mencermati data <strong>${escapeHtml(mainEvent.title)}</strong> (Forecast: ${escapeHtml(mainEvent.forecast || '—')} vs Previous: ${escapeHtml(mainEvent.previous || '—')}).` : ''} 
-          Kekuatan Dolar dan yield obligasi AS membuat emas menjadi kurang menarik bagi investor pencari imbal hasil kupon.
+          ${hasEvents
+            ? (mainEvent && (mainEvent.forecast || mainEvent.previous)
+                ? `Pasar saat ini mencermati katalis <strong>${escapeHtml(mainEvent.title)}</strong> (Forecast: ${escapeHtml(mainEvent.forecast || '—')} vs Previous: ${escapeHtml(mainEvent.previous || '—')}). Kekuatan Dolar AS dan yield obligasi menjadi penentu utama minat beli emas non-yielding.`
+                : 'Saat ini emas berada dalam pantauan kebijakan moneter AS dan arah pergerakan indeks Dolar AS.')
+            : 'Belum ada data kalender ekonomi AS terjadwal. Pergerakan Dolar dan emas bergerak dalam koridor teknikal murni.'}
         </p>
-        <div class="card-impact-section">
-          <strong>Dampak ke XAU/USD:</strong>
-          <ul class="briefing-list">
-            <li><strong>USD Kuat:</strong> Menjadi tekanan turun utama pada harga emas.</li>
-            <li><strong>Yield Naik:</strong> Investor institusi mengalihkan modal ke aset berbunga.</li>
-            <li><strong>Kecenderungan Gold:</strong> Mengalami koreksi atau konsolidasi menanti kejelasan katalis berikutnya.</li>
-          </ul>
+        <div class="dominant-factors-box">
+          <div class="dominant-factors-title">🏆 3 Faktor Paling Dominan Penggerak Emas:</div>
+          <div class="dominant-factor-item">
+            <span class="dominant-factor-rank">#1</span>
+            <div class="dominant-factor-text"><strong>${escapeHtml(dom1Title)}:</strong> ${escapeHtml(dom1Reason)}</div>
+          </div>
+          <div class="dominant-factor-item">
+            <span class="dominant-factor-rank">#2</span>
+            <div class="dominant-factor-text"><strong>${escapeHtml(dom2Title)}:</strong> ${escapeHtml(dom2Reason)}</div>
+          </div>
+          <div class="dominant-factor-item">
+            <span class="dominant-factor-rank">#3</span>
+            <div class="dominant-factor-text"><strong>${escapeHtml(dom3Title)}:</strong> ${escapeHtml(dom3Reason)}</div>
+          </div>
         </div>
       </article>
 
@@ -418,8 +679,19 @@ async function loadSentiment(isBackground = false) {
           <li><strong>Risiko Inflasi Energi:</strong> ${hasEnergyRisk ? 'Harga energi dan komoditas minyak mentah memicu kekhawatiran inflasi jangka menengah.' : 'Potensi lonjakan biaya energi sewaktu-waktu dapat memantik inflasi kembali.'}</li>
           <li><strong>Permintaan Aset Aman:</strong> Pembelian emas fisik oleh bank-bank sentral dunia tetap menjadi fondasi jangka panjang.</li>
         </ul>
-        <div class="briefing-note-box">
-          ℹ️ <strong>Catatan Komparasi:</strong> Untuk saat ini faktor safe haven masih kalah dominan dibanding tekanan dari imbal hasil obligasi dan penguatan Dolar AS.
+        <div class="kompas-evidence-cols">
+          <div class="kompas-evidence-col col-support">
+            <div class="evidence-col-title">✅ Bukti Pendukung Bias</div>
+            <ul class="evidence-list">
+              ${supportListHtml}
+            </ul>
+          </div>
+          <div class="kompas-evidence-col col-oppose">
+            <div class="evidence-col-title">⚠️ Bukti Bertentangan / Risiko</div>
+            <ul class="evidence-list">
+              ${opposeListHtml}
+            </ul>
+          </div>
         </div>
       </article>
 
@@ -435,19 +707,19 @@ async function loadSentiment(isBackground = false) {
         <div class="scorecard-grid">
           <div class="scorecard-item">
             <span class="score-label">💵 USD</span>
-            <span class="score-value">${usdScore}</span>
+            <span class="score-value">${escapeHtml(usdScore)}</span>
           </div>
           <div class="scorecard-item">
             <span class="score-label">📈 Yield US Treasury</span>
-            <span class="score-value">${yieldScore}</span>
+            <span class="score-value">${escapeHtml(yieldScore)}</span>
           </div>
           <div class="scorecard-item">
             <span class="score-label">🌐 Risk Sentiment</span>
-            <span class="score-value">${riskScore}</span>
+            <span class="score-value">${escapeHtml(riskScore)}</span>
           </div>
           <div class="scorecard-item">
             <span class="score-label">🧭 Gold Bias Fundamental</span>
-            <span class="score-value">${goldBias}</span>
+            <span class="score-value">${escapeHtml(goldBias)}</span>
           </div>
         </div>
       </article>
@@ -480,12 +752,26 @@ async function loadSentiment(isBackground = false) {
             <span class="card-step-num">5</span>
             <h3 class="card-title">Kesimpulan Fundamental</h3>
           </div>
-          <span class="conclusion-badge">${conclusionBias}</span>
+          <span class="conclusion-badge">${escapeHtml(conclusionBias)}</span>
         </div>
         <div class="conclusion-content">
           <p class="conclusion-guide">
-            ${conclusionGuide}
+            ${escapeHtml(conclusionGuide)}
           </p>
+          <div class="scenario-box">
+            <div class="scenario-box-title">🧭 Skenario Fundamental Terstruktur:</div>
+            <ul class="briefing-list">
+              <li><strong>Skenario Utama:</strong> ${escapeHtml(mainScenario)}</li>
+              <li><strong>Kondisi Penguat:</strong> ${escapeHtml(confirmCondition)}</li>
+              <li><strong>Kondisi Pembatalan Bias (Invalidasi):</strong> ${escapeHtml(invalidationCondition)}</li>
+            </ul>
+          </div>
+          <div class="scenario-box" style="border-left: 3px solid var(--gold); margin-top: 8px;">
+            <div class="scenario-box-title">🎯 Jembatan Eksekusi ke Chart Mapping:</div>
+            <p style="font-size: 11.5px; line-height: 1.45; color: var(--text); margin: 0;">
+              ${escapeHtml(mappingBridgeText)}
+            </p>
+          </div>
         </div>
       </article>
     </div>
@@ -534,6 +820,8 @@ function getTranslationCache() {
 
 function saveTranslationToCache(id, translatedText) {
   if (!id || !translatedText) return;
+  // Bug 10: Never save truncated translations to permanent cache
+  if (translatedText.endsWith('…') || translatedText.endsWith('...')) return;
   try {
     const cache = getTranslationCache();
     cache[String(id)] = translatedText;
@@ -560,6 +848,27 @@ function needsClientTranslation(item) {
   return isTextEnglish(text);
 }
 
+function splitIntoTranslationChunks(text, maxLen = 450) {
+  if (text.length <= maxLen) return [text];
+  const chunks = [];
+  let remaining = text;
+  while (remaining.length > maxLen) {
+    let splitIdx = remaining.lastIndexOf('. ', maxLen);
+    if (splitIdx === -1 || splitIdx < maxLen / 2) {
+      splitIdx = remaining.lastIndexOf(' ', maxLen);
+    }
+    if (splitIdx === -1) {
+      splitIdx = maxLen;
+    } else {
+      splitIdx += 1;
+    }
+    chunks.push(remaining.slice(0, splitIdx).trim());
+    remaining = remaining.slice(splitIdx).trim();
+  }
+  if (remaining.length > 0) chunks.push(remaining);
+  return chunks;
+}
+
 async function translateTextClient(text) {
   const cleanText = String(text || '').trim();
   if (!cleanText) return null;
@@ -582,20 +891,32 @@ async function translateTextClient(text) {
     }
   } catch (_) {}
 
-  // Method 2: MyMemory Translation API fallback (100% free)
+  // Method 2: MyMemory Translation API fallback with sentence chunking (Bug 10: no truncation)
   try {
-    const snippet = cleanText.slice(0, 500);
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(snippet)}&langpair=en|id`;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (res.ok) {
-      const data = await res.json();
-      const translated = data?.responseData?.translatedText?.trim();
-      if (translated && !translated.toUpperCase().includes('MYMEMORY WARNING') && translated !== snippet) {
-        return cleanText.length > 500 ? translated + '…' : translated;
+    const chunks = splitIntoTranslationChunks(cleanText, 450);
+    const translatedChunks = [];
+    let allSucceeded = true;
+
+    for (const chunk of chunks) {
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=en|id`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        const data = await res.json();
+        const tr = data?.responseData?.translatedText?.trim();
+        if (tr && !tr.toUpperCase().includes('MYMEMORY WARNING') && tr !== chunk) {
+          translatedChunks.push(tr);
+          continue;
+        }
       }
+      allSucceeded = false;
+      break;
+    }
+
+    if (allSucceeded && translatedChunks.length === chunks.length) {
+      return translatedChunks.join(' ');
     }
   } catch (_) {}
 
@@ -612,11 +933,13 @@ function applyCachedTranslations(newsList) {
   }
 }
 
-async function autoTranslateNewsItems(sortedNews) {
+async function autoTranslateNewsItems(sortedNews, sequence = 0) {
   const pending = sortedNews.filter(item => needsClientTranslation(item));
   if (!pending.length) return;
 
   for (let i = 0; i < pending.length; i += 2) {
+    // Bug 9: Stale translation sequence guard
+    if (sequence && sequence !== newsFetchSequence) return;
     const batch = pending.slice(i, i + 2);
     await Promise.allSettled(batch.map(async item => {
       const id = newsId(item);
@@ -637,9 +960,16 @@ async function autoTranslateNewsItems(sortedNews) {
 
 // ─── News Loader ─────────────────────────────────────────
 async function loadNews(silent = false) {
+  const currentSequence = ++newsFetchSequence;
   const status = document.getElementById('news-status');
   const list = document.getElementById('news-list');
-  if (!silent && !list.children.length) status.textContent = 'Memuat berita...';
+  if (!silent && (!list || !list.children.length)) status.textContent = 'Memuat berita...';
+
+  // Preserve expanded news card state and scroll position across refresh
+  const currentExpandedIds = new Set(
+    [...document.querySelectorAll('.news-item.expanded')].map(el => el.dataset.newsId).filter(Boolean)
+  );
+  const prevScrollTop = (currentTab === 'news') ? (window.scrollY || document.documentElement.scrollTop) : 0;
 
   // Instant render from local cache if DOM is currently empty
   if (list && !list.children.length) {
@@ -648,7 +978,7 @@ async function loadNews(silent = false) {
       if (cachedRaw) {
         const cached = JSON.parse(cachedRaw);
         if (cached && Array.isArray(cached.items) && cached.items.length > 0) {
-          renderNews(cached.items);
+          renderNews(cached.items, currentExpandedIds);
           if (status) status.textContent = `${cached.items.length} berita (tersimpan) • Sinkronisasi latar belakang…`;
         }
       }
@@ -657,16 +987,24 @@ async function loadNews(silent = false) {
 
   try {
     const minuteKey = Math.floor(Date.now() / 60000);
-    const res = await fetch(`${API_BASE}/news?limit=20&fresh=${minuteKey}`, {
+    // Bug 7: Increase limit to 50 when deep link pendingNewsId is present
+    const fetchLimit = pendingNewsId ? 50 : 20;
+    const res = await fetch(`${API_BASE}/news?limit=${fetchLimit}&fresh=${minuteKey}`, {
       signal: beginRequest('news'),
       cache: 'no-store'
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
+    if (currentSequence !== newsFetchSequence) return;
+
     if (!data.news || data.news.length === 0) {
-      status.textContent = 'Tidak ada berita gold saat ini';
-      list.innerHTML = '<div class="empty-state">Belum ada breaking news untuk XAU/USD.</div>';
+      if (list && list.children.length > 0) {
+        status.textContent = 'Tidak ada update berita baru';
+      } else {
+        status.textContent = 'Tidak ada berita gold saat ini';
+        list.innerHTML = '<div class="empty-state">Belum ada breaking news untuk XAU/USD.</div>';
+      }
       return;
     }
 
@@ -681,8 +1019,9 @@ async function loadNews(silent = false) {
     if (latestNews) {
       const currentNewsId = newsId(latestNews);
       const lastNewsId = localStorage.getItem('amy_last_news_id');
-      
-      if (lastNewsId && lastNewsId !== currentNewsId) {
+
+      // Bug 8: Only trigger notification if news is relevant to Gold
+      if (lastNewsId && lastNewsId !== currentNewsId && isNewsRelevantForGold(latestNews)) {
         if (needsClientTranslation(latestNews)) {
           const sourceText = latestNews.textOriginal || latestNews.text;
           const tr = await translateTextClient(sourceText);
@@ -712,9 +1051,20 @@ async function loadNews(silent = false) {
     status.textContent = `${data.news.length} berita relevan • ${formatTime(data.updated)}`;
     panelLoadedAt.news = Date.now();
     window.AmyFXIntel?.write('news', { updated: data.updated, capturedAt: data.updated, source: 'VERCEL_NEWS', items: sortedNews.slice(0, 10) });
-    try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({updated:data.updated,items:sortedNews.slice(0,20)})); } catch {}
-    renderNews(sortedNews);
-    autoTranslateNewsItems(sortedNews).then(() => { try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({updated:data.updated,items:sortedNews.slice(0,20)})); } catch {} });
+
+    if (currentSequence === newsFetchSequence) {
+      try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({ updated: data.updated, items: sortedNews.slice(0, 20) })); } catch {}
+      renderNews(sortedNews, currentExpandedIds);
+      if (currentTab === 'news' && prevScrollTop > 0) {
+        window.scrollTo({ top: prevScrollTop, behavior: 'instant' });
+      }
+      autoTranslateNewsItems(sortedNews, currentSequence).then(() => {
+        if (currentSequence === newsFetchSequence) {
+          try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({ updated: data.updated, items: sortedNews.slice(0, 20) })); } catch {}
+        }
+      });
+    }
+
     if (pendingNewsId) {
       activateTab('news');
       if (!focusNewsItem(pendingNewsId)) {
@@ -731,19 +1081,29 @@ async function loadNews(silent = false) {
     }
   } catch (e) {
     if (e.name === 'AbortError') return;
-    status.textContent = 'Gagal memuat berita';
-    list.innerHTML = '<div class="empty-state">Gagal terhubung. Coba lagi nanti.</div>';
+    // Bug 5: Preserve cached news DOM on failed request
+    if (list && list.children.length > 0) {
+      status.textContent = 'Gagal sinkronisasi feed baru • Menampilkan berita tersimpan';
+    } else {
+      status.textContent = 'Gagal memuat berita';
+      list.innerHTML = '<div class="empty-state">Gagal terhubung. Coba lagi nanti.</div>';
+    }
   }
 }
 
-function renderNews(sortedNews) {
+function renderNews(sortedNews, expandedIds = new Set()) {
   const list = document.getElementById('news-list');
-  list.innerHTML = sortedNews.map((item, i) => `
-    <article class="news-item" data-news-id="${escapeHtml(newsId(item))}" style="animation-delay:${i * 0.05}s" tabindex="0">
-      <div class="news-time">${formatTime(item.time)}</div>
-      <div class="news-text">${escapeHtml(item.text)}</div>
-    </article>
-  `).join('');
+  if (!list) return;
+  list.innerHTML = sortedNews.map((item, i) => {
+    const id = newsId(item);
+    const isExpanded = expandedIds.has(String(id));
+    return `
+      <article class="news-item ${isExpanded ? 'expanded' : ''}" data-news-id="${escapeHtml(id)}" style="animation-delay:${i * 0.05}s" tabindex="0">
+        <div class="news-time">${formatTime(item.time)}</div>
+        <div class="news-text">${escapeHtml(item.text)}</div>
+      </article>
+    `;
+  }).join('');
 }
 
 // ─── Heatmap Loader ──────────────────────────────────────
@@ -1006,22 +1366,26 @@ async function loadCalendar(silent = false) {
   }
 
   try {
-    const signal = beginRequest('calendar');
     let data = null;
 
+    // Bug 6: Per-endpoint 4s timeout prevents indefinite client hanging
     for (const url of CALENDAR_ENDPOINTS) {
       try {
-        const res = await fetch(url, { signal });
+        const controller = new AbortController();
+        const timeoutTimer = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutTimer);
         if (res.ok) {
           const json = await res.json();
           const items = Array.isArray(json) ? json : (Array.isArray(json?.events) ? json.events : []);
           if (items.length > 0) {
             data = items;
+            isCalendarLive = true;
             break;
           }
         }
       } catch (fetchErr) {
-        if (fetchErr.name === 'AbortError') return;
+        // Continue to fallback endpoint on error or timeout
       }
     }
 
@@ -1033,8 +1397,21 @@ async function loadCalendar(silent = false) {
       loadSentiment(true);
     } else if (calendarEvents.length === 0 && cached?.events?.length > 0) {
       calendarEvents = cached.events;
+      isCalendarLive = false;
       renderCalendar();
       loadSentiment(true);
+    } else if (calendarEvents.length === 0) {
+      // Bug 6: Render retry state when all endpoints fail and cache is empty
+      if (status) status.textContent = 'Gagal memuat kalender. Periksa koneksi.';
+      const list = document.getElementById('calendar-list');
+      if (list && list.children.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            Gagal memuat jadwal kalender ekonomi.<br>
+            <button class="cal-retry-btn" onclick="loadCalendar()">🔄 Coba Lagi</button>
+          </div>
+        `;
+      }
     }
   } catch (err) {
     if (err.name === 'AbortError') return;
@@ -1087,8 +1464,19 @@ function renderCalendar() {
     return true; // 'all'
   });
 
+  // Bug 3: Accurate sync and cache indicators
+  const cached = getCachedCalendar();
+  const cacheAgeMs = cached?.savedAt ? Date.now() - cached.savedAt : 0;
+  const isStale = cacheAgeMs > 24 * 60 * 60 * 1000;
+
   if (status) {
-    status.textContent = `${filtered.length} rilis ekonomi • Sinkronisasi otomatis (WITA)`;
+    if (isCalendarLive) {
+      status.textContent = `${filtered.length} rilis ekonomi • 🟢 Sinkronisasi Live (WITA)`;
+    } else if (isStale) {
+      status.textContent = `${filtered.length} rilis ekonomi • 🟠 Cache Usang (>24 Jam)`;
+    } else {
+      status.textContent = `${filtered.length} rilis ekonomi • 🟡 Cache Lokal (Tersimpan)`;
+    }
   }
 
   if (filtered.length === 0) {
@@ -1130,7 +1518,8 @@ function renderCalendar() {
       const titleLower = String(ev.title || '').toLowerCase();
       const isSpeech = titleLower.includes('speaks') || titleLower.includes('speech') || titleLower.includes('testifies');
       const isHoliday = impact === 'holiday' || titleLower.includes('holiday');
-      const hasNumbers = Boolean(ev.forecast || ev.previous);
+      const hasActual = Boolean(ev.actual && ev.actual !== '--' && ev.actual !== '—');
+      const hasNumbers = Boolean(ev.forecast || ev.previous || hasActual);
 
       let numbersHtml = '';
       if (isSpeech) {
@@ -1143,6 +1532,7 @@ function renderCalendar() {
         numbersHtml = `
           <span>Forecast: <strong class="cal-val">${escapeHtml(ev.forecast || '—')}</strong></span>
           <span>Previous: <strong class="cal-val">${escapeHtml(ev.previous || '—')}</strong></span>
+          ${hasActual ? `<span>Actual: <strong class="cal-val act-live">${escapeHtml(ev.actual)}</strong></span>` : ''}
         `;
       }
 

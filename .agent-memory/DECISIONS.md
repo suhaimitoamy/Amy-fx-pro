@@ -1,5 +1,14 @@
 # Technical Decisions
 
+## 2026-09-30 — Pro381 Market Intel & Kompas Fundamental Hub Overhaul
+
+- **Architecture & Hub Priority**:
+  1. Kompas Fundamental (`panel-sentiment`) established as the central hub, primary priority, and default tab of Market Intel. Berita serves as supporting evidence and Kalender provides upcoming catalysts. All 3 tabs remain available and operational.
+  2. Kompas explicitly answers: (1) Gold bias (`bullish`, `bearish`, `mixed`, or `insufficient`), (2) Analysis horizon (`Menjelang Rilis Katalis Sesi Ini`, `Sesi Berjalan (Pasca Rilis Data)`, etc.), (3) Top 3 dominant factors ranked with clear reasons, (4) Supporting vs opposing evidence columns (`col-support`, `col-oppose`) with clickable links to evidence (`openEvidenceNews(id)` and `openEvidenceCalendar()`), (5) Structured scenarios (main scenario, reinforcing conditions, invalidation criteria), (6) Next upcoming catalyst and countdown, and (7) Conditional trader focus bridging directly to technical PD Array / MSS confirmation in Mapping.
+  3. Strict separation of fact, consensus, and post-release surprise in `analyzeMacroEvent` (evaluating Actual vs Forecast).
+  4. Active Android source of truth strictly in `app/src/main/assets/apps/market-intel/`.
+  5. 11 baseline bugs comprehensively resolved and verified with 143 passing regression test files.
+
 ## 2026-09-30 — Pro374 Mapping audit fixes
 
 Pro374 keeps the six driver cards as reference models: only exact-ID TP/SL archive rows produce response-window statistics; general market context never claims individual strategy triggers. A+ requires explicit server eligibility, directional active liquidity, verified current-week calendar and favorable dealing-range location. No fallback TP is fabricated. Existing engine contract v1 remains compatible and exposes policyVersion mapping-audit-pro374.

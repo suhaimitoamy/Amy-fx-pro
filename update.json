@@ -1,10 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.380/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan).",
-    "Konsolidasi materi: 569 file bab digabung ke dalam 36 modul master interaktif dengan navigasi bab dan drawer TOC.",
-    "Pembersihan modul duplikat dan optimasi aset aplikasi (pengurangan 91% jumlah file HTML terfragmentasi).",
-    "Navigasi antar-materi terintegrasi penuh tanpa link rusak di WebView Android."
+    "Kompas Fundamental: diangkat sebagai pusat Market Intel, tab default, dan prioritas pertama.",
+    "8 Poin Kompas Institusional: kecenderungan Gold, horizon analisis, 3 faktor dominan, bukti pendukung/bertentangan dengan link drilldown, skenario terstruktur, katalis berikutnya, dan jembatan eksekusi Mapping.",
+    "Hardening 11 Baseline Bug: isolasi parser berita, evaluasi Actual vs Forecast, kejujuran cache kalender, timeout koneksi 4s, dan sanitasi XSS penuh.",
+    "Pengalaman Berita & Kalender: penanganan deep link notifikasi, translasi kalimat tanpa truncate, dan retensi posisi baca saat refresh."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.380/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Restrukturisasi Kurikulum Academy: format perkuliahan 3 Semester dan 36 Pertemuan (~1 Jam / SKS per Pertemuan).",
-    "Konsolidasi materi: 569 file bab digabung ke dalam 36 modul master interaktif dengan navigasi bab dan drawer TOC.",
-    "Pembersihan modul duplikat dan optimasi aset aplikasi (pengurangan 91% jumlah file HTML terfragmentasi).",
-    "Navigasi antar-materi terintegrasi penuh tanpa link rusak di WebView Android."
+    "Kompas Fundamental: diangkat sebagai pusat Market Intel, tab default, dan prioritas pertama.",
+    "8 Poin Kompas Institusional: kecenderungan Gold, horizon analisis, 3 faktor dominan, bukti pendukung/bertentangan dengan link drilldown, skenario terstruktur, katalis berikutnya, dan jembatan eksekusi Mapping.",
+    "Hardening 11 Baseline Bug: isolasi parser berita, evaluasi Actual vs Forecast, kejujuran cache kalender, timeout koneksi 4s, dan sanitasi XSS penuh.",
+    "Pengalaman Berita & Kalender: penanganan deep link notifikasi, translasi kalimat tanpa truncate, dan retensi posisi baca saat refresh."
   ],
   "sha256": "f7550fe0ed74bffa3d49f4da3930785c484a5ca419be19f5e3e2a1fe98e3ce1a",
   "version": "2.0.0-pro.380",

@@ -1,5 +1,30 @@
 # Bug History
 
+## 2026-09-30 — Pro381 Market Intel Baseline 11 Bugs Hardening
+
+1. **Bug 1 (Kompas without data hardcoded SELL ON RALLY & connection badge)**:
+   - *Fix*: If calendar events/USD data are missing or empty, bias outputs `⚪ Belum Cukup Data Fundamental Baru`, conclusion `⚪ BELUM CUKUP DATA`, and badge `🔴 Kalender Belum Terhubung`.
+2. **Bug 2 (Analysis ignored Actual)**:
+   - *Fix*: `analyzeMacroEvent` checks `isReleased && aVal !== null`, evaluating Actual vs Forecast surprise according to indicator category (claims, CPI/inflation, NFP/labor, PMI).
+3. **Bug 3 (Calendar stale cache showed as synchronized)**:
+   - *Fix*: Distinguishes `isCalendarLive` (`🟢 Sinkronisasi Live`), fresh local cache < 24h (`🟡 Cache Lokal (Tersimpan)`), and stale cache > 24h (`🟠 Cache Usang (>24 Jam)`).
+4. **Bug 4 (Telegram parser mixed text with ID/datetime of other posts)**:
+   - *Fix*: Slice HTML strictly by boundary chunk (`postChunk = html.slice(current.index, nextIndex)`) in `api/news.js` and `supabase/functions/news-sync/handler.ts`.
+5. **Bug 5 (Failed request wiped cached news DOM)**:
+   - *Fix*: In `loadNews` catch block, if `list.children.length > 0`, cached news is retained and status reports `Gagal sinkronisasi feed baru • Menampilkan berita tersimpan`.
+6. **Bug 6 (Calendar hung indefinitely without client timeout)**:
+   - *Fix*: Added 4000ms `AbortController` timeout per endpoint in `loadCalendar()`, with retry button on complete failure.
+7. **Bug 7 (Deep link outside latest 20 items failed)**:
+   - *Fix*: `fetchLimit` expands to 50 items when `pendingNewsId` is present.
+8. **Bug 8 (Irrelevant news triggered Gold notification)**:
+   - *Fix*: Removed broad pronoun `'us'` from `GEOPOLITICAL_ACTORS` in `lib/news-relevance.mjs`. Added client guard `isNewsRelevantForGold(latestNews)` before triggering Android/Web notifications.
+9. **Bug 9 (Old translation request overwrote fresh feed cache)**:
+   - *Fix*: Guarded async translation callbacks with monotonic sequence counter `newsFetchSequence`.
+10. **Bug 10 (Fallback translation truncated 500 chars and saved as final)**:
+    - *Fix*: `translateTextClient` splits text into sentence chunks ≤ 450 chars for MyMemory API. `saveTranslationToCache` rejects truncated strings ending with `…`.
+11. **Bug 11 (Forecast and dynamic values injected into innerHTML without escaping)**:
+    - *Fix*: All dynamic values (`forecast`, `previous`, `actual`, `title`, `conclusionGuide`, etc.) wrapped with `escapeHtml()`.
+
 ## 2026-09-30 — Pro374 Mapping audit fixes
 
 Fixed seven Mapping audit findings: offline/cache authority, unsupported driver triggers/WR, false A+ badge, gap-spanning FVG/confirmation, stale calendar SAFE, shared opposite-side invalidation, and fabricated notification TP. Added executable DOM/engine regressions; also prevent cached startup heartbeat invention and give NEWS_LOCK narration priority.
