@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.376/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.377/AmyFX-Pro-latest.apk",
   "changelog": [
     "Mapping lebih ringkas: status, area POI, 50% CE, invalidasi, target dan chart tetap mudah dilihat.",
     "Rincian bias, Entry Assistant, bukti dan enam model driver masuk menu Detail yang bisa dibuka sesuai kebutuhan.",
     "Pengaturan visual dikelompokkan dalam empat menu; narasi chart dan label berulang diringkas.",
     "Bahasa lebih sederhana; seluruh aturan trading, scoring, news lock dan 46 kontrol visual tetap dipertahankan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.376/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.377/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950376,
-  "latest_version_name": "2.0.0-pro.376",
+  "latest_version_code": 950377,
+  "latest_version_name": "2.0.0-pro.377",
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Pengaturan visual dikelompokkan dalam empat menu; narasi chart dan label berulang diringkas.",
     "Bahasa lebih sederhana; seluruh aturan trading, scoring, news lock dan 46 kontrol visual tetap dipertahankan."
   ],
-  "sha256": "f1b861ca698ccd608b8fb88510e57adecc1acdc233a672459d5062ffd1580712",
-  "version": "2.0.0-pro.376",
-  "versionCode": 950376
+  "sha256": "1998d6efe381114b230d393db90f0a675dc2b7b6263f10f12775941796e7ed76",
+  "version": "2.0.0-pro.377",
+  "versionCode": 950377
 }
