@@ -1,3 +1,8 @@
+## 2.0.0-pro.371
+
+- feat(notification): Sinkronisasi penuh narasi notifikasi "Scalp Kilat" pada fase perlawanan arah (M15 vs H1) dan deployment runtime engine backend Supabase.
+- fix(sync): Sinkronisasi regex versi Pro pada pengiriman push notifikasi backend FCM.
+
 ## 2.0.0-pro.370
 
 - feat(mapping): Menambahkan Driver #6 "Human MTF Rapid Scalper" (Sesi London & NY, frekuensi tinggi 3–5 setup/hari, RR 1:1.3R, cut loss dini -0.35R, dengan catatan WR wajar ~54% murni).
