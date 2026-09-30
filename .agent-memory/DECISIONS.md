@@ -447,3 +447,6 @@ Pro378 release verification completed: source7d9b2d608e4fe6dbb6addb7063dd0394012
 ## 2026-09-30 — Pro379 TradingView axis gestures
 
 Mapping enables vertTouchDrag/horzTouchDrag plus explicit price/time axis drag and double-tap reset. Home retains vertTouchDrag=false for page scrolling. Use the existing TradingView Lightweight Charts4.2.3 handlers rather than a second scaling implementation. Cache the applied rightBars preference so server refresh cannot override user pan; use measured price/time axis sizes for overlay bounds.
+
+
+Pro379 release verification completed: source6b6d447ead4e60b1f12957e42f0c20f543241af7, signed Actions36707758513 and lint36707758575 succeeded. Public update.json enabled at2.0.0-pro.379/950379. Downloaded32,670,665-byte APK SHA-256ff37cbe0180131239ae56fa46bb9b1b07c28a62f323e79d295922b91d80136ae matches public manifest/checksum; eight affected/fullscreen assets match source and canonical trading engine remains byte-identical to backend. All142 regression files and Chromium touch price/time-axis scaling, double-tap/Auto harga reset, overlay alignment, refresh-preserved viewport and existing fullscreen/pinch/pan/Back/Escape/theme/offline checks passed. Earlier Pro379 release-pending notes resolved. Actual Android device gestures and update notification receipt remain unobserved.
