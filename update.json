@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.374/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.375/AmyFX-Pro-latest.apk",
   "changelog": [
     "Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.",
     "Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.",
     "Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.",
     "Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.374/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.375/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950374,
-  "latest_version_name": "2.0.0-pro.374",
+  "latest_version_code": 950375,
+  "latest_version_name": "2.0.0-pro.375",
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.",
     "Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia."
   ],
-  "sha256": "d20dc579d73fc10d54e2e2624650aeea19fce5b436ad36c18d49c8dff40ecec9",
-  "version": "2.0.0-pro.374",
-  "versionCode": 950374
+  "sha256": "29cdc5ee0619fcd7500d0173f52bd703cc4eae77e40cde90086c2a69b567badf",
+  "version": "2.0.0-pro.375",
+  "versionCode": 950375
 }
