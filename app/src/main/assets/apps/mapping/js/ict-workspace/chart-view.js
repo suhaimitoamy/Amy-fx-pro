@@ -1,12 +1,13 @@
 import {createIctCanvas} from './ict-canvas.js';
 // Shared presentation only; candle/model ownership remains with each caller.
-export function createPriceChart(element) {
+export function createPriceChart(element,{touchAxes=false}={}) {
   const chart=window.LightweightCharts.createChart(element,{autoSize:true,
     timeScale:{timeVisible:true},rightPriceScale:{minimumWidth:65},
-    handleScale:{pinch:true,axisPressedMouseMove:true},handleScroll:{vertTouchDrag:false}});
+    handleScale:{pinch:true,mouseWheel:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:{time:true,price:true}},
+    handleScroll:{vertTouchDrag:touchAxes,horzTouchDrag:true,pressedMouseMove:true,mouseWheel:true}});
   const series=chart.addCandlestickSeries({upColor:'#65d5b1',downColor:'#ff8f9b',borderVisible:false,wickUpColor:'#65d5b1',wickDownColor:'#ff8f9b'});
   let ict=null;
-  let key='',lines=[];
+  let key='',lines=[],rightBars=null;
   function theme(){
     const light=document.documentElement.dataset.amyfxTheme==='light';
     chart.applyOptions({layout:{background:{color:light?'#edf1fc':'#293b60'},textColor:light?'#475977':'#ced9ed'},
@@ -19,7 +20,7 @@ export function createPriceChart(element) {
       const next=result.tf+JSON.stringify(result.candles);
       if(next!==key){const initial=!key;series.setData(result.candles);key=result.candles.length?next:'';if(initial&&result.candles.length)chart.timeScale().fitContent();}
       if(presentation&&!ict)ict=createIctCanvas(element,chart,series);
-      if(presentation)chart.applyOptions({timeScale:{rightOffset:presentation.settings.rightBars}});
+      if(presentation&&rightBars!==presentation.settings.rightBars){rightBars=presentation.settings.rightBars;chart.applyOptions({timeScale:{rightOffset:rightBars}});}
       ict?.update(presentation?{...presentation,candles:result.candles,tf:result.tf}:null);
       const signalMarkers=[];
       if(presentation?.amy&&presentation.settings.signals){const duration={M1:60,M5:300,M15:900}[result.tf]||900,times=new Set(result.candles.map(c=>c.time)),seen=new Set();
@@ -37,7 +38,8 @@ export function createPriceChart(element) {
         }
       }
     },
-    reset(){key='';},
+    reset(){key='';rightBars=null;},
+    autoPrice(){chart.priceScale('right').applyOptions({autoScale:true});ict?.invalidate();},
     resize(){chart.applyOptions({autoSize:true});ict?.invalidate();},
     setFullscreen(enabled){chart.applyOptions({layout:{fontSize:enabled?16:12},rightPriceScale:{minimumWidth:enabled?90:65}});ict?.invalidate();},
     destroy(){window.removeEventListener('amyfx:theme-change',theme);ict?.destroy();chart.remove();}

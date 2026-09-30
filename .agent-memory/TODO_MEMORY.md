@@ -218,3 +218,8 @@ Source2.0.0-pro.378/950378 prepared. Verify signed Actions/release/APK checksum 
 
 
 Pro378 release verification completed: source7d9b2d608e4fe6dbb6addb7063dd039401282beb, signed Actions36704449764 and lint36704449726 succeeded. Public update.json enabled at2.0.0-pro.378/950378. Downloaded32,670,025-byte APK SHA-256516d95d6fd9bcfec15985dc6b8cc354e51480265d8ab0689936dce1947ce91bf matches manifest/checksum; all fullscreen assets match source and canonical trading engine remains byte-identical to backend. Final141 regression files and Chromium portrait/landscape360/390/844px, pinch/pan/zoom/scroll/Back/Escape/fallback/theme/refresh/offline checks passed. Earlier Pro378 release-pending note resolved. Actual Android device behavior and update notification receipt remain unobserved.
+
+
+## 2026-09-30 — Pro379 TradingView axis gestures
+
+Source2.0.0-pro.379/950379 prepared. Verify signed Actions/release/APK/checksum and manifest activation; keep published378 identity until CI completes. Observe price/time axis gestures, manual vertical pan and update receipt on the actual Android device.

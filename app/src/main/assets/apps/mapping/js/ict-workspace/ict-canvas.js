@@ -8,17 +8,17 @@ export function createIctCanvas(element,chart,series){
   function paint(){frame=null;if(!ctx)return;const w=element.clientWidth,h=element.clientHeight,scale=window.devicePixelRatio||1;
     if(canvas.width!==Math.round(w*scale)||canvas.height!==Math.round(h*scale)){canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);canvas.style.width=w+'px';canvas.style.height=h+'px';}
     ctx.setTransform(scale,0,0,scale,0,0);ctx.clearRect(0,0,w,h);if(!state?.amy||!state.candles.length)return;
-    const {candles,amy,settings:s,tf}=state,seconds={M1:60,M5:300,M15:900}[tf]||900,fullscreen=Boolean(element.closest('#gold-chart-workspace.is-fullscreen')),fontSize=fullscreen?14:10,plotRight=w-(fullscreen?96:70);
+    const {candles,amy,settings:s,tf}=state,seconds={M1:60,M5:300,M15:900}[tf]||900,fullscreen=Boolean(element.closest('#gold-chart-workspace.is-fullscreen')),fontSize=fullscreen?14:10,plotRight=w-chart.priceScale('right').width(),plotBottom=h-chart.timeScale().height();
     const key=tf+JSON.stringify(candles);if(key!==visualKey){visualKey=key;visuals=tf==='M15'?amy.visuals:baseVisuals(candles.map(c=>({...c,open_time:c.time,close_time:c.time+seconds})));}
     const x=t=>Number.isFinite(t)?chart.timeScale().timeToCoordinate(t):null,y=p=>series.priceToCoordinate(p);
     const logical=chart.timeScale().getVisibleLogicalRange(),first=logical?Math.max(0,Math.floor(logical.from)):0,last=Math.min(candles.length-1,logical?Math.ceil(logical.to):candles.length-1);
     const leftAt=t=>{const index=candles.findIndex(c=>c.time>=t);if(index<0)return null;const v=x(candles[index].time);return v==null?(index<first?0:null):v;};
     const light=document.documentElement.dataset.amyfxTheme==='light';
     const labelBounds=[];
-    const label=(text,xx,yy,color)=>{if(!text||!s.labels||yy<fontSize||yy>h-30)return;ctx.font=fontSize+'px sans-serif';const width=Math.min(ctx.measureText(text).width+6,plotRight-xx),bounds={left:xx-2,right:xx+width,top:yy-fontSize-1,bottom:yy+3};if(labelBounds.some(b=>bounds.left<b.right&&bounds.right>b.left&&bounds.top<b.bottom&&bounds.bottom>b.top))return;labelBounds.push(bounds);ctx.fillStyle=light?'#eff4ffeb':'#07111deb';ctx.fillRect(xx-2,yy-fontSize-1,Math.min(ctx.measureText(text).width+6,plotRight-xx),fontSize+4);ctx.fillStyle=color;ctx.fillText(text,xx,yy,Math.max(0,plotRight-xx));};
-    ctx.save();ctx.beginPath();ctx.rect(0,0,plotRight,h-24);ctx.clip();
+    const label=(text,xx,yy,color)=>{if(!text||!s.labels||yy<fontSize||yy>plotBottom-6)return;ctx.font=fontSize+'px sans-serif';const width=Math.min(ctx.measureText(text).width+6,plotRight-xx),bounds={left:xx-2,right:xx+width,top:yy-fontSize-1,bottom:yy+3};if(labelBounds.some(b=>bounds.left<b.right&&bounds.right>b.left&&bounds.top<b.bottom&&bounds.bottom>b.top))return;labelBounds.push(bounds);ctx.fillStyle=light?'#eff4ffeb':'#07111deb';ctx.fillRect(xx-2,yy-fontSize-1,Math.min(ctx.measureText(text).width+6,plotRight-xx),fontSize+4);ctx.fillStyle=color;ctx.fillText(text,xx,yy,Math.max(0,plotRight-xx));};
+    ctx.save();ctx.beginPath();ctx.rect(0,0,plotRight,plotBottom);ctx.clip();
     if(s.killzones)for(let i=first;i<=last;i++){const c=candles[i],names=sessions(c.time);const active=names.find(n=>({NY:s.ny,LONDON_OPEN:s.londonOpen,LONDON_CLOSE:s.londonClose,ASIA:s.asian})[n]);if(!active)continue;
-      const xx=x(c.time),next=x(candles[i+1]?.time);if(xx==null)continue;ctx.fillStyle={NY:'#ff8c001a',LONDON_OPEN:'#00bcd41a',LONDON_CLOSE:'#2157f322',ASIA:'#e91e631a'}[active];ctx.fillRect(xx,0,(next??xx+8)-xx,h-24);}
+      const xx=x(c.time),next=x(candles[i+1]?.time);if(xx==null)continue;ctx.fillStyle={NY:'#ff8c001a',LONDON_OPEN:'#00bcd41a',LONDON_CLOSE:'#2157f322',ASIA:'#e91e631a'}[active];ctx.fillRect(xx,0,(next??xx+8)-xx,plotBottom);}
     const selected=(rows,count=s.visible)=>{if(count<=0)return [];let candidates=rows||[];if(s.mode==='Present')candidates=candidates.filter(z=>!z.time||z.time>=candles.at(-1).time-500*seconds);return ['BUY','SELL'].flatMap(side=>candidates.filter(z=>z.side===side).slice(-count));};
     const box=(z,color,tag)=>{const xx=leftAt(z.time),top=y(z.high),bottom=y(z.low);if(xx==null||top==null||bottom==null||xx>plotRight)return;
       const end=z.end?leftAt(z.end):plotRight,right=Math.min(plotRight,end??plotRight);ctx.fillStyle=color+(z.status===4?'09':'17');ctx.fillRect(xx,top,right-xx,bottom-top);ctx.strokeStyle=color;ctx.lineWidth=s.lineWidth;ctx.setLineDash(z.status===4?[2,3]:z.status===2?[6,4]:[]);ctx.strokeRect(xx,top,right-xx,bottom-top);ctx.setLineDash([]);label(tag,Math.max(3,xx+4),top+12,color);
@@ -47,7 +47,17 @@ export function createIctCanvas(element,chart,series){
       ctx.fillStyle=light?'#f3f7fff0':'#07111def';ctx.fillRect(8,8,bw,bh);ctx.strokeStyle='#739bd2';ctx.strokeRect(8,8,bw,bh);ctx.fillStyle=light?'#263c60':'#e4eeff';lines.forEach((text,i)=>ctx.fillText(text,14,8+lineHeight+i*lineHeight,bw-12));}
     ctx.restore();
   }
+  // Price-axis drags don't emit logical-range changes. Reproject on interaction,
+  // including document-level moves when a finger/mouse leaves the chart bounds.
+  let interacting=false;
+  const begin=()=>{interacting=true;request();};
+  const move=()=>{if(interacting)request();};
+  const end=event=>{interacting=Boolean(event?.touches?.length);request();};
+  const bindings=[[element,'touchstart',begin],[element,'mousedown',begin],[element,'dblclick',request],
+    [document,'touchmove',move],[document,'mousemove',move],[document,'touchend',end],
+    [document,'touchcancel',end],[document,'mouseup',end],[window,'blur',end]];
+  for(const [target,name,handler]of bindings)target.addEventListener(name,handler,{passive:true});
   chart.timeScale().subscribeVisibleLogicalRangeChange(request);
   const observer=new ResizeObserver(request);observer.observe(element);
-  return {update(next){state=next;request();},invalidate:request,destroy(){if(frame!=null)cancelAnimationFrame(frame);observer.disconnect();chart.timeScale().unsubscribeVisibleLogicalRangeChange(request);canvas.remove();}};
+  return {update(next){state=next;request();},invalidate:request,destroy(){for(const [target,name,handler]of bindings)target.removeEventListener(name,handler);if(frame!=null)cancelAnimationFrame(frame);observer.disconnect();chart.timeScale().unsubscribeVisibleLogicalRangeChange(request);canvas.remove();}};
 }

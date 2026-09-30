@@ -6,8 +6,9 @@ import {mountDisplay,renderAmy} from './ict-presentation.js';
 const $=id=>document.getElementById(id);
 let context=null,display=null;
 let chart=null,controller=null,generation=0,timer=null,overlay=null,raw=null;
-try{chart=createPriceChart($('chart'));}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
+try{chart=createPriceChart($('chart'),{touchAxes:true});}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
 const fullscreen=mountChartFullscreen(chart);
+$('chart-auto-price').addEventListener('click',()=>chart?.autoPrice());
 display=mountDisplay(next=>{display=next;renderAmy(context?.amy,display,context?.news);draw();});
 // A cached trade plan from the previous application version must not be served as current context.
 try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}

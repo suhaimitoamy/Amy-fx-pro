@@ -553,3 +553,8 @@ Addressed the user screenshot showing small Chart Gold text in the constrained M
 
 
 Pro378 release verification completed: source7d9b2d608e4fe6dbb6addb7063dd039401282beb, signed Actions36704449764 and lint36704449726 succeeded. Public update.json enabled at2.0.0-pro.378/950378. Downloaded32,670,025-byte APK SHA-256516d95d6fd9bcfec15985dc6b8cc354e51480265d8ab0689936dce1947ce91bf matches manifest/checksum; all fullscreen assets match source and canonical trading engine remains byte-identical to backend. Final141 regression files and Chromium portrait/landscape360/390/844px, pinch/pan/zoom/scroll/Back/Escape/fallback/theme/refresh/offline checks passed. Earlier Pro378 release-pending note resolved. Actual Android device behavior and update notification receipt remain unobserved.
+
+
+## 2026-09-30 — Pro379 TradingView axis gestures
+
+Reproduced Pro378 on touch: price-axis drag left autoScale=true because vertTouchDrag=false routes the movement to page scroll. Enabled native axis touch; fixed price-only overlay redraw and repeated rightOffset application that discarded a manual horizontal viewport on refresh. No server, trading-engine or notification-policy changes.

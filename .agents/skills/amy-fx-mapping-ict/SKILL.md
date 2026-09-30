@@ -157,3 +157,7 @@ Setiap kali sesi kerja selesai atau pengguna meminta penutupan/pembaharuan skill
 | **2026-09-30** | `2.0.0-pro.378` (`950378`) | Fullscreen Chart Gold via body portal: axis16px, label/narasi14px, portrait/landscape, tombol Keluar/Back/Escape. Instance, candle, zoom dan engine dipertahankan; tanpa perubahan native/backend. 141 regresi dan browser360/390/844×390, pinch/pan/Back/Escape/fallback/offline lulus; verifikasi rilis menunggu CI. |
 
 | **2026-09-30** | `Pro378` verifikasi final | Signed Actions36704449764 dan lint36704449726 lulus; manifest950378 aktif. APK32,670,025 byte/SHA256516d95d6fd9bcfec15985dc6b8cc354e51480265d8ab0689936dce1947ce91bf cocok dengan aset source.141 regresi dan browser fullscreen/portrait/landscape/pinch/pan/Back/Escape/fallback/offline lulus. Engine/backend tetap; perangkat Android belum diamati. |
+
+| **2026-09-30** | `2.0.0-pro.379` (`950379`) | Perbaikan sumbu harga sentuh: vertTouchDrag aktif pada Mapping; sumbu waktu mengatur lebar candle. Auto harga/double-tap reset; overlay ikut price scale dan batas sumbu terukur. Refresh mempertahankan pan/skala manual. Home/backend/engine tetap. Verifikasi rilis menunggu CI. |
+
+| **2026-09-30** | `Pro379` verifikasi lokal | 142 file regresi dan Chromium touch sumbu harga/waktu, double-tap/Auto harga, sinkronisasi overlay, refresh-preserved viewport serta fullscreen/pinch/pan/Back/Escape/offline lulus. Referensi resmi Lightweight Charts 4.2.3 ada di docs/mapping/CHART_GESTURES_PRO379.md. Rilis bertanda tangan belum diverifikasi. |

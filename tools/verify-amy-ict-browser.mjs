@@ -10,7 +10,7 @@ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless
 await page.emulateMedia({colorScheme:'dark'});
 page.on('pageerror',e=>errors.push(e.stack));
 await page.addInitScript(()=>{window.Android={};});
-await page.route('**/lightweight-charts.standalone.production.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+`;{const lib=window.LightweightCharts;window.LightweightCharts={...lib,createChart(...args){const chart=lib.createChart(...args);window.__goldChart=chart;return chart;}};}`});});
+await page.route('**/lightweight-charts.standalone.production.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+`;{const lib=window.LightweightCharts;window.LightweightCharts={...lib,createChart(...args){const chart=lib.createChart(...args);window.__goldChart=chart;const add=chart.addCandlestickSeries.bind(chart);chart.addCandlestickSeries=(...args)=>{const series=add(...args);window.__goldSeries=series;return series;};return chart;}};}`});});
 await page.route('**/scalper-setups?**',r=>r.fulfill({json:{ok:true,mode:'market_context',context:c,engine:{status:'COMPLETED',completed_at:new Date(now*1000).toISOString(),result:{engine:'amyfx-gold-context-v1'}},history:[]}}));
 await page.route('**/api/twelvedata?**',r=>{const tf=new URL(r.request().url()).searchParams.get('interval'),rows=bars({'15min':900,'5min':300,'1min':60}[tf]||900,120);return r.fulfill({json:{status:'ok',values:rows.map(x=>({datetime:new Date(x.open_time*1000).toISOString(),open:x.open,high:x.high,low:x.low,close:x.close})),source:'fixture-closed'}});});
 await page.goto((process.env.AMYFX_PREVIEW_URL||'http://127.0.0.1:8765')+'/apps/mapping/index.html');await page.waitForFunction(()=>Boolean(window.AmyMarketContext?.amy));await page.waitForSelector('.ict-overlay');
@@ -31,6 +31,49 @@ await page.screenshot({path:'/tmp/amyfx378-fullscreen-portrait.png'});
 const chart=await page.locator('#chart').boundingBox();
 await page.mouse.move(chart.x+80,chart.y+chart.height/2);await page.mouse.down();await page.mouse.move(chart.x+160,chart.y+chart.height/2,{steps:8});await page.mouse.up();
 const touch=await page.context().newCDPSession(page);
+// Price-axis and time-axis drags must change their actual scales on touch.
+await page.evaluate(()=>{
+  const ctx=document.querySelector('.ict-overlay').getContext('2d'),stroke=ctx.strokeRect,clear=ctx.clearRect;
+  ctx.strokeRect=function(x,y,w,h){if(this.strokeStyle==='#6c9eff')window.__amyPoiRectangle={x,y,w,h};return stroke.call(this,x,y,w,h);};
+  ctx.clearRect=function(...args){window.__amyPoiRectangle=null;return clear.apply(this,args);};
+});
+const priceSpan=()=>page.evaluate(()=>Math.abs(window.__goldSeries.coordinateToPrice(30)-window.__goldSeries.coordinateToPrice(document.querySelector('#chart').clientHeight-50)));
+const axisX=chart.x+chart.width-25,axisY=chart.y+chart.height*.45;
+const originalPriceSpan=await priceSpan();
+await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:axisX,y:axisY}]});
+for(let i=1;i<=8;i++)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:axisX,y:axisY+i*10}]});
+await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);
+assert.equal(await page.evaluate(()=>window.__goldChart.priceScale('right').options().autoScale),false);
+assert.ok(Math.abs((await priceSpan())-originalPriceSpan)>1,'right price axis must change vertical scale');
+const poiScale=await page.evaluate(()=>({rect:window.__amyPoiRectangle,expected:window.__goldSeries.priceToCoordinate(window.AmyMarketContext.amy.dashboard.poi.high)}));
+assert.ok(poiScale.rect,'AMY POI rectangle remains visible');assert.ok(Math.abs(poiScale.rect.y-poiScale.expected)<.5,'overlay follows price scale');
+await page.screenshot({path:'/tmp/amyfx379-price-axis.png'});
+// Double-tap price axis restores autoscale, matching the library's TradingView behavior.
+for(let i=0;i<2;i++){
+  await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:axisX,y:axisY}]});
+  await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(40);
+}
+await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>window.__goldChart.priceScale('right').options().autoScale),true);
+await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:axisX,y:axisY}]});
+for(let i=1;i<=8;i++)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:axisX,y:axisY+i*10}]});
+await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(100);
+assert.equal(await page.evaluate(()=>window.__goldChart.priceScale('right').options().autoScale),false);
+
+const spacingBeforeAxis=await page.evaluate(()=>window.__goldChart.timeScale().options().barSpacing);
+const timeY=chart.y+chart.height-10;
+await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:chart.x+100,y:timeY}]});
+for(let i=1;i<=8;i++)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:chart.x+100+i*10,y:timeY}]});
+await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);
+const spacingAfterAxis=await page.evaluate(()=>window.__goldChart.timeScale().options().barSpacing);
+assert.ok(Math.abs(spacingAfterAxis-spacingBeforeAxis)>.1,'bottom time axis changes candle width');
+const userScale=await page.evaluate(()=>({span:Math.abs(window.__goldSeries.coordinateToPrice(30)-window.__goldSeries.coordinateToPrice(document.querySelector('#chart').clientHeight-50)),range:window.__goldChart.timeScale().getVisibleLogicalRange()}));
+await page.evaluate(()=>window.dispatchEvent(new CustomEvent('amyfx:refresh-context')));await page.waitForTimeout(150);
+assert.ok(Math.abs((await priceSpan())-userScale.span)<.01,'server refresh preserves manual price scale');
+const refreshedRange=await page.evaluate(()=>window.__goldChart.timeScale().getVisibleLogicalRange());
+assert.ok(Math.abs(refreshedRange.from-userScale.range.from)<.01,'server refresh preserves horizontal viewport');
+await page.getByRole('button',{name:'Kembalikan skala harga otomatis',exact:true}).click();await page.waitForTimeout(100);
+assert.equal(await page.evaluate(()=>window.__goldChart.priceScale('right').options().autoScale),true);
+report.axisGestures={price:true,time:true,overlaySync:true,refreshPreserved:true,autoReset:true,doubleTapReset:true};
 const span=()=>page.evaluate(()=>{const r=window.__goldChart.timeScale().getVisibleLogicalRange();return r.to-r.from;});
 const spanBeforeTouch=await span();
 const cy=chart.y+chart.height/2;
@@ -44,6 +87,7 @@ for(let i=1;i<=6;i++)await touch.send('Input.dispatchTouchEvent',{type:'touchMov
 await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);
 assert.ok(Math.abs(await page.evaluate(()=>window.__goldChart.timeScale().getVisibleLogicalRange().from)-touchPanBefore)>1,'one-finger drag must pan');
 await touch.detach();
+await page.mouse.move(chart.x+140,chart.y+chart.height/2);
 const rangeBefore=await page.evaluate(()=>window.__goldChart.timeScale().getVisibleLogicalRange());
 await page.mouse.wheel(0,-240);await page.waitForTimeout(150);
 const rangeAfter=await page.evaluate(()=>window.__goldChart.timeScale().getVisibleLogicalRange());

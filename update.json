@@ -1,10 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.378/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Chart Gold: tombol Fullscreen untuk melihat chart memenuhi layar.",
-    "Tulisan harga, label ICT/AMY dan ringkasan chart lebih besar saat fullscreen.",
-    "Mendukung tampilan tegak/mendatar, zoom dua jari dan geser chart; posisi zoom tetap saat keluar.",
-    "Keluar lewat tombol Keluar atau Back; aturan trading, data candle dan kontrol visual tetap dipertahankan."
+    "Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.",
+    "Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.",
+    "Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.",
+    "Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.378/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Chart Gold: tombol Fullscreen untuk melihat chart memenuhi layar.",
-    "Tulisan harga, label ICT/AMY dan ringkasan chart lebih besar saat fullscreen.",
-    "Mendukung tampilan tegak/mendatar, zoom dua jari dan geser chart; posisi zoom tetap saat keluar.",
-    "Keluar lewat tombol Keluar atau Back; aturan trading, data candle dan kontrol visual tetap dipertahankan."
+    "Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.",
+    "Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.",
+    "Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.",
+    "Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual."
   ],
   "sha256": "516d95d6fd9bcfec15985dc6b8cc354e51480265d8ab0689936dce1947ce91bf",
   "version": "2.0.0-pro.378",

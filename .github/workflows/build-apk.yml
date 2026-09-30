@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Chart Gold: tombol Fullscreen untuk melihat chart memenuhi layar.
-          - Tulisan harga, label ICT/AMY dan ringkasan chart lebih besar saat fullscreen.
-          - Mendukung tampilan tegak/mendatar, zoom dua jari dan geser chart; posisi zoom tetap saat keluar.
-          - Keluar lewat tombol Keluar atau Back; aturan trading, data candle dan kontrol visual tetap dipertahankan.
+          - Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.
+          - Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.
+          - Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.
+          - Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber

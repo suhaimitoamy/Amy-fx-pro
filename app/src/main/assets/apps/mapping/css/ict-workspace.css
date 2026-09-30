@@ -74,3 +74,9 @@ body.mapping-chart-fullscreen>:not(#gold-chart-workspace):not(script){visibility
 #gold-chart-workspace.is-fullscreen #chart{flex:1;min-width:0;min-height:0!important;height:auto!important;border-radius:8px}
 #gold-chart-workspace.is-fullscreen #chart-fullscreen{font-size:14px}
 @media(max-width:560px){.chart-heading #chart-caption{flex-basis:100%;order:3}.chart-heading #chart-fullscreen{margin-left:auto}}
+
+/* TradingView Lightweight Charts owns both axis drags and pane gestures. */
+#chart{touch-action:none;overscroll-behavior:contain}
+#chart-auto-price{min-height:44px;font-size:12px;flex-shrink:0;padding:8px 10px}
+#gold-chart-workspace.is-fullscreen .chart-heading h2{margin-right:auto}
+@media(max-width:380px){#gold-chart-workspace.is-fullscreen .chart-heading h2{font-size:15px}#gold-chart-workspace.is-fullscreen #chart-fullscreen{font-size:12px;padding:8px 10px}}
