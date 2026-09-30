@@ -62,3 +62,15 @@ summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-
 .amy-dashboard>div{background:var(--card)}
 #mapping-alert{border:1px solid var(--sell);border-radius:12px;padding:12px;font-size:13px;overflow-wrap:anywhere}
 @media(max-width:560px){.section-heading{flex-wrap:wrap}.scenario dl div:first-child{grid-column:auto}.execution .section-heading small{font-size:11px}.driver-name{font-size:12px}}
+
+/* Body portal keeps the chart above sticky headers and Android WebView containers. */
+.chart-heading h2{margin:0}.chart-heading #chart-caption{margin-right:auto}
+#chart-fullscreen{font-size:13px;flex-shrink:0;min-height:44px}
+body.mapping-chart-fullscreen{overflow:hidden!important;overscroll-behavior:none}
+body.mapping-chart-fullscreen>:not(#gold-chart-workspace):not(script){visibility:hidden!important}
+#gold-chart-workspace.is-fullscreen{position:fixed!important;inset:0!important;z-index:2147483646!important;display:flex;flex-direction:column;gap:6px;width:100%!important;max-width:none!important;height:100vh;height:100dvh;margin:0!important;border:0!important;border-radius:0!important;box-sizing:border-box;padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));background:var(--bg)!important;overflow:hidden}
+#gold-chart-workspace.is-fullscreen .chart-heading{flex:none;margin:0;min-height:44px;flex-wrap:nowrap}
+#gold-chart-workspace.is-fullscreen #chart-caption{display:none}
+#gold-chart-workspace.is-fullscreen #chart{flex:1;min-width:0;min-height:0!important;height:auto!important;border-radius:8px}
+#gold-chart-workspace.is-fullscreen #chart-fullscreen{font-size:14px}
+@media(max-width:560px){.chart-heading #chart-caption{flex-basis:100%;order:3}.chart-heading #chart-fullscreen{margin-left:auto}}

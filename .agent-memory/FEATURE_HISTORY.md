@@ -307,3 +307,10 @@ User authorized a presentation-only simplification and version bump. Main Mappin
 
 
 Pro377 release verification completed: source dc1ff82e9f6bd0571bac754484654141212ebafc; signed Actions36701710390 and lint36701710388 succeeded. Public update.json is enabled at2.0.0-pro.377/950377. Downloaded32,667,949-byte APK SHA-2561998d6efe381114b230d393db90f0a675dc2b7b6263f10f12775941796e7ed76 matches manifest/checksum; all changed Mapping assets match APK and shared trading engine remains byte-identical to backend. Final141 regression files and Chromium360/390 dark/light/settings/driver-refresh/news-lock/offline smoke passed. Earlier Pro377 publication-pending note is resolved. Real Android update-notification receipt remains unobserved.
+
+
+## 2026-09-30 — Pro378 Chart Gold fullscreen
+
+Chart Gold gains Fullscreen/Keluar, adaptive portrait/landscape layout, 16px price-axis and14px ICT/narration text. Close button, Back and Escape restore Mapping. Underlying menus/assistant are hidden while fullscreen, and46 display preferences remain unchanged.
+
+Local verification: all141 regression files passed; Chromium360/390 portrait and844×390 landscape verified viewport fill,16px axis/14px overlay, one-finger pan, two-finger pinch, wheel zoom, preserved zoom/scroll, Back/Escape/native-request rejection, refresh/theme and offline clearing without errors or overflow. These are browser checks; actual Android device behavior remains unobserved.

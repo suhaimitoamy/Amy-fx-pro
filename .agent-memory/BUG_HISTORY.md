@@ -545,3 +545,8 @@ User authorized a presentation-only simplification and version bump. Main Mappin
 
 
 Pro377 release verification completed: source dc1ff82e9f6bd0571bac754484654141212ebafc; signed Actions36701710390 and lint36701710388 succeeded. Public update.json is enabled at2.0.0-pro.377/950377. Downloaded32,667,949-byte APK SHA-2561998d6efe381114b230d393db90f0a675dc2b7b6263f10f12775941796e7ed76 matches manifest/checksum; all changed Mapping assets match APK and shared trading engine remains byte-identical to backend. Final141 regression files and Chromium360/390 dark/light/settings/driver-refresh/news-lock/offline smoke passed. Earlier Pro377 publication-pending note is resolved. Real Android update-notification receipt remains unobserved.
+
+
+## 2026-09-30 — Pro378 Chart Gold fullscreen
+
+Addressed the user screenshot showing small Chart Gold text in the constrained Mapping card. Fullscreen bypasses surrounding UI containers and gives the existing canvas the available viewport; resize/rotation repaint overlays without replacing chart data.

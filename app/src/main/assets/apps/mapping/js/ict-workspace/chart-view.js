@@ -38,7 +38,8 @@ export function createPriceChart(element) {
       }
     },
     reset(){key='';},
-    resize(){chart.applyOptions({autoSize:true});},
+    resize(){chart.applyOptions({autoSize:true});ict?.invalidate();},
+    setFullscreen(enabled){chart.applyOptions({layout:{fontSize:enabled?16:12},rightPriceScale:{minimumWidth:enabled?90:65}});ict?.invalidate();},
     destroy(){window.removeEventListener('amyfx:theme-change',theme);ict?.destroy();chart.remove();}
   };
 }

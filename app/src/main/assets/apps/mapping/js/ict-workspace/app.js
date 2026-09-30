@@ -1,3 +1,4 @@
+import {mountChartFullscreen} from './chart-fullscreen.js';
 import {loadCandles} from './data.js';
 import {normalize} from './engine.js';
 import {createPriceChart} from './chart-view.js';
@@ -6,6 +7,7 @@ const $=id=>document.getElementById(id);
 let context=null,display=null;
 let chart=null,controller=null,generation=0,timer=null,overlay=null,raw=null;
 try{chart=createPriceChart($('chart'));}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
+const fullscreen=mountChartFullscreen(chart);
 display=mountDisplay(next=>{display=next;renderAmy(context?.amy,display,context?.news);draw();});
 // A cached trade plan from the previous application version must not be served as current context.
 try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}
@@ -37,6 +39,7 @@ async function refresh(){
   }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;schedule();}}
 }
 window.setTab=name=>{
+  if(name!=='Dashboard')fullscreen?.close();
   const tab=['Dashboard','Analyze','History'].includes(name)?name:'Dashboard';
   document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==tab);
   document.querySelectorAll('[data-tab]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.tab===tab)));

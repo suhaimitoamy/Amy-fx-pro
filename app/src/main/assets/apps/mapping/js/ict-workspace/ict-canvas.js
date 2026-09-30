@@ -8,14 +8,14 @@ export function createIctCanvas(element,chart,series){
   function paint(){frame=null;if(!ctx)return;const w=element.clientWidth,h=element.clientHeight,scale=window.devicePixelRatio||1;
     if(canvas.width!==Math.round(w*scale)||canvas.height!==Math.round(h*scale)){canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);canvas.style.width=w+'px';canvas.style.height=h+'px';}
     ctx.setTransform(scale,0,0,scale,0,0);ctx.clearRect(0,0,w,h);if(!state?.amy||!state.candles.length)return;
-    const {candles,amy,settings:s,tf}=state,seconds={M1:60,M5:300,M15:900}[tf]||900,plotRight=w-70;
+    const {candles,amy,settings:s,tf}=state,seconds={M1:60,M5:300,M15:900}[tf]||900,fullscreen=Boolean(element.closest('#gold-chart-workspace.is-fullscreen')),fontSize=fullscreen?14:10,plotRight=w-(fullscreen?96:70);
     const key=tf+JSON.stringify(candles);if(key!==visualKey){visualKey=key;visuals=tf==='M15'?amy.visuals:baseVisuals(candles.map(c=>({...c,open_time:c.time,close_time:c.time+seconds})));}
     const x=t=>Number.isFinite(t)?chart.timeScale().timeToCoordinate(t):null,y=p=>series.priceToCoordinate(p);
     const logical=chart.timeScale().getVisibleLogicalRange(),first=logical?Math.max(0,Math.floor(logical.from)):0,last=Math.min(candles.length-1,logical?Math.ceil(logical.to):candles.length-1);
     const leftAt=t=>{const index=candles.findIndex(c=>c.time>=t);if(index<0)return null;const v=x(candles[index].time);return v==null?(index<first?0:null):v;};
     const light=document.documentElement.dataset.amyfxTheme==='light';
     const labelBounds=[];
-    const label=(text,xx,yy,color)=>{if(!text||!s.labels||yy<8||yy>h-30)return;ctx.font='10px sans-serif';const width=Math.min(ctx.measureText(text).width+6,plotRight-xx),bounds={left:xx-2,right:xx+width,top:yy-11,bottom:yy+3};if(labelBounds.some(b=>bounds.left<b.right&&bounds.right>b.left&&bounds.top<b.bottom&&bounds.bottom>b.top))return;labelBounds.push(bounds);ctx.fillStyle=light?'#eff4ffeb':'#07111deb';ctx.fillRect(xx-2,yy-11,Math.min(ctx.measureText(text).width+6,plotRight-xx),14);ctx.fillStyle=color;ctx.fillText(text,xx,yy,Math.max(0,plotRight-xx));};
+    const label=(text,xx,yy,color)=>{if(!text||!s.labels||yy<fontSize||yy>h-30)return;ctx.font=fontSize+'px sans-serif';const width=Math.min(ctx.measureText(text).width+6,plotRight-xx),bounds={left:xx-2,right:xx+width,top:yy-fontSize-1,bottom:yy+3};if(labelBounds.some(b=>bounds.left<b.right&&bounds.right>b.left&&bounds.top<b.bottom&&bounds.bottom>b.top))return;labelBounds.push(bounds);ctx.fillStyle=light?'#eff4ffeb':'#07111deb';ctx.fillRect(xx-2,yy-fontSize-1,Math.min(ctx.measureText(text).width+6,plotRight-xx),fontSize+4);ctx.fillStyle=color;ctx.fillText(text,xx,yy,Math.max(0,plotRight-xx));};
     ctx.save();ctx.beginPath();ctx.rect(0,0,plotRight,h-24);ctx.clip();
     if(s.killzones)for(let i=first;i<=last;i++){const c=candles[i],names=sessions(c.time);const active=names.find(n=>({NY:s.ny,LONDON_OPEN:s.londonOpen,LONDON_CLOSE:s.londonClose,ASIA:s.asian})[n]);if(!active)continue;
       const xx=x(c.time),next=x(candles[i+1]?.time);if(xx==null)continue;ctx.fillStyle={NY:'#ff8c001a',LONDON_OPEN:'#00bcd41a',LONDON_CLOSE:'#2157f322',ASIA:'#e91e631a'}[active];ctx.fillRect(xx,0,(next??xx+8)-xx,h-24);}
@@ -43,8 +43,8 @@ export function createIctCanvas(element,chart,series){
     if(s.fib!=='NONE'){const items={FVG:visuals.fvg,BPR:visuals.bpr,OB:visuals.ob,Liq:visuals.liquidity,VI:visuals.vi,NWOG:visuals.gaps?.filter(x=>x.kind==='NWOG')}[s.fib]||[];
       const normalized=items.map(x=>({...x,ce:x.ce??(x.low+x.high)/2})),levels=fibonacci(normalized);if(levels.length){const anchors=normalized.slice(-2).sort((a,b)=>a.time-b.time),x1=leftAt(anchors[0].time),x2=leftAt(anchors[1].time),y1=y(levels[6].price),y2=y(levels[0].price);if([x1,x2,y1,y2].every(Number.isFinite)){ctx.strokeStyle='#b6c2db';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.moveTo(x2,y2);ctx.lineTo(x2,y(levels[7].price));ctx.stroke();ctx.setLineDash([]);}}for(const f of levels){const start=leftAt(f.time)??0,yy=y(f.price);if(yy==null)continue;
         ctx.strokeStyle='#ffda70';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(start,yy);ctx.lineTo(s.fibExtend?plotRight:Math.min(plotRight,start+150),yy);ctx.stroke();ctx.setLineDash([]);label(`Fib ${f.ratio} ${f.price.toFixed(2)}`,start+4,yy-3,'#ffda70');}}
-    if(s.narration&&amy.entry){const lines=compactChartNarration(amy,state.news);ctx.font='11px sans-serif';const bw=Math.min(plotRight-16,300),bh=lines.length*15+12;
-      ctx.fillStyle=light?'#f3f7fff0':'#07111def';ctx.fillRect(8,8,bw,bh);ctx.strokeStyle='#739bd2';ctx.strokeRect(8,8,bw,bh);ctx.fillStyle=light?'#263c60':'#e4eeff';lines.forEach((text,i)=>ctx.fillText(text,14,25+i*15,bw-12));}
+    if(s.narration&&amy.entry){const lines=compactChartNarration(amy,state.news);ctx.font=(fullscreen?14:11)+'px sans-serif';const lineHeight=fullscreen?20:15,bw=Math.min(plotRight-16,fullscreen?440:300),bh=lines.length*lineHeight+12;
+      ctx.fillStyle=light?'#f3f7fff0':'#07111def';ctx.fillRect(8,8,bw,bh);ctx.strokeStyle='#739bd2';ctx.strokeRect(8,8,bw,bh);ctx.fillStyle=light?'#263c60':'#e4eeff';lines.forEach((text,i)=>ctx.fillText(text,14,8+lineHeight+i*lineHeight,bw-12));}
     ctx.restore();
   }
   chart.timeScale().subscribeVisibleLogicalRangeChange(request);

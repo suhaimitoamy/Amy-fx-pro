@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Mapping lebih ringkas: status, area POI, 50% CE, invalidasi, target dan chart tetap mudah dilihat.
-          - Rincian bias, Entry Assistant, bukti dan enam model driver masuk menu Detail yang bisa dibuka sesuai kebutuhan.
-          - Pengaturan visual dikelompokkan dalam empat menu; narasi chart dan label berulang diringkas.
-          - Bahasa lebih sederhana; seluruh aturan trading, scoring, news lock dan 46 kontrol visual tetap dipertahankan.
+          - Chart Gold: tombol Fullscreen untuk melihat chart memenuhi layar.
+          - Tulisan harga, label ICT/AMY dan ringkasan chart lebih besar saat fullscreen.
+          - Mendukung tampilan tegak/mendatar, zoom dua jari dan geser chart; posisi zoom tetap saat keluar.
+          - Keluar lewat tombol Keluar atau Back; aturan trading, data candle dan kontrol visual tetap dipertahankan.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber
