@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.381/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.382/AmyFX-Pro-latest.apk",
   "changelog": [
     "Mapping: evaluasi enam driver dengan alasan menunggu dan setup dari server.",
     "OTE/Fib nyata, CHoCH terkonfirmasi, quorum Ensemble dan batas risiko Shield.",
     "Lifecycle simulasi: limit/open setelah observasi, TP/SL, BE Adaptive, early exit Rapid.",
     "Statistik R bruto, hasil ambigu dikecualikan, skor bukan gate entry tambahan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.381/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.382/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950381,
-  "latest_version_name": "2.0.0-pro.381",
+  "latest_version_code": 950382,
+  "latest_version_name": "2.0.0-pro.382",
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Lifecycle simulasi: limit/open setelah observasi, TP/SL, BE Adaptive, early exit Rapid.",
     "Statistik R bruto, hasil ambigu dikecualikan, skor bukan gate entry tambahan."
   ],
-  "sha256": "fe37f0d80287e0d5a59a815d38f9c814b56ce4830030f8bca49b9a5a07c4a109",
-  "version": "2.0.0-pro.381",
-  "versionCode": 950381
+  "sha256": "34f42b0f0e34995e7df9ff0a425e3e68b74ec59acfa531f08f0ea007d4b32b3f",
+  "version": "2.0.0-pro.382",
+  "versionCode": 950382
 }
