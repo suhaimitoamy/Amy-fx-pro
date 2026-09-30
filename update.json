@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.370/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.371/AmyFX-Pro-latest.apk",
   "changelog": [
     "Driver #6 Human MTF Rapid Scalper: Mengintegrasikan driver ke-6 hasil riset Backtrader (Sesi London & NY, 3–5 setup/hari, RR 1:1.3R, Early Cut Loss -0.35R, Win Rate ~54%).",
     "Reset Skor Poin Turnamen: Seluruh skor poin ke-6 driver di-reset dari 0 pts untuk memulai babak kompetisi baru secara adil.",
     "Aktivasi Mandiri 6 Driver: Memastikan seluruh 6 driver turnamen menyala dan aktif secara mandiri tanpa ada yang terkunci di mode Standby."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.370/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.371/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950370,
-  "latest_version_name": "2.0.0-pro.370",
+  "latest_version_code": 950371,
+  "latest_version_name": "2.0.0-pro.371",
   "mandatory": false,
-  "releaseDate": "2026-09-27",
+  "releaseDate": "2026-09-30",
   "release_notes": [
     "Driver #6 Human MTF Rapid Scalper: Mengintegrasikan driver ke-6 hasil riset Backtrader (Sesi London & NY, 3–5 setup/hari, RR 1:1.3R, Early Cut Loss -0.35R, Win Rate ~54%).",
     "Reset Skor Poin Turnamen: Seluruh skor poin ke-6 driver di-reset dari 0 pts untuk memulai babak kompetisi baru secara adil.",
     "Aktivasi Mandiri 6 Driver: Memastikan seluruh 6 driver turnamen menyala dan aktif secara mandiri tanpa ada yang terkunci di mode Standby."
   ],
-  "sha256": "bc76c783237933e8cc0944669e7f31ed1adfa4ee6a9e653d4fc64516b424497b",
-  "version": "2.0.0-pro.370",
-  "versionCode": 950370
+  "sha256": "b9071fb463f95b2789a1bf55648ca8db9458bfb12ac73290860e9a1a03363e3a",
+  "version": "2.0.0-pro.371",
+  "versionCode": 950371
 }
