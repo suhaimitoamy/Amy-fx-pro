@@ -67,3 +67,13 @@ The browser smoke script uses a mocked closed-candle snapshot, not live trading
 results, and checks mobile layout, all controls, chart modes/theme and offline reset.
 Actual Android notification receipt and broker-matched TradingView comparison require
 observation on the user's device/chart; a local browser check is not that observation.
+
+## Final release Pro376
+
+Signed Pro376/950376 is published and the public update manifest is enabled. Backend
+v24 additionally serializes a primary target only for active liquidity matching the
+primary side and latest M5 price geometry. An opposing DOL stays in the dashboard
+as an observation; it is not a BUY/SELL scenario target. Thirty dedicated cases and
+all140 regression files pass. The final serialization-only deployment does not change
+the APK assets or its signed identity. Actual device update receipt and broker-matched
+TradingView observations remain outside the checks completed in this workspace.

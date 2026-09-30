@@ -147,3 +147,5 @@ Setiap kali sesi kerja selesai atau pengguna meminta penutupan/pembaharuan skill
 | **2026-09-30** | `2.0.0-pro.375` (`950375`) | Integrasi engine AMY Dashboard V2 M15/M5 bersama, H1 konteks tambahan, scoring BUY/SELL dan near-invalid, seluruh visual ICT/AMY. 140 file regresi dan browser mobile lulus; deployment scalper-engine v22. Klaim port penuh Pro373/374 ditandai historis dan superseded oleh audit/integrasi Pro375. |
 
 | **2026-09-30** | `2.0.0-pro.376` (`950376`) | Finalisasi integrasi: skor lawan bias ditandai jelas pada seluruh narasi; invalidasi/target dibandingkan close M5 terbaru. Versi baru menjaga identitas APK375 yang sudah dipublikasikan. |
+
+| **2026-09-30** | `Pro376` verifikasi final | Actions36696811345 dan lint36696811141 lulus; manifest950376 aktif, APK/checksum dan engine bersama identik. Backend v24 menolak target utama lawan arah/reached/salah sisi harga M5. 140 file regresi,30 kasus AMY, Chromium mobile dan snapshot nyata lulus. Perbaikan serialization backend saja dicatat [skip ci] agar APK376 tidak diganti. Notifikasi di HP dan parity broker TradingView belum diamati. |

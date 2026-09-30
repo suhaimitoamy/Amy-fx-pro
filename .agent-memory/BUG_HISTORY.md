@@ -535,3 +535,5 @@ Fixed newly created zones immediately testing their own formation candle; retest
 ## 2026-09-30 — Pro376 live-snapshot execution clarity
 
 A real snapshot had M15 BUY bias while the independent SELL confluence score was higher. Explicitly mark that counter-bias score in state/narration; it cannot create A+. Execution invalidation and target geometry now compare against the latest closed M5 price instead of the older M15 close. Entry/dashboard/chart consume the same warning text.
+
+Pro376 backend v24 additionally suppresses a primary target when the Dashboard DOL points against the primary side, is reached, or is on the wrong side of the latest M5 close. DOL remains visible as a separately labelled dashboard observation. Thirty deterministic replay seeds enforce that geometry.

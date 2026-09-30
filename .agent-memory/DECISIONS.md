@@ -424,3 +424,5 @@ User requested rebuilding active drivers with WR below50% and version bump for u
 ## 2026-09-30 — Pro375 unified AMY ICT Mapping
 
 User explicitly authorized complete integration and signed release. Dashboard V2 M15 is the decision authority; closed M5 is the trigger, H1 additional context. Portable amy-ict.mjs is byte-synchronized to Android amy-ict.js. Chart, dashboard, scoring, narration and markers consume one server snapshot including its candle inputs. ICT base drawings remain separately labelled because their OB/FVG formulas differ from Dashboard V2. Preserve verified-calendar/news, directional target, geometry and A+ gates. Historical Pro374 tests remain a named archived baseline; dedicated Pro375 tests verify the current path. Scores are points, not probabilities.
+
+Pro376 artifact identity is immutable after release. A backend-only final scenario-target serialization fix is deployed as Edge version24 and source-recorded with [skip ci]; no APK asset changed and all140 regression files were rerun successfully. This avoids republishing a different APK at versionCode950376.

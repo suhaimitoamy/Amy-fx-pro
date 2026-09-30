@@ -63,3 +63,14 @@ test('execution geometry uses latest closed M5 price and counter-bias scores are
   const c=buildMarketContext(input);assert.equal(c.price,input.m5.at(-1).close);assert.equal(c.execution.checklist.find(x=>x.label==='Invalidasi M15 sesuai arah').ok,false);assert.equal(c.execution.aPlusReady,false);
   if(c.amy.entry.winDir!==c.amy.dashboard.biasDir&&c.amy.entry.winDir){assert.match(c.marketState,/BERLAWANAN BIAS/);assert.match(c.narrative,/berlawanan bias/);}
 });
+
+test('primary target never exposes opposing, already reached or wrong-side DOL liquidity',()=>{
+  for(let seed=1;seed<=30;seed++){
+    let state=seed;const rand=()=>{state=(state*1664525+1013904223)>>>0;return state/4294967296;};
+    const make=(seconds,count)=>{let price=3300;return Array.from({length:count},(_,i)=>{const o=price;price+=(rand()-.5)*6;return bar(i,o,Math.max(o,price)+rand()*3,Math.min(o,price)-rand()*3,price,seconds,Math.floor(now/seconds)*seconds-count*seconds);});};
+    const c=buildMarketContext({...fixture(),m15:make(900,200),m5:make(300,100)});
+    const d=c.amy.dashboard,p=c.primary;if(!p)continue;
+    const allowed=d.dolStatus===1&&d.dolDir===d.biasDir&&(p.side==='BUY'?d.dolTarget>c.price:d.dolTarget<c.price);
+    if(!allowed)assert.equal(p.target,null);else assert.equal(p.target,d.dolTarget);
+  }
+});

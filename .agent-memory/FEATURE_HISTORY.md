@@ -296,3 +296,6 @@ Implemented shared closed-candle Dashboard V2 (bias, locked invalidation, range/
 ## 2026-09-30 — Pro376 final integration guard
 
 Completes the Pro375 integration with explicit opposing-score narration and current closed-M5 execution geometry. Source376 is a new APK identity because signed375 had already activated; do not replace a published APK at the same versionCode.
+
+
+Pro376 final verification completed: signed Actions36696811345 and lint36696811141 succeeded. Active public update.json is enabled at2.0.0-pro.376/950376. Downloaded32,666,230-byte APK SHA-256 matches f1b861ca698ccd608b8fb88510e57adecc1acdc233a672459d5062ffd1580712, packaged app-version is376 and packaged amy-ict.js is byte-identical to the backend module. Final local140-file regression (30 dedicated AMY cases) and Chromium mobile dark/light/all-controls/offline checks pass, including a real server snapshot. scalper-engine v24 runs on scheduled cron, fresh COMPLETED snapshots expose amy-ict-complete-pro376; primary targets reject opposing/reached/wrong-side DOL. The last fix changes only backend serialization/tests/docs, not APK assets; [skip ci] prevents rebuilding/replacing the already verified APK at the same code. Real-device notification receipt and broker-matched TradingView comparison remain unobserved. Earlier Pro375/376 deployment/build-pending entries are resolved.
