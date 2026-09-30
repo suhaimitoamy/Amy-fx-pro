@@ -537,3 +537,8 @@ Fixed newly created zones immediately testing their own formation candle; retest
 A real snapshot had M15 BUY bias while the independent SELL confluence score was higher. Explicitly mark that counter-bias score in state/narration; it cannot create A+. Execution invalidation and target geometry now compare against the latest closed M5 price instead of the older M15 close. Entry/dashboard/chart consume the same warning text.
 
 Pro376 backend v24 additionally suppresses a primary target when the Dashboard DOL points against the primary side, is reached, or is on the wrong side of the latest M5 close. DOL remains visible as a separately labelled dashboard observation. Thirty deterministic replay seeds enforce that geometry.
+
+
+## 2026-09-30 — Pro377 Mapping ringkas
+
+User authorized a presentation-only simplification and version bump. Main Mapping shows market state, manual readiness/news, primary POI/CE/invalidation/target and chart. Full bias, narration, evidence, liquidity, conditions, alternatives and six reference models stay accessible in closed Detail accordions; opened driver/scenario details survive refresh. All46 display controls remain in four groups, stored preferences are preserved. Chart narration prioritizes risk warnings in two lines; repeated structural labels and overlapping text are suppressed without removing drawings or numerical logic. Canonical engine, backend, scoring, risk gates and notification policies are unchanged. Source2.0.0-pro.377/950377; signed CI owns manifest activation after publication. Local141 regression files and Chromium360/390 dark/light/menu/offline smoke passed; release verification pending.

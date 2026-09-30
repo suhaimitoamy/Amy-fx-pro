@@ -149,3 +149,5 @@ Setiap kali sesi kerja selesai atau pengguna meminta penutupan/pembaharuan skill
 | **2026-09-30** | `2.0.0-pro.376` (`950376`) | Finalisasi integrasi: skor lawan bias ditandai jelas pada seluruh narasi; invalidasi/target dibandingkan close M5 terbaru. Versi baru menjaga identitas APK375 yang sudah dipublikasikan. |
 
 | **2026-09-30** | `Pro376` verifikasi final | Actions36696811345 dan lint36696811141 lulus; manifest950376 aktif, APK/checksum dan engine bersama identik. Backend v24 menolak target utama lawan arah/reached/salah sisi harga M5. 140 file regresi,30 kasus AMY, Chromium mobile dan snapshot nyata lulus. Perbaikan serialization backend saja dicatat [skip ci] agar APK376 tidak diganti. Notifikasi di HP dan parity broker TradingView belum diamati. |
+
+| **2026-09-30** | `2.0.0-pro.377` (`950377`) | Atas permintaan user, Mapping diringkas: status/area/CE/invalidasi/target/chart di utama, bukti dan6 model driver dalam menu Detail.46 kontrol tetap ada dalam4 grup; narasi2 baris memprioritaskan risiko. Engine/backend tidak berubah.141 file regresi dan browser mobile lulus; verifikasi rilis menunggu CI. |

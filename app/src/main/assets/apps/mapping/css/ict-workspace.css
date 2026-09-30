@@ -34,3 +34,31 @@
 .ict-settings{margin:12px 0;padding:12px;border:1px solid var(--border,#354c6b);border-radius:12px;}.ict-settings summary{cursor:pointer;font-weight:700;}
 #ict-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;}#ict-controls fieldset{min-width:0;border:1px solid var(--border,#354c6b);border-radius:10px;padding:10px;}#ict-controls legend{font-size:12px;}#ict-controls label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:9px 0;font-size:12px;}#ict-controls input[type=checkbox]{width:18px;height:18px;flex-shrink:0;}#ict-controls input[type=number]{width:65px;}#ict-controls select{max-width:140px;}#ict-controls button{grid-column:1/-1;}#ict-coverage{font-size:11px;overflow-wrap:anywhere;}
 @media(max-width:600px){.amy-dashboard{grid-template-columns:1fr;}#ict-controls{grid-template-columns:1fr;}#chart{min-height:460px;}.amy-dashboard>div{grid-template-columns:90px minmax(0,1fr);}}
+
+/* Pro377: short overview; full evidence and models remain available in Detail. */
+.inline-detail{margin-top:10px;font-size:13px;color:var(--muted)}
+summary{cursor:pointer;overflow-wrap:anywhere;min-height:44px;align-content:center}
+summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.inline-detail[open]>summary{margin-bottom:8px}
+.panel-hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+.model-context{background:var(--card);padding:10px 16px}
+.model-context[open]>summary{margin-bottom:12px}
+.model-context article{margin:12px 0 0;padding:12px}
+.detail-count{font-size:11px;font-weight:400;color:var(--muted);margin-left:8px}
+.context-hero>strong{font-size:clamp(18px,3vw,24px);margin:8px 0}
+.context-hero h2,.execution h2{margin:0;font-size:17px}
+.scenario dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.scenario dl div{padding:10px}.scenario dd{font-size:14px}
+.scenario h3{font-size:17px;margin:0}
+.price-map .section-heading{margin-bottom:12px}
+.driver-item{padding:0 12px;background:transparent;border-radius:8px}
+.driver-item>summary{display:list-item;font-size:13px;padding:10px 0;line-height:1.5}
+.driver-rank{margin-right:6px;color:var(--muted)}
+.driver-name{font-size:13px}.driver-meta{flex-direction:column;gap:4px}
+.driver-desc{font-size:12px;margin:10px 0}
+.settings-group{min-width:0;border:1px solid var(--line);border-radius:10px;padding:0 10px}
+#ict-controls fieldset{border:0;padding:0;margin:8px 0}
+.settings-group>summary{font-size:13px}
+.amy-dashboard>div{background:var(--card)}
+#mapping-alert{border:1px solid var(--sell);border-radius:12px;padding:12px;font-size:13px;overflow-wrap:anywhere}
+@media(max-width:560px){.section-heading{flex-wrap:wrap}.scenario dl div:first-child{grid-column:auto}.execution .section-heading small{font-size:11px}.driver-name{font-size:12px}}

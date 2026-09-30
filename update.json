@@ -1,11 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.376/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.",
-    "Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.",
-    "Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.",
-    "Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia.",
-    "Entry Assistant: Skor lawan bias ditandai jelas; invalidasi dan target diperiksa terhadap close M5 terbaru."
+    "Mapping lebih ringkas: status, area POI, 50% CE, invalidasi, target dan chart tetap mudah dilihat.",
+    "Rincian bias, Entry Assistant, bukti dan enam model driver masuk menu Detail yang bisa dibuka sesuai kebutuhan.",
+    "Pengaturan visual dikelompokkan dalam empat menu; narasi chart dan label berulang diringkas.",
+    "Bahasa lebih sederhana; seluruh aturan trading, scoring, news lock dan 46 kontrol visual tetap dipertahankan."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.376/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -15,11 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.",
-    "Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.",
-    "Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.",
-    "Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia.",
-    "Entry Assistant: Skor lawan bias ditandai jelas; invalidasi dan target diperiksa terhadap close M5 terbaru."
+    "Mapping lebih ringkas: status, area POI, 50% CE, invalidasi, target dan chart tetap mudah dilihat.",
+    "Rincian bias, Entry Assistant, bukti dan enam model driver masuk menu Detail yang bisa dibuka sesuai kebutuhan.",
+    "Pengaturan visual dikelompokkan dalam empat menu; narasi chart dan label berulang diringkas.",
+    "Bahasa lebih sederhana; seluruh aturan trading, scoring, news lock dan 46 kontrol visual tetap dipertahankan."
   ],
   "sha256": "f1b861ca698ccd608b8fb88510e57adecc1acdc233a672459d5062ffd1580712",
   "version": "2.0.0-pro.376",

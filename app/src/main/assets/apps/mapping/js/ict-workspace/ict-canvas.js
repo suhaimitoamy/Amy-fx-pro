@@ -1,3 +1,4 @@
+import {compactChartNarration} from './ict-presentation.js';
 import {baseVisuals,fibonacci,sessions} from './amy-ict.js';
 const COLORS={BUY:'#00cfa0',SELL:'#ff606f',pivot:'#82a7ff',VI:'#37cde8',NWOG:'#e88eab',NDOG:'#ffc578',LIQ:'#d694ff',BPR:'#d9e68a'};
 export function createIctCanvas(element,chart,series){
@@ -13,7 +14,8 @@ export function createIctCanvas(element,chart,series){
     const logical=chart.timeScale().getVisibleLogicalRange(),first=logical?Math.max(0,Math.floor(logical.from)):0,last=Math.min(candles.length-1,logical?Math.ceil(logical.to):candles.length-1);
     const leftAt=t=>{const index=candles.findIndex(c=>c.time>=t);if(index<0)return null;const v=x(candles[index].time);return v==null?(index<first?0:null):v;};
     const light=document.documentElement.dataset.amyfxTheme==='light';
-    const label=(text,xx,yy,color)=>{if(!s.labels||yy<8||yy>h-30)return;ctx.font='10px sans-serif';ctx.fillStyle=light?'#eff4ffeb':'#07111deb';ctx.fillRect(xx-2,yy-11,Math.min(ctx.measureText(text).width+6,plotRight-xx),14);ctx.fillStyle=color;ctx.fillText(text,xx,yy,Math.max(0,plotRight-xx));};
+    const labelBounds=[];
+    const label=(text,xx,yy,color)=>{if(!text||!s.labels||yy<8||yy>h-30)return;ctx.font='10px sans-serif';const width=Math.min(ctx.measureText(text).width+6,plotRight-xx),bounds={left:xx-2,right:xx+width,top:yy-11,bottom:yy+3};if(labelBounds.some(b=>bounds.left<b.right&&bounds.right>b.left&&bounds.top<b.bottom&&bounds.bottom>b.top))return;labelBounds.push(bounds);ctx.fillStyle=light?'#eff4ffeb':'#07111deb';ctx.fillRect(xx-2,yy-11,Math.min(ctx.measureText(text).width+6,plotRight-xx),14);ctx.fillStyle=color;ctx.fillText(text,xx,yy,Math.max(0,plotRight-xx));};
     ctx.save();ctx.beginPath();ctx.rect(0,0,plotRight,h-24);ctx.clip();
     if(s.killzones)for(let i=first;i<=last;i++){const c=candles[i],names=sessions(c.time);const active=names.find(n=>({NY:s.ny,LONDON_OPEN:s.londonOpen,LONDON_CLOSE:s.londonClose,ASIA:s.asian})[n]);if(!active)continue;
       const xx=x(c.time),next=x(candles[i+1]?.time);if(xx==null)continue;ctx.fillStyle={NY:'#ff8c001a',LONDON_OPEN:'#00bcd41a',LONDON_CLOSE:'#2157f322',ASIA:'#e91e631a'}[active];ctx.fillRect(xx,0,(next??xx+8)-xx,h-24);}
@@ -32,7 +34,7 @@ export function createIctCanvas(element,chart,series){
     if(s.liquidity)for(const z of selected(visuals.liquidity))box(z,COLORS.LIQ,`${z.side==='BUY'?'Buyside':'Sellside'} Liquidity`);
     if(s.vi)for(const z of selected(visuals.vi))box({...z,end:z.time+seconds*3},COLORS.VI,'VI');
     for(const [kind,enabled,count]of [['NWOG',s.nwog,s.nwogCount],['NDOG',s.ndog,s.ndogCount]])if(enabled&&count>0)for(const z of (visuals.gaps||[]).filter(z=>z.kind===kind).slice(-count))box(z,COLORS[kind],kind);
-    if(s.structure)for(const ev of (visuals.events||[]).slice(s.mode==='Present'?-20:-150))if(ev.kind==='MSS'?s.mss:s.bos)line(ev.level,ev.kind+' · ICT',COLORS[ev.side],ev.from,ev.time);
+    if(s.structure){const events=(visuals.events||[]).slice(s.mode==='Present'?-20:-150);for(const ev of events)if(ev.kind==='MSS'?s.mss:s.bos){const latest=events.findLast(item=>item.kind===ev.kind&&item.side===ev.side);line(ev.level,ev===latest?ev.kind+' · ICT':'',COLORS[ev.side],ev.from,ev.time);}}
     const d=amy.dashboard;if(d?.poi)box({...d.poi,time:d.poi.time},'#6c9eff',`AMY POI ${d.poi.kind} · ${d.poi.lifecycle}`);
     if(s.keyLevels){const k=amy.levels;for(const [name,value,on,color]of [['MO',k.midnightOpen,s.mo,'#ffdc68'],['PDH',k.pdh,s.pdh,COLORS.SELL],['PDL',k.pdl,s.pdl,COLORS.BUY],['BSL',k.bsl,s.bsl,'#d994ff'],['SSL',k.ssl,s.ssl,'#54d5ed'],['ASIA H',k.asiaHigh,s.asia,'#ffb05c'],['ASIA L',k.asiaLow,s.asia,'#50baff']])if(on&&Number.isFinite(value))line(value,`${name} ${value.toFixed(2)}`,color);}
     if(s.pivots){const p=amy.pivots?.[s.pivotTf],price=candles.at(-1).close,atr=d?.atr||0;
@@ -41,7 +43,7 @@ export function createIctCanvas(element,chart,series){
     if(s.fib!=='NONE'){const items={FVG:visuals.fvg,BPR:visuals.bpr,OB:visuals.ob,Liq:visuals.liquidity,VI:visuals.vi,NWOG:visuals.gaps?.filter(x=>x.kind==='NWOG')}[s.fib]||[];
       const normalized=items.map(x=>({...x,ce:x.ce??(x.low+x.high)/2})),levels=fibonacci(normalized);if(levels.length){const anchors=normalized.slice(-2).sort((a,b)=>a.time-b.time),x1=leftAt(anchors[0].time),x2=leftAt(anchors[1].time),y1=y(levels[6].price),y2=y(levels[0].price);if([x1,x2,y1,y2].every(Number.isFinite)){ctx.strokeStyle='#b6c2db';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.moveTo(x2,y2);ctx.lineTo(x2,y(levels[7].price));ctx.stroke();ctx.setLineDash([]);}}for(const f of levels){const start=leftAt(f.time)??0,yy=y(f.price);if(yy==null)continue;
         ctx.strokeStyle='#ffda70';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(start,yy);ctx.lineTo(s.fibExtend?plotRight:Math.min(plotRight,start+150),yy);ctx.stroke();ctx.setLineDash([]);label(`Fib ${f.ratio} ${f.price.toFixed(2)}`,start+4,yy-3,'#ffda70');}}
-    if(s.narration&&amy.entry){const lines=(state.news?.status==='NEWS_LOCK'?state.news.note:amy.entry.text).split('\n').slice(0,7);ctx.font='11px sans-serif';const bw=Math.min(plotRight-16,300),bh=lines.length*15+12;
+    if(s.narration&&amy.entry){const lines=compactChartNarration(amy,state.news);ctx.font='11px sans-serif';const bw=Math.min(plotRight-16,300),bh=lines.length*15+12;
       ctx.fillStyle=light?'#f3f7fff0':'#07111def';ctx.fillRect(8,8,bw,bh);ctx.strokeStyle='#739bd2';ctx.strokeRect(8,8,bw,bh);ctx.fillStyle=light?'#263c60':'#e4eeff';lines.forEach((text,i)=>ctx.fillText(text,14,25+i*15,bw-12));}
     ctx.restore();
   }

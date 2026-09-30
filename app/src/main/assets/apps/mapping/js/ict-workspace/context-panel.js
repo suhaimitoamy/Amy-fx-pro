@@ -15,12 +15,16 @@ let payload=null,failed=false,request=null,generation=0,timer=null;
 const row=(label,value)=>`<div class="record"><strong>${esc(label)}</strong><p>${esc(value)}</p></div>`;
 function scenario(s,alternative=false){
   if(!s)return '<p>Menunggu struktur dan zona M15 yang tervalidasi.</p>';
-  const ceStr = s.area?.ce ? ` (50% CE: ${number(s.area.ce)})` : '';
-  return `<h3 data-side="${esc(s.side)}">${esc(s.label)}</h3><p>${esc(s.reasons?.join(' · ')||'')}</p>`+
-    `<dl><div><dt>Area M15</dt><dd>${s.area?`${number(s.area.low)}–${number(s.area.high)}${ceStr}`:'Belum ada POI'}</dd></div>`+
-    `<div><dt>Invalidasi</dt><dd>${number(s.invalidation)}</dd></div><div><dt>Likuiditas berikutnya</dt><dd>${number(s.target)}</dd></div></dl>`+
-    `<p>${esc(alternative?'Aktif setelah seluruh syarat alternatif terpenuhi.':s.waiting)}</p>`+
-    (alternative&&s.activation?`<ul>${s.activation.map(rule=>`<li>${esc(rule)}</li>`).join('')}</ul>`:'');
+  return `<h3 data-side="${esc(s.side)}">${esc(s.label)}</h3>`+
+    `<dl><div><dt>Area POI · M15</dt><dd>${s.area?`${number(s.area.low)} – ${number(s.area.high)}`:'Belum ada POI'}</dd></div>`+
+    `<div><dt>50% CE</dt><dd>${number(s.area?.ce)}</dd></div><div><dt>Invalidasi</dt><dd>${number(s.invalidation)}</dd></div><div><dt>Target likuiditas</dt><dd>${number(s.target)}</dd></div></dl>`+
+    `<details class="inline-detail"><summary>Alasan &amp; syarat rencana</summary><p>${esc(s.reasons?.join(' · ')||'Menunggu bukti.')}</p><p>${esc(alternative?'Aktif setelah seluruh syarat berikut terpenuhi.':s.waiting)}</p>`+
+    (alternative&&s.activation?`<ul>${s.activation.map(rule=>`<li>${esc(rule)}</li>`).join('')}</ul>`:'')+'</details>';
+}
+function renderScenario(element,value,alternative=false){
+  const open=Boolean(element.querySelector?.('details[open]'));
+  element.innerHTML=scenario(value,alternative);
+  if(open){const detail=element.querySelector?.('details');if(detail)detail.open=true;}
 }
 const DEFAULT_TOURNAMENT_DRIVERS = [
   { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
@@ -48,18 +52,19 @@ function renderTournament(c) {
     ? 'WAIT · NEWS LOCK' : 'BELUM DIEVALUASI';
   if (badge) {
     badge.textContent = !c ? 'MENUNGGU KONTEKS' : c.news?.status === 'NEWS_LOCK'
-      ? 'NEWS LOCK AKTIF' : '6 MODEL · EVALUASI STRATEGI BELUM TERSEDIA';
+      ? 'NEWS LOCK AKTIF' : 'Evaluasi strategi belum tersedia';
     badge.style.color = 'var(--muted)';
   }
+  const opened = new Set(Array.from(container.querySelectorAll?.('details[open]') || []).map(el=>el.dataset.driver));
   container.innerHTML = getTournamentDrivers(payload?.history).map((d, idx) => `
-    <div class="driver-item">
-      <div class="driver-header"><span class="driver-rank">#${idx+1}</span>
-        <strong class="driver-name">${esc(d.name)}</strong><span class="driver-badge">${esc(status)}</span></div>
+    <details class="driver-item" data-driver="${esc(d.id)}" ${opened.has(d.id)?'open':''}>
+      <summary class="driver-header"><span class="driver-rank">${idx+1}</span>
+        <strong class="driver-name">${esc(d.name)}</strong></summary><p class="driver-badge">${esc(status)}</p>
       <div class="driver-meta"><span>WR live: <strong>belum tersedia</strong></span>
-        <span>Arsip respons: <strong>${d.archiveWR == null ? '—' : d.archiveWR+'%'} (${d.samples} hasil TP/SL)</strong></span>
-        <span>Skor arsip respons: <strong>${d.score} pts</strong></span></div>
-      <p class="driver-desc">Model referensi: ${esc(d.desc)}. Syarat khusus model belum dievaluasi server.</p>
-    </div>`).join('');
+        <span>WR arsip: <strong>${d.archiveWR == null ? '—' : d.archiveWR+'%'} (${d.samples} hasil TP/SL)</strong></span>
+        <span>Skor arsip: <strong>${d.score} pts</strong></span></div>
+      <p class="driver-desc">${esc(d.desc)}</p>
+    </details>`).join('');
 }
 function empty(reason){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
@@ -89,7 +94,7 @@ function render(){
   const confTime=c.source?.M5||c.source?.M1;
   const confObj=c.m5||c.m1;
   $('connection').textContent='Candle server terkini';$('context-state').textContent='KONTEKS · BUKAN SINYAL';
-  $('market-state').textContent=c.marketState||'MENUNGGU';$('market-story').textContent=c.narrative||'Menunggu penjelasan server.';
+  $('market-state').textContent=(c.marketState||'MENUNGGU').replaceAll('NO_SETUP','Belum ada setup').replaceAll('BULLISH','Bullish').replaceAll('BEARISH','Bearish').replaceAll('NEUTRAL','Netral');$('market-story').textContent=c.narrative||'Menunggu penjelasan server.';
   $('context-source').textContent=`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`;
   const dr = c.m15?.dealingRange;
   const drLoc = dr?.location ? ` [${dr.location}]` : '';
@@ -106,14 +111,14 @@ function render(){
   if($('m1-confirmation'))$('m1-confirmation').textContent=confStatus;
   if($('m5-evidence'))$('m5-evidence').textContent=confEvidence;
   if($('m1-evidence'))$('m1-evidence').textContent=confEvidence;
-  $('primary-status').textContent=id(c.primary?.status||'WAITING');$('primary-scenario').innerHTML=scenario(c.primary);
-  $('alternative-scenario').innerHTML=scenario(c.alternative,true);
+  $('primary-status').textContent=id(c.primary?.status||'WAITING');renderScenario($('primary-scenario'),c.primary);
+  renderScenario($('alternative-scenario'),c.alternative,true);
   $('execution-status').textContent=id(c.execution?.status||'NOT READY');$('execution-reason').textContent=c.execution?.reason||'Menunggu bukti.';
   $('execution-checklist').innerHTML=(c.execution?.checklist||[]).map(item=>`<li>${item.ok?'✓':'○'} ${esc(item.label)}</li>`).join('');
   renderTournament(c);
   const newsEl=$('news-awareness');
   if(newsEl){
-    newsEl.textContent=c.news?.note||'Status berita berdampak tinggi belum diverifikasi.';
+    newsEl.textContent=c.news?.status==='SAFE'?'Berita: tidak ada rilis berdampak tinggi di waktu dekat.':c.news?.status==='UNVERIFIED'?'Berita belum diverifikasi · periksa kalender.':c.news?.note||'Status berita belum diverifikasi.';
     newsEl.className='muted '+(c.news?.status==='NEWS_LOCK'?'news-lock':c.news?.status==='UPCOMING'?'news-warning':c.news?.status==='SAFE'?'news-safe':'');
   }
   const drInfo = dr

@@ -202,11 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Mapping ICT/AMY: Bias M15, trigger M5, protected level dan invalidasi terkunci dari satu engine candle tertutup.
-          - Dashboard Bias V2 dan Entry Assistant: scoring BUY/SELL, penalti near invalid, narasi dan marker Strong/Ready.
-          - Visual lengkap: MSS/BOS, OB/breaker, FVG/Implied FVG, BPR, VI, liquidity, NWOG/NDOG, Fibonacci dan killzones.
-          - Key Levels: Pivot D/W/M, Midnight Open New York, PDH/PDL, BSL/SSL dan Asia High/Low; data tidak lengkap ditandai belum tersedia.
-          - Entry Assistant: Skor lawan bias ditandai jelas; invalidasi dan target diperiksa terhadap close M5 terbaru.
+          - Mapping lebih ringkas: status, area POI, 50% CE, invalidasi, target dan chart tetap mudah dilihat.
+          - Rincian bias, Entry Assistant, bukti dan enam model driver masuk menu Detail yang bisa dibuka sesuai kebutuhan.
+          - Pengaturan visual dikelompokkan dalam empat menu; narasi chart dan label berulang diringkas.
+          - Bahasa lebih sederhana; seluruh aturan trading, scoring, news lock dan 46 kontrol visual tetap dipertahankan.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber
