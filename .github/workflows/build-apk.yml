@@ -202,10 +202,10 @@ jobs:
           cat > /tmp/release-notes.md <<NOTES
           Amy FX Pro $AMYFX_VERSION_NAME
 
-          - Academy: Pembaruan data candlestick Candle Replay & Guided Practice menggunakan dataset modern XAU/USD 2025/2026 (USD 2.600+).
-          - Market Intel: Tab Kompas Fundamental Harian XAU/USD dengan Rantai Efek Domino Makro (CPI, NFP, Fed, DXY ke Emas) dan Skenario Playbook.
-          - Kalender Ekonomi: Default filter fokus ke Gold (USD High & Medium), penataan lencana pidato/non-data.
-          - Performa: Eliminasi blocking loading screen pada Market Intel, render instan dari cache lokal.
+          - Mapping: Status offline mengunci WAIT dan membersihkan konteks serta garis chart yang kedaluwarsa.
+          - Mapping: Label A+ hanya untuk bukti terkonfirmasi; target likuiditas wajib valid dan kalender harus mencakup minggu berjalan.
+          - Mapping: FVG dan konfirmasi tidak melewati candle yang hilang; invalidasi BUY/SELL dihitung sesuai arah.
+          - Driver: Status evaluasi dan statistik arsip ditampilkan sesuai bukti server, tanpa klaim trigger atau WR live yang belum tersedia.
           NOTES
           if gh release view "$AMYFX_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$AMYFX_RELEASE_TAG" AmyFX-Pro-latest.apk AmyFX-Pro-latest.apk.sha256 --repo "$GITHUB_REPOSITORY" --clobber

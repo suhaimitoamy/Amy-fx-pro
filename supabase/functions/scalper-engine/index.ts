@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {buildMarketContext,CONTEXT_VERSION} from './market-context.mjs';
+import {buildMarketContext,CONTEXT_VERSION,CONTEXT_POLICY} from './market-context.mjs';
 
 const SUPABASE_URL=String(Deno.env.get('SUPABASE_URL')||'').replace(/\/$/,'');
 const SERVICE_ROLE_KEY=String(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'');
@@ -42,7 +42,7 @@ async function fetchCalendar(): Promise<any[]> {
   try {
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),2500);
-    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{signal:controller.signal});
+    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{signal:controller.signal,cache:'no-store'});
     clearTimeout(timeout);
     if(!res.ok)return [];
     return await res.json();
@@ -59,7 +59,7 @@ async function push(){
 Deno.serve(async request=>{
   if(!['GET','POST'].includes(request.method))return json({error:'method_not_allowed'},405);
   if(!SUPABASE_URL||!SERVICE_ROLE_KEY)return json({error:'backend_not_configured'},503);
-  if(new URL(request.url).searchParams.get('health')==='1')return json({ok:true,engine:CONTEXT_VERSION,mode:'market_context',schema_version:1});
+  if(new URL(request.url).searchParams.get('health')==='1')return json({ok:true,engine:CONTEXT_VERSION,policyVersion:CONTEXT_POLICY,mode:'market_context',schema_version:1});
   const now=Math.floor(Date.now()/1000);let run:any=null;
   try {
     run=await acquireRun(now);

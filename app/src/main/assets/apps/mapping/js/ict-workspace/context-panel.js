@@ -23,198 +23,45 @@ function scenario(s,alternative=false){
     (alternative&&s.activation?`<ul>${s.activation.map(rule=>`<li>${esc(rule)}</li>`).join('')}</ul>`:'');
 }
 const DEFAULT_TOURNAMENT_DRIVERS = [
-  { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', winRate: 78.6, rr: 0.8, score: 0, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
-  { id: 'AI_ADAPTIVE_SMART_DRIVER', name: 'Adaptive Smart Driver', winRate: 68.9, rr: 1.6, score: 0, status: 'STANDBY', desc: 'Runner Trend 1.6R · Trailing Breakeven 0.8R' },
-  { id: 'SWING_CHOCH_OTE', name: 'Swing CHoCH + OTE', winRate: 77.8, rr: 0.8, score: 0, status: 'STANDBY', desc: 'Displacement 2x ATR · 75% Fib Entry Level' },
-  { id: 'MULTI_DRIVER_ENSEMBLE', name: 'Multi-Driver Ensemble', winRate: 64.6, rr: 0.8, score: 0, status: 'STANDBY', desc: 'Confluence Mesh 72.5% Fib · Min ATR 2.5' },
-  { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', winRate: 77.4, rr: 0.7, score: 0, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' },
-  { id: 'HUMAN_MTF_RAPID_SCALPER', name: 'Human MTF Rapid Scalper', winRate: 54.4, rr: 1.3, score: 0, status: 'STANDBY', desc: 'Sesi London & NY · 3–5 Setup/Hari · Cut Loss Dini -0.35R (Catatan: WR Rendah ~54%, RR Tinggi 1.3R)' }
+  { id: 'HIGH_WINRATE_SNIPER_70', name: 'High-WR Sniper (Deep OTE)', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Diskon 75%–78.6% OTE · Quick Scalp 0.8R · SL Ketat' },
+  { id: 'AI_ADAPTIVE_SMART_DRIVER', name: 'Adaptive Smart Driver', rr: 1.6, score: 0, status: 'STANDBY', desc: 'Runner Trend 1.6R · Trailing Breakeven 0.8R' },
+  { id: 'SWING_CHOCH_OTE', name: 'Swing CHoCH + OTE', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Displacement 2x ATR · 75% Fib Entry Level' },
+  { id: 'MULTI_DRIVER_ENSEMBLE', name: 'Multi-Driver Ensemble', rr: 0.8, score: 0, status: 'STANDBY', desc: 'Confluence Mesh 72.5% Fib · Min ATR 2.5' },
+  { id: 'CONSERVATIVE_SHIELD', name: 'Conservative Shield', rr: 0.7, score: 0, status: 'STANDBY', desc: 'Ultra-Filtered Swing · Low Drawdown Shield' },
+  { id: 'HUMAN_MTF_RAPID_SCALPER', name: 'Human MTF Rapid Scalper', rr: 1.3, score: 0, status: 'STANDBY', desc: 'Sesi London & NY · RR model 1.3R · Cut Loss model -0.35R' }
 ];
 function getTournamentDrivers(history = []) {
-  let drivers = DEFAULT_TOURNAMENT_DRIVERS.map(d => ({ ...d }));
-  try {
-    const raw = localStorage.getItem('amyfx.driver-tournament.v2');
-    if (raw) {
-      const saved = JSON.parse(raw);
-      if (Array.isArray(saved) && saved.length === drivers.length) {
-        drivers = saved.map((d, i) => ({ ...DEFAULT_TOURNAMENT_DRIVERS[i], ...d }));
-      }
-    }
-  } catch (_) {}
-
-  if (Array.isArray(history) && history.length > 0) {
-    const scoreMap = {};
-    for (const s of history) {
-      if (s.symbol && s.symbol !== 'XAU/USD') continue;
-      const id = String(s.driverId || s.model || s.driverName || '').toUpperCase();
-      let matchIdx = -1;
-      if (id.includes('SNIPER') || id.includes('OTE_78') || id.includes('DEEP_OTE')) matchIdx = 0;
-      else if (id.includes('ADAPTIVE') || id.includes('RUNNER')) matchIdx = 1;
-      else if (id.includes('CHOCH') || id.includes('SWING')) matchIdx = 2;
-      else if (id.includes('ENSEMBLE') || id.includes('MULTI')) matchIdx = 3;
-      else if (id.includes('SHIELD') || id.includes('CONSERVATIVE')) matchIdx = 4;
-      else if (id.includes('RAPID') || id.includes('HUMAN')) matchIdx = 5;
-
-      if (matchIdx >= 0) {
-        if (!scoreMap[matchIdx]) scoreMap[matchIdx] = 0;
-        if (s.status === 'TP_HIT') scoreMap[matchIdx] += 10;
-        else if (s.status === 'SL_HIT') scoreMap[matchIdx] -= 15;
-      }
-    }
-    for (const [idx, pts] of Object.entries(scoreMap)) {
-      if (drivers[idx]) drivers[idx].score = pts;
-    }
-    try {
-      localStorage.setItem('amyfx.driver-tournament.v2', JSON.stringify(drivers));
-    } catch (_) {}
-  }
-  return drivers;
+  const seen = new Set();
+  const rows = (Array.isArray(history) ? history : []).filter(s => s?.id && s.symbol === 'XAU/USD' &&
+    !seen.has(s.id) && seen.add(s.id));
+  return DEFAULT_TOURNAMENT_DRIVERS.map(driver => {
+    const results = rows.filter(s => (s.driverId || s.model) === driver.id && ['TP_HIT','SL_HIT'].includes(s.status));
+    const wins = results.filter(s => s.status === 'TP_HIT').length;
+    return {...driver, score:wins*10-(results.length-wins)*15,
+      archiveWR:results.length ? (wins/results.length*100).toFixed(1) : null, samples:results.length};
+  });
 }
 function renderTournament(c) {
-  const container = $('driver-tournament-list');
-  const badge = $('tournament-leader-badge');
+  const container = $('driver-tournament-list'), badge = $('tournament-leader-badge');
   if (!container) return;
-  const drivers = getTournamentDrivers(payload?.history);
-  const ready = c?.execution?.status === 'READY TO REVIEW';
-  const conflict = Boolean(c?.m15?.opposingControl);
-  const h1Health = c?.h1?.health || 'UNKNOWN';
-  const h1Bias = c?.h1?.bias || 'NEUTRAL';
-  const poi = c?.m15?.poi;
-  const confirming = c?.m5 || c?.m1;
-  const isHighVol = c?.volatility?.condition === 'HIGH VOLATILITY';
-  const isNewsLock = c?.news?.status === 'NEWS_LOCK';
-  const m15BreakTime = c?.m15?.lastBreak?.time;
-  const currentM15Time = c?.source?.M15 || Math.floor(Date.now() / 1000);
-  const isMssRecent = Boolean(m15BreakTime && (currentM15Time - m15BreakTime <= 8 * 3600));
-  const mssBreak = c?.m15?.lastBreak?.type === 'MSS' && isMssRecent;
-  const closePrice = Number(c?.price || 0);
-  const poiNear = poi && (closePrice <= 0 || Math.abs(closePrice - (poi.low + poi.high) / 2) <= (Number(c?.volatility?.atr || 2) * 2.5));
-
-  // Driver 1: High-WR Sniper 70 (Deep OTE 78.6%)
-  if (isNewsLock) {
-    drivers[0].status = 'STANDBY (NEWS LOCK)';
-  } else if (ready) {
-    drivers[0].status = 'TRIGGERED (OTE 78.6%)';
-  } else if (poi && (confirming?.sweep || confirming?.status === 'CONFIRMED')) {
-    drivers[0].status = 'OTE RETESTING';
-  } else if (poi && poiNear) {
-    drivers[0].status = 'MONITORING DEEP OTE';
-  } else {
-    drivers[0].status = 'STANDBY';
-  }
-
-  // Driver 2: AI Adaptive Smart Driver (Runner Trend 1.6R)
-  if (isNewsLock) {
-    drivers[1].status = 'STANDBY (NEWS LOCK)';
-  } else if (ready && h1Health === 'HEALTHY' && !conflict) {
-    drivers[1].status = 'RUNNER TRIGGERED (1.6R)';
-  } else if (h1Health === 'HEALTHY' && !conflict && h1Bias !== 'NEUTRAL') {
-    drivers[1].status = 'TREND ARMED (RUNNER)';
-  } else if (conflict) {
-    drivers[1].status = 'OFFLINE (CHOPPY/PULLBACK)';
-  } else {
-    drivers[1].status = 'STANDBY';
-  }
-
-  // Driver 3: Swing CHoCH + OTE (Displacement 2x ATR / Reversals)
-  if (isNewsLock) {
-    drivers[2].status = 'STANDBY (NEWS LOCK)';
-  } else if (mssBreak || conflict) {
-    if (confirming?.status === 'CONFIRMED' || ready) {
-      drivers[2].status = 'CHOCH TRIGGERED (SCALP)';
-    } else {
-      drivers[2].status = 'CHOCH DETECTED (M15)';
-    }
-  } else if (ready) {
-    drivers[2].status = 'CONFIRMED (OTE 75%)';
-  } else {
-    drivers[2].status = 'STANDBY';
-  }
-
-  // Driver 4: Multi-Driver Ensemble (Confluence Mesh 72.5% Fib)
-  if (isNewsLock) {
-    drivers[3].status = 'STANDBY (NEWS LOCK)';
-  } else if (ready && (isHighVol || confirming?.sweep)) {
-    drivers[3].status = 'CONFLUENCE TRIGGERED';
-  } else if (isHighVol) {
-    drivers[3].status = 'HIGH VOLATILITY ARMED';
-  } else if (confirming?.sweep) {
-    drivers[3].status = 'SWEEP RECLAIMED';
-  } else {
-    drivers[3].status = 'STANDBY';
-  }
-
-  // Driver 5: Conservative Shield (Low Drawdown 0.7R)
-  if (isNewsLock || conflict) {
-    drivers[4].status = 'DEFENSIVE LOCK (WAIT)';
-  } else if (ready && !conflict && h1Health === 'HEALTHY') {
-    drivers[4].status = 'SHIELD TRIGGERED (0.7R)';
-  } else if (!conflict && !isNewsLock && h1Bias !== 'NEUTRAL') {
-    drivers[4].status = 'SHIELD ARMED';
-  } else {
-    drivers[4].status = 'STANDBY';
-  }
-
-  // Driver 6: Human MTF Rapid Scalper (3–5 Setup/Hari, RR 1:1.3R, Early Cut Loss -0.35R)
-  if (isNewsLock) {
-    drivers[5].status = 'STANDBY (NEWS LOCK)';
-  } else if (h1Bias !== 'NEUTRAL') {
-    if (confirming?.status === 'CONFIRMED' || ready) {
-      drivers[5].status = 'RAPID TRIGGERED (1.3R)';
-    } else if (conflict) {
-      drivers[5].status = 'EARLY CUT WATCH (-0.35R)';
-    } else {
-      drivers[5].status = 'RAPID ARMED (3-5X/HARI)';
-    }
-  } else {
-    drivers[5].status = 'STANDBY';
-  }
-
-  const activeDrivers = drivers.filter(d => 
-    d.status.includes('TRIGGERED') || d.status.includes('ARMED') || 
-    d.status.includes('RETESTING') || d.status.includes('CONFIRMED') ||
-    d.status.includes('DETECTED') || d.status.includes('WATCH')
-  );
-
+  const status = !c ? 'WAIT · DATA BELUM SIAP' : c.news?.status === 'NEWS_LOCK'
+    ? 'WAIT · NEWS LOCK' : 'BELUM DIEVALUASI';
   if (badge) {
-    if (activeDrivers.length > 0) {
-      badge.textContent = `TURNAMEN: ${activeDrivers.length}/6 DRIVER AKTIF`;
-      badge.style.color = ready ? 'var(--buy)' : 'var(--accent)';
-    } else if (conflict) {
-      badge.textContent = 'PULLBACK / RETRACEMENT (TAHAN DIRI)';
-      badge.style.color = '#ffc53d';
-    } else if (isNewsLock) {
-      badge.textContent = 'NEWS LOCK AKTIF';
-      badge.style.color = '#ff7875';
-    } else {
-      badge.textContent = 'STANDBY: 6/6 MEMANTAU';
-      badge.style.color = 'var(--muted)';
-    }
+    badge.textContent = !c ? 'MENUNGGU KONTEKS' : c.news?.status === 'NEWS_LOCK'
+      ? 'NEWS LOCK AKTIF' : '6 MODEL · EVALUASI STRATEGI BELUM TERSEDIA';
+    badge.style.color = 'var(--muted)';
   }
-
-  container.innerHTML = drivers.map((d, idx) => {
-    const isActive = d.status.includes('TRIGGERED') || d.status.includes('ARMED') || d.status.includes('RETESTING') || d.status.includes('CONFIRMED');
-    const isScalp = d.status.includes('SCALP') || d.status.includes('CHOCH') || d.status.includes('VOLATILITY');
-    const isLock = d.status.includes('LOCK') || d.status.includes('OFFLINE');
-    const badgeClass = isActive ? 'active' : isScalp ? 'scalp' : isLock ? 'lock' : '';
-    return `
-      <div class="driver-item ${idx === 0 ? 'leader' : ''}">
-        <div class="driver-header">
-          <span class="driver-rank">#${idx + 1}</span>
-          <strong class="driver-name">${esc(d.name)}</strong>
-          <span class="driver-badge ${badgeClass}">${esc(d.status)}</span>
-        </div>
-        <div class="driver-meta">
-          <span>WR: <strong>${d.winRate}%</strong></span>
-          <span>R:R: <strong>1:${d.rr}</strong></span>
-          <span>Skor: <strong>${d.score} pts</strong></span>
-        </div>
-        <p class="driver-desc">${esc(d.desc)}</p>
-      </div>
-    `;
-  }).join('');
+  container.innerHTML = getTournamentDrivers(payload?.history).map((d, idx) => `
+    <div class="driver-item">
+      <div class="driver-header"><span class="driver-rank">#${idx+1}</span>
+        <strong class="driver-name">${esc(d.name)}</strong><span class="driver-badge">${esc(status)}</span></div>
+      <div class="driver-meta"><span>WR live: <strong>belum tersedia</strong></span>
+        <span>Arsip respons: <strong>${d.archiveWR == null ? '—' : d.archiveWR+'%'} (${d.samples} hasil TP/SL)</strong></span>
+        <span>Skor arsip respons: <strong>${d.score} pts</strong></span></div>
+      <p class="driver-desc">Model referensi: ${esc(d.desc)}. Syarat khusus model belum dievaluasi server.</p>
+    </div>`).join('');
 }
-function empty(reason, clearStorage = true){
+function empty(reason){
   $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
   $('market-state').textContent='KONTEKS BELUM TERSEDIA';$('market-story').textContent=reason;
   $('context-source').textContent='Candle lama tidak menjadi dasar keputusan baru.';
@@ -227,7 +74,7 @@ function empty(reason, clearStorage = true){
   $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
   $('gold-condition').textContent='Menunggu data volatilitas.';$('news-awareness').textContent='Periksa berita berdampak tinggi secara manual.';
   renderTournament(null);
-  if (clearStorage) {
+  {
     try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
     window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
   }
@@ -235,17 +82,7 @@ function empty(reason, clearStorage = true){
 function render(){
   const c=failed?null:currentContext(payload);
   if(!c){
-    if (failed) {
-      try {
-        const cached = JSON.parse(localStorage.getItem('amyfx.market-context.v1') || 'null');
-        if (cached) {
-          $('connection').textContent = 'Koneksi terputus · cache lokal';
-          $('context-state').textContent = 'OFFLINE · DATA CACHE';
-          return;
-        }
-      } catch (_) {}
-    }
-    empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.', !failed);
+    empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');
     return;
   }
   const tf=c.source?.M5?'M5':'M1';
@@ -261,7 +98,8 @@ function render(){
   $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label}${c.m15.poi.ce?` (CE: ${number(c.m15.poi.ce)})`:''} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
   $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';
   $('m15-control').textContent=id(c.m15?.control||'BALANCED');
-  $('m15-risk').textContent=c.m15?.opposingControl?`⚠️ PULLBACK${drLoc}: Koreksi lawan arah H1 · Tahan diri, jangan pernah melawan trend`:`🟢 Grade A+${drLoc}: Setup searah H1${confScore}`;
+  const aPlus = c.execution?.aPlusReady === true && c.execution?.status === 'READY TO REVIEW' && c.confluence?.score >= 75;
+  $('m15-risk').textContent=c.m15?.opposingControl?`⚠️ PULLBACK${drLoc}: Koreksi lawan arah H1 · Tahan diri, jangan pernah melawan trend`:aPlus?`🟢 Grade A+${drLoc}: Bukti lengkap${confScore}`:`SEARAH${drLoc} · BELUM A+${confScore}`;
   const confStatus=id(confObj?.status||'WAITING');
   const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep di area M15.';
   if($('m5-confirmation'))$('m5-confirmation').textContent=confStatus;
@@ -314,15 +152,9 @@ async function refresh(){
 }
 window.addEventListener('amyfx:refresh-context',refresh);
 window.addEventListener('online',refresh);
-window.addEventListener('offline',()=>{failed=true;render();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else refresh();});
+window.addEventListener('offline',()=>{generation++;request?.abort();clearTimeout(timer);failed=true;render();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else {render();refresh();}});
 window.addEventListener('pagehide',()=>{generation++;request?.abort();clearTimeout(timer);});
 window.addEventListener('pageshow',event=>{if(event.persisted)refresh();});
 
-try {
-  const cachedInitial = JSON.parse(localStorage.getItem('amyfx.market-context.v1') || 'null');
-  if (cachedInitial) {
-    payload = { ok: true, mode: 'market_context', engine: { status: 'COMPLETED', completed_at: new Date().toISOString(), result: { engine: 'amyfx-gold-context-v1' } }, context: cachedInitial };
-  }
-} catch (_) {}
 render();refresh();

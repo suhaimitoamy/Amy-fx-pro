@@ -1,5 +1,9 @@
 # Bug History
 
+## 2026-09-30 — Pro374 Mapping audit fixes
+
+Fixed seven Mapping audit findings: offline/cache authority, unsupported driver triggers/WR, false A+ badge, gap-spanning FVG/confirmation, stale calendar SAFE, shared opposite-side invalidation, and fabricated notification TP. Added executable DOM/engine regressions; also prevent cached startup heartbeat invention and give NEWS_LOCK narration priority.
+
 ## 2026-09-24 — Pro362 Kalender Ekonomi Kosong Akibat Blokir CORS di Android WebView
 
 - **Symptoms**: Tab Kalender Ekonomi pada Market Intel menampilkan pesan kosong:

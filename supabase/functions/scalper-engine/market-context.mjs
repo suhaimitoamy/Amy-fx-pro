@@ -2,24 +2,30 @@
 // Every threshold below is a configurable model heuristic aligned with ICT displacement,
 // dealing range, and multi-layer confluence scoring.
 export const CONTEXT_VERSION = 'amyfx-gold-context-v1';
+export const CONTEXT_POLICY = 'mapping-audit-pro374';
 const PIVOT = 2;
 const round = value => Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
 const latest = rows => rows.at(-1);
 
-export function closedCandles(rows, nowSeconds) {
+export function closedCandles(rows, nowSeconds, duration=null) {
   const byTime = new Map();
   for (const raw of rows || []) {
     const c = {open_time:Number(raw.open_time),close_time:Number(raw.close_time),open:Number(raw.open),high:Number(raw.high),low:Number(raw.low),close:Number(raw.close)};
     if (raw.is_closed === false || !Object.values(c).every(Number.isFinite) || c.open_time <= 0 ||
-        c.close_time <= c.open_time || c.close_time > nowSeconds || c.low <= 0 ||
+        c.close_time <= c.open_time || (duration && c.close_time-c.open_time !== duration) || c.close_time > nowSeconds || c.low <= 0 ||
         c.low > Math.min(c.open,c.close) || c.high < Math.max(c.open,c.close)) continue;
     byTime.set(c.open_time,c);
   }
   return [...byTime.values()].sort((a,b)=>a.open_time-b.open_time);
 }
 
+function contiguous(rows) {
+  return rows.every((c,i) => c.close_time-c.open_time === rows[0].close_time-rows[0].open_time &&
+    (!i || c.open_time === rows[i-1].close_time));
+}
+
 export function atr(candles, end=candles.length, period=14) {
-  if (end < period+1) return null;
+  if (end < period+1 || !contiguous(candles.slice(end-period-1,end))) return null;
   let total=0;
   for(let i=end-period;i<end;i++) {
     const c=candles[i], previous=candles[i-1];
@@ -32,6 +38,7 @@ export function swings(candles, width=PIVOT) {
   const highs=[],lows=[];
   for(let i=width;i<candles.length-width;i++) {
     const c=candles[i], window=candles.slice(i-width,i+width+1);
+    if (!contiguous(window)) continue;
     if(window.every((x,j)=>j===width||c.high>x.high)) highs.push({level:c.high,time:c.open_time,confirmedAt:candles[i+width].close_time,index:i});
     if(window.every((x,j)=>j===width||c.low<x.low)) lows.push({level:c.low,time:c.open_time,confirmedAt:candles[i+width].close_time,index:i});
   }
@@ -135,6 +142,7 @@ export function zones(candles, points=swings(candles)) {
   const output=[];const start=Math.max(2,candles.length-120);
   for(let i=start;i<candles.length;i++) {
     const a=candles[i-2],b=candles[i-1],c=candles[i];
+    if (!contiguous([a,b,c])) continue;
     const curAtr=atr(candles,i)||1.0;
     // Minimum thickness rule: Celah < 0.8 point ($8 pips emas) otomatis ditolak (mencegah POI 0.1-0.3 pips)
     const minThickness=Math.max(0.8, curAtr*0.15);
@@ -217,7 +225,11 @@ export function liquidity(m15,d1,points=swings(m15),nowSeconds=Math.floor(Date.n
 
 export function confirmation(candles,zone,side) {
   if(!zone||!side||candles.length<18) return {status:'WAITING',sweep:null,mss:null,microFvg:null};
-  const recent=candles.slice(-45).filter(c=>c.close_time>=zone.formedAt);
+  let recent=candles.slice(-45).filter(c=>c.close_time>=zone.formedAt);
+  // A missing bar cannot supply a sweep, MSS, or FVG for later evidence.
+  let lastGap=0;
+  for(let i=1;i<recent.length;i++) if(!contiguous(recent.slice(i-1,i+1))) lastGap=i;
+  recent=recent.slice(lastGap);
   let touch=-1,sweep=null,mss=null,microFvg=null;
   for(let i=6;i<recent.length;i++) {
     const c=recent[i],prior=recent.slice(i-6,i);
@@ -255,6 +267,14 @@ function goldSession(nowSeconds){
   return hour>=2&&hour<5?'LONDON':hour>=7&&hour<11?'NEW YORK':'DI LUAR JAM INTI';
 }
 
+function calendarWeek(time) {
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'})
+    .formatToParts(new Date(time*1000));
+  const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));
+  const day=Date.UTC(Number(p.year),Number(p.month)-1,Number(p.day));
+  return day-new Date(day).getUTCDay()*86400000;
+}
+
 export function evaluateEconomicCalendar(calendar, nowSeconds) {
   if (!Array.isArray(calendar) || calendar.length === 0) {
     return {
@@ -266,9 +286,18 @@ export function evaluateEconomicCalendar(calendar, nowSeconds) {
     };
   }
 
+  const week=calendarWeek(nowSeconds);
+  if (!calendar.some(item => {
+    const time=Date.parse(item?.date)/1000;
+    return Number.isFinite(time) && calendarWeek(time) === week;
+  })) {
+    return {status:'UNVERIFIED',impact:'UNKNOWN',event:null,diffMinutes:null,
+      note:'Kalender tidak mencakup minggu berjalan; periksa berita sebelum eksekusi.'};
+  }
+
   const usdEvents = [];
   for (const item of calendar) {
-    if (String(item.country).toUpperCase() !== 'USD') continue;
+    if (String(item?.country).toUpperCase() !== 'USD') continue;
     const impact = String(item.impact || '').toLowerCase();
     if (impact !== 'high' && impact !== 'medium') continue;
 
@@ -396,11 +425,11 @@ export function calculateConfluenceScore({
     breakdown.liquiditySweep = 0;
   }
 
-  // Layer 3: POI Alignment & Rejection (20 pts: 15 base + 5 rejection)
+  // Layer 3: POI Alignment & Rejection (15 pts: 10 base + 5 rejection)
   if (poi) {
     if (nearPoi) {
-      score += 15;
-      breakdown.poiAlignment = 15;
+      score += 10;
+      breakdown.poiAlignment = 10;
     } else {
       score += 8;
       breakdown.poiAlignment = 8;
@@ -432,13 +461,13 @@ export function calculateConfluenceScore({
     breakdown.dealingRange = 0;
   }
 
-  // Layer 6: LTF Displacement (15 pts)
+  // Layer 6: LTF Displacement (10 pts)
   if (confirming?.microFvg) {
-    score += 15;
-    breakdown.displacement = 15;
-  } else if (confirming?.status === 'CONFIRMED') {
     score += 10;
     breakdown.displacement = 10;
+  } else if (confirming?.status === 'CONFIRMED') {
+    score += 5;
+    breakdown.displacement = 5;
   } else {
     breakdown.displacement = 0;
   }
@@ -470,11 +499,19 @@ export function calculateConfluenceScore({
   return { score, grade, breakdown };
 }
 
+export function aPlusEligible({ready,confluence,dr,target,side,price,news}) {
+  return Boolean(ready && confluence?.score>=75 && dr?.locationStatus===1 &&
+    ['SAFE','UPCOMING','MEDIUM_ALERT'].includes(news?.status) &&
+    ['BUY','SELL'].includes(side) && Number.isFinite(price) && Number.isFinite(target?.level) &&
+    target.level>0 && target.status==='ACTIVE' && target.side===side &&
+    (side==='BUY'?target.level>price:target.level<price));
+}
+
 export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000),calendar=[]}={}) {
   const isM5=Array.isArray(m5)&&m5.length>0;
   const confCandles=isM5?m5:m1;
   const tfName=isM5?'M5':'M1';
-  const H=closedCandles(h1,nowSeconds),M=closedCandles(m15,nowSeconds),C=closedCandles(confCandles,nowSeconds),D=closedCandles(d1,nowSeconds);
+  const H=closedCandles(h1,nowSeconds,3600),M=closedCandles(m15,nowSeconds,900),C=closedCandles(confCandles,nowSeconds,isM5?300:60),D=closedCandles(d1,nowSeconds);
   const closedM1=isM5&&m1&&m1.length?closedCandles(m1,nowSeconds):null;
   const source={H1:latest(H)?.close_time||null,M15:latest(M)?.close_time||null,
     M5:isM5?(latest(C)?.close_time||null):null,
@@ -489,7 +526,7 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     nowSeconds-confTime>=0&&nowSeconds-confTime<=maxConfAge;
   const session=goldSession(nowSeconds);
   const newsContext=evaluateEconomicCalendar(calendar,nowSeconds);
-  const base={version:CONTEXT_VERSION,symbol:'XAU/USD',generatedAt:new Date(nowSeconds*1000).toISOString(),source,fresh:Boolean(fresh),
+  const base={version:CONTEXT_VERSION,policyVersion:CONTEXT_POLICY,symbol:'XAU/USD',generatedAt:new Date(nowSeconds*1000).toISOString(),source,fresh:Boolean(fresh),
     session,
     news:newsContext};
   if(!fresh) return {...base,h1:{bias:'NEUTRAL',health:'WEAKENING'},m15:{control:'BALANCED',poi:null},
@@ -532,10 +569,16 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     session
   });
 
-  const defaultInvalidation = side === 'BUY' ? (h.protectedLevel || m.protectedLevel || m.swingLow) : (h.protectedLevel || m.protectedLevel || m.swingHigh);
+  const fallbackInvalidation = s => {
+    const matchingH1=h.bias===(s==='BUY'?'BULLISH':'BEARISH');
+    const candidates=s==='BUY'?[matchingH1?h.protectedLevel:null,h.swingLow,m.swingLow]:
+      [matchingH1?h.protectedLevel:null,h.swingHigh,m.swingHigh];
+    return candidates.find(level=>Number.isFinite(level)&&level>0&&(s==='BUY'?level<close:level>close)) ?? null;
+  };
+  const defaultInvalidation = side ? fallbackInvalidation(side) : null;
   const scenario=(s,z,t,isAlternative=false)=>{
     if (!s) return null;
-    const inv = z ? (s==='BUY'?z.low:z.high) : (defaultInvalidation || null);
+    const inv = z ? (s==='BUY'?z.low:z.high) : fallbackInvalidation(s);
     return {side:s,label:s==='BUY'?'BELI GOLD':'JUAL GOLD',area:z?{low:z.low,high:z.high,ce:z.ce}:null,
       poiType:z?.kind||null,poiStatus:z?.lifecycle||null,target:t?.level||null,invalidation:inv,
       reasons:[isAlternative?'Dapat dipertimbangkan hanya setelah skenario utama batal':`Bias H1 ${h.bias==='BULLISH'?'naik':h.bias==='BEARISH'?'turun':'netral'}${h.health==='INVALIDATED'?' (batal)':''}`,
@@ -548,16 +591,22 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
     {label:'POI M15 valid dan dekat harga',ok:Boolean(poi&&near)},
     {label:`Likuiditas ${tfName} disapu dan direbut kembali`,ok:Boolean(confirming.sweep)},
     {label:`${tfName} MSS, displacement, dan micro FVG`,ok:confirming.status==='CONFIRMED'},
-    {label:'Batas invalidasi tersedia',ok:Boolean(poi||defaultInvalidation)}];
+    {label:'Batas invalidasi tersedia',ok:Boolean(poi||defaultInvalidation)},
+    {label:'Target likuiditas aktif searah tersedia',ok:Boolean(target)},
+    {label:'Kalender minggu berjalan terverifikasi',ok:newsContext.status!=='UNVERIFIED'}];
   const ready=checklist.every(x=>x.ok);
   const isNewsLock=newsContext.status==='NEWS_LOCK';
+  const isAplusReady = aPlusEligible({ready,confluence,dr,target,side,price:close,news:newsContext});
   const direction=h.health==='INVALIDATED'?'Batal':h.bias==='BULLISH'?'Naik':h.bias==='BEARISH'?'Turun':'Netral';
   const controlling=control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang';
 
   // Natural contextual narration & accurate market state
   let state;
   let narrativeText;
-  if (h.health === 'INVALIDATED') {
+  if (isNewsLock) {
+    state = 'NEWS LOCK · TUNDA EKSEKUSI';
+    narrativeText = newsContext.note;
+  } else if (h.health === 'INVALIDATED') {
     state = 'STRUKTUR BATAL';
     narrativeText = `⚠️ Setup Batal: Struktur ${direction} jebol. Konfirmasi ${tfName} dibatalkan. Jangan entry, tunggu pembentukan struktur baru.`;
   } else if (!aligned && h.bias !== 'NEUTRAL') {
@@ -568,7 +617,7 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
       state = 'BEARISH PULLBACK (Koreksi Premium)';
       narrativeText = `📊 BEARISH PULLBACK: H1 turun, M15 sedang koreksi menuju zona premium. Konfirmasi ${tfName} ${confirming.status === 'CONFIRMED' ? 'terpenuhi' : 'masih ditunggu'}. Tahan diri, jangan pernah BUY!`;
     }
-  } else if (ready && confluence.score >= 75) {
+  } else if (isAplusReady) {
     state = 'KONFIRMASI SEARAH (A+)';
     narrativeText = `🔥 Rejection kuat di ${poi?.label||'area M15'}. Konfirmasi ${tfName} ${side} lengkap (Sweep + MSS + Displacement). Skor Konfluensi: ${confluence.score}/100 (${confluence.grade}).`;
   } else if (poi && near) {
@@ -581,11 +630,11 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
       `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${isNewsLock?'⛔ News Lock aktif; tunda eksekusi hingga pasar stabil.':ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
   }
 
-  const status=isNewsLock?'NOT READY':(ready?'READY TO REVIEW':'NOT READY');
+  const status=isAplusReady?'READY TO REVIEW':'NOT READY';
   const reason=isNewsLock?`⛔ News Lock Aktif: Rilis ${newsContext.event} ${newsContext.diffMinutes<=0?'sedang rilis / baru saja rilis':`dalam ${newsContext.diffMinutes} menit`}. Hindari entry untuk mencegah slippage & spread melebar.`:
-    (ready?`Semua bukti candle terpenuhi (Skor Konfluensi: ${confluence.score}/100 - ${confluence.grade}). Tinjau spread dan kalender berita secara manual.`:
+    (isAplusReady?`Semua bukti candle terpenuhi (Skor Konfluensi: ${confluence.score}/100 - ${confluence.grade}). Tinjau spread dan kalender berita secara manual.`:
     h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()}, M15 sedang pullback korektif. Tahan diri dan tunggu pembentukan setup di zona diskon/premium.`:
-    `Menunggu: ${checklist.find(x=>!x.ok)?.label||'bukti tambahan'}.`);
+    `Menunggu: ${checklist.find(x=>!x.ok)?.label||(dr.locationStatus!==1?'lokasi discount/premium yang sesuai':'skor konfluensi minimal 75')}.`);
 
   // Sniper Notification Policy:
   // HAPUS total notifikasi CONFLICT ("Scalp Kilat") dan APPROACH ("Intip Area").
@@ -593,7 +642,6 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   // 1. isNewsLock (Safety lock)
   // 2. ATAU Peluru Utama A+ (ready && confluence.score >= 75 && dr.locationStatus === 1)
   // Selain 2 kondisi di atas, event WAJIB NULL (server diam!).
-  const isAplusReady = ready && confluence.score >= 75 && dr.locationStatus === 1;
   let event = null;
   if (isNewsLock) {
     event = {
@@ -602,7 +650,7 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
       body: `Rilis ${newsContext.event||'berita'} ${newsContext.diffMinutes<=0?'sedang berlangsung':'sebentar lagi'}. Jangan dipaksa masuk, pantau dulu dari pinggir.`
     };
   } else if (isAplusReady) {
-    const targetLevel = target ? Number(target.level).toFixed(2) : (poi ? (side === 'BUY' ? (poi.high + 2).toFixed(2) : (poi.low - 2).toFixed(2)) : 'target terdekat');
+    const targetLevel = Number(target.level).toFixed(2);
     const entryLevel = poi ? `${poi.low.toFixed(2)}–${poi.high.toFixed(2)}` : 'area M15';
     event = {
       key: [CONTEXT_VERSION, 'A_PLUS_READY', side, h.bias, m.bias, m.lastBreak?.time||0, poi?.id||'none', confluence.score].join(':'),
@@ -622,5 +670,5 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
       opposingControl:Boolean(h.bias!=='NEUTRAL'&&!aligned),dealingRange:dr},m5:confirming,m1:confirming,liquidity:levels,
     volatility:{condition:highVolatility?'HIGH VOLATILITY':'NORMAL',atr:round(vol)},confluence,marketState:state,
     primary:scenario(side,poi,target),alternative,
-    execution:{status,checklist,reason},narrative:narrativeText,event};
+    execution:{status,checklist,reason,aPlusReady:isAplusReady},narrative:narrativeText,event};
 }

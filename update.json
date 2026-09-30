@@ -1,9 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.373/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Driver #6 Human MTF Rapid Scalper: Mengintegrasikan driver ke-6 hasil riset Backtrader (Sesi London & NY, 3–5 setup/hari, RR 1:1.3R, Early Cut Loss -0.35R, Win Rate ~54%).",
-    "Reset Skor Poin Turnamen: Seluruh skor poin ke-6 driver di-reset dari 0 pts untuk memulai babak kompetisi baru secara adil.",
-    "Aktivasi Mandiri 6 Driver: Memastikan seluruh 6 driver turnamen menyala dan aktif secara mandiri tanpa ada yang terkunci di mode Standby."
+    "Mapping: Status offline mengunci WAIT dan membersihkan konteks serta garis chart yang kedaluwarsa.",
+    "Mapping: Label A+ hanya untuk bukti terkonfirmasi; target likuiditas wajib valid dan kalender harus mencakup minggu berjalan.",
+    "Mapping: FVG dan konfirmasi tidak melewati candle yang hilang; invalidasi BUY/SELL dihitung sesuai arah.",
+    "Driver: Status evaluasi dan statistik arsip ditampilkan sesuai bukti server, tanpa klaim trigger atau WR live yang belum tersedia."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.373/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
-    "Driver #6 Human MTF Rapid Scalper: Mengintegrasikan driver ke-6 hasil riset Backtrader (Sesi London & NY, 3–5 setup/hari, RR 1:1.3R, Early Cut Loss -0.35R, Win Rate ~54%).",
-    "Reset Skor Poin Turnamen: Seluruh skor poin ke-6 driver di-reset dari 0 pts untuk memulai babak kompetisi baru secara adil.",
-    "Aktivasi Mandiri 6 Driver: Memastikan seluruh 6 driver turnamen menyala dan aktif secara mandiri tanpa ada yang terkunci di mode Standby."
+    "Mapping: Status offline mengunci WAIT dan membersihkan konteks serta garis chart yang kedaluwarsa.",
+    "Mapping: Label A+ hanya untuk bukti terkonfirmasi; target likuiditas wajib valid dan kalender harus mencakup minggu berjalan.",
+    "Mapping: FVG dan konfirmasi tidak melewati candle yang hilang; invalidasi BUY/SELL dihitung sesuai arah.",
+    "Driver: Status evaluasi dan statistik arsip ditampilkan sesuai bukti server, tanpa klaim trigger atau WR live yang belum tersedia."
   ],
   "sha256": "699ad8e653475e2c49d082f664bd65a1ba1d912c07f9128d276b0a4ce509e1c9",
   "version": "2.0.0-pro.373",

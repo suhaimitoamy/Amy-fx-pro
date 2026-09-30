@@ -1,5 +1,9 @@
 # Technical Decisions
 
+## 2026-09-30 — Pro374 Mapping audit fixes
+
+Pro374 keeps the six driver cards as reference models: only exact-ID TP/SL archive rows produce response-window statistics; general market context never claims individual strategy triggers. A+ requires explicit server eligibility, directional active liquidity, verified current-week calendar and favorable dealing-range location. No fallback TP is fabricated. Existing engine contract v1 remains compatible and exposes policyVersion mapping-audit-pro374.
+
 ## 2026-09-27 — Pro369 Top 1-5 Parallel Activation & Multi-Pair Research Roadmap (On-Hold)
 
 - **Context & Bug Fix**:

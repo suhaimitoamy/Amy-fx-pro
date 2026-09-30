@@ -1,5 +1,10 @@
 # TODO Memory
 
+## 2026-09-30 — Pro374 Mapping audit fixes
+
+- [ ] Verify Pro374 signed Actions release, APK checksum and activation of update.json.
+- [ ] Physical device: confirm update popup, offline WAIT/cleared overlays, six model cards and eligible A+ presentation. Real independent evaluation of the six research models remains unavailable; UI reports this explicitly.
+
 ## 2026-09-24 — Pro361 Release & Verification Checklist
 
 - [x] **Pro361 Released**:
