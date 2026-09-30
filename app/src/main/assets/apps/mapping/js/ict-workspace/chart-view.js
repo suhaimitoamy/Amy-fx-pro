@@ -16,10 +16,13 @@ export function createPriceChart(element) {
       const next=result.tf+JSON.stringify(result.candles);
       if(next!==key){const initial=!key;series.setData(result.candles);key=result.candles.length?next:'';if(initial&&result.candles.length)chart.timeScale().fitContent();}
       lines.forEach(line=>series.removePriceLine(line));lines=[];
-      const markers=plan?.area?[['area.low','AREA BAWAH','#8bb9ff'],['area.high','AREA ATAS','#8bb9ff'],['invalidation','INVALIDASI','#ff8f9b'],['target','LIKUIDITAS','#65d5b1']]:[['entry','ENTRY','#8bb9ff'],['sl','SL','#ff8f9b'],['tp1','TP1','#65d5b1'],['tp','TARGET','#65d5b1']];
+      const markers=plan?.area?[['area.low','AREA BAWAH','#8bb9ff'],['area.high','AREA ATAS','#8bb9ff'],['area.ce','50% CE','#ffd166'],['invalidation','INVALIDASI','#ff8f9b'],['target','LIKUIDITAS','#65d5b1']]:[['entry','ENTRY','#8bb9ff'],['sl','SL','#ff8f9b'],['tp1','TP1','#65d5b1'],['tp','TARGET','#65d5b1']];
       if(plan)for(const [field,title,color] of markers){
-        const value=field==='area.low'?plan.area.low:field==='area.high'?plan.area.high:plan[field];
-        if(Number.isFinite(value))lines.push(series.createPriceLine({price:value,title,color,lineWidth:1,axisLabelVisible:true}));
+        const value=field==='area.low'?plan.area.low:field==='area.high'?plan.area.high:field==='area.ce'?plan.area?.ce:plan[field];
+        if(Number.isFinite(value)){
+          const lineStyle=field==='area.ce'?2:0;
+          lines.push(series.createPriceLine({price:value,title,color,lineWidth:1,lineStyle,axisLabelVisible:true}));
+        }
       }
     },
     reset(){key='';},

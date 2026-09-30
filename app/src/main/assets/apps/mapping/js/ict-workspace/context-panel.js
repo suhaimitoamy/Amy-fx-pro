@@ -15,8 +15,9 @@ let payload=null,failed=false,request=null,generation=0,timer=null;
 const row=(label,value)=>`<div class="record"><strong>${esc(label)}</strong><p>${esc(value)}</p></div>`;
 function scenario(s,alternative=false){
   if(!s)return '<p>Menunggu struktur dan zona M15 yang tervalidasi.</p>';
+  const ceStr = s.area?.ce ? ` (50% CE: ${number(s.area.ce)})` : '';
   return `<h3 data-side="${esc(s.side)}">${esc(s.label)}</h3><p>${esc(s.reasons?.join(' · ')||'')}</p>`+
-    `<dl><div><dt>Area M15</dt><dd>${s.area?`${number(s.area.low)}–${number(s.area.high)}`:'Belum ada POI'}</dd></div>`+
+    `<dl><div><dt>Area M15</dt><dd>${s.area?`${number(s.area.low)}–${number(s.area.high)}${ceStr}`:'Belum ada POI'}</dd></div>`+
     `<div><dt>Invalidasi</dt><dd>${number(s.invalidation)}</dd></div><div><dt>Likuiditas berikutnya</dt><dd>${number(s.target)}</dd></div></dl>`+
     `<p>${esc(alternative?'Aktif setelah seluruh syarat alternatif terpenuhi.':s.waiting)}</p>`+
     (alternative&&s.activation?`<ul>${s.activation.map(rule=>`<li>${esc(rule)}</li>`).join('')}</ul>`:'');
@@ -180,8 +181,8 @@ function renderTournament(c) {
       badge.textContent = `TURNAMEN: ${activeDrivers.length}/6 DRIVER AKTIF`;
       badge.style.color = ready ? 'var(--buy)' : 'var(--accent)';
     } else if (conflict) {
-      badge.textContent = 'SCALP KILAT (KONTRA-TREN)';
-      badge.style.color = 'var(--sell)';
+      badge.textContent = 'PULLBACK / RETRACEMENT (TAHAN DIRI)';
+      badge.style.color = '#ffc53d';
     } else if (isNewsLock) {
       badge.textContent = 'NEWS LOCK AKTIF';
       badge.style.color = '#ff7875';
@@ -253,11 +254,14 @@ function render(){
   $('connection').textContent='Candle server terkini';$('context-state').textContent='KONTEKS · BUKAN SINYAL';
   $('market-state').textContent=c.marketState||'MENUNGGU';$('market-story').textContent=c.narrative||'Menunggu penjelasan server.';
   $('context-source').textContent=`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`;
+  const dr = c.m15?.dealingRange;
+  const drLoc = dr?.location ? ` [${dr.location}]` : '';
+  const confScore = c.confluence ? ` · Skor: ${c.confluence.score}/100 (${c.confluence.grade})` : '';
   $('h1-bias').textContent=id(c.h1?.bias||'NEUTRAL');$('h1-health').textContent=`Kesehatan: ${id(c.h1?.health)}`;
-  $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
+  $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label}${c.m15.poi.ce?` (CE: ${number(c.m15.poi.ce)})`:''} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
   $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';
   $('m15-control').textContent=id(c.m15?.control||'BALANCED');
-  $('m15-risk').textContent=c.m15?.opposingControl?'⚡ Scalp Kilat: Pantulan cepat lawan H1 · TP tipis & amankan segera':'🟢 Grade A+: Pantau struktur searah H1 · Setup mantap & santai';
+  $('m15-risk').textContent=c.m15?.opposingControl?`⚠️ PULLBACK${drLoc}: Koreksi lawan arah H1 · Tahan diri, jangan pernah melawan trend`:`🟢 Grade A+${drLoc}: Setup searah H1${confScore}`;
   const confStatus=id(confObj?.status||'WAITING');
   const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep di area M15.';
   if($('m5-confirmation'))$('m5-confirmation').textContent=confStatus;
@@ -274,9 +278,17 @@ function render(){
     newsEl.textContent=c.news?.note||'Status berita berdampak tinggi belum diverifikasi.';
     newsEl.className='muted '+(c.news?.status==='NEWS_LOCK'?'news-lock':c.news?.status==='UPCOMING'?'news-warning':c.news?.status==='SAFE'?'news-safe':'');
   }
+  const drInfo = dr
+    ? `${dr.location} (EQ: ${number(dr.eq)}, Range: ${number(dr.rangeLow)}–${number(dr.rangeHigh)})`
+    : '—';
+  const confScoreInfo = c.confluence
+    ? `${c.confluence.score}/100 (${c.confluence.grade})`
+    : '—';
   $('evidence').innerHTML=row('H1 · HH/HL/LH/LL',`${c.h1?.highPattern||'—'} / ${c.h1?.lowPattern||'—'} · ${c.h1?.lastBreak?.type||'belum ada break'} di ${number(c.h1?.lastBreak?.level)}`)+
     row('M15 · struktur',`${c.m15?.structure||'NEUTRAL'} · ${c.m15?.lastBreak?.type||'belum ada break'} di ${number(c.m15?.lastBreak?.level)}`)+
-    row('POI · siklus',c.m15?.poi?`${c.m15.poi.label} ${number(c.m15.poi.low)}–${number(c.m15.poi.high)} · ${c.m15.poi.lifecycle}`:'Tidak ada zona valid')+
+    row('Dealing Range (EQ)', drInfo)+
+    row('Skor Konfluensi (0–100)', confScoreInfo)+
+    row('POI · siklus',c.m15?.poi?`${c.m15.poi.label} ${number(c.m15.poi.low)}–${number(c.m15.poi.high)}${c.m15.poi.ce?` (50% CE: ${number(c.m15.poi.ce)})`:''} · ${c.m15.poi.lifecycle}`:'Tidak ada zona valid')+
     row(`${tf} · bukti`,`${confObj?.status||'WAITING'} · sweep ${number(confObj?.sweep?.level)} · MSS ${number(confObj?.mss?.level)} · micro FVG ${confObj?.microFvg?`${number(confObj.microFvg.low)}–${number(confObj.microFvg.high)}`:'—'}`);
   $('liquidity').innerHTML=(c.liquidity||[]).map(item=>row(`${item.label} · ${item.status}`,number(item.level))).join('')||'<p>Belum ada level eksternal/internal yang tervalidasi.</p>';
   $('gold-condition').innerHTML=row('Volatilitas',`${id(c.volatility?.condition||'UNKNOWN')} · ATR M15 ${number(c.volatility?.atr)}`)+row('Sesi',c.session||'Belum tersedia')+row('Berita berdampak tinggi',c.news?.note||'Belum diverifikasi');

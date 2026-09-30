@@ -1,5 +1,6 @@
-// Closed-candle XAU/USD context. Every threshold below is a configurable model
-// heuristic, not an ICT rule, a prediction, or an order recommendation.
+// Closed-candle XAU/USD context. Built strictly according to ICT Concepts [amygmgo]
+// Every threshold below is a configurable model heuristic aligned with ICT displacement,
+// dealing range, and multi-layer confluence scoring.
 export const CONTEXT_VERSION = 'amyfx-gold-context-v1';
 const PIVOT = 2;
 const round = value => Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
@@ -66,12 +67,101 @@ export function structure(candles, points=swings(candles)) {
     highPattern:h&&h0?(h.level>h0.level?'HH':'LH'):null,lowPattern:l&&l0?(l.level>l0.level?'HL':'LL'):null};
 }
 
+export function dealingRange(candles, struct, points, side=null) {
+  if (!candles || candles.length < 2) {
+    return {
+      rangeHigh: null,
+      rangeLow: null,
+      eq: null,
+      eqLow: null,
+      eqHigh: null,
+      priceZone: 0,
+      location: 'EQUILIBRIUM',
+      locationStatus: 0,
+      span: null
+    };
+  }
+  const recent = candles.slice(-50);
+  const highest = Math.max(...recent.map(c => c.high));
+  const lowest = Math.min(...recent.map(c => c.low));
+
+  const rangeHigh = struct?.bias === 'BEARISH' && struct?.protectedLevel ? Math.max(struct.protectedLevel, highest) : (struct?.swingHigh || highest);
+  const rangeLow = struct?.bias === 'BULLISH' && struct?.protectedLevel ? Math.min(struct.protectedLevel, lowest) : (struct?.swingLow || lowest);
+  const span = rangeHigh - rangeLow;
+
+  if (span <= 0) {
+    return {
+      rangeHigh: round(rangeHigh),
+      rangeLow: round(rangeLow),
+      eq: round(rangeHigh),
+      eqLow: round(rangeHigh),
+      eqHigh: round(rangeHigh),
+      priceZone: 0,
+      location: 'EQUILIBRIUM',
+      locationStatus: 0,
+      span: 0
+    };
+  }
+
+  const eq = (rangeHigh + rangeLow) * 0.50;
+  const eqLow = rangeLow + span * 0.48;
+  const eqHigh = rangeLow + span * 0.52;
+  const close = candles.at(-1).close;
+
+  const priceZone = close > eqHigh ? 1 : close < eqLow ? -1 : 0;
+  const location = priceZone === 1 ? 'PREMIUM' : priceZone === -1 ? 'DISCOUNT' : 'EQUILIBRIUM';
+
+  let locationStatus = 0;
+  if (side === 'BUY') {
+    locationStatus = priceZone === -1 ? 1 : priceZone === 1 ? -1 : 0;
+  } else if (side === 'SELL') {
+    locationStatus = priceZone === 1 ? 1 : priceZone === -1 ? -1 : 0;
+  }
+
+  return {
+    rangeHigh: round(rangeHigh),
+    rangeLow: round(rangeLow),
+    eq: round(eq),
+    eqLow: round(eqLow),
+    eqHigh: round(eqHigh),
+    priceZone,
+    location,
+    locationStatus,
+    span: round(span)
+  };
+}
+
 export function zones(candles, points=swings(candles)) {
   const output=[];const start=Math.max(2,candles.length-120);
   for(let i=start;i<candles.length;i++) {
     const a=candles[i-2],b=candles[i-1],c=candles[i];
-    const gap=c.low>a.high?{side:'BUY',low:a.high,high:c.low}:c.high<a.low?{side:'SELL',low:c.high,high:a.low}:null;
-    if(gap) output.push({id:`FVG:${gap.side}:${c.open_time}`,kind:'FVG',...gap,formedAt:c.close_time,formedIndex:i});
+    const curAtr=atr(candles,i)||1.0;
+    // Minimum thickness rule: Celah < 0.8 point ($8 pips emas) otomatis ditolak (mencegah POI 0.1-0.3 pips)
+    const minThickness=Math.max(0.8, curAtr*0.15);
+
+    // Displacement logic aligned with Pine Script ICT Concepts [amygmgo]
+    const bodyB=Math.abs(b.close-b.open);
+    const mxB=Math.max(b.open,b.close);
+    const mnB=Math.min(b.open,b.close);
+    const upperWickB=b.high-mxB;
+    const lowerWickB=mnB-b.low;
+
+    let sumBody=0,countBody=0;
+    for(let k=Math.max(0,i-6);k<i;k++){
+      sumBody+=Math.abs(candles[k].close-candles[k].open);
+      countBody++;
+    }
+    const meanBody=countBody>0?sumBody/countBody:bodyB;
+    const isDisplaced=candles.length<15||(bodyB>=meanBody*0.7&&(upperWickB<=bodyB*0.45||lowerWickB<=bodyB*0.45||bodyB>=(b.high-b.low)*0.5));
+
+    if(isDisplaced) {
+      if(c.low>a.high && (c.low-a.high)>=minThickness) {
+        output.push({id:`FVG:BUY:${c.open_time}`,kind:'FVG',side:'BUY',low:a.high,high:c.low,ce:round((a.high+c.low)/2),formedAt:c.close_time,formedIndex:i});
+      } else if(c.high<a.low && (a.low-c.high)>=minThickness) {
+        output.push({id:`FVG:SELL:${c.open_time}`,kind:'FVG',side:'SELL',low:c.high,high:a.low,ce:round((c.high+a.low)/2),formedAt:c.close_time,formedIndex:i});
+      }
+    }
+
     const range=atr(candles,i), body=Math.abs(c.close-c.open);
     const priorHigh=points.highs.filter(p=>p.confirmedAt<=c.open_time).at(-1);
     const priorLow=points.lows.filter(p=>p.confirmedAt<=c.open_time).at(-1);
@@ -79,18 +169,20 @@ export function zones(candles, points=swings(candles)) {
     const sell=range && body>1.1*range && c.close<c.open && priorLow && c.close<priorLow.level;
     if(buy||sell) {
       const opposite=candles.slice(Math.max(0,i-3),i).reverse().find(x=>buy?x.close<x.open:x.close>x.open);
-      if(opposite) output.push({id:`OB:${buy?'BUY':'SELL'}:${opposite.open_time}`,kind:'OB',side:buy?'BUY':'SELL',low:opposite.low,high:opposite.high,formedAt:c.close_time,formedIndex:i});
+      if(opposite && (opposite.high-opposite.low)>=minThickness) {
+        output.push({id:`OB:${buy?'BUY':'SELL'}:${opposite.open_time}`,kind:'OB',side:buy?'BUY':'SELL',low:opposite.low,high:opposite.high,ce:round((opposite.low+opposite.high)/2),formedAt:c.close_time,formedIndex:i});
+      }
     }
   }
   return output.map(z=>{
     let touches=0,mitigated=false,invalid=false,lastTouch=null;
     for(let i=z.formedIndex+1;i<candles.length;i++) {
       const c=candles[i],touch=c.low<=z.high&&c.high>=z.low;
-      if(touch){touches++;lastTouch=c.close_time;if(z.side==='BUY'?c.low<=(z.low+z.high)/2:c.high>=(z.low+z.high)/2)mitigated=true;}
+      if(touch){touches++;lastTouch=c.close_time;if(z.side==='BUY'?c.low<=z.ce:c.high>=z.ce)mitigated=true;}
       if(z.side==='BUY'?c.close<z.low:c.close>z.high){invalid=true;break;}
     }
     const lifecycle=invalid?'INVALID':mitigated?'MITIGATED':touches>=2?'WEAKENING':touches?'TESTED':'FRESH';
-    return {...z,label:`Zona ${z.side==='BUY'?'permintaan':'penawaran'} ${z.kind}`,low:round(z.low),high:round(z.high),touches,lastTouch,lifecycle};
+    return {...z,label:`Zona ${z.side==='BUY'?'permintaan':'penawaran'} ${z.kind}`,low:round(z.low),high:round(z.high),ce:round(z.ce),touches,lastTouch,lifecycle};
   });
 }
 
@@ -205,10 +297,8 @@ export function evaluateEconomicCalendar(calendar, nowSeconds) {
     };
   }
 
-  // Sort by closest in time to now (absolute difference)
   usdEvents.sort((a, b) => Math.abs(a.diffMinutes) - Math.abs(b.diffMinutes));
 
-  // Critical safety buffer: -15 min (recent release) to +30 min (upcoming release) for High Impact
   const highCritical = usdEvents.find(e => String(e.impact).toLowerCase() === 'high' && e.diffMinutes >= -15 && e.diffMinutes <= 30);
   if (highCritical) {
     const isPast = highCritical.diffMinutes < 0;
@@ -225,7 +315,6 @@ export function evaluateEconomicCalendar(calendar, nowSeconds) {
     };
   }
 
-  // Upcoming High Impact within 30 to 120 minutes
   const highUpcoming = usdEvents.find(e => String(e.impact).toLowerCase() === 'high' && e.diffMinutes > 30 && e.diffMinutes <= 120);
   if (highUpcoming) {
     return {
@@ -239,7 +328,6 @@ export function evaluateEconomicCalendar(calendar, nowSeconds) {
     };
   }
 
-  // Critical safety buffer for Medium Impact: -10 min to +15 min
   const medCritical = usdEvents.find(e => String(e.impact).toLowerCase() === 'medium' && e.diffMinutes >= -10 && e.diffMinutes <= 15);
   if (medCritical) {
     const isPast = medCritical.diffMinutes < 0;
@@ -265,6 +353,123 @@ export function evaluateEconomicCalendar(calendar, nowSeconds) {
   };
 }
 
+export function calculateConfluenceScore({
+  h1Struct,
+  side,
+  aligned,
+  poi,
+  nearPoi,
+  confirming,
+  levels,
+  dr,
+  session
+}) {
+  if (h1Struct?.health === 'INVALIDATED') {
+    return { score: 0, grade: 'NO_SETUP', breakdown: { invalidation: 'Struktur H1 Batal' } };
+  }
+  if (!side) {
+    return { score: 0, grade: 'NO_SETUP', breakdown: { reason: 'Tidak ada arah bias' } };
+  }
+
+  let score = 0;
+  const breakdown = {};
+
+  // Layer 1: Bias M15 Aligned with H1 (20 pts)
+  if (aligned) {
+    score += 20;
+    breakdown.biasAlignment = 20;
+  } else if (h1Struct?.bias === 'NEUTRAL' || h1Struct?.health === 'WEAKENING') {
+    score += 8;
+    breakdown.biasAlignment = 8;
+  } else {
+    breakdown.biasAlignment = 0;
+  }
+
+  // Layer 2: Liquidity Sweep (20 pts)
+  if (confirming?.sweep && nearPoi) {
+    score += 20;
+    breakdown.liquiditySweep = 20;
+  } else if (confirming?.sweep) {
+    score += 12;
+    breakdown.liquiditySweep = 12;
+  } else {
+    breakdown.liquiditySweep = 0;
+  }
+
+  // Layer 3: POI Alignment & Rejection (20 pts: 15 base + 5 rejection)
+  if (poi) {
+    if (nearPoi) {
+      score += 15;
+      breakdown.poiAlignment = 15;
+    } else {
+      score += 8;
+      breakdown.poiAlignment = 8;
+    }
+    if (confirming?.status === 'CONFIRMED' || confirming?.status === 'CONFIRMING') {
+      score += 5;
+      breakdown.poiRejection = 5;
+    }
+  }
+
+  // Layer 4: Draw on Liquidity (DOL) Active (10 pts)
+  const activeTarget = levels?.find(l => l.status === 'ACTIVE' && l.side === side);
+  if (activeTarget) {
+    score += 10;
+    breakdown.targetActive = 10;
+  } else {
+    breakdown.targetActive = 0;
+  }
+
+  // Layer 5: Price Location in Dealing Range (10 pts)
+  const locStatus = dr?.locationStatus ?? 0;
+  if (locStatus === 1) {
+    score += 10;
+    breakdown.dealingRange = 10;
+  } else if (locStatus === 0) {
+    score += 4;
+    breakdown.dealingRange = 4;
+  } else {
+    breakdown.dealingRange = 0;
+  }
+
+  // Layer 6: LTF Displacement (15 pts)
+  if (confirming?.microFvg) {
+    score += 15;
+    breakdown.displacement = 15;
+  } else if (confirming?.status === 'CONFIRMED') {
+    score += 10;
+    breakdown.displacement = 10;
+  } else {
+    breakdown.displacement = 0;
+  }
+
+  // Layer 7: LTF Structure Break / MSS (10 pts)
+  if (confirming?.mss) {
+    score += 10;
+    breakdown.ltfStructure = 10;
+  } else {
+    breakdown.ltfStructure = 0;
+  }
+
+  // Layer 8: Session Context (5 pts)
+  if (session === 'LONDON' || session === 'NEW YORK') {
+    score += 5;
+    breakdown.session = 5;
+  } else {
+    score += 2;
+    breakdown.session = 2;
+  }
+
+  score = Math.min(100, Math.max(0, score));
+
+  let grade = 'NO_SETUP';
+  if (score >= 75) grade = 'STRONG';
+  else if (score >= 60) grade = 'READY';
+  else if (score >= 40) grade = 'WATCH';
+
+  return { score, grade, breakdown };
+}
+
 export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Math.floor(Date.now()/1000),calendar=[]}={}) {
   const isM5=Array.isArray(m5)&&m5.length>0;
   const confCandles=isM5?m5:m1;
@@ -282,9 +487,10 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   const fresh=H.length>=30&&M.length>=40&&C.length>=40&&source.H1&&source.M15&&confTime&&
     nowSeconds-source.H1>=0&&nowSeconds-source.H1<=3*3600&&nowSeconds-source.M15>=0&&nowSeconds-source.M15<=35*60&&
     nowSeconds-confTime>=0&&nowSeconds-confTime<=maxConfAge;
+  const session=goldSession(nowSeconds);
   const newsContext=evaluateEconomicCalendar(calendar,nowSeconds);
   const base={version:CONTEXT_VERSION,symbol:'XAU/USD',generatedAt:new Date(nowSeconds*1000).toISOString(),source,fresh:Boolean(fresh),
-    session:goldSession(nowSeconds),
+    session,
     news:newsContext};
   if(!fresh) return {...base,h1:{bias:'NEUTRAL',health:'WEAKENING'},m15:{control:'BALANCED',poi:null},
     m5:{status:'WAITING'},m1:{status:'WAITING'},liquidity:[],volatility:{condition:'UNKNOWN',atr:null},marketState:'DATA TERLAMBAT',
@@ -309,59 +515,112 @@ export function buildMarketContext({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds=Ma
   if(h.bias!=='NEUTRAL'&&!aligned)h.health=h.health==='INVALIDATED'?'INVALIDATED':'WEAKENING';
   const target=levels.filter(l=>l.status==='ACTIVE'&&l.side===side).sort((a,b)=>Math.abs(a.level-close)-Math.abs(b.level-close))[0]||null;
   const altTarget=levels.filter(l=>l.status==='ACTIVE'&&l.side===opposite).sort((a,b)=>Math.abs(a.level-close)-Math.abs(b.level-close))[0]||null;
-  const scenario=(s,z,t,isAlternative=false)=>s?{side:s,label:s==='BUY'?'BELI GOLD':'JUAL GOLD',area:z?{low:z.low,high:z.high}:null,
-    poiType:z?.kind||null,poiStatus:z?.lifecycle||null,target:t?.level||null,invalidation:z?(s==='BUY'?z.low:z.high):null,
-    reasons:[isAlternative?'Dapat dipertimbangkan hanya setelah skenario utama batal':`Bias H1 ${h.bias==='BULLISH'?'naik':h.bias==='BEARISH'?'turun':'netral'}${h.health==='INVALIDATED'?' (batal)':''}`,
-      isAlternative?`M15 harus beralih ke ${s==='BUY'?'pembeli':'penjual'}`:`Kontrol M15 ${control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang'}`,
-      z?`${z.label} M15 ${z.low.toFixed(2)}–${z.high.toFixed(2)} (${z.lifecycle})`:'Belum ada area M15 valid'],
-    waiting:z?`Tunggu harga merespons area M15 dan sweep + MSS + displacement/FVG ${tfName}.`:'Tunggu POI M15 yang valid.',
-    status:z?'WAITING CONFIRMATION':'NO VALID POI'}:null;
+
+  // Dealing Range & Location Status calculation
+  const dr=dealingRange(M,m,mp,side);
+
+  // Multi-Layer Confluence Scoring (0-100)
+  const confluence=calculateConfluenceScore({
+    h1Struct:h,
+    side,
+    aligned,
+    poi,
+    nearPoi:near,
+    confirming,
+    levels,
+    dr,
+    session
+  });
+
+  const defaultInvalidation = side === 'BUY' ? (h.protectedLevel || m.protectedLevel || m.swingLow) : (h.protectedLevel || m.protectedLevel || m.swingHigh);
+  const scenario=(s,z,t,isAlternative=false)=>{
+    if (!s) return null;
+    const inv = z ? (s==='BUY'?z.low:z.high) : (defaultInvalidation || null);
+    return {side:s,label:s==='BUY'?'BELI GOLD':'JUAL GOLD',area:z?{low:z.low,high:z.high,ce:z.ce}:null,
+      poiType:z?.kind||null,poiStatus:z?.lifecycle||null,target:t?.level||null,invalidation:inv,
+      reasons:[isAlternative?'Dapat dipertimbangkan hanya setelah skenario utama batal':`Bias H1 ${h.bias==='BULLISH'?'naik':h.bias==='BEARISH'?'turun':'netral'}${h.health==='INVALIDATED'?' (batal)':''}`,
+        isAlternative?`M15 harus beralih ke ${s==='BUY'?'pembeli':'penjual'}`:`Kontrol M15 ${control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang'}`,
+        z?`${z.label} M15 ${z.low.toFixed(2)}–${z.high.toFixed(2)} (CE: ${z.ce.toFixed(2)}, ${z.lifecycle})`:'Belum ada area M15 valid'],
+      waiting:z?`Tunggu harga merespons area M15 dan sweep + MSS + displacement/FVG ${tfName}.`:'Tunggu POI M15 yang valid.',
+      status:z?'WAITING CONFIRMATION':'NO VALID POI'};
+  };
   const checklist=[{label:'H1 searah dengan M15',ok:Boolean(aligned)},
     {label:'POI M15 valid dan dekat harga',ok:Boolean(poi&&near)},
     {label:`Likuiditas ${tfName} disapu dan direbut kembali`,ok:Boolean(confirming.sweep)},
     {label:`${tfName} MSS, displacement, dan micro FVG`,ok:confirming.status==='CONFIRMED'},
-    {label:'Batas invalidasi tersedia',ok:Boolean(poi)}];
+    {label:'Batas invalidasi tersedia',ok:Boolean(poi||defaultInvalidation)}];
   const ready=checklist.every(x=>x.ok);
   const isNewsLock=newsContext.status==='NEWS_LOCK';
   const direction=h.health==='INVALIDATED'?'Batal':h.bias==='BULLISH'?'Naik':h.bias==='BEARISH'?'Turun':'Netral';
   const controlling=control==='BUYER'?'pembeli':control==='SELLER'?'penjual':'seimbang';
-  const state=h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()} · tekanan ${controlling} di M15`:poi&&near?`H1 ${direction.toLowerCase()} · dekat area M15`:`H1 ${direction.toLowerCase()} · menunggu area`;
+
+  // Natural contextual narration & accurate market state
+  let state;
+  let narrativeText;
+  if (h.health === 'INVALIDATED') {
+    state = 'STRUKTUR BATAL';
+    narrativeText = `⚠️ Setup Batal: Struktur ${direction} jebol. Konfirmasi ${tfName} dibatalkan. Jangan entry, tunggu pembentukan struktur baru.`;
+  } else if (!aligned && h.bias !== 'NEUTRAL') {
+    if (h.bias === 'BULLISH') {
+      state = 'BULLISH PULLBACK (Koreksi Diskon)';
+      narrativeText = `📊 BULLISH PULLBACK: H1 naik, M15 sedang koreksi menuju zona diskon. Konfirmasi ${tfName} ${confirming.status === 'CONFIRMED' ? 'terpenuhi' : 'masih ditunggu'}. Tahan diri, jangan pernah SELL!`;
+    } else {
+      state = 'BEARISH PULLBACK (Koreksi Premium)';
+      narrativeText = `📊 BEARISH PULLBACK: H1 turun, M15 sedang koreksi menuju zona premium. Konfirmasi ${tfName} ${confirming.status === 'CONFIRMED' ? 'terpenuhi' : 'masih ditunggu'}. Tahan diri, jangan pernah BUY!`;
+    }
+  } else if (ready && confluence.score >= 75) {
+    state = 'KONFIRMASI SEARAH (A+)';
+    narrativeText = `🔥 Rejection kuat di ${poi?.label||'area M15'}. Konfirmasi ${tfName} ${side} lengkap (Sweep + MSS + Displacement). Skor Konfluensi: ${confluence.score}/100 (${confluence.grade}).`;
+  } else if (poi && near) {
+    state = `H1 ${direction.toLowerCase()} · dekat area M15`;
+    narrativeText = `📍 Harga mendekati ${poi.label} (${poi.low.toFixed(2)}–${poi.high.toFixed(2)}). Menunggu reaksi rejection & konfirmasi sweep/MSS ${tfName}.`;
+  } else {
+    state = `H1 ${direction.toLowerCase()} · menunggu area`;
+    narrativeText = `Gold H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':h.health==='INVALIDATED'?'batal':'melemah'}). M15 dikuasai ${controlling}. `+
+      (poi?`Area ${poi.label} ${poi.low.toFixed(2)}–${poi.high.toFixed(2)} berstatus ${poi.lifecycle.toLowerCase()}. `:'Belum ada area M15 valid. ')+
+      `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${isNewsLock?'⛔ News Lock aktif; tunda eksekusi hingga pasar stabil.':ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
+  }
+
   const status=isNewsLock?'NOT READY':(ready?'READY TO REVIEW':'NOT READY');
   const reason=isNewsLock?`⛔ News Lock Aktif: Rilis ${newsContext.event} ${newsContext.diffMinutes<=0?'sedang rilis / baru saja rilis':`dalam ${newsContext.diffMinutes} menit`}. Hindari entry untuk mencegah slippage & spread melebar.`:
-    (ready?'Semua bukti candle terpenuhi. Tinjau spread dan kalender berita secara manual.':
-    h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()}, M15 membentuk pantulan cepat (${controlling}). Setup scalp kilat atau tunggu konfirmasi searah.`:
+    (ready?`Semua bukti candle terpenuhi (Skor Konfluensi: ${confluence.score}/100 - ${confluence.grade}). Tinjau spread dan kalender berita secara manual.`:
+    h.bias!=='NEUTRAL'&&!aligned?`H1 ${direction.toLowerCase()}, M15 sedang pullback korektif. Tahan diri dan tunggu pembentukan setup di zona diskon/premium.`:
     `Menunggu: ${checklist.find(x=>!x.ok)?.label||'bukti tambahan'}.`);
-  const narrative=`Gold H1 ${direction.toLowerCase()} (${h.health==='HEALTHY'?'kuat':h.health==='INVALIDATED'?'batal':'melemah'}). M15 dikuasai ${controlling}. `+
-    (poi?`Area ${poi.label} ${poi.low.toFixed(2)}–${poi.high.toFixed(2)} berstatus ${poi.lifecycle.toLowerCase()}. `:'Belum ada area M15 valid. ')+
-    `Konfirmasi ${tfName} ${confirming.status==='CONFIRMED'?'terpenuhi':confirming.status==='FAILED'?'gagal':'masih ditunggu'}. ${isNewsLock?'⛔ News Lock aktif; tunda eksekusi hingga pasar stabil.':ready?'Skenario layak ditinjau manual.':'Tunggu perubahan struktur dan konfirmasi sebelum meninjau eksekusi.'}`;
-  const signal=near||!aligned&&h.bias!=='NEUTRAL'||ready||isNewsLock;
-  const phase=isNewsLock?'NEWS_LOCK':ready?'READY':!aligned&&h.bias!=='NEUTRAL'?'CONFLICT':near?'APPROACH':'NONE';
-  const counterSide=control==='BUYER'?'BUY':'SELL';
-  const targetLevel=target?Number(target.level).toFixed(2):(poi?(side==='BUY'?(poi.high+2).toFixed(2):(poi.low-2).toFixed(2)):'target terdekat');
-  const entryLevel=poi?`${poi.low.toFixed(2)}–${poi.high.toFixed(2)}`:'area M15';
-  const eventTitle=phase==='NEWS_LOCK'?'🛡️ Tahan Dulu: Pasar Lagi Liar':
-    phase==='CONFLICT'?`⚡ Scalp Kilat: ${counterSide} XAUUSD`:
-    phase==='READY'?`🟢 Peluru Utama: ${side||'BUY'} XAUUSD`:
-    `🔔 Intip XAUUSD: Masuk Area ${side==='BUY'?'BUY':'SELL'}`;
-  const eventBody=phase==='NEWS_LOCK'?
-    `Rilis ${newsContext.event||'berita'} ${newsContext.diffMinutes<=0?'sedang berlangsung':'sebentar lagi'}. Jangan dipaksa masuk, pantau dulu dari pinggir.`:
-    phase==='CONFLICT'?
-    `Pantulan cepat lawan arah H1. TP tipis di ${targetLevel}, dapat profit langsung amankan ya!`:
-    phase==='READY'?
-    `H1 & M15 kompak ${direction.toLowerCase()}. Area ${entryLevel}, TP ${targetLevel}. Setup mantap, pasang & santai!`:
-    `Harga masuk zona pantau ${entryLevel}. Standby tunggu reaksi candle ya!`;
-  const event=signal&&phase!=='NONE'?{key:[CONTEXT_VERSION,phase,phase==='NEWS_LOCK'?newsContext.event:h.bias,h.health,m.bias,m.lastBreak?.time||0,poi?.id||'none',poi?.lifecycle||'none'].join(':'),
-    title:eventTitle,
-    body:eventBody}:null;
+
+  // Sniper Notification Policy:
+  // HAPUS total notifikasi CONFLICT ("Scalp Kilat") dan APPROACH ("Intip Area").
+  // HANYA kirim notifikasi saat:
+  // 1. isNewsLock (Safety lock)
+  // 2. ATAU Peluru Utama A+ (ready && confluence.score >= 75 && dr.locationStatus === 1)
+  // Selain 2 kondisi di atas, event WAJIB NULL (server diam!).
+  const isAplusReady = ready && confluence.score >= 75 && dr.locationStatus === 1;
+  let event = null;
+  if (isNewsLock) {
+    event = {
+      key: [CONTEXT_VERSION, 'NEWS_LOCK', newsContext.event].join(':'),
+      title: '🛡️ Tahan Dulu: Pasar Lagi Liar',
+      body: `Rilis ${newsContext.event||'berita'} ${newsContext.diffMinutes<=0?'sedang berlangsung':'sebentar lagi'}. Jangan dipaksa masuk, pantau dulu dari pinggir.`
+    };
+  } else if (isAplusReady) {
+    const targetLevel = target ? Number(target.level).toFixed(2) : (poi ? (side === 'BUY' ? (poi.high + 2).toFixed(2) : (poi.low - 2).toFixed(2)) : 'target terdekat');
+    const entryLevel = poi ? `${poi.low.toFixed(2)}–${poi.high.toFixed(2)}` : 'area M15';
+    event = {
+      key: [CONTEXT_VERSION, 'A_PLUS_READY', side, h.bias, m.bias, m.lastBreak?.time||0, poi?.id||'none', confluence.score].join(':'),
+      title: `🟢 Peluru Utama: ${side} XAUUSD`,
+      body: `H1 & M15 kompak ${direction.toLowerCase()} (Skor ${confluence.score}/100). Area ${entryLevel}, TP ${targetLevel}. Setup mantap, pasang & santai!`
+    };
+  }
+
   const alternative=scenario(opposite,alternatePoi,altTarget,true);
+  const activeInv = poi ? (side==='BUY'?poi.low:poi.high) : defaultInvalidation;
   if(alternative)alternative.activation=[
-    poi?`Close M15 ${side==='BUY'?'di bawah':'di atas'} ${Number(side==='BUY'?poi.low:poi.high).toFixed(2)} membatalkan area utama.`:'Area utama belum terbentuk; tunggu level invalidasi.',
+    activeInv!=null?`Close M15 ${side==='BUY'?'di bawah':'di atas'} ${Number(activeInv).toFixed(2)} membatalkan ${poi?'area':'struktur'} utama.`:'Area utama belum terbentuk; tunggu level invalidasi.',
     `M15 membentuk kontrol ${opposite==='BUY'?'buyer':'seller'} dan mempertahankannya.`,
     `${tfName} menunjukkan sweep, MSS, displacement, serta micro FVG ${opposite==='BUY'?'bullish':'bearish'}.`
   ];
   return {...base,price:round(close),h1:h,m15:{control,structure:m.bias,lastBreak:m.lastBreak,poi,
-      opposingControl:Boolean(h.bias!=='NEUTRAL'&&!aligned)},m5:confirming,m1:confirming,liquidity:levels,
-    volatility:{condition:highVolatility?'HIGH VOLATILITY':'NORMAL',atr:round(vol)},marketState:state,
+      opposingControl:Boolean(h.bias!=='NEUTRAL'&&!aligned),dealingRange:dr},m5:confirming,m1:confirming,liquidity:levels,
+    volatility:{condition:highVolatility?'HIGH VOLATILITY':'NORMAL',atr:round(vol)},confluence,marketState:state,
     primary:scenario(side,poi,target),alternative,
-    execution:{status,checklist,reason},narrative,event};
+    execution:{status,checklist,reason},narrative:narrativeText,event};
 }

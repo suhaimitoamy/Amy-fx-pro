@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar} from '../supabase/functions/scalper-engine/market-context.mjs';
+import {buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar,dealingRange,calculateConfluenceScore} from '../supabase/functions/scalper-engine/market-context.mjs';
 import {currentContext} from '../app/src/main/assets/apps/mapping/js/ict-workspace/context-model.js';
 
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;
@@ -21,10 +21,12 @@ test('M15 reversal raises an early warning while H1 remains bullish, never a buy
   assert.equal(context.m15.control,'SELLER');
   assert.equal(context.h1.health,'WEAKENING');
   assert.equal(context.m15.opposingControl,true);
+  assert.equal(context.marketState,'BULLISH PULLBACK (Koreksi Diskon)');
+  assert.match(context.narrative,/BULLISH PULLBACK/);
+  assert.equal(context.event,null); // Server WAJIB DIAM during counter-trend pullback (no scalp trap notification)
   assert.equal(context.execution.status,'NOT READY');
   assert.equal(context.primary.side,'BUY');
   assert.equal(context.alternative.side,'SELL');
-  assert.match(context.event.title,/Scalp Kilat: SELL XAUUSD/);
   assert.ok(context.alternative.activation.some(x=>x.includes(context.primary.invalidation.toFixed(2))));
   assert.equal(context.news.status,'UNVERIFIED');
 });
@@ -174,6 +176,83 @@ test('active target level object does not crash buildMarketContext and formats p
   // Set D1 so that PDH is active above current price
   data.d1 = [{ open_time: now - 86400, close_time: now - 3600, open: 3300, high: 3390, low: 3280, close: 3310, is_closed: true }];
   const ctx = buildMarketContext(data);
-  assert.ok(ctx.event);
-  assert.match(ctx.event.body, /TP tipis di 3390\.00/);
+  assert.equal(ctx.primary?.target, 3390);
+  assert.equal(ctx.event, null); // Sniper silence maintained
+});
+
+test('dealingRange calculates equilibrium, price zones, and location status correctly', () => {
+  const bars = [
+    { open_time: 100, close_time: 200, open: 100, high: 200, low: 100, close: 120 },
+    { open_time: 200, close_time: 300, open: 120, high: 180, low: 110, close: 130 }
+  ];
+  const struct = { bias: 'BULLISH', swingHigh: 200, swingLow: 100, protectedLevel: 100 };
+  const buyDiscount = dealingRange(bars, struct, {}, 'BUY');
+  assert.equal(buyDiscount.eq, 150);
+  assert.equal(buyDiscount.location, 'DISCOUNT');
+  assert.equal(buyDiscount.priceZone, -1);
+  assert.equal(buyDiscount.locationStatus, 1); // Healthy to buy in discount!
+
+  const sellInDiscount = dealingRange(bars, struct, {}, 'SELL');
+  assert.equal(sellInDiscount.locationStatus, -1); // Bad location to sell at bottom of discount!
+
+  const barsInPremium = [
+    { open_time: 100, close_time: 200, open: 100, high: 200, low: 100, close: 150 },
+    { open_time: 200, close_time: 300, open: 150, high: 200, low: 140, close: 180 }
+  ];
+  const buyPremium = dealingRange(barsInPremium, struct, {}, 'BUY');
+  assert.equal(buyPremium.location, 'PREMIUM');
+  assert.equal(buyPremium.priceZone, 1);
+  assert.equal(buyPremium.locationStatus, -1); // Bad location to buy at peak of premium!
+});
+
+test('zones calculate 50% CE and reject microscopic gaps < 0.8 points', () => {
+  const base = now - 10 * 900;
+  const bar = (i, low, high, open, close) => ({ open_time: base + i * 900, close_time: base + (i + 1) * 900, open, low, high, close, is_closed: true });
+  // Microscopic gap: 0.2 points (2 pips on gold, e.g. 2680.4 to 2680.6)
+  const microBars = [
+    bar(0, 100, 101.0, 100.2, 100.8),
+    bar(1, 100.8, 102.0, 101.0, 101.8),
+    bar(2, 101.2, 103.0, 101.5, 102.8)
+  ];
+  // Bar 2 low is 101.2, Bar 0 high is 101.0 -> gap is 0.2 points -> MUST BE REJECTED!
+  const microZones = zones(microBars);
+  assert.equal(microZones.length, 0);
+
+  // Valid gap: 2.0 points (20 pips on gold)
+  const validBars = [
+    bar(0, 99.0, 101.0, 99.5, 100.5),
+    bar(1, 101.0, 105.0, 101.5, 104.5),
+    bar(2, 103.0, 106.0, 103.5, 105.5)
+  ];
+  // Bar 2 low is 103.0, Bar 0 high is 101.0 -> gap is 2.0 points (>= 0.8) -> ACCEPTED!
+  const validZones = zones(validBars);
+  assert.equal(validZones.length, 1);
+  assert.equal(validZones[0].low, 101);
+  assert.equal(validZones[0].high, 103);
+  assert.equal(validZones[0].ce, 102); // Exact 50% Consequent Encroachment!
+});
+
+test('calculateConfluenceScore evaluates layers and invalidation guard correctly', () => {
+  // Invalidation guard: H1 invalidated yields 0 score and NO_SETUP
+  const invScore = calculateConfluenceScore({
+    h1Struct: { health: 'INVALIDATED' },
+    side: 'BUY'
+  });
+  assert.equal(invScore.score, 0);
+  assert.equal(invScore.grade, 'NO_SETUP');
+
+  // Full A+ confluence
+  const aPlus = calculateConfluenceScore({
+    h1Struct: { bias: 'BULLISH', health: 'HEALTHY' },
+    side: 'BUY',
+    aligned: true,
+    poi: { low: 2650, high: 2655, ce: 2652.5, kind: 'FVG' },
+    nearPoi: true,
+    confirming: { status: 'CONFIRMED', sweep: { level: 2649 }, mss: { level: 2653 }, microFvg: { low: 2651, high: 2652 } },
+    levels: [{ label: 'PDH', level: 2670, side: 'BUY', status: 'ACTIVE' }],
+    dr: { locationStatus: 1 },
+    session: 'NEW YORK'
+  });
+  assert.ok(aPlus.score >= 75);
+  assert.equal(aPlus.grade, 'STRONG');
 });

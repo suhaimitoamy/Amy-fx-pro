@@ -1,3 +1,12 @@
+## 2.0.0-pro.373
+
+- feat(mapping): Implementasi logika displacement FVG murni TradingView ICT Concepts [amygmgo] dengan filter ketebalan minimum (celah mikro < 0.8 point otomatis ditolak) dan kalkulasi 50% Consequent Encroachment (CE).
+- feat(chart): Visualisasi garis putus-putus 50% CE emas pada area POI chart candlestick tanpa mengubah integritas kanvas harga.
+- feat(mapping): Penambahan modul Dealing Range (Equilibrium, Discount, Premium) dan penentuan status lokasi harga (sehat vs di pucuk ekstrim).
+- feat(mapping): Penilaian konfluensi multi-layer 8 lapis (Skor 0–100) dengan invalidation guard hard-cap saat struktur H1 batal.
+- feat(notification): Kebijakan notifikasi sniper ketat — penghapusan total notifikasi konflik dan pendekatan area premature; notifikasi hanya dikirim saat News Lock atau Peluru Utama A+ terkonfirmasi searah trend.
+- fix(narration): Penyempurnaan narasi kontekstual edukatif bahasa Indonesia yang jelas membedakan fase pullback korektif dari setup konfirmasi.
+
 ## 2.0.0-pro.372
 
 - fix(mapping): Memperbaiki bug fatal crash kalkulasi targetLevel pada market-context engine Supabase.
