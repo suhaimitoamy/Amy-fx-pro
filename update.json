@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.378/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.379/AmyFX-Pro-latest.apk",
   "changelog": [
     "Chart Gold: geser angka harga atas/bawah untuk mengatur skala vertikal, termasuk fullscreen.",
     "Geser sumbu waktu kiri/kanan untuk memperlebar atau mempersempit candle; pinch dan pan tetap tersedia.",
     "Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.",
     "Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.378/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.379/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950378,
-  "latest_version_name": "2.0.0-pro.378",
+  "latest_version_code": 950379,
+  "latest_version_name": "2.0.0-pro.379",
   "mandatory": false,
   "releaseDate": "2026-09-30",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Tombol Auto harga dan ketuk dua kali sumbu harga mengembalikan skala otomatis.",
     "Garis ICT/AMY mengikuti perubahan skala; pembaruan data mempertahankan skala dan posisi chart manual."
   ],
-  "sha256": "516d95d6fd9bcfec15985dc6b8cc354e51480265d8ab0689936dce1947ce91bf",
-  "version": "2.0.0-pro.378",
-  "versionCode": 950378
+  "sha256": "ff37cbe0180131239ae56fa46bb9b1b07c28a62f323e79d295922b91d80136ae",
+  "version": "2.0.0-pro.379",
+  "versionCode": 950379
 }
