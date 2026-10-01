@@ -19,7 +19,7 @@
     "Sistem navigasi universal dengan tombol panah kembali/maju di semua sub-modul (Mapping, Intel, Academy, Journal).",
     "Shortcut pencadangan Backup ZIP dan Restore instan langsung di drawer dan header Jurnal."
   ],
-  "sha256": "34f42b0f0e34995e7df9ff0a425e3e68b74ec59acfa531f08f0ea007d4b32b3f",
+  "sha256": "5445e3df9190b3d6b37a8a11489bb78e67117bfc6137a1267661ee317954529a",
   "version": "2.0.0-pro.383",
   "versionCode": 950383
 }
