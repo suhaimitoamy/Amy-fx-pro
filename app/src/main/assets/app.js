@@ -265,28 +265,24 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="profile-section-title" style="margin-top:20px;">Trading Performance Dashboard</div>
       <section class="stats-grid slide-up">
         <div class="stat-card">
-          <div class="stat-icon-wrap">🔥</div>
-          <strong class="stat-val highlight-green">${habitStreak}D</strong>
-          <small>Streak Rutinitas</small>
-          <span class="stat-indicator">Consistency</span>
+          <strong class="stat-val highlight-gold">${habitStreak}D</strong>
+          <span class="stat-label">DISCIPLINE STREAK</span>
+          <small class="stat-sublabel">Rutinitas</small>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-wrap">📓</div>
           <strong class="stat-val">${journal}</strong>
-          <small>Catatan Jurnal</small>
-          <span class="stat-indicator">Trades Logged</span>
+          <span class="stat-label">TRADES LOGGED</span>
+          <small class="stat-sublabel">Catatan Jurnal</small>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-wrap">🧭</div>
           <strong class="stat-val">${analyses}</strong>
-          <small>Analisis Map</small>
-          <span class="stat-indicator">ICT Contexts</span>
+          <span class="stat-label">ICT SETUPS</span>
+          <small class="stat-sublabel">Analisis Map</small>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-wrap">🛡️</div>
           <strong class="stat-val highlight-gold">${userRisk}%</strong>
-          <small>Max Risk/Trade</small>
-          <span class="stat-indicator">Discipline Cap</span>
+          <span class="stat-label">MAX RISK / TRADE</span>
+          <small class="stat-sublabel">Risk Cap</small>
         </div>
       </section>
 
