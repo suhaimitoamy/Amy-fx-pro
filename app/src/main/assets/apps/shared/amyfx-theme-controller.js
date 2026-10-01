@@ -12,10 +12,10 @@
   let preference = readPreference();
 
   const CUSTOM_PROPERTIES = Object.freeze({
-    background: ["--amy-bg", "--amy-bg-secondary"],
-    surface: ["--amy-surface", "--amy-surface-strong", "--amy-surface-solid"],
-    text: ["--amy-text", "--amy-text-secondary", "--amy-text-muted"],
-    accent: ["--amy-accent", "--amy-accent-strong", "--amy-cyan"]
+    background: ["--amy-bg", "--amy-bg-secondary", "--bg-color"],
+    surface: ["--amy-surface", "--amy-surface-strong", "--amy-surface-solid", "--surface-color"],
+    text: ["--amy-text", "--amy-text-secondary", "--amy-text-muted", "--text-main"],
+    accent: ["--amy-accent", "--amy-accent-strong", "--amy-cyan", "--primary-gold", "--gold", "--gold-text"]
   });
   let customColors = readCustomColors();
 
@@ -93,12 +93,20 @@
 
     if (customColors.surface) {
       const surfVal = customColors.surface;
-      root.style.setProperty('--amy-surface-soft', hexToRgba(surfVal, 0.12));
+      root.style.setProperty('--amy-surface-soft', hexToRgba(surfVal, 0.14));
+      root.style.setProperty('--surface-soft', hexToRgba(surfVal, Math.min(0.96, alpha + 0.12)));
+      root.style.setProperty('--surface-color', hexToRgba(surfVal, alpha));
+      root.style.setProperty('--card', hexToRgba(surfVal, alpha));
+      root.style.setProperty('--bg-card', hexToRgba(surfVal, alpha));
       const highlightAlpha = Math.max(0.06, (100 - opacityVal) / 260);
       root.style.setProperty('--amy-highlight', `rgba(255, 255, 255, ${highlightAlpha.toFixed(2)})`);
       root.style.setProperty('--amy-blur', `${Math.round(16 + (100 - opacityVal) * 0.12)}px`);
     } else {
       root.style.removeProperty('--amy-surface-soft');
+      root.style.removeProperty('--surface-soft');
+      root.style.removeProperty('--surface-color');
+      root.style.removeProperty('--card');
+      root.style.removeProperty('--bg-card');
       root.style.removeProperty('--amy-highlight');
       root.style.removeProperty('--amy-blur');
     }
@@ -106,9 +114,15 @@
     if (customColors.accent) {
       root.style.setProperty('--glow-gold', hexToRgba(customColors.accent, 0.35));
       root.style.setProperty('--amy-border', hexToRgba(customColors.accent, 0.22));
+      root.style.setProperty('--border-color', hexToRgba(customColors.accent, 0.22));
+      root.style.setProperty('--primary-gold', customColors.accent);
+      root.style.setProperty('--secondary-gold', customColors.accent);
     } else {
       root.style.removeProperty('--glow-gold');
       root.style.removeProperty('--amy-border');
+      root.style.removeProperty('--border-color');
+      root.style.removeProperty('--primary-gold');
+      root.style.removeProperty('--secondary-gold');
     }
 
     root.toggleAttribute("data-amyfx-custom-colors", Object.keys(customColors).length > 0);
@@ -223,6 +237,20 @@
       customColors = {};
       try { localStorage.removeItem(CUSTOM_KEY); } catch (_) {}
       applyCustomColors();
+      return preference;
+    },
+    setPreset(presetId) {
+      const PRESETS = {
+        obsidian: { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 72 },
+        emerald: { background: '#05130d', surface: '#0d2719', text: '#eafaf1', accent: '#34d399', opacity: 58 },
+        sapphire: { background: '#070e1b', surface: '#10213d', text: '#f0f6ff', accent: '#38bdf8', opacity: 60 },
+        amber: { background: '#110b05', surface: '#2c1e0e', text: '#fff9ed', accent: '#fbbf24', opacity: 62 },
+        amethyst: { background: '#0d0718', surface: '#1f0f35', text: '#f8f0ff', accent: '#c084fc', opacity: 58 }
+      };
+      const found = PRESETS[presetId];
+      if (found) {
+        return this.setColors({ ...found, preset: presetId });
+      }
       return preference;
     },
     apply

@@ -529,22 +529,22 @@ main {
 .stat-card {
   padding: 12px 8px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.12));
   border-radius: 14px;
-  background: rgba(16, 26, 46, 0.68) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+  background: var(--amy-surface, rgba(16, 26, 46, 0.68));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 var(--amy-highlight, rgba(255, 255, 255, 0.14));
 }
 .stat-card strong {
   display: block;
-  color: #ffffff !important;
+  color: var(--amy-text, #ffffff);
   font-size: 1.15rem;
   font-weight: 800;
 }
 .stat-card small {
   display: block;
-  color: #94a3b8 !important;
+  color: var(--amy-text-secondary, #94a3b8);
   font-size: 0.65rem;
   line-height: 1.3;
   margin-top: 4px;
@@ -758,20 +758,62 @@ html[data-amyfx-theme="light"] .nav-btn { color: #6b7a90; }
 
 /* Executive Pure Glassmorphism & High-Contrast Typography */
 .card, .quick-card, .collection-tool, .home-hero, .panel, .course-card {
-  background: rgba(16, 26, 46, 0.72) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
-  color: #ffffff !important;
+  background: var(--amy-surface, rgba(16, 26, 46, 0.72));
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 var(--amy-highlight, rgba(255, 255, 255, 0.14));
+  color: var(--amy-text, #ffffff);
 }
 
 .home-hero h2, .card h3, .quick-card strong, .collection-tool strong {
-  color: #ffffff !important;
+  color: var(--amy-text, #ffffff);
 }
 
 .home-hero p, .subtitle, .hero-status, .card p, .quick-card small, .collection-tool small {
-  color: #94a3b8 !important;
+  color: var(--amy-text-secondary, #94a3b8);
+}
+
+html[data-amyfx-custom-colors] body {
+  background:
+    radial-gradient(circle at 12% 12%, var(--amy-accent-soft, rgba(105, 183, 255, 0.14)) 0%, transparent 40%),
+    radial-gradient(circle at 88% 28%, var(--glow-gold, rgba(212, 175, 55, 0.12)) 0%, transparent 36%),
+    linear-gradient(180deg, var(--amy-bg) 0%, var(--amy-bg-secondary, var(--amy-bg)) 50%, var(--amy-bg) 100%) !important;
+  background-attachment: fixed !important;
+  color: var(--amy-text) !important;
+}
+
+html[data-amyfx-custom-colors] .profile-card,
+html[data-amyfx-custom-colors] .profile-glass-panel,
+html[data-amyfx-custom-colors] .stat-card,
+html[data-amyfx-custom-colors] .card,
+html[data-amyfx-custom-colors] .quick-card,
+html[data-amyfx-custom-colors] .collection-tool,
+html[data-amyfx-custom-colors] .home-hero,
+html[data-amyfx-custom-colors] .panel,
+html[data-amyfx-custom-colors] .course-card {
+  background: var(--amy-surface) !important;
+  border-color: var(--amy-border) !important;
+  color: var(--amy-text) !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--amy-highlight) !important;
+}
+
+html[data-amyfx-custom-colors] .home-hero h2,
+html[data-amyfx-custom-colors] .card h3,
+html[data-amyfx-custom-colors] .quick-card strong,
+html[data-amyfx-custom-colors] .collection-tool strong,
+html[data-amyfx-custom-colors] .profile-card h3 {
+  color: var(--amy-text) !important;
+}
+
+html[data-amyfx-custom-colors] .home-hero p,
+html[data-amyfx-custom-colors] .subtitle,
+html[data-amyfx-custom-colors] .hero-status,
+html[data-amyfx-custom-colors] .card p,
+html[data-amyfx-custom-colors] .quick-card small,
+html[data-amyfx-custom-colors] .collection-tool small,
+html[data-amyfx-custom-colors] .stat-card small {
+  color: var(--amy-text-secondary) !important;
 }
 
 html[data-amyfx-theme="light"] .card,
@@ -1127,5 +1169,11 @@ html[data-amyfx-theme="light"] .collection-tool small {
 }
 .glass-preset-btn:hover {
   border-color: var(--primary-gold);
+}
+.glass-preset-btn.is-active {
+  border-color: var(--primary-gold) !important;
+  background: rgba(105, 183, 255, 0.16) !important;
+  color: var(--primary-gold) !important;
+  box-shadow: 0 0 12px var(--glow-gold) !important;
 }
 

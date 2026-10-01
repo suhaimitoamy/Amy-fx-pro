@@ -225,8 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
       { id: 'amethyst', name: 'Amethyst', bg: '#0d0718', accent: '#c084fc' }
     ];
 
+    const activeGlassPreset = window.AmyFXTheme?.colors?.preset || 'obsidian';
     const presetsHTML = GLASS_PRESETS.map(p => `
-      <button type="button" class="glass-preset-btn" data-glass-preset="${p.id}">
+      <button type="button" class="glass-preset-btn ${p.id === activeGlassPreset ? 'is-active' : ''}" data-glass-preset="${p.id}">
         <span style="width:10px; height:10px; border-radius:50%; background:${p.accent}; box-shadow:0 0 6px ${p.accent};"></span>
         <span>${p.name}</span>
       </button>
@@ -379,10 +380,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Preset color buttons
     document.querySelectorAll('[data-glass-preset]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const preset = btn.dataset.glassPreset;
-        window.AmyFXTheme?.setPreset?.(preset);
-        showToast(`Tema kaca "${preset}" diterapkan.`);
+        const presetId = btn.dataset.glassPreset;
+        const preset = GLASS_PRESETS.find(p => p.id === presetId);
+        if (preset) {
+          window.AmyFXTheme?.setPreset?.(presetId);
+          document.querySelectorAll('[data-glass-preset]').forEach(b => {
+            b.classList.toggle('is-active', b.dataset.glassPreset === presetId);
+          });
+          showToast(`Tema kaca "${preset.name}" diterapkan.`);
+        }
       });
+    });
+
+    const activePref = window.AmyFXTheme?.preference || 'system';
+    document.querySelectorAll('[data-amyfx-theme-choice]').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.amyfxThemeChoice === activePref);
     });
 
     window.AmyFXTheme?.apply?.();
