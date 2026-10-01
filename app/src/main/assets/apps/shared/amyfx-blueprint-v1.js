@@ -27,7 +27,7 @@
     snapshot_v2: true,
     setup_lifecycle_v2: true,
     global_mentor: true,
-    journal_schema_v2: true,
+    journal_schema_v2: false,
     new_shell: true,
     command_center: true,
     secure_ai_vault: true,
@@ -948,43 +948,11 @@
   }
 
   function ensureJournalTimeline() {
-    if (moduleName !== "journal" || !flags.journal_schema_v2 || document.querySelector("[data-amy-journal-v2]")) return;
+    const existing = document.querySelector("[data-amy-journal-v2]");
+    if (existing) existing.remove();
+    if (!flags.journal_schema_v2) return;
     const target = document.querySelector("#journalView, [data-journal-view]");
     if (!target) return;
-    const draft = readJsonStorage("amyfx.os.journalDraft.v2", { plan: "", execution: "", outcome: "", next_action: "" });
-    const card = document.createElement("section");
-    card.className = "amy-os-journal-v2";
-    card.dataset.amyJournalV2 = "1";
-    card.innerHTML = `
-      <header><div><small>JOURNAL ENTRY V2</small><strong>Plan → Execution → Outcome</strong></div><span>local-first</span></header>
-      <label>Rencana asli<textarea data-jv2="plan" rows="2">${escapeHtml(draft.plan)}</textarea></label>
-      <label>Eksekusi aktual<textarea data-jv2="execution" rows="2">${escapeHtml(draft.execution)}</textarea></label>
-      <label>Outcome & deviation<textarea data-jv2="outcome" rows="2">${escapeHtml(draft.outcome)}</textarea></label>
-      <label>Satu tindakan berikutnya<textarea data-jv2="next_action" rows="2">${escapeHtml(draft.next_action)}</textarea></label>
-      <button type="button" data-jv2-save>Simpan draft review</button>`;
-    target.insertAdjacentElement("afterbegin", card);
-    card.querySelector("[data-jv2-save]").addEventListener("click", async () => {
-      const value = {};
-      card.querySelectorAll("[data-jv2]").forEach(input => { value[input.dataset.jv2] = input.value; });
-      value.updated_at = nowIso();
-      writeJsonStorage("amyfx.os.journalDraft.v2", value);
-      await repository.put("journal", {
-        id: "journal-review-draft",
-        schema: "JournalEntry",
-        schema_version: 2,
-        plan: { notes: value.plan },
-        execution: { notes: value.execution },
-        outcome: { notes: value.outcome },
-        review: { next_action: value.next_action },
-        audit: { updated_at: value.updated_at, source: "preview-blueprint-runtime" }
-      });
-      notificationLedger.notify({
-        id: `journal-review-${Time.dayKey()}`,
-        title: "Review Jurnal Tersimpan",
-        message: "Plan, execution, outcome, dan tindakan berikutnya sudah disimpan.",
-        expires_at: new Date(Date.now() + 86_400_000).toISOString()
-      });
-    });
   }
 
   function ensureProfileSettings() {

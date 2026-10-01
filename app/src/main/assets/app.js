@@ -9,6 +9,41 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'academy', title: 'Tutorial Trading', badge: 'Learning', icon: 'academy', desc: '', target: 'apps/academy/index.html' },
   ];
 
+  const practiceItems = [
+    {
+      id: 'chart-analysis',
+      title: 'Chart Analysis',
+      badge: 'Praktik',
+      icon: 'indicator',
+      desc: 'Analisis chart, gambar level, dan impor data historis candle.',
+      target: 'apps/academy/trading-practice/chart-analysis.html'
+    },
+    {
+      id: 'candle-replay',
+      title: 'Candle Replay',
+      badge: 'Replay',
+      icon: 'mapping',
+      desc: 'Latihan membaca candle satu per satu dan catat keputusan trading.',
+      target: 'apps/academy/trading-practice/candle-replay.html'
+    },
+    {
+      id: 'guided-practice',
+      title: 'Guided Practice',
+      badge: 'Latihan',
+      icon: 'academy',
+      desc: '60 soal acak ICT dengan chart ilustratif & evaluasi terpandu.',
+      target: 'apps/academy/trading-practice/guided-practice.html'
+    },
+    {
+      id: 'backtest-history',
+      title: 'Riwayat Backtest Lokal',
+      badge: 'Riwayat',
+      icon: 'journal',
+      desc: 'Tinjau setup manual, hasil forward candle, dan jurnal latihan.',
+      target: 'apps/academy/trading-practice/backtest-history.html'
+    }
+  ];
+
   function showLoadingOverlay() {
     if (window.AmyFXLoading?.start) {
       window.AmyFXLoading.start({
@@ -141,7 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
     Jurnal: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
     Learning: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
     Mapping: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
-    News: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg>`
+    News: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg>`,
+    Praktik: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg>`,
+    Replay: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
+    Latihan: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>`,
+    Riwayat: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 15 15"></polyline></svg>`,
+    'Jalur 03': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
   };
 
   function icon(type) {
@@ -181,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderProjectList(title) {
     setActive('proyek');
-    mainContent.innerHTML = `<div class="page-header"><div><span class="section-kicker">WORKSPACE</span><h2>${title}</h2></div></div><div class="project-grid slide-up">${projects.map(projectCard).join('')}</div>`;
+    mainContent.innerHTML = `<div class="page-header"><div><span class="section-kicker">JALUR 03</span><h2>${title || 'Backtest'}</h2></div></div><div class="project-grid slide-up">${practiceItems.map(projectCard).join('')}</div>`;
   }
 
   function renderKoleksi() {
@@ -203,19 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderProfile() {
     setActive('profil');
-    const traderName = localStorage.getItem('amy_trader_name') || 'Amy Senju';
     const userBalance = localStorage.getItem('amy_default_balance') || '5000';
     const userRisk = localStorage.getItem('amy_default_risk') || '1.5';
-    const analyses = readJsonArray('amy_mapping_analyses').length;
-    const journal = readJsonArray('amy_journal_entries').length;
-    
-    // Calculate habits streak
-    let habitStreak = 5;
-    try {
-      const dates = JSON.parse(localStorage.getItem('amy_completed_dates_v2') || '{}');
-      const count = Object.keys(dates).length;
-      if (count > 0) habitStreak = Math.max(5, count);
-    } catch (_) {}
 
     const GLASS_PRESETS = [
       { id: 'obsidian', name: 'Obsidian Glass', bg: '#070b14', accent: '#F5C451' },
@@ -238,61 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const customBgDim = customBgData?.dim ?? 50;
     const customBgBlur = customBgData?.blur ?? 20;
 
-    const streakStr = String(habitStreak).padStart(2, '0');
-    const journalStr = String(journal).padStart(2, '0');
-    const analysesStr = String(analyses).padStart(2, '0');
-    const riskStr = String(userRisk).includes('%') ? userRisk : `${userRisk}%`;
 
     mainContent.innerHTML = `
       <div class="page-header">
         <div>
-          <span class="section-kicker">EXECUTIVE WORKSPACE</span>
           <h2>Profil &amp; Pengaturan</h2>
         </div>
       </div>
 
-      <!-- Professional Trader Identity Card -->
-      <section class="profile-card slide-up">
-        <div class="profile-avatar">
-          <span class="avatar-text">AMY</span>
-        </div>
-        <div class="profile-card-content">
-          <div class="profile-name-row">
-            <h3 id="traderNameTitle">${escapeHtml(traderName)}</h3>
-            <button type="button" id="editTraderNameBtn" class="edit-name-btn" title="Ubah Nama Trader" aria-label="Ubah Nama Trader">✏️</button>
-          </div>
-          <p class="trader-sub">XAU/USD Gold Scalper</p>
-        </div>
-        <span class="status-badge discipline-badge">DISCIPLINE PRO</span>
-      </section>
-
-      <!-- Trading Performance Dashboard -->
-      <div class="profile-section-title" style="margin-top:20px;">Trading Performance Dashboard</div>
-      <section class="stats-grid slide-up">
-        <div class="stat-card">
-          <strong class="stat-val highlight-gold">${streakStr}</strong>
-          <span class="stat-label">DAY STREAK</span>
-          <small class="stat-sublabel">Trading Discipline</small>
-        </div>
-        <div class="stat-card">
-          <strong class="stat-val">${journalStr}</strong>
-          <span class="stat-label">TRADES LOGGED</span>
-          <small class="stat-sublabel">Win/Loss Record</small>
-        </div>
-        <div class="stat-card">
-          <strong class="stat-val">${analysesStr}</strong>
-          <span class="stat-label">ICT CONTEXTS</span>
-          <small class="stat-sublabel">Liquidity Framework</small>
-        </div>
-        <div class="stat-card">
-          <strong class="stat-val highlight-gold">${riskStr}</strong>
-          <span class="stat-label">RISK CAP</span>
-          <small class="stat-sublabel">Max Account Risk</small>
-        </div>
-      </section>
-
       <!-- Trading Environment Customization -->
-      <div class="profile-section-title" style="margin-top:22px;">Trading Environment Customization</div>
+      <div class="profile-section-title" style="margin-top:8px;">Trading Environment Customization</div>
       <section class="profile-glass-panel slide-up" data-amyfx-color-settings="true">
         <div class="glass-group-label">Mode Tampilan</div>
         <div class="theme-selector">
@@ -388,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event bindings for new profile features
     document.getElementById('editTraderNameBtn')?.addEventListener('click', () => {
-      const current = localStorage.getItem('amy_trader_name') || 'Amy Senju';
+      const current = localStorage.getItem('amy_trader_name') || 'Trader';
       const updated = window.prompt('Masukkan Nama Trader Anda:', current);
       if (updated && updated.trim()) {
         localStorage.setItem('amy_trader_name', updated.trim());
@@ -410,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const backupData = {
         app: 'Amy FX Pro',
         exportedAt: new Date().toISOString(),
-        traderName: localStorage.getItem('amy_trader_name') || 'Amy Senju',
+        traderName: localStorage.getItem('amy_trader_name') || 'Trader',
         balance: localStorage.getItem('amy_default_balance') || '5000',
         risk: localStorage.getItem('amy_default_risk') || '1.5',
         habits: readJsonSafe('amy_habits_v2', []),
@@ -602,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openProject(id) {
-    const project = projects.find(item => item.id === id);
+    const project = [...projects, ...practiceItems].find(item => item.id === id);
     if (!project) return;
     const recent = readJsonArray('amy_recent_projects').filter(item => item !== id);
     localStorage.setItem('amy_recent_projects', JSON.stringify([id, ...recent].slice(0, 8)));
@@ -616,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function navigate(target) {
     if (target === 'beranda') renderHome();
-    if (target === 'proyek') renderProjectList('Proyek');
+    if (target === 'proyek' || target === 'backtest') renderProjectList('Backtest');
     if (target === 'koleksi') renderKoleksi();
     if (target === 'profil') renderProfile();
   }

@@ -7,7 +7,7 @@
     <meta name="description" content="Trading Library Manager untuk mengelola materi, indikator, gambar chart, video pembelajaran, dan dokumen trading.">
     <title>Jurnal Trading — Amy FX</title>
     <script src="../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
-    <link rel="stylesheet" href="./style.css?v=20260623-2">
+    <link rel="stylesheet" href="./style.css?v=20261001-fix1">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%23050806'/%3E%3Cpath d='M20 62h12V36H20v26Zm22 0h12V24H42v38Zm22 0h12V44H64v18Z' fill='%2339ff88'/%3E%3Cpath d='M18 72h60' stroke='%23f4fff7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="amy-journal-final-fix.css">
   <link rel="stylesheet" href="../shared/amyfx-blueprint-v1.css" data-amyfx-blueprint-css="v1">
@@ -33,8 +33,7 @@
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">AMY</div>
           <div class="brand-copy">
-            <span>Amy FX Pro</span>
-            <h1>Trading Performance Journal</h1>
+            <h1 style="margin:0; font-size:1.05rem; font-weight:800; color:var(--text);">Amy FX Pro</h1>
           </div>
         </div>
         <div class="header-actions">
@@ -277,8 +276,8 @@
               </label>
             </div>
             <label class="field">
-              <span>Catatan & Evaluasi</span>
-              <textarea id="journalEvaluationInput" rows="6" maxlength="4800" placeholder="Tulis rencana, alasan entry, kondisi market, dan evaluasi trade di sini."></textarea>
+              <span>Catatan, Rencana &amp; Evaluasi (Plan → Eksekusi → Outcome)</span>
+              <textarea id="journalEvaluationInput" rows="6" maxlength="4800" placeholder="1. Rencana Entry (Plan &amp; POI)&#10;2. Eksekusi Aktual (Alasan masuk, disiplin waktu)&#10;3. Hasil &amp; Evaluasi (Outcome, deviasi, kondisi market)&#10;4. Satu Tindakan Perbaikan Berikutnya"></textarea>
             </label>
             <div class="form-grid">
               <label class="field">
@@ -500,17 +499,17 @@
               <article class="stats-card">
                 <span class="stats-icon stats-icon-streak">🔥</span>
                 <p>Streak Disiplin</p>
-                <strong id="kpiHabitStreak" class="animate-count-up" data-target="5">5 Hari</strong>
+                <strong id="kpiHabitStreak" class="animate-count-up" data-target="0">0 Hari</strong>
               </article>
               <article class="stats-card">
                 <span class="stats-icon stats-icon-checklist">🎯</span>
                 <p>Checklist Hari Ini</p>
-                <strong id="kpiHabitDone">3 / 8 Selesai</strong>
+                <strong id="kpiHabitDone">0 / 7 Selesai</strong>
               </article>
               <article class="stats-card">
                 <span class="stats-icon stats-icon-consistency">📈</span>
                 <p>Konsistensi 35D</p>
-                <strong id="kpiHabitConsistency">86%</strong>
+                <strong id="kpiHabitConsistency">0%</strong>
               </article>
               <article class="stats-card">
                 <span class="stats-icon stats-icon-risk">⚖️</span>
@@ -537,11 +536,17 @@
               <div class="habit-heatmap-head">
                 <div class="heatmap-title-group">
                   <strong>Matriks Disiplin 35 Hari</strong>
-                  <small>Tingkat kepatuhan checklist harian</small>
+                  <small id="jHabitMatrixSubtitle">Tingkat kepatuhan checklist harian (Senin–Jumat)</small>
                 </div>
-                <div class="streak-pill" id="jHabitStreak">
-                  <span class="flame-icon">🔥</span>
-                  <span id="jHabitStreakText">Streak: 5 Hari</span>
+                <div class="heatmap-pills-group">
+                  <div class="streak-pill" id="jHabitStreak">
+                    <span class="flame-icon">🔥</span>
+                    <span id="jHabitStreakText">Streak: 0 Hari</span>
+                  </div>
+                  <div class="penalty-pill" id="jHabitPenalty">
+                    <span class="penalty-icon">⚠️</span>
+                    <span id="jHabitPenaltyText">0 Penalti</span>
+                  </div>
                 </div>
               </div>
               <div class="heatmap-days-legend">
@@ -549,9 +554,10 @@
               </div>
               <div class="heatmap-tiles-grid" id="jHabitHeatmapGrid"></div>
               <div class="heatmap-bottom-legend">
-                <span class="legend-text">Semakin hijau = Semakin patuh aturan</span>
+                <span class="legend-text">Semakin hijau = Patuh | Merah = Penalti terlewat</span>
                 <div class="legend-scale">
-                  <span class="scale-box lvl-0" title="0%"></span>
+                  <span class="scale-box lvl-penalty" title="Penalti (Hari trading terlewat)"></span>
+                  <span class="scale-box lvl-0" title="Hari Ini / Netral"></span>
                   <span class="scale-box lvl-1" title="25%"></span>
                   <span class="scale-box lvl-2" title="50%"></span>
                   <span class="scale-box lvl-3" title="75%"></span>
@@ -559,6 +565,9 @@
                 </div>
               </div>
             </div>
+
+            <!-- Dynamic Penalty Alert Banner -->
+            <div id="jHabitPenaltyBanner" class="habit-penalty-alert" style="display: none;"></div>
 
             <!-- Quick Gold (XAU/USD) Lot Calculator integrated -->
             <div class="habit-calc-card">
@@ -588,7 +597,7 @@
             <!-- Habit Checklist Header -->
             <div class="habits-list-head">
               <h3>Checklist Rutinitas Hari Ini</h3>
-              <span id="jHabitProgressText" class="badge">3 / 8 Selesai</span>
+              <span id="jHabitProgressText" class="badge">0 / 7 Selesai</span>
             </div>
 
             <!-- Habit Checklist Cards -->
@@ -629,12 +638,6 @@
         <button class="nav-button" type="button" data-view="media">
           <span class="nav-icon media-icon" aria-hidden="true"></span>
           <span>Media</span>
-        </button>
-        <button class="nav-button" type="button" id="bottomNavMenuBtn" aria-label="Buka Menu Samping">
-          <span class="nav-icon menu-nav-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </span>
-          <span>Menu</span>
         </button>
       </nav>
     </div>
@@ -837,7 +840,7 @@
 
     <script src="./jszip.min.js?v=20260623" defer></script>
     <script src="./journal-analytics.js?v=20260925-1" defer></script>
-    <script src="./app.js?v=20260725-restore1" defer></script>
+    <script src="./app.js?v=20261001-fix1" defer></script>
     <script src="./background-video.js?v=20260725-bg1" defer></script>
   <script src="amy-journal-final-fix.js"></script>
   <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>

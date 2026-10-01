@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.384/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.385/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Redesign UI: Implementasi Obsidian Glass Trading UI pada seluruh modul utama (Mapping Gold, Berita, Jurnal Trading, Tutorial Trading).",
-    "Peningkatan visual luxury fintech trading terminal: background multi-layer dengan trading grid, aksen emas XAU/USD, dan efek kartu kaca transparan.",
-    "AMY AI Copilot mengambang global dengan posisi seragam dan breathing gold glow.",
-    "Dukungan wallpaper kustom dengan kontrol peredupan (dimming) dan frosted glass blur dinamis."
+    "Jurnal Trading: Reset matriks disiplin 35 hari, checklist rutinitas harian terpersonalisasi sesuai jam trading, dan penalti merah hari bolos jurnal.",
+    "Navigasi Jurnal: Penyatuan navigasi v1/v2 agar fokus dan pencegahan freeze pada bottom bar.",
+    "Media: Smooth vertical swipe video TikTok-style, random next video, dan perbaikan swipe-down kembali tanpa refresh.",
+    "Academy: Penghapusan Jalur 02, kurikulum murni 36 pertemuan terpadu, dan perbaikan perataan teks AMY pada brand header."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.384/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.385/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950384,
-  "latest_version_name": "2.0.0-pro.384",
+  "latest_version_code": 950385,
+  "latest_version_name": "2.0.0-pro.385",
   "mandatory": false,
   "releaseDate": "2026-10-01",
   "release_notes": [
-    "Redesign UI: Implementasi Obsidian Glass Trading UI pada seluruh modul utama (Mapping Gold, Berita, Jurnal Trading, Tutorial Trading).",
-    "Peningkatan visual luxury fintech trading terminal: background multi-layer dengan trading grid, aksen emas XAU/USD, dan efek kartu kaca transparan.",
-    "AMY AI Copilot mengambang global dengan posisi seragam dan breathing gold glow.",
-    "Dukungan wallpaper kustom dengan kontrol peredupan (dimming) dan frosted glass blur dinamis."
+    "Jurnal Trading: Reset matriks disiplin 35 hari, checklist rutinitas harian terpersonalisasi sesuai jam trading, dan penalti merah hari bolos jurnal.",
+    "Navigasi Jurnal: Penyatuan navigasi v1/v2 agar fokus dan pencegahan freeze pada bottom bar.",
+    "Media: Smooth vertical swipe video TikTok-style, random next video, dan perbaikan swipe-down kembali tanpa refresh.",
+    "Academy: Penghapusan Jalur 02, kurikulum murni 36 pertemuan terpadu, dan perbaikan perataan teks AMY pada brand header."
   ],
   "sha256": "d8a181eafdf1dc7e3735d1f4134e9b6f4cc5fe33259da973e2be7c70e41875ca",
-  "version": "2.0.0-pro.384",
-  "versionCode": 950384
+  "version": "2.0.0-pro.385",
+  "versionCode": 950385
 }

@@ -225,17 +225,25 @@ ul, ol { padding-left: 1.5em; }
   font-size: 15px;
   color: var(--heading);
   transition: color var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .brand-mark {
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  width: auto;
+  height: 38px;
+  padding: 0 10px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   color: var(--button-text);
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
   font-weight: 900;
-  font-size: 18px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
   box-shadow: 0 4px 14px rgba(var(--shadow-color), 0.20);
   transition: transform var(--transition), box-shadow var(--transition);
 }

@@ -43,7 +43,7 @@
     ui.text('exerciseTimeframe', q.timeframe);
     ['Time','Open','High','Low','Close'].forEach(function (key) { ui.text('ohlc' + key, '—'); });
     ui.byId('exerciseLesson').href = q.lesson.href;
-    ui.byId('exerciseLesson').textContent = 'Jalur 01 · ' + q.lesson.title + ' →';
+    ui.byId('exerciseLesson').textContent = q.lesson.title + ' →';
     ui.byId('exerciseLesson').hidden = true;
     ui.byId('guidedProgress').style.width = (index / exercises.length * 100) + '%';
     ui.status('guidedStatus', 'Amati penanda dan level chart, lalu pilih jawaban.');
@@ -69,7 +69,7 @@
     report.topics.forEach(function (topic) {
       var card = element('article', '', host); card.className = 'practice-panel';
       element('h3', topic.lesson.title + ' · ' + topic.mistakes.length + ' perlu ditinjau', card);
-      var link = element('a', 'Buka materi ini di Jalur 01 →', card); link.href = topic.lesson.href; link.className = 'btn primary'; link.addEventListener('click', saveReport);
+      var link = element('a', 'Buka materi ini →', card); link.href = topic.lesson.href; link.className = 'btn primary'; link.addEventListener('click', saveReport);
       topic.mistakes.forEach(function (r) {
         var detail = element('details', '', card);
         element('summary', r.exercise.prompt, detail);

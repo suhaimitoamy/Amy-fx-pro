@@ -499,6 +499,29 @@ body.amyfx-module--journal .side-nav-button.is-active {
 }
 
 /* ── 9. MODULE: TUTORIAL TRADING (Trading Academy) ───────── */
+body.amyfx-module--academy .brand {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+body.amyfx-module--academy .brand-mark {
+  border: 1px solid rgba(245, 196, 81, 0.45) !important;
+  background: rgba(245, 196, 81, 0.12) !important;
+  color: #F5C451 !important;
+  min-width: 44px !important;
+  width: auto !important;
+  height: 38px !important;
+  padding: 0 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+}
+
 body.amyfx-module--academy .hero-card {
   border-color: rgba(245, 196, 81, 0.35) !important;
   background:

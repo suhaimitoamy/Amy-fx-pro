@@ -42,9 +42,9 @@ test('polish provides light-theme and small-screen readability safeguards', () =
   assert.match(polish, /\.cards \{ grid-template-columns: 1fr; \}/);
 });
 
-test('release identity is synchronized at Pro384', () => {
-  assert.match(read('app/build.gradle.kts'), /versionCode = .*950384/);
-  assert.match(read('app/build.gradle.kts'), /2\.0\.0-pro\.384/);
-  assert.match(read('app/src/main/assets/app-version.js'), /code: 950384/);
-  assert.match(read('app/src/main/assets/update-checker.js'), /CURRENT_VERSION_CODE = Number\(VERSION\.code\) \|\| 950384/);
+test('release identity is synchronized at Pro385', () => {
+  assert.match(read('app/build.gradle.kts'), /versionCode = .*950385/);
+  assert.match(read('app/build.gradle.kts'), /2\.0\.0-pro\.385/);
+  assert.match(read('app/src/main/assets/app-version.js'), /code: 950385/);
+  assert.match(read('app/src/main/assets/update-checker.js'), /CURRENT_VERSION_CODE = Number\(VERSION\.code\) \|\| 950385/);
 });

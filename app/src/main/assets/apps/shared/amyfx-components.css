@@ -933,11 +933,23 @@ body.amyfx-module--academy .topbar {
   backdrop-filter: blur(var(--amy-blur-strong));
 }
 body.amyfx-module--academy .nav { max-width: 900px; padding-left: var(--amy-page-padding); padding-right: var(--amy-page-padding); }
-body.amyfx-module--academy .brand { color: var(--amy-text); }
+body.amyfx-module--academy .brand { color: var(--amy-text); white-space: nowrap; flex-shrink: 0; }
 body.amyfx-module--academy .brand-mark {
   border: 1px solid rgba(240, 161, 92, 0.34);
   background: rgba(240, 161, 92, 0.12);
   color: var(--amy-module-academy);
+  min-width: 44px;
+  width: auto;
+  height: 38px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
 }
 body.amyfx-module--academy .navlinks {
   border-color: var(--amy-border) !important;

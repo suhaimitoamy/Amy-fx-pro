@@ -289,6 +289,9 @@ function publishAmyFxJournalState() {
 }
 
 async function boot() {
+  document.documentElement.classList.remove("is-video-feed-open");
+  document.body.classList.remove("is-video-feed-open");
+  dom.fullscreenDialog?.classList.remove("is-video-feed");
   await requestPersistentStorage();
   await enforcePinLock();
   state.items = normalizeItems(await loadItems());
@@ -316,9 +319,23 @@ async function boot() {
   disableServiceWorkerForWebPage();
 }
 
+function debounce(callback, wait = 120) {
+  let timeoutId = 0;
+  return (...args) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => callback(...args), wait);
+  };
+}
+
 function bindEvents() {
+  // Bind primary bottom navigation immediately with full resilience
+  const navBtns = dom.navButtons?.length ? dom.navButtons : document.querySelectorAll(".bottom-nav .nav-button");
+  navBtns.forEach((button) => {
+    button.addEventListener("click", () => setView(button.dataset.view));
+  });
+
   const debouncedSearchRender = debounce(() => {
-    state.query = dom.searchInput.value.trim();
+    state.query = dom.searchInput?.value.trim() || "";
     resetGridLimits();
     saveSettings();
     render();
@@ -331,12 +348,12 @@ function bindEvents() {
     render();
   }, 220);
 
-  dom.searchInput.addEventListener("input", () => {
+  dom.searchInput?.addEventListener("input", () => {
     debouncedSearchRender();
   });
 
-  dom.focusSearchBtn.addEventListener("click", () => {
-    dom.searchInput.focus();
+  dom.focusSearchBtn?.addEventListener("click", () => {
+    dom.searchInput?.focus();
   });
 
   dom.filterToggleBtn?.addEventListener("click", () => {
@@ -358,10 +375,10 @@ function bindEvents() {
     });
   });
 
-  dom.openFormBtn.addEventListener("click", () => openForm());
-  dom.emptyAddBtn.addEventListener("click", () => openForm());
+  dom.openFormBtn?.addEventListener("click", () => openForm());
+  dom.emptyAddBtn?.addEventListener("click", () => openForm());
 
-  dom.clearFiltersBtn.addEventListener("click", () => {
+  dom.clearFiltersBtn?.addEventListener("click", () => {
     state.category = "Semua";
     state.status = "Semua";
     state.fileType = "Semua";
@@ -474,48 +491,43 @@ function bindEvents() {
   dom.fullscreenAnalyzeBtn?.addEventListener("click", analyzeActiveChart);
   dom.fullscreenDeleteBtn?.addEventListener("click", deleteActiveFullscreenItem);
   document.addEventListener("click", closeOpenCardMenus);
-  document.addEventListener("click", () => closeOpenFilterMenus());
-  dom.selectModeBtn.addEventListener("click", enterSelectMode);
-  dom.cancelSelectBtn.addEventListener("click", exitSelectMode);
-  dom.bulkDeleteBtn.addEventListener("click", deleteSelectedItems);
+  dom.selectModeBtn?.addEventListener("click", enterSelectMode);
+  dom.cancelSelectBtn?.addEventListener("click", exitSelectMode);
+  dom.bulkDeleteBtn?.addEventListener("click", deleteSelectedItems);
 
-  dom.navButtons.forEach((button) => {
-    button.addEventListener("click", () => setView(button.dataset.view));
-  });
+  dom.closeFormBtn?.addEventListener("click", () => closeForm());
 
-  dom.closeFormBtn.addEventListener("click", () => closeForm());
-
-  dom.dialog.addEventListener("cancel", (event) => {
+  dom.dialog?.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeForm();
   });
 
-  dom.form.addEventListener("submit", saveForm);
-  dom.titleInput.addEventListener("input", () => {
+  dom.form?.addEventListener("submit", saveForm);
+  dom.titleInput?.addEventListener("input", () => {
     state.autoTitleFromFile = false;
   });
-  dom.deleteCurrentBtn.addEventListener("click", deleteCurrentItem);
-  dom.typeInput.addEventListener("change", syncTypeFields);
-  dom.mediaUrlInput.addEventListener("input", () => updatePreviewFromUrl());
-  dom.fileInput.addEventListener("change", handleFilePick);
-  dom.closeDocumentBtn.addEventListener("click", closeDocumentDialog);
-  dom.downloadDocumentBtn.addEventListener("click", downloadActiveDocument);
-  dom.openDocumentBtn.addEventListener("click", openActiveDocumentInNewTab);
-  dom.fullscreenBackBtn.addEventListener("click", closeFullscreenViewer);
-  dom.fullscreenCloseBtn.addEventListener("click", closeFullscreenViewer);
-  dom.fullscreenExitBtn.addEventListener("click", closeFullscreenViewer);
+  dom.deleteCurrentBtn?.addEventListener("click", deleteCurrentItem);
+  dom.typeInput?.addEventListener("change", syncTypeFields);
+  dom.mediaUrlInput?.addEventListener("input", () => updatePreviewFromUrl());
+  dom.fileInput?.addEventListener("change", handleFilePick);
+  dom.closeDocumentBtn?.addEventListener("click", closeDocumentDialog);
+  dom.downloadDocumentBtn?.addEventListener("click", downloadActiveDocument);
+  dom.openDocumentBtn?.addEventListener("click", openActiveDocumentInNewTab);
+  dom.fullscreenBackBtn?.addEventListener("click", closeFullscreenViewer);
+  dom.fullscreenCloseBtn?.addEventListener("click", closeFullscreenViewer);
+  dom.fullscreenExitBtn?.addEventListener("click", closeFullscreenViewer);
   document.addEventListener("click", handleGlobalFullscreenControlClick, true);
-  dom.fullscreenPrevBtn.addEventListener("click", () => showAdjacentImage(-1));
-  dom.fullscreenNextBtn.addEventListener("click", () => showAdjacentImage(1));
-  dom.fullscreenStage.addEventListener("touchstart", handleFullscreenTouchStart, { passive: true });
-  dom.fullscreenStage.addEventListener("touchend", handleFullscreenTouchEnd, { passive: true });
+  dom.fullscreenPrevBtn?.addEventListener("click", () => showAdjacentImage(-1));
+  dom.fullscreenNextBtn?.addEventListener("click", () => showAdjacentImage(1));
+  dom.fullscreenStage?.addEventListener("touchstart", handleFullscreenTouchStart, { passive: true });
+  dom.fullscreenStage?.addEventListener("touchend", handleFullscreenTouchEnd, { passive: true });
 
-  dom.documentDialog.addEventListener("cancel", (event) => {
+  dom.documentDialog?.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeDocumentDialog();
   });
 
-  dom.fullscreenDialog.addEventListener("cancel", (event) => {
+  dom.fullscreenDialog?.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeFullscreenViewer();
   });
@@ -855,24 +867,70 @@ function setView(view, shouldRender = true) {
 }
 
 /* ========================================================
-   RUTINITAS ORANG SUKSES — INTEGRATED JOURNAL LOGIC
+   RUTINITAS TRADING HARIAN — ALUR DISIPLIN PERSONAL
    ======================================================== */
 const DEFAULT_JOURNAL_HABITS = [
-  { id: 'h1', title: 'Morning Meditation & Mindset', target: '5 Mins', streak: 10 },
-  { id: 'h2', title: 'Read Book & Market Prep', target: '30 Mins', streak: 7 },
-  { id: 'h3', title: 'Olahraga & Kebugaran Fisik', target: '1 Jam', streak: 4 },
-  { id: 'h4', title: 'Minum 2L Air & Hidrasi', target: '8 Gelas', streak: 5 },
-  { id: 'h5', title: 'Journaling Emosi & Trading Plan', target: '10 Mins', streak: 6 },
-  { id: 'h6', title: 'Analisis Struktur XAU/USD (H4 & M15)', target: 'Market Mapping', streak: 8 },
-  { id: 'h7', title: 'Disiplin Hitung Lot Max 1-2% Risk', target: 'Money Management', streak: 14 },
-  { id: 'h8', title: 'Wajib Pasang Hard Stop Loss', target: 'Proteksi Modal', streak: 14 }
+  {
+    id: 'h1',
+    title: 'Aktivitas Pagi & Kesiapan Diri',
+    desc: 'Mandi, sarapan, beberes, memasak, dan aktivitas kerja pagi agar fokus dan tenang.',
+    target: 'Pagi Hari',
+    streak: 0
+  },
+  {
+    id: 'h2',
+    title: 'Cek Harga MT5 & Mapping TradingView',
+    desc: 'Buka MT5 cek pergerakan harga, buka TradingView: tandai PDH, PDL, dan gambar area POI.',
+    target: 'Pra-Market',
+    streak: 0
+  },
+  {
+    id: 'h3',
+    title: 'Jendela Entry Pagi (Disiplin Waktu)',
+    desc: 'Dilarang keras entry 06:00–07:00 WIB. Entry HANYA jam 07:00–11:00 WIB jika setup valid.',
+    target: '07:00 - 11:00 WIB',
+    streak: 0
+  },
+  {
+    id: 'h4',
+    title: 'Istirahat & Tidur Siang',
+    desc: 'Jeda market, tidur/istirahat sejenak untuk reset fokus emosi dan cegah overtrading.',
+    target: 'Siang Hari',
+    streak: 0
+  },
+  {
+    id: 'h5',
+    title: 'Analisa Sesi London & Eksekusi',
+    desc: 'Jam 12:00/13:00 buka MT5 & TV: tandai Asia High/Low & POI. Entry hanya jika break/sweep terkonfirmasi PDH/PDL.',
+    target: '12:00 - 13:00 WIB',
+    streak: 0
+  },
+  {
+    id: 'h6',
+    title: 'Disiplin Cut-Off Sore (Off Trade)',
+    desc: 'Tepat jam 16:00 WIB stop trading/off trade. Ambil jeda santai menunggu sesi New York.',
+    target: '16:00 WIB Stop',
+    streak: 0
+  },
+  {
+    id: 'h7',
+    title: 'Fokus Sesi New York & Istirahat Malam',
+    desc: 'Fokus setup A+ jam 20:30–22:00 WIB. Setelah selesai, rekap singkat lalu istirahat tidur.',
+    target: '20:30 - 22:00 WIB',
+    streak: 0
+  }
 ];
 
 let jHabitsCurrentDate = new Date();
 
 function getStoredJournalHabits() {
   try {
-    return JSON.parse(localStorage.getItem('amy_habits_v2') || 'null') || DEFAULT_JOURNAL_HABITS;
+    const stored = JSON.parse(localStorage.getItem('amy_habits_v2') || 'null');
+    if (stored && (!stored[0] || !stored[0].desc || stored.length !== DEFAULT_JOURNAL_HABITS.length || stored[0].title.includes('Morning Meditation') || stored[0].title.includes('Minum 2L'))) {
+      localStorage.setItem('amy_habits_v2', JSON.stringify(DEFAULT_JOURNAL_HABITS));
+      return DEFAULT_JOURNAL_HABITS;
+    }
+    return stored || DEFAULT_JOURNAL_HABITS;
   } catch (_) {
     return DEFAULT_JOURNAL_HABITS;
   }
@@ -890,6 +948,33 @@ function formatJDate(d) {
   return d.toISOString().split('T')[0];
 }
 
+function getDisciplineStartDate() {
+  let saved = localStorage.getItem('amy_discipline_start_date');
+  if (!saved) {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setDate(diff);
+    saved = formatJDate(monday);
+    localStorage.setItem('amy_discipline_start_date', saved);
+  }
+  return saved;
+}
+
+function getEffectiveDisciplineStartDate() {
+  let startDate = getDisciplineStartDate();
+  const completedMap = getStoredCompletedHabits();
+  const completedDates = Object.keys(completedMap).filter(k => (completedMap[k] || []).length > 0);
+  const journalDates = (state?.journals || []).map(j => j.date).filter(Boolean);
+  const allRecordedDates = [...completedDates, ...journalDates].sort();
+  if (allRecordedDates.length > 0 && allRecordedDates[0] < startDate) {
+    startDate = allRecordedDates[0];
+    localStorage.setItem('amy_discipline_start_date', startDate);
+  }
+  return startDate;
+}
+
 function renderJournalHabits() {
   const monthLabel = document.getElementById('jHabitMonthLabel');
   const dayLabel = document.getElementById('jHabitDayLabel');
@@ -897,6 +982,9 @@ function renderJournalHabits() {
   const cardsList = document.getElementById('jHabitsCardsList');
   const progressBadge = document.getElementById('jHabitProgressText');
   const streakText = document.getElementById('jHabitStreakText');
+  const penaltyPill = document.getElementById('jHabitPenalty');
+  const penaltyText = document.getElementById('jHabitPenaltyText');
+  const penaltyBanner = document.getElementById('jHabitPenaltyBanner');
 
   if (!monthLabel || !heatmapGrid || !cardsList) return;
 
@@ -908,43 +996,117 @@ function renderJournalHabits() {
   const habits = getStoredJournalHabits();
   const completedMap = getStoredCompletedHabits();
   const curDateStr = formatJDate(jHabitsCurrentDate);
-  const curCompleted = completedMap[curDateStr] || ['h1', 'h2', 'h4', 'h6', 'h7'];
+  const curCompleted = completedMap[curDateStr] || [];
 
-  // Render 35-day Heatmap Matrix
+  const today = new Date();
+  const todayStr = formatJDate(today);
+  const effectiveStartDate = getEffectiveDisciplineStartDate();
+  let penaltyCount = 0;
+
+  // Render 35-day Heatmap Matrix (murni dari data riil, merah jika hari trading terlewat / penalti)
   heatmapGrid.innerHTML = '';
-  const patternRatios = [
-    0.85, 1.0, 0.5, 0.75, 1.0, 0.6, 0.8,
-    0.7, 1.0, 0.5, 0.75, 0.9, 0.4, 0.5,
-    1.0, 0.6, 0.75, 1.0, 1.0, 0.3, 0.0,
-    0.9, 0.5, 0.7, 1.0, 0.4, 0.0, 0.0,
-    0.0, 0.7, 0.0, 0.0, 0.0, 0.8, 0.6
-  ];
 
   for (let i = 34; i >= 0; i--) {
     const d = new Date(jHabitsCurrentDate);
     d.setDate(d.getDate() - i);
     const dStr = formatJDate(d);
+    const dayOfWeek = d.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isTradingDay = !isWeekend;
+    const isPast = dStr < todayStr;
+    const isToday = dStr === todayStr;
 
-    let ratio = patternRatios[34 - i] || 0;
-    if (completedMap[dStr]) {
-      ratio = completedMap[dStr].length / habits.length;
+    const dayCompleted = completedMap[dStr] || [];
+    const hasJournal = Array.isArray(state?.journals) && state.journals.some(j => j.date === dStr);
+    const isFilled = dayCompleted.length > 0 || hasJournal;
+
+    let ratio = 0;
+    if (dayCompleted.length > 0 && habits.length > 0) {
+      ratio = dayCompleted.length / habits.length;
     }
 
     let lvl = 'lvl-0';
-    if (ratio >= 0.85) lvl = 'lvl-4';
-    else if (ratio >= 0.6) lvl = 'lvl-3';
-    else if (ratio >= 0.4) lvl = 'lvl-2';
-    else if (ratio > 0) lvl = 'lvl-1';
+    let tileTitle = '';
+
+    if (isWeekend) {
+      lvl = 'lvl-0 is-weekend';
+      tileTitle = `${dStr}: 🌴 Akhir Pekan (Market Tutup - Bebas Trade)`;
+    } else if (isFilled) {
+      if (ratio >= 0.85) lvl = 'lvl-4';
+      else if (ratio >= 0.6) lvl = 'lvl-3';
+      else if (ratio >= 0.4) lvl = 'lvl-2';
+      else lvl = 'lvl-1';
+      tileTitle = `${dStr}: ✅ Disiplin (${Math.round(ratio * 100)}% checklist${hasJournal ? ', Jurnal ada' : ''})`;
+    } else if (isPast && dStr >= effectiveStartDate) {
+      // Hari trading di masa lalu sejak pelacakan aktif tapi TIDAK DIISI -> PENALTI (MERAH)!
+      lvl = 'lvl-penalty';
+      penaltyCount++;
+      tileTitle = `${dStr}: ⚠️ PENALTI (Hari trading terlewat - Jurnal / Rutinitas tidak diisi!)`;
+    } else if (isToday) {
+      lvl = 'lvl-0';
+      tileTitle = `${dStr}: ⏳ Hari Ini (Silakan isi jurnal & checklist)`;
+    } else {
+      lvl = 'lvl-0';
+      tileTitle = `${dStr}: Belum diisi`;
+    }
 
     const tile = document.createElement('button');
     tile.type = 'button';
     tile.className = `j-heatmap-tile ${lvl} ${dStr === curDateStr ? 'is-active-day' : ''}`;
-    tile.title = `${dStr}: ${Math.round(ratio * 100)}% disiplin`;
+    tile.title = tileTitle;
     tile.onclick = () => {
       jHabitsCurrentDate = new Date(d);
       renderJournalHabits();
     };
     heatmapGrid.appendChild(tile);
+  }
+
+  // Update Penalty Pill & Counter
+  if (penaltyText) {
+    penaltyText.textContent = `${penaltyCount} Penalti`;
+  }
+  if (penaltyPill) {
+    if (penaltyCount > 0) {
+      penaltyPill.classList.remove('zero');
+    } else {
+      penaltyPill.classList.add('zero');
+    }
+  }
+
+  // Banner Peringatan Penalti jika melihat tanggal hari trading yang terlewat
+  if (penaltyBanner) {
+    const curDayOfWeek = jHabitsCurrentDate.getDay();
+    const isCurTradingDay = curDayOfWeek >= 1 && curDayOfWeek <= 5;
+    const isCurPast = curDateStr < todayStr;
+    const curHasJournal = Array.isArray(state?.journals) && state.journals.some(j => j.date === curDateStr);
+    const isCurMissed = isCurTradingDay && isCurPast && curDateStr >= effectiveStartDate && curCompleted.length === 0 && !curHasJournal;
+
+    if (isCurMissed) {
+      penaltyBanner.style.display = 'flex';
+      penaltyBanner.innerHTML = `
+        <span style="font-size: 20px;">⚠️</span>
+        <div>
+          <strong>Hari Trading Terlewat (Kena Penalti)</strong>: Anda tidak mengisi jurnal atau checklist rutinitas pada hari trading ini (${dayDate}). Silakan centang checklist di bawah ini untuk memulihkan kedisiplinan dan menghapus warna merah penalti!
+        </div>
+      `;
+    } else {
+      penaltyBanner.style.display = 'none';
+      penaltyBanner.innerHTML = '';
+    }
+  }
+
+  // Subtitle matriks disiplin dengan tautan reset
+  const matrixSubtitle = document.getElementById('jHabitMatrixSubtitle');
+  if (matrixSubtitle) {
+    matrixSubtitle.innerHTML = `Tingkat kepatuhan checklist harian (Senin–Jumat) · Pelacakan aktif: <strong>${effectiveStartDate}</strong> · <a href="javascript:void(0)" id="jHabitStartTodayBtn" style="color:var(--info); text-decoration:underline;">Mulai dari Hari Ini</a>`;
+    const startTodayBtn = document.getElementById('jHabitStartTodayBtn');
+    if (startTodayBtn) {
+      startTodayBtn.onclick = (e) => {
+        e.preventDefault();
+        localStorage.setItem('amy_discipline_start_date', todayStr);
+        renderJournalHabits();
+      };
+    }
   }
 
   // Render Habits Cards List
@@ -955,6 +1117,23 @@ function renderJournalHabits() {
     const isDone = curCompleted.includes(h.id);
     if (isDone) doneCount++;
 
+    // Hitung streak individual per habit (Senin–Jumat, abaikan weekend)
+    let habitStreak = 0;
+    for (let s = 0; s < 60; s++) {
+      const cd = new Date(today);
+      cd.setDate(cd.getDate() - s);
+      const dow = cd.getDay();
+      if (dow === 0 || dow === 6) continue;
+      const ds = formatJDate(cd);
+      const listDone = completedMap[ds] || [];
+      if (listDone.includes(h.id)) {
+        habitStreak++;
+      } else {
+        if (s === 0) continue;
+        break;
+      }
+    }
+
     const card = document.createElement('div');
     card.className = `habit-item-card ${isDone ? 'is-done' : ''}`;
     card.innerHTML = `
@@ -963,9 +1142,10 @@ function renderJournalHabits() {
       </div>
       <div class="habit-item-info">
         <h4 class="habit-item-title">${h.title}</h4>
+        ${h.desc ? `<p class="habit-item-desc">${h.desc}</p>` : ''}
         <div class="habit-item-meta">
           <span class="meta-target">${h.target}</span>
-          ${h.streak ? `<span class="meta-streak">🔥 ${h.streak}D Streak</span>` : ''}
+          ${habitStreak > 0 ? `<span class="meta-streak">🔥 ${habitStreak}D Streak</span>` : ''}
         </div>
       </div>
     `;
@@ -978,8 +1158,26 @@ function renderJournalHabits() {
     progressBadge.textContent = `${doneCount} / ${habits.length} Selesai`;
     progressBadge.style.color = doneCount === habits.length ? 'var(--success)' : 'var(--muted)';
   }
+
+  // Hitung streak riil keseluruhan dari completedMap (Senin–Jumat, Sabtu & Minggu tidak merusak streak)
+  let realStreak = 0;
+  for (let i = 0; i < 90; i++) {
+    const checkD = new Date(today);
+    checkD.setDate(checkD.getDate() - i);
+    const dayOfWeek = checkD.getDay(); // 0 = Minggu, 6 = Sabtu
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Pasar tutup di akhir pekan
+    const ds = formatJDate(checkD);
+    const dayDone = completedMap[ds] || [];
+    if (dayDone.length > 0) {
+      realStreak++;
+    } else {
+      if (i === 0) continue; // Hari trading yang sedang berjalan belum selesai
+      break;
+    }
+  }
+
   if (streakText) {
-    streakText.textContent = `Streak: ${Math.max(5, doneCount)} Hari`;
+    streakText.textContent = `Streak: ${realStreak} Hari`;
   }
 
   // Update Executive KPI Stats Strip (matching Dasbor & Statistik UI style)
@@ -988,13 +1186,29 @@ function renderJournalHabits() {
   const kpiConsistency = document.getElementById('kpiHabitConsistency');
   const kpiRisk = document.getElementById('kpiHabitRisk');
 
-  const streakDays = Math.max(5, doneCount);
-  if (kpiStreak) kpiStreak.textContent = `${streakDays} Hari`;
+  if (kpiStreak) kpiStreak.textContent = `${realStreak} Hari`;
   if (kpiDone) kpiDone.textContent = `${doneCount} / ${habits.length} Selesai`;
+
   if (kpiConsistency) {
-    const consistencyPct = Math.round((doneCount / habits.length) * 100);
+    // Konsistensi 35 hari trading riil (hanya hari Senin–Jumat)
+    let tradingDaysCount = 0;
+    let habitsDoneCount35D = 0;
+    for (let i = 0; i < 60; i++) {
+      const checkD = new Date(today);
+      checkD.setDate(checkD.getDate() - i);
+      const dayOfWeek = checkD.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+      tradingDaysCount++;
+      const ds = formatJDate(checkD);
+      const dayDone = completedMap[ds] || [];
+      habitsDoneCount35D += dayDone.length;
+      if (tradingDaysCount >= 35) break;
+    }
+    const maxPossible = tradingDaysCount * habits.length;
+    const consistencyPct = maxPossible > 0 ? Math.round((habitsDoneCount35D / maxPossible) * 100) : 0;
     kpiConsistency.textContent = `${consistencyPct}% Konsisten`;
   }
+
   if (kpiRisk) {
     const savedRisk = localStorage.getItem('amy_default_risk') || '1.5';
     kpiRisk.textContent = `${savedRisk}% SL`;
@@ -1004,7 +1218,7 @@ function renderJournalHabits() {
 function toggleJournalHabit(id) {
   const curDateStr = formatJDate(jHabitsCurrentDate);
   const completedMap = getStoredCompletedHabits();
-  let list = completedMap[curDateStr] || ['h1', 'h2', 'h4', 'h6', 'h7'];
+  let list = completedMap[curDateStr] ? [...completedMap[curDateStr]] : [];
 
   if (list.includes(id)) {
     list = list.filter(x => x !== id);
@@ -2903,6 +3117,13 @@ function closeFullscreenViewer() {
   if (media) media.pause();
   dom.fullscreenStage.replaceChildren();
   dom.fullscreenStage.classList.remove("is-reader-stage");
+  dom.fullscreenDialog.classList.remove("is-video-feed");
+  document.documentElement.classList.remove("is-video-feed-open");
+  document.body.classList.remove("is-video-feed-open");
+  if (window.__videoFeedObserver) {
+    window.__videoFeedObserver.disconnect();
+    window.__videoFeedObserver = null;
+  }
   if (dom.fullscreenAnalysis) { dom.fullscreenAnalysis.hidden = true; dom.fullscreenAnalysis.textContent = ""; }
   state.activeFullscreenItem = null;
   state.touchStartX = 0;
@@ -3245,103 +3466,252 @@ function applyVideoThumbnail(video, source) {
   window.setTimeout(capture, 1800);
 }
 
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function getVisibleVideoItems() {
   return getFilteredItems(state.items).filter((item) => (item.mediaKind || inferMediaKind(item)) === "video");
 }
 
 async function renderVideoFeed(activeItem) {
-  const videoItems = getVisibleVideoItems();
-  const items = videoItems.length ? videoItems : [activeItem];
+  dom.fullscreenDialog.classList.add("is-video-feed");
+  document.documentElement.classList.add("is-video-feed-open");
+  document.body.classList.add("is-video-feed-open");
+
+  const allVideos = getVisibleVideoItems();
+  const otherVideos = allVideos.filter((v) => v.id !== activeItem.id);
+  // Acak video selanjutnya secara random ala algoritma TikTok
+  const shuffledOthers = shuffleArray(otherVideos);
+  const feedItems = [activeItem, ...shuffledOthers];
+
   const feed = document.createElement("div");
   feed.className = "fullscreen-video-feed";
 
-  for (const videoItem of items) {
+  // Mencegah bug reload / refresh halaman saat swipe ke bawah di mobile
+  let touchStartY = 0;
+  let touchStartX = 0;
+
+  feed.addEventListener("touchstart", (e) => {
+    if (e.touches && e.touches.length === 1) {
+      touchStartY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+    }
+  }, { passive: true });
+
+  feed.addEventListener("touchmove", (e) => {
+    if (e.touches && e.touches.length === 1) {
+      const deltaY = e.touches[0].clientY - touchStartY;
+      const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+      if (Math.abs(deltaY) > deltaX) {
+        // Jika sedang di video paling atas dan swipe ke bawah -> Kunci agar browser tidak refresh!
+        if (feed.scrollTop <= 0 && deltaY > 0) {
+          e.preventDefault();
+        }
+      }
+    }
+  }, { passive: false });
+
+  const panelMap = new Map();
+
+  async function loadPanelVideo(panel, videoItem) {
+    if (panel.dataset.sourceLoaded === "1") return;
+    panel.dataset.sourceLoaded = "1";
+    try {
+      const source = await getFullscreenFeedSource(videoItem);
+      if (!source) {
+        const error = panel.querySelector(".fullscreen-error") || document.createElement("div");
+        error.className = "fullscreen-error";
+        error.textContent = "Video belum bisa dimuat.";
+        panel.append(error);
+        return;
+      }
+      const video = panel.querySelector("video");
+      if (video) {
+        video.src = source;
+        setupVideoCompletionTracking(video, videoItem);
+        if (panel.dataset.isActive === "1") {
+          video.play().catch(() => {
+            video.muted = true;
+            video.play().catch(() => {});
+          });
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  function createVideoPanel(videoItem, isInitial = false) {
     const panel = document.createElement("section");
     panel.className = "fullscreen-video-panel";
     panel.dataset.id = videoItem.id;
 
-    const source = await getFullscreenFeedSource(videoItem);
-    if (source) {
-      const video = document.createElement("video");
-      video.className = "fullscreen-video feed-video";
-      video.controls = true;
-      video.playsInline = true;
-      video.preload = "metadata";
-      video.src = source;
-      setupVideoCompletionTracking(video, videoItem);
-      panel.append(video);
-    } else {
-      const error = document.createElement("div");
-      error.className = "fullscreen-error";
-      error.textContent = "Video belum bisa dimuat.";
-      panel.append(error);
-    }
+    const video = document.createElement("video");
+    video.className = "fullscreen-video feed-video";
+    video.playsInline = true;
+    video.setAttribute("webkit-playsinline", "true");
+    video.loop = true;
+    video.preload = isInitial ? "auto" : "metadata";
+    video.controls = false; // Kontrol mulus ala TikTok
 
-    const caption = document.createElement("div");
-    caption.className = "fullscreen-video-caption";
-    caption.textContent = videoItem.title || videoItem.mediaName || "Video";
-    panel.append(caption);
-    feed.append(panel);
+    // Center play indicator icon
+    const playIndicator = document.createElement("div");
+    playIndicator.className = "video-play-indicator";
+    playIndicator.innerHTML = `▶`;
+
+    // Overlay Caption & Meta
+    const overlay = document.createElement("div");
+    overlay.className = "fullscreen-video-overlay";
+
+    const title = videoItem.title || videoItem.mediaName || "Video Edukasi";
+    const category = videoItem.category || "Media";
+    const tags = Array.isArray(videoItem.tags) && videoItem.tags.length ? `#${videoItem.tags.slice(0, 3).join(" #")}` : "";
+
+    overlay.innerHTML = `
+      <div class="video-overlay-info">
+        <h3 class="video-overlay-title">${escapeHtml(title)}</h3>
+        <div class="video-overlay-meta">
+          <span class="video-overlay-tag">${escapeHtml(category)}</span>
+          ${tags ? `<span>${escapeHtml(tags)}</span>` : ""}
+        </div>
+      </div>
+    `;
+
+    // Slim bottom progress bar
+    const progressBar = document.createElement("div");
+    progressBar.className = "video-progress-bar";
+    const progressFill = document.createElement("div");
+    progressFill.className = "video-progress-fill";
+    progressBar.append(progressFill);
+
+    // Floating Sound Toggle
+    const soundToggle = document.createElement("button");
+    soundToggle.type = "button";
+    soundToggle.className = "video-sound-toggle";
+    soundToggle.setAttribute("aria-label", "Toggle Suara");
+    soundToggle.innerHTML = "🔊";
+
+    soundToggle.onclick = (e) => {
+      e.stopPropagation();
+      video.muted = !video.muted;
+      soundToggle.innerHTML = video.muted ? "🔇" : "🔊";
+    };
+
+    // Tap to Play/Pause
+    panel.onclick = (e) => {
+      if (e.target.closest(".video-sound-toggle, .fullscreen-bar")) return;
+      if (video.paused) {
+        video.play().catch(() => {});
+        playIndicator.classList.remove("is-visible");
+      } else {
+        video.pause();
+        playIndicator.classList.add("is-visible");
+      }
+    };
+
+    video.addEventListener("timeupdate", () => {
+      if (video.duration && Number.isFinite(video.duration)) {
+        const pct = (video.currentTime / video.duration) * 100;
+        progressFill.style.width = `${pct}%`;
+      }
+    });
+
+    panel.append(video, playIndicator, overlay, progressBar, soundToggle);
+    panelMap.set(panel, videoItem);
+    return panel;
   }
 
+  // 1. Buat panel pertama secara instan
+  const initialPanel = createVideoPanel(activeItem, true);
+  initialPanel.dataset.isActive = "1";
+  feed.append(initialPanel);
+
+  // 2. Buat panel video lainnya dalam urutan acak
+  for (let i = 1; i < feedItems.length; i++) {
+    const p = createVideoPanel(feedItems[i], false);
+    feed.append(p);
+  }
+
+  // Masukkan feed ke stage secara instan (0 detik lag!)
   dom.fullscreenStage.replaceChildren(feed);
 
-  const activePanel = feed.querySelector(`[data-id="${CSS.escape(activeItem.id)}"]`);
-  if (activePanel) {
-    requestAnimationFrame(() => {
-      activePanel.scrollIntoView({ block: "start" });
-      playVisibleFeedVideo(feed);
+  // 3. Load & putar video pertama langsung
+  const initialSource = await getFullscreenFeedSource(activeItem);
+  const initialVideo = initialPanel.querySelector("video");
+  if (initialVideo && initialSource) {
+    initialVideo.src = initialSource;
+    initialPanel.dataset.sourceLoaded = "1";
+    setupVideoCompletionTracking(initialVideo, activeItem);
+    initialVideo.play().catch(() => {
+      initialVideo.muted = true;
+      initialVideo.play().catch(() => {});
     });
-  } else {
-    playVisibleFeedVideo(feed);
   }
 
-  feed.addEventListener("scroll", debounce(() => {
-    playVisibleFeedVideo(feed);
-  }, 120), { passive: true });
-}
-
-function playVisibleFeedVideo(feed) {
-  const panels = [...feed.querySelectorAll(".fullscreen-video-panel")];
-  if (!panels.length) return;
-
-  const feedRect = feed.getBoundingClientRect();
-  let activePanel = panels[0];
-  let activeDistance = Infinity;
-
-  panels.forEach((panel) => {
-    const rect = panel.getBoundingClientRect();
-    const distance = Math.abs(rect.top - feedRect.top);
-    if (distance < activeDistance) {
-      activeDistance = distance;
-      activePanel = panel;
+  // 4. Prefetch video kedua di background
+  if (feedItems.length > 1) {
+    const secondPanel = feed.children[1];
+    if (secondPanel) {
+      loadPanelVideo(secondPanel, feedItems[1]);
     }
-  });
-
-  panels.forEach((panel) => {
-    const video = panel.querySelector("video");
-    if (!video) return;
-    if (panel === activePanel) {
-      video.play().catch(() => {});
-    } else {
-      video.pause();
-    }
-  });
-
-  const activeItem = state.items.find((item) => item.id === activePanel.dataset.id);
-  if (activeItem) {
-    state.activeFullscreenItem = activeItem;
-    dom.fullscreenTitle.textContent = activeItem.title || "Video";
-    dom.fullscreenMeta.textContent = getFullscreenMeta(activeItem);
   }
-}
 
-function debounce(callback, wait = 120) {
-  let timeoutId = 0;
-  return (...args) => {
-    window.clearTimeout(timeoutId);
-    timeoutId = window.setTimeout(() => callback(...args), wait);
-  };
+  // 5. IntersectionObserver 60fps untuk auto play/pause saat swipe
+  if (window.__videoFeedObserver) {
+    window.__videoFeedObserver.disconnect();
+  }
+
+  window.__videoFeedObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const panel = entry.target;
+      const video = panel.querySelector("video");
+      const vItem = panelMap.get(panel);
+
+      if (entry.isIntersecting) {
+        panel.dataset.isActive = "1";
+        if (panel.dataset.sourceLoaded !== "1" && vItem) {
+          loadPanelVideo(panel, vItem);
+        }
+        if (video && video.src) {
+          video.play().catch(() => {
+            video.muted = true;
+            video.play().catch(() => {});
+          });
+        }
+        if (vItem) {
+          state.activeFullscreenItem = vItem;
+          dom.fullscreenTitle.textContent = vItem.title || "Video";
+          dom.fullscreenMeta.textContent = getFullscreenMeta(vItem);
+        }
+        // Prefetch video berikutnya
+        const next = panel.nextElementSibling;
+        if (next) {
+          const nextItem = panelMap.get(next);
+          if (nextItem && next.dataset.sourceLoaded !== "1") {
+            loadPanelVideo(next, nextItem);
+          }
+        }
+      } else {
+        panel.dataset.isActive = "0";
+        if (video) {
+          video.pause();
+        }
+      }
+    });
+  }, {
+    root: feed,
+    threshold: 0.6
+  });
+
+  Array.from(feed.children).forEach((panel) => {
+    window.__videoFeedObserver.observe(panel);
+  });
 }
 
 async function getFullscreenFeedSource(item) {
@@ -5026,6 +5396,9 @@ function loadJournals() {
 async function saveJournals(journals = state.journals, options = {}) {
   const saved = await saveMetadataArray(JOURNALS_META_RECORD, JOURNAL_STORAGE_KEY, journals, options);
   refreshInsightCache();
+  if (state.view === "habits") {
+    renderJournalHabits();
+  }
   return saved;
 }
 
