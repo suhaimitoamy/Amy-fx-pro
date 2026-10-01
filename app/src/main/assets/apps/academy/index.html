@@ -23,8 +23,22 @@
 <script>requireLogin();</script>
 <header class="topbar hide-until-auth">
   <nav class="nav">
+    <button type="button" class="nav-arrow-btn nav-arrow-left" id="amyfxNavBack" data-amyfx-nav="back" aria-label="Kembali ke Menu Utama">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
     <a class="brand" href="index.html"><span class="brand-mark">AMY</span><span>Tutorial Trading</span></a>
-    <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button type="button" class="nav-arrow-btn nav-arrow-right" id="amyfxNavForward" data-amyfx-nav="forward" aria-label="Maju">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
     <div class="navlinks" id="navlinks">
       <a href="index.html">Beranda</a>
       <a href="daftar-materi.html">Daftar Materi</a>
@@ -257,6 +271,7 @@
 </script>
   <script src="../shared/amyfx-blueprint-v1.js" data-amyfx-blueprint-js="v1"></script>
   <script src="../shared/amyfx-blueprint-hotfix-v1.js" data-amyfx-blueprint-hotfix="v1"></script>
+  <script src="../shared/amyfx-universal-nav.js"></script>
   <script src="../shared/amy-local-assistant.js" data-amy-local-assistant="v1"></script>
 </body>
 </html>

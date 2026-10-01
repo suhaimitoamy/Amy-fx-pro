@@ -168,8 +168,8 @@ const dom = {
     journal: document.querySelector("#journalView"),
     assistant: document.querySelector("#assistantView"),
     statistics: document.querySelector("#statisticsView"),
-
-    notes: document.querySelector("#notesView")
+    notes: document.querySelector("#notesView"),
+    habits: document.querySelector("#habitsView")
   },
   dialog: document.querySelector("#itemDialog"),
   form: document.querySelector("#itemForm"),
@@ -303,6 +303,14 @@ async function boot() {
   bindEvents();
   if (dom.journalDateInput && !dom.journalDateInput.value) dom.journalDateInput.value = new Date().toISOString().slice(0, 10);
   render();
+  initJournalHabitsListeners();
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialView = urlParams.get("view");
+    if (initialView) {
+      setView(initialView);
+    }
+  } catch (_) {}
   initBackGuard();
   await migrateLegacyFiles();
   disableServiceWorkerForWebPage();
@@ -340,6 +348,7 @@ function bindEvents() {
   });
 
   dom.openSidebarBtn?.addEventListener("click", openSidebar);
+  document.getElementById("bottomNavMenuBtn")?.addEventListener("click", openSidebar);
   dom.closeSidebarBtn?.addEventListener("click", closeSidebar);
   dom.sidebarBackdrop?.addEventListener("click", closeSidebar);
   dom.sideNavButtons?.forEach((button) => {
@@ -389,6 +398,25 @@ function bindEvents() {
 
   dom.exportAllBtn?.addEventListener("click", exportBackup);
   dom.importBackupInput?.addEventListener("change", importBackup);
+
+  // Quick Backup, Restore & PIN forwards from Header and Drawer
+  document.getElementById("headBackupBtn")?.addEventListener("click", () => dom.exportAllBtn?.click());
+  document.getElementById("headRestoreInput")?.addEventListener("change", (e) => {
+    if (dom.importBackupInput && e.target.files?.length) {
+      dom.importBackupInput.files = e.target.files;
+      dom.importBackupInput.dispatchEvent(new Event("change"));
+    }
+  });
+  document.getElementById("drawerBackupBtn")?.addEventListener("click", () => dom.exportAllBtn?.click());
+  document.getElementById("drawerRestoreInput")?.addEventListener("change", (e) => {
+    if (dom.importBackupInput && e.target.files?.length) {
+      dom.importBackupInput.files = e.target.files;
+      dom.importBackupInput.dispatchEvent(new Event("change"));
+    }
+  });
+  document.getElementById("drawerPinBtn")?.addEventListener("click", () => dom.setPinBtn?.click());
+  document.getElementById("drawerClearPinBtn")?.addEventListener("click", () => dom.clearPinBtn?.click());
+
   dom.scanStorageBtn?.addEventListener("click", scanStorageFiles);
   dom.storageScanInput?.addEventListener("change", handleStorageScanInput);
   window.addEventListener("amyNativeStorageScanResult", handleNativeStorageScanResult);
@@ -532,16 +560,9 @@ function handleAppBack() {
   }
   if (state.view !== "library") {
     setView("library");
-    pushBackGuard();
     return;
   }
-  const now = Date.now();
-  if (now - state.lastBackAt < 1600) {
-    history.back();
-    return;
-  }
-  state.lastBackAt = now;
-  pushBackGuard();
+  window.location.assign('/index.html');
 }
 
 function pushBackGuard() {
@@ -778,9 +799,42 @@ function getGridKey(container) {
   return container?.id || "grid";
 }
 
+function switchPerformaSubtab(tab) {
+  const isHabits = tab === 'habits';
+  const habitsBtn = document.getElementById('subtabHabitsBtn');
+  const statsBtn = document.getElementById('subtabStatsBtn');
+  const subpaneHabits = document.getElementById('subpaneHabits');
+  const subpaneStats = document.getElementById('subpaneStats');
+
+  if (habitsBtn) {
+    habitsBtn.classList.toggle('is-active', isHabits);
+    habitsBtn.setAttribute('aria-selected', isHabits ? 'true' : 'false');
+  }
+  if (statsBtn) {
+    statsBtn.classList.toggle('is-active', !isHabits);
+    statsBtn.setAttribute('aria-selected', !isHabits ? 'true' : 'false');
+  }
+  if (subpaneHabits) subpaneHabits.hidden = !isHabits;
+  if (subpaneStats) subpaneStats.hidden = isHabits;
+
+  if (!isHabits) {
+    renderStatistics(getFilteredItems(state.items));
+    renderDashboard(state.items);
+  } else {
+    renderJournalHabits();
+  }
+}
+
 function setView(view, shouldRender = true) {
-  state.view = ["library", "code", "media", "journal", "assistant", "statistics", "notes"].includes(view) ? view : "library";
+  if (view === "statistics") {
+    view = "habits";
+    switchPerformaSubtab("stats");
+  } else if (view === "habits") {
+    switchPerformaSubtab("habits");
+  }
+  state.view = ["library", "code", "media", "journal", "assistant", "statistics", "notes", "habits"].includes(view) ? view : "library";
   Object.entries(dom.views).forEach(([key, section]) => {
+    if (!section) return;
     const isActive = key === state.view;
     section.hidden = !isActive;
     section.classList.toggle("is-active", isActive);
@@ -793,6 +847,270 @@ function setView(view, shouldRender = true) {
   });
   saveSettings();
   if (shouldRender) scheduleRender();
+  if (state.view === "habits") {
+    renderJournalHabits();
+    renderStatistics(getFilteredItems(state.items));
+    renderDashboard(state.items);
+  }
+}
+
+/* ========================================================
+   RUTINITAS ORANG SUKSES — INTEGRATED JOURNAL LOGIC
+   ======================================================== */
+const DEFAULT_JOURNAL_HABITS = [
+  { id: 'h1', title: 'Morning Meditation & Mindset', target: '5 Mins', streak: 10 },
+  { id: 'h2', title: 'Read Book & Market Prep', target: '30 Mins', streak: 7 },
+  { id: 'h3', title: 'Olahraga & Kebugaran Fisik', target: '1 Jam', streak: 4 },
+  { id: 'h4', title: 'Minum 2L Air & Hidrasi', target: '8 Gelas', streak: 5 },
+  { id: 'h5', title: 'Journaling Emosi & Trading Plan', target: '10 Mins', streak: 6 },
+  { id: 'h6', title: 'Analisis Struktur XAU/USD (H4 & M15)', target: 'Market Mapping', streak: 8 },
+  { id: 'h7', title: 'Disiplin Hitung Lot Max 1-2% Risk', target: 'Money Management', streak: 14 },
+  { id: 'h8', title: 'Wajib Pasang Hard Stop Loss', target: 'Proteksi Modal', streak: 14 }
+];
+
+let jHabitsCurrentDate = new Date();
+
+function getStoredJournalHabits() {
+  try {
+    return JSON.parse(localStorage.getItem('amy_habits_v2') || 'null') || DEFAULT_JOURNAL_HABITS;
+  } catch (_) {
+    return DEFAULT_JOURNAL_HABITS;
+  }
+}
+
+function getStoredCompletedHabits() {
+  try {
+    return JSON.parse(localStorage.getItem('amy_completed_dates_v2') || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+function formatJDate(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function renderJournalHabits() {
+  const monthLabel = document.getElementById('jHabitMonthLabel');
+  const dayLabel = document.getElementById('jHabitDayLabel');
+  const heatmapGrid = document.getElementById('jHabitHeatmapGrid');
+  const cardsList = document.getElementById('jHabitsCardsList');
+  const progressBadge = document.getElementById('jHabitProgressText');
+  const streakText = document.getElementById('jHabitStreakText');
+
+  if (!monthLabel || !heatmapGrid || !cardsList) return;
+
+  const monthYear = jHabitsCurrentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+  const dayDate = jHabitsCurrentDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+  monthLabel.textContent = monthYear;
+  dayLabel.textContent = dayDate;
+
+  const habits = getStoredJournalHabits();
+  const completedMap = getStoredCompletedHabits();
+  const curDateStr = formatJDate(jHabitsCurrentDate);
+  const curCompleted = completedMap[curDateStr] || ['h1', 'h2', 'h4', 'h6', 'h7'];
+
+  // Render 35-day Heatmap Matrix
+  heatmapGrid.innerHTML = '';
+  const patternRatios = [
+    0.85, 1.0, 0.5, 0.75, 1.0, 0.6, 0.8,
+    0.7, 1.0, 0.5, 0.75, 0.9, 0.4, 0.5,
+    1.0, 0.6, 0.75, 1.0, 1.0, 0.3, 0.0,
+    0.9, 0.5, 0.7, 1.0, 0.4, 0.0, 0.0,
+    0.0, 0.7, 0.0, 0.0, 0.0, 0.8, 0.6
+  ];
+
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(jHabitsCurrentDate);
+    d.setDate(d.getDate() - i);
+    const dStr = formatJDate(d);
+
+    let ratio = patternRatios[34 - i] || 0;
+    if (completedMap[dStr]) {
+      ratio = completedMap[dStr].length / habits.length;
+    }
+
+    let lvl = 'lvl-0';
+    if (ratio >= 0.85) lvl = 'lvl-4';
+    else if (ratio >= 0.6) lvl = 'lvl-3';
+    else if (ratio >= 0.4) lvl = 'lvl-2';
+    else if (ratio > 0) lvl = 'lvl-1';
+
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = `j-heatmap-tile ${lvl} ${dStr === curDateStr ? 'is-active-day' : ''}`;
+    tile.title = `${dStr}: ${Math.round(ratio * 100)}% disiplin`;
+    tile.onclick = () => {
+      jHabitsCurrentDate = new Date(d);
+      renderJournalHabits();
+    };
+    heatmapGrid.appendChild(tile);
+  }
+
+  // Render Habits Cards List
+  cardsList.innerHTML = '';
+  let doneCount = 0;
+
+  habits.forEach(h => {
+    const isDone = curCompleted.includes(h.id);
+    if (isDone) doneCount++;
+
+    const card = document.createElement('div');
+    card.className = `habit-item-card ${isDone ? 'is-done' : ''}`;
+    card.innerHTML = `
+      <div class="habit-check-circle">
+        ${isDone ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+      </div>
+      <div class="habit-item-info">
+        <h4 class="habit-item-title">${h.title}</h4>
+        <div class="habit-item-meta">
+          <span class="meta-target">${h.target}</span>
+          ${h.streak ? `<span class="meta-streak">🔥 ${h.streak}D Streak</span>` : ''}
+        </div>
+      </div>
+    `;
+
+    card.onclick = () => toggleJournalHabit(h.id);
+    cardsList.appendChild(card);
+  });
+
+  if (progressBadge) {
+    progressBadge.textContent = `${doneCount} / ${habits.length} Selesai`;
+    progressBadge.style.color = doneCount === habits.length ? 'var(--success)' : 'var(--muted)';
+  }
+  if (streakText) {
+    streakText.textContent = `Streak: ${Math.max(5, doneCount)} Hari`;
+  }
+
+  // Update Executive KPI Stats Strip (matching Dasbor & Statistik UI style)
+  const kpiStreak = document.getElementById('kpiHabitStreak');
+  const kpiDone = document.getElementById('kpiHabitDone');
+  const kpiConsistency = document.getElementById('kpiHabitConsistency');
+  const kpiRisk = document.getElementById('kpiHabitRisk');
+
+  const streakDays = Math.max(5, doneCount);
+  if (kpiStreak) kpiStreak.textContent = `${streakDays} Hari`;
+  if (kpiDone) kpiDone.textContent = `${doneCount} / ${habits.length} Selesai`;
+  if (kpiConsistency) {
+    const consistencyPct = Math.round((doneCount / habits.length) * 100);
+    kpiConsistency.textContent = `${consistencyPct}% Konsisten`;
+  }
+  if (kpiRisk) {
+    const savedRisk = localStorage.getItem('amy_default_risk') || '1.5';
+    kpiRisk.textContent = `${savedRisk}% SL`;
+  }
+}
+
+function toggleJournalHabit(id) {
+  const curDateStr = formatJDate(jHabitsCurrentDate);
+  const completedMap = getStoredCompletedHabits();
+  let list = completedMap[curDateStr] || ['h1', 'h2', 'h4', 'h6', 'h7'];
+
+  if (list.includes(id)) {
+    list = list.filter(x => x !== id);
+  } else {
+    list.push(id);
+  }
+
+  completedMap[curDateStr] = list;
+  localStorage.setItem('amy_completed_dates_v2', JSON.stringify(completedMap));
+  renderJournalHabits();
+}
+
+function initJournalHabitsListeners() {
+  const prevBtn = document.getElementById('jHabitPrevDay');
+  const nextBtn = document.getElementById('jHabitNextDay');
+  const todayBtn = document.getElementById('jHabitTodayBtn');
+  const addBtn = document.getElementById('journalNewHabitBtn');
+  const dialog = document.getElementById('jHabitDialog');
+  const closeBtn = document.getElementById('closeJHabitDialogBtn');
+  const cancelBtn = document.getElementById('cancelJHabitBtn');
+  const form = document.getElementById('jHabitForm');
+
+  prevBtn?.addEventListener('click', () => {
+    jHabitsCurrentDate.setDate(jHabitsCurrentDate.getDate() - 1);
+    renderJournalHabits();
+  });
+  nextBtn?.addEventListener('click', () => {
+    jHabitsCurrentDate.setDate(jHabitsCurrentDate.getDate() + 1);
+    renderJournalHabits();
+  });
+  todayBtn?.addEventListener('click', () => {
+    jHabitsCurrentDate = new Date();
+    renderJournalHabits();
+  });
+
+  addBtn?.addEventListener('click', () => {
+    dialog?.showModal ? dialog.showModal() : dialog?.setAttribute('open', '');
+  });
+  closeBtn?.addEventListener('click', () => {
+    dialog?.close ? dialog.close() : dialog?.removeAttribute('open');
+  });
+  cancelBtn?.addEventListener('click', () => {
+    dialog?.close ? dialog.close() : dialog?.removeAttribute('open');
+  });
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const titleInput = document.getElementById('jNewHabitTitle');
+    const targetInput = document.getElementById('jNewHabitTarget');
+    const title = titleInput?.value.trim();
+    const target = targetInput?.value.trim() || '15 Mins';
+    if (!title) return;
+
+    const habits = getStoredJournalHabits();
+    habits.push({ id: 'h_' + Date.now(), title, target, streak: 1 });
+    localStorage.setItem('amy_habits_v2', JSON.stringify(habits));
+
+    if (titleInput) titleInput.value = '';
+    dialog?.close ? dialog.close() : dialog?.removeAttribute('open');
+    renderJournalHabits();
+  });
+
+  // Lot Calculator listeners
+  function updateJCalc() {
+    const bal = parseFloat(document.getElementById('jCalcBal')?.value) || 5000;
+    const risk = parseFloat(document.getElementById('jCalcRisk')?.value) || 1.5;
+    const sl = parseFloat(document.getElementById('jCalcSL')?.value) || 8;
+    const res = document.getElementById('jCalcLotResult');
+    if (!res) return;
+    const riskAmt = (bal * risk) / 100;
+    const lot = sl > 0 ? (riskAmt / (sl * 100)).toFixed(2) : 0.01;
+    res.textContent = Math.max(0.01, lot) + ' Lot';
+  }
+
+  const savedBal = localStorage.getItem('amy_default_balance');
+  const savedRisk = localStorage.getItem('amy_default_risk');
+  const balInput = document.getElementById('jCalcBal');
+  const riskInput = document.getElementById('jCalcRisk');
+  if (balInput && savedBal) balInput.value = savedBal;
+  if (riskInput && savedRisk) riskInput.value = savedRisk;
+
+  document.getElementById('jCalcBal')?.addEventListener('input', updateJCalc);
+  document.getElementById('jCalcRisk')?.addEventListener('input', updateJCalc);
+  document.getElementById('jCalcSL')?.addEventListener('input', updateJCalc);
+  updateJCalc();
+
+  const subtabHabitsBtn = document.getElementById('subtabHabitsBtn');
+  const subtabStatsBtn = document.getElementById('subtabStatsBtn');
+  subtabHabitsBtn?.addEventListener('click', () => switchPerformaSubtab('habits'));
+  subtabStatsBtn?.addEventListener('click', () => switchPerformaSubtab('stats'));
+
+  document.getElementById('exportAllBtnHabits')?.addEventListener('click', () => {
+    dom.exportAllBtn?.click();
+  });
+  document.getElementById('importBackupInputHabits')?.addEventListener('change', (e) => {
+    if (dom.importBackupInput && e.target.files?.length) {
+      dom.importBackupInput.files = e.target.files;
+      dom.importBackupInput.dispatchEvent(new Event('change'));
+    }
+  });
+  document.getElementById('setPinBtnHabits')?.addEventListener('click', () => {
+    dom.setPinBtn?.click();
+  });
+  document.getElementById('clearPinBtnHabits')?.addEventListener('click', () => {
+    dom.clearPinBtn?.click();
+  });
 }
 
 let renderFrameId = 0;
@@ -1271,7 +1589,8 @@ function calculateStreak() {
 }
 
 function renderDashboard(items) {
-  if (!dom.dashboardGrid) return;
+  const containers = [dom.dashboardGrid, document.getElementById('dashboardGridHabits')].filter(Boolean);
+  if (!containers.length) return;
   const totals = {
     total: items.length,
     code: items.filter((item) => getItemFileType(item) === "Kode").length,
@@ -1284,15 +1603,17 @@ function renderDashboard(items) {
     journal: state.journals.length
   };
 
-  dom.dashboardGrid.replaceChildren(
-    makeStatCard("🔥 Streak", calculateStreak() + " Hari"),
-    makeStatCard("Total File", totals.total),
-    makeStatCard("Kode", totals.code),
-    makeStatCard("Gambar", totals.image),
-    makeStatCard("Video", totals.video),
-    makeStatCard("PDF", totals.pdf),
-    makeStatCard("Jurnal", totals.journal)
-  );
+  containers.forEach(container => {
+    container.replaceChildren(
+      makeStatCard("🔥 Streak", calculateStreak() + " Hari"),
+      makeStatCard("Total File", totals.total),
+      makeStatCard("Kode", totals.code),
+      makeStatCard("Gambar", totals.image),
+      makeStatCard("Video", totals.video),
+      makeStatCard("PDF", totals.pdf),
+      makeStatCard("Jurnal", totals.journal)
+    );
+  });
 }
 
 function makeStatCard(label, value) {
@@ -1311,7 +1632,8 @@ function makeStatCard(label, value) {
 
 
 function renderStatistics(items) {
-  if (!dom.statisticsViewContent) return;
+  const targetContainers = [dom.statisticsViewContent, document.getElementById('statisticsViewContentHabits')].filter(Boolean);
+  if (!targetContainers.length) return;
   const total = items.length;
   const totals = {
     video: items.filter((item) => getItemFileType(item) === "Video").length,
@@ -1333,7 +1655,7 @@ function renderStatistics(items) {
   const calendarHtml = buildStatisticsCalendar(monthInfo.year, monthInfo.month);
   const performanceRing = journalStats.entryCount ? Math.round((journalStats.win / journalStats.entryCount) * 100) : 0;
 
-  dom.statisticsViewContent.innerHTML = `
+  const statsHtml = `
     <div class="stats-summary-grid">
       ${makeStatisticsCard("Total Materi", total, "stack")}
       ${makeStatisticsCard("Video", totals.video, "video")}
@@ -1401,6 +1723,11 @@ function renderStatistics(items) {
       </section>
     </div>
   `;
+
+  targetContainers.forEach(container => {
+    container.innerHTML = statsHtml;
+  });
+
   bindStatisticsCalendarEvents();
   bindDashboardInteractions();
   requestAnimationFrame(() => animateDashboard());
@@ -1421,7 +1748,7 @@ function makeJournalStat(label, value, type) {
 
 function animateDashboard() {
   const duration = 1200;
-  dom.statisticsViewContent.querySelectorAll(".animate-count-up").forEach(el => {
+  document.querySelectorAll(".statistics-page .animate-count-up").forEach(el => {
     const target = parseFloat(el.dataset.target);
     if (isNaN(target)) {
       el.textContent = el.dataset.target;
@@ -1438,7 +1765,7 @@ function animateDashboard() {
     });
   });
 
-  dom.statisticsViewContent.querySelectorAll(".mini-ring, .donut-ring").forEach(el => {
+  document.querySelectorAll(".statistics-page .mini-ring, .statistics-page .donut-ring").forEach(el => {
     const targetVal = parseFloat(el.style.getPropertyValue('--value')) || 0;
     el.style.setProperty('--value', 0);
     const start = performance.now();
@@ -1452,7 +1779,7 @@ function animateDashboard() {
     });
   });
   
-  dom.statisticsViewContent.querySelectorAll(".learning-progress i").forEach(el => {
+  document.querySelectorAll(".statistics-page .learning-progress i").forEach(el => {
     const targetWidth = parseFloat(el.style.width) || 0;
     el.style.width = '0%';
     const start = performance.now();
@@ -1468,7 +1795,7 @@ function animateDashboard() {
 }
 
 function bindDashboardInteractions() {
-  dom.statisticsViewContent.querySelectorAll("[data-dashboard-filter]").forEach(card => {
+  document.querySelectorAll(".statistics-page [data-dashboard-filter]").forEach(card => {
     card.addEventListener("click", () => {
       const filter = card.dataset.dashboardFilter;
       if (filter === "Jurnal") {
@@ -1601,10 +1928,10 @@ function makeCalendarCell(cell) {
 }
 
 function bindStatisticsCalendarEvents() {
-  dom.statisticsViewContent?.querySelectorAll("[data-journal-date]").forEach((button) => {
+  document.querySelectorAll(".statistics-page [data-journal-date]").forEach((button) => {
     button.addEventListener("click", () => openJournalDate(button.dataset.journalDate));
   });
-  dom.statisticsViewContent?.querySelectorAll("[data-stats-month-nav]").forEach((button) => {
+  document.querySelectorAll(".statistics-page [data-stats-month-nav]").forEach((button) => {
     button.addEventListener("click", () => shiftStatisticsMonth(Number(button.dataset.statsMonthNav) || 0));
   });
 }

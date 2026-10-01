@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.382/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.383/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping: evaluasi enam driver dengan alasan menunggu dan setup dari server.",
-    "OTE/Fib nyata, CHoCH terkonfirmasi, quorum Ensemble dan batas risiko Shield.",
-    "Lifecycle simulasi: limit/open setelah observasi, TP/SL, BE Adaptive, early exit Rapid.",
-    "Statistik R bruto, hasil ambigu dikecualikan, skor bukan gate entry tambahan."
+    "Integrasi fitur Habit & Rutinitas Disiplin Trader Emas di modul Jurnal.",
+    "Perombakan Profil menjadi Executive Workspace dengan kartu identitas trader dan preset tema glass.",
+    "Sistem navigasi universal dengan tombol panah kembali/maju di semua sub-modul (Mapping, Intel, Academy, Journal).",
+    "Shortcut pencadangan Backup ZIP dan Restore instan langsung di drawer dan header Jurnal."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.382/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.383/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950382,
-  "latest_version_name": "2.0.0-pro.382",
+  "latest_version_code": 950383,
+  "latest_version_name": "2.0.0-pro.383",
   "mandatory": false,
-  "releaseDate": "2026-09-30",
+  "releaseDate": "2026-10-01",
   "release_notes": [
-    "Mapping: evaluasi enam driver dengan alasan menunggu dan setup dari server.",
-    "OTE/Fib nyata, CHoCH terkonfirmasi, quorum Ensemble dan batas risiko Shield.",
-    "Lifecycle simulasi: limit/open setelah observasi, TP/SL, BE Adaptive, early exit Rapid.",
-    "Statistik R bruto, hasil ambigu dikecualikan, skor bukan gate entry tambahan."
+    "Integrasi fitur Habit & Rutinitas Disiplin Trader Emas di modul Jurnal.",
+    "Perombakan Profil menjadi Executive Workspace dengan kartu identitas trader dan preset tema glass.",
+    "Sistem navigasi universal dengan tombol panah kembali/maju di semua sub-modul (Mapping, Intel, Academy, Journal).",
+    "Shortcut pencadangan Backup ZIP dan Restore instan langsung di drawer dan header Jurnal."
   ],
   "sha256": "34f42b0f0e34995e7df9ff0a425e3e68b74ec59acfa531f08f0ea007d4b32b3f",
-  "version": "2.0.0-pro.382",
-  "versionCode": 950382
+  "version": "2.0.0-pro.383",
+  "versionCode": 950383
 }

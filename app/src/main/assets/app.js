@@ -203,10 +203,188 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderProfile() {
     setActive('profil');
-    const savedCode = Boolean(localStorage.getItem('amy_saved_code'));
+    const traderName = localStorage.getItem('amy_trader_name') || 'Amy Senju';
+    const userBalance = localStorage.getItem('amy_default_balance') || '5000';
+    const userRisk = localStorage.getItem('amy_default_risk') || '1.5';
     const analyses = readJsonArray('amy_mapping_analyses').length;
     const journal = readJsonArray('amy_journal_entries').length;
-    mainContent.innerHTML = `<div class="page-header"><div><span class="section-kicker">PENGATURAN</span><h2>Profil</h2></div></div><section class="profile-summary slide-up"><div class="profile-avatar" aria-hidden="true">AMY</div><div><h3>Amy FX</h3><p>Preferensi perangkat</p></div></section><section class="stats-grid"><div class="stat-card"><strong>${analyses}</strong><small>Analisis Mapping</small></div><div class="stat-card"><strong>${journal}</strong><small>Catatan Jurnal</small></div><div class="stat-card"><strong>${savedCode ? '1' : '0'}</strong><small>Kode Tersimpan</small></div></section><div class="profile-section-title">Tampilan</div><section class="theme-selector" aria-label="Pilih tema aplikasi"><button class="theme-choice" type="button" data-amyfx-theme-choice="system"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>Sistem</span></button><button class="theme-choice" type="button" data-amyfx-theme-choice="light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><span>Terang</span></button><button class="theme-choice" type="button" data-amyfx-theme-choice="dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg><span>Gelap</span></button></section><div class="profile-section-title">Sistem</div><section class="profile-list"><button class="profile-row danger-row" data-profile-action="clear"><span class="tool-icon">×</span><span><strong>Bersihkan data lokal</strong><small>Menghapus riwayat, jurnal, dan koleksi lokal. API key tetap disimpan.</small></span><span class="chevron">›</span></button></section>`;
+    
+    // Calculate habits streak
+    let habitStreak = 5;
+    try {
+      const dates = JSON.parse(localStorage.getItem('amy_completed_dates_v2') || '{}');
+      const count = Object.keys(dates).length;
+      if (count > 0) habitStreak = Math.max(5, count);
+    } catch (_) {}
+
+    const GLASS_PRESETS = [
+      { id: 'obsidian', name: 'Obsidian Kaca', bg: '#070b12', accent: '#69b7ff' },
+      { id: 'emerald', name: 'Zamrud Hijau', bg: '#05130d', accent: '#34d399' },
+      { id: 'sapphire', name: 'Safir Cobalt', bg: '#070e1b', accent: '#38bdf8' },
+      { id: 'amber', name: 'Royal Gold', bg: '#110b05', accent: '#fbbf24' },
+      { id: 'amethyst', name: 'Amethyst', bg: '#0d0718', accent: '#c084fc' }
+    ];
+
+    const presetsHTML = GLASS_PRESETS.map(p => `
+      <button type="button" class="glass-preset-btn" data-glass-preset="${p.id}">
+        <span style="width:10px; height:10px; border-radius:50%; background:${p.accent}; box-shadow:0 0 6px ${p.accent};"></span>
+        <span>${p.name}</span>
+      </button>
+    `).join('');
+
+    mainContent.innerHTML = `
+      <div class="page-header">
+        <div>
+          <span class="section-kicker">EXECUTIVE WORKSPACE</span>
+          <h2>Profil &amp; Pengaturan</h2>
+        </div>
+      </div>
+
+      <!-- Trader Executive Identity Card -->
+      <section class="profile-card slide-up" style="display:grid; grid-template-columns: 50px 1fr auto; align-items:center; gap:14px; padding:16px; border:1px solid var(--border-color); border-radius:18px; background:var(--surface-color); box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+        <div class="profile-avatar" style="width:48px; height:48px; display:grid; place-items:center; border-radius:50%; border:2px solid var(--primary-gold); color:var(--primary-gold); font-size:0.85rem; font-weight:900; box-shadow:0 0 16px var(--glow-gold); background:rgba(212,175,55,0.12);">
+          AS
+        </div>
+        <div class="profile-card-content">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 id="traderNameTitle" style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin:0;">${escapeHtml(traderName)}</h3>
+            <button type="button" id="editTraderNameBtn" style="background:none; border:none; color:var(--primary-gold); cursor:pointer; font-size:13px;" title="Ubah Nama">✏️</button>
+          </div>
+          <p style="color:var(--text-muted); font-size:0.75rem; margin-top:2px;">XAU/USD Gold Scalper &amp; Prop Trader</p>
+        </div>
+        <span class="status-badge" style="padding:4px 8px; border-radius:8px; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); font-size:0.62rem; font-weight:800; letter-spacing:0.05em;">DISIPLIN PRO</span>
+      </section>
+
+      <!-- Executive Trading Metrics -->
+      <section class="stats-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:14px;">
+        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
+          <strong style="color:#10b981; font-size:1.1rem;">${habitStreak}D</strong>
+          <small style="color:var(--text-muted);">Streak Rutinitas</small>
+        </div>
+        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
+          <strong style="font-size:1.1rem; color:var(--text-main);">${journal}</strong>
+          <small style="color:var(--text-muted);">Catatan Jurnal</small>
+        </div>
+        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
+          <strong style="font-size:1.1rem; color:var(--text-main);">${analyses}</strong>
+          <small style="color:var(--text-muted);">Analisis Map</small>
+        </div>
+        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
+          <strong style="color:var(--primary-gold); font-size:1.1rem;">${userRisk}%</strong>
+          <small style="color:var(--text-muted);">Max Risk/Trade</small>
+        </div>
+      </section>
+
+      <!-- Panel 1: Tampilan & Tema Glass -->
+      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Tampilan &amp; Tema Kaca</div>
+      <section class="profile-glass-panel" data-amyfx-color-settings="true" style="padding:16px; border-radius:16px; background:var(--surface-color); border:1px solid var(--border-color); box-shadow:0 4px 16px rgba(0,0,0,0.05); margin-top:8px;">
+        <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Mode Tampilan</div>
+        <div class="theme-selector" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
+            <span>Sistem</span>
+          </button>
+          <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+            <span>Terang</span>
+          </button>
+          <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
+            <span>Gelap</span>
+          </button>
+        </div>
+
+        <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-top:14px; margin-bottom:8px;">Preset Kaca &amp; Nuansa Aksen</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${presetsHTML}
+        </div>
+      </section>
+
+      <!-- Panel 2: Parameter Risiko Trading XAU/USD -->
+      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Parameter Trading &amp; Risiko (XAU/USD)</div>
+      <section style="padding:16px; border-radius:16px; background:var(--surface-color); border:1px solid var(--border-color); box-shadow:0 4px 16px rgba(0,0,0,0.05); margin-top:8px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <span style="display:block; font-size:11px; font-weight:750; color:var(--text-muted); margin-bottom:4px;">Saldo Default ($)</span>
+            <input type="number" id="profileBalance" value="${escapeHtml(userBalance)}" style="width:100%; border:1px solid var(--border-color); background:var(--surface-soft); color:var(--text-main); border-radius:10px; padding:10px; font-size:14px; font-weight:700; font-family:monospace; box-sizing:border-box;">
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; font-weight:750; color:var(--text-muted); margin-bottom:4px;">Batas Risiko / Trade (%)</span>
+            <input type="number" step="0.5" id="profileRisk" value="${escapeHtml(userRisk)}" style="width:100%; border:1px solid var(--border-color); background:var(--surface-soft); color:var(--text-main); border-radius:10px; padding:10px; font-size:14px; font-weight:700; font-family:monospace; box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+          <small style="color:var(--text-muted); font-size:11px; font-weight:600;">Aturan baku: Jangan ambil trade jika SL &gt; 2% modal.</small>
+          <button type="button" id="saveTradingParamsBtn" style="padding:8px 16px; background:linear-gradient(135deg, #d4af37, #aa8524); color:#000; font-weight:800; border-radius:10px; border:none; font-size:12px; cursor:pointer;">Simpan Parameter</button>
+        </div>
+      </section>
+
+      <!-- Panel 3: Manajemen Data & Keamanan -->
+      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Manajemen Data &amp; Reset</div>
+      <section class="profile-list" style="margin-top:8px;">
+        <button class="profile-row" id="profileExportBtn" type="button">
+          <span class="tool-icon">💾</span>
+          <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi semua jurnal, rutinitas, dan catatan lokal.</small></span>
+          <span class="chevron">›</span>
+        </button>
+        <button class="profile-row danger-row" data-profile-action="clear" type="button">
+          <span class="tool-icon">×</span>
+          <span><strong>Bersihkan Data Lokal</strong><small>Menghapus riwayat, jurnal, dan koleksi lokal secara aman.</small></span>
+          <span class="chevron">›</span>
+        </button>
+      </section>
+    `;
+
+    // Event bindings for new profile features
+    document.getElementById('editTraderNameBtn')?.addEventListener('click', () => {
+      const current = localStorage.getItem('amy_trader_name') || 'Amy Senju';
+      const updated = window.prompt('Masukkan Nama Trader Anda:', current);
+      if (updated && updated.trim()) {
+        localStorage.setItem('amy_trader_name', updated.trim());
+        const titleEl = document.getElementById('traderNameTitle');
+        if (titleEl) titleEl.textContent = updated.trim();
+        showToast('Nama profil trader berhasil diperbarui.');
+      }
+    });
+
+    document.getElementById('saveTradingParamsBtn')?.addEventListener('click', () => {
+      const bal = document.getElementById('profileBalance')?.value || '5000';
+      const r = document.getElementById('profileRisk')?.value || '1.5';
+      localStorage.setItem('amy_default_balance', bal);
+      localStorage.setItem('amy_default_risk', r);
+      showToast('Parameter risiko trading XAU/USD berhasil disimpan.');
+    });
+
+    document.getElementById('profileExportBtn')?.addEventListener('click', () => {
+      const backupData = {
+        app: 'Amy FX Pro',
+        exportedAt: new Date().toISOString(),
+        traderName: localStorage.getItem('amy_trader_name') || 'Amy Senju',
+        balance: localStorage.getItem('amy_default_balance') || '5000',
+        risk: localStorage.getItem('amy_default_risk') || '1.5',
+        habits: readJsonSafe('amy_habits_v2', []),
+        completedHabits: readJsonSafe('amy_completed_dates_v2', {}),
+        journals: readJsonArray('amy_journal_entries')
+      };
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `amyfx-pro-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File backup profil & data berhasil diunduh.');
+    });
+
+    // Preset color buttons
+    document.querySelectorAll('[data-glass-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.dataset.glassPreset;
+        window.AmyFXTheme?.setPreset?.(preset);
+        showToast(`Tema kaca "${preset}" diterapkan.`);
+      });
+    });
+
     window.AmyFXTheme?.apply?.();
   }
 
