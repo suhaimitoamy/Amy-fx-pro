@@ -59,7 +59,50 @@
 
   function applyCustomColors() {
     const resolved = resolvedTheme(preference);
-    const opacityVal = customColors.opacity !== undefined ? Number(customColors.opacity) : (resolved === 'light' ? 80 : 68);
+    const hasCustom = Object.keys(customColors).length > 0;
+
+    if (resolved === 'light') {
+      // In Light Mode: strictly guarantee high-contrast dark typography and light surfaces
+      root.style.setProperty('--amy-text', '#111a25');
+      root.style.setProperty('--amy-text-secondary', '#556680');
+      root.style.setProperty('--amy-text-muted', '#8592a2');
+      root.style.setProperty('--text-main', '#16233a');
+      root.style.setProperty('--text-muted', '#556680');
+      root.style.setProperty('--amy-bg', '#eef4fa');
+      root.style.setProperty('--amy-bg-secondary', '#f7fafd');
+      root.style.setProperty('--bg-color', '#eef4fa');
+      root.style.setProperty('--surface-color', '#ffffff');
+      root.style.setProperty('--surface-soft', 'rgba(240, 246, 253, 0.88)');
+      root.style.setProperty('--card', '#ffffff');
+      root.style.setProperty('--bg-card', '#ffffff');
+      root.style.setProperty('--amy-surface', 'rgba(255, 255, 255, 0.82)');
+      root.style.setProperty('--amy-surface-strong', 'rgba(255, 255, 255, 0.94)');
+      root.style.setProperty('--amy-surface-solid', '#ffffff');
+      root.style.setProperty('--amy-surface-soft', 'rgba(33, 107, 219, 0.065)');
+      root.style.setProperty('--amy-highlight', 'rgba(255, 255, 255, 0.92)');
+      root.style.setProperty('--amy-blur', '16px');
+
+      if (customColors.accent) {
+        root.style.setProperty('--glow-gold', hexToRgba(customColors.accent, 0.2));
+        root.style.setProperty('--amy-border', hexToRgba(customColors.accent, 0.28));
+        root.style.setProperty('--border-color', hexToRgba(customColors.accent, 0.25));
+        root.style.setProperty('--primary-gold', customColors.accent);
+        root.style.setProperty('--secondary-gold', customColors.accent);
+        root.style.setProperty('--amy-accent', customColors.accent);
+      } else {
+        root.style.setProperty('--glow-gold', 'rgba(33, 107, 219, 0.16)');
+        root.style.setProperty('--amy-border', 'rgba(46, 84, 126, 0.18)');
+        root.style.setProperty('--border-color', 'rgba(46, 84, 126, 0.2)');
+        root.style.setProperty('--primary-gold', '#1656b8');
+        root.style.setProperty('--secondary-gold', '#1656b8');
+        root.style.setProperty('--amy-accent', '#216bdb');
+      }
+
+      root.toggleAttribute("data-amyfx-custom-colors", hasCustom);
+      return;
+    }
+
+    const opacityVal = customColors.opacity !== undefined ? Number(customColors.opacity) : 68;
     const alpha = Math.max(0.12, Math.min(0.96, opacityVal / 100));
 
     Object.entries(CUSTOM_PROPERTIES).forEach(([key, properties]) => {
@@ -125,7 +168,7 @@
       root.style.removeProperty('--secondary-gold');
     }
 
-    root.toggleAttribute("data-amyfx-custom-colors", Object.keys(customColors).length > 0);
+    root.toggleAttribute("data-amyfx-custom-colors", hasCustom);
   }
 
   function normalize(value) {

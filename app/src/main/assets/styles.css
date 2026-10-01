@@ -501,11 +501,11 @@ main {
 .profile-card h3 {
   font-size: 1.05rem;
   font-weight: 800;
-  color: #ffffff !important;
+  color: var(--amy-text, #ffffff);
   margin: 0;
 }
 .profile-card p {
-  color: #94a3b8 !important;
+  color: var(--amy-text-secondary, #94a3b8);
   font-size: 0.75rem;
   margin-top: 2px;
 }
@@ -820,20 +820,131 @@ html[data-amyfx-theme="light"] .card,
 html[data-amyfx-theme="light"] .quick-card,
 html[data-amyfx-theme="light"] .collection-tool,
 html[data-amyfx-theme="light"] .panel,
-html[data-amyfx-theme="light"] .course-card {
+html[data-amyfx-theme="light"] .course-card,
+html[data-amyfx-theme="light"] .profile-card,
+html[data-amyfx-theme="light"] .profile-glass-panel,
+html[data-amyfx-theme="light"] .profile-row,
+html[data-amyfx-theme="light"] .stat-card,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .card,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .quick-card,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .collection-tool,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .panel,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .course-card,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-card,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-glass-panel,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-row,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .stat-card {
   background: var(--amy-surface-solid) !important;
   color: var(--text-main) !important;
-  border-color: var(--amy-border) !important;
+  border-color: var(--amy-border);
+  box-shadow: 0 4px 16px rgba(42, 71, 104, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
+
+html[data-amyfx-theme="light"] .home-hero h2,
 html[data-amyfx-theme="light"] .card h3,
 html[data-amyfx-theme="light"] .quick-card strong,
-html[data-amyfx-theme="light"] .collection-tool strong {
+html[data-amyfx-theme="light"] .collection-tool strong,
+html[data-amyfx-theme="light"] .profile-card h3,
+html[data-amyfx-theme="light"] #traderNameTitle,
+html[data-amyfx-theme="light"] .stat-card strong,
+html[data-amyfx-theme="light"] .profile-row strong,
+html[data-amyfx-theme="light"] .color-customizer-head strong,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .home-hero h2,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .card h3,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .quick-card strong,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .collection-tool strong,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-card h3,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .stat-card strong,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-row strong {
   color: #16233a !important;
 }
+
+html[data-amyfx-theme="light"] .home-hero p,
+html[data-amyfx-theme="light"] .subtitle,
+html[data-amyfx-theme="light"] .hero-status,
 html[data-amyfx-theme="light"] .card p,
 html[data-amyfx-theme="light"] .quick-card small,
-html[data-amyfx-theme="light"] .collection-tool small {
+html[data-amyfx-theme="light"] .collection-tool small,
+html[data-amyfx-theme="light"] .stat-card small,
+html[data-amyfx-theme="light"] .profile-card p,
+html[data-amyfx-theme="light"] .profile-row small,
+html[data-amyfx-theme="light"] .profile-section-title,
+html[data-amyfx-theme="light"] .color-customizer-head small,
+html[data-amyfx-theme="light"] .glass-group-label,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .home-hero p,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .subtitle,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .hero-status,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .card p,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .quick-card small,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .collection-tool small,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .stat-card small,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-card p,
+html[data-amyfx-theme="light"][data-amyfx-custom-colors] .profile-row small {
   color: #556680 !important;
+}
+
+html[data-amyfx-theme="light"] .theme-choice,
+html[data-amyfx-theme="light"] .glass-preset-btn {
+  background: rgba(240, 246, 253, 0.9) !important;
+  border-color: rgba(46, 84, 126, 0.2) !important;
+  color: #16233a !important;
+}
+
+html[data-amyfx-theme="light"] .theme-choice.is-active {
+  background: rgba(33, 107, 219, 0.12) !important;
+  border-color: var(--primary-gold, #1656b8) !important;
+  color: var(--primary-gold, #1656b8) !important;
+  box-shadow: 0 0 0 1px var(--primary-gold, #1656b8) !important;
+}
+
+html[data-amyfx-theme="light"] .glass-preset-btn.is-active {
+  background: rgba(33, 107, 219, 0.12) !important;
+  border-color: var(--primary-gold, #1656b8) !important;
+  color: var(--primary-gold, #1656b8) !important;
+  box-shadow: 0 0 10px rgba(33, 107, 219, 0.25) !important;
+}
+
+html[data-amyfx-theme="light"] input#profileBalance,
+html[data-amyfx-theme="light"] input#profileRisk {
+  background: #ffffff !important;
+  color: #16233a !important;
+  border-color: rgba(46, 84, 126, 0.25) !important;
+}
+
+html[data-amyfx-theme="light"] .bottom-nav {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(46, 84, 126, 0.18) !important;
+  box-shadow: 0 16px 40px rgba(42, 71, 104, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html[data-amyfx-theme="light"] .nav-btn {
+  color: #556680 !important;
+}
+
+html[data-amyfx-theme="light"] .nav-btn:hover {
+  color: #16233a !important;
+}
+
+html[data-amyfx-theme="light"] .nav-btn.active {
+  color: #1656b8 !important;
+}
+
+html[data-amyfx-theme="light"] .nav-btn.active .icon svg {
+  stroke: #1656b8 !important;
+  filter: drop-shadow(0 0 6px rgba(22, 86, 184, 0.4)) !important;
+}
+
+html[data-amyfx-theme="light"] .tool-icon {
+  background: rgba(33, 107, 219, 0.08) !important;
+  border-color: rgba(33, 107, 219, 0.22) !important;
+  color: #1656b8 !important;
+}
+
+html[data-amyfx-theme="light"] .profile-avatar {
+  background: rgba(33, 107, 219, 0.08) !important;
+  border-color: var(--primary-gold, #1656b8) !important;
+  color: var(--primary-gold, #1656b8) !important;
+  box-shadow: 0 0 14px rgba(33, 107, 219, 0.2) !important;
 }
 
 .color-customizer {
