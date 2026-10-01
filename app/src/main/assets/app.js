@@ -233,6 +233,11 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
     `).join('');
 
+    const customBgData = window.AmyFXTheme?.customBg;
+    const hasCustomBg = Boolean(customBgData && customBgData.image);
+    const customBgDim = customBgData?.dim ?? 60;
+    const customBgBlur = customBgData?.blur ?? 0;
+
     mainContent.innerHTML = `
       <div class="page-header">
         <div>
@@ -298,6 +303,41 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-top:14px; margin-bottom:8px;">Preset Kaca &amp; Nuansa Aksen</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           ${presetsHTML}
+        </div>
+
+        <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-top:16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <span>Wallpaper / Foto Latar Belakang</span>
+          <span id="customBgBadge" style="font-size:10px; font-weight:700; color:${hasCustomBg ? '#10b981' : 'var(--text-muted)'};">${hasCustomBg ? '● Foto Kustom Aktif' : 'Default Gradien'}</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="file" id="customBgFileInput" accept="image/*" style="display:none;">
+            <button type="button" id="uploadCustomBgBtn" class="glass-preset-btn" style="padding:8px 14px; font-size:12px; gap:8px;">
+              <span>🖼️</span>
+              <span>Pilih Foto Sendiri</span>
+            </button>
+            <button type="button" id="removeCustomBgBtn" class="glass-preset-btn" style="padding:8px 14px; font-size:12px; color:#ef4444; border-color:rgba(239,68,68,0.3); ${hasCustomBg ? '' : 'display:none;'}">
+              <span>🗑️</span>
+              <span>Hapus Wallpaper</span>
+            </button>
+          </div>
+
+          <div id="customBgControls" style="${hasCustomBg ? '' : 'display:none;'} background:var(--surface-soft); border:1px solid var(--border-color); border-radius:12px; padding:12px;">
+            <div style="margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
+                <span>Kecerahan / Dimming Latar</span>
+                <span id="customBgDimVal">${customBgDim}%</span>
+              </div>
+              <input type="range" id="customBgDimSlider" min="20" max="90" value="${customBgDim}" style="width:100%; accent-color:var(--primary-gold); cursor:pointer;">
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
+                <span>Efek Frosted Blur (Kaca Buram)</span>
+                <span id="customBgBlurVal">${customBgBlur}px</span>
+              </div>
+              <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" style="width:100%; accent-color:var(--primary-gold); cursor:pointer;">
+            </div>
+          </div>
         </div>
       </section>
 
@@ -390,6 +430,103 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast(`Tema kaca "${preset.name}" diterapkan.`);
         }
       });
+    });
+
+    // Custom Background Photo Handlers
+    const fileInput = document.getElementById('customBgFileInput');
+    const uploadBtn = document.getElementById('uploadCustomBgBtn');
+    const removeBtn = document.getElementById('removeCustomBgBtn');
+    const controls = document.getElementById('customBgControls');
+    const badge = document.getElementById('customBgBadge');
+    const dimSlider = document.getElementById('customBgDimSlider');
+    const blurSlider = document.getElementById('customBgBlurSlider');
+    const dimVal = document.getElementById('customBgDimVal');
+    const blurVal = document.getElementById('customBgBlurVal');
+
+    uploadBtn?.addEventListener('click', () => fileInput?.click());
+
+    fileInput?.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('Pilih file gambar (JPG, PNG, WebP).');
+        return;
+      }
+      showToast('Memproses foto latar...');
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1280;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+          const currentDim = dimSlider ? Number(dimSlider.value) : 60;
+          const currentBlur = blurSlider ? Number(blurSlider.value) : 0;
+          window.AmyFXTheme?.setCustomBg?.({
+            image: dataUrl,
+            dim: currentDim,
+            blur: currentBlur
+          });
+
+          if (controls) controls.style.display = 'block';
+          if (removeBtn) removeBtn.style.display = 'inline-flex';
+          if (badge) {
+            badge.textContent = '● Foto Kustom Aktif';
+            badge.style.color = '#10b981';
+          }
+          showToast('Wallpaper kustom berhasil dipasang!');
+        };
+        img.onerror = () => showToast('Gagal memuat gambar.');
+        img.src = e.target.result;
+      };
+      reader.onerror = () => showToast('Gagal membaca file gambar.');
+      reader.readAsDataURL(file);
+    });
+
+    dimSlider?.addEventListener('input', e => {
+      const val = Number(e.target.value);
+      if (dimVal) dimVal.textContent = `${val}%`;
+      const current = window.AmyFXTheme?.customBg;
+      if (current) {
+        window.AmyFXTheme?.setCustomBg?.({ ...current, dim: val });
+      }
+    });
+
+    blurSlider?.addEventListener('input', e => {
+      const val = Number(e.target.value);
+      if (blurVal) blurVal.textContent = `${val}px`;
+      const current = window.AmyFXTheme?.customBg;
+      if (current) {
+        window.AmyFXTheme?.setCustomBg?.({ ...current, blur: val });
+      }
+    });
+
+    removeBtn?.addEventListener('click', () => {
+      window.AmyFXTheme?.removeCustomBg?.();
+      if (controls) controls.style.display = 'none';
+      if (removeBtn) removeBtn.style.display = 'none';
+      if (badge) {
+        badge.textContent = 'Default Gradien';
+        badge.style.color = 'var(--text-muted)';
+      }
+      if (fileInput) fileInput.value = '';
+      showToast('Wallpaper kustom dihapus.');
     });
 
     const activePref = window.AmyFXTheme?.preference || 'system';

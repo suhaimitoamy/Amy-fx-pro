@@ -6,10 +6,65 @@
 
   const STORAGE_KEY = "amyfx.ui.theme.v1";
   const CUSTOM_KEY = "amyfx.ui.colors.v1";
+  const BG_STORAGE_KEY = "amyfx.ui.custom_bg.v1";
   const LEGACY_KEYS = ["amyfx.theme", "amy_theme"];
   const media = window.matchMedia?.("(prefers-color-scheme: light)");
   const root = document.documentElement;
   let preference = readPreference();
+
+  function readCustomBg() {
+    try {
+      const raw = localStorage.getItem(BG_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.image === "string" && parsed.image.startsWith("data:image/")) {
+        return {
+          image: parsed.image,
+          dim: typeof parsed.dim === "number" ? Math.max(10, Math.min(95, parsed.dim)) : 60,
+          blur: typeof parsed.blur === "number" ? Math.max(0, Math.min(30, parsed.blur)) : 0
+        };
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function applyCustomBg(bgData) {
+    let layer = document.getElementById("amyfx-custom-bg-layer");
+    let overlay = document.getElementById("amyfx-custom-bg-overlay");
+
+    if (!bgData || !bgData.image) {
+      if (layer) layer.style.display = "none";
+      if (overlay) overlay.style.display = "none";
+      root.removeAttribute("data-amyfx-custom-bg");
+      return;
+    }
+
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.id = "amyfx-custom-bg-layer";
+      layer.style.cssText = "position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none;transform:scale(1.05);transition:filter 0.25s ease, opacity 0.3s ease;";
+      (document.body || document.documentElement).appendChild(layer);
+    }
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "amyfx-custom-bg-overlay";
+      overlay.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;transition:background-color 0.25s ease;";
+      (document.body || document.documentElement).appendChild(overlay);
+    }
+
+    const resolved = resolvedTheme(preference);
+    const dimAlpha = (bgData.dim ?? 60) / 100;
+    const overlayColor = resolved === "light"
+      ? `rgba(238, 244, 250, ${Math.max(0.35, dimAlpha)})`
+      : `rgba(7, 11, 18, ${Math.max(0.35, dimAlpha)})`;
+
+    layer.style.display = "block";
+    layer.style.backgroundImage = `url("${bgData.image}")`;
+    layer.style.filter = bgData.blur ? `blur(${bgData.blur}px)` : "none";
+    overlay.style.display = "block";
+    overlay.style.backgroundColor = overlayColor;
+    root.setAttribute("data-amyfx-custom-bg", "true");
+  }
 
   const CUSTOM_PROPERTIES = Object.freeze({
     background: ["--amy-bg", "--amy-bg-secondary", "--bg-color"],
@@ -231,6 +286,7 @@
     root.dataset.amyfxTheme = theme;
     root.style.colorScheme = theme;
     applyCustomColors();
+    applyCustomBg(readCustomBg());
     updateThemeColor(theme);
     syncNative(theme);
     syncControls();
@@ -254,6 +310,7 @@
   root.dataset.amyfxTheme = resolvedTheme(preference);
   root.style.colorScheme = root.dataset.amyfxTheme;
   applyCustomColors();
+  applyCustomBg(readCustomBg());
   updateThemeColor(root.dataset.amyfxTheme);
 
   window.AmyFXTheme = Object.freeze({
@@ -261,6 +318,21 @@
     get preference() { return preference; },
     get resolved() { return resolvedTheme(preference); },
     get colors() { return Object.freeze({ ...customColors }); },
+    get customBg() { return readCustomBg(); },
+    setCustomBg(bgData) {
+      if (!bgData || !bgData.image) {
+        try { localStorage.removeItem(BG_STORAGE_KEY); } catch (_) {}
+        applyCustomBg(null);
+      } else {
+        try { localStorage.setItem(BG_STORAGE_KEY, JSON.stringify(bgData)); } catch (_) {}
+        applyCustomBg(bgData);
+      }
+      return bgData;
+    },
+    removeCustomBg() {
+      try { localStorage.removeItem(BG_STORAGE_KEY); } catch (_) {}
+      applyCustomBg(null);
+    },
     set(value) { return apply(value, { persist: true }); },
     setColors(values = {}) {
       const next = Object.fromEntries(Object.keys(CUSTOM_PROPERTIES)
@@ -314,6 +386,9 @@
     if (event.key === CUSTOM_KEY) {
       customColors = readCustomColors();
       apply(preference);
+    }
+    if (event.key === BG_STORAGE_KEY) {
+      applyCustomBg(readCustomBg());
     }
   });
 

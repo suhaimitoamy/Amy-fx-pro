@@ -1288,3 +1288,30 @@ html[data-amyfx-theme="light"] .profile-avatar {
   box-shadow: 0 0 12px var(--glow-gold) !important;
 }
 
+/* Custom Background Photo Layer */
+html[data-amyfx-custom-bg] body {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+html[data-amyfx-custom-bg] body::before {
+  opacity: 0.05 !important;
+}
+#amyfx-custom-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  transform: scale(1.05);
+  transition: filter 0.25s ease, opacity 0.3s ease;
+}
+#amyfx-custom-bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: background-color 0.25s ease;
+}
+
