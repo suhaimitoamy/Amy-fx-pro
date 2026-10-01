@@ -218,17 +218,17 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
 
     const GLASS_PRESETS = [
-      { id: 'obsidian', name: 'Obsidian Kaca', bg: '#070b12', accent: '#69b7ff' },
-      { id: 'emerald', name: 'Zamrud Hijau', bg: '#05130d', accent: '#34d399' },
-      { id: 'sapphire', name: 'Safir Cobalt', bg: '#070e1b', accent: '#38bdf8' },
-      { id: 'amber', name: 'Royal Gold', bg: '#110b05', accent: '#fbbf24' },
-      { id: 'amethyst', name: 'Amethyst', bg: '#0d0718', accent: '#c084fc' }
+      { id: 'obsidian', name: 'Obsidian Glass', bg: '#070b14', accent: '#F5C451' },
+      { id: 'gold', name: 'Gold Terminal', bg: '#0c0f18', accent: '#F5C451' },
+      { id: 'sapphire', name: 'Cyber Blue', bg: '#070e20', accent: '#3B82F6' },
+      { id: 'emerald', name: 'Emerald Risk', bg: '#05130e', accent: '#22C55E' },
+      { id: 'amethyst', name: 'Amethyst Flow', bg: '#0d0718', accent: '#C084FC' }
     ];
 
     const activeGlassPreset = window.AmyFXTheme?.colors?.preset || 'obsidian';
     const presetsHTML = GLASS_PRESETS.map(p => `
       <button type="button" class="glass-preset-btn ${p.id === activeGlassPreset ? 'is-active' : ''}" data-glass-preset="${p.id}">
-        <span style="width:10px; height:10px; border-radius:50%; background:${p.accent}; box-shadow:0 0 6px ${p.accent};"></span>
+        <span class="preset-dot" style="background:${p.accent}; box-shadow:0 0 8px ${p.accent};"></span>
         <span>${p.name}</span>
       </button>
     `).join('');
@@ -246,46 +246,55 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <!-- Trader Executive Identity Card -->
-      <section class="profile-card slide-up" style="display:grid; grid-template-columns: 50px 1fr auto; align-items:center; gap:14px; padding:16px; border:1px solid var(--border-color); border-radius:18px; background:var(--surface-color); box-shadow:0 4px 20px rgba(0,0,0,0.06);">
-        <div class="profile-avatar" style="width:48px; height:48px; display:grid; place-items:center; border-radius:50%; border:2px solid var(--primary-gold); color:var(--primary-gold); font-size:0.85rem; font-weight:900; box-shadow:0 0 16px var(--glow-gold); background:rgba(212,175,55,0.12);">
-          AS
+      <!-- Professional Trader Identity Card -->
+      <section class="profile-card slide-up">
+        <div class="profile-avatar">
+          <span class="avatar-text">AMY</span>
         </div>
         <div class="profile-card-content">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <h3 id="traderNameTitle" style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin:0;">${escapeHtml(traderName)}</h3>
-            <button type="button" id="editTraderNameBtn" style="background:none; border:none; color:var(--primary-gold); cursor:pointer; font-size:13px;" title="Ubah Nama">✏️</button>
+          <div class="profile-name-row">
+            <h3 id="traderNameTitle">${escapeHtml(traderName)}</h3>
+            <button type="button" id="editTraderNameBtn" class="edit-name-btn" title="Ubah Nama Trader" aria-label="Ubah Nama Trader">✏️</button>
           </div>
-          <p style="color:var(--text-muted); font-size:0.75rem; margin-top:2px;">XAU/USD Gold Scalper &amp; Prop Trader</p>
+          <p class="trader-sub">XAU/USD Gold Scalper</p>
         </div>
-        <span class="status-badge" style="padding:4px 8px; border-radius:8px; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); font-size:0.62rem; font-weight:800; letter-spacing:0.05em;">DISIPLIN PRO</span>
+        <span class="status-badge discipline-badge">DISCIPLINE PRO</span>
       </section>
 
-      <!-- Executive Trading Metrics -->
-      <section class="stats-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:14px;">
-        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
-          <strong style="color:#10b981; font-size:1.1rem;">${habitStreak}D</strong>
-          <small style="color:var(--text-muted);">Streak Rutinitas</small>
+      <!-- Trading Performance Dashboard -->
+      <div class="profile-section-title" style="margin-top:20px;">Trading Performance Dashboard</div>
+      <section class="stats-grid slide-up">
+        <div class="stat-card">
+          <div class="stat-icon-wrap">🔥</div>
+          <strong class="stat-val highlight-green">${habitStreak}D</strong>
+          <small>Streak Rutinitas</small>
+          <span class="stat-indicator">Consistency</span>
         </div>
-        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
-          <strong style="font-size:1.1rem; color:var(--text-main);">${journal}</strong>
-          <small style="color:var(--text-muted);">Catatan Jurnal</small>
+        <div class="stat-card">
+          <div class="stat-icon-wrap">📓</div>
+          <strong class="stat-val">${journal}</strong>
+          <small>Catatan Jurnal</small>
+          <span class="stat-indicator">Trades Logged</span>
         </div>
-        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
-          <strong style="font-size:1.1rem; color:var(--text-main);">${analyses}</strong>
-          <small style="color:var(--text-muted);">Analisis Map</small>
+        <div class="stat-card">
+          <div class="stat-icon-wrap">🧭</div>
+          <strong class="stat-val">${analyses}</strong>
+          <small>Analisis Map</small>
+          <span class="stat-indicator">ICT Contexts</span>
         </div>
-        <div class="stat-card" style="padding:10px 4px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px;">
-          <strong style="color:var(--primary-gold); font-size:1.1rem;">${userRisk}%</strong>
-          <small style="color:var(--text-muted);">Max Risk/Trade</small>
+        <div class="stat-card">
+          <div class="stat-icon-wrap">🛡️</div>
+          <strong class="stat-val highlight-gold">${userRisk}%</strong>
+          <small>Max Risk/Trade</small>
+          <span class="stat-indicator">Discipline Cap</span>
         </div>
       </section>
 
-      <!-- Panel 1: Tampilan & Tema Glass -->
-      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Tampilan &amp; Tema Kaca</div>
-      <section class="profile-glass-panel" data-amyfx-color-settings="true" style="padding:16px; border-radius:16px; background:var(--surface-color); border:1px solid var(--border-color); box-shadow:0 4px 16px rgba(0,0,0,0.05); margin-top:8px;">
-        <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Mode Tampilan</div>
-        <div class="theme-selector" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+      <!-- Trading Environment Customization -->
+      <div class="profile-section-title" style="margin-top:22px;">Trading Environment Customization</div>
+      <section class="profile-glass-panel slide-up" data-amyfx-color-settings="true">
+        <div class="glass-group-label">Mode Tampilan</div>
+        <div class="theme-selector">
           <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
             <span>Sistem</span>
@@ -300,42 +309,42 @@ document.addEventListener('DOMContentLoaded', () => {
           </button>
         </div>
 
-        <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-top:14px; margin-bottom:8px;">Preset Kaca &amp; Nuansa Aksen</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="glass-group-label" style="margin-top:16px;">Preset Kaca &amp; Nuansa Trading</div>
+        <div class="presets-row">
           ${presetsHTML}
         </div>
 
-        <div style="font-size:11px; font-weight:750; color:var(--text-muted); text-transform:uppercase; margin-top:16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-          <span>Wallpaper / Foto Latar Belakang</span>
-          <span id="customBgBadge" style="font-size:10px; font-weight:700; color:${hasCustomBg ? '#10b981' : 'var(--text-muted)'};">${hasCustomBg ? '● Foto Kustom Aktif' : 'Default Gradien'}</span>
+        <div class="glass-group-label" style="margin-top:18px; display:flex; justify-content:space-between; align-items:center;">
+          <span>Wallpaper &amp; Latar Belakang</span>
+          <span id="customBgBadge" class="bg-status-badge ${hasCustomBg ? 'active' : ''}">${hasCustomBg ? '● Foto Kustom Aktif' : 'Default Gradien'}</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="wallpaper-controls-wrap">
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <input type="file" id="customBgFileInput" accept="image/*" style="display:none;">
-            <button type="button" id="uploadCustomBgBtn" class="glass-preset-btn" style="padding:8px 14px; font-size:12px; gap:8px;">
+            <button type="button" id="uploadCustomBgBtn" class="glass-preset-btn">
               <span>🖼️</span>
               <span>Pilih Foto Sendiri</span>
             </button>
-            <button type="button" id="removeCustomBgBtn" class="glass-preset-btn" style="padding:8px 14px; font-size:12px; color:#ef4444; border-color:rgba(239,68,68,0.3); ${hasCustomBg ? '' : 'display:none;'}">
+            <button type="button" id="removeCustomBgBtn" class="glass-preset-btn danger-preset-btn" style="${hasCustomBg ? '' : 'display:none;'}">
               <span>🗑️</span>
               <span>Hapus Wallpaper</span>
             </button>
           </div>
 
-          <div id="customBgControls" style="${hasCustomBg ? '' : 'display:none;'} background:var(--surface-soft); border:1px solid var(--border-color); border-radius:12px; padding:12px;">
-            <div style="margin-bottom:10px;">
-              <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
+          <div id="customBgControls" class="wallpaper-sliders-card" style="${hasCustomBg ? '' : 'display:none;'}">
+            <div style="margin-bottom:12px;">
+              <div class="slider-header">
                 <span>Kecerahan / Dimming Latar</span>
                 <span id="customBgDimVal">${customBgDim}%</span>
               </div>
-              <input type="range" id="customBgDimSlider" min="20" max="90" value="${customBgDim}" style="width:100%; accent-color:var(--primary-gold); cursor:pointer;">
+              <input type="range" id="customBgDimSlider" min="20" max="90" value="${customBgDim}" class="trading-slider">
             </div>
             <div>
-              <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
+              <div class="slider-header">
                 <span>Efek Frosted Blur (Kaca Buram)</span>
                 <span id="customBgBlurVal">${customBgBlur}px</span>
               </div>
-              <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" style="width:100%; accent-color:var(--primary-gold); cursor:pointer;">
+              <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="trading-slider">
             </div>
           </div>
         </div>

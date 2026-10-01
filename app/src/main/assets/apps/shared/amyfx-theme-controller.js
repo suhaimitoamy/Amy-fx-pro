@@ -245,7 +245,7 @@
 
   function resolvedTheme(value = preference) {
     if (value === "light" || value === "dark") return value;
-    return media?.matches ? "light" : "dark";
+    return "dark";
   }
 
   function moduleName() {
@@ -356,11 +356,13 @@
     },
     setPreset(presetId) {
       const PRESETS = {
-        obsidian: { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 72 },
-        emerald: { background: '#05130d', surface: '#0d2719', text: '#eafaf1', accent: '#34d399', opacity: 58 },
-        sapphire: { background: '#070e1b', surface: '#10213d', text: '#f0f6ff', accent: '#38bdf8', opacity: 60 },
-        amber: { background: '#110b05', surface: '#2c1e0e', text: '#fff9ed', accent: '#fbbf24', opacity: 62 },
-        amethyst: { background: '#0d0718', surface: '#1f0f35', text: '#f8f0ff', accent: '#c084fc', opacity: 58 }
+        obsidian: { background: '#070b14', surface: '#0f172a', text: '#f8fafc', accent: '#f5c451', opacity: 68 },
+        emerald: { background: '#05130e', surface: '#0a2218', text: '#eafaf1', accent: '#22c55e', opacity: 62 },
+        sapphire: { background: '#070e20', surface: '#0c1d38', text: '#f0f6ff', accent: '#3b82f6', opacity: 62 },
+        cyber: { background: '#070e20', surface: '#0c1d38', text: '#f0f6ff', accent: '#3b82f6', opacity: 62 },
+        gold: { background: '#0c0f18', surface: '#1e1910', text: '#fffdf5', accent: '#f5c451', opacity: 65 },
+        amber: { background: '#0c0f18', surface: '#1e1910', text: '#fffdf5', accent: '#f5c451', opacity: 65 },
+        amethyst: { background: '#0d0718', surface: '#1f0f35', text: '#f8f0ff', accent: '#c084fc', opacity: 60 }
       };
       const found = PRESETS[presetId];
       if (found) {
