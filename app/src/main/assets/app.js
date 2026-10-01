@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const GLASS_PRESETS = [
       { id: 'obsidian', name: 'Obsidian Glass', bg: '#070b14', accent: '#F5C451' },
       { id: 'gold', name: 'Gold Terminal', bg: '#0c0f18', accent: '#F5C451' },
-      { id: 'sapphire', name: 'Cyber Blue', bg: '#070e20', accent: '#3B82F6' },
+      { id: 'cyber', name: 'Cyber Blue', bg: '#070e20', accent: '#3B82F6' },
       { id: 'emerald', name: 'Emerald Risk', bg: '#05130e', accent: '#22C55E' },
       { id: 'amethyst', name: 'Amethyst Flow', bg: '#0d0718', accent: '#C084FC' }
     ];
@@ -235,8 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const customBgData = window.AmyFXTheme?.customBg;
     const hasCustomBg = Boolean(customBgData && customBgData.image);
-    const customBgDim = customBgData?.dim ?? 60;
-    const customBgBlur = customBgData?.blur ?? 0;
+    const customBgDim = customBgData?.dim ?? 50;
+    const customBgBlur = customBgData?.blur ?? 20;
+
+    const streakStr = String(habitStreak).padStart(2, '0');
+    const journalStr = String(journal).padStart(2, '0');
+    const analysesStr = String(analyses).padStart(2, '0');
+    const riskStr = String(userRisk).includes('%') ? userRisk : `${userRisk}%`;
 
     mainContent.innerHTML = `
       <div class="page-header">
@@ -265,24 +270,24 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="profile-section-title" style="margin-top:20px;">Trading Performance Dashboard</div>
       <section class="stats-grid slide-up">
         <div class="stat-card">
-          <strong class="stat-val highlight-gold">${habitStreak}D</strong>
-          <span class="stat-label">DISCIPLINE STREAK</span>
-          <small class="stat-sublabel">Rutinitas</small>
+          <strong class="stat-val highlight-gold">${streakStr}</strong>
+          <span class="stat-label">DAY STREAK</span>
+          <small class="stat-sublabel">Trading Discipline</small>
         </div>
         <div class="stat-card">
-          <strong class="stat-val">${journal}</strong>
+          <strong class="stat-val">${journalStr}</strong>
           <span class="stat-label">TRADES LOGGED</span>
-          <small class="stat-sublabel">Catatan Jurnal</small>
+          <small class="stat-sublabel">Win/Loss Record</small>
         </div>
         <div class="stat-card">
-          <strong class="stat-val">${analyses}</strong>
-          <span class="stat-label">ICT SETUPS</span>
-          <small class="stat-sublabel">Analisis Map</small>
+          <strong class="stat-val">${analysesStr}</strong>
+          <span class="stat-label">ICT CONTEXTS</span>
+          <small class="stat-sublabel">Liquidity Framework</small>
         </div>
         <div class="stat-card">
-          <strong class="stat-val highlight-gold">${userRisk}%</strong>
-          <span class="stat-label">MAX RISK / TRADE</span>
-          <small class="stat-sublabel">Risk Cap</small>
+          <strong class="stat-val highlight-gold">${riskStr}</strong>
+          <span class="stat-label">RISK CAP</span>
+          <small class="stat-sublabel">Max Account Risk</small>
         </div>
       </section>
 
@@ -333,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>Kecerahan / Dimming Latar</span>
                 <span id="customBgDimVal">${customBgDim}%</span>
               </div>
-              <input type="range" id="customBgDimSlider" min="20" max="90" value="${customBgDim}" class="trading-slider">
+              <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="trading-slider">
             </div>
             <div>
               <div class="slider-header">
@@ -481,8 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.drawImage(img, 0, 0, w, h);
           const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
 
-          const currentDim = dimSlider ? Number(dimSlider.value) : 60;
-          const currentBlur = blurSlider ? Number(blurSlider.value) : 0;
+          const currentDim = dimSlider ? Number(dimSlider.value) : 50;
+          const currentBlur = blurSlider ? Number(blurSlider.value) : 20;
           window.AmyFXTheme?.setCustomBg?.({
             image: dataUrl,
             dim: currentDim,
@@ -507,6 +512,10 @@ document.addEventListener('DOMContentLoaded', () => {
     dimSlider?.addEventListener('input', e => {
       const val = Number(e.target.value);
       if (dimVal) dimVal.textContent = `${val}%`;
+      const overlay = document.getElementById('amyfx-custom-bg-overlay');
+      if (overlay) {
+        overlay.style.backgroundColor = `rgba(7, 11, 20, ${(val / 100).toFixed(2)})`;
+      }
       const current = window.AmyFXTheme?.customBg;
       if (current) {
         window.AmyFXTheme?.setCustomBg?.({ ...current, dim: val });
@@ -516,6 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     blurSlider?.addEventListener('input', e => {
       const val = Number(e.target.value);
       if (blurVal) blurVal.textContent = `${val}px`;
+      document.documentElement.style.setProperty('--glass-blur', `${val}px`);
       const current = window.AmyFXTheme?.customBg;
       if (current) {
         window.AmyFXTheme?.setCustomBg?.({ ...current, blur: val });

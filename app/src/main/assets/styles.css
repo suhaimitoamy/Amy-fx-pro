@@ -21,10 +21,12 @@
 #home-chart-error{color:#ef4444}
 
 :root {
-  --bg-color: #04070E;
-  --bg-color-alt: #080D1A;
-  --surface-color: rgba(255, 255, 255, 0.07);
-  --surface-soft: rgba(255, 255, 255, 0.035);
+  --bg-color: #070B14;
+  --bg-color-alt: #0B1020;
+  --card-tint: rgba(255, 255, 255, 0.075);
+  --glass-blur: 24px;
+  --surface-color: rgba(255, 255, 255, 0.075);
+  --surface-soft: rgba(255, 255, 255, 0.04);
   --primary-gold: #F5C451;
   --secondary-gold: #FBE6A2;
   --cyber-blue: #3B82F6;
@@ -32,8 +34,8 @@
   --trading-red: #EF4444;
   --text-main: #FFFFFF;
   --text-muted: #94A3B8;
-  --border-color: rgba(255, 255, 255, 0.13);
-  --border-gold: rgba(245, 196, 81, 0.4);
+  --border-color: rgba(255, 255, 255, 0.15);
+  --border-gold: rgba(245, 196, 81, 0.45);
   --glow-gold: rgba(245, 196, 81, 0.4);
   --glow-blue: rgba(59, 130, 246, 0.35);
 }
@@ -46,13 +48,13 @@
 
 body {
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--bg-color);
+  background-color: #070B14;
   background-image: 
-    linear-gradient(rgba(245, 196, 81, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(245, 196, 81, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at 18% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 85% 15%, rgba(245, 196, 81, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.5) 0%, transparent 60%);
+    radial-gradient(circle at 18% 12%, rgba(59, 130, 246, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 82% 20%, rgba(245, 196, 81, 0.10) 0%, transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(11, 16, 32, 0.6) 0%, transparent 60%);
   background-size: 36px 36px, 36px 36px, 100% 100%, 100% 100%, 100% 100%;
   background-attachment: fixed;
   color: var(--text-main);
@@ -82,9 +84,18 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% -10%, rgba(245, 196, 81, 0.09), transparent 42%),
-              radial-gradient(circle at 92% 55%, rgba(59, 130, 246, 0.06), transparent 38%);
+  background: radial-gradient(circle at 50% -12%, rgba(245, 196, 81, 0.10), transparent 45%),
+              radial-gradient(circle at 92% 55%, rgba(59, 130, 246, 0.07), transparent 40%);
   z-index: -1;
+}
+
+html[data-amyfx-custom-bg="true"],
+html[data-amyfx-custom-bg="true"] body {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+html[data-amyfx-custom-bg="true"] body::before {
+  display: none !important;
 }
 
 button,
@@ -377,13 +388,13 @@ main {
 .internal-page,
 .code-panel,
 .webview-box {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(13, 21, 38, 0.65) 100%);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 45%, var(--card-tint, rgba(255, 255, 255, 0.06)) 100%);
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 22px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .card,
@@ -413,8 +424,8 @@ main {
 .indicator-item:hover,
 .collection-item:hover {
   border-color: rgba(245, 196, 81, 0.55);
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 196, 81, 0.22), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 40%, rgba(18, 28, 48, 0.72) 100%);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.55), 0 0 20px rgba(245, 196, 81, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 45%, var(--card-tint, rgba(255, 255, 255, 0.08)) 100%);
   transform: translateY(-2px);
 }
 
@@ -537,17 +548,17 @@ main {
   align-items: center;
   gap: 14px;
   padding: 18px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(13, 21, 38, 0.68) 100%) !important;
-  backdrop-filter: blur(24px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.3) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 45%, var(--card-tint, rgba(255, 255, 255, 0.07)) 100%) !important;
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
 }
 .profile-avatar {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -556,7 +567,7 @@ main {
   font-size: 0.95rem;
   font-weight: 900;
   letter-spacing: 0.06em;
-  box-shadow: 0 0 20px rgba(245, 196, 81, 0.4), inset 0 0 10px rgba(245, 196, 81, 0.2);
+  box-shadow: 0 0 24px rgba(245, 196, 81, 0.45), inset 0 0 12px rgba(245, 196, 81, 0.25);
   background: rgba(245, 196, 81, 0.12);
 }
 .profile-name-row {
@@ -596,12 +607,12 @@ main {
   padding: 6px 12px;
   border-radius: 9999px;
   color: var(--primary-gold, #F5C451) !important;
-  background: rgba(245, 196, 81, 0.1) !important;
-  border: 1px solid rgba(245, 196, 81, 0.38) !important;
+  background: rgba(245, 196, 81, 0.12) !important;
+  border: 1px solid rgba(245, 196, 81, 0.45) !important;
   font-size: 0.65rem;
   font-weight: 850;
   letter-spacing: 0.08em;
-  box-shadow: 0 0 16px rgba(245, 196, 81, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 18px rgba(245, 196, 81, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 .status-badge::before {
   content: '';
@@ -627,13 +638,13 @@ main {
 .stat-card {
   padding: 14px 6px 12px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-top: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(13, 21, 38, 0.6) 100%);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 45%, var(--card-tint, rgba(255, 255, 255, 0.06)) 100%);
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
@@ -643,7 +654,7 @@ main {
 .stat-card:hover {
   transform: translateY(-2px);
   border-color: rgba(245, 196, 81, 0.5);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 16px rgba(245, 196, 81, 0.25);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 16px rgba(245, 196, 81, 0.25);
 }
 .stat-card strong,
 .stat-card .stat-val {
@@ -701,12 +712,12 @@ main {
 .profile-glass-panel {
   padding: 18px 16px;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(13, 21, 38, 0.65) 100%);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 45%, var(--card-tint, rgba(255, 255, 255, 0.06)) 100%);
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-top: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.16);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   margin-top: 8px;
 }
 .glass-group-label {
@@ -1045,11 +1056,11 @@ html[data-amyfx-theme="light"] .nav-btn { color: #6b7a90; }
 
 /* Executive Pure Glassmorphism & High-Contrast Typography */
 .card, .quick-card, .collection-tool, .home-hero, .panel, .course-card {
-  background: var(--amy-surface, rgba(16, 26, 46, 0.72));
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.12));
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 var(--amy-highlight, rgba(255, 255, 255, 0.14));
+  background: var(--card-tint, rgba(255, 255, 255, 0.075));
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%);
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.15));
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   color: var(--amy-text, #ffffff);
 }
 
@@ -1070,6 +1081,11 @@ html[data-amyfx-custom-colors] body {
   color: var(--amy-text) !important;
 }
 
+html[data-amyfx-custom-bg="true"][data-amyfx-custom-colors] body {
+  background: transparent !important;
+  background-image: none !important;
+}
+
 html[data-amyfx-custom-colors] .profile-card,
 html[data-amyfx-custom-colors] .profile-glass-panel,
 html[data-amyfx-custom-colors] .stat-card,
@@ -1079,10 +1095,12 @@ html[data-amyfx-custom-colors] .collection-tool,
 html[data-amyfx-custom-colors] .home-hero,
 html[data-amyfx-custom-colors] .panel,
 html[data-amyfx-custom-colors] .course-card {
-  background: var(--amy-surface) !important;
+  background: var(--card-tint, rgba(255, 255, 255, 0.075)) !important;
   border-color: var(--amy-border) !important;
   color: var(--amy-text) !important;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--amy-highlight) !important;
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(180%) !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
 }
 
 html[data-amyfx-custom-colors] .home-hero h2,

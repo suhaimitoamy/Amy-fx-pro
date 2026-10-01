@@ -20,8 +20,8 @@
       if (parsed && typeof parsed.image === "string" && parsed.image.startsWith("data:image/")) {
         return {
           image: parsed.image,
-          dim: typeof parsed.dim === "number" ? Math.max(10, Math.min(95, parsed.dim)) : 60,
-          blur: typeof parsed.blur === "number" ? Math.max(0, Math.min(30, parsed.blur)) : 0
+          dim: typeof parsed.dim === "number" ? Math.max(0, Math.min(100, parsed.dim)) : 50,
+          blur: typeof parsed.blur === "number" ? Math.max(0, Math.min(25, parsed.blur)) : 20
         };
       }
     } catch (_) {}
@@ -36,33 +36,38 @@
       if (layer) layer.style.display = "none";
       if (overlay) overlay.style.display = "none";
       root.removeAttribute("data-amyfx-custom-bg");
+      root.style.removeProperty('--glass-blur');
       return;
     }
 
     if (!layer) {
       layer = document.createElement("div");
       layer.id = "amyfx-custom-bg-layer";
-      layer.style.cssText = "position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none;transform:scale(1.05);transition:filter 0.25s ease, opacity 0.3s ease;";
-      (document.body || document.documentElement).appendChild(layer);
+      layer.style.cssText = "position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none;transform:scale(1.02);transition:opacity 0.25s ease;";
+      (document.body || document.documentElement).prepend(layer);
     }
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.id = "amyfx-custom-bg-overlay";
-      overlay.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;transition:background-color 0.25s ease;";
-      (document.body || document.documentElement).appendChild(overlay);
+      overlay.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;transition:background-color 0.15s ease;";
+      (document.body || document.documentElement).prepend(overlay);
     }
 
     const resolved = resolvedTheme(preference);
-    const dimAlpha = (bgData.dim ?? 60) / 100;
+    const dim = typeof bgData.dim === 'number' ? Math.max(0, Math.min(100, bgData.dim)) : 50;
+    const blur = typeof bgData.blur === 'number' ? Math.max(0, Math.min(25, bgData.blur)) : 20;
+    const dimAlpha = (dim / 100).toFixed(2);
     const overlayColor = resolved === "light"
-      ? `rgba(238, 244, 250, ${Math.max(0.35, dimAlpha)})`
-      : `rgba(7, 11, 18, ${Math.max(0.35, dimAlpha)})`;
+      ? `rgba(238, 244, 250, ${dimAlpha})`
+      : `rgba(7, 11, 20, ${dimAlpha})`;
 
     layer.style.display = "block";
     layer.style.backgroundImage = `url("${bgData.image}")`;
-    layer.style.filter = bgData.blur ? `blur(${bgData.blur}px)` : "none";
     overlay.style.display = "block";
     overlay.style.backgroundColor = overlayColor;
+    
+    // Dynamically update frosted glass blur across all glass cards
+    root.style.setProperty('--glass-blur', `${blur}px`);
     root.setAttribute("data-amyfx-custom-bg", "true");
   }
 
@@ -103,7 +108,7 @@
         .filter(([, value]) => value));
       if (parsed?.opacity !== undefined) {
         const op = parseInt(parsed.opacity, 10);
-        if (!isNaN(op) && op >= 10 && op <= 100) result.opacity = op;
+        if (!isNaN(op) && op >= 0 && op <= 100) result.opacity = op;
       }
       if (parsed?.preset) result.preset = String(parsed.preset);
       return result;
@@ -157,8 +162,8 @@
       return;
     }
 
-    const opacityVal = customColors.opacity !== undefined ? Number(customColors.opacity) : 68;
-    const alpha = Math.max(0.12, Math.min(0.96, opacityVal / 100));
+    const opacityVal = customColors.opacity !== undefined ? Number(customColors.opacity) : 8;
+    const alpha = Math.max(0.05, Math.min(0.20, opacityVal / 100));
 
     Object.entries(CUSTOM_PROPERTIES).forEach(([key, properties]) => {
       const value = validColor(customColors[key]);
@@ -168,11 +173,11 @@
             if (property === '--amy-surface') {
               root.style.setProperty(property, hexToRgba(value, alpha));
             } else if (property === '--amy-surface-strong') {
-              root.style.setProperty(property, hexToRgba(value, Math.min(0.96, alpha + 0.16)));
+              root.style.setProperty(property, hexToRgba(value, Math.min(0.25, alpha + 0.05)));
             } else if (property === '--amy-surface-solid') {
               root.style.setProperty(property, value);
             } else {
-              root.style.setProperty(property, value);
+              root.style.setProperty(property, hexToRgba(value, alpha));
             }
           } else if (key === 'background') {
             if (property === '--amy-bg-secondary') {
@@ -189,38 +194,34 @@
       });
     });
 
-    if (customColors.surface) {
-      const surfVal = customColors.surface;
-      root.style.setProperty('--amy-surface-soft', hexToRgba(surfVal, 0.14));
-      root.style.setProperty('--surface-soft', hexToRgba(surfVal, Math.min(0.96, alpha + 0.12)));
-      root.style.setProperty('--surface-color', hexToRgba(surfVal, alpha));
-      root.style.setProperty('--card', hexToRgba(surfVal, alpha));
-      root.style.setProperty('--bg-card', hexToRgba(surfVal, alpha));
-      const highlightAlpha = Math.max(0.06, (100 - opacityVal) / 260);
-      root.style.setProperty('--amy-highlight', `rgba(255, 255, 255, ${highlightAlpha.toFixed(2)})`);
-      root.style.setProperty('--amy-blur', `${Math.round(16 + (100 - opacityVal) * 0.12)}px`);
-    } else {
-      root.style.removeProperty('--amy-surface-soft');
-      root.style.removeProperty('--surface-soft');
-      root.style.removeProperty('--surface-color');
-      root.style.removeProperty('--card');
-      root.style.removeProperty('--bg-card');
-      root.style.removeProperty('--amy-highlight');
-      root.style.removeProperty('--amy-blur');
+    const surfVal = customColors.surface || '#ffffff';
+    root.style.setProperty('--card-tint', hexToRgba(surfVal, alpha));
+    root.style.setProperty('--amy-surface-soft', hexToRgba(surfVal, 0.04));
+    root.style.setProperty('--surface-soft', hexToRgba(surfVal, 0.04));
+    root.style.setProperty('--surface-color', hexToRgba(surfVal, alpha));
+    root.style.setProperty('--card', hexToRgba(surfVal, alpha));
+    root.style.setProperty('--bg-card', hexToRgba(surfVal, alpha));
+    root.style.setProperty('--amy-highlight', 'rgba(255, 255, 255, 0.12)');
+    if (!root.style.getPropertyValue('--glass-blur')) {
+      root.style.setProperty('--glass-blur', '24px');
     }
 
     if (customColors.accent) {
-      root.style.setProperty('--glow-gold', hexToRgba(customColors.accent, 0.35));
+      root.style.setProperty('--glow-gold', hexToRgba(customColors.accent, 0.4));
       root.style.setProperty('--amy-border', hexToRgba(customColors.accent, 0.22));
       root.style.setProperty('--border-color', hexToRgba(customColors.accent, 0.22));
+      root.style.setProperty('--border-gold', hexToRgba(customColors.accent, 0.45));
       root.style.setProperty('--primary-gold', customColors.accent);
       root.style.setProperty('--secondary-gold', customColors.accent);
+      root.style.setProperty('--amy-accent', customColors.accent);
     } else {
       root.style.removeProperty('--glow-gold');
       root.style.removeProperty('--amy-border');
       root.style.removeProperty('--border-color');
+      root.style.removeProperty('--border-gold');
       root.style.removeProperty('--primary-gold');
       root.style.removeProperty('--secondary-gold');
+      root.style.removeProperty('--amy-accent');
     }
 
     root.toggleAttribute("data-amyfx-custom-colors", hasCustom);
@@ -340,7 +341,7 @@
         .filter(([, value]) => value));
       if (values.opacity !== undefined) {
         const op = parseInt(values.opacity, 10);
-        if (!isNaN(op) && op >= 10 && op <= 100) next.opacity = op;
+        if (!isNaN(op) && op >= 0 && op <= 100) next.opacity = op;
       }
       if (values.preset) next.preset = String(values.preset);
       customColors = next;
@@ -356,13 +357,12 @@
     },
     setPreset(presetId) {
       const PRESETS = {
-        obsidian: { background: '#070b14', surface: '#0f172a', text: '#f8fafc', accent: '#f5c451', opacity: 68 },
-        emerald: { background: '#05130e', surface: '#0a2218', text: '#eafaf1', accent: '#22c55e', opacity: 62 },
-        sapphire: { background: '#070e20', surface: '#0c1d38', text: '#f0f6ff', accent: '#3b82f6', opacity: 62 },
-        cyber: { background: '#070e20', surface: '#0c1d38', text: '#f0f6ff', accent: '#3b82f6', opacity: 62 },
-        gold: { background: '#0c0f18', surface: '#1e1910', text: '#fffdf5', accent: '#f5c451', opacity: 65 },
-        amber: { background: '#0c0f18', surface: '#1e1910', text: '#fffdf5', accent: '#f5c451', opacity: 65 },
-        amethyst: { background: '#0d0718', surface: '#1f0f35', text: '#f8f0ff', accent: '#c084fc', opacity: 60 }
+        obsidian: { background: '#070b14', surface: '#ffffff', text: '#f8fafc', accent: '#f5c451', opacity: 8 },
+        gold: { background: '#0c0f18', surface: '#f5c451', text: '#fffdf5', accent: '#f5c451', opacity: 8 },
+        cyber: { background: '#070e20', surface: '#3b82f6', text: '#f0f6ff', accent: '#3b82f6', opacity: 8 },
+        sapphire: { background: '#070e20', surface: '#3b82f6', text: '#f0f6ff', accent: '#3b82f6', opacity: 8 },
+        emerald: { background: '#05130e', surface: '#22c55e', text: '#eafaf1', accent: '#22c55e', opacity: 8 },
+        amethyst: { background: '#0d0718', surface: '#c084fc', text: '#f8f0ff', accent: '#c084fc', opacity: 8 }
       };
       const found = PRESETS[presetId];
       if (found) {
