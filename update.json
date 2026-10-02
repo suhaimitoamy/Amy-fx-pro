@@ -1,10 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.390/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Pengingat Belajar Harian Academy: Notifikasi pengingat materi terakhir untuk terus meningkatkan skill trading ICT.",
-    "Kustomisasi Waktu Notifikasi: Pengguna dapat bebas menentukan jam pengingat harian sendiri melalui menu Profil & Pengaturan.",
-    "Navigasi Langsung ke Materi: Menekan notifikasi pengingat otomatis membuka materi terkait di Academy.",
-    "Tombol Uji Notifikasi: Tes instan format notifikasi pengingat langsung dari menu Profil."
+    "Notifikasi Latar Belakang Asisten Cerdas ICT: Notifikasi Rejection M5, Valid Break, POI Touch, Swept Likuiditas, Target DOL, dan Setup Batal kini aktif langsung di background worker meski aplikasi sedang ditutup.",
+    "Sinkronisasi Native DriverSetupSyncWorker: Evaluasi alert M5 terintegrasi langsung dengan background sync periodik dan pencegahan duplikasi notifikasi (deduplication cache).",
+    "Pembaruan Status Pasar Terarah: Menekan notifikasi langsung membuka tampilan Dashboard Mapping Gold."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.390/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
-    "Pengingat Belajar Harian Academy: Notifikasi pengingat materi terakhir untuk terus meningkatkan skill trading ICT.",
-    "Kustomisasi Waktu Notifikasi: Pengguna dapat bebas menentukan jam pengingat harian sendiri melalui menu Profil & Pengaturan.",
-    "Navigasi Langsung ke Materi: Menekan notifikasi pengingat otomatis membuka materi terkait di Academy.",
-    "Tombol Uji Notifikasi: Tes instan format notifikasi pengingat langsung dari menu Profil."
+    "Notifikasi Latar Belakang Asisten Cerdas ICT: Notifikasi Rejection M5, Valid Break, POI Touch, Swept Likuiditas, Target DOL, dan Setup Batal kini aktif langsung di background worker meski aplikasi sedang ditutup.",
+    "Sinkronisasi Native DriverSetupSyncWorker: Evaluasi alert M5 terintegrasi langsung dengan background sync periodik dan pencegahan duplikasi notifikasi (deduplication cache).",
+    "Pembaruan Status Pasar Terarah: Menekan notifikasi langsung membuka tampilan Dashboard Mapping Gold."
   ],
   "sha256": "47b57fc5f1525ebe84c4f3ef3443fe2169425e3a1519c978851c93c693226a3c",
   "version": "2.0.0-pro.390",

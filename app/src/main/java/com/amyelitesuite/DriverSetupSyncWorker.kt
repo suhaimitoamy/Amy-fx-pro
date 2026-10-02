@@ -56,6 +56,11 @@ class DriverSetupSyncWorker(
                     processMarketAlerts(result)
                 }
 
+                val contextObj = payload.optJSONObject("context") ?: result?.optJSONObject("context")
+                if (contextObj != null) {
+                    processAssistantAlerts(contextObj)
+                }
+
                 Result.success()
             }
         } catch (error: Exception) {
@@ -120,6 +125,105 @@ class DriverSetupSyncWorker(
         }
     }
 
+    private fun processAssistantAlerts(contextObj: JSONObject) {
+        val amy = contextObj.optJSONObject("amy") ?: return
+        val dashboard = amy.optJSONObject("dashboard")
+        val entry = amy.optJSONObject("entry")
+        val news = contextObj.optJSONObject("news")
+
+        val entryText = entry?.optString("text").orEmpty()
+        val lines = entryText.split("\n")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+
+        var notify = false
+        var badge = ""
+        var notifTitle = ""
+        var notifBody = ""
+
+        val newsStatus = news?.optString("status").orEmpty()
+        val invalidStatus = dashboard?.optInt("invalidStatus", 0) ?: 0
+        val rejectBuy = entry?.optBoolean("rejectBuy", false) ?: false
+        val rejectSell = entry?.optBoolean("rejectSell", false) ?: false
+        val importance = entry?.optInt("importance", 0) ?: 0
+        val inPoi = entry?.optBoolean("inPoi", false) ?: false
+        val dolStatus = dashboard?.optInt("dolStatus", 0) ?: 0
+        val biasDir = dashboard?.optInt("biasDir", 0) ?: 0
+
+        val poi = dashboard?.optJSONObject("poi")
+        val poiKind = poi?.optString("kind", "POI")?.ifBlank { "POI" } ?: "POI"
+        val poiSide = poi?.optString("side", "").orEmpty()
+
+        if (newsStatus == "NEWS_LOCK") {
+            badge = "NEWS_LOCK"
+            notifTitle = "🛡️ Asisten Amy: NEWS LOCK Aktif"
+            notifBody = news?.optString("note", "Pasar sangat liar dan rawan slippage. Jangan entry sebelum volatilitas stabil.").orEmpty()
+            notify = true
+        } else if (invalidStatus == 2) {
+            badge = "SETUP_BATAL"
+            notifTitle = "⚠ Asisten Amy: Setup Batal (Invalid)"
+            val invalidLevel = dashboard?.optDouble("invalidLevel", 0.0) ?: 0.0
+            val levelStr = if (invalidLevel > 0.0) String.format(java.util.Locale.US, "%.2f", invalidLevel) else ""
+            notifBody = "Close M15 menembus batas pembatalan $levelStr. Tunggu pembentukan struktur baru."
+            notify = true
+        } else if (rejectBuy || rejectSell) {
+            val isBuy = rejectBuy
+            badge = if (isBuy) "REJECTION_BUY" else "REJECTION_SELL"
+            val badgeLabel = if (isBuy) "REJECTION BUY" else "REJECTION SELL"
+            notifTitle = "🔥 Asisten Amy: $badgeLabel"
+            val primary = "🔥 Rejection Kuat di Area $poiKind"
+            val sub = "Candle menolak ${if (isBuy) "bawah" else "atas"} dengan wick panjang. Konfirmasi ${if (isBuy) "BUY" else "SELL"}."
+            notifBody = "$primary. $sub"
+            notify = true
+        } else if (importance == 4) {
+            val isBull = biasDir == 1
+            badge = if (isBull) "VALID_BREAK_UP" else "VALID_BREAK_DOWN"
+            val badgeLabel = if (isBull) "VALID BREAK UP" else "VALID BREAK DOWN"
+            notifTitle = "✓ Asisten Amy: $badgeLabel"
+            val primary = "✓ Valid Break ${if (isBull) "Bullish" else "Bearish"} dengan Displacement"
+            val sub = "Struktur M5 terkonfirmasi searah tren. Siapkan observasi entry."
+            notifBody = "$primary. $sub"
+            notify = true
+        } else if (lines.any { it.contains("swept", ignoreCase = true) }) {
+            val isSsl = lines.any { it.contains("SSL", ignoreCase = true) }
+            badge = if (isSsl) "SSL_SWEPT" else "BSL_SWEPT"
+            val badgeLabel = if (isSsl) "SSL SWEPT" else "BSL SWEPT"
+            notifTitle = "💧 Asisten Amy: $badgeLabel"
+            val primary = "💧 ${if (isSsl) "Sell-Side (SSL)" else "Buy-Side (BSL)"} Swept di M5"
+            val sweepLine = lines.find { it.contains("swept", ignoreCase = true) } ?: ""
+            val followLine = lines.find { it.contains("konfirmasi", ignoreCase = true) } ?: "Likuiditas terambil, pantau reaksi harga."
+            val sub = "$sweepLine · $followLine".trim(' ', '·')
+            notifBody = "$primary. $sub"
+            notify = true
+        } else if (inPoi) {
+            badge = "DI_AREA_POI"
+            notifTitle = "📍 Asisten Amy: Area POI Tersentuh"
+            val primary = "📍 ${if (poiSide.isNotBlank()) "$poiSide " else ""}$poiKind Tersentuh"
+            val low = poi?.optDouble("low", 0.0) ?: 0.0
+            val high = poi?.optDouble("high", 0.0) ?: 0.0
+            val rangeStr = if (high > 0.0 && low > 0.0) String.format(java.util.Locale.US, "(%.2f – %.2f)", high, low) else ""
+            val sub = "Harga berada di zona kritis. Pantau pembentukan candle rejection atau break M5."
+            notifBody = "$primary $rangeStr. $sub"
+            notify = true
+        } else if (dolStatus == 2) {
+            badge = "TARGET_DOL"
+            notifTitle = "🎯 Asisten Amy: Target DOL Tercapai"
+            notifBody = "🎯 Target Likuiditas (DOL) Telah Tercapai. Hati-hati pembalikan arah, jangan kejar harga."
+            notify = true
+        }
+
+        if (!notify || notifTitle.isBlank() || notifBody.isBlank()) return
+
+        val sourceObj = amy.optJSONObject("source") ?: contextObj.optJSONObject("source")
+        val m5Time = sourceObj?.optLong("M5", 0L) ?: (System.currentTimeMillis() / (5 * 60 * 1000))
+        val cacheKey = "assistant_${badge}_${m5Time}"
+        val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.contains(cacheKey)) return
+
+        showDriverNotification(notifTitle, notifBody, cacheKey)
+        prefs.edit().putLong(cacheKey, System.currentTimeMillis()).apply()
+    }
+
     private fun showDriverNotification(title: String, body: String, targetId: String) {
         if (!canPostNotifications()) return
 
@@ -127,6 +231,7 @@ class DriverSetupSyncWorker(
         if (!AmyFxNotificationGate.shouldNotify(applicationContext, gateKey, System.currentTimeMillis())) {
             return
         }
+        AmyFxNotificationGate.markNotified(applicationContext, "global|$title|$body", System.currentTimeMillis())
 
         createMarketContextChannel()
         val targetUrl = "https://appassets.androidplatform.net/assets/apps/mapping/index.html#Dashboard"
