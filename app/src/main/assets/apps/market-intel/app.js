@@ -269,6 +269,72 @@ function analyzeMacroEvent(ev) {
   return { title, category, bias, scenarioDesc, fVal, pVal, aVal, isReleased };
 }
 
+let simulatedOverrides = null;
+try {
+  const savedSim = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('amyfx_sim_override') : null;
+  if (savedSim) simulatedOverrides = JSON.parse(savedSim);
+} catch (_) {}
+
+window.simulateEventRelease = function(type) {
+  if (type === 'reset') {
+    simulatedOverrides = null;
+    try { sessionStorage.removeItem('amyfx_sim_override'); } catch (_) {}
+  } else {
+    simulatedOverrides = { type, activeAt: Date.now() };
+    try { sessionStorage.setItem('amyfx_sim_override', JSON.stringify(simulatedOverrides)); } catch (_) {}
+  }
+  loadSentiment(true);
+};
+
+function extractActualForEvent(ev, newsItems) {
+  if (!ev || !Array.isArray(newsItems) || newsItems.length === 0) return null;
+  const title = String(ev.title || '').toLowerCase();
+
+  const keywords = [];
+  if (title.includes('unemployment claims') || title.includes('jobless claims')) {
+    keywords.push('unemployment claims', 'jobless claims', 'klaim pengangguran', 'klaim awal');
+  } else if (title.includes('non-farm') || title.includes('nonfarm') || title.includes('payrolls')) {
+    keywords.push('non-farm', 'nonfarm', 'payroll', 'nfp');
+  } else if (title.includes('unemployment rate')) {
+    keywords.push('unemployment rate', 'tingkat pengangguran');
+  } else if (title.includes('hourly earnings')) {
+    keywords.push('hourly earnings', 'penghasilan rata-rata per jam', 'upah per jam');
+  } else if (title.includes('cpi')) {
+    keywords.push('cpi', 'ihk', 'inflasi');
+  } else if (title.includes('pce')) {
+    keywords.push('pce');
+  } else if (title.includes('pmi')) {
+    keywords.push('pmi');
+  } else if (title.includes('retail sales')) {
+    keywords.push('retail sales', 'penjualan ritel');
+  } else if (title.includes('gdp')) {
+    keywords.push('gdp', 'pdb');
+  } else {
+    keywords.push(title);
+  }
+
+  for (const item of newsItems) {
+    const raw = `${item.text || ''}\n${item.textOriginal || ''}`;
+    const lower = raw.toLowerCase();
+    const matchedKw = keywords.find(kw => lower.includes(kw));
+    if (!matchedKw) continue;
+
+    // Pattern 1: Explicit Label "Aktual: 89K" or "Actual: 89K" or "Hasil: 89K"
+    const p1 = raw.match(/(?:Aktual|Actual|Hasil|Rilis)\s*[:=]\s*([+-]?\d+(?:[\.,]\d+)?[%KkMmBb]?)/i);
+    if (p1 && p1[1]) return p1[1].trim();
+
+    // Pattern 2: "EventName: 89K (vs ...)"
+    const kwEsc = matchedKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const p2 = new RegExp(`${kwEsc}[^\\n\\r:]*[:=]\\s*([+-]?\\d+(?:[\\.,]\\d+)?[%KkMmBb]?)`, 'i').exec(raw);
+    if (p2 && p2[1]) return p2[1].trim();
+
+    // Pattern 3: "tercatat 89K" / "keluar 89K" / "sebesar 89K"
+    const p3 = raw.match(/(?:tercatat|keluar|sebesar|mencapai)\s*([+-]?\d+(?:[\.,]\d+)?[%KkMmBb]?)/i);
+    if (p3 && p3[1]) return p3[1].trim();
+  }
+  return null;
+}
+
 async function loadSentiment(isBackground = false) {
   const container = document.getElementById('sentiment-content');
   const statusEl = document.getElementById('sentiment-status');
@@ -293,6 +359,18 @@ async function loadSentiment(isBackground = false) {
   const usdEvents = events.filter(e => String(e.country || '').toUpperCase() === 'USD');
   const hasEvents = usdEvents.length > 0;
 
+  // Ambil berita lokal untuk bukti geopolitik & energi, dan enrich actual
+  let newsItems = [];
+  try {
+    const rawNews = localStorage.getItem('amyfx.assistant.news.v1');
+    if (rawNews) {
+      const parsedNews = JSON.parse(rawNews);
+      if (Array.isArray(parsedNews?.items)) {
+        newsItems = parsedNews.items;
+      }
+    }
+  } catch (_) {}
+
   // Filter event USD hari ini (WITA)
   const todayUsd = usdEvents.filter(e => {
     const d = new Date(e.date);
@@ -302,6 +380,17 @@ async function loadSentiment(isBackground = false) {
 
   // Urutkan event berdasarkan jam
   todayUsd.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Enrich event dengan data aktual dari news feed jika ada
+  for (const ev of todayUsd) {
+    if (!ev.actual || ev.actual === '—' || ev.actual === '--') {
+      const ext = extractActualForEvent(ev, newsItems);
+      if (ext) {
+        ev.actual = ext;
+        ev.actualSource = 'news_feed';
+      }
+    }
+  }
 
   // Prioritaskan event High & Medium
   const importantToday = todayUsd.filter(e => {
@@ -315,19 +404,33 @@ async function loadSentiment(isBackground = false) {
     return Number.isFinite(t) && t >= now.getTime();
   });
 
-  const eventAnalysis = analyzeMacroEvent(mainEvent);
-
-  // Ambil berita lokal untuk bukti geopolitik & energi
-  let newsItems = [];
-  try {
-    const rawNews = localStorage.getItem('amyfx.assistant.news.v1');
-    if (rawNews) {
-      const parsedNews = JSON.parse(rawNews);
-      if (Array.isArray(parsedNews?.items)) {
-        newsItems = parsedNews.items;
-      }
+  // Terapkan simulasi lab override jika aktif
+  if (simulatedOverrides?.type && mainEvent) {
+    const isCool = simulatedOverrides.type === 'cool';
+    const t = String(mainEvent.title || '').toLowerCase();
+    if (t.includes('claims')) {
+      mainEvent.actual = isCool ? '230K' : '185K';
+    } else if (t.includes('non-farm') || t.includes('payroll')) {
+      mainEvent.actual = isCool ? '45K' : '145K';
+    } else if (t.includes('unemployment rate')) {
+      mainEvent.actual = isCool ? '4.3%' : '3.9%';
+    } else if (t.includes('cpi') || t.includes('inflation') || t.includes('pce')) {
+      mainEvent.actual = isCool ? '0.1%' : '0.5%';
+    } else if (t.includes('pmi')) {
+      mainEvent.actual = isCool ? '47.5' : '56.8';
+    } else if (t.includes('hourly earnings')) {
+      mainEvent.actual = isCool ? '0.1%' : '0.5%';
+    } else {
+      mainEvent.actual = isCool ? 'Data Dingin' : 'Data Panas';
     }
-  } catch (_) {}
+    mainEvent.isSimulated = true;
+  }
+
+  const evTime = mainEvent ? new Date(mainEvent.date).getTime() : 0;
+  const isTimePassed = Number.isFinite(evTime) && now.getTime() > evTime;
+  const minutesSinceScheduled = isTimePassed ? Math.floor((now.getTime() - evTime) / 60000) : 0;
+
+  const eventAnalysis = analyzeMacroEvent(mainEvent);
 
   const newsTextCombined = newsItems.map(n => String(n.text || n.textOriginal || '')).join(' ').toLowerCase();
 
@@ -462,6 +565,18 @@ async function loadSentiment(isBackground = false) {
     invalidationCondition = 'Fakeout likuiditas dua arah (whipsaw) menjelang rilis.';
     conclusionGuide = 'Faktor penggerak fundamental berada dalam kondisi berimbang. Tunggu kejelasan arah pasar dari reaksi rilis berita atau konfirmasi struktur Price Action di Mapping.';
     mappingBridgeText = 'Pasar dalam fase konsolidasi/menanti katalis. Utamakan skenario range-bound atau tunggu sapuan likuiditas ekstrem sebelum entri.';
+  }
+
+  // Time-aware adjustment: jika jam rilis sudah terlewati tapi actual belum masuk
+  if (!isReleased && isTimePassed && minutesSinceScheduled >= 5 && hasEvents && mainEvent) {
+    const evTimeStr = new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' });
+    horizonStr = `Pasca Jadwal Rilis (${minutesSinceScheduled} mnt lalu)`;
+    if (goldBiasClass === 'mixed' || goldBiasClass === 'neutral' || goldBiasClass === 'insufficient') {
+      conclusionBias = '⚖️ EVALUASI REAKSI PASAR';
+      conclusionGuide = `Jadwal rilis ${mainEvent.title} telah berlangsung pada ${evTimeStr} WITA (${minutesSinceScheduled} menit yang lalu). Angka resmi sedang diverifikasi. Hindari mengejar pergerakan awal secara impulsif; amati struktur Dealing Range di tab Mapping untuk melihat respon likuiditas institusi.`;
+      mainScenario = 'Menunggu reaksi konfirmasi Dealing Range pasca-rilis; hindari perangkap whipsaw.';
+      mappingBridgeText = 'Katalis telah dirilis. Pantau apakah terjadi sapuan likuiditas (BSL/SSL) dan tunggu terbentuknya Market Structure Shift (MSS) sebelum entri.';
+    }
   }
 
   // Dominant factor 2 (Safe Haven / Geopolitics)
@@ -617,90 +732,43 @@ async function loadSentiment(isBackground = false) {
     }
   }
 
+  const narrativeSummary = hasEvents
+    ? (isReleased
+        ? `Secara fundamental pasca-rilis data <strong>${escapeHtml(mainEvent.title)}</strong> (Aktual: <strong class="act-live">${escapeHtml(mainEvent.actual)}</strong> vs Proyeksi: ${escapeHtml(mainEvent.forecast || '—')}), Gold (XAU/USD) berada dalam kondisi <strong>${escapeHtml(goldBias)}</strong>. ${eventAnalysis.scenarioDesc || ''} Fokus eksekusi saat ini beralih ke validasi zona PD Array di Dealing Range Mapping.`
+        : (!isReleased && isTimePassed && minutesSinceScheduled >= 5
+            ? `Jadwal rilis data <strong>${escapeHtml(mainEvent.title)}</strong> telah terlewati (${escapeHtml(new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }))} WITA). Angka resmi sedang dalam proses verifikasi dari feed. Hindari mengejar pergerakan spike awal (whipsaw); fokus utama adalah mengamati respon likuiditas di Dealing Range chart Mapping.`
+            : (mainEvent && (mainEvent.forecast || mainEvent.previous)
+                ? `Secara fundamental, pergerakan XAU/USD sesi ini berada dalam fase <strong>${escapeHtml(goldBias)}</strong>. Fokus utama pasar tertuju pada rilis katalis ekonomi AS <strong>${escapeHtml(mainEvent.title)}</strong> (Forecast: ${escapeHtml(mainEvent.forecast || '—')} vs Previous: ${escapeHtml(mainEvent.previous || '—')}). Di satu sisi, ketahanan Dolar AS dan yield US Treasury membatasi agresivitas reli emas non-yielding; di sisi lain, tensi geopolitik global dan akumulasi cadangan emas bank sentral menjadi bantalan penahan penurunan yang mencegah pelemahan berlanjut tanpa batas. Pelaku pasar cenderung disiplin bersikap wait-and-see menanti kejelasan reaksi data untuk mengonfirmasi arah likuiditas berikutnya.`
+                : `Secara fundamental, pergerakan XAU/USD sesi ini berada dalam fase <strong>${escapeHtml(goldBias)}</strong>. Pasar mencermati arah kebijakan moneter The Fed serta dinamika Dolar AS. Sentimen safe haven menopang level harga struktural di tengah penguatan Dolar. Disiplin menunggu konfirmasi Price Action di Dealing Range.`)))
+    : `Belum ada data kalender ekonomi AS terjadwal hari ini. Pergerakan Gold murni dipandu oleh teknikal dan dinamika likuiditas pasar tanpa tekanan katalis makro eksternal.`;
+
   container.innerHTML = `
     <div class="fundamental-briefing-wrap">
-      <!-- Header Briefing -->
-      <div class="briefing-main-header">
-        <div>
-          <span class="briefing-kicker">KOMPAS FUNDAMENTAL XAU/USD</span>
-          <h2 class="briefing-headline">Fundamental XAU/USD (Gold vs USD) Hari Ini — ${escapeHtml(dateStrWita)}</h2>
-          <div class="kompas-horizon-pill">Horizon Analisis: <strong>${escapeHtml(horizonStr)}</strong></div>
+      <!-- 1. Executive Story & Sentimen Pasar (Card Utama Terpadu) -->
+      <article class="briefing-card card-primary card-conclusion">
+        <div class="briefing-main-header" style="background:transparent; border:none; padding:0; margin-bottom:12px;">
+          <div>
+            <span class="briefing-kicker">KOMPAS FUNDAMENTAL XAU/USD · REAL-TIME</span>
+            <h2 class="briefing-headline">Fundamental XAU/USD (Gold vs USD) Hari Ini — ${escapeHtml(dateStrWita)}</h2>
+            <div class="kompas-horizon-pill" style="margin-top:4px;">Horizon Analisis: <strong>${escapeHtml(horizonStr)}</strong></div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            ${syncBadgeHtml}
+            <span class="conclusion-badge">${escapeHtml(conclusionBias)}</span>
+          </div>
         </div>
-        ${syncBadgeHtml}
-      </div>
 
-      <!-- 1. Faktor Utama: USD & The Fed -->
-      <article class="briefing-card card-primary">
-        <div class="card-head">
-          <div class="card-title-wrap">
-            <span class="card-step-num">1</span>
-            <h3 class="card-title">Faktor Utama: USD &amp; The Fed</h3>
-          </div>
-          <span class="bias-pill ${goldBiasClass}">${escapeHtml(goldBias)}</span>
+        <!-- Narasi Pasar Mengalir (Executive Story) -->
+        <div class="editorial-narrative-box" style="margin: 10px 0 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border-left: 3px solid var(--gold); border-radius: 4px;">
+          <p class="conclusion-guide" style="font-size: 13px; line-height: 1.65; color: var(--text); margin: 0;">
+            ${narrativeSummary}
+          </p>
         </div>
-        <p class="card-desc">
-          ${hasEvents
-            ? (mainEvent && (mainEvent.forecast || mainEvent.previous)
-                ? `Pasar saat ini mencermati katalis <strong>${escapeHtml(mainEvent.title)}</strong> (Forecast: ${escapeHtml(mainEvent.forecast || '—')} vs Previous: ${escapeHtml(mainEvent.previous || '—')}). Kekuatan Dolar AS dan yield obligasi menjadi penentu utama minat beli emas non-yielding.`
-                : 'Saat ini emas berada dalam pantauan kebijakan moneter AS dan arah pergerakan indeks Dolar AS.')
-            : 'Belum ada data kalender ekonomi AS terjadwal. Pergerakan Dolar dan emas bergerak dalam koridor teknikal murni.'}
-        </p>
-        <div class="dominant-factors-box">
-          <div class="dominant-factors-title">🏆 3 Faktor Paling Dominan Penggerak Emas:</div>
-          <div class="dominant-factor-item">
-            <span class="dominant-factor-rank">#1</span>
-            <div class="dominant-factor-text"><strong>${escapeHtml(dom1Title)}:</strong> ${escapeHtml(dom1Reason)}</div>
-          </div>
-          <div class="dominant-factor-item">
-            <span class="dominant-factor-rank">#2</span>
-            <div class="dominant-factor-text"><strong>${escapeHtml(dom2Title)}:</strong> ${escapeHtml(dom2Reason)}</div>
-          </div>
-          <div class="dominant-factor-item">
-            <span class="dominant-factor-rank">#3</span>
-            <div class="dominant-factor-text"><strong>${escapeHtml(dom3Title)}:</strong> ${escapeHtml(dom3Reason)}</div>
-          </div>
-        </div>
-      </article>
 
-      <!-- 2. Faktor Safe Haven (Penahan Penurunan) -->
-      <article class="briefing-card">
-        <div class="card-head">
+        <!-- 3. Sentimen Pasar Hari Ini (Scorecard Terintegrasi) -->
+        <div class="card-head" style="margin-top:14px; margin-bottom:6px;">
           <div class="card-title-wrap">
-            <span class="card-step-num">2</span>
-            <h3 class="card-title">Faktor Safe Haven (Penahan Penurunan)</h3>
-          </div>
-          <span class="bias-pill neutral">Bantalan Dukungan</span>
-        </div>
-        <p class="card-desc">
-          Meskipun tertekan oleh Dolar, emas tetap memiliki bantalan penahan penurunan yang mencegah kejatuhan harga tanpa henti:
-        </p>
-        <ul class="briefing-list">
-          <li><strong>Ketidakpastian Geopolitik:</strong> ${hasGeopolitics ? 'Tensi geopolitik global aktif menjaga minat lindung nilai institusi.' : 'Konflik global dan dinamika regional menahan penurunan drastis emas.'}</li>
-          <li><strong>Risiko Inflasi Energi:</strong> ${hasEnergyRisk ? 'Harga energi dan komoditas minyak mentah memicu kekhawatiran inflasi jangka menengah.' : 'Potensi lonjakan biaya energi sewaktu-waktu dapat memantik inflasi kembali.'}</li>
-          <li><strong>Permintaan Aset Aman:</strong> Pembelian emas fisik oleh bank-bank sentral dunia tetap menjadi fondasi jangka panjang.</li>
-        </ul>
-        <div class="kompas-evidence-cols">
-          <div class="kompas-evidence-col col-support">
-            <div class="evidence-col-title">✅ Bukti Pendukung Bias</div>
-            <ul class="evidence-list">
-              ${supportListHtml}
-            </ul>
-          </div>
-          <div class="kompas-evidence-col col-oppose">
-            <div class="evidence-col-title">⚠️ Bukti Bertentangan / Risiko</div>
-            <ul class="evidence-list">
-              ${opposeListHtml}
-            </ul>
-          </div>
-        </div>
-      </article>
-
-      <!-- 3. Sentimen Pasar Hari Ini -->
-      <article class="briefing-card">
-        <div class="card-head">
-          <div class="card-title-wrap">
-            <span class="card-step-num">3</span>
-            <h3 class="card-title">Sentimen Pasar Hari Ini</h3>
+            <h3 class="card-title" style="font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim);">Sentimen Pasar Hari Ini</h3>
           </div>
           <span class="bias-pill mixed">Scorecard Harian</span>
         </div>
@@ -724,11 +792,10 @@ async function loadSentiment(isBackground = false) {
         </div>
       </article>
 
-      <!-- 4. News yang Perlu Diperhatikan -->
+      <!-- 4. News yang Perlu Diperhatikan (Katalis Sesi Ini) -->
       <article class="briefing-card">
         <div class="card-head">
           <div class="card-title-wrap">
-            <span class="card-step-num">4</span>
             <h3 class="card-title">News yang Perlu Diperhatikan (Sesi New York &amp; London)</h3>
           </div>
           <span class="bias-pill highlight">Jadwal Kalender Terhubung</span>
@@ -745,19 +812,15 @@ async function loadSentiment(isBackground = false) {
         </div>
       </article>
 
-      <!-- 5. Kesimpulan Fundamental -->
-      <article class="briefing-card card-conclusion">
+      <!-- 5. Kesimpulan Fundamental & Panduan Eksekusi -->
+      <article class="briefing-card card-execution">
         <div class="card-head">
           <div class="card-title-wrap">
-            <span class="card-step-num">5</span>
-            <h3 class="card-title">Kesimpulan Fundamental</h3>
+            <h3 class="card-title">Kesimpulan Fundamental &amp; Rencana Aksi</h3>
           </div>
-          <span class="conclusion-badge">${escapeHtml(conclusionBias)}</span>
+          <span class="bias-pill ${goldBiasClass}">${escapeHtml(goldBias)}</span>
         </div>
         <div class="conclusion-content">
-          <p class="conclusion-guide">
-            ${escapeHtml(conclusionGuide)}
-          </p>
           <div class="scenario-box">
             <div class="scenario-box-title">🧭 Skenario Fundamental Terstruktur:</div>
             <ul class="briefing-list">
@@ -774,6 +837,98 @@ async function loadSentiment(isBackground = false) {
           </div>
         </div>
       </article>
+
+      <!-- 🧪 Lab Uji Coba: Simulasi Hasil Rilis Data -->
+      <div class="lab-sim-bar" style="margin-top: 4px; padding: 12px 14px; background: rgba(212, 175, 55, 0.04); border: 1px dashed rgba(212, 175, 55, 0.35); border-radius: 8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:11px; font-weight:700; color:var(--gold);">🧪 Lab Uji Coba: Simulasi Hasil Rilis Data</span>
+          ${simulatedOverrides ? '<span class="bias-pill highlight" style="font-size:9px;">Mode Simulasi Aktif</span>' : '<span style="font-size:10px; color:var(--text-dim);">Live Mode</span>'}
+        </div>
+        <p style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px; line-height:1.45;">
+          Uji bagaimana Kompas Fundamental dan panduan Mapping bertransformasi saat hasil rilis aktual keluar:
+        </p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="sim-btn" onclick="window.simulateEventRelease('cool')" style="flex:1; min-width:140px; padding:8px 10px; font-size:11px; font-weight:700; background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.4); color:#2ecc71; border-radius:6px; cursor:pointer;">
+            🟢 Uji Data Dingin (Bullish Gold)
+          </button>
+          <button type="button" class="sim-btn" onclick="window.simulateEventRelease('hot')" style="flex:1; min-width:140px; padding:8px 10px; font-size:11px; font-weight:700; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.4); color:#ff7875; border-radius:6px; cursor:pointer;">
+            🔴 Uji Data Panas (Bearish Gold)
+          </button>
+          ${simulatedOverrides ? `
+          <button type="button" class="sim-btn" onclick="window.simulateEventRelease('reset')" style="padding:8px 14px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text); border-radius:6px; cursor:pointer;">
+            🔄 Kembalikan ke Live
+          </button>` : ''}
+        </div>
+      </div>
+
+      <!-- Detail Pendukung (USD & Safe Haven Breakdown - Collapsible Drawer) -->
+      <details class="briefing-card briefing-accordion" style="cursor: pointer;">
+        <summary style="font-size: 12px; font-weight: 700; color: var(--gold); outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 2px 0;">
+          <span>🔍 Rincian Faktor &amp; Bukti Makro (USD &amp; Safe Haven)</span>
+          <span class="accordion-arrow">▾</span>
+        </summary>
+        <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; cursor: default;">
+          <!-- Faktor Utama: USD & The Fed -->
+          <div style="margin-bottom: 16px;">
+            <div class="card-head" style="margin-bottom:6px;">
+              <h4 class="card-title" style="font-size: 12px;">Faktor Utama: USD &amp; The Fed</h4>
+              <span class="bias-pill ${goldBiasClass}">${escapeHtml(goldBias)}</span>
+            </div>
+            <p class="card-desc" style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+              ${hasEvents
+                ? (mainEvent && (mainEvent.forecast || mainEvent.previous)
+                    ? `Pasar saat ini mencermati katalis <strong>${escapeHtml(mainEvent.title)}</strong> (Forecast: ${escapeHtml(mainEvent.forecast || '—')} vs Previous: ${escapeHtml(mainEvent.previous || '—')}). Kekuatan Dolar AS dan yield obligasi menjadi penentu utama minat beli emas non-yielding.`
+                    : 'Saat ini emas berada dalam pantauan kebijakan moneter AS dan arah pergerakan indeks Dolar AS.')
+                : 'Belum ada data kalender ekonomi AS terjadwal. Pergerakan Dolar dan emas bergerak dalam koridor teknikal murni.'}
+            </p>
+            <div class="dominant-factors-box">
+              <div class="dominant-factors-title">🏆 3 Faktor Paling Dominan Penggerak Emas:</div>
+              <div class="dominant-factor-item">
+                <span class="dominant-factor-rank">#1</span>
+                <div class="dominant-factor-text"><strong>${escapeHtml(dom1Title)}:</strong> ${escapeHtml(dom1Reason)}</div>
+              </div>
+              <div class="dominant-factor-item">
+                <span class="dominant-factor-rank">#2</span>
+                <div class="dominant-factor-text"><strong>${escapeHtml(dom2Title)}:</strong> ${escapeHtml(dom2Reason)}</div>
+              </div>
+              <div class="dominant-factor-item">
+                <span class="dominant-factor-rank">#3</span>
+                <div class="dominant-factor-text"><strong>${escapeHtml(dom3Title)}:</strong> ${escapeHtml(dom3Reason)}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Faktor Safe Haven (Penahan Penurunan) -->
+          <div>
+            <div class="card-head" style="margin-bottom:6px;">
+              <h4 class="card-title" style="font-size: 12px;">Faktor Safe Haven (Penahan Penurunan)</h4>
+              <span class="bias-pill neutral">Bantalan Dukungan</span>
+            </div>
+            <p class="card-desc" style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+              Meskipun tertekan oleh Dolar, emas tetap memiliki bantalan penahan penurunan yang mencegah kejatuhan harga tanpa henti:
+            </p>
+            <ul class="briefing-list" style="font-size: 11.5px; margin-bottom: 10px;">
+              <li><strong>Ketidakpastian Geopolitik:</strong> ${hasGeopolitics ? 'Tensi geopolitik global aktif menjaga minat lindung nilai institusi.' : 'Konflik global dan dinamika regional menahan penurunan drastis emas.'}</li>
+              <li><strong>Risiko Inflasi Energi:</strong> ${hasEnergyRisk ? 'Harga energi dan komoditas minyak mentah memicu kekhawatiran inflasi jangka menengah.' : 'Potensi lonjakan biaya energi sewaktu-waktu dapat memantik inflasi kembali.'}</li>
+              <li><strong>Permintaan Aset Aman:</strong> Pembelian emas fisik oleh bank-bank sentral dunia tetap menjadi fondasi jangka panjang.</li>
+            </ul>
+            <div class="kompas-evidence-cols">
+              <div class="kompas-evidence-col col-support">
+                <div class="evidence-col-title">✅ Bukti Pendukung Bias</div>
+                <ul class="evidence-list">
+                  ${supportListHtml}
+                </ul>
+              </div>
+              <div class="kompas-evidence-col col-oppose">
+                <div class="evidence-col-title">⚠️ Bukti Bertentangan / Risiko</div>
+                <ul class="evidence-list">
+                  ${opposeListHtml}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
   `;
 }

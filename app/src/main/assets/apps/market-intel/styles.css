@@ -1161,4 +1161,20 @@ body {
   cursor: pointer;
 }
 
+/* Sembunyikan elemen distraksi teknikal mapping dari tab Market Intel */
+body.amyfx-module--intel #intel-briefing {
+  display: none !important;
+}
+
+.briefing-accordion summary::-webkit-details-marker {
+  display: none;
+}
+.briefing-accordion[open] .accordion-arrow {
+  transform: rotate(180deg);
+}
+.accordion-arrow {
+  transition: transform 0.2s ease;
+  font-size: 13px;
+}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

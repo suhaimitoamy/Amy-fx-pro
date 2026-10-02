@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.387/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.388/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup.",
-    "In-App Driver Alert: Deteksi real-time di Mapping Gold dengan notifikasi heads-up saat setup driver terpicu.",
-    "Proteksi Pasar: Notifikasi News Lock otomatis saat ada rilis berita berdampak tinggi."
+    "Market Intel: Format narasi terpadu Kompas Fundamental, penghapusan strip teknikal yang tumpang tindih, dan bilah lab simulasi skenario.",
+    "Time-Aware & Auto News Extract: Deteksi otomatis jadwal rilis yang telah lewat serta ekstraksi hasil angka rilis dari feed berita kilat.",
+    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.387/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.388/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950387,
-  "latest_version_name": "2.0.0-pro.387",
+  "latest_version_code": 950388,
+  "latest_version_name": "2.0.0-pro.388",
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
-    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup.",
-    "In-App Driver Alert: Deteksi real-time di Mapping Gold dengan notifikasi heads-up saat setup driver terpicu.",
-    "Proteksi Pasar: Notifikasi News Lock otomatis saat ada rilis berita berdampak tinggi."
+    "Market Intel: Format narasi terpadu Kompas Fundamental, penghapusan strip teknikal yang tumpang tindih, dan bilah lab simulasi skenario.",
+    "Time-Aware & Auto News Extract: Deteksi otomatis jadwal rilis yang telah lewat serta ekstraksi hasil angka rilis dari feed berita kilat.",
+    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup."
   ],
-  "sha256": "cb022e7a28074bb2970e42b0de079be49f354ca50c71720d09b6dfdd247ea999",
-  "version": "2.0.0-pro.387",
-  "versionCode": 950387
+  "sha256": "pending",
+  "version": "2.0.0-pro.388",
+  "versionCode": 950388
 }
