@@ -1133,7 +1133,7 @@ async function loadSentiment(isBackground = false) {
               <span>⚠️ Protokol Risiko: Waspada Judas Swing (Manipulasi Likuiditas)</span>
             </div>
             <p class="judas-swing-body">
-              Menjelang rilis berita pukul 19:30 WIB (20:30 WITA), volatilitas biasanya melonjak tajam dengan tipuan arah awal (*Judas Swing*) yang menyapu BSL ($${escapeHtml(bslLevel)}) atau SSL ($${escapeHtml(sslLevel)}) sebelum pergerakan asli terjadi. Disiplin <strong>tahan posisi (NEWS LOCK)</strong> 15 menit sebelum hingga 15 menit sesudah rilis. Tunggu pembentukan Market Structure Shift (MSS) yang valid di chart Mapping sebelum mencari entri.
+              Menjelang rilis berita pukul 20:30 WITA, volatilitas biasanya melonjak tajam dengan tipuan arah awal (*Judas Swing*) yang menyapu BSL ($${escapeHtml(bslLevel)}) atau SSL ($${escapeHtml(sslLevel)}) sebelum pergerakan asli terjadi. Disiplin <strong>tahan posisi (NEWS LOCK)</strong> 15 menit sebelum hingga 15 menit sesudah rilis. Tunggu pembentukan Market Structure Shift (MSS) yang valid di chart Mapping sebelum mencari entri.
             </p>
           </div>
           `}
