@@ -17,7 +17,7 @@
     "Time-Aware & Auto News Extract: Deteksi otomatis jadwal rilis yang telah lewat serta ekstraksi hasil angka rilis dari feed berita kilat.",
     "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup."
   ],
-  "sha256": "pending",
+  "sha256": "45b0348daea8ca520eb15472a7307ba82f5fe37189f1637044a66e359aa7f6fb",
   "version": "2.0.0-pro.388",
   "versionCode": 950388
 }
