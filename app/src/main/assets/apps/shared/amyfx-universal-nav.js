@@ -1,25 +1,41 @@
 (function() {
   'use strict';
 
+  function getHomeUrl() {
+    if (window.location.pathname.startsWith('/assets/')) {
+      return '/assets/index.html';
+    }
+    return '/index.html';
+  }
+
   function goBack() {
     // If not in root, return to home
     if (window.location.pathname === '/' || (window.location.pathname.endsWith('/index.html') && !window.location.pathname.includes('/apps/'))) {
       return;
     }
+    if (window.Android && typeof window.Android.goHome === 'function') {
+      window.Android.goHome();
+      return;
+    }
+    const homeUrl = getHomeUrl();
     const originPath = window.location.pathname;
     try {
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.assign('/index.html');
+        window.location.assign(homeUrl);
       }
     } catch (_) {
-      window.location.assign('/index.html');
+      window.location.assign(homeUrl);
     }
-    // Safety fallback: if user is still on the same page after 300ms, force redirect to /index.html
+    // Safety fallback: if user is still on the same page after 300ms, force redirect
     setTimeout(() => {
       if (window.location.pathname === originPath && window.location.pathname.includes('/apps/')) {
-        window.location.assign('/index.html');
+        if (window.Android && typeof window.Android.goHome === 'function') {
+          window.Android.goHome();
+        } else {
+          window.location.assign(homeUrl);
+        }
       }
     }, 300);
   }

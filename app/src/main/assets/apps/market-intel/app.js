@@ -1055,6 +1055,9 @@ async function loadNews(silent = false) {
     if (currentSequence === newsFetchSequence) {
       try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({ updated: data.updated, items: sortedNews.slice(0, 20) })); } catch {}
       renderNews(sortedNews, currentExpandedIds);
+      if (calendarEvents.length === 0) {
+        loadCalendar(true);
+      }
       if (currentTab === 'news' && prevScrollTop > 0) {
         window.scrollTo({ top: prevScrollTop, behavior: 'instant' });
       }
@@ -1313,6 +1316,7 @@ function hideLoading() {
 
 // ─── Economic Calendar Engine ─────────────────────────────
 const CALENDAR_ENDPOINTS = [
+  ...(typeof location !== 'undefined' && location.origin && !location.origin.startsWith('file:') ? [`${location.origin}/api/calendar`] : []),
   'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/economic-calendar',
   'https://amy-fx.vercel.app/api/calendar',
   'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://nfs.faireconomy.media/ff_calendar_thisweek.json'),
@@ -1354,6 +1358,52 @@ function saveCalendarToCache(events) {
   } catch (_) {}
 }
 
+function extractCalendarEventsFromNews() {
+  const events = [];
+  try {
+    let newsItems = [];
+    const cachedRaw = localStorage.getItem('amyfx.assistant.news.v1');
+    if (cachedRaw) {
+      const parsed = JSON.parse(cachedRaw);
+      if (Array.isArray(parsed?.items)) newsItems = parsed.items;
+    }
+    const regex = /([A-Z]{3})\s*\|\s*([^\n\r]+)[\s\S]*?(?:Waktu|Time)\s*:\s*([^\n\r]+)[\s\S]*?(?:Efek|Effects?)\s*:\s*([^\n\r]+)[\s\S]*?(?:Sebelumnya|Previously)\s*:\s*([^\n\r]+)[\s\S]*?(?:Perkiraan|Forecast)\s*:\s*([^\n\r_]+)/gi;
+    const seen = new Set();
+    for (const item of newsItems) {
+      const text = `${item.text || ''}\n${item.textOriginal || ''}`;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        const rawTitle = match[2].trim();
+        const country = match[1].trim();
+        const normKey = `${country}_${rawTitle.toLowerCase()}`;
+        if (seen.has(normKey)) continue;
+        seen.add(normKey);
+
+        const rawTime = match[3].trim();
+        const impactRaw = match[4].toLowerCase();
+        const previous = match[5].trim();
+        const forecast = match[6].trim();
+
+        const baseDate = item.time ? new Date(item.time) : new Date();
+        const ymd = !isNaN(baseDate.getTime()) ? baseDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        const dateStr = `${ymd}T${rawTime.length === 5 ? rawTime + ':00' : '12:00:00'}Z`;
+
+        events.push({
+          title: rawTitle,
+          country,
+          date: dateStr,
+          impact: impactRaw.includes('tinggi') || impactRaw.includes('high') ? 'High' : 'Medium',
+          forecast,
+          previous,
+          actual: '',
+          source: 'telegram_news_feed'
+        });
+      }
+    }
+  } catch (_) {}
+  return events;
+}
+
 async function loadCalendar(silent = false) {
   const status = document.getElementById('calendar-status');
   if (!status) return;
@@ -1386,6 +1436,15 @@ async function loadCalendar(silent = false) {
         }
       } catch (fetchErr) {
         // Continue to fallback endpoint on error or timeout
+      }
+    }
+
+    // Smart fallback: extract macro events from live news feed if endpoints fail
+    if (!data || data.length === 0) {
+      const extractedNewsEvents = extractCalendarEventsFromNews();
+      if (extractedNewsEvents.length > 0) {
+        data = extractedNewsEvents;
+        isCalendarLive = true;
       }
     }
 

@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.385/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.386/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Jurnal Trading: Reset matriks disiplin 35 hari, checklist rutinitas harian terpersonalisasi sesuai jam trading, dan penalti merah hari bolos jurnal.",
-    "Navigasi Jurnal: Penyatuan navigasi v1/v2 agar fokus dan pencegahan freeze pada bottom bar.",
-    "Media: Smooth vertical swipe video TikTok-style, random next video, dan perbaikan swipe-down kembali tanpa refresh.",
-    "Academy: Penghapusan Jalur 02, kurikulum murni 36 pertemuan terpadu, dan perbaikan perataan teks AMY pada brand header."
+    "Mapping & Cloud Engine: Migrasi 24/7 cloud market context ke Vercel Serverless tanpa batas kuota Supabase.",
+    "Navigasi Jurnal: Perbaikan tombol panah kembali agar tetap di dalam APK dan tidak terlempar ke browser luar.",
+    "Academy: Sinkronisasi 531 link materi lokal agar tidak memunculkan pesan file tidak ada.",
+    "Media: Optimalisasi pemutaran video tunggal dan perbaikan freeze saat putar video."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.385/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.386/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950385,
-  "latest_version_name": "2.0.0-pro.385",
+  "latest_version_code": 950386,
+  "latest_version_name": "2.0.0-pro.386",
   "mandatory": false,
-  "releaseDate": "2026-10-01",
+  "releaseDate": "2026-10-02",
   "release_notes": [
-    "Jurnal Trading: Reset matriks disiplin 35 hari, checklist rutinitas harian terpersonalisasi sesuai jam trading, dan penalti merah hari bolos jurnal.",
-    "Navigasi Jurnal: Penyatuan navigasi v1/v2 agar fokus dan pencegahan freeze pada bottom bar.",
-    "Media: Smooth vertical swipe video TikTok-style, random next video, dan perbaikan swipe-down kembali tanpa refresh.",
-    "Academy: Penghapusan Jalur 02, kurikulum murni 36 pertemuan terpadu, dan perbaikan perataan teks AMY pada brand header."
+    "Mapping & Cloud Engine: Migrasi 24/7 cloud market context ke Vercel Serverless tanpa batas kuota Supabase.",
+    "Navigasi Jurnal: Perbaikan tombol panah kembali agar tetap di dalam APK dan tidak terlempar ke browser luar.",
+    "Academy: Sinkronisasi 531 link materi lokal agar tidak memunculkan pesan file tidak ada.",
+    "Media: Optimalisasi pemutaran video tunggal dan perbaikan freeze saat putar video."
   ],
-  "sha256": "d5070a445d2d6edacdec02bced303d4ef4e2b5bba0a2c3b620b8eca06a7c0783",
-  "version": "2.0.0-pro.385",
-  "versionCode": 950385
+  "sha256": "pending",
+  "version": "2.0.0-pro.386",
+  "versionCode": 950386
 }

@@ -82,6 +82,11 @@ const dom = {
   libraryEmpty: document.querySelector("#libraryEmpty"),
   codeEmpty: document.querySelector("#codeEmpty"),
   mediaEmpty: document.querySelector("#mediaEmpty"),
+  uploadMediaBtn: document.querySelector("#uploadMediaBtn"),
+  emptyMediaUploadBtn: document.querySelector("#emptyMediaUploadBtn"),
+  mediaDirectFileInput: document.querySelector("#mediaDirectFileInput"),
+  fileDropLabel: document.querySelector("#fileDropLabel"),
+  journalFileDropLabel: document.querySelector("#journalFileDropLabel"),
   libraryCount: document.querySelector("#libraryCount"),
   codeCount: document.querySelector("#codeCount"),
   mediaCount: document.querySelector("#mediaCount"),
@@ -377,6 +382,15 @@ function bindEvents() {
 
   dom.openFormBtn?.addEventListener("click", () => openForm());
   dom.emptyAddBtn?.addEventListener("click", () => openForm());
+  dom.uploadMediaBtn?.addEventListener("click", () => dom.mediaDirectFileInput?.click());
+  dom.emptyMediaUploadBtn?.addEventListener("click", () => dom.mediaDirectFileInput?.click());
+  dom.mediaDirectFileInput?.addEventListener("change", handleMediaDirectUpload);
+  dom.fileDropLabel?.addEventListener("click", (e) => {
+    if (e.target !== dom.fileInput) dom.fileInput?.click();
+  });
+  dom.journalFileDropLabel?.addEventListener("click", (e) => {
+    if (e.target !== dom.journalFileInput) dom.journalFileInput?.click();
+  });
 
   dom.clearFiltersBtn?.addEventListener("click", () => {
     state.category = "Semua";
@@ -2184,6 +2198,11 @@ function openForm(id = null) {
     updatePreviewForItem(item);
   } else {
     dom.formMode.textContent = "Tambah";
+    if (state.view === "media") {
+      dom.formMode.textContent = "Tambah Media";
+      dom.typeInput.value = state.mediaType === "Gambar" ? "Gambar Chart" : "Video Pembelajaran";
+      dom.categoryInput.value = state.mediaType === "Gambar" ? "Chart Setup" : "Video";
+    }
   }
 
   syncTypeFields();
@@ -2636,8 +2655,10 @@ async function handleFilePick() {
     for (const file of files) {
       const pending = await makePendingMedia(file, { compressImage: dom.compressImageInput?.checked });
       if (!pending) continue;
-      if (pending.fileHash && (findDuplicateByHash(pending.fileHash) || batchHashes.has(pending.fileHash))) {
+      const duplicate = findDuplicateByHash(pending.fileHash);
+      if (pending.fileHash && ((duplicate && duplicate.id !== dom.itemId.value) || batchHashes.has(pending.fileHash))) {
         dom.formMessage.textContent = `File "${file.name}" sudah ada di Library.`;
+        window.showToast?.(`File "${file.name}" sudah ada di library.`);
         dom.fileInput.value = "";
         return;
       }
@@ -2649,6 +2670,7 @@ async function handleFilePick() {
       state.pendingMedia = null;
       clearPreview();
       dom.formMessage.textContent = "Format file belum didukung.";
+      window.showToast?.("Format file belum didukung.");
       return;
     }
 
@@ -2668,10 +2690,121 @@ async function handleFilePick() {
     }
     updatePreview(pendingFiles[0].objectUrl, pendingFiles[0].kind, pendingFiles[0]);
     applyPendingMediaType(pendingFiles[0]);
-  } catch {
+    window.showToast?.(`File "${pendingFiles[0].name}" siap disimpan.`);
+  } catch (err) {
+    console.error("handleFilePick error:", err);
     state.pendingMedia = null;
     clearPreview();
     dom.formMessage.textContent = "File tidak bisa dibaca.";
+    window.showToast?.("File tidak bisa dibaca.");
+  }
+}
+
+async function handleMediaDirectUpload(event) {
+  const files = [...(event.target.files || [])];
+  if (!files.length) return;
+
+  window.showToast?.("Memproses upload media...");
+  let uploadedCount = 0;
+  let skippedDuplicates = 0;
+  const now = new Date().toISOString();
+  const createdItems = [];
+  const createdFileIds = [];
+
+  try {
+    for (const file of files) {
+      if (file.size > 200 * 1024 * 1024) {
+        window.showToast?.(`⚠️ File "${file.name}" terlalu besar (>200MB) untuk penyimpanan web browser.`);
+        continue;
+      }
+      const pending = await makePendingMedia(file, { compressImage: dom.compressImageInput?.checked });
+      if (!pending) continue;
+
+      if (pending.fileHash && findDuplicateByHash(pending.fileHash)) {
+        skippedDuplicates++;
+        continue;
+      }
+
+      const id = createId();
+      const fileId = createId();
+      const itemType = getTypeForPendingMedia(pending);
+      const category = getCategoryForPendingMedia(pending);
+      const title = fileTitleFromName(pending.name);
+
+      const item = {
+        id,
+        title,
+        type: itemType,
+        category,
+        status: "Selesai dibaca",
+        collection: "Media",
+        tags: [itemType.toLowerCase(), "media"],
+        notes: `File ${pending.name} diupload ke Media.`,
+        checklist: [],
+        code: "",
+        mediaUrl: "",
+        fileId,
+        mediaKind: pending.kind,
+        mediaName: pending.name,
+        mediaType: pending.type,
+        mediaSize: pending.size,
+        documentType: pending.documentType || "",
+        documentText: pending.documentText || "",
+        fileHash: pending.fileHash || "",
+        favorite: false,
+        archived: false,
+        revisionHistory: [],
+        uploadedAt: now,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      await putFileRecord({
+        id: fileId,
+        itemId: id,
+        blob: pending.file,
+        name: pending.name,
+        type: pending.type,
+        size: pending.size,
+        kind: pending.kind,
+        documentType: pending.documentType || "",
+        documentText: pending.documentText || "",
+        fileHash: pending.fileHash || "",
+        uploadedAt: now
+      });
+
+      createdFileIds.push(fileId);
+      createdItems.push(item);
+      uploadedCount++;
+    }
+
+    if (createdItems.length > 0) {
+      state.items = [...createdItems, ...state.items];
+      if (state.mediaType !== "Semua") {
+        const firstType = getItemFileType(createdItems[0]);
+        if (firstType !== state.mediaType) {
+          state.mediaType = "Semua";
+          renderPills();
+        }
+      }
+      await saveItems();
+      render();
+      window.showToast?.(`✅ ${uploadedCount} media berhasil ditambahkan!`);
+    } else if (skippedDuplicates > 0) {
+      window.showToast?.("⚠️ File sudah pernah ada di media/library.");
+    } else {
+      window.showToast?.("Format file belum didukung.");
+    }
+  } catch (error) {
+    console.error("Direct media upload error:", error);
+    await Promise.all(createdFileIds.map((fileId) => deleteFileRecord(fileId).catch(() => {})));
+    const isQuota = error?.name === "QuotaExceededError" || /quota|storage/i.test(error?.message || "");
+    const msg = isQuota
+      ? "❌ Gagal: Memori browser web lokal penuh. Coba gunakan video lebih kecil (<50MB)."
+      : "❌ Gagal menyimpan media. Pastikan format video MP4 (H.264).";
+    window.showToast?.(msg);
+  } finally {
+    if (dom.mediaDirectFileInput) dom.mediaDirectFileInput.value = "";
   }
 }
 
@@ -3336,6 +3469,10 @@ function getVideoThumbnailObserver() {
 
 async function processVideoThumbnailQueue() {
   if (state.videoThumbnailBusy) return;
+  if (dom.fullscreenDialog?.open) {
+    window.setTimeout(processVideoThumbnailQueue, 2000);
+    return;
+  }
   const nextId = state.videoThumbnailQueue.values().next().value;
   if (!nextId) return;
   state.videoThumbnailQueue.delete(nextId);
@@ -3486,8 +3623,8 @@ async function renderVideoFeed(activeItem) {
 
   const allVideos = getVisibleVideoItems();
   const otherVideos = allVideos.filter((v) => v.id !== activeItem.id);
-  // Acak video selanjutnya secara random ala algoritma TikTok
-  const shuffledOthers = shuffleArray(otherVideos);
+  // Acak video selanjutnya secara random ala algoritma TikTok (maksimal 20 agar memori GPU tetap ringan)
+  const shuffledOthers = shuffleArray(otherVideos).slice(0, 20);
   const feedItems = [activeItem, ...shuffledOthers];
 
   const feed = document.createElement("div");
@@ -3509,7 +3646,6 @@ async function renderVideoFeed(activeItem) {
       const deltaY = e.touches[0].clientY - touchStartY;
       const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
       if (Math.abs(deltaY) > deltaX) {
-        // Jika sedang di video paling atas dan swipe ke bawah -> Kunci agar browser tidak refresh!
         if (feed.scrollTop <= 0 && deltaY > 0) {
           e.preventDefault();
         }
@@ -3519,46 +3655,106 @@ async function renderVideoFeed(activeItem) {
 
   const panelMap = new Map();
 
-  async function loadPanelVideo(panel, videoItem) {
-    if (panel.dataset.sourceLoaded === "1") return;
+  async function loadAndPlayPanelVideo(panel, videoItem, shouldPlay = true) {
+    const video = panel.querySelector("video");
+    if (!video) return;
+
+    if (panel.dataset.sourceLoaded === "1") {
+      if (shouldPlay && panel.dataset.userPaused !== "1") {
+        const p = video.play();
+        if (p !== undefined) {
+          p.catch(() => {
+            video.muted = true;
+            const st = panel.querySelector(".video-sound-toggle");
+            if (st) st.innerHTML = "🔇";
+            video.play().catch(() => {});
+          });
+        }
+      }
+      return;
+    }
+
     panel.dataset.sourceLoaded = "1";
+    panel.classList.add("is-buffering");
+
     try {
       const source = await getFullscreenFeedSource(videoItem);
       if (!source) {
+        panel.classList.remove("is-buffering");
         const error = panel.querySelector(".fullscreen-error") || document.createElement("div");
         error.className = "fullscreen-error";
         error.textContent = "Video belum bisa dimuat.";
         panel.append(error);
         return;
       }
-      const video = panel.querySelector("video");
-      if (video) {
-        video.src = source;
-        setupVideoCompletionTracking(video, videoItem);
-        if (panel.dataset.isActive === "1") {
-          video.play().catch(() => {
-            video.muted = true;
-            video.play().catch(() => {});
-          });
+
+      video.src = source;
+      video.load();
+      setupVideoCompletionTracking(video, videoItem);
+
+      const playAttempt = () => {
+        panel.classList.remove("is-buffering");
+        if (panel.dataset.isActive === "1" && panel.dataset.userPaused !== "1" && shouldPlay) {
+          const p = video.play();
+          if (p !== undefined) {
+            p.catch(() => {
+              video.muted = true;
+              const st = panel.querySelector(".video-sound-toggle");
+              if (st) st.innerHTML = "🔇";
+              video.play().catch(() => {});
+            });
+          }
         }
+      };
+
+      if (video.readyState >= 2) {
+        playAttempt();
+      } else {
+        video.addEventListener("canplay", playAttempt, { once: true });
+        video.addEventListener("loadeddata", playAttempt, { once: true });
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      panel.classList.remove("is-buffering");
+      console.warn("loadAndPlayPanelVideo error:", err);
     }
   }
 
-  function createVideoPanel(videoItem, isInitial = false) {
+  function unloadPanelVideo(panel) {
+    const video = panel.querySelector("video");
+    if (video) {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      panel.dataset.sourceLoaded = "0";
+      panel.classList.remove("is-buffering");
+    }
+  }
+
+  function createVideoPanel(videoItem) {
     const panel = document.createElement("section");
     panel.className = "fullscreen-video-panel";
     panel.dataset.id = videoItem.id;
+    panel.dataset.userPaused = "0";
 
     const video = document.createElement("video");
     video.className = "fullscreen-video feed-video";
     video.playsInline = true;
     video.setAttribute("webkit-playsinline", "true");
+    video.setAttribute("x5-playsinline", "true");
+    video.setAttribute("playsinline", "true");
     video.loop = true;
-    video.preload = isInitial ? "auto" : "metadata";
-    video.controls = false; // Kontrol mulus ala TikTok
+    video.preload = "none";
+    video.controls = false;
+    video.removeAttribute("controls");
+
+    const thumbSource = getThumbnailSource(videoItem);
+    if (thumbSource) {
+      video.poster = thumbSource;
+    }
+
+    // Buffering spinner
+    const spinner = document.createElement("div");
+    spinner.className = "video-buffering-spinner";
 
     // Center play indicator icon
     const playIndicator = document.createElement("div");
@@ -3590,6 +3786,16 @@ async function renderVideoFeed(activeItem) {
     progressFill.className = "video-progress-fill";
     progressBar.append(progressFill);
 
+    progressBar.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const rect = progressBar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        video.currentTime = ratio * video.duration;
+      }
+    });
+
     // Floating Sound Toggle
     const soundToggle = document.createElement("button");
     soundToggle.type = "button";
@@ -3597,23 +3803,75 @@ async function renderVideoFeed(activeItem) {
     soundToggle.setAttribute("aria-label", "Toggle Suara");
     soundToggle.innerHTML = "🔊";
 
-    soundToggle.onclick = (e) => {
+    soundToggle.addEventListener("click", (e) => {
       e.stopPropagation();
       video.muted = !video.muted;
       soundToggle.innerHTML = video.muted ? "🔇" : "🔊";
-    };
+    });
 
-    // Tap to Play/Pause
-    panel.onclick = (e) => {
-      if (e.target.closest(".video-sound-toggle, .fullscreen-bar")) return;
+    video.addEventListener("volumechange", () => {
+      soundToggle.innerHTML = video.muted ? "🔇" : "🔊";
+    });
+
+    video.addEventListener("waiting", () => {
+      panel.classList.add("is-buffering");
+    });
+
+    video.addEventListener("playing", () => {
+      panel.classList.remove("is-buffering");
+      playIndicator.classList.remove("is-visible");
+    });
+
+    video.addEventListener("play", () => {
+      playIndicator.classList.remove("is-visible");
+    });
+
+    video.addEventListener("pause", () => {
+      if (panel.dataset.isActive === "1" && panel.dataset.userPaused === "1") {
+        playIndicator.classList.add("is-visible");
+      }
+    });
+
+    // Tap to Play/Pause with swipe detection
+    let touchMoved = false;
+    let startY = 0;
+    let startX = 0;
+
+    panel.addEventListener("touchstart", (e) => {
+      if (e.touches && e.touches.length === 1) {
+        touchMoved = false;
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+      }
+    }, { passive: true });
+
+    panel.addEventListener("touchmove", (e) => {
+      if (e.touches && e.touches.length === 1) {
+        const dy = Math.abs(e.touches[0].clientY - startY);
+        const dx = Math.abs(e.touches[0].clientX - startX);
+        if (dy > 10 || dx > 10) {
+          touchMoved = true;
+        }
+      }
+    }, { passive: true });
+
+    // ONLY one click listener on panel (never on both video and panel to avoid double-activation)
+    panel.addEventListener("click", (e) => {
+      if (touchMoved) return;
+      if (e.target.closest(".video-sound-toggle, .fullscreen-bar, .video-progress-bar, button")) return;
+      e.stopPropagation();
+
       if (video.paused) {
-        video.play().catch(() => {});
+        panel.dataset.userPaused = "0";
+        const p = video.play();
+        if (p !== undefined) p.catch(() => {});
         playIndicator.classList.remove("is-visible");
       } else {
+        panel.dataset.userPaused = "1";
         video.pause();
         playIndicator.classList.add("is-visible");
       }
-    };
+    });
 
     video.addEventListener("timeupdate", () => {
       if (video.duration && Number.isFinite(video.duration)) {
@@ -3622,91 +3880,69 @@ async function renderVideoFeed(activeItem) {
       }
     });
 
-    panel.append(video, playIndicator, overlay, progressBar, soundToggle);
+    panel.append(video, spinner, playIndicator, overlay, progressBar, soundToggle);
     panelMap.set(panel, videoItem);
     return panel;
   }
 
-  // 1. Buat panel pertama secara instan
-  const initialPanel = createVideoPanel(activeItem, true);
-  initialPanel.dataset.isActive = "1";
-  feed.append(initialPanel);
-
-  // 2. Buat panel video lainnya dalam urutan acak
-  for (let i = 1; i < feedItems.length; i++) {
-    const p = createVideoPanel(feedItems[i], false);
+  // Buat panel-panel video
+  feedItems.forEach((item, index) => {
+    const p = createVideoPanel(item);
+    if (index === 0) p.dataset.isActive = "1";
     feed.append(p);
-  }
+  });
 
-  // Masukkan feed ke stage secara instan (0 detik lag!)
   dom.fullscreenStage.replaceChildren(feed);
 
-  // 3. Load & putar video pertama langsung
-  const initialSource = await getFullscreenFeedSource(activeItem);
-  const initialVideo = initialPanel.querySelector("video");
-  if (initialVideo && initialSource) {
-    initialVideo.src = initialSource;
-    initialPanel.dataset.sourceLoaded = "1";
-    setupVideoCompletionTracking(initialVideo, activeItem);
-    initialVideo.play().catch(() => {
-      initialVideo.muted = true;
-      initialVideo.play().catch(() => {});
-    });
+  // Load and play video pertama secara halus
+  const initialPanel = feed.children[0];
+  if (initialPanel) {
+    loadAndPlayPanelVideo(initialPanel, activeItem, true);
   }
 
-  // 4. Prefetch video kedua di background
-  if (feedItems.length > 1) {
-    const secondPanel = feed.children[1];
-    if (secondPanel) {
-      loadPanelVideo(secondPanel, feedItems[1]);
-    }
-  }
-
-  // 5. IntersectionObserver 60fps untuk auto play/pause saat swipe
+  // IntersectionObserver untuk auto play/pause saat swipe
   if (window.__videoFeedObserver) {
     window.__videoFeedObserver.disconnect();
   }
+
+  let activeIndex = 0;
 
   window.__videoFeedObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       const panel = entry.target;
       const video = panel.querySelector("video");
       const vItem = panelMap.get(panel);
+      const panelIndex = Array.prototype.indexOf.call(feed.children, panel);
 
       if (entry.isIntersecting) {
         panel.dataset.isActive = "1";
-        if (panel.dataset.sourceLoaded !== "1" && vItem) {
-          loadPanelVideo(panel, vItem);
-        }
-        if (video && video.src) {
-          video.play().catch(() => {
-            video.muted = true;
-            video.play().catch(() => {});
-          });
-        }
+        activeIndex = panelIndex;
+
         if (vItem) {
           state.activeFullscreenItem = vItem;
           dom.fullscreenTitle.textContent = vItem.title || "Video";
           dom.fullscreenMeta.textContent = getFullscreenMeta(vItem);
         }
-        // Prefetch video berikutnya
-        const next = panel.nextElementSibling;
-        if (next) {
-          const nextItem = panelMap.get(next);
-          if (nextItem && next.dataset.sourceLoaded !== "1") {
-            loadPanelVideo(next, nextItem);
-          }
-        }
+
+        loadAndPlayPanelVideo(panel, vItem, true);
       } else {
         panel.dataset.isActive = "0";
+        panel.dataset.userPaused = "0";
         if (video) {
           video.pause();
+        }
+        const indicator = panel.querySelector(".video-play-indicator");
+        if (indicator) indicator.classList.remove("is-visible");
+
+        // Jika jarak panel > 2 dari video yang sedang aktif, lepaskan source untuk menghemat decoder GPU hardware!
+        if (Math.abs(panelIndex - activeIndex) > 2) {
+          unloadPanelVideo(panel);
         }
       }
     });
   }, {
     root: feed,
-    threshold: 0.6
+    threshold: 0.65
   });
 
   Array.from(feed.children).forEach((panel) => {
@@ -3722,7 +3958,12 @@ async function getFullscreenFeedSource(item) {
   if (!item.fileId) return "";
   const record = await getFileRecord(item.fileId);
   if (!record?.blob) return "";
-  const url = URL.createObjectURL(record.blob);
+  let blob = record.blob;
+  const mime = record.type || item.mediaType || "video/mp4";
+  if (!blob.type || blob.type === "application/octet-stream") {
+    blob = new Blob([blob], { type: mime });
+  }
+  const url = URL.createObjectURL(blob);
   state.fullscreenFeedObjectUrls.add(url);
   return url;
 }

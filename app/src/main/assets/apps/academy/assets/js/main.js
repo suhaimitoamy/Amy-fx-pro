@@ -631,7 +631,8 @@ if (!window.amyHapticListenerAdded) {
   if(window.__amyLearningBridgeLoaderV1)return;
   window.__amyLearningBridgeLoaderV1=true;
   var script=document.createElement('script');
-  script.src='/assets/apps/academy/assets/js/market-learning-bridge.js';
+  var root=(typeof ROOT_PATH!=='undefined')?ROOT_PATH:'';
+  script.src=root+'assets/js/market-learning-bridge.js';
   script.async=false;
   script.onerror=function(){window.__amyLearningBridgeLoaderV1=false;};
   document.head.appendChild(script);

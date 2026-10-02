@@ -1,5 +1,5 @@
-// Read-only presentation of the deployed Supabase lifecycle. No local trade signals.
-export const ENDPOINT='https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/scalper-setups';
+// Read-only presentation of the deployed cloud lifecycle. No local trade signals.
+export const ENDPOINT='https://amy-fx.vercel.app/api/scalper-setups';
 const pending=new Set(['WAITING_TRIGGER','WAITING_NEXT_OPEN','ENTRY_READY']);
 const active=new Set(['ACTIVE','BE_ACTIVE']);
 export const terminal=new Set(['TP_HIT','SL_HIT','BE_HIT','TIME_EXIT','INVALIDATED','CANCELLED']);

@@ -8,7 +8,7 @@ import {
   scalperVaultStats
 } from './scalper-vault.js';
 
-const ENDPOINT = 'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/scalper-setups';
+const ENDPOINT = 'https://amy-fx.vercel.app/api/scalper-setups';
 const PAGE_SIZE = 100;
 const app = document.getElementById('scalper-stats-app');
 const stateDot = document.getElementById('vault-state');

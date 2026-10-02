@@ -10,7 +10,7 @@ import {
 } from './scalper-vault.js';
 
 const CARD_ID = 'amy-scalper-entry-watch';
-const ENDPOINT = 'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/scalper-setups';
+const ENDPOINT = 'https://amy-fx.vercel.app/api/scalper-setups';
 const HISTORY_PAGE_SIZE = 100;
 let signature = '';
 let lastValidPayload = null;

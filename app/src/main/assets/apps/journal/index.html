@@ -7,7 +7,7 @@
     <meta name="description" content="Trading Library Manager untuk mengelola materi, indikator, gambar chart, video pembelajaran, dan dokumen trading.">
     <title>Jurnal Trading — Amy FX</title>
     <script src="../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
-    <link rel="stylesheet" href="./style.css?v=20261001-fix1">
+    <link rel="stylesheet" href="./style.css?v=20261001-media3">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%23050806'/%3E%3Cpath d='M20 62h12V36H20v26Zm22 0h12V24H42v38Zm22 0h12V44H64v18Z' fill='%2339ff88'/%3E%3Cpath d='M18 72h60' stroke='%23f4fff7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="amy-journal-final-fix.css">
   <link rel="stylesheet" href="../shared/amyfx-blueprint-v1.css" data-amyfx-blueprint-css="v1">
@@ -211,13 +211,21 @@
               <h2 id="mediaHeading">Media</h2>
               <p id="mediaCount">0 item</p>
             </div>
+            <div class="section-actions">
+              <button class="primary-button" id="uploadMediaBtn" type="button" aria-label="Upload media">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:text-bottom;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                + Upload Media
+              </button>
+            </div>
           </div>
+          <input id="mediaDirectFileInput" type="file" multiple accept="video/*,image/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.3gp,.avi,.png,.jpg,.jpeg,.webp,.gif,.pdf" hidden>
           <div class="pill-row compact media-type-row" id="mediaTypePills" role="listbox" aria-label="Klasifikasi media"></div>
           <div class="card-grid" id="mediaGrid"></div>
           <div class="empty-state" id="mediaEmpty" hidden>
             <div class="empty-mark" aria-hidden="true">▣</div>
             <h3>Belum ada media</h3>
             <p>Simpan chart setup, screenshot, video pembelajaran, atau dokumen.</p>
+            <button class="primary-button" id="emptyMediaUploadBtn" type="button" style="margin-top: 14px;">+ Upload Media Pertama</button>
           </div>
         </section>
 
@@ -293,11 +301,11 @@
               <span>Emosi</span>
               <input id="journalEmotionInput" type="text" maxlength="120" placeholder="Tenang, takut, serakah, ragu, percaya diri">
             </label>
-            <label class="file-drop" for="journalFileInput">
-              <input id="journalFileInput" type="file" multiple accept="image/*,video/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.3gp,.avi,.md,.txt,.doc,.docx,.pdf,.xls,.xlsx,.csv,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/markdown,text/plain">
+            <label class="file-drop" for="journalFileInput" id="journalFileDropLabel">
               <span class="file-drop-title">Tambah lampiran jurnal</span>
               <span class="file-drop-meta" id="journalFileMeta">Gambar chart, video, PDF, Markdown, TXT, Word, Excel, PowerPoint</span>
             </label>
+            <input id="journalFileInput" type="file" multiple accept="image/*,video/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.3gp,.avi,.md,.txt,.doc,.docx,.pdf,.xls,.xlsx,.csv,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/markdown,text/plain" hidden>
             <p class="form-message" id="journalMessage" role="status"></p>
             <div class="form-actions">
               <button class="ghost-button" id="resetJournalBtn" type="button">Tutup Editor</button>
@@ -724,11 +732,11 @@
           <input id="mediaUrlInput" name="mediaUrl" type="url" placeholder="https://contoh.com/chart.png, video.mp4, atau dokumen.pdf">
         </label>
 
-        <label class="file-drop" for="fileInput">
-          <input id="fileInput" type="file" multiple accept="image/*,video/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.3gp,.avi,.md,.txt,.doc,.docx,.pdf,.xls,.xlsx,.csv,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/markdown,text/plain">
+        <label class="file-drop" for="fileInput" id="fileDropLabel">
           <span class="file-drop-title">Pilih gambar, video, atau dokumen</span>
           <span class="file-drop-meta" id="fileMeta">PNG, JPG, WEBP, MP4, MKV, WEBM, MD, TXT, DOC, DOCX, PDF, XLS, XLSX, CSV, PPT, PPTX</span>
         </label>
+        <input id="fileInput" type="file" multiple accept="image/*,video/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.3gp,.avi,.md,.txt,.doc,.docx,.pdf,.xls,.xlsx,.csv,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/markdown,text/plain" hidden>
 
         <label class="toggle-field form-toggle">
           <input id="compressImageInput" type="checkbox">
@@ -840,7 +848,7 @@
 
     <script src="./jszip.min.js?v=20260623" defer></script>
     <script src="./journal-analytics.js?v=20260925-1" defer></script>
-    <script src="./app.js?v=20261001-fix1" defer></script>
+    <script src="./app.js?v=20261001-media3" defer></script>
     <script src="./background-video.js?v=20260725-bg1" defer></script>
   <script src="amy-journal-final-fix.js"></script>
   <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>

@@ -8,7 +8,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
   'use strict';
 
-  const REGISTRY_URL = '../assets/data/market-learning-map.json';
+  const rootPath = (typeof root.ROOT_PATH !== 'undefined' ? root.ROOT_PATH : (typeof ROOT_PATH !== 'undefined' ? ROOT_PATH : '../'));
+  const REGISTRY_URL = rootPath + 'assets/data/market-learning-map.json';
   const DEFAULT_API_URL = 'https://amy-fx.vercel.app/api/learning-live-example';
   const API_ATTEMPT_TIMEOUT_MS = 6000;
 
