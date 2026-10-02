@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.388/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.389/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Market Intel: Format narasi terpadu Kompas Fundamental, penghapusan strip teknikal yang tumpang tindih, dan bilah lab simulasi skenario.",
-    "Time-Aware & Auto News Extract: Deteksi otomatis jadwal rilis yang telah lewat serta ekstraksi hasil angka rilis dari feed berita kilat.",
-    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup."
+    "Asisten Aksi Harga Live: Card asisten proaktif di Dashboard Mapping yang berbicara mendampingi aksi harga (Sweep SSL/BSL, Valid Break, POI Touch/Rejection, Target DOL).",
+    "Notifikasi Asisten & Berita: Jembatan notifikasi lokal ke Android status bar saat likuiditas disapu, break struktur terkonfirmasi, atau menjelang rilis berita.",
+    "Toggle Notifikasi: Opsi pengaturan ON/OFF notifikasi aksi harga asisten di menu pengaturan chart."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.388/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.389/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950388,
-  "latest_version_name": "2.0.0-pro.388",
+  "latest_version_code": 950389,
+  "latest_version_name": "2.0.0-pro.389",
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
-    "Market Intel: Format narasi terpadu Kompas Fundamental, penghapusan strip teknikal yang tumpang tindih, dan bilah lab simulasi skenario.",
-    "Time-Aware & Auto News Extract: Deteksi otomatis jadwal rilis yang telah lewat serta ekstraksi hasil angka rilis dari feed berita kilat.",
-    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup."
+    "Asisten Aksi Harga Live: Card asisten proaktif di Dashboard Mapping yang berbicara mendampingi aksi harga (Sweep SSL/BSL, Valid Break, POI Touch/Rejection, Target DOL).",
+    "Notifikasi Asisten & Berita: Jembatan notifikasi lokal ke Android status bar saat likuiditas disapu, break struktur terkonfirmasi, atau menjelang rilis berita.",
+    "Toggle Notifikasi: Opsi pengaturan ON/OFF notifikasi aksi harga asisten di menu pengaturan chart."
   ],
-  "sha256": "45b0348daea8ca520eb15472a7307ba82f5fe37189f1637044a66e359aa7f6fb",
-  "version": "2.0.0-pro.388",
-  "versionCode": 950388
+  "sha256": "pending",
+  "version": "2.0.0-pro.389",
+  "versionCode": 950389
 }
