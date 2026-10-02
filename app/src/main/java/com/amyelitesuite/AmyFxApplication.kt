@@ -23,6 +23,9 @@ class AmyFxApplication : android.app.Application() {
 
         // WorkManager tetap khusus fallback news yang sudah ada. Scalper engine berjalan di backend.
         scheduleNewsFallback()
+
+        // Background worker mandiri untuk setup driver dari cloud Vercel
+        scheduleDriverSetupWorker()
     }
 
     private fun createNotificationChannels() {
@@ -74,6 +77,24 @@ class AmyFxApplication : android.app.Application() {
 
         workManager.enqueueUniquePeriodicWork(
             NewsSyncWorker.UNIQUE_WORK_NAME,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request
+        )
+    }
+
+    private fun scheduleDriverSetupWorker() {
+        val workManager = WorkManager.getInstance(this)
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<DriverSetupSyncWorker>(15, TimeUnit.MINUTES)
+            .setInitialDelay(1, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            DriverSetupSyncWorker.UNIQUE_WORK_NAME,
             ExistingPeriodicWorkPolicy.UPDATE,
             request
         )

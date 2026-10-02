@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.386/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.387/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Mapping & Cloud Engine: Migrasi 24/7 cloud market context ke Vercel Serverless tanpa batas kuota Supabase.",
-    "Navigasi Jurnal: Perbaikan tombol panah kembali agar tetap di dalam APK dan tidak terlempar ke browser luar.",
-    "Academy: Sinkronisasi 531 link materi lokal agar tidak memunculkan pesan file tidak ada.",
-    "Media: Optimalisasi pemutaran video tunggal dan perbaikan freeze saat putar video."
+    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup.",
+    "In-App Driver Alert: Deteksi real-time di Mapping Gold dengan notifikasi heads-up saat setup driver terpicu.",
+    "Proteksi Pasar: Notifikasi News Lock otomatis saat ada rilis berita berdampak tinggi."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.386/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.387/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950386,
-  "latest_version_name": "2.0.0-pro.386",
+  "latest_version_code": 950387,
+  "latest_version_name": "2.0.0-pro.387",
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
-    "Mapping & Cloud Engine: Migrasi 24/7 cloud market context ke Vercel Serverless tanpa batas kuota Supabase.",
-    "Navigasi Jurnal: Perbaikan tombol panah kembali agar tetap di dalam APK dan tidak terlempar ke browser luar.",
-    "Academy: Sinkronisasi 531 link materi lokal agar tidak memunculkan pesan file tidak ada.",
-    "Media: Optimalisasi pemutaran video tunggal dan perbaikan freeze saat putar video."
+    "Notifikasi Driver: Penambahan DriverSetupSyncWorker latar belakang Android agar HP langsung berdering dan bergetar saat ada rencana limit driver baru walau aplikasi tertutup.",
+    "In-App Driver Alert: Deteksi real-time di Mapping Gold dengan notifikasi heads-up saat setup driver terpicu.",
+    "Proteksi Pasar: Notifikasi News Lock otomatis saat ada rilis berita berdampak tinggi."
   ],
-  "sha256": "17de6d37449dd09fbf9781b0421819c5bd7f45bf34963d6d68ad463a631854e0",
-  "version": "2.0.0-pro.386",
-  "versionCode": 950386
+  "sha256": "pending",
+  "version": "2.0.0-pro.387",
+  "versionCode": 950387
 }
