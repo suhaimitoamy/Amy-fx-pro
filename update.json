@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.391/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.392/AmyFX-Pro-latest.apk",
   "changelog": [
     "Kompas Fundamental XAU/USD Real-Time: Analisis mendalam pra-rilis NFP & berita Tier-1, Leading Indicators (ADP, Klaim, PMI, DXY), Playbook 3 Skenario, dan Banner Hasil Resmi (Verdict) otomatis pasca rilis.",
     "Tampilan Bersih & Responsif: Layout vertikal proporsional pada judul dan horizon Kompas Fundamental yang ramah layar mobile.",
     "Integrasi Live Context Mapping: Data Equilibrium, PD Array, BSL/SSL, dan Protokol Risiko Judas Swing tersinkronisasi langsung ke chart."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.391/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.392/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950391,
-  "latest_version_name": "2.0.0-pro.391",
+  "latest_version_code": 950392,
+  "latest_version_name": "2.0.0-pro.392",
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
@@ -17,7 +17,7 @@
     "Tampilan Bersih & Responsif: Layout vertikal proporsional pada judul dan horizon Kompas Fundamental yang ramah layar mobile.",
     "Integrasi Live Context Mapping: Data Equilibrium, PD Array, BSL/SSL, dan Protokol Risiko Judas Swing tersinkronisasi langsung ke chart."
   ],
-  "sha256": "ce764bdb9657ad78171a6ae02fad845c7e4689227587dfaf18d5a2dedcb835de",
-  "version": "2.0.0-pro.391",
-  "versionCode": 950391
+  "sha256": "5b479d53d4436af64a3238565c536a616771488447184c48dbd2c00fe2797b04",
+  "version": "2.0.0-pro.392",
+  "versionCode": 950392
 }
