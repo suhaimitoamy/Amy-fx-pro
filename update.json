@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.390/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.391/AmyFX-Pro-latest.apk",
   "changelog": [
     "Notifikasi Latar Belakang Asisten Cerdas ICT: Notifikasi Rejection M5, Valid Break, POI Touch, Swept Likuiditas, Target DOL, dan Setup Batal kini aktif langsung di background worker meski aplikasi sedang ditutup.",
     "Sinkronisasi Native DriverSetupSyncWorker: Evaluasi alert M5 terintegrasi langsung dengan background sync periodik dan pencegahan duplikasi notifikasi (deduplication cache).",
     "Pembaruan Status Pasar Terarah: Menekan notifikasi langsung membuka tampilan Dashboard Mapping Gold."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.390/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.391/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950390,
-  "latest_version_name": "2.0.0-pro.390",
+  "latest_version_code": 950391,
+  "latest_version_name": "2.0.0-pro.391",
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
@@ -17,7 +17,7 @@
     "Sinkronisasi Native DriverSetupSyncWorker: Evaluasi alert M5 terintegrasi langsung dengan background sync periodik dan pencegahan duplikasi notifikasi (deduplication cache).",
     "Pembaruan Status Pasar Terarah: Menekan notifikasi langsung membuka tampilan Dashboard Mapping Gold."
   ],
-  "sha256": "47b57fc5f1525ebe84c4f3ef3443fe2169425e3a1519c978851c93c693226a3c",
-  "version": "2.0.0-pro.390",
-  "versionCode": 950390
+  "sha256": "ce764bdb9657ad78171a6ae02fad845c7e4689227587dfaf18d5a2dedcb835de",
+  "version": "2.0.0-pro.391",
+  "versionCode": 950391
 }
