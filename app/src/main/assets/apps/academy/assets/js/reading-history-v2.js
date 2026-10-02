@@ -128,6 +128,14 @@
 
     localStorage.setItem('amy_last_opened_title', record.title);
     localStorage.setItem('amy_last_opened_url', absolutePath(record.path));
+
+    try {
+      if (window.AmyLearningReminder && typeof window.AmyLearningReminder.recordLesson === 'function') {
+        window.AmyLearningReminder.recordLesson(record.title, absolutePath(record.path), record.section || '');
+      } else if (window.Android && typeof window.Android.recordLastStudiedLesson === 'function') {
+        window.Android.recordLastStudiedLesson(record.title, absolutePath(record.path), record.section || '');
+      }
+    } catch (_) {}
   }
 
   function queueSave() {

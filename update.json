@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.389/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.390/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Asisten Aksi Harga Live: Card asisten proaktif di Dashboard Mapping yang berbicara mendampingi aksi harga (Sweep SSL/BSL, Valid Break, POI Touch/Rejection, Target DOL).",
-    "Notifikasi Asisten & Berita: Jembatan notifikasi lokal ke Android status bar saat likuiditas disapu, break struktur terkonfirmasi, atau menjelang rilis berita.",
-    "Toggle Notifikasi: Opsi pengaturan ON/OFF notifikasi aksi harga asisten di menu pengaturan chart."
+    "Pengingat Belajar Harian Academy: Notifikasi pengingat materi terakhir untuk terus meningkatkan skill trading ICT.",
+    "Kustomisasi Waktu Notifikasi: Pengguna dapat bebas menentukan jam pengingat harian sendiri melalui menu Profil & Pengaturan.",
+    "Navigasi Langsung ke Materi: Menekan notifikasi pengingat otomatis membuka materi terkait di Academy.",
+    "Tombol Uji Notifikasi: Tes instan format notifikasi pengingat langsung dari menu Profil."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.389/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.390/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950389,
-  "latest_version_name": "2.0.0-pro.389",
+  "latest_version_code": 950390,
+  "latest_version_name": "2.0.0-pro.390",
   "mandatory": false,
   "releaseDate": "2026-10-02",
   "release_notes": [
-    "Asisten Aksi Harga Live: Card asisten proaktif di Dashboard Mapping yang berbicara mendampingi aksi harga (Sweep SSL/BSL, Valid Break, POI Touch/Rejection, Target DOL).",
-    "Notifikasi Asisten & Berita: Jembatan notifikasi lokal ke Android status bar saat likuiditas disapu, break struktur terkonfirmasi, atau menjelang rilis berita.",
-    "Toggle Notifikasi: Opsi pengaturan ON/OFF notifikasi aksi harga asisten di menu pengaturan chart."
+    "Pengingat Belajar Harian Academy: Notifikasi pengingat materi terakhir untuk terus meningkatkan skill trading ICT.",
+    "Kustomisasi Waktu Notifikasi: Pengguna dapat bebas menentukan jam pengingat harian sendiri melalui menu Profil & Pengaturan.",
+    "Navigasi Langsung ke Materi: Menekan notifikasi pengingat otomatis membuka materi terkait di Academy.",
+    "Tombol Uji Notifikasi: Tes instan format notifikasi pengingat langsung dari menu Profil."
   ],
   "sha256": "pending",
-  "version": "2.0.0-pro.389",
-  "versionCode": 950389
+  "version": "2.0.0-pro.390",
+  "versionCode": 950390
 }

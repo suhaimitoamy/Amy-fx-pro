@@ -615,6 +615,14 @@ class MainActivity : Activity() {
             rawUrl.startsWith(APP_ASSET_PREFIX) -> rawUrl
             rawUrl.startsWith(LEGACY_ASSET_PREFIX) ->
                 APP_ASSET_PREFIX + rawUrl.removePrefix(LEGACY_ASSET_PREFIX)
+            rawUrl.startsWith("/assets/") ->
+                "https://${APP_ASSET_HOST}${rawUrl}"
+            rawUrl.startsWith("assets/") ->
+                "https://${APP_ASSET_HOST}/${rawUrl}"
+            rawUrl.startsWith("/apps/") ->
+                "${APP_ASSET_PREFIX}${rawUrl.removePrefix("/")}"
+            rawUrl.startsWith("apps/") ->
+                "${APP_ASSET_PREFIX}${rawUrl}"
             else -> null
         }
     }
@@ -1106,6 +1114,83 @@ class MainActivity : Activity() {
                 } // AMYFX_NOTIFY_NATIVE_FIX
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun recordLastStudiedLesson(title: String?, url: String?, section: String?) {
+            try {
+                val cleanTitle = title?.trim()?.takeIf { it.isNotBlank() } ?: return
+                val cleanUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return
+                val prefs = mContext.getSharedPreferences(LearningReminderWorker.PREFS, Context.MODE_PRIVATE)
+                prefs.edit().apply {
+                    putString(LearningReminderWorker.KEY_LAST_TITLE, cleanTitle)
+                    putString(LearningReminderWorker.KEY_LAST_URL, cleanUrl)
+                    putString(LearningReminderWorker.KEY_LAST_SECTION, section?.trim().orEmpty())
+                    putLong(LearningReminderWorker.KEY_LAST_TIME, System.currentTimeMillis())
+                }.apply()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun saveLearningReminderConfig(enabled: Boolean, timeOfDay: String?): Boolean {
+            return try {
+                val cleanTime = timeOfDay?.trim()?.takeIf { it.matches(Regex("^\\d{1,2}:\\d{2}$")) } ?: "20:00"
+                val prefs = mContext.getSharedPreferences(LearningReminderWorker.PREFS, Context.MODE_PRIVATE)
+                prefs.edit().apply {
+                    putBoolean(LearningReminderWorker.KEY_ENABLED, enabled)
+                    putString(LearningReminderWorker.KEY_TIME, cleanTime)
+                }.apply()
+                LearningReminderWorker.schedule(mContext)
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+
+        @JavascriptInterface
+        fun getLearningReminderConfig(): String {
+            return try {
+                val prefs = mContext.getSharedPreferences(LearningReminderWorker.PREFS, Context.MODE_PRIVATE)
+                val enabled = prefs.getBoolean(LearningReminderWorker.KEY_ENABLED, true)
+                val time = prefs.getString(LearningReminderWorker.KEY_TIME, "20:00") ?: "20:00"
+                val lastTitle = prefs.getString(LearningReminderWorker.KEY_LAST_TITLE, "") ?: ""
+                val lastUrl = prefs.getString(LearningReminderWorker.KEY_LAST_URL, "") ?: ""
+                val lastSection = prefs.getString(LearningReminderWorker.KEY_LAST_SECTION, "") ?: ""
+                val lastTime = prefs.getLong(LearningReminderWorker.KEY_LAST_TIME, 0L)
+                JSONObject().apply {
+                    put("enabled", enabled)
+                    put("time", time)
+                    put("lastTitle", lastTitle)
+                    put("lastUrl", lastUrl)
+                    put("lastSection", lastSection)
+                    put("lastTime", lastTime)
+                }.toString()
+            } catch (e: Exception) {
+                "{}"
+            }
+        }
+
+        @JavascriptInterface
+        fun triggerLearningReminderNotification(): Boolean {
+            return try {
+                val prefs = mContext.getSharedPreferences(LearningReminderWorker.PREFS, Context.MODE_PRIVATE)
+                val lastTitle = prefs.getString(LearningReminderWorker.KEY_LAST_TITLE, null)?.trim()
+                    ?: LearningReminderWorker.DEFAULT_LESSON_TITLE
+                val lastUrl = prefs.getString(LearningReminderWorker.KEY_LAST_URL, null)?.trim()
+                    ?: LearningReminderWorker.DEFAULT_LESSON_URL
+
+                val title = "📚 Waktunya Tingkatkan Skill Trading-mu!"
+                val message = "Materi terakhir yang kamu pelajari: \"$lastTitle\". Yuk lanjutkan belajar sekarang!"
+
+                showNotificationWithUrl(title, message, lastUrl)
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
             }
         }
 

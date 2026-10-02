@@ -22,7 +22,7 @@ public class AmyFxNotificationGate {
         String m = message.toLowerCase(Locale.ROOT);
         if (t.contains("news") || t.contains("berita") || m.contains("breaking news")) return "News";
         if (t.contains("journal") || t.contains("jurnal")) return "Journal";
-        if (t.contains("academy") || t.contains("akademi")) return "Academy";
+        if (t.contains("academy") || t.contains("akademi") || t.contains("belajar") || t.contains("materi") || t.contains("skill")) return "Academy";
         if (t.contains("target atas") || m.contains("bsl")) return "Analyze";
         if (t.contains("target bawah") || m.contains("ssl")) return "Analyze";
         if (t.contains("scanner") || m.contains("scanner")) return "Analyze";

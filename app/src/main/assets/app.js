@@ -245,6 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setActive('profil');
     const userBalance = localStorage.getItem('amy_default_balance') || '5000';
     const userRisk = localStorage.getItem('amy_default_risk') || '1.5';
+    const reminderConfig = window.AmyLearningReminder ? window.AmyLearningReminder.getConfig() : {
+      enabled: localStorage.getItem('amy_learning_reminder_enabled') !== 'false',
+      time: localStorage.getItem('amy_learning_reminder_time') || '20:00',
+      lastTitle: localStorage.getItem('amy_last_opened_title') || 'Fondasi ICT & Market Structure Dasar',
+      lastTimeText: 'Belum ada riwayat belajar'
+    };
 
     const GLASS_PRESETS = [
       { id: 'obsidian', name: 'Obsidian Glass', bg: '#070b14', accent: '#F5C451' },
@@ -354,6 +360,39 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </section>
 
+      <!-- Panel 2.5: Pengingat Belajar & Peningkatan Skill (Academy) -->
+      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Pengingat Belajar &amp; Skill (Academy)</div>
+      <section style="padding:16px; border-radius:16px; background:var(--surface-color); border:1px solid var(--border-color); box-shadow:0 4px 16px rgba(0,0,0,0.05); margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <strong style="display:block; font-size:13px; font-weight:750; color:var(--text-main);">Notifikasi Pengingat Belajar</strong>
+            <small style="color:var(--text-muted); font-size:11px;">Mengingatkan materi terakhir untuk terus mengasah skill trading ICT-mu.</small>
+          </div>
+          <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''} style="width:20px; height:20px; accent-color:#38bdf8; cursor:pointer;">
+        </div>
+
+        <div id="learningReminderSettingsWrap" style="margin-top:14px; ${reminderConfig.enabled ? '' : 'display:none;'}">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:1px solid var(--border-color);">
+            <div>
+              <span style="display:block; font-size:12px; font-weight:750; color:var(--text-main);">Waktu Notifikasi</span>
+              <small style="color:var(--text-muted); font-size:11px;">Pilih jam pengingat muncul setiap hari</small>
+            </div>
+            <input type="time" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}" style="border:1px solid var(--border-color); background:var(--surface-soft); color:var(--text-main); border-radius:8px; padding:6px 12px; font-size:14px; font-weight:700; font-family:monospace; outline:none;">
+          </div>
+
+          <div style="margin-top:10px; padding:10px 12px; background:var(--surface-soft); border-radius:10px; border:1px solid var(--border-color);">
+            <span style="display:block; font-size:10px; font-weight:750; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Materi Terakhir yang Kamu Pelajari</span>
+            <div id="learningReminderLastTitle" style="font-size:13px; font-weight:700; margin-top:3px; color:var(--accent,#38bdf8);">${escapeHtml(reminderConfig.lastTitle)}</div>
+            <small id="learningReminderLastTime" style="color:var(--text-muted); font-size:11px;">${escapeHtml(reminderConfig.lastTimeText)}</small>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button type="button" id="saveLearningReminderBtn" style="flex:1; padding:9px 14px; background:linear-gradient(135deg, #38bdf8, #0284c7); color:#000; font-weight:800; border-radius:10px; border:none; font-size:12px; cursor:pointer;">Simpan Jadwal Pengingat</button>
+            <button type="button" id="testLearningReminderBtn" style="padding:9px 14px; background:var(--surface-soft); border:1px solid var(--border-color); color:var(--text-main); font-weight:700; border-radius:10px; font-size:12px; cursor:pointer;">🔔 Uji Notifikasi</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Panel 3: Manajemen Data & Keamanan -->
       <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Manajemen Data &amp; Reset</div>
       <section class="profile-list" style="margin-top:8px;">
@@ -388,6 +427,43 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('amy_default_balance', bal);
       localStorage.setItem('amy_default_risk', r);
       showToast('Parameter risiko trading XAU/USD berhasil disimpan.');
+    });
+
+    // Learning Reminder event bindings
+    const reminderToggle = document.getElementById('learningReminderEnabled');
+    const reminderSettingsWrap = document.getElementById('learningReminderSettingsWrap');
+    reminderToggle?.addEventListener('change', () => {
+      const isChecked = reminderToggle.checked;
+      if (reminderSettingsWrap) reminderSettingsWrap.style.display = isChecked ? 'block' : 'none';
+      const timeVal = document.getElementById('learningReminderTimeInput')?.value || '20:00';
+      if (window.AmyLearningReminder) {
+        window.AmyLearningReminder.saveConfig(isChecked, timeVal);
+      } else {
+        localStorage.setItem('amy_learning_reminder_enabled', isChecked ? 'true' : 'false');
+        localStorage.setItem('amy_learning_reminder_time', timeVal);
+      }
+      showToast(isChecked ? 'Pengingat belajar diaktifkan.' : 'Pengingat belajar dinonaktifkan.');
+    });
+
+    document.getElementById('saveLearningReminderBtn')?.addEventListener('click', () => {
+      const isChecked = document.getElementById('learningReminderEnabled')?.checked ?? true;
+      const timeVal = document.getElementById('learningReminderTimeInput')?.value || '20:00';
+      if (window.AmyLearningReminder) {
+        window.AmyLearningReminder.saveConfig(isChecked, timeVal);
+      } else {
+        localStorage.setItem('amy_learning_reminder_enabled', isChecked ? 'true' : 'false');
+        localStorage.setItem('amy_learning_reminder_time', timeVal);
+      }
+      showToast(`Jadwal pengingat disimpan: Setiap hari jam ${timeVal}`);
+    });
+
+    document.getElementById('testLearningReminderBtn')?.addEventListener('click', () => {
+      if (window.AmyLearningReminder) {
+        window.AmyLearningReminder.triggerReminderNotification();
+      } else if (window.Android?.triggerLearningReminderNotification) {
+        window.Android.triggerLearningReminderNotification();
+      }
+      showToast('Notifikasi pengingat belajar dikirim!');
     });
 
     document.getElementById('profileExportBtn')?.addEventListener('click', () => {

@@ -26,6 +26,9 @@ class AmyFxApplication : android.app.Application() {
 
         // Background worker mandiri untuk setup driver dari cloud Vercel
         scheduleDriverSetupWorker()
+
+        // Background worker terjadwal untuk pengingat materi belajar & skill trading
+        LearningReminderWorker.schedule(this)
     }
 
     private fun createNotificationChannels() {
@@ -56,6 +59,19 @@ class AmyFxApplication : android.app.Application() {
             setShowBadge(true)
         }
         manager.createNotificationChannel(scalperChannel)
+
+        val learningChannel = NotificationChannel(
+            LEARNING_REMINDER_CHANNEL_ID,
+            "Amy FX Pengingat Belajar",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Pengingat harian materi ICT dan peningkatan skill trading"
+            enableVibration(true)
+            enableLights(true)
+            lightColor = Color.rgb(56, 189, 248)
+            setShowBadge(true)
+        }
+        manager.createNotificationChannel(learningChannel)
     }
 
     private fun scheduleNewsFallback() {
@@ -104,6 +120,7 @@ class AmyFxApplication : android.app.Application() {
         const val NEWS_CHANNEL_ID = "amy_news_v2"
         const val SCALPER_CHANNEL_ID = "amy_scalper_v1"
         const val MARKET_CONTEXT_CHANNEL_ID = "amy_market_context_v1"
+        const val LEARNING_REMINDER_CHANNEL_ID = "amy_learning_reminder_v1"
         const val PREVIEW_APPLICATION_ID = "com.amyelitesuite.learningpreview"
     }
 }
