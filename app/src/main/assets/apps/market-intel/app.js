@@ -1472,35 +1472,48 @@ async function loadNews(silent = false) {
 
     applyCachedTranslations(sortedNews);
 
+    const relevantNews = sortedNews.filter(isNewsRelevantForGold);
+    const latestRelevant = relevantNews[0];
     const latestNews = sortedNews[0];
+
     if (latestNews) {
       const currentNewsId = newsId(latestNews);
       const lastNewsId = localStorage.getItem('amy_last_news_id');
+      const lastNotifiedId = localStorage.getItem('amy_last_notified_news_id') || lastNewsId;
 
-      // Bug 8: Only trigger notification if news is relevant to Gold
-      if (lastNewsId && lastNewsId !== currentNewsId && isNewsRelevantForGold(latestNews)) {
-        if (needsClientTranslation(latestNews)) {
-          const sourceText = latestNews.textOriginal || latestNews.text;
+      const notifyNews = async (item) => {
+        const targetId = newsId(item);
+        if (needsClientTranslation(item)) {
+          const sourceText = item.textOriginal || item.text;
           const tr = await translateTextClient(sourceText);
           if (tr) {
-            latestNews.text = tr;
-            saveTranslationToCache(currentNewsId, tr);
+            item.text = tr;
+            saveTranslationToCache(targetId, tr);
           }
         }
-        const title = 'Breaking News XAU/USD';
-        const msg = latestNews.text || 'Berita baru telah tiba.';
+        const impact = String(item.impact || '').toLowerCase();
+        const title = impact === 'high' ? '🚨 Breaking News Penting XAU/USD' : '📰 Breaking News XAU/USD';
+        const msg = item.text || item.textOriginal || 'Berita baru telah tiba.';
         if (window.Android?.showNotificationWithUrl) {
-          window.Android.showNotificationWithUrl(title, msg, newsTargetUrl(currentNewsId));
+          window.Android.showNotificationWithUrl(title, msg, newsTargetUrl(targetId));
         } else if (typeof Notification !== 'undefined') {
           Notification.requestPermission().then(p => {
             if (p !== 'granted') return;
-            const notification = new Notification(title, { body: msg, tag: `amy-news-${currentNewsId}` });
+            const notification = new Notification(title, { body: msg, tag: `amy-news-${targetId}` });
             notification.onclick = () => {
               window.focus();
-              location.hash = `news=${encodeURIComponent(currentNewsId)}`;
+              location.hash = `news=${encodeURIComponent(targetId)}`;
             };
           });
         }
+        localStorage.setItem('amy_last_notified_news_id', targetId);
+      };
+
+      // Bug 8: Only trigger notification if news is relevant to Gold
+      if (lastNewsId && lastNewsId !== currentNewsId && isNewsRelevantForGold(latestNews)) {
+        await notifyNews(latestNews);
+      } else if (lastNewsId && latestRelevant && newsId(latestRelevant) !== lastNotifiedId && Number(latestRelevant.id || 0) > Number(lastNotifiedId || 0)) {
+        await notifyNews(latestRelevant);
       }
       localStorage.setItem('amy_last_news_id', currentNewsId);
     }
@@ -1774,10 +1787,10 @@ function hideLoading() {
 // ─── Economic Calendar Engine ─────────────────────────────
 const CALENDAR_ENDPOINTS = [
   ...(typeof location !== 'undefined' && location.origin && !location.origin.startsWith('file:') ? [`${location.origin}/api/calendar`] : []),
-  'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/economic-calendar',
   'https://amy-fx.vercel.app/api/calendar',
+  'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
   'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://nfs.faireconomy.media/ff_calendar_thisweek.json'),
-  'https://nfs.faireconomy.media/ff_calendar_thisweek.json'
+  'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/economic-calendar'
 ];
 const CALENDAR_CACHE_KEY = 'amy_economic_calendar_v1';
 let calendarEvents = [];

@@ -76,18 +76,18 @@ class AmyFxApplication : android.app.Application() {
 
     private fun scheduleNewsFallback() {
         val workManager = WorkManager.getInstance(this)
-        if (BuildConfig.APPLICATION_ID == PREVIEW_APPLICATION_ID) {
-            // Preview menerima news hanya dari jalur FCM server yang memakai canonical event key
-            // dan atomic delivery ledger. Fallback lokal dinonaktifkan agar satu event tampil sekali.
+        val prefs = getSharedPreferences("amyfx_news_settings", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("news_notifications_enabled", true)) {
             workManager.cancelUniqueWork(NewsSyncWorker.UNIQUE_WORK_NAME)
             return
         }
+
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val request = PeriodicWorkRequestBuilder<NewsSyncWorker>(15, TimeUnit.MINUTES)
-            .setInitialDelay(5, TimeUnit.MINUTES)
+            .setInitialDelay(1, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
 

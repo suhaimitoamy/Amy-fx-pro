@@ -65,35 +65,59 @@ function renderTournament(c) {
       </details>`;
   }).join('');
 }
+function isMarketOpenNow() {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hourCycle: 'h23',
+      hour: '2-digit',
+      minute: '2-digit',
+      weekday: 'short'
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    const weekday = values.weekday;
+    const hour = Number(values.hour) + Number(values.minute) / 60;
+    if (weekday === 'Sat') return false;
+    if (weekday === 'Sun') return hour >= 17;
+    if (weekday === 'Fri') return hour < 17;
+    if (hour >= 17 && hour < 18) return false;
+    return true;
+  } catch (_) {
+    return true;
+  }
+}
 function renderDriverSetups(c){
   const root=$('driver-setups'),summary=$('driver-summary');if(!root)return;
-  const e=currentDriverEvaluation(payload,c),items=c&&e?(payload?.active||[]):[];
-  if(summary)summary.textContent=!c?'Menunggu data server terkini.':!e?'Menunggu evaluasi driver.':items.length?`${items.length} rencana driver · evaluasi ${time(e.sourceTime)}`:'Belum ada trigger driver baru. Alasan tiap driver tersedia di Detail.';
-  root.innerHTML=items.map(s=>`<details class="inline-detail"><summary>${esc(s.driverName)} · ${esc(s.direction)} · ${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'MENUNGGU LIMIT':'MENUNGGU OPEN'):driverSetupReady(s,c)?'AKTIF · SIMULASI':'WAIT · PERIKSA DATA / BERITA'}</summary><p>Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}</p><p>${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'Limit Fib aktif setelah observasi; tunggu retest berikutnya.':'Entry acuan; harga final mengikuti open setelah observasi.'):'Harga milik posisi model; jangan mengejar entry yang sudah lewat.'}</p><button type="button" data-driver-plan="${esc(s.id)}">Tampilkan level di chart</button></details>`).join('');
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_driver_plans') : null;
-    const notified = raw ? JSON.parse(raw) : {};
-    let hasNew = false;
-    for (const s of items) {
-      const planKey = `${s.id}_${s.status}`;
-      if (!notified[planKey]) {
-        notified[planKey] = Date.now();
-        hasNew = true;
-        const statusText = s.status === 'WAITING_TRIGGER' ? 'Rencana Limit' : (s.status === 'ARMED' ? 'Menunggu Retest' : (s.status === 'ACTIVE' ? 'Aktif' : s.status));
-        const title = `⚡ Setup Driver: ${s.driverName || 'Gold'} (${s.direction})`;
-        const body = `${statusText} · Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}`;
-        if (window.Android?.showNotificationWithUrl) {
-          window.Android.showNotificationWithUrl(title, body, `${location.href.split('#')[0]}#Dashboard`);
+  const isClosed = c?.session === 'PASAR TUTUP' || !isMarketOpenNow();
+  const e=currentDriverEvaluation(payload,c),items=c&&e&&!isClosed?(payload?.active||[]):[];
+  if(summary)summary.textContent=isClosed?'Pasar tutup · Rencana driver nonaktif di akhir pekan.':!c?'Menunggu data server terkini.':!e?'Menunggu evaluasi driver.':items.length?`${items.length} rencana driver · evaluasi ${time(e.sourceTime)}`:'Belum ada trigger driver baru. Alasan tiap driver tersedia di Detail.';
+  root.innerHTML=isClosed?'<div class="empty-state">Pasar Gold tutup. Evaluasi driver akan aktif kembali saat pasar buka.</div>':items.map(s=>`<details class="inline-detail"><summary>${esc(s.driverName)} · ${esc(s.direction)} · ${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'MENUNGGU LIMIT':'MENUNGGU OPEN'):driverSetupReady(s,c)?'AKTIF · SIMULASI':'WAIT · PERIKSA DATA / BERITA'}</summary><p>Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}</p><p>${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'Limit Fib aktif setelah observasi; tunggu retest berikutnya.':'Entry acuan; harga final mengikuti open setelah observasi.'):'Harga milik posisi model; jangan mengejar entry yang sudah lewat.'}</p><button type="button" data-driver-plan="${esc(s.id)}">Tampilkan level di chart</button></details>`).join('');
+  if (!isClosed) {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_driver_plans') : null;
+      const notified = raw ? JSON.parse(raw) : {};
+      let hasNew = false;
+      for (const s of items) {
+        const planKey = `${s.id}_${s.status}`;
+        if (!notified[planKey]) {
+          notified[planKey] = Date.now();
+          hasNew = true;
+          const statusText = s.status === 'WAITING_TRIGGER' ? 'Rencana Limit' : (s.status === 'ARMED' ? 'Menunggu Retest' : (s.status === 'ACTIVE' ? 'Aktif' : s.status));
+          const title = `⚡ Setup Driver: ${s.driverName || 'Gold'} (${s.direction})`;
+          const body = `${statusText} · Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}`;
+          if (window.Android?.showNotificationWithUrl) {
+            window.Android.showNotificationWithUrl(title, body, `${location.href.split('#')[0]}#Dashboard`);
+          }
         }
       }
-    }
-    if (hasNew && typeof localStorage !== 'undefined') {
-      const keys = Object.keys(notified).slice(-40);
-      const trimmed = {};
-      keys.forEach(k => trimmed[k] = notified[k]);
-      localStorage.setItem('amyfx_notified_driver_plans', JSON.stringify(trimmed));
-    }
-  } catch (_) {}
+      if (hasNew && typeof localStorage !== 'undefined') {
+        const keys = Object.keys(notified).slice(-40);
+        const trimmed = {};
+        keys.forEach(k => trimmed[k] = notified[k]);
+        localStorage.setItem('amyfx_notified_driver_plans', JSON.stringify(trimmed));
+      }
+    } catch (_) {}
+  }
   window.dispatchEvent(new CustomEvent('amyfx:driver-setups',{detail:items}));
 }
 function empty(reason){

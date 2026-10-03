@@ -1,4 +1,4 @@
-import { buildMarketContext } from '../lib/scalper-engine/market-context.mjs';
+import { buildMarketContext, isGoldMarketOpen } from '../lib/scalper-engine/market-context.mjs';
 import { evaluateSixDrivers, SIX_ENGINE_VERSION } from '../lib/scalper-engine/six-drivers.mjs';
 
 let cachePayload = null;
@@ -62,28 +62,33 @@ export default async function handler(req, res) {
     const context = buildMarketContext({ h1, m15, m5, calendar, nowSeconds: nowSec });
     const driverEvaluation = evaluateSixDrivers({ m15, m5, h1, context, nowSeconds: nowSec });
 
+    const isMarketClosed = context.session === 'PASAR TUTUP' || !isGoldMarketOpen(nowSec);
     const active = [];
-    for (const driver of driverEvaluation.drivers || []) {
-      if (driver.plan && (driver.state === 'CONFIRMED' || driver.state === 'ARMED')) {
-        active.push({
-          id: driver.setupId || `${driver.id}_${nowSec}`,
-          engineVersion: SIX_ENGINE_VERSION,
-          schemaVersion: 3,
-          model: driver.id,
-          driverId: driver.id,
-          driverName: driver.name,
-          timeframe: 'M15',
-          symbol: 'XAU/USD',
-          direction: driver.plan.direction,
-          status: driver.state === 'CONFIRMED' ? 'ACTIVE' : 'WAITING_TRIGGER',
-          recommendationStatus: 'VALID',
-          entry: driver.plan.entry,
-          stopLoss: driver.plan.stopLoss,
-          target: driver.plan.target,
-          risk: 1.5,
-          priority: 1,
-          createdAt: new Date(nowSec * 1000).toISOString()
-        });
+    if (!isMarketClosed) {
+      for (const driver of driverEvaluation.drivers || []) {
+        if (driver.plan && (driver.state === 'CONFIRMED' || driver.state === 'ARMED')) {
+          const formedAtSec = driver.plan.formedAt ? Math.floor(new Date(driver.plan.formedAt).getTime() / 1000) : (m15[0]?.close_time || nowSec);
+          const setupId = driver.setupId || `${driver.id}_${driver.plan.direction}_${formedAtSec}`;
+          active.push({
+            id: setupId,
+            engineVersion: SIX_ENGINE_VERSION,
+            schemaVersion: 3,
+            model: driver.id,
+            driverId: driver.id,
+            driverName: driver.name,
+            timeframe: 'M15',
+            symbol: 'XAU/USD',
+            direction: driver.plan.direction,
+            status: driver.state === 'CONFIRMED' ? 'ACTIVE' : 'WAITING_TRIGGER',
+            recommendationStatus: 'VALID',
+            entry: driver.plan.entry,
+            stopLoss: driver.plan.stopLoss,
+            target: driver.plan.target,
+            risk: 1.5,
+            priority: 1,
+            createdAt: driver.plan.formedAt || new Date(formedAtSec * 1000).toISOString()
+          });
+        }
       }
     }
 

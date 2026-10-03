@@ -174,6 +174,47 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    if (pathname === '/api/news') {
+      try {
+        const handler = (await import('../api/news.js')).default;
+        const fakeReq = {
+          ...req,
+          query: Object.fromEntries(parsedUrl.searchParams.entries()),
+          headers: req.headers,
+          method: req.method
+        };
+        let statusCode = 200;
+        const outHeaders = {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json; charset=utf-8'
+        };
+        const fakeRes = {
+          setHeader: (k, v) => { outHeaders[k] = v; },
+          status: (c) => { statusCode = c; return fakeRes; },
+          json: (d) => {
+            res.writeHead(statusCode, outHeaders);
+            res.end(JSON.stringify(d));
+          },
+          end: () => res.end()
+        };
+        await handler(fakeReq, fakeRes);
+        return;
+      } catch (e) {
+        // Fallback to Vercel live
+        try {
+          const upstream = await fetch(`https://amy-fx.vercel.app/api/news${parsedUrl.search}`);
+          const data = await upstream.text();
+          res.writeHead(upstream.status, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+          res.end(data);
+          return;
+        } catch (fetchErr) {
+          res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: 'news_unavailable', message: fetchErr.message }));
+          return;
+        }
+      }
+    }
+
     let safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '').replace(/^[\\\/]+/, '');
     if (safePath.startsWith('assets' + path.sep)) {
       safePath = safePath.slice(('assets' + path.sep).length);

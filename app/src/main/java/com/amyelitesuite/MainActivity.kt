@@ -95,6 +95,11 @@ class MainActivity : Activity() {
         )
 
         createNotificationChannels()
+        try {
+            androidx.work.WorkManager.getInstance(this).enqueue(
+                androidx.work.OneTimeWorkRequestBuilder<NewsSyncWorker>().build()
+            )
+        } catch (_: Exception) {}
 
         rootLayout = FrameLayout(this)
         rootLayout.layoutParams = matchParentParams

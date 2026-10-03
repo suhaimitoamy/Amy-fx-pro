@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       const central = await fetchJsonWithTimeout(
         `${SUPABASE_NEWS_FEED}?limit=${limit}`,
         { headers: { Accept: 'application/json' } },
-        9000
+        1500
       );
 
       if (Array.isArray(central?.news) && central.news.length > 0) {

@@ -104,9 +104,73 @@
     }
   }
 
+  // ─── Background Breaking News Observer ─────────────────────────────
+  // Memastikan breaking news tetap dicek dan dimunculkan notifikasinya
+  // saat pengguna sedang berada di halaman Mapping, Beranda, Jurnal, atau Akademi.
+  function checkBreakingNews() {
+    if (typeof window === 'undefined' || !window.location) return;
+    if (window.location.pathname.includes('/market-intel/')) return; // Ditangani oleh market-intel/app.js
+
+    const now = Date.now();
+    const lastCheck = Number(sessionStorage.getItem('amy_last_news_poll_ms') || 0);
+    if (now - lastCheck < 60_000) return;
+    sessionStorage.setItem('amy_last_news_poll_ms', String(now));
+
+    fetch('https://amy-fx.vercel.app/api/news?limit=8', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data?.news || !Array.isArray(data.news) || !data.news.length) return;
+        const goldKeywords = [
+          'gold', 'xau', 'emas', 'bullion', 'fed', 'fomc', 'powell',
+          'inflation', 'cpi', 'pce', 'treasury', 'yield', 'dxy', 'dollar',
+          'dolar', 'nfp', 'payroll', 'jobless', 'claims', 'war', 'perang',
+          'geopolit', 'safe haven', 'central bank', 'bank sentral',
+          'suku bunga', 'rate cut', 'rate hike', 'iran', 'israel', 'houthi',
+          'oil', 'minyak', 'russia', 'rusia', 'ukraine', 'ukraina'
+        ];
+        const isRel = item => {
+          if (item?.relevant === true) return true;
+          const t = ((item?.text || '') + ' ' + (item?.textOriginal || '')).toLowerCase();
+          return goldKeywords.some(k => t.includes(k));
+        };
+        const relevant = data.news.filter(isRel);
+        if (!relevant.length) return;
+        const latest = relevant[0];
+        const latestId = String(latest.id || '');
+        const lastNotified = localStorage.getItem('amy_last_notified_news_id');
+        const lastKnown = localStorage.getItem('amy_last_news_id');
+
+        if (lastKnown && latestId && latestId !== lastNotified && Number(latestId) > Number(lastNotified || 0)) {
+          const impact = String(latest.impact || '').toLowerCase();
+          const title = impact === 'high' ? '🚨 Breaking News Penting XAU/USD' : '📰 Breaking News XAU/USD';
+          const msg = latest.text || latest.textOriginal || 'Berita baru XAU/USD tersedia.';
+          const targetUrl = 'https://appassets.androidplatform.net/assets/apps/market-intel/index.html#news=' + encodeURIComponent(latestId);
+          if (window.Android?.showNotificationWithUrl) {
+            window.Android.showNotificationWithUrl(title, msg, targetUrl);
+          } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification(title, { body: msg });
+          }
+          localStorage.setItem('amy_last_notified_news_id', latestId);
+        }
+        if (data.news[0]?.id) {
+          localStorage.setItem('amy_last_news_id', String(data.news[0].id));
+        }
+      })
+      .catch(() => {});
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', ensureNavArrows);
+    document.addEventListener('DOMContentLoaded', () => {
+      ensureNavArrows();
+      setTimeout(checkBreakingNews, 3000);
+    });
   } else {
     ensureNavArrows();
+    setTimeout(checkBreakingNews, 3000);
   }
+
+  setInterval(checkBreakingNews, 60_000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkBreakingNews();
+  });
 })();

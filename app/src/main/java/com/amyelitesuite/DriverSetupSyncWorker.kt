@@ -45,18 +45,19 @@ class DriverSetupSyncWorker(
                 val payload = JSONObject(response.body?.string().orEmpty())
                 if (!payload.optBoolean("ok", false)) return@withContext Result.success()
 
-                val active = payload.optJSONArray("active")
-                if (active != null && active.length() > 0) {
-                    processActiveSetups(active)
-                }
-
                 val engine = payload.optJSONObject("engine")
                 val result = engine?.optJSONObject("result")
+                val contextObj = payload.optJSONObject("context") ?: result?.optJSONObject("context")
+
+                val active = payload.optJSONArray("active")
+                if (active != null && active.length() > 0) {
+                    processActiveSetups(active, contextObj)
+                }
+
                 if (result != null) {
                     processMarketAlerts(result)
                 }
 
-                val contextObj = payload.optJSONObject("context") ?: result?.optJSONObject("context")
                 if (contextObj != null) {
                     processAssistantAlerts(contextObj)
                 }
@@ -69,7 +70,12 @@ class DriverSetupSyncWorker(
         }
     }
 
-    private fun processActiveSetups(active: org.json.JSONArray) {
+    private fun processActiveSetups(active: org.json.JSONArray, contextObj: JSONObject?) {
+        val session = contextObj?.optString("session", "").orEmpty().trim()
+        if (session.equals("PASAR TUTUP", ignoreCase = true) || !AmyFxNotificationGate.isGoldMarketOpen(System.currentTimeMillis())) {
+            android.util.Log.d("AmyFX-DriverWorker", "Market closed (session=$session), driver setups notification suppressed.")
+            return
+        }
         val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         for (i in 0 until active.length()) {
             val item = active.optJSONObject(i) ?: continue
@@ -126,7 +132,29 @@ class DriverSetupSyncWorker(
     }
 
     private fun processAssistantAlerts(contextObj: JSONObject) {
+        val session = contextObj.optString("session", "").trim()
+        if (session.equals("PASAR TUTUP", ignoreCase = true) || !AmyFxNotificationGate.isGoldMarketOpen(System.currentTimeMillis())) {
+            android.util.Log.d("AmyFX-DriverWorker", "Market closed (session=$session), assistant alerts suppressed.")
+            return
+        }
+
+        val fresh = contextObj.optBoolean("fresh", true)
+        if (!fresh) {
+            android.util.Log.d("AmyFX-DriverWorker", "Context is not fresh, assistant alerts suppressed.")
+            return
+        }
+
         val amy = contextObj.optJSONObject("amy") ?: return
+        val sourceObj = amy.optJSONObject("source") ?: contextObj.optJSONObject("source")
+        val m5Time = sourceObj?.optLong("M5", 0L) ?: 0L
+        if (m5Time <= 0L) return
+
+        val nowSec = System.currentTimeMillis() / 1000
+        if (nowSec - m5Time > 1800L) {
+            android.util.Log.d("AmyFX-DriverWorker", "M5 candle is stale (${nowSec - m5Time}s old), assistant alerts suppressed.")
+            return
+        }
+
         val dashboard = amy.optJSONObject("dashboard")
         val entry = amy.optJSONObject("entry")
         val news = contextObj.optJSONObject("news")
@@ -214,8 +242,6 @@ class DriverSetupSyncWorker(
 
         if (!notify || notifTitle.isBlank() || notifBody.isBlank()) return
 
-        val sourceObj = amy.optJSONObject("source") ?: contextObj.optJSONObject("source")
-        val m5Time = sourceObj?.optLong("M5", 0L) ?: (System.currentTimeMillis() / (5 * 60 * 1000))
         val cacheKey = "assistant_${badge}_${m5Time}"
         val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.contains(cacheKey)) return

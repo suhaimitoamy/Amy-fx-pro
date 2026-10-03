@@ -42,7 +42,30 @@ export function compactChartNarration(amy,news=null){
 const rowNames={'PROTECTED':'Protected swing','LIQUIDITY':'Likuiditas','SWEEP PRICE':'Harga sweep','DOL':'Target DOL','DOL DETAIL':'Jarak DOL','POI PRICE':'Area & CE','POI DETAIL':'Lokasi POI','RANGE':'Dealing Range','INVALID':'Invalidasi','ALASAN INTI':'Ringkasan'};
 const layerNames={bias:'Bias M15',sweep:'Liquidity sweep',poi:'Area POI',poiBonus:'Reaksi POI',dol:'Target DOL',location:'Premium / Discount',displacement:'Displacement M5',structure:'Break struktur M5',asia:'Level Asia'};
 const readable=text=>String(text).replaceAll('NO CLEAR BIAS','Bias belum jelas').replaceAll('EQ Zone','Zona EQ').replaceAll('Near Invalid','Dekat invalidasi').replaceAll('No Bias','Tanpa bias').replaceAll('Against Bias','Lawan bias').replaceAll('With Bias','Searah bias').replaceAll('Bad Location','Lokasi kurang ideal').replaceAll('Healthy','Lokasi sesuai').replaceAll('Reached','Tercapai').replaceAll('Active','Aktif').replaceAll('Secondary','Tambahan').replaceAll('Ignore','Abaikan').replaceAll('Main','Utama').replaceAll('None','Belum ada').replaceAll('Fresh','Baru').replaceAll('Old','Lama').replaceAll('Dist ','Jarak ').replaceAll('Extreme ','Ekstrem ').replaceAll('Draw to ','Menuju ');
-export function renderLiveAssistant(amy,news=null,settings={}){
+export function isGoldMarketOpen(nowSeconds = Math.floor(Date.now() / 1000)) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hourCycle: 'h23',
+      hour: '2-digit',
+      minute: '2-digit',
+      weekday: 'short'
+    }).formatToParts(new Date(nowSeconds * 1000));
+    const values = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    const weekday = values.weekday;
+    const hour = Number(values.hour) + Number(values.minute) / 60;
+    if (weekday === 'Sat') return false;
+    if (weekday === 'Sun') return hour >= 17;
+    if (weekday === 'Fri') return hour < 17;
+    if (hour >= 17 && hour < 18) return false;
+    return true;
+  } catch (_) {
+    const d = new Date(nowSeconds * 1000);
+    const day = d.getUTCDay();
+    return day !== 0 && day !== 6;
+  }
+}
+export function renderLiveAssistant(amy,news=null,settings={},context=null){
   const root=document.getElementById('amy-live-assistant');
   const badgeEl=document.getElementById('assistant-badge');
   const primaryEl=document.getElementById('assistant-primary-msg');
@@ -50,6 +73,20 @@ export function renderLiveAssistant(amy,news=null,settings={}){
   const confEl=document.getElementById('assistant-confluence-tag');
   const clockEl=document.getElementById('assistant-clock');
   if(!root||!badgeEl||!primaryEl||!subEl)return;
+
+  const ctx=context||(typeof window!=='undefined'?window.AmyMarketContext:null);
+  const isClosed=!isGoldMarketOpen()||ctx?.session==='PASAR TUTUP'||(typeof window!=='undefined'&&window.AmyMarketContext?.session==='PASAR TUTUP');
+
+  if(isClosed){
+    badgeEl.textContent='PASAR TUTUP';
+    badgeEl.className='assistant-badge badge-neutral';
+    root.className='amy-live-assistant';
+    primaryEl.textContent='Pasar Gold (XAU/USD) Sedang Tutup';
+    subEl.textContent='Perdagangan libur akhir pekan / di luar jam pasar. Notifikasi live dinonaktifkan hingga sesi buka.';
+    if(confEl)confEl.innerHTML='Status: <strong style="color:#94A3B8">OFFLINE</strong> (Weekend)';
+    if(clockEl)clockEl.textContent='Market Closed';
+    return;
+  }
 
   if(!amy){
     badgeEl.textContent='STANDBY';
@@ -138,34 +175,38 @@ export function renderLiveAssistant(amy,news=null,settings={}){
     clockEl.textContent=`M5: ${nowStr}`;
   }
 
-  if(notify&&notifTitle&&settings?.assistantNotif!==false){
+  const m5Time = amy.source?.M5;
+  const nowSec = Math.floor(Date.now() / 1000);
+  const isStale = !m5Time || (nowSec - m5Time > 1800);
+
+  if(notify && notifTitle && settings?.assistantNotif !== false && !isStale && m5Time){
     try{
-      const timeKey=amy.source?.M5||Math.floor(Date.now()/300000);
-      const eventKey=`${badge}|${timeKey}`;
-      const raw=typeof localStorage!=='undefined'?localStorage.getItem('amyfx_notified_assistant_events'):null;
-      const notified=raw?JSON.parse(raw):{};
+      const timeKey = m5Time;
+      const eventKey = `${badge}|${timeKey}`;
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_assistant_events') : null;
+      const notified = raw ? JSON.parse(raw) : {};
       if(!notified[eventKey]){
-        notified[eventKey]=Date.now();
-        const keys=Object.keys(notified).slice(-40),trimmed={};
-        keys.forEach(k=>trimmed[k]=notified[k]);
-        localStorage.setItem('amyfx_notified_assistant_events',JSON.stringify(trimmed));
-        const targetUrl=typeof location!=='undefined'?`${location.href.split('#')[0]}#Dashboard`:null;
-        if(typeof window!=='undefined'&&window.Android?.showNotificationWithUrl){
-          window.Android.showNotificationWithUrl(notifTitle,notifBody,targetUrl);
-        }else if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
-          new Notification(notifTitle,{body:notifBody});
+        notified[eventKey] = Date.now();
+        const keys = Object.keys(notified).slice(-40), trimmed = {};
+        keys.forEach(k => trimmed[k] = notified[k]);
+        localStorage.setItem('amyfx_notified_assistant_events', JSON.stringify(trimmed));
+        const targetUrl = typeof location !== 'undefined' ? `${location.href.split('#')[0]}#Dashboard` : null;
+        if(typeof window !== 'undefined' && window.Android?.showNotificationWithUrl){
+          window.Android.showNotificationWithUrl(notifTitle, notifBody, targetUrl);
+        }else if(typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+          new Notification(notifTitle, { body: notifBody });
         }
       }
     }catch(_){}
   }
 }
-export function renderAmy(amy,settings,news=null){
+export function renderAmy(amy,settings,news=null,context=null){
   const dash=document.getElementById('amy-dashboard'),assistant=document.getElementById('amy-assistant'),score=document.getElementById('amy-score-panel');
   const alert=document.getElementById('mapping-alert');if(alert){const warnings=mappingWarnings(amy,news);alert.hidden=!warnings.length;alert.textContent=warnings.join(' ');}
   if(dash){dash.hidden=!settings.dashboard;dash.innerHTML=amy?`<div class="section-heading"><h2>Rincian bias M15</h2><span>Candle tertutup</span></div><dl class="amy-dashboard">${dashboardRows(amy).map(([a,b])=>`<div><dt>${esc(rowNames[a]||a)}</dt><dd>${esc(readable(b))}</dd></div>`).join('')}</dl>`:'<p>Menunggu konteks server yang segar.</p>';}
   if(assistant){assistant.hidden=false;assistant.innerHTML=amy?`<h2>Entry Assistant · M5</h2><p class="amy-narration">${esc(news?.status==='NEWS_LOCK'?news.note:amy.entry.text)}</p><small>Skor confluence adalah poin model, bukan peluang menang.</small>`:'<p>Menunggu candle tertutup.</p>';}
   if(score){score.hidden=!settings.panel;const e=amy?.entry;score.innerHTML=e?`<h2>${esc(e.grade)} · ${e.score}/100 poin</h2><p>BUY ${e.buy} | SELL ${e.sell} · ${directions(e.winDir)}</p><table class="amy-score-table"><thead><tr><th>Lapisan</th><th>BUY</th><th>SELL</th></tr></thead><tbody>${Object.keys(e.breakdown.buy||{}).map(k=>`<tr><td>${esc(layerNames[k]||k)}</td><td>${e.breakdown.buy[k]}</td><td>${e.breakdown.sell[k]}</td></tr>`).join('')}</tbody></table><small>Skor mentah dibatasi 100; dekat invalidasi: skor × 0.7.</small>`:'<p>Skor belum tersedia.</p>';}
-  renderLiveAssistant(amy,news,settings);
+  renderLiveAssistant(amy,news,settings,context);
 }
 export function mountDisplay(onChange){
   const container=document.getElementById('ict-controls');let settings=loadDisplay();
