@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.398/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Chart Gold akhir pekan: candle datar Sabtu–Minggu disembunyikan, chart berhenti di sesi Jumat dengan label 'Pasar tutup'.",
-    "Chart lebih tahan error: satu baris data ganda dari provider tidak lagi membuat seluruh chart kosong.",
-    "Koneksi lebih sabar: batas tunggu data chart & konteks server dinaikkan ke 35 detik; jalur proxy lokal yang tidak ada di APK dilewati."
+    "Tab Video menu utama kini setara Jurnal Trading: tap video langsung fullscreen, swipe ke atas/bawah untuk ganti video (feed vertikal ala TikTok).",
+    "Thumbnail video rapi: memakai cover tersimpan dari Jurnal/scanner atau menangkap 1 frame otomatis lalu di-cache, tidak lagi hitam atau berat.",
+    "Feed video hemat memori: video yang jauh dari layar dilepas otomatis; tombol Back Android menutup feed tanpa keluar aplikasi."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.398/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Chart Gold akhir pekan: candle datar Sabtu–Minggu disembunyikan, chart berhenti di sesi Jumat dengan label 'Pasar tutup'.",
-    "Chart lebih tahan error: satu baris data ganda dari provider tidak lagi membuat seluruh chart kosong.",
-    "Koneksi lebih sabar: batas tunggu data chart & konteks server dinaikkan ke 35 detik; jalur proxy lokal yang tidak ada di APK dilewati."
+    "Tab Video menu utama kini setara Jurnal Trading: tap video langsung fullscreen, swipe ke atas/bawah untuk ganti video (feed vertikal ala TikTok).",
+    "Thumbnail video rapi: memakai cover tersimpan dari Jurnal/scanner atau menangkap 1 frame otomatis lalu di-cache, tidak lagi hitam atau berat.",
+    "Feed video hemat memori: video yang jauh dari layar dilepas otomatis; tombol Back Android menutup feed tanpa keluar aplikasi."
   ],
   "sha256": "577ac3ebd56cc7a2f90a282118ff4c986617bb0898d24d60c33d36d033d836c7",
   "version": "2.0.0-pro.398",

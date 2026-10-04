@@ -432,9 +432,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let thumbMarkup = '';
         if (isVid) {
           thumbMarkup = `
+            <div class="media-video-thumb is-loading" data-video-thumb-id="${escapeHtml(item.id)}" aria-hidden="true"></div>
             <div class="media-play-overlay" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg></div>
             <span class="media-video-badge">▶ Video</span>
-            <video class="media-thumb-video" data-media-video="${item.fileId || ''}" preload="metadata"></video>
           `;
         } else if (isDoc) {
           const docLabel = (item.documentType || (item.mediaName ? item.mediaName.split('.').pop() : 'DOC')).toUpperCase();
@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </a>
     `;
 
-    // Asynchronously load actual blob contents for image and video cards
+    // Asynchronously load actual blob contents for image cards
     const thumbImgs = mainContent.querySelectorAll('[data-media-thumb]');
     thumbImgs.forEach(async img => {
       const fileId = img.dataset.mediaThumb;
@@ -518,19 +518,424 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const thumbVids = mainContent.querySelectorAll('[data-media-video]');
-    thumbVids.forEach(async vid => {
-      const fileId = vid.dataset.mediaVideo;
-      if (!fileId) return;
-      const fileRec = await getMediaFileRecord(fileId);
-      if (fileRec?.blob) {
-        vid.src = URL.createObjectURL(fileRec.blob);
-      }
+    // Video: pakai thumbnail tersimpan (videoThumb dari Jurnal / native scanner), atau capture 1 frame secara lazy
+    mainContent.querySelectorAll('[data-video-thumb-id]').forEach(el => {
+      const item = filteredItems.find(it => it.id === el.dataset.videoThumbId);
+      const cached = item ? getCachedVideoThumb(item) : '';
+      if (cached) applyVideoThumbToEl(el, cached);
+      else getVideoThumbObserver().observe(el);
     });
 
     // Bind file input handler
     const fileInput = document.getElementById('rootMediaFileInput');
     fileInput?.addEventListener('change', handleRootMediaUpload);
+  }
+
+  // ─── VIDEO THUMBNAIL ENGINE & REEL FEED (paritas dengan Jurnal Trading) ───
+  function isVideoMediaItem(item) {
+    return item.mediaKind === 'video' || item.type === 'Video Pembelajaran' || item.category === 'Video' ||
+      (item.mediaType && String(item.mediaType).startsWith('video/'));
+  }
+
+  function toWebViewSrc(value) {
+    const v = String(value || '');
+    if (!v || v.startsWith('content://')) return '';
+    if (v.startsWith('file://') && window.Capacitor?.convertFileSrc) {
+      try { return window.Capacitor.convertFileSrc(v); } catch (_) {}
+    }
+    return v;
+  }
+
+  function getCachedVideoThumb(item) {
+    return toWebViewSrc(item.videoThumb || item.thumbnailUrl || item.thumbnailUri || item.imageThumb || '');
+  }
+
+  async function resolveMediaSource(item, trackSet) {
+    const direct = toWebViewSrc(item.mediaUrl || '');
+    if (direct && !direct.startsWith('blob:')) return direct;
+    const mediaUrl = String(item.mediaUrl || '');
+    const nativeUri = item.nativeUri || item.externalUri || (mediaUrl.startsWith('content://') ? mediaUrl : '');
+    if (nativeUri) return nativeUri.startsWith('content://') ? nativeUri : toWebViewSrc(nativeUri);
+    if (!item.fileId) return '';
+    const rec = await getMediaFileRecord(item.fileId);
+    if (!rec?.blob) return '';
+    let blob = rec.blob;
+    const mime = rec.type || item.mediaType || 'video/mp4';
+    if (!blob.type || blob.type === 'application/octet-stream') blob = new Blob([blob], { type: mime });
+    const url = URL.createObjectURL(blob);
+    trackSet?.add(url);
+    return url;
+  }
+
+  function applyVideoThumbToEl(el, thumb) {
+    el.classList.remove('is-loading');
+    el.classList.add('has-thumb');
+    el.style.backgroundImage = `linear-gradient(rgba(0,0,0,.08), rgba(0,0,0,.4)), url("${thumb}")`;
+  }
+
+  function applyVideoThumbToDom(itemId, thumb) {
+    document.querySelectorAll(`[data-video-thumb-id="${CSS.escape(itemId)}"]`).forEach(el => applyVideoThumbToEl(el, thumb));
+  }
+
+  function captureVideoFrame(source) {
+    return new Promise(resolve => {
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      if (!source.startsWith('blob:') && !source.startsWith('content://')) video.crossOrigin = 'anonymous';
+      let done = false;
+      const finish = (value = '') => {
+        if (done) return;
+        done = true;
+        video.removeAttribute('src');
+        try { video.load(); } catch (_) {}
+        resolve(value);
+      };
+      const capture = () => {
+        if (!video.videoWidth || !video.videoHeight) return finish('');
+        try {
+          const canvas = document.createElement('canvas');
+          const ratio = Math.min(1, 360 / video.videoWidth);
+          canvas.width = Math.max(1, Math.round(video.videoWidth * ratio));
+          canvas.height = Math.max(1, Math.round(video.videoHeight * ratio));
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          finish(canvas.toDataURL('image/jpeg', 0.66));
+        } catch (_) { finish(''); }
+      };
+      video.addEventListener('error', () => finish(''), { once: true });
+      video.addEventListener('loadedmetadata', () => {
+        try {
+          video.currentTime = Number.isFinite(video.duration) && video.duration > 1 ? Math.min(1, video.duration * 0.08) : 0;
+        } catch (_) { capture(); }
+      }, { once: true });
+      video.addEventListener('seeked', capture, { once: true });
+      video.addEventListener('loadeddata', () => setTimeout(capture, 120), { once: true });
+      setTimeout(() => finish(''), 3500);
+      video.src = source;
+    });
+  }
+
+  const videoThumbQueue = [];
+  const videoThumbFailed = new Set();
+  let videoThumbBusy = false;
+  let videoThumbObserver = null;
+
+  function getVideoThumbObserver() {
+    if (videoThumbObserver) return videoThumbObserver;
+    videoThumbObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        videoThumbObserver.unobserve(entry.target);
+        const id = entry.target.dataset.videoThumbId;
+        if (id && !videoThumbQueue.includes(id) && !videoThumbFailed.has(id)) videoThumbQueue.push(id);
+      });
+      processVideoThumbQueue();
+    }, { rootMargin: '200px' });
+    return videoThumbObserver;
+  }
+
+  async function processVideoThumbQueue() {
+    if (videoThumbBusy) return;
+    if (reelState.open) { setTimeout(processVideoThumbQueue, 1500); return; }
+    const id = videoThumbQueue.shift();
+    if (!id) return;
+    videoThumbBusy = true;
+    try {
+      const items = await loadAllMediaItems();
+      const item = items.find(it => it.id === id);
+      const cached = item ? getCachedVideoThumb(item) : '';
+      if (cached) {
+        applyVideoThumbToDom(id, cached);
+      } else if (item) {
+        const urls = new Set();
+        const src = await resolveMediaSource(item, urls);
+        const thumb = src ? await captureVideoFrame(src) : '';
+        urls.forEach(u => URL.revokeObjectURL(u));
+        if (thumb) {
+          const fresh = await loadAllMediaItems();
+          await saveAllMediaItems(fresh.map(it => it.id === id ? { ...it, videoThumb: thumb } : it));
+          applyVideoThumbToDom(id, thumb);
+        } else {
+          videoThumbFailed.add(id);
+          document.querySelectorAll(`[data-video-thumb-id="${CSS.escape(id)}"]`).forEach(el => el.classList.remove('is-loading'));
+        }
+      }
+    } catch (_) {}
+    videoThumbBusy = false;
+    setTimeout(processVideoThumbQueue, 200);
+  }
+
+  const reelState = { open: false, dialog: null, observer: null, urls: new Set(), pushedHistory: false };
+
+  function shuffleMedia(list) {
+    const arr = [...list];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function closeVideoReel(fromPopState = false) {
+    if (!reelState.open) return;
+    reelState.open = false;
+    reelState.observer?.disconnect();
+    reelState.observer = null;
+    const dialog = reelState.dialog;
+    dialog?.querySelectorAll('video').forEach(v => {
+      v.pause();
+      v.removeAttribute('src');
+      try { v.load(); } catch (_) {}
+    });
+    reelState.urls.forEach(u => URL.revokeObjectURL(u));
+    reelState.urls.clear();
+    if (dialog?.open) dialog.close();
+    if (dialog) dialog.innerHTML = '';
+    document.documentElement.classList.remove('is-reel-open');
+    document.body.classList.remove('is-reel-open');
+    if (reelState.pushedHistory && !fromPopState && history.state?.amyReel) history.back();
+    reelState.pushedHistory = false;
+  }
+
+  window.addEventListener('popstate', () => { if (reelState.open) closeVideoReel(true); });
+
+  async function openVideoReel(activeItem) {
+    const all = await loadAllMediaItems();
+    const others = shuffleMedia(all.filter(it => isVideoMediaItem(it) && it.id !== activeItem.id)).slice(0, 20);
+    const feedItems = [activeItem, ...others];
+
+    let dialog = document.getElementById('rootVideoReelDialog');
+    if (!dialog) {
+      dialog = document.createElement('dialog');
+      dialog.id = 'rootVideoReelDialog';
+      dialog.className = 'amy-reel-dialog';
+      dialog.addEventListener('cancel', e => { e.preventDefault(); closeVideoReel(); });
+      document.body.appendChild(dialog);
+    }
+    reelState.dialog = dialog;
+
+    dialog.innerHTML = `
+      <div class="amy-reel-bar">
+        <div class="amy-reel-title-box">
+          <small id="amyReelMeta"></small>
+          <h3 id="amyReelTitle"></h3>
+        </div>
+        <button type="button" class="amy-reel-close" id="amyReelClose" aria-label="Tutup">×</button>
+      </div>
+      <div class="amy-reel-feed"></div>
+    `;
+    const feed = dialog.querySelector('.amy-reel-feed');
+    const titleEl = dialog.querySelector('#amyReelTitle');
+    const metaEl = dialog.querySelector('#amyReelMeta');
+    dialog.querySelector('#amyReelClose').addEventListener('click', () => closeVideoReel());
+
+    // Cegah pull-to-refresh saat swipe ke bawah di video pertama
+    let feedStartY = 0, feedStartX = 0;
+    feed.addEventListener('touchstart', e => {
+      if (e.touches?.length === 1) { feedStartY = e.touches[0].clientY; feedStartX = e.touches[0].clientX; }
+    }, { passive: true });
+    feed.addEventListener('touchmove', e => {
+      if (e.touches?.length !== 1) return;
+      const dy = e.touches[0].clientY - feedStartY;
+      const dx = Math.abs(e.touches[0].clientX - feedStartX);
+      if (Math.abs(dy) > dx && feed.scrollTop <= 0 && dy > 0) e.preventDefault();
+    }, { passive: false });
+
+    const panelMap = new Map();
+
+    const setMuted = (panel, video) => {
+      video.muted = true;
+      const st = panel.querySelector('.amy-reel-sound');
+      if (st) st.textContent = '🔇';
+    };
+
+    const tryPlay = (panel, video) => {
+      const p = video.play();
+      if (p !== undefined) p.catch(() => { setMuted(panel, video); video.play().catch(() => {}); });
+    };
+
+    async function loadAndPlay(panel, item) {
+      const video = panel.querySelector('video');
+      if (!video) return;
+      if (panel.dataset.sourceLoaded === '1') {
+        if (panel.dataset.isActive === '1' && panel.dataset.userPaused !== '1') tryPlay(panel, video);
+        return;
+      }
+      panel.dataset.sourceLoaded = '1';
+      panel.classList.add('is-buffering');
+      try {
+        const src = await resolveMediaSource(item, reelState.urls);
+        if (!reelState.open) return;
+        if (!src) {
+          panel.classList.remove('is-buffering');
+          const err = document.createElement('div');
+          err.className = 'amy-reel-error';
+          err.textContent = 'Video belum bisa dimuat.';
+          panel.append(err);
+          return;
+        }
+        video.src = src;
+        video.load();
+        const onReady = () => {
+          panel.classList.remove('is-buffering');
+          if (panel.dataset.isActive === '1' && panel.dataset.userPaused !== '1') tryPlay(panel, video);
+        };
+        if (video.readyState >= 2) onReady();
+        else {
+          video.addEventListener('canplay', onReady, { once: true });
+          video.addEventListener('loadeddata', onReady, { once: true });
+        }
+      } catch (err) {
+        panel.classList.remove('is-buffering');
+        console.warn('Reel load error:', err);
+      }
+    }
+
+    function unloadPanel(panel) {
+      const video = panel.querySelector('video');
+      if (!video || panel.dataset.sourceLoaded !== '1') return;
+      video.pause();
+      video.removeAttribute('src');
+      try { video.load(); } catch (_) {}
+      panel.dataset.sourceLoaded = '0';
+      panel.classList.remove('is-buffering');
+    }
+
+    function createPanel(item) {
+      const panel = document.createElement('section');
+      panel.className = 'amy-reel-panel';
+      panel.dataset.id = item.id;
+      panel.dataset.userPaused = '0';
+
+      const video = document.createElement('video');
+      video.className = 'amy-reel-video';
+      video.playsInline = true;
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('webkit-playsinline', 'true');
+      video.loop = true;
+      video.preload = 'none';
+      video.controls = false;
+      const thumb = getCachedVideoThumb(item);
+      if (thumb) video.poster = thumb;
+
+      const spinner = document.createElement('div');
+      spinner.className = 'amy-reel-spinner';
+      const playIndicator = document.createElement('div');
+      playIndicator.className = 'amy-reel-play-indicator';
+      playIndicator.textContent = '▶';
+
+      const overlay = document.createElement('div');
+      overlay.className = 'amy-reel-overlay';
+      const tags = Array.isArray(item.tags) && item.tags.length ? `#${item.tags.slice(0, 3).join(' #')}` : '';
+      overlay.innerHTML = `
+        <h3 class="amy-reel-overlay-title">${escapeHtml(item.title || item.mediaName || 'Video Edukasi')}</h3>
+        <div class="amy-reel-overlay-meta">
+          <span class="amy-reel-tag">${escapeHtml(item.category || 'Media')}</span>
+          ${tags ? `<span>${escapeHtml(tags)}</span>` : ''}
+        </div>
+      `;
+
+      const progressBar = document.createElement('div');
+      progressBar.className = 'amy-reel-progress';
+      const progressFill = document.createElement('div');
+      progressFill.className = 'amy-reel-progress-fill';
+      progressBar.append(progressFill);
+      progressBar.addEventListener('click', e => {
+        e.stopPropagation();
+        const rect = progressBar.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        if (Number.isFinite(video.duration) && video.duration > 0) video.currentTime = ratio * video.duration;
+      });
+
+      const sound = document.createElement('button');
+      sound.type = 'button';
+      sound.className = 'amy-reel-sound';
+      sound.setAttribute('aria-label', 'Toggle Suara');
+      sound.textContent = '🔊';
+      sound.addEventListener('click', e => { e.stopPropagation(); video.muted = !video.muted; });
+      video.addEventListener('volumechange', () => { sound.textContent = video.muted ? '🔇' : '🔊'; });
+
+      video.addEventListener('waiting', () => panel.classList.add('is-buffering'));
+      video.addEventListener('playing', () => { panel.classList.remove('is-buffering'); playIndicator.classList.remove('is-visible'); });
+      video.addEventListener('timeupdate', () => {
+        if (video.duration && Number.isFinite(video.duration)) progressFill.style.width = `${(video.currentTime / video.duration) * 100}%`;
+      });
+
+      // Tap untuk play/pause, abaikan jika jari bergeser (swipe)
+      let moved = false, sy = 0, sx = 0;
+      panel.addEventListener('touchstart', e => {
+        if (e.touches?.length === 1) { moved = false; sy = e.touches[0].clientY; sx = e.touches[0].clientX; }
+      }, { passive: true });
+      panel.addEventListener('touchmove', e => {
+        if (e.touches?.length === 1 && (Math.abs(e.touches[0].clientY - sy) > 10 || Math.abs(e.touches[0].clientX - sx) > 10)) moved = true;
+      }, { passive: true });
+      panel.addEventListener('click', e => {
+        if (moved) return;
+        if (e.target.closest('button, .amy-reel-progress')) return;
+        e.stopPropagation();
+        if (video.paused) {
+          panel.dataset.userPaused = '0';
+          tryPlay(panel, video);
+          playIndicator.classList.remove('is-visible');
+        } else {
+          panel.dataset.userPaused = '1';
+          video.pause();
+          playIndicator.classList.add('is-visible');
+        }
+      });
+
+      panel.append(video, spinner, playIndicator, overlay, progressBar, sound);
+      panelMap.set(panel, item);
+      return panel;
+    }
+
+    feedItems.forEach((item, idx) => {
+      const panel = createPanel(item);
+      if (idx === 0) panel.dataset.isActive = '1';
+      feed.append(panel);
+    });
+
+    const setHeader = item => {
+      titleEl.textContent = item.title || 'Video';
+      metaEl.textContent = `${item.category || item.type || 'Media'} • ${formatBytes(item.mediaSize || item.fileSize || 0)}`;
+    };
+    setHeader(activeItem);
+
+    reelState.open = true;
+    document.documentElement.classList.add('is-reel-open');
+    document.body.classList.add('is-reel-open');
+    dialog.showModal();
+    try {
+      history.pushState({ ...(history.state || {}), amyReel: true }, '', location.href);
+      reelState.pushedHistory = true;
+    } catch (_) {}
+
+    loadAndPlay(feed.children[0], activeItem);
+
+    let activeIndex = 0;
+    reelState.observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const panel = entry.target;
+        const item = panelMap.get(panel);
+        const video = panel.querySelector('video');
+        const idx = Array.prototype.indexOf.call(feed.children, panel);
+        if (entry.isIntersecting) {
+          panel.dataset.isActive = '1';
+          activeIndex = idx;
+          if (item) setHeader(item);
+          loadAndPlay(panel, item);
+        } else {
+          panel.dataset.isActive = '0';
+          panel.dataset.userPaused = '0';
+          video?.pause();
+          panel.querySelector('.amy-reel-play-indicator')?.classList.remove('is-visible');
+          // Lepas decoder GPU untuk panel yang jauh dari posisi aktif
+          if (Math.abs(idx - activeIndex) > 2) unloadPanel(panel);
+        }
+      });
+    }, { root: feed, threshold: 0.65 });
+    Array.from(feed.children).forEach(p => reelState.observer.observe(p));
   }
 
   async function showMediaFullscreen(item) {
@@ -1185,7 +1590,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const itemId = viewMediaBtn.dataset.viewMedia;
       const all = await loadAllMediaItems();
       const targetItem = all.find(it => it.id === itemId);
-      if (targetItem) showMediaFullscreen(targetItem);
+      if (targetItem) {
+        // Video dibuka sebagai feed swipe vertikal ala Jurnal Trading; gambar/dokumen tetap viewer biasa
+        if (isVideoMediaItem(targetItem)) openVideoReel(targetItem);
+        else showMediaFullscreen(targetItem);
+      }
     }
     if (deleteMediaBtn) {
       event.stopPropagation();
