@@ -1,25 +1,35 @@
 /**
  * Amy FX Pro — Advisor Panel Controller (Laya System 1 & Fractal Memory)
- * Renders Laya pre-entry audit, Whipsaw Extreme Scalper plan, 30-bar chart, and 187k twin matches.
+ * Renders Laya pre-entry audit, Whipsaw Extreme Scalper plan, and 187k twin matches.
+ * Connects directly to live market context and real XAU/USD prices.
  */
 
 (function() {
   'use strict';
 
   let currentBias = 'BUY';
-  let chartInstance = null;
-  let candleSeries = null;
-  let entryLine = null;
-  let slLine = null;
-  let tpLine = null;
   let initialized = false;
+
+  function getLivePrice() {
+    if (window.amyfxLastContext?.amy?.chartCandles?.M15?.length) {
+      const c = window.amyfxLastContext.amy.chartCandles.M15.at(-1);
+      if (c?.close && Number(c.close) > 0) return Number(c.close);
+    }
+    if (window.amyfxLastCandles?.length) {
+      const c = window.amyfxLastCandles.at(-1);
+      if (c?.close && Number(c.close) > 0) return Number(c.close);
+    }
+    if (window.amyfxCurrentPrice && Number(window.amyfxCurrentPrice) > 0) {
+      return Number(window.amyfxCurrentPrice);
+    }
+    return 2650.0;
+  }
 
   // Fallback Baseline Dataset (187k candle ground-truth) when offline / without local Python server
   const BASELINE_DATA = {
     BUY: {
       status: 'success',
       bias: 'BUY',
-      current_price: 4155.78,
       atr14: 3.73,
       fractal: {
         search_time_ms: 6.2,
@@ -60,7 +70,6 @@
     SELL: {
       status: 'success',
       bias: 'SELL',
-      current_price: 4155.78,
       atr14: 3.73,
       fractal: {
         search_time_ms: 5.9,
@@ -100,128 +109,6 @@
     }
   };
 
-  function initChart() {
-    const container = document.getElementById('advisor-candlestick-chart');
-    if (!container || chartInstance) return;
-
-    if (typeof LightweightCharts === 'undefined') {
-      console.warn('LightweightCharts belum siap.');
-      return;
-    }
-
-    try {
-      chartInstance = LightweightCharts.createChart(container, {
-        layout: {
-          background: { color: '#070B14' },
-          textColor: '#94A3B8',
-          fontSize: 11,
-          fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
-        },
-        grid: {
-          vertLines: { color: 'rgba(255, 255, 255, 0.04)' },
-          horzLines: { color: 'rgba(255, 255, 255, 0.04)' }
-        },
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal,
-          vertLine: { color: 'rgba(245, 196, 81, 0.4)', width: 1 },
-          horzLine: { color: 'rgba(245, 196, 81, 0.4)', width: 1 }
-        },
-        rightPriceScale: {
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          scaleMargins: { top: 0.15, bottom: 0.15 }
-        },
-        timeScale: {
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          timeVisible: true,
-          secondsVisible: false
-        }
-      });
-
-      candleSeries = chartInstance.addCandlestickSeries({
-        upColor: '#22C55E',
-        downColor: '#EF4444',
-        borderUpColor: '#22C55E',
-        borderDownColor: '#EF4444',
-        wickUpColor: '#22C55E',
-        wickDownColor: '#EF4444'
-      });
-
-      const resizeObserver = new ResizeObserver(entries => {
-        if (!entries || entries.length === 0 || !chartInstance) return;
-        const { width, height } = entries[0].contentRect;
-        if (width > 0 && height > 0) chartInstance.resize(width, height);
-      });
-      resizeObserver.observe(container);
-    } catch (e) {
-      console.error('Error init LightweightCharts:', e);
-    }
-  }
-
-  function updateChart(candles, entryPrice, slBuffer, tpTarget, bias) {
-    if (!candleSeries || !candles || candles.length === 0) return;
-
-    try {
-      const formatted = candles.map((c, idx) => {
-        let tVal;
-        if (c.time && typeof c.time === 'string' && c.time.includes('T')) {
-          tVal = Math.floor(new Date(c.time).getTime() / 1000);
-        } else if (typeof c.time === 'number') {
-          tVal = c.time > 1e10 ? Math.floor(c.time / 1000) : c.time;
-        } else {
-          tVal = Math.floor(Date.now() / 1000) - (candles.length - idx) * 900;
-        }
-        return {
-          time: tVal,
-          open: Number(c.open),
-          high: Number(c.high),
-          low: Number(c.low),
-          close: Number(c.close)
-        };
-      }).sort((a, b) => a.time - b.time);
-
-      candleSeries.setData(formatted);
-
-      if (entryLine) candleSeries.removePriceLine(entryLine);
-      if (slLine) candleSeries.removePriceLine(slLine);
-      if (tpLine) candleSeries.removePriceLine(tpLine);
-
-      if (entryPrice > 0) {
-        entryLine = candleSeries.createPriceLine({
-          price: entryPrice,
-          color: '#3B82F6',
-          lineWidth: 2,
-          lineStyle: LightweightCharts.LineStyle.Solid,
-          axisLabelVisible: true,
-          title: 'ENTRY'
-        });
-
-        const slPrice = bias === 'BUY' ? entryPrice - slBuffer : entryPrice + slBuffer;
-        slLine = candleSeries.createPriceLine({
-          price: slPrice,
-          color: '#EF4444',
-          lineWidth: 2,
-          lineStyle: LightweightCharts.LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: 'SL'
-        });
-
-        const tpPrice = bias === 'BUY' ? entryPrice + tpTarget : entryPrice - tpTarget;
-        tpLine = candleSeries.createPriceLine({
-          price: tpPrice,
-          color: '#22C55E',
-          lineWidth: 2,
-          lineStyle: LightweightCharts.LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: 'TP'
-        });
-      }
-
-      chartInstance.timeScale().fitContent();
-    } catch (e) {
-      console.warn('Chart update note:', e);
-    }
-  }
-
   function renderResponse(data) {
     if (!data || !data.decision) return;
     const dec = data.decision;
@@ -250,11 +137,22 @@
     // Score & Risk
     const scoreVal = document.getElementById('advScoreVal');
     const riskPill = document.getElementById('advRiskPill');
-    if (scoreVal) scoreVal.textContent = Math.round((dec.confidence_score || 0.5) * 100) + '%';
+    if (scoreVal) {
+      const scorePct = Math.round((dec.confidence_score || 0.5) * 100);
+      scoreVal.textContent = scorePct + '%';
+    }
     if (riskPill) {
-      const r = (dec.risk_level || 'HIGH').toLowerCase();
-      riskPill.className = 'advisor-risk-pill ' + r;
-      riskPill.textContent = (dec.risk_level || 'HIGH') + ' RISK';
+      riskPill.className = 'advisor-risk-pill';
+      if (dec.risk_level === 'LOW') {
+        riskPill.classList.add('low');
+        riskPill.textContent = 'LOW RISK';
+      } else if (dec.risk_level === 'MEDIUM') {
+        riskPill.classList.add('medium');
+        riskPill.textContent = 'MEDIUM RISK';
+      } else {
+        riskPill.classList.add('high');
+        riskPill.textContent = 'HIGH RISK';
+      }
     }
 
     // Guidance
@@ -285,17 +183,34 @@
       if (scalperCard) scalperCard.hidden = true;
     }
 
-    // Execution Levels
-    const entryP = data.current_price || 4155.78;
+    // Dynamic Execution Levels from Live Market Price
+    const livePrice = getLivePrice();
+    const entryP = livePrice;
+    const slBuffer = Number(rec.sl_buffer_pts || 4.47);
+    const tpTarget = Number(rec.tp_target_pts || 7.15);
     const elEntry = document.getElementById('advLevelEntry');
     const elSL = document.getElementById('advLevelSL');
     const elTP = document.getElementById('advLevelTP');
     const elBE = document.getElementById('advLevelBE');
 
     if (elEntry) elEntry.textContent = '$' + entryP.toFixed(2);
-    if (elSL) elSL.textContent = '-' + (rec.sl_buffer_pts || 4.47).toFixed(2) + ' pts';
-    if (elTP) elTP.textContent = '+' + (rec.tp_target_pts || 7.15).toFixed(2) + ' pts';
-    if (elBE) elBE.textContent = '+' + (rec.be_trigger_rr || 1.0) + ' R';
+    if (elSL) {
+      const slPrice = currentBias === 'BUY' ? (entryP - slBuffer) : (entryP + slBuffer);
+      elSL.textContent = '$' + slPrice.toFixed(2) + ' (-' + slBuffer.toFixed(2) + ' pts)';
+    }
+    if (elTP) {
+      const tpPrice = currentBias === 'BUY' ? (entryP + tpTarget) : (entryP - tpTarget);
+      elTP.textContent = '$' + tpPrice.toFixed(2) + ' (+' + tpTarget.toFixed(2) + ' pts)';
+    }
+    if (elBE) elBE.textContent = '+' + (rec.be_trigger_rr || 1.0) + ' R Lock';
+
+    // Market Summary Text
+    const marketSummary = document.getElementById('advMarketSummary');
+    if (marketSummary) {
+      const lastContext = window.amyfxLastContext;
+      const mState = lastContext?.primary?.state || 'LIVE';
+      marketSummary.innerHTML = `<strong>Kondisi Saat Ini:</strong> Harga live <strong>$${entryP.toFixed(2)}</strong> · Status ICT: <em>${mState}</em>. Klik tombol di atas untuk membuka Chart Gold utama dengan Dealing Range 50% CE dan FVG realtime.`;
+    }
 
     // Matches Stats & Table
     const statAvgSim = document.getElementById('advStatAvgSim');
@@ -321,28 +236,6 @@
         </tr>`;
       }).join('');
     }
-
-    // Chart Update
-    let candlesToUse = data.recent_candles;
-    if (!candlesToUse || candlesToUse.length === 0) {
-      candlesToUse = generateSyntheticCandles(entryP);
-    }
-    updateChart(candlesToUse, entryP, rec.sl_buffer_pts || 4.47, rec.tp_target_pts || 7.15, currentBias);
-  }
-
-  function generateSyntheticCandles(basePrice) {
-    const list = [];
-    const now = Math.floor(Date.now() / 1000);
-    let p = basePrice;
-    for (let i = 29; i >= 0; i--) {
-      const open = p + (Math.sin(i) * 1.2);
-      const close = p + (Math.cos(i) * 1.1);
-      const high = Math.max(open, close) + 0.8;
-      const low = Math.min(open, close) - 0.8;
-      list.push({ time: now - (i * 900), open, high, low, close });
-      p = close;
-    }
-    return list;
   }
 
   async function runAudit() {
@@ -371,7 +264,6 @@
   }
 
   window.initAdvisorPanel = function() {
-    initChart();
     if (!initialized) {
       initialized = true;
 
@@ -412,9 +304,6 @@
 
     // Trigger initial audit
     runAudit();
-    setTimeout(() => {
-      if (chartInstance) chartInstance.timeScale().fitContent();
-    }, 150);
   };
 
 })();

@@ -372,12 +372,6 @@
   align-items: center;
   gap: 6px;
 }
-#advisor-candlestick-chart {
-  width: 100%;
-  height: 240px;
-  border-radius: 10px;
-  overflow: hidden;
-}
 
 /* Twin Matches Table */
 .advisor-matches-card {

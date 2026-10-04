@@ -23,7 +23,7 @@ function draw(){
 }
 window.addEventListener('amyfx:driver-plan',event=>{driverPlan=context?event.detail:null;draw();});
 window.addEventListener('amyfx:driver-setups',event=>{if(driverPlan){const s=(event.detail||[]).find(s=>s.id===driverPlan.id);driverPlan=s?{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}:null;draw();}});
-window.addEventListener('amyfx:market-context',event=>{context=event.detail;if(!context)driverPlan=null;renderAmy(context?.amy,display,context?.news,context);const scenario=context?.primary;
+window.addEventListener('amyfx:market-context',event=>{context=event.detail;window.amyfxLastContext=context;if(!context)driverPlan=null;renderAmy(context?.amy,display,context?.news,context);const scenario=context?.primary;
   overlay=scenario?.area?{area:scenario.area,invalidation:scenario.invalidation,target:scenario.target}:null;draw();});
 function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,60000);}
 async function refresh(){
@@ -33,7 +33,7 @@ async function refresh(){
   try{
     const response=await loadCandles(tf,request.signal);
     if(id!==generation)return;
-    raw={tf,values:response.candles};draw();$('error').hidden=true;
+    raw={tf,values:response.candles};window.amyfxLastCandles=raw.values;draw();$('error').hidden=true;
     if(response.degraded){$('error').hidden=false;$('error').textContent='Sumber chart menggunakan cache lama; tinjau waktu candle sebelum membaca area.';}
   }catch{
     if(id!==generation)return;
