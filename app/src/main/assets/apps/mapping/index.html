@@ -36,7 +36,6 @@
   </div>
 </header>
 <main id="app">
-<section class="toolbar"><div><strong>XAU/USD</strong><p id="source">Menunggu candle tertutup.</p></div><label>Peta candle<select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option><option value="M1">M1</option></select></label><button id="refresh">Perbarui</button></section>
 <nav aria-label="Panel Mapping"><button data-tab="Dashboard" aria-selected="true">Konteks</button><button data-tab="Analyze" aria-selected="false">Detail</button><button data-tab="Advisor" aria-selected="false">Advisor</button><button data-tab="History" aria-selected="false">Arsip</button></nav>
 <p id="error" role="alert" hidden></p>
 <section id="Dashboard" class="panel">
@@ -59,7 +58,13 @@
       <button type="button" onclick="window.setTab('Advisor')" style="margin-left:auto; display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:var(--amy-accent,#F5C451); text-decoration:none; background:rgba(245,196,81,0.12); padding:4px 8px; border-radius:6px; border:1px solid rgba(245,196,81,0.3); cursor:pointer;"><span>⚡ Laya AI Advisor</span></button>
     </div>
   </article>
-  <article class="price-map"><section id="gold-chart-workspace" aria-label="Chart Gold"><div class="section-heading chart-heading"><h2>Chart Gold</h2><span id="chart-caption">Candle tertutup</span><button type="button" id="chart-auto-price" aria-label="Kembalikan skala harga otomatis">Auto harga</button><button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">⛶ Fullscreen</button></div><div id="chart" aria-label="Chart candlestick dan area konteks pasar"></div></section><details class="ict-settings"><summary>Atur tampilan chart</summary><div id="ict-controls"></div><p class="muted">Pengaturan hanya mengubah tampilan. Bias M15 dan trigger M5 tetap dari server.</p></details><details class="inline-detail"><summary>Sumber level &amp; keterangan</summary><p class="muted">Geser angka harga atas/bawah untuk skala vertikal. Geser sumbu waktu kiri/kanan untuk lebar candle. Auto harga mengembalikan skala otomatis.</p><p id="ict-coverage" class="muted" role="status"></p><p class="muted">ICT dasar: referensi visual. Area dan invalidasi bukan order otomatis.</p></details></article>
+  <article class="price-map gold-price-panel"><section id="gold-chart-workspace" aria-label="Chart Gold XAU/USD">
+    <div class="section-heading chart-heading"><h2>Chart Gold · XAU/USD</h2><strong id="chart-price">—</strong></div>
+    <div class="gold-chart-controls"><label>Timeframe <select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="refresh">Perbarui</button><button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">⛶ Fullscreen</button></div>
+    <p id="source" role="status">Memuat candle tertutup…</p><p id="chart-error" role="alert"></p>
+    <div id="chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
+    <p id="chart-note"></p>
+  </section><details class="ict-settings" style="display:none;"><summary>Atur tampilan chart</summary><div id="ict-controls"></div></details></article>
   <article class="context-hero"><div class="section-heading"><h2 style="font-size:15px; text-transform:uppercase; letter-spacing:0.06em; color:var(--amy-accent,#F5C451);">Market Condition</h2><span id="context-state" role="status">Menghubungkan</span></div><strong id="market-state">MENUNGGU DATA</strong><details class="inline-detail"><summary>Ringkasan &amp; waktu data</summary><p id="market-story">Amy sedang memeriksa candle tertutup.</p><small id="context-source"></small></details></article>
   <article class="execution"><div class="section-heading"><h2 id="execution-status">BELUM SIAP</h2><small style="color:var(--text-muted,#94A3B8);">Context Engine · A+ Filter</small></div><p id="execution-reason">Menunggu bukti candle.</p><p id="news-awareness" class="muted" role="status"></p><details class="inline-detail"><summary>Cek syarat Dashboard A+</summary><ul id="execution-checklist"></ul></details></article>
   <article><div class="section-heading"><h2 style="font-size:15px; text-transform:uppercase; letter-spacing:0.06em; color:var(--amy-accent,#F5C451);">Setup Driver</h2><small>Eksekusi manual · simulasi model</small></div><p id="driver-summary">Menunggu evaluasi driver.</p><div id="driver-setups"></div></article>

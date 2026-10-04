@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.402/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.403/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Desain Thumbnail 1 Kolom ala TikTok & Jurnal Trading: tampilan thumbnail video kini 1 baris 1 kartu (bukan berjejer 2) dengan format layar lebar 16:9 yang rapi dan jernih.",
-    "Putar Instan dari Menu Bawah: mengetuk tab Video di menu navigasi utama bawah langsung memutar video secara otomatis.",
-    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video.",
-    "Integrasi Multi-Store & Scanner Native: sinkronisasi otomatis item video dari IndexedDB, legacy storage, catatan jurnal, dan Android storage scanner."
+    "Penyelarasan Card Chart Gold ke Gaya Peta Harga Beranda: Kontainer glassmorphism identik, kontrol timeframe M15/M5, heading, dan live price terkini di kanan atas.",
+    "Interaksi Sumbu Harga Vertikal: Skala harga kanan kini dapat di-drag dan di-zoom secara interaktif pada mode normal maupun fullscreen.",
+    "Filter Pasar Libur (Weekend Anti-Spam): Menghentikan injeksi candle flat saat akhir pekan dan menampilkan status penutupan Jumat WITA yang informatif.",
+    "Indikator Visual ICT NextGen: Menampilkan overlay PDH/PDL, PWH/PWL, Asia Session (06:00-14:00 WITA), 4-bar swing sweep marker, BOS/MSS, dan FVG/OB dengan level 50% Consequent Encroachment emas."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.402/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.403/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950402,
-  "latest_version_name": "2.0.0-pro.402",
+  "latest_version_code": 950403,
+  "latest_version_name": "2.0.0-pro.403",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Desain Thumbnail 1 Kolom ala TikTok & Jurnal Trading: tampilan thumbnail video kini 1 baris 1 kartu (bukan berjejer 2) dengan format layar lebar 16:9 yang rapi dan jernih.",
-    "Putar Instan dari Menu Bawah: mengetuk tab Video di menu navigasi utama bawah langsung memutar video secara otomatis.",
-    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video.",
-    "Integrasi Multi-Store & Scanner Native: sinkronisasi otomatis item video dari IndexedDB, legacy storage, catatan jurnal, dan Android storage scanner."
+    "Penyelarasan Card Chart Gold ke Gaya Peta Harga Beranda: Kontainer glassmorphism identik, kontrol timeframe M15/M5, heading, dan live price terkini di kanan atas.",
+    "Interaksi Sumbu Harga Vertikal: Skala harga kanan kini dapat di-drag dan di-zoom secara interaktif pada mode normal maupun fullscreen.",
+    "Filter Pasar Libur (Weekend Anti-Spam): Menghentikan injeksi candle flat saat akhir pekan dan menampilkan status penutupan Jumat WITA yang informatif.",
+    "Indikator Visual ICT NextGen: Menampilkan overlay PDH/PDL, PWH/PWL, Asia Session (06:00-14:00 WITA), 4-bar swing sweep marker, BOS/MSS, dan FVG/OB dengan level 50% Consequent Encroachment emas."
   ],
   "sha256": "582680b6a711da40d26222bbf309372396c32caf686d73c3ad9dd3459dab3507",
-  "version": "2.0.0-pro.402",
-  "versionCode": 950402
+  "version": "2.0.0-pro.403",
+  "versionCode": 950403
 }

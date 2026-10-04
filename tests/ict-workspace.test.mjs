@@ -4,6 +4,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {MODEL,normalize,session,analyze,advance,structure} from '../app/src/main/assets/apps/mapping/js/ict-workspace/engine.js';
 import {loadCandles} from '../app/src/main/assets/apps/mapping/js/ict-workspace/data.js';
+import {calculateNextGenIndicators} from '../app/src/main/assets/apps/mapping/js/ict-workspace/nextgen-indicators.js';
 const root='app/src/main/assets/apps/mapping/';
 const bar=(time,open=100,high=102,low=98,close=101)=>({time,open,high,low,close});
 const t=Date.parse('2026-09-08T12:00:00Z')/1000;
@@ -135,4 +136,70 @@ test('no FVG and insufficient nearest-target reward both stay WAIT',()=>{
  assert.equal(analyze({candles:noGap,context:hs,tf:'M5',now:t+310}).plan,null);
  const closeTarget=cs.map(c=>({...c}));closeTarget[20].high=115;
  assert.equal(analyze({candles:closeTarget,context:hs,tf:'M5',now:t+310}).plan,null);
+});
+
+test('calculateNextGenIndicators returns safe defaults on empty or partial inputs', () => {
+  const empty = calculateNextGenIndicators([]);
+  assert.equal(empty.keyLevels.pdh, null);
+  assert.equal(empty.keyLevels.trend, 'NEUTRAL');
+  assert.deepEqual(empty.liquidity.bsl, []);
+  assert.deepEqual(empty.structure.events, []);
+  assert.deepEqual(empty.poi.fvg, []);
+  assert.deepEqual(empty.poi.ob, []);
+
+  const single = calculateNextGenIndicators([bar(t, 100, 105, 95, 102)]);
+  assert.equal(single.keyLevels.pdEq, 100);
+  assert.equal(single.structure.trend, 'NEUTRAL');
+});
+
+test('calculateNextGenIndicators extracts Asia range (06:00-14:00 WITA), PDH/PDL, 4-bar swings and sweep markers', () => {
+  const baseTime = Date.parse('2026-09-08T00:00:00Z') / 1000;
+  const cs = [];
+  for (let i = 0; i < 40; i++) {
+    const curTime = baseTime + i * 900;
+    let h = 2650, l = 2640, c = 2645;
+    if (i === 10) { h = 2665; l = 2642; c = 2660; }
+    if (i === 15) { h = 2648; l = 2630; c = 2635; }
+    if (i === 28) { h = 2668; l = 2658; c = 2662; }
+    cs.push(bar(curTime, 2645, h, l, c));
+  }
+
+  const ind = calculateNextGenIndicators(cs);
+  assert.equal(ind.keyLevels.asiaHigh, 2665);
+  assert.equal(ind.keyLevels.asiaLow, 2630);
+  assert.ok(ind.liquidity.sweeps.some(s => s.type === 'ASIA_HIGH_SWEEP'));
+  assert.ok(Number.isFinite(ind.keyLevels.pdEq));
+});
+
+test('calculateNextGenIndicators detects 4-bar pivots, BOS/MSS, FVG with 50% CE, OB and Trend Invalidation', () => {
+  const startTime = Date.parse('2026-09-08T06:00:00Z') / 1000;
+  const cs = [];
+  for (let i = 0; i < 25; i++) {
+    cs.push(bar(startTime + i * 300, 2600, 2603, 2597, 2601));
+  }
+  cs[6] = bar(startTime + 6 * 300, 2600, 2620, 2598, 2610);
+  for (let i = 7; i <= 10; i++) {
+    cs[i] = bar(startTime + i * 300, 2605, 2608, 2602, 2606);
+  }
+  cs[11] = bar(startTime + 11 * 300, 2608, 2609, 2601, 2602);
+  cs[12] = bar(startTime + 12 * 300, 2604, 2632, 2603, 2630);
+  cs[13] = bar(startTime + 13 * 300, 2631, 2636, 2622, 2634);
+  for (let i = 14; i < 25; i++) cs[i] = bar(startTime + i * 300, 2630, 2635, 2628, 2632);
+
+  const ind = calculateNextGenIndicators(cs, { swingLen: 4 });
+  assert.ok(ind.liquidity.bsl.length > 0, 'Must detect BSL');
+  assert.ok(ind.structure.events.length > 0, 'Must record structure break');
+  assert.equal(ind.structure.trend, 'BULL');
+  assert.ok(ind.structure.invalidation != null, 'Must have trend invalidation in bull trend');
+  assert.match(ind.structure.invalidation.text, /BULL INVALID/);
+  assert.ok(ind.poi.ob.some(o => o.side === 'BUY' && o.ce != null), 'Must identify +OB with 50% CE');
+});
+
+test('app.js initializes createPriceChart with touchAxes, filters weekend closure candles and suppresses refresh spam', () => {
+  const appSrc = readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/app.js', 'utf8');
+  assert.ok(appSrc.includes('createPriceChart($(\'chart\'),{touchAxes:true})'), 'Must mount createPriceChart with touchAxes: true');
+  assert.ok(appSrc.includes('isGoldMarketOpen'), 'Must import and check isGoldMarketOpen');
+  assert.ok(appSrc.includes('isWeekendClosure'), 'Must include weekend closure detection');
+  assert.ok(appSrc.includes('Pasar Tutup (Akhir Pekan)'), 'Must indicate Pasar Tutup (Akhir Pekan) in source');
+  assert.ok(appSrc.includes('300000'), 'Must schedule 5m (300000ms) interval when market closed');
 });

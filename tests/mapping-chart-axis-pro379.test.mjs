@@ -37,3 +37,37 @@ test('server refresh never reapplies the saved right offset over a manually adju
   assert.equal(m.fit,1,'Auto harga must not reset horizontal zoom');
   m.view.destroy();
 });
+
+test('fullscreen mode explicitly applies full vertical price scale zoom capability and axis touch scaling',()=>{
+  const m=mount(true);
+  m.view.setFullscreen(true);
+  const fsOptions=m.applied.at(-1);
+  assert.equal(fsOptions.rightPriceScale.minimumWidth,90);
+  assert.equal(fsOptions.handleScroll.vertTouchDrag,true);
+  assert.equal(fsOptions.handleScroll.horzTouchDrag,true);
+  assert.equal(fsOptions.handleScroll.pressedMouseMove,true);
+  assert.equal(fsOptions.handleScroll.mouseWheel,true);
+  assert.equal(fsOptions.handleScale.pinch,true);
+  assert.equal(fsOptions.handleScale.mouseWheel,true);
+  assert.equal(fsOptions.handleScale.axisPressedMouseMove.price,true);
+  assert.equal(fsOptions.handleScale.axisPressedMouseMove.time,true);
+  assert.equal(fsOptions.handleScale.axisDoubleClickReset.price,true);
+  assert.equal(fsOptions.handleScale.axisDoubleClickReset.time,true);
+  m.view.setFullscreen(false);
+  const exitOptions=m.applied.at(-1);
+  assert.equal(exitOptions.rightPriceScale.minimumWidth,65);
+  assert.equal(exitOptions.handleScroll.vertTouchDrag,true);
+  m.view.destroy();
+});
+
+test('Mapping app initializes chart with touchAxes enabled',()=>{
+  const appSource=readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/app.js','utf8');
+  assert.match(appSource,/createPriceChart\(\$\('chart'\),\s*\{touchAxes:\s*true\}\)/);
+});
+
+test('ICT overlay canvas has pointer-events none to not block price scale interaction',()=>{
+  const css=readFileSync('app/src/main/assets/apps/mapping/css/ict-workspace.css','utf8');
+  assert.match(css,/\.ict-overlay\s*\{[^}]*pointer-events:\s*none/);
+  const canvasSource=readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/ict-canvas.js','utf8');
+  assert.match(canvasSource,/canvas\.style\.pointerEvents\s*=\s*['"]none['"]/);
+});

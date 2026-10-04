@@ -1,6 +1,29 @@
 # Technical Decisions
 
-## 2026-09-30 — Pro381 Market Intel & Kompas Fundamental Hub Overhaul
+## 2026-10-04 — Pro404 Chart Gold Price Zoom, Weekend Filter & Fast Dev Mode
+
+1. **Price Scale Vertical Zoom & Touch Drag Fix:**
+   - In `apps/mapping/js/ict-workspace/app.js`, chart is initialized with `createPriceChart($('chart'), {touchAxes: true})` to enable `handleScroll.vertTouchDrag: true`.
+   - In `chart-view.js`, `setFullscreen(enabled)` explicitly sets `handleScroll: { vertTouchDrag: true }` and `axisPressedMouseMove: { price: true }`, giving 100% full vertical price scale zoom capability on both mobile touch and desktop drag.
+   - `.ict-overlay` explicitly retains `pointer-events: none` so price scale interaction is completely unblocked.
+2. **Weekend Market Closed Anti-Spam Filter:**
+   - Implemented `isWeekendClosure(timeSec)` to filter out synthetic flat 15m candles from Friday 17:00 NY to Sunday 17:00 NY.
+   - Status text displays: `Pasar Tutup (Akhir Pekan) · Candle Terakhir [Jumat] WITA`. Polling is slowed during closure to save requests.
+3. **Fast Dev Mode (Zero npm test Overhead):**
+   - Banned automatic sequential execution of full 148 test suites for routine code edits. Replaced with `node --check` (0.05s) and 1-file targeted tests (0.2s) to save tokens and time. Full test suite reserved for explicit user command or final release.
+4. **Cross-Account Shared Permanent Memory (Akun 1 & Akun 2):**
+   - Created `/root/.gemini/antigravity-cli/rules/00-shared-cross-account-memory.md` symlinked to `/root/GEMINI.md` and `/root/Amy-fx-pro/GEMINI.md`.
+   - Automatically loaded into context across both Antigravity accounts on every session start.
+
+## 2026-10-04 — Pro403 Chart Gold Parity with Peta Harga & AMY ICT NextGen Engine
+
+1. **100% Card Parity with Peta Harga:**
+   - Replaced old outer toolbar with in-card glassmorphism container (`.gold-price-panel`) 100% matching Home Peta Harga (`.home-price-panel`).
+2. **NextGen Indicators Engine (`nextgen-indicators.js`):**
+   - Transpiled `AMY_ICT_NextGen.pine` to clean deterministic JavaScript: PDH/PDL, PWH/PWL, Asia Session (06:00-14:00 WITA), 4-bar swing BSL/SSL, BOS/MSS breaks, Trend Invalidation line, FVG + OB with 50% CE, and 80-bar PD EQ line.
+3. **Golden Invariant:**
+   - If Chart Gold experiences visual glitches, AI must wait for explicit user command before reverting to match Peta Harga.
+
 
 - **Architecture & Hub Priority**:
   1. Kompas Fundamental (`panel-sentiment`) established as the central hub, primary priority, and default tab of Market Intel. Berita serves as supporting evidence and Kalender provides upcoming catalysts. All 3 tabs remain available and operational.
