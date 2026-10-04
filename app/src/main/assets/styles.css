@@ -1660,6 +1660,16 @@ html[data-amyfx-custom-bg] body::before {
 .media-upload-btn:active {
   transform: scale(0.97);
 }
+.media-upload-btn.reels-btn {
+  background: rgba(245, 196, 81, 0.15) !important;
+  color: var(--primary-gold, #f5c451) !important;
+  border: 1px solid rgba(245, 196, 81, 0.45) !important;
+  box-shadow: 0 4px 16px rgba(245, 196, 81, 0.12);
+}
+.media-upload-btn.reels-btn:hover {
+  background: rgba(245, 196, 81, 0.28) !important;
+  border-color: var(--primary-gold, #f5c451) !important;
+}
 .media-filter-pills {
   display: flex;
   gap: 8px;

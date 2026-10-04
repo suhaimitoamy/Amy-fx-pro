@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.399/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.400/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Tab Video menu utama kini setara Jurnal Trading: tap video langsung fullscreen, swipe ke atas/bawah untuk ganti video (feed vertikal ala TikTok).",
-    "Thumbnail video rapi: memakai cover tersimpan dari Jurnal/scanner atau menangkap 1 frame otomatis lalu di-cache, tidak lagi hitam atau berat.",
-    "Feed video hemat memori: video yang jauh dari layar dilepas otomatis; tombol Back Android menutup feed tanpa keluar aplikasi."
+    "Menu Video Autoplay ala TikTok: saat klik menu Video di menu utama, video langsung memutar otomatis secara fullscreen tanpa harus memilih card terlebih dahulu.",
+    "Navigasi Cepat Reels: tombol Putar Reels di galeri video untuk melanjutkan tontonan feed video reels acak.",
+    "Paritas Video & Thumbnail: thumbnail otomatis tertangkap rapi, swipe vertikal ganti video, hemat decoder GPU hardware, dan tombol Back menutup feed kembali ke galeri."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.399/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.400/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950399,
-  "latest_version_name": "2.0.0-pro.399",
+  "latest_version_code": 950400,
+  "latest_version_name": "2.0.0-pro.400",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Tab Video menu utama kini setara Jurnal Trading: tap video langsung fullscreen, swipe ke atas/bawah untuk ganti video (feed vertikal ala TikTok).",
-    "Thumbnail video rapi: memakai cover tersimpan dari Jurnal/scanner atau menangkap 1 frame otomatis lalu di-cache, tidak lagi hitam atau berat.",
-    "Feed video hemat memori: video yang jauh dari layar dilepas otomatis; tombol Back Android menutup feed tanpa keluar aplikasi."
+    "Menu Video Autoplay ala TikTok: saat klik menu Video di menu utama, video langsung memutar otomatis secara fullscreen tanpa harus memilih card terlebih dahulu.",
+    "Navigasi Cepat Reels: tombol Putar Reels di galeri video untuk melanjutkan tontonan feed video reels acak.",
+    "Paritas Video & Thumbnail: thumbnail otomatis tertangkap rapi, swipe vertikal ganti video, hemat decoder GPU hardware, dan tombol Back menutup feed kembali ke galeri."
   ],
   "sha256": "761c043023d928ddda627d35c0cc495ac3ac54bca3558269478668d4ca846996",
-  "version": "2.0.0-pro.399",
-  "versionCode": 950399
+  "version": "2.0.0-pro.400",
+  "versionCode": 950400
 }

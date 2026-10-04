@@ -484,6 +484,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <input type="file" id="rootMediaFileInput" multiple accept="video/*,image/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.txt" style="display:none;">
+          ${allItems.some(isVideoMediaItem) ? `
+          <button type="button" id="rootPlayReelsBtn" class="media-upload-btn reels-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+            <span>Putar Reels</span>
+          </button>
+          ` : ''}
           <button type="button" id="rootUploadMediaBtn" class="media-upload-btn">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
             <span>+ Upload Video</span>
@@ -529,6 +535,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Bind file input handler
     const fileInput = document.getElementById('rootMediaFileInput');
     fileInput?.addEventListener('change', handleRootMediaUpload);
+
+    // Saat klik menu utama Video: langsung putar video pertama ala TikTok!
+    const videoItems = allItems.filter(isVideoMediaItem);
+    if (options.autoPlay && !reelState.open) {
+      if (videoItems.length > 0) {
+        openVideoReel(videoItems[0]);
+      } else {
+        showToast('Belum ada video tersimpan. Silakan upload video pertama Anda.');
+      }
+    }
   }
 
   // ─── VIDEO THUMBNAIL ENGINE & REEL FEED (paritas dengan Jurnal Trading) ───
@@ -776,6 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         video.src = src;
+        video.autoplay = true;
         video.load();
         const onReady = () => {
           panel.classList.remove('is-buffering');
@@ -1525,10 +1542,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function navigate(target) {
+  function navigate(target, options = {}) {
     if (target === 'beranda') renderHome();
     if (target === 'proyek' || target === 'backtest') renderProjectList('Backtest');
-    if (target === 'video' || target === 'media' || target === 'koleksi') renderMedia();
+    if (target === 'video' || target === 'media' || target === 'koleksi') renderMedia(options);
     if (target === 'profil') renderProfile();
   }
 
@@ -1570,9 +1587,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewMediaBtn = event.target.closest('[data-view-media]');
     const deleteMediaBtn = event.target.closest('[data-delete-media]');
     const uploadMediaBtn = event.target.closest('#rootUploadMediaBtn, #rootEmptyUploadMediaBtn');
+    const playReelsBtn = event.target.closest('#rootPlayReelsBtn');
 
     if (openBtn) openProject(openBtn.dataset.open);
-    if (navBtn) navigate(navBtn.dataset.nav);
+    if (navBtn) {
+      const target = navBtn.dataset.nav;
+      if (target === 'video' || target === 'media') {
+        const all = await loadAllMediaItems();
+        const vids = all.filter(isVideoMediaItem);
+        if (vids.length > 0) {
+          if (localStorage.getItem('amy_root_tab') !== 'video') {
+            await renderMedia({ autoPlay: false });
+          }
+          openVideoReel(vids[0]);
+          return;
+        }
+      }
+      navigate(target);
+    }
     if (indicatorBtn) { selectedIndicator = indicators[Number(indicatorBtn.dataset.selectIndicator)]; renderIndikator(); }
     if (filterBtn) { document.querySelectorAll('.pill').forEach(item => item.classList.remove('active')); filterBtn.classList.add('active'); renderIndicatorList(filterBtn.dataset.filter, document.getElementById('indicator-search')?.value || ''); }
     if (copyBtn) {
@@ -1584,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (koleksiBtn) handleKoleksi(koleksiBtn.dataset.koleksi);
     if (mediaFilterBtn) {
       currentMediaFilter = mediaFilterBtn.dataset.mediaFilter;
-      renderMedia();
+      renderMedia({ autoPlay: false });
     }
     if (viewMediaBtn) {
       const itemId = viewMediaBtn.dataset.viewMedia;
@@ -1595,6 +1627,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isVideoMediaItem(targetItem)) openVideoReel(targetItem);
         else showMediaFullscreen(targetItem);
       }
+    }
+    if (playReelsBtn) {
+      const all = await loadAllMediaItems();
+      const vids = all.filter(isVideoMediaItem);
+      if (vids.length > 0) openVideoReel(vids[0]);
+      else showToast('Belum ada video tersimpan. Silakan upload video terlebih dahulu.');
     }
     if (deleteMediaBtn) {
       event.stopPropagation();
@@ -1624,7 +1662,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  navBtns.forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.target)));
+  navBtns.forEach(btn => btn.addEventListener('click', async () => {
+    const target = btn.dataset.target;
+    // Saat klik menu Video di menu utama: langsung putar video pertama ala TikTok!
+    if (target === 'video' || target === 'media') {
+      const all = await loadAllMediaItems();
+      const vids = all.filter(isVideoMediaItem);
+      if (vids.length > 0) {
+        if (localStorage.getItem('amy_root_tab') !== 'video') {
+          await renderMedia({ autoPlay: false });
+        }
+        openVideoReel(vids[0]);
+        return;
+      }
+    }
+    navigate(target, { autoPlay: (target === 'video' || target === 'media') });
+  }));
   let initialTab = 'beranda';
   try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}
   if (initialTab === 'koleksi' || initialTab === 'media') initialTab = 'video';
