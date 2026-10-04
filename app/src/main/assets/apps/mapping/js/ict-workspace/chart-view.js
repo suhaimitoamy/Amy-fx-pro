@@ -5,13 +5,13 @@ export function createPriceChart(element,{touchAxes=false}={}) {
     timeScale:{timeVisible:true},rightPriceScale:{minimumWidth:65},
     handleScale:{pinch:true,mouseWheel:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:{time:true,price:true}},
     handleScroll:{vertTouchDrag:touchAxes,horzTouchDrag:true,pressedMouseMove:true,mouseWheel:true}});
-  const series=chart.addCandlestickSeries({upColor:'#00e676',downColor:'#ff5252',borderVisible:false,wickUpColor:'#00e676',wickDownColor:'#ff5252'});
+  const series=chart.addCandlestickSeries({upColor:'#65d5b1',downColor:'#ff8f9b',borderVisible:false,wickUpColor:'#65d5b1',wickDownColor:'#ff8f9b'});
   let ict=null;
   let key='',lines=[],rightBars=null;
   function theme(){
     const light=document.documentElement.dataset.amyfxTheme==='light';
-    chart.applyOptions({layout:{background:{color:light?'#edf1fc':'#070b14'},textColor:light?'#475977':'#94a3b8'},
-      grid:{vertLines:{color:light?'#dce3f2':'rgba(255,255,255,0.04)'},horzLines:{color:light?'#dce3f2':'rgba(255,255,255,0.04)'}}});
+    chart.applyOptions({layout:{background:{color:light?'#edf1fc':'#293b60'},textColor:light?'#475977':'#ced9ed'},
+      grid:{vertLines:{color:light?'#dce3f2':'#3c5176'},horzLines:{color:light?'#dce3f2':'#3c5176'}}});
     ict?.invalidate();
   }
   theme();window.addEventListener('amyfx:theme-change',theme);
