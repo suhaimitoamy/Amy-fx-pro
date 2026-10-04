@@ -460,8 +460,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <strong class="media-card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</strong>
               <div class="media-card-actions">
-                <button type="button" class="media-card-btn" data-view-media="${escapeHtml(item.id)}">
-                  <span>Lihat Full</span>
+                <button type="button" class="media-card-btn${isVid ? ' is-video-action' : ''}" data-view-media="${escapeHtml(item.id)}">
+                  <span>${isVid ? '▶ Putar Video' : 'Lihat Full'}</span>
                 </button>
                 <button type="button" class="media-card-btn danger-btn" data-delete-media="${escapeHtml(item.id)}" title="Hapus Media">
                   <span>🗑️</span>
@@ -484,12 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <input type="file" id="rootMediaFileInput" multiple accept="video/*,image/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.txt" style="display:none;">
-          ${allItems.some(isVideoMediaItem) ? `
-          <button type="button" id="rootPlayReelsBtn" class="media-upload-btn reels-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
-            <span>Putar Reels</span>
-          </button>
-          ` : ''}
           <button type="button" id="rootUploadMediaBtn" class="media-upload-btn">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
             <span>+ Upload Video</span>
@@ -549,13 +543,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ─── VIDEO THUMBNAIL ENGINE & REEL FEED (paritas dengan Jurnal Trading) ───
   function isVideoMediaItem(item) {
-    return item.mediaKind === 'video' || item.type === 'Video Pembelajaran' || item.category === 'Video' ||
-      (item.mediaType && String(item.mediaType).startsWith('video/'));
+    if (!item) return false;
+    if (item.mediaKind === 'video') return true;
+    if (item.type === 'Video' || item.type === 'Video Pembelajaran') return true;
+    if (item.category === 'Video' || item.category === 'Video Replay') return true;
+    if (item.mediaType && String(item.mediaType).toLowerCase().startsWith('video/')) return true;
+    const path = String(item.mediaName || item.title || item.nativeUri || item.externalUri || item.mediaUrl || '').toLowerCase();
+    return /\.(mp4|mkv|webm|ogg|mov|m4v|3gp|avi)(\?.*)?$/i.test(path);
   }
 
   function toWebViewSrc(value) {
     const v = String(value || '');
-    if (!v || v.startsWith('content://')) return '';
+    if (!v) return '';
+    if (v.startsWith('content://')) return v;
     if (v.startsWith('file://') && window.Capacitor?.convertFileSrc) {
       try { return window.Capacitor.convertFileSrc(v); } catch (_) {}
     }
@@ -563,15 +563,83 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getCachedVideoThumb(item) {
-    return toWebViewSrc(item.videoThumb || item.thumbnailUrl || item.thumbnailUri || item.imageThumb || '');
+    return toWebViewSrc(item.thumbnailUrl || item.thumbnailUri || item.videoThumb || item.imageThumb || '');
   }
 
+  function triggerStorageScan() {
+    if (window.TradingStorageScanner && typeof window.TradingStorageScanner.scanFiles === 'function') {
+      try { window.TradingStorageScanner.scanFiles(); } catch (_) {}
+    }
+  }
+
+  function requestNativeThumbnail(item) {
+    const nativeUri = item.nativeUri || item.externalUri || (String(item.mediaUrl || '').startsWith('content://') ? item.mediaUrl : '');
+    if (!item?.id || !nativeUri) return;
+    if (window.TradingStorageScanner && typeof window.TradingStorageScanner.requestThumbnail === 'function') {
+      try { window.TradingStorageScanner.requestThumbnail(item.id, nativeUri, 'video'); } catch (_) {}
+    }
+  }
+
+  window.addEventListener('trading_storage_thumbnail_result', event => {
+    const detail = event?.detail || {};
+    const itemId = detail.itemId || detail.id || '';
+    const thumb = detail.thumbnailUri || detail.thumbnailUrl || '';
+    if (itemId && thumb) applyVideoThumbToDom(itemId, toWebViewSrc(thumb));
+  });
+
+  window.addEventListener('trading_storage_scan_result', async event => {
+    const detail = event?.detail || {};
+    if (detail.status === 'success' && Array.isArray(detail.files) && detail.files.length) {
+      const now = new Date().toISOString();
+      const current = await loadAllMediaItems();
+      const newItems = [];
+      for (const f of detail.files) {
+        const uri = f.uri || f.contentUri || '';
+        if (!uri) continue;
+        const name = f.name || f.displayName || 'Video Trading';
+        const isVid = f.mimeType?.startsWith('video/') || /\.(mp4|mkv|webm|ogg|mov|m4v|3gp|avi)$/i.test(name);
+        if (!isVid) continue;
+        if (current.some(it => it.nativeUri === uri || it.mediaUrl === uri)) continue;
+        newItems.push({
+          id: 'scan_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+          title: name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+          type: 'Video Pembelajaran',
+          category: 'Video',
+          status: 'Belum dibaca',
+          collection: 'Scan HP',
+          tags: ['Video', 'Scan HP'],
+          notes: 'File video dari scan storage HP.',
+          nativeUri: uri,
+          externalUri: uri,
+          thumbnailUrl: f.thumbnailUri || f.thumbnailUrl || '',
+          mediaKind: 'video',
+          mediaName: name,
+          mediaType: f.mimeType || 'video/mp4',
+          mediaSize: Number(f.size || 0),
+          createdAt: now,
+          updatedAt: now
+        });
+      }
+      if (newItems.length > 0) {
+        await saveAllMediaItems([...newItems, ...current]);
+        if (localStorage.getItem('amy_root_tab') === 'video') {
+          renderMedia({ autoPlay: false });
+        }
+      }
+    }
+  });
+
   async function resolveMediaSource(item, trackSet) {
+    if (!item) return '';
+    if (item.blob) {
+      const url = URL.createObjectURL(item.blob);
+      trackSet?.add(url);
+      return url;
+    }
     const direct = toWebViewSrc(item.mediaUrl || '');
     if (direct && !direct.startsWith('blob:')) return direct;
-    const mediaUrl = String(item.mediaUrl || '');
-    const nativeUri = item.nativeUri || item.externalUri || (mediaUrl.startsWith('content://') ? mediaUrl : '');
-    if (nativeUri) return nativeUri.startsWith('content://') ? nativeUri : toWebViewSrc(nativeUri);
+    const nativeUri = item.nativeUri || item.externalUri || (String(item.mediaUrl || '').startsWith('content://') ? item.mediaUrl : '');
+    if (nativeUri) return toWebViewSrc(nativeUri);
     if (!item.fileId) return '';
     const rec = await getMediaFileRecord(item.fileId);
     if (!rec?.blob) return '';
@@ -921,8 +989,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     reelState.open = true;
     document.documentElement.classList.add('is-reel-open');
-    document.body.classList.add('is-reel-open');
-    dialog.showModal();
+    if (!dialog.open) {
+      if (typeof dialog.showModal === 'function') {
+        try { dialog.showModal(); } catch (_) { dialog.setAttribute('open', ''); }
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    }
     try {
       history.pushState({ ...(history.state || {}), amyReel: true }, '', location.href);
       reelState.pushedHistory = true;
@@ -1587,21 +1660,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewMediaBtn = event.target.closest('[data-view-media]');
     const deleteMediaBtn = event.target.closest('[data-delete-media]');
     const uploadMediaBtn = event.target.closest('#rootUploadMediaBtn, #rootEmptyUploadMediaBtn');
-    const playReelsBtn = event.target.closest('#rootPlayReelsBtn');
-
     if (openBtn) openProject(openBtn.dataset.open);
     if (navBtn) {
       const target = navBtn.dataset.nav;
       if (target === 'video' || target === 'media') {
+        setActive('video');
         const all = await loadAllMediaItems();
         const vids = all.filter(isVideoMediaItem);
+        await renderMedia({ autoPlay: false });
         if (vids.length > 0) {
-          if (localStorage.getItem('amy_root_tab') !== 'video') {
-            await renderMedia({ autoPlay: false });
-          }
           openVideoReel(vids[0]);
-          return;
+        } else {
+          showToast('Belum ada video tersimpan. Silakan upload video pertama Anda.');
         }
+        return;
       }
       navigate(target);
     }
@@ -1627,12 +1699,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isVideoMediaItem(targetItem)) openVideoReel(targetItem);
         else showMediaFullscreen(targetItem);
       }
-    }
-    if (playReelsBtn) {
-      const all = await loadAllMediaItems();
-      const vids = all.filter(isVideoMediaItem);
-      if (vids.length > 0) openVideoReel(vids[0]);
-      else showToast('Belum ada video tersimpan. Silakan upload video terlebih dahulu.');
     }
     if (deleteMediaBtn) {
       event.stopPropagation();
@@ -1666,17 +1732,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const target = btn.dataset.target;
     // Saat klik menu Video di menu utama: langsung putar video pertama ala TikTok!
     if (target === 'video' || target === 'media') {
-      const all = await loadAllMediaItems();
-      const vids = all.filter(isVideoMediaItem);
+      setActive('video');
+      const allItems = await loadAllMediaItems();
+      const vids = allItems.filter(isVideoMediaItem);
+      await renderMedia({ autoPlay: false });
       if (vids.length > 0) {
-        if (localStorage.getItem('amy_root_tab') !== 'video') {
-          await renderMedia({ autoPlay: false });
-        }
         openVideoReel(vids[0]);
-        return;
+      } else {
+        showToast('Belum ada video tersimpan. Silakan upload video pertama Anda.');
       }
+      return;
     }
-    navigate(target, { autoPlay: (target === 'video' || target === 'media') });
+    navigate(target);
   }));
   let initialTab = 'beranda';
   try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}

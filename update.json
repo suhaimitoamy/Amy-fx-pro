@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.400/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.401/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Menu Video Autoplay ala TikTok: saat klik menu Video di menu utama, video langsung memutar otomatis secara fullscreen tanpa harus memilih card terlebih dahulu.",
-    "Navigasi Cepat Reels: tombol Putar Reels di galeri video untuk melanjutkan tontonan feed video reels acak.",
-    "Paritas Video & Thumbnail: thumbnail otomatis tertangkap rapi, swipe vertikal ganti video, hemat decoder GPU hardware, dan tombol Back menutup feed kembali ke galeri."
+    "Desain Thumbnail 1 Kolom ala TikTok & Jurnal Trading: tampilan thumbnail video kini 1 baris 1 kartu (bukan berjejer 2) dengan format layar lebar 16:9 yang rapi dan jernih.",
+    "Putar Instan dari Menu Bawah: mengetuk tab Video di menu navigasi utama bawah langsung memutar video secara otomatis.",
+    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.400/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.401/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950400,
-  "latest_version_name": "2.0.0-pro.400",
+  "latest_version_code": 950401,
+  "latest_version_name": "2.0.0-pro.401",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Menu Video Autoplay ala TikTok: saat klik menu Video di menu utama, video langsung memutar otomatis secara fullscreen tanpa harus memilih card terlebih dahulu.",
-    "Navigasi Cepat Reels: tombol Putar Reels di galeri video untuk melanjutkan tontonan feed video reels acak.",
-    "Paritas Video & Thumbnail: thumbnail otomatis tertangkap rapi, swipe vertikal ganti video, hemat decoder GPU hardware, dan tombol Back menutup feed kembali ke galeri."
+    "Desain Thumbnail 1 Kolom ala TikTok & Jurnal Trading: tampilan thumbnail video kini 1 baris 1 kartu (bukan berjejer 2) dengan format layar lebar 16:9 yang rapi dan jernih.",
+    "Putar Instan dari Menu Bawah: mengetuk tab Video di menu navigasi utama bawah langsung memutar video secara otomatis.",
+    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video."
   ],
   "sha256": "b40a9200ba01e7800e51451f90e58e933482cafc9518287231d0e450c8d3d810",
-  "version": "2.0.0-pro.400",
-  "versionCode": 950400
+  "version": "2.0.0-pro.401",
+  "versionCode": 950401
 }
