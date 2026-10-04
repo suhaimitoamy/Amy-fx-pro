@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.401/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.402/AmyFX-Pro-latest.apk",
   "changelog": [
     "Desain Thumbnail 1 Kolom ala TikTok & Jurnal Trading: tampilan thumbnail video kini 1 baris 1 kartu (bukan berjejer 2) dengan format layar lebar 16:9 yang rapi dan jernih.",
     "Putar Instan dari Menu Bawah: mengetuk tab Video di menu navigasi utama bawah langsung memutar video secara otomatis.",
-    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video."
+    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video.",
+    "Integrasi Multi-Store & Scanner Native: sinkronisasi otomatis item video dari IndexedDB, legacy storage, catatan jurnal, dan Android storage scanner."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.401/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.402/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950401,
-  "latest_version_name": "2.0.0-pro.401",
+  "latest_version_code": 950402,
+  "latest_version_name": "2.0.0-pro.402",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
     "Desain Thumbnail 1 Kolom ala TikTok & Jurnal Trading: tampilan thumbnail video kini 1 baris 1 kartu (bukan berjejer 2) dengan format layar lebar 16:9 yang rapi dan jernih.",
     "Putar Instan dari Menu Bawah: mengetuk tab Video di menu navigasi utama bawah langsung memutar video secara otomatis.",
-    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video."
+    "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video.",
+    "Integrasi Multi-Store & Scanner Native: sinkronisasi otomatis item video dari IndexedDB, legacy storage, catatan jurnal, dan Android storage scanner."
   ],
-  "sha256": "1c1a76733a80b4abf58f2a5ab7286d25d0677aa9b83f6bf9ae5cbe6063053f7b",
-  "version": "2.0.0-pro.401",
-  "versionCode": 950401
+  "sha256": "",
+  "version": "2.0.0-pro.402",
+  "versionCode": 950402
 }

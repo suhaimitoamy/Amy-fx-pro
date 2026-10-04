@@ -2009,6 +2009,10 @@ body.is-reel-open {
   overflow: hidden !important;
   overscroll-behavior: none !important;
 }
+html.is-reel-open .bottom-nav,
+body.is-reel-open .bottom-nav {
+  display: none !important;
+}
 .amy-reel-dialog {
   position: fixed;
   inset: 0;

@@ -325,18 +325,69 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadAllMediaItems() {
-    let items = [];
+    const itemMap = new Map();
+    // 1. IndexedDB items.v2 (Library Utama)
     try {
       const rec = await getMediaMetadataRecord(MEDIA_ITEMS_META_RECORD);
-      if (Array.isArray(rec?.value)) items = rec.value;
+      if (Array.isArray(rec?.value)) {
+        rec.value.forEach(it => { if (it && it.id) itemMap.set(it.id, it); });
+      }
     } catch (_) {}
-    if (!items.length) {
-      try {
-        const legacy = JSON.parse(localStorage.getItem(MEDIA_LEGACY_KEY) || '[]');
-        if (Array.isArray(legacy) && legacy.length) items = legacy;
-      } catch (_) {}
-    }
-    return items;
+
+    // 2. localStorage tradingLibraryManager.items.v1 (Legacy Library)
+    try {
+      const legacy = JSON.parse(localStorage.getItem(MEDIA_LEGACY_KEY) || '[]');
+      if (Array.isArray(legacy)) {
+        legacy.forEach(it => { if (it && it.id && !itemMap.has(it.id)) itemMap.set(it.id, it); });
+      }
+    } catch (_) {}
+
+    // 3. localStorage amy_media_items
+    try {
+      const extra = JSON.parse(localStorage.getItem('amy_media_items') || '[]');
+      if (Array.isArray(extra)) {
+        extra.forEach(it => { if (it && it.id && !itemMap.has(it.id)) itemMap.set(it.id, it); });
+      }
+    } catch (_) {}
+
+    // 4. Video attachments dari Jurnal Trading & Notes
+    try {
+      const journalsRaw = localStorage.getItem('tradingLibraryManager.journals.v1') || localStorage.getItem('amy_journal_entries') || '[]';
+      const journals = JSON.parse(journalsRaw);
+      if (Array.isArray(journals)) {
+        journals.forEach(j => {
+          (j?.attachments || []).forEach(att => {
+            const isVid = att.kind === 'video' || (att.type && String(att.type).startsWith('video/')) || /\.(mp4|mkv|webm|ogg|mov|m4v|3gp|avi)$/i.test(att.name || '');
+            if (isVid) {
+              const attId = att.id || att.fileId || `journal_vid_${j.id}_${att.name}`;
+              if (!itemMap.has(attId)) {
+                itemMap.set(attId, {
+                  id: attId,
+                  title: att.name || j.title || 'Video Jurnal Trading',
+                  type: 'Video Pembelajaran',
+                  category: 'Video',
+                  status: 'Selesai dibaca',
+                  collection: 'Jurnal',
+                  tags: ['Video', 'Jurnal'],
+                  fileId: att.fileId || '',
+                  nativeUri: att.nativeUri || att.uri || '',
+                  externalUri: att.externalUri || att.uri || '',
+                  mediaUrl: att.mediaUrl || att.url || '',
+                  thumbnailUrl: att.thumbnailUrl || att.thumbnailUri || '',
+                  mediaKind: 'video',
+                  mediaName: att.name || 'video.mp4',
+                  mediaType: att.type || 'video/mp4',
+                  mediaSize: Number(att.size || 0),
+                  createdAt: j.date || j.createdAt || new Date().toISOString()
+                });
+              }
+            }
+          });
+        });
+      }
+    } catch (_) {}
+
+    return Array.from(itemMap.values());
   }
 
   async function saveAllMediaItems(items) {
@@ -580,26 +631,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.addEventListener('trading_storage_thumbnail_result', event => {
-    const detail = event?.detail || {};
-    const itemId = detail.itemId || detail.id || '';
-    const thumb = detail.thumbnailUri || detail.thumbnailUrl || '';
+  function handleThumbnailResult(detail) {
+    const itemId = detail?.itemId || detail?.id || '';
+    const thumb = detail?.thumbnailUri || detail?.thumbnailUrl || '';
     if (itemId && thumb) applyVideoThumbToDom(itemId, toWebViewSrc(thumb));
-  });
+  }
+  window.addEventListener('trading_storage_thumbnail_result', e => handleThumbnailResult(e?.detail));
+  window.addEventListener('amyNativeThumbnailResult', e => handleThumbnailResult(e?.detail));
+  window.handleNativeThumbnailResult = detail => handleThumbnailResult(detail);
 
-  window.addEventListener('trading_storage_scan_result', async event => {
-    const detail = event?.detail || {};
-    if (detail.status === 'success' && Array.isArray(detail.files) && detail.files.length) {
+  async function handleScanResult(detail) {
+    const status = detail?.status || '';
+    const files = Array.isArray(detail?.files) ? detail.files : [];
+    if (status === 'success' && files.length) {
       const now = new Date().toISOString();
       const current = await loadAllMediaItems();
       const newItems = [];
-      for (const f of detail.files) {
+      for (const f of files) {
         const uri = f.uri || f.contentUri || '';
         if (!uri) continue;
         const name = f.name || f.displayName || 'Video Trading';
         const isVid = f.mimeType?.startsWith('video/') || /\.(mp4|mkv|webm|ogg|mov|m4v|3gp|avi)$/i.test(name);
         if (!isVid) continue;
-        if (current.some(it => it.nativeUri === uri || it.mediaUrl === uri)) continue;
+        if (current.some(it => it.nativeUri === uri || it.mediaUrl === uri || it.externalUri === uri)) continue;
         newItems.push({
           id: 'scan_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
           title: name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
@@ -623,11 +677,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (newItems.length > 0) {
         await saveAllMediaItems([...newItems, ...current]);
         if (localStorage.getItem('amy_root_tab') === 'video') {
-          renderMedia({ autoPlay: false });
+          await renderMedia({ autoPlay: false });
+          if (!reelState.open) {
+            const freshAll = await loadAllMediaItems();
+            const freshVids = freshAll.filter(isVideoMediaItem);
+            if (freshVids.length > 0) openVideoReel(freshVids[0]);
+          }
         }
       }
     }
-  });
+  }
+  window.addEventListener('trading_storage_scan_result', e => handleScanResult(e?.detail));
+  window.addEventListener('amyNativeStorageScanResult', e => handleScanResult(e?.detail));
+  window.handleNativeStorageScanResult = detail => handleScanResult(detail);
 
   async function resolveMediaSource(item, trackSet) {
     if (!item) return '';
