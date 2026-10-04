@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.396/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Rollback Stabilitas Amy FX Pro: Pemulihan arsitektur stabil v393 dengan kurasi menu orisinal [Beranda | Backtest | Koleksi | Profil] dan Jurnal Media.",
-    "Pembersihan Modul Eksperimental: Menghapus modul eksperimental Advisor dan perbaikan stabilitas canvas chart.",
-    "Notifikasi Pembaruan v396: Jalur update resmi bagi pengguna versi 395 untuk sinkronisasi build terbaru."
+    "Kembali ke Amy FX Pro 395: Menu utama Video [Beranda | Backtest | Video | Profil], Media Vault terintegrasi, dan Tab Advisor di Mapping aktif kembali.",
+    "Navigasi Jurnal Trading: Tab Catatan Pribadi [Library | Jurnal | Performa | Catatan].",
+    "Catatan: Chart Gold saat pasar tutup (akhir pekan) menampilkan candle sintetis dari server; perbaikan menyusul."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.396/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Rollback Stabilitas Amy FX Pro: Pemulihan arsitektur stabil v393 dengan kurasi menu orisinal [Beranda | Backtest | Koleksi | Profil] dan Jurnal Media.",
-    "Pembersihan Modul Eksperimental: Menghapus modul eksperimental Advisor dan perbaikan stabilitas canvas chart.",
-    "Notifikasi Pembaruan v396: Jalur update resmi bagi pengguna versi 395 untuk sinkronisasi build terbaru."
+    "Kembali ke Amy FX Pro 395: Menu utama Video [Beranda | Backtest | Video | Profil], Media Vault terintegrasi, dan Tab Advisor di Mapping aktif kembali.",
+    "Navigasi Jurnal Trading: Tab Catatan Pribadi [Library | Jurnal | Performa | Catatan].",
+    "Catatan: Chart Gold saat pasar tutup (akhir pekan) menampilkan candle sintetis dari server; perbaikan menyusul."
   ],
   "sha256": "f68a8c575f33b2040f128e9656ae6b5e3023defde60310c8f95649e13f06050b",
   "version": "2.0.0-pro.396",
