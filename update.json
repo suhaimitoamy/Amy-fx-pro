@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.397/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Kembali ke Amy FX Pro 395: Menu utama Video [Beranda | Backtest | Video | Profil], Media Vault terintegrasi, dan Tab Advisor di Mapping aktif kembali.",
-    "Navigasi Jurnal Trading: Tab Catatan Pribadi [Library | Jurnal | Performa | Catatan].",
-    "Catatan: Chart Gold saat pasar tutup (akhir pekan) menampilkan candle sintetis dari server; perbaikan menyusul."
+    "Chart Gold akhir pekan: candle datar Sabtu–Minggu disembunyikan, chart berhenti di sesi Jumat dengan label 'Pasar tutup'.",
+    "Chart lebih tahan error: satu baris data ganda dari provider tidak lagi membuat seluruh chart kosong.",
+    "Koneksi lebih sabar: batas tunggu data chart & konteks server dinaikkan ke 35 detik; jalur proxy lokal yang tidak ada di APK dilewati."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.397/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Kembali ke Amy FX Pro 395: Menu utama Video [Beranda | Backtest | Video | Profil], Media Vault terintegrasi, dan Tab Advisor di Mapping aktif kembali.",
-    "Navigasi Jurnal Trading: Tab Catatan Pribadi [Library | Jurnal | Performa | Catatan].",
-    "Catatan: Chart Gold saat pasar tutup (akhir pekan) menampilkan candle sintetis dari server; perbaikan menyusul."
+    "Chart Gold akhir pekan: candle datar Sabtu–Minggu disembunyikan, chart berhenti di sesi Jumat dengan label 'Pasar tutup'.",
+    "Chart lebih tahan error: satu baris data ganda dari provider tidak lagi membuat seluruh chart kosong.",
+    "Koneksi lebih sabar: batas tunggu data chart & konteks server dinaikkan ke 35 detik; jalur proxy lokal yang tidak ada di APK dilewati."
   ],
   "sha256": "f4fc51f2ae309a7fd2b1d3367984a0addb7ccde19b7d1ab9ead707f1ec2876fa",
   "version": "2.0.0-pro.397",

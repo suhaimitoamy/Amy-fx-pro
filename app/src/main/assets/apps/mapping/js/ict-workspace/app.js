@@ -12,15 +12,39 @@ $('chart-auto-price').addEventListener('click',()=>chart?.autoPrice());
 display=mountDisplay(next=>{display=next;renderAmy(context?.amy,display,context?.news,context);draw();});
 // A cached trade plan from the previous application version must not be served as current context.
 try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}
+// Gold (XAU/USD) is closed from Friday 17:00 to Sunday 18:00 New York time.
+const nyParts=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hourCycle:'h23',weekday:'short',hour:'2-digit'});
+function marketClosedAt(time){
+  const p=Object.fromEntries(nyParts.formatToParts(new Date(time*1000)).map(x=>[x.type,x.value]));
+  const h=Number(p.hour);
+  return p.weekday==='Sat'||(p.weekday==='Fri'&&h>=17)||(p.weekday==='Sun'&&h<18);
+}
+// Lenient fallback so one duplicate/odd provider row cannot blank the whole chart.
+function lenientCandles(values){
+  const map=new Map();
+  for(const c of values||[]){
+    if(c?.amyfxSyntheticCurrent||c?.synthetic)continue;
+    const t=typeof c.time==='number'?c.time:Math.floor(Date.parse(c.datetime||c.time)/1000);
+    const o={time:t,open:Number(c.open),high:Number(c.high),low:Number(c.low),close:Number(c.close)};
+    if(Object.values(o).every(Number.isFinite)&&o.low>0)map.set(t,o);
+  }
+  return [...map.values()].sort((a,b)=>a.time-b.time);
+}
+let marketClosed=false;
 function draw(){
   const tf=$('timeframe').value,serverCandles=context?.amy?.chartCandles?.[tf];
-  const candles=serverCandles?.length?serverCandles.map(c=>({time:c.open_time,open:c.open,high:c.high,low:c.low,close:c.close})):raw?.tf===tf?normalize(raw.values,tf,Date.now()/1000).candles:[];
+  let candles=[];
+  if(serverCandles?.length)candles=serverCandles.map(c=>({time:c.open_time,open:c.open,high:c.high,low:c.low,close:c.close}));
+  else if(raw?.tf===tf){try{candles=normalize(raw.values,tf,Date.now()/1000).candles;}catch{candles=lenientCandles(raw.values);}}
+  marketClosed=marketClosedAt(Date.now()/1000);
+  const trading=candles.filter(c=>!marketClosedAt(c.time));
+  if(trading.length)candles=trading;
   if(candles.length>0&&$('error'))$('error').hidden=true;
   chart?.draw({tf,candles,plan:null},context?driverPlan||overlay:null,context?.amy?{amy:context.amy,settings:display,news:context.news}:null);
   const coverage=$('ict-coverage');if(coverage){const k=context?.amy?.levels,p=context?.amy?.pivots;coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display.pivotTf}: ${p?.[display.pivotTf]?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';}
   const last=candles.at(-1),duration=tf==='M1'?60:tf==='M5'?300:900;
   $('source').textContent=last?`Candle ${tf} terakhir ditutup ${new Date((last.time+duration)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false})} WITA`:'Menunggu candle tertutup.';
-  $('chart-caption').textContent=last?(serverCandles?.length?'Candle server · engine yang sama':'Candle tertutup · referensi'):'Belum ada candle valid';
+  $('chart-caption').textContent=last?(marketClosed?'Pasar tutup (akhir pekan) · candle terakhir sesi Jumat':serverCandles?.length?'Candle server · engine yang sama':'Candle tertutup · referensi'):'Belum ada candle valid';
 }
 window.addEventListener('amyfx:driver-plan',event=>{driverPlan=context?event.detail:null;draw();});
 window.addEventListener('amyfx:driver-setups',event=>{if(driverPlan){const s=(event.detail||[]).find(s=>s.id===driverPlan.id);driverPlan=s?{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}:null;draw();}});
@@ -29,7 +53,7 @@ window.addEventListener('amyfx:market-context',event=>{context=event.detail;wind
 function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,60000);}
 async function refresh(){
   const id=++generation;controller?.abort();controller=new AbortController();const request=controller;
-  const timeout=setTimeout(()=>request.abort(),20000),tf=$('timeframe').value;
+  const timeout=setTimeout(()=>request.abort(),35000),tf=$('timeframe').value;
   $('refresh').disabled=true;
   try{
     const response=await loadCandles(tf,request.signal);

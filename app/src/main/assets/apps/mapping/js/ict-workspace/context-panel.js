@@ -200,7 +200,7 @@ function renderArchive(){
 function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,30000);}
 async function refresh(){
   const id=++generation;request?.abort();request=new AbortController();const active=request,signal=active.signal;
-  const timeout=setTimeout(()=>active.abort(),15000);
+  const timeout=setTimeout(()=>active.abort(),35000);
   try{
     const response=await fetch(`${ENDPOINT}?limit=100&history_limit=100`,{headers:{Accept:'application/json',...deviceHeaders()},signal,cache:'no-store'});
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
