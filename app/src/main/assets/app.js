@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const practiceItems = [
     {
+      id: 'fractal-advisor',
+      title: 'Fractal Advisor & Laya AI',
+      badge: 'System 1',
+      icon: 'indicator',
+      desc: 'Pencocokan fraktal 187k candle & audit gerbang AI Laya sebelum entry.',
+      target: 'apps/fractal-advisor/index.html'
+    },
+    {
       id: 'chart-analysis',
       title: 'Chart Analysis',
       badge: 'Praktik',
@@ -181,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Replay: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
     Latihan: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>`,
     Riwayat: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 15 15"></polyline></svg>`,
+    'System 1': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`,
     'Jalur 03': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
   };
 

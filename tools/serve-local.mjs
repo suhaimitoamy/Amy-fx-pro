@@ -2,6 +2,10 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -136,6 +140,41 @@ const server = http.createServer(async (req, res) => {
   try {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     let pathname = decodeURIComponent(parsedUrl.pathname);
+
+    if (pathname === '/api/fractal-audit' || pathname === '/api/fractal-advisor') {
+      const bias = (parsedUrl.searchParams.get('bias') || 'BUY').toUpperCase();
+      const barIdx = parsedUrl.searchParams.get('bar') || '-1';
+      const sweep = parsedUrl.searchParams.get('sweep') || 'true';
+      const ote = parsedUrl.searchParams.get('ote') || 'true';
+      
+      try {
+        const scriptPath = '/sdcard/Download/lab backtest/amy_fractal_advisor.py';
+        const { stdout } = await execFileAsync('python3', [
+          scriptPath,
+          '--audit-latest',
+          '--json',
+          '--bias', bias === 'SELL' ? 'SELL' : 'BUY',
+          '--bar-idx', barIdx,
+          '--sweep', sweep,
+          '--ote', ote
+        ], { timeout: 8000 });
+        
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store'
+        });
+        res.end(stdout);
+        return;
+      } catch (err) {
+        res.writeHead(500, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ error: 'Advisor run failed', details: err.message }));
+        return;
+      }
+    }
 
     if (pathname === '/api/calendar') {
       const events = await getLocalCalendarData();

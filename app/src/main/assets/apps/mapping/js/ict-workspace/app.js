@@ -43,10 +43,11 @@ async function refresh(){
 }
 window.setTab=name=>{
   if(name!=='Dashboard')fullscreen?.close();
-  const tab=['Dashboard','Analyze','History'].includes(name)?name:'Dashboard';
+  const tab=['Dashboard','Analyze','Advisor','History'].includes(name)?name:'Dashboard';
   document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==tab);
   document.querySelectorAll('[data-tab]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.tab===tab)));
   if(tab==='Dashboard')chart?.resize();
+  if(tab==='Advisor'&&typeof window.initAdvisorPanel==='function')window.initAdvisorPanel();
 };
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>window.setTab(el.dataset.tab)));
 $('refresh').addEventListener('click',()=>{refresh();window.dispatchEvent(new CustomEvent('amyfx:refresh-context'));});
