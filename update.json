@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.395/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.396/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Menu Utama Video: Tab Media & Video mandiri di navigasi utama [Beranda | Backtest | Video | Profil] menggantikan Koleksi.",
-    "Video & Media Vault Terintegrasi: Galeri video replay setup XAU/USD, gambar chart, dan dokumen trading tersinkronisasi langsung dengan IndexedDB Jurnal Trading.",
-    "Navigasi Jurnal Trading Bersih: Tab ke-4 Jurnal Trading disesuaikan menjadi Catatan Pribadi [Library | Jurnal | Performa | Catatan]."
+    "Rollback Stabilitas Amy FX Pro: Pemulihan arsitektur stabil v393 dengan kurasi menu orisinal [Beranda | Backtest | Koleksi | Profil] dan Jurnal Media.",
+    "Pembersihan Modul Eksperimental: Menghapus modul eksperimental Advisor dan perbaikan stabilitas canvas chart.",
+    "Notifikasi Pembaruan v396: Jalur update resmi bagi pengguna versi 395 untuk sinkronisasi build terbaru."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.395/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.396/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950395,
-  "latest_version_name": "2.0.0-pro.395",
+  "latest_version_code": 950396,
+  "latest_version_name": "2.0.0-pro.396",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
-    "Menu Utama Video: Tab Media & Video mandiri di navigasi utama [Beranda | Backtest | Video | Profil] menggantikan Koleksi.",
-    "Video & Media Vault Terintegrasi: Galeri video replay setup XAU/USD, gambar chart, dan dokumen trading tersinkronisasi langsung dengan IndexedDB Jurnal Trading.",
-    "Navigasi Jurnal Trading Bersih: Tab ke-4 Jurnal Trading disesuaikan menjadi Catatan Pribadi [Library | Jurnal | Performa | Catatan]."
+    "Rollback Stabilitas Amy FX Pro: Pemulihan arsitektur stabil v393 dengan kurasi menu orisinal [Beranda | Backtest | Koleksi | Profil] dan Jurnal Media.",
+    "Pembersihan Modul Eksperimental: Menghapus modul eksperimental Advisor dan perbaikan stabilitas canvas chart.",
+    "Notifikasi Pembaruan v396: Jalur update resmi bagi pengguna versi 395 untuk sinkronisasi build terbaru."
   ],
   "sha256": "cf74ca5f5e0204a0f2b555929646a955e291b8a79e9daa9a23e6bd3480b8f6d3",
-  "version": "2.0.0-pro.395",
-  "versionCode": 950395
+  "version": "2.0.0-pro.396",
+  "versionCode": 950396
 }
