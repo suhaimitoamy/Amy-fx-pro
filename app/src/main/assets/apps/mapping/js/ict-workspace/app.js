@@ -15,6 +15,7 @@ try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}
 function draw(){
   const tf=$('timeframe').value,serverCandles=context?.amy?.chartCandles?.[tf];
   const candles=serverCandles?.length?serverCandles.map(c=>({time:c.open_time,open:c.open,high:c.high,low:c.low,close:c.close})):raw?.tf===tf?normalize(raw.values,tf,Date.now()/1000).candles:[];
+  if(candles.length>0&&$('error'))$('error').hidden=true;
   chart?.draw({tf,candles,plan:null},context?driverPlan||overlay:null,context?.amy?{amy:context.amy,settings:display,news:context.news}:null);
   const coverage=$('ict-coverage');if(coverage){const k=context?.amy?.levels,p=context?.amy?.pivots;coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display.pivotTf}: ${p?.[display.pivotTf]?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';}
   const last=candles.at(-1),duration=tf==='M1'?60:tf==='M5'?300:900;
@@ -37,8 +38,15 @@ async function refresh(){
     if(response.degraded){$('error').hidden=false;$('error').textContent='Sumber chart menggunakan cache lama; tinjau waktu candle sebelum membaca area.';}
   }catch{
     if(id!==generation)return;
-    $('error').hidden=false;$('error').textContent='Peta harga belum berhasil diperbarui. Konteks server ditampilkan terpisah.';
-    if(raw?.tf===tf)draw();
+    const serverCandles=context?.amy?.chartCandles?.[tf];
+    if(serverCandles?.length){
+      draw();$('error').hidden=true;
+    }else if(raw?.tf===tf){
+      draw();$('error').hidden=false;$('error').textContent='Sumber chart menggunakan cache lama; tinjau waktu candle sebelum membaca area.';
+    }else{
+      $('error').hidden=false;$('error').textContent='Peta harga belum berhasil diperbarui. Konteks server ditampilkan terpisah.';
+      if(raw?.tf===tf)draw();
+    }
   }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;schedule();}}
 }
 window.setTab=name=>{

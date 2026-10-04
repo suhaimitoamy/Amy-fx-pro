@@ -213,6 +213,31 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    if (pathname === '/api/twelvedata') {
+      try {
+        const queryStr = parsedUrl.search;
+        const upstream = await fetch(`https://amy-fx.vercel.app/api/twelvedata${queryStr}`, {
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(12000)
+        });
+        const data = await upstream.text();
+        res.writeHead(upstream.status, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store'
+        });
+        res.end(data);
+        return;
+      } catch (err) {
+        res.writeHead(502, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ status: 'error', message: err.message }));
+        return;
+      }
+    }
+
     if (pathname === '/api/news') {
       try {
         const handler = (await import('../api/news.js')).default;
