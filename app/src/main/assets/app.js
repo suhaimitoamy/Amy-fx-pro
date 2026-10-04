@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       contentHTML = codeItems.length
         ? `<div class="collection-list slide-up">${codeItems.join('')}</div>`
-        : `<div class="empty-state-card slide-up"><div style="font-size:32px; margin-bottom:8px;">💻</div><strong>Belum ada kode tersimpan</strong><span>Simpan kode Pine Script dari menu Indikator agar muncul di sini.</span></div>`;
+        : `<div class="empty-state-card slide-up"><div style="font-size:32px; margin-bottom:8px;">💻</div><strong>Belum ada item tersimpan</strong><span>Simpan kode Pine Script dari menu Indikator agar muncul di sini.</span></div>`;
     } else if (filteredItems.length === 0) {
       contentHTML = `
         <div class="empty-state-card slide-up" style="text-align:center; padding:36px 20px; border-radius:20px; background:var(--surface-color); border:1px solid var(--border-color); margin-top:10px;">
