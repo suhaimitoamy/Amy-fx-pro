@@ -39,6 +39,102 @@ const MIME_TYPES = {
 let localCalendarCache = null;
 let localCalendarCachedAt = 0;
 
+const CANDLE_CACHE_FILE = path.resolve(ROOT_DIR, 'data/candle_cache.json');
+const localCandleCache = new Map();
+let lastScalperSetupsPayload = null;
+
+const CANDLE_INTERVAL_SECONDS = {
+  '1min': 60,
+  '5min': 300,
+  '15min': 900,
+  '30min': 1800,
+  '1h': 3600,
+  '4h': 14400,
+  '1day': 86400,
+  '1week': 604800
+};
+
+function isWeekendClosure(timeSec) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York', hourCycle: 'h23', hour: '2-digit', minute: '2-digit', weekday: 'short'
+    }).formatToParts(new Date(timeSec * 1000));
+    const values = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    const weekday = values.weekday, hour = Number(values.hour) + Number(values.minute) / 60;
+    if (weekday === 'Sat') return true;
+    if (weekday === 'Sun') return hour < 17;
+    if (weekday === 'Fri') return hour >= 17;
+    return false;
+  } catch (_) {
+    const d = new Date(timeSec * 1000), day = d.getUTCDay();
+    return day === 6 || day === 0;
+  }
+}
+
+function initLocalCandleCache() {
+  try {
+    const dataDir = path.dirname(CANDLE_CACHE_FILE);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (fs.existsSync(CANDLE_CACHE_FILE)) {
+      const raw = fs.readFileSync(CANDLE_CACHE_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        for (const [key, value] of Object.entries(parsed)) {
+          if (value && value.data) {
+            localCandleCache.set(key, value);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[serve-local] Gagal memuat candle_cache.json:', err.message);
+  }
+}
+initLocalCandleCache();
+
+function saveCandleCacheToFile() {
+  try {
+    const dataDir = path.dirname(CANDLE_CACHE_FILE);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    const obj = {};
+    for (const [key, value] of localCandleCache.entries()) {
+      obj[key] = value;
+    }
+    fs.writeFileSync(CANDLE_CACHE_FILE, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[serve-local] Gagal menyimpan candle_cache.json:', err.message);
+  }
+}
+
+function getDefaultScalperContext() {
+  const nowSec = Math.floor(Date.now() / 1000);
+  return {
+    ok: true,
+    mode: 'market_context',
+    context: {
+      session: 'PASAR LOKAL (OFFLINE)',
+      bias: 'NEUTRAL',
+      regime: 'WAITING_DATA',
+      phase: 'CONSOLIDATION',
+      news: { status: 'SAFE', note: 'Mode lokal / cache offline' },
+      h1: { highPattern: '—', lowPattern: '—', lastBreak: { type: 'none', level: null } },
+      m15: { structure: 'NEUTRAL', lastBreak: { type: 'none', level: null }, poi: null },
+      confluence: { score: 50, grade: 'C' },
+      liquidity: [],
+      volatility: { condition: 'NORMAL', atr: 2.5 }
+    },
+    primary: null,
+    driverEvaluation: { drivers: [], sourceTime: nowSec },
+    active: [],
+    history: [],
+    generatedAt: new Date(nowSec * 1000).toISOString()
+  };
+}
+
 async function getLocalCalendarData() {
   const now = Date.now();
   if (localCalendarCache && now - localCalendarCachedAt < 3 * 60 * 1000) {
@@ -192,43 +288,159 @@ const server = http.createServer(async (req, res) => {
         const handler = (await import('../api/scalper-setups.js')).default;
         let statusCode = 200;
         const outHeaders = {};
+        let responseBody = null;
         const fakeRes = {
           setHeader: (k, v) => { outHeaders[k] = v; },
           status: (c) => { statusCode = c; return fakeRes; },
           json: (d) => {
-            res.writeHead(statusCode, { ...outHeaders, 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify(d));
+            responseBody = d;
           },
-          end: () => res.end()
+          end: () => {}
         };
         await handler(req, fakeRes);
-        return;
+        if (statusCode === 200 && responseBody && responseBody.ok === true) {
+          lastScalperSetupsPayload = responseBody;
+          res.writeHead(200, { ...outHeaders, 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(responseBody));
+          return;
+        }
       } catch (e) {
-        // Fallback to Vercel live
-        const upstream = await fetch('https://amy-fx.vercel.app/api/scalper-setups');
-        const data = await upstream.text();
-        res.writeHead(upstream.status, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
-        res.end(data);
-        return;
+        // Local handler failed
       }
+
+      // Fallback to Vercel live
+      try {
+        const upstream = await fetch('https://amy-fx.vercel.app/api/scalper-setups', {
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(8000)
+        });
+        if (upstream.ok) {
+          const data = await upstream.json();
+          if (data && data.ok === true) {
+            lastScalperSetupsPayload = data;
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify(data));
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // Fallback: return last known good or default context
+      const fallback = lastScalperSetupsPayload || getDefaultScalperContext();
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Access-Control-Allow-Origin': '*',
+        'X-AmyFX-Fallback': 'IN_MEMORY_CONTEXT'
+      });
+      res.end(JSON.stringify(fallback));
+      return;
     }
 
     if (pathname === '/api/twelvedata') {
+      const symbol = (parsedUrl.searchParams.get('symbol') || 'XAU/USD').toUpperCase();
+      const interval = (parsedUrl.searchParams.get('interval') || '15min').toLowerCase();
+      const outputsize = parsedUrl.searchParams.get('outputsize') || '300';
+      const cacheKey = `${symbol}_${interval}_${outputsize}`;
+      const fallbackKey = `${symbol}_${interval}`;
+
+      const intervalSec = CANDLE_INTERVAL_SECONDS[interval] || 60;
+      const nowSec = Math.floor(Date.now() / 1000);
+      const isWeekend = isWeekendClosure(nowSec);
+
+      // Check if cache has data and hasn't passed candle close time
+      const cached = localCandleCache.get(cacheKey) || localCandleCache.get(fallbackKey);
+      if (cached && cached.data) {
+        const isFresh = isWeekend || (cached.closeSec && nowSec < cached.closeSec);
+        if (isFresh) {
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'X-AmyFX-Market-Cache': 'LOCAL_CACHE_HIT',
+            'Cache-Control': 'no-store'
+          });
+          res.end(cached.rawJson || JSON.stringify(cached.data));
+          return;
+        }
+      }
+
+      // If cache is expired or missing, fetch from upstream Vercel
       try {
         const queryStr = parsedUrl.search;
         const upstream = await fetch(`https://amy-fx.vercel.app/api/twelvedata${queryStr}`, {
           headers: { 'Accept': 'application/json' },
           signal: AbortSignal.timeout(12000)
         });
-        const data = await upstream.text();
-        res.writeHead(upstream.status, {
+        const dataText = await upstream.text();
+        let parsed = null;
+        try { parsed = JSON.parse(dataText); } catch (_) {}
+
+        const is429 = upstream.status === 429 || (parsed && (parsed.status === 'error' && /429|rate limit/i.test(parsed.message || '')));
+        const isValid = upstream.status === 200 && parsed && parsed.status !== 'error' && Array.isArray(parsed.values) && parsed.values.length > 0;
+
+        if (isValid) {
+          let openSec = 0;
+          if (parsed.values[0]?.datetime) {
+            const dt = parsed.values[0].datetime;
+            const norm = dt.endsWith('Z') ? dt : dt.replace(' ', 'T') + 'Z';
+            const ms = Date.parse(norm);
+            if (Number.isFinite(ms)) openSec = Math.floor(ms / 1000);
+          }
+          const closeSec = openSec ? (openSec + intervalSec) : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
+          const entry = {
+            data: parsed,
+            rawJson: dataText,
+            storedAt: Date.now(),
+            storedAtSec: nowSec,
+            openSec,
+            closeSec,
+            symbol,
+            interval,
+            outputsize
+          };
+          localCandleCache.set(cacheKey, entry);
+          localCandleCache.set(fallbackKey, entry);
+          saveCandleCacheToFile();
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'X-AmyFX-Market-Cache': 'UPSTREAM_FRESH',
+            'Cache-Control': 'no-store'
+          });
+          res.end(dataText);
+          return;
+        }
+
+        // If upstream returned 429 or rate limit or error, use local cached data if available
+        if (cached && cached.data) {
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'X-AmyFX-Market-Cache': is429 ? 'RATE_LIMIT_FALLBACK' : 'STALE_FALLBACK',
+            'Cache-Control': 'no-store'
+          });
+          res.end(cached.rawJson || JSON.stringify(cached.data));
+          return;
+        }
+
+        res.writeHead(upstream.status === 429 ? 200 : upstream.status, {
           'Content-Type': 'application/json; charset=utf-8',
           'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-store'
         });
-        res.end(data);
+        res.end(dataText);
         return;
       } catch (err) {
+        if (cached && cached.data) {
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'X-AmyFX-Market-Cache': 'OFFLINE_FALLBACK',
+            'Cache-Control': 'no-store'
+          });
+          res.end(cached.rawJson || JSON.stringify(cached.data));
+          return;
+        }
         res.writeHead(502, {
           'Content-Type': 'application/json; charset=utf-8',
           'Access-Control-Allow-Origin': '*'

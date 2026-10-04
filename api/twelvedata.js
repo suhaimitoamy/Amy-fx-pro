@@ -8,14 +8,14 @@ const MEMORY_CACHE_LIMIT = 40;
 const SHARED_M1_OUTPUT_SIZE = 300;
 
 const CACHE_TTL_SECONDS = Object.freeze({
-  '1min': 55,
-  '5min': 240,
-  '15min': 600,
-  '30min': 900,
-  '1h': 1800,
-  '4h': 7200,
-  '1day': 14400,
-  '1week': 43200
+  '1min': 45,
+  '5min': 120,
+  '15min': 240,
+  '30min': 360,
+  '1h': 600,
+  '4h': 1800,
+  '1day': 3600,
+  '1week': 14400
 });
 
 const memoryCache = globalThis.__amyFxTwelveDataCache
@@ -30,11 +30,17 @@ function parseOutputSize(value) {
 }
 
 function ttlSeconds(interval) {
-  const duration = { '1min': 60, '5min': 300, '15min': 900, '30min': 1800,
-    '1h': 3600, '4h': 14400, '1day': 86400, '1week': 604800 }[interval] || 60;
-  const now = Date.now() / 1000;
-  const nextClose = (Math.floor((now - 10) / duration) + 1) * duration + 10;
-  return Math.max(1, Math.min(30, Math.ceil(nextClose - now)));
+  const config = {
+    '1min': 45,
+    '5min': 120,      // minimal 90s
+    '15min': 240,     // minimal 180s - 300s
+    '30min': 360,
+    '1h': 600,        // minimal 600s
+    '4h': 1800,
+    '1day': 3600,
+    '1week': 14400
+  };
+  return config[interval] || 120;
 }
 
 function cacheKey(symbol, interval, outputsize) {
@@ -52,11 +58,16 @@ function readCache(key, { allowStale = false } = {}) {
   if (!item) return null;
   const now = Date.now();
   if (!allowStale && item.expiresAt <= now) return null;
-  if (allowStale && item.staleUntil <= now) {
-    memoryCache.delete(key);
-    return null;
-  }
   return cloneData(item.data);
+}
+
+function findAnyCached(symbol, interval) {
+  for (const [k, v] of memoryCache.entries()) {
+    if (k.startsWith(`${symbol}|${interval}|`) && v?.data?.values?.length) {
+      return cloneData(v.data);
+    }
+  }
+  return null;
 }
 
 function writeCache(key, data, ttl) {
@@ -65,7 +76,7 @@ function writeCache(key, data, ttl) {
     data: cloneData(data),
     storedAt: now,
     expiresAt: now + ttl * 1000,
-    staleUntil: now + Math.max(ttl * 10, 900) * 1000
+    staleUntil: now + Math.max(ttl * 10, 3600) * 1000
   });
 
   if (memoryCache.size <= MEMORY_CACHE_LIMIT) return;
@@ -76,10 +87,9 @@ function writeCache(key, data, ttl) {
 }
 
 function setCacheHeaders(res, ttl, state = 'MISS', source = '') {
-  // A fresh HTTP response must not relabel old candle data as fresh.
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('CDN-Cache-Control', 'no-store');
-  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
+  res.setHeader('CDN-Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
+  res.setHeader('Vercel-CDN-Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
   res.setHeader('X-AmyFX-Market-Cache', state);
   if (source) res.setHeader('X-AmyFX-Market-Source', source);
 }
@@ -156,16 +166,36 @@ export default async function handler(req, res) {
     setCacheHeaders(res, responseTtl, cacheState, data.source || 'unknown');
     return res.status(200).json(data);
   } catch (error) {
-    const stale = readCache(key, { allowStale: true });
+    const isRateLimited = error?.providerData?.code === 429
+      || error?.status === 429
+      || error?.statusCode === 429
+      || /429|rate limit/i.test(error?.message || '');
+
+    const stale = readCache(key, { allowStale: true }) || findAnyCached(symbol, interval);
     if (stale) {
       setCacheHeaders(res, Math.min(ttl, 60), 'STALE_FALLBACK', stale.source || 'memory-stale');
       return res.status(200).json({
         ...stale,
-        amyfxCacheState: 'STALE_FALLBACK'
+        amyfxCacheState: 'STALE_FALLBACK',
+        rateLimited: isRateLimited,
+        warning: isRateLimited
+          ? 'TwelveData rate limit (HTTP 429), serving cached data'
+          : (error?.message || 'Upstream provider error')
       });
     }
 
-    if (error?.providerData) return res.status(502).json(error.providerData);
+    if (error?.providerData) {
+      if (isRateLimited) {
+        setCacheHeaders(res, 30, 'RATE_LIMITED', 'twelvedata');
+        return res.status(429).json({
+          status: 'error',
+          code: 429,
+          message: error.providerData.message || 'TwelveData rate limit reached, please wait',
+          rateLimited: true
+        });
+      }
+      return res.status(502).json(error.providerData);
+    }
     return res.status(error?.name === 'AbortError' ? 504 : 502).json({
       status: 'error',
       message: error?.message || 'Market service unavailable',

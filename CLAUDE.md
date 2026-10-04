@@ -40,3 +40,21 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
    - **Syntax check instan (0.05s):** `node --check <file-yang-diedit>`
    - **Targeted test (0.2s):** Jalankan hanya 1 file tes yang relevan secara spesifik jika diperlukan (contoh: `node --test tests/mapping-chart-axis-pro379.test.mjs`), bukan 148 file.
    - **Visual verification:** Validasi langsung lewat server preview browser `http://localhost:8080/`.
+
+## Cockpit Mapping UI & Presentation (Pro 405)
+
+1. **Kartu 1 (Amy Live Assistant):** Menampilkan sinyal Entry Assistant V3 (`BUY ENTRY`, `SELL ENTRY`, `PULLBACK SELL`, `PULLBACK BUY`, atau `STANDBY`), status Anti-Chase (`READY DI ZONA` vs `MISSED - JANGAN KEJAR`), dan Math Zone yang aktif.
+2. **Kartu 2 (Chart Gold):** 100% paritas Peta Harga, visual garis Entry Assistant V3 (Entry cyan, SL merah, TP1 kuning, TP2 hijau).
+3. **Kartu 3 (AMY BIAS DASHBOARD V2):** Tabel Matriks 16 Baris (1 header + 15 data baris) persis tabel Pine Script.
+4. **Kartu 4 (AMY ENTRY ASSISTANT V3 PLAN):** Kartu aksi trading bersih dengan grid 4 kolom (ENTRY, SL, TP1, TP2), Anti-Chase pill, Pullback banner, alasan inti eksekusi, dan tombol "Tampilkan Level di Chart".
+5. **Tab Analyze & Driver Tournament:** 6 Driver dan setups dipusatkan di accordion paling bawah Tab Analyze sebagai arsip/riset. Bebas ketergantungan library Supabase.
+
+## Weekend Gap & Cold-Start Stitching (Pro 406)
+
+1. **Weekend Gap Tolerant Bridging (`isWeekendGap` & `pair` & `contiguous`):**
+   - Jeda penutupan akhir pekan (Jumat 17:00 NY s.d. Minggu 17:00 NY, selisih ~48 jam / 172800 detik) ditoleransi sebagai kontinuitas sah antara lilin penutupan Jumat dan pembukaan Minggu.
+   - Lilin Jumat sore tetap dihitung sebagai riwayat struktur yang sah, memenuhi syarat $\ge 40$ bar M15 dan $\ge 30$ bar H1 sejak awal buka pasar hari Minggu.
+2. **Fair Market Elapsed Time (`marketElapsedSeconds`):**
+   - Usia data candle dihitung hanya selama jam pasar buka (waktu pasar tutup 48 jam akhir pekan tidak dihitung sebagai waktu kadaluarsa).
+   - Menghilangkan status palsu `DATA TERLAMBAT` saat pembukaan pasar hari Minggu maupun selama libur akhir pekan.
+

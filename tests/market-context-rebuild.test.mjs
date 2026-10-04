@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 // Archived Pro374 baseline; the active M15-first engine is covered by mapping-amy-ict-pro375.test.mjs.
-import {buildLegacyMarketContext as buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar,dealingRange,calculateConfluenceScore} from '../supabase/functions/scalper-engine/market-context.mjs';
+import {buildLegacyMarketContext as buildMarketContext,confirmation,liquidity,structure,zones,evaluateEconomicCalendar,dealingRange,calculateConfluenceScore,contiguous,isWeekendGap,marketElapsedSeconds} from '../supabase/functions/scalper-engine/market-context.mjs';
 import {currentContext} from '../app/src/main/assets/apps/mapping/js/ict-workspace/context-model.js';
 
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;
@@ -259,3 +259,74 @@ test('calculateConfluenceScore evaluates layers and invalidation guard correctly
   assert.ok(aPlus.score >= 75);
   assert.equal(aPlus.grade, 'STRONG');
 });
+
+test('weekend gap tolerance bridges Friday close and Sunday open without DATA TERLAMBAT lock', () => {
+  // Friday close: 2026-10-02 17:00 NY = 21:00 UTC
+  const friClose = Date.parse('2026-10-02T21:00:00Z') / 1000;
+  // Sunday open: 2026-10-04 17:00 NY = 21:00 UTC
+  const sunOpen = Date.parse('2026-10-04T21:00:00Z') / 1000;
+
+  // 1. isWeekendGap verification
+  assert.equal(isWeekendGap(friClose, sunOpen), true);
+  assert.equal(isWeekendGap(friClose, sunOpen + 3600), true);
+  assert.equal(isWeekendGap(friClose - 3600, friClose), false);
+
+  // 2. contiguous verification across weekend
+  const friBar = { open_time: friClose - 900, close_time: friClose, open: 2650, high: 2655, low: 2649, close: 2654, is_closed: true };
+  const sunBar = { open_time: sunOpen, close_time: sunOpen + 900, open: 2654, high: 2658, low: 2652, close: 2656, is_closed: true };
+  assert.equal(contiguous([friBar, sunBar]), true);
+
+  // 3. marketElapsedSeconds verification
+  // At Sunday 19:30 NY (2.5h after Sunday open, 50.5h after Friday close)
+  const sun1930 = Date.parse('2026-10-04T23:30:00Z') / 1000;
+  const elapsedFromFriClose = marketElapsedSeconds(friClose, sun1930);
+  assert.equal(elapsedFromFriClose, 2.5 * 3600);
+
+  // 4. Cold-Start Market Opening on Sunday:
+  // Feed has 40 Friday M15 candles + 10 Sunday M15 candles
+  const m15 = [];
+  for (let i = 40; i > 0; i--) {
+    const o = friClose - i * 900;
+    m15.push({ open_time: o, close_time: o + 900, open: 2650, high: 2655, low: 2648, close: 2652, is_closed: true });
+  }
+  for (let i = 0; i < 10; i++) {
+    const o = sunOpen + i * 900;
+    m15.push({ open_time: o, close_time: o + 900, open: 2652, high: 2657, low: 2650, close: 2655, is_closed: true });
+  }
+
+  // H1: 30 Friday candles + 2 Sunday candles
+  const h1 = [];
+  for (let i = 30; i > 0; i--) {
+    const o = friClose - i * 3600;
+    h1.push({ open_time: o, close_time: o + 3600, open: 2645, high: 2660, low: 2640, close: 2650, is_closed: true });
+  }
+  for (let i = 0; i < 2; i++) {
+    const o = sunOpen + i * 3600;
+    h1.push({ open_time: o, close_time: o + 3600, open: 2650, high: 2658, low: 2648, close: 2655, is_closed: true });
+  }
+
+  // M5: 40 Friday candles + 30 Sunday candles (up to Sunday 19:30 NY)
+  const m5 = [];
+  for (let i = 40; i > 0; i--) {
+    const o = friClose - i * 300;
+    m5.push({ open_time: o, close_time: o + 300, open: 2650, high: 2653, low: 2649, close: 2652, is_closed: true });
+  }
+  for (let i = 0; i < 30; i++) {
+    const o = sunOpen + i * 300;
+    m5.push({ open_time: o, close_time: o + 300, open: 2652, high: 2655, low: 2651, close: 2654, is_closed: true });
+  }
+
+  // Evaluate at Sunday 19:32 NY (2 minutes after the 10th M15 candle closed)
+  const evalTime = sunOpen + 10 * 900 + 120;
+  const ctx = buildMarketContext({
+    nowSeconds: evalTime,
+    h1,
+    m15,
+    m5
+  });
+
+  assert.equal(ctx.fresh, true);
+  assert.notEqual(ctx.marketState, 'DATA TERLAMBAT');
+  assert.notEqual(ctx.execution.reason, 'Candle H1, M15, atau M5 belum lengkap atau terlambat.');
+});
+

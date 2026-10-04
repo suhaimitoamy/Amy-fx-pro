@@ -121,17 +121,19 @@ function renderDriverSetups(c){
   window.dispatchEvent(new CustomEvent('amyfx:driver-setups',{detail:items}));
 }
 function empty(reason){
-  $('connection').textContent='WAIT · data belum siap';$('context-state').textContent='Menunggu data server';
-  $('market-state').textContent='KONTEKS BELUM TERSEDIA';$('market-story').textContent=reason;
-  $('context-source').textContent='Candle lama tidak menjadi dasar keputusan baru.';
+  const setTxt=(i,v)=>{const el=$(i);if(el)el.textContent=v;};
+  const setHtml=(i,v)=>{const el=$(i);if(el)el.innerHTML=v;};
+  setTxt('connection','WAIT · data belum siap');setTxt('context-state','Menunggu data server');
+  setTxt('market-state','KONTEKS BELUM TERSEDIA');setTxt('market-story',reason);
+  setTxt('context-source','Candle lama tidak menjadi dasar keputusan baru.');
   for(const id of ['h1-bias','h1-health','m15-poi','m15-range','m15-control','m15-risk','m1-confirmation','m1-evidence','m5-confirmation','m5-evidence']){
-    const el=$(id);if(el)el.textContent='—';
+    setTxt(id,'—');
   }
-  $('primary-status').textContent='MENUNGGU';$('primary-scenario').textContent='Tunggu candle H1, M15, dan M5 yang segar.';
-  $('alternative-scenario').textContent='Belum ada skenario alternatif yang dapat ditinjau.';
-  $('execution-status').textContent='BELUM SIAP';$('execution-reason').textContent=reason;
-  $('execution-checklist').innerHTML='';$('evidence').innerHTML='';$('liquidity').innerHTML='<p>Level belum tersedia.</p>';
-  $('gold-condition').textContent='Menunggu data volatilitas.';$('news-awareness').textContent='Periksa berita berdampak tinggi secara manual.';
+  setTxt('primary-status','MENUNGGU');setTxt('primary-scenario','Tunggu candle H1, M15, dan M5 yang segar.');
+  setTxt('alternative-scenario','Belum ada skenario alternatif yang dapat ditinjau.');
+  setTxt('execution-status','BELUM SIAP');setTxt('execution-reason',reason);
+  setHtml('execution-checklist','');setHtml('evidence','');setHtml('liquidity','<p>Level belum tersedia.</p>');
+  setTxt('gold-condition','Menunggu data volatilitas.');setTxt('news-awareness','Periksa berita berdampak tinggi secara manual.');
   renderTournament(null);renderDriverSetups(null);
   {
     try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
@@ -144,31 +146,36 @@ function render(){
     empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');
     return;
   }
+  const setTxt=(i,v)=>{const el=$(i);if(el)el.textContent=v;};
+  const setHtml=(i,v)=>{const el=$(i);if(el)el.innerHTML=v;};
   const tf=c.source?.M5?'M5':'M1';
   const confTime=c.source?.M5||c.source?.M1;
   const confObj=c.m5||c.m1;
-  $('connection').textContent='Candle server terkini';$('context-state').textContent='KONTEKS · BUKAN SINYAL';
-  $('market-state').textContent=(c.marketState||'MENUNGGU').replaceAll('NO_SETUP','Belum ada setup').replaceAll('BULLISH','Bullish').replaceAll('BEARISH','Bearish').replaceAll('NEUTRAL','Netral');$('market-story').textContent=c.narrative||'Menunggu penjelasan server.';
-  $('context-source').textContent=`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`;
+  setTxt('connection','Candle server terkini');setTxt('context-state','KONTEKS · BUKAN SINYAL');
+  setTxt('market-state',(c.marketState||'MENUNGGU').replaceAll('NO_SETUP','Belum ada setup').replaceAll('BULLISH','Bullish').replaceAll('BEARISH','Bearish').replaceAll('NEUTRAL','Netral'));
+  setTxt('market-story',c.narrative||'Menunggu penjelasan server.');
+  setTxt('context-source',`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`);
   const dr = c.m15?.dealingRange;
   const drLoc = dr?.location ? ` [${dr.location}]` : '';
   const confScore = c.confluence ? ` · Skor: ${c.confluence.score}/100 (${c.confluence.grade})${c.confluence.winDir?` · dominan ${c.confluence.winDir===1?'BUY':'SELL'}`:''}` : '';
-  $('h1-bias').textContent=id(c.h1?.bias||'NEUTRAL');$('h1-health').textContent=`Kesehatan: ${id(c.h1?.health)}`;
-  $('m15-poi').textContent=c.m15?.poi?`${c.m15.poi.label}${c.m15.poi.ce?` (CE: ${number(c.m15.poi.ce)})`:''} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid';
-  $('m15-range').textContent=c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15';
-  $('m15-control').textContent=id(c.m15?.control||'BALANCED');
+  setTxt('h1-bias',id(c.h1?.bias||'NEUTRAL'));setTxt('h1-health',`Kesehatan: ${id(c.h1?.health)}`);
+  setTxt('m15-poi',c.m15?.poi?`${c.m15.poi.label}${c.m15.poi.ce?` (CE: ${number(c.m15.poi.ce)})`:''} · ${id(c.m15.poi.lifecycle)}`:'Area belum valid');
+  setTxt('m15-range',c.m15?.poi?`${number(c.m15.poi.low)}–${number(c.m15.poi.high)}`:'Menunggu area M15');
+  setTxt('m15-control',id(c.m15?.control||'BALANCED'));
   const aPlus = c.execution?.aPlusReady === true && c.execution?.status === 'READY TO REVIEW' && c.confluence?.score >= 75;
-  $('m15-risk').textContent=aPlus?`🟢 Grade A+${drLoc}: Bukti lengkap${confScore}`:c.m15?.opposingControl?`H1 berlawanan · konteks tambahan${drLoc}${confScore}`:`BIAS M15${drLoc} · BELUM A+${confScore}`;
+  setTxt('m15-risk',aPlus?`🟢 Grade A+${drLoc}: Bukti lengkap${confScore}`:c.m15?.opposingControl?`H1 berlawanan · konteks tambahan${drLoc}${confScore}`:`BIAS M15${drLoc} · BELUM A+${confScore}`);
   const confStatus=id(confObj?.status||'WAITING');
   const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep atau respons POI dan break/displacement M5.';
-  if($('m5-confirmation'))$('m5-confirmation').textContent=confStatus;
-  if($('m1-confirmation'))$('m1-confirmation').textContent=confStatus;
-  if($('m5-evidence'))$('m5-evidence').textContent=confEvidence;
-  if($('m1-evidence'))$('m1-evidence').textContent=confEvidence;
-  $('primary-status').textContent=id(c.primary?.status||'WAITING');renderScenario($('primary-scenario'),c.primary);
-  renderScenario($('alternative-scenario'),c.alternative,true);
-  $('execution-status').textContent=id(c.execution?.status||'NOT READY');$('execution-reason').textContent=c.execution?.reason||'Menunggu bukti.';
-  $('execution-checklist').innerHTML=(c.execution?.checklist||[]).map(item=>`<li>${item.ok?'✓':'○'} ${esc(item.label)}</li>`).join('');
+  setTxt('m5-confirmation',confStatus);
+  setTxt('m1-confirmation',confStatus);
+  setTxt('m5-evidence',confEvidence);
+  setTxt('m1-evidence',confEvidence);
+  setTxt('primary-status',id(c.primary?.status||'WAITING'));
+  if($('primary-scenario'))renderScenario($('primary-scenario'),c.primary);
+  if($('alternative-scenario'))renderScenario($('alternative-scenario'),c.alternative,true);
+  setTxt('execution-status',id(c.execution?.status||'NOT READY'));
+  setTxt('execution-reason',c.execution?.reason||'Menunggu bukti.');
+  setHtml('execution-checklist',(c.execution?.checklist||[]).map(item=>`<li>${item.ok?'✓':'○'} ${esc(item.label)}</li>`).join(''));
   renderTournament(c);renderDriverSetups(c);
   const newsEl=$('news-awareness');
   if(newsEl){
@@ -181,23 +188,30 @@ function render(){
   const confScoreInfo = c.confluence
     ? `${c.confluence.score}/100 (${c.confluence.grade})`
     : '—';
-  $('evidence').innerHTML=row('H1 · HH/HL/LH/LL',`${c.h1?.highPattern||'—'} / ${c.h1?.lowPattern||'—'} · ${c.h1?.lastBreak?.type||'belum ada break'} di ${number(c.h1?.lastBreak?.level)}`)+
+  setHtml('evidence',row('H1 · HH/HL/LH/LL',`${c.h1?.highPattern||'—'} / ${c.h1?.lowPattern||'—'} · ${c.h1?.lastBreak?.type||'belum ada break'} di ${number(c.h1?.lastBreak?.level)}`)+
     row('M15 · struktur',`${c.m15?.structure||'NEUTRAL'} · ${c.m15?.lastBreak?.type||'belum ada break'} di ${number(c.m15?.lastBreak?.level)}`)+
     row('Dealing Range (EQ)', drInfo)+
     row('Skor Konfluensi (0–100)', confScoreInfo)+
     row('POI · siklus',c.m15?.poi?`${c.m15.poi.label} ${number(c.m15.poi.low)}–${number(c.m15.poi.high)}${c.m15.poi.ce?` (50% CE: ${number(c.m15.poi.ce)})`:''} · ${c.m15.poi.lifecycle}`:'Tidak ada zona valid')+
-    row(`${tf} · bukti`,`${confObj?.status||'WAITING'} · sweep ${number(confObj?.sweep?.level)} · MSS ${number(confObj?.mss?.level)} · micro FVG ${confObj?.microFvg?`${number(confObj.microFvg.low)}–${number(confObj.microFvg.high)}`:'—'}`);
-  $('liquidity').innerHTML=(c.liquidity||[]).map(item=>row(`${item.label} · ${item.status}`,number(item.level))).join('')||'<p>Belum ada level eksternal/internal yang tervalidasi.</p>';
-  $('gold-condition').innerHTML=row('Volatilitas',`${id(c.volatility?.condition||'UNKNOWN')} · ATR M15 ${number(c.volatility?.atr)}`)+row('Sesi',c.session||'Belum tersedia')+row('Berita berdampak tinggi',c.news?.note||'Belum diverifikasi');
+    row(`${tf} · bukti`,`${confObj?.status||'WAITING'} · sweep ${number(confObj?.sweep?.level)} · MSS ${number(confObj?.mss?.level)} · micro FVG ${confObj?.microFvg?`${number(confObj.microFvg.low)}–${number(confObj.microFvg.high)}`:'—'}`));
+  setHtml('liquidity',(c.liquidity||[]).map(item=>row(`${item.label} · ${item.status}`,number(item.level))).join('')||'<p>Belum ada level eksternal/internal yang tervalidasi.</p>');
+  setHtml('gold-condition',row('Volatilitas',`${id(c.volatility?.condition||'UNKNOWN')} · ATR M15 ${number(c.volatility?.atr)}`)+row('Sesi',c.session||'Belum tersedia')+row('Berita berdampak tinggi',c.news?.note||'Belum diverifikasi'));
   window.AmyMarketContext=Object.freeze(c);
   try{localStorage.setItem('amyfx.market-context.v1',JSON.stringify(c));}catch{}
   window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:c}));
 }
 function renderArchive(){
-  $('history').innerHTML=(payload?.history||[]).filter(x=>x.symbol==='XAU/USD').slice(0,20).map(s=>row(`${s.direction} · ${s.status} · ${s.driverName||s.model}`,
+  const el=$('history');
+  if(el)el.innerHTML=(payload?.history||[]).filter(x=>x.symbol==='XAU/USD').slice(0,20).map(s=>row(`${s.direction} · ${s.status} · ${s.driverName||s.model}`,
     `Candle ${time(s.signalCandleCloseTime)} · entry historis ${number(s.entry)} · SL ${number(s.stopLoss)} · target ${number(s.target)}`)).join('')||'<p>Belum ada riwayat lama dalam respons 24 jam terakhir.</p>';
 }
-function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,30000);}
+function schedule(){
+  clearTimeout(timer);
+  if(!document.hidden){
+    const interval=isMarketOpenNow()?60000:300000;
+    timer=setTimeout(refresh,interval);
+  }
+}
 async function refresh(){
   const id=++generation;request?.abort();request=new AbortController();const active=request,signal=active.signal;
   const timeout=setTimeout(()=>active.abort(),35000);
@@ -206,20 +220,52 @@ async function refresh(){
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     const next=await response.json();if(next?.ok!==true||next?.mode!=='market_context')throw new Error('Kontrak konteks server tidak valid');
     if(id!==generation)return;payload=next;failed=false;render();renderArchive();
-  }catch{if(id===generation){failed=true;render();}}
+  }catch{
+    if(id===generation){
+      if(!payload){
+        try{
+          const saved=localStorage.getItem('amyfx.market-context.v1');
+          if(saved){
+            const parsed=JSON.parse(saved);
+            if(parsed){
+              payload={ok:true,mode:'market_context',context:parsed,active:[],history:[]};
+              failed=false;
+            }
+          }
+        }catch(_){}
+      }
+      if(!payload)failed=true;
+      render();
+    }
+  }
   finally{clearTimeout(timeout);if(id===generation)schedule();}
 }
 window.addEventListener('amyfx:refresh-context',refresh);
 window.addEventListener('online',refresh);
 window.addEventListener('offline',()=>{generation++;request?.abort();clearTimeout(timer);failed=true;render();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else {if($('driver-methods'))$('driver-methods').innerHTML=methodControls();
-window.addEventListener('amy-method-toggles',()=>{if($('driver-methods'))$('driver-methods').innerHTML=methodControls();refresh();});
-document.addEventListener('click',event=>{const button=event.target.closest?.('[data-driver-plan]');if(!button)return;const c=failed?null:currentContext(payload);if(!c)return;const s=(payload?.active||[]).find(x=>x.id===button.dataset.driverPlan);if(!s)return;window.dispatchEvent(new CustomEvent('amyfx:driver-plan',{detail:{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}}));window.setTab?.('Dashboard');$('chart').scrollIntoView?.({behavior:'smooth',block:'center'});});
-render();refresh();void initializeMethods();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;request?.abort();clearTimeout(timer);}else {if($('driver-methods'))$('driver-methods').innerHTML=methodControls();render();refresh();void initializeMethods();}});
 window.addEventListener('pagehide',()=>{generation++;request?.abort();clearTimeout(timer);});
 window.addEventListener('pageshow',event=>{if(event.persisted)refresh();});
 
 if($('driver-methods'))$('driver-methods').innerHTML=methodControls();
 window.addEventListener('amy-method-toggles',()=>{if($('driver-methods'))$('driver-methods').innerHTML=methodControls();refresh();});
-document.addEventListener('click',event=>{const button=event.target.closest?.('[data-driver-plan]');if(!button)return;const c=failed?null:currentContext(payload);if(!c)return;const s=(payload?.active||[]).find(x=>x.id===button.dataset.driverPlan);if(!s)return;window.dispatchEvent(new CustomEvent('amyfx:driver-plan',{detail:{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}}));window.setTab?.('Dashboard');$('chart').scrollIntoView?.({behavior:'smooth',block:'center'});});
+document.addEventListener('click',event=>{
+  const button=event.target.closest?.('[data-driver-plan]');
+  if(!button)return;
+  const c=failed?null:currentContext(payload);
+  if(!c)return;
+  const s=(payload?.active||[]).find(x=>x.id===button.dataset.driverPlan);
+  if(!s)return;
+  window.dispatchEvent(new CustomEvent('amyfx:driver-plan',{detail:{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}}));
+  window.setTab?.('Dashboard');
+  $('chart')?.scrollIntoView?.({behavior:'smooth',block:'center'});
+});
+try{
+  const saved=localStorage.getItem('amyfx.market-context.v1');
+  if(saved){
+    const parsed=JSON.parse(saved);
+    if(parsed)payload={ok:true,mode:'market_context',context:parsed,active:[],history:[]};
+  }
+}catch(_){}
 render();refresh();void initializeMethods();
+

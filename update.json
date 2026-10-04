@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.403/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.404/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Penyelarasan Card Chart Gold ke Gaya Peta Harga Beranda: Kontainer glassmorphism identik, kontrol timeframe M15/M5, heading, dan live price terkini di kanan atas.",
-    "Interaksi Sumbu Harga Vertikal: Skala harga kanan kini dapat di-drag dan di-zoom secara interaktif pada mode normal maupun fullscreen.",
-    "Filter Pasar Libur (Weekend Anti-Spam): Menghentikan injeksi candle flat saat akhir pekan dan menampilkan status penutupan Jumat WITA yang informatif.",
-    "Indikator Visual ICT NextGen: Menampilkan overlay PDH/PDL, PWH/PWL, Asia Session (06:00-14:00 WITA), 4-bar swing sweep marker, BOS/MSS, dan FVG/OB dengan level 50% Consequent Encroachment emas."
+    "Adopsi Mesin ICT Concepts amygmgo & Dashboard V2: Matriks status bias M15 16-baris autoritatif, Dealing Range (Premium/Discount/EQ), DOL & POI tracking komprehensif.",
+    "AMY Entry Assistant V3: Deteksi 4 sinyal presisi (Buy/Sell Entry, Pullback Buy/Sell) berbasis Break + Retest + Reject (wick 1.2x), Math Zones (Fibo OTE 0.618-0.786, SNR, Sweeps), dan Anti-Chase Filter.",
+    "Weekend Stitching & Anti-Cold-Start: Menghubungkan candle penutupan Jumat sore dengan pembukaan Minggu secara sah tanpa error data terlambat.",
+    "Optimasi Kuota TwelveData & Zero Supabase: Penambahan multi-tier local persistent candle cache dan CDN edge cache anti-429."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.403/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.404/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950403,
-  "latest_version_name": "2.0.0-pro.403",
+  "latest_version_code": 950404,
+  "latest_version_name": "2.0.0-pro.404",
   "mandatory": false,
-  "releaseDate": "2026-10-04",
+  "releaseDate": "2026-10-05",
   "release_notes": [
-    "Penyelarasan Card Chart Gold ke Gaya Peta Harga Beranda: Kontainer glassmorphism identik, kontrol timeframe M15/M5, heading, dan live price terkini di kanan atas.",
-    "Interaksi Sumbu Harga Vertikal: Skala harga kanan kini dapat di-drag dan di-zoom secara interaktif pada mode normal maupun fullscreen.",
-    "Filter Pasar Libur (Weekend Anti-Spam): Menghentikan injeksi candle flat saat akhir pekan dan menampilkan status penutupan Jumat WITA yang informatif.",
-    "Indikator Visual ICT NextGen: Menampilkan overlay PDH/PDL, PWH/PWL, Asia Session (06:00-14:00 WITA), 4-bar swing sweep marker, BOS/MSS, dan FVG/OB dengan level 50% Consequent Encroachment emas."
+    "Adopsi Mesin ICT Concepts amygmgo & Dashboard V2: Matriks status bias M15 16-baris autoritatif, Dealing Range (Premium/Discount/EQ), DOL & POI tracking komprehensif.",
+    "AMY Entry Assistant V3: Deteksi 4 sinyal presisi (Buy/Sell Entry, Pullback Buy/Sell) berbasis Break + Retest + Reject (wick 1.2x), Math Zones (Fibo OTE 0.618-0.786, SNR, Sweeps), dan Anti-Chase Filter.",
+    "Weekend Stitching & Anti-Cold-Start: Menghubungkan candle penutupan Jumat sore dengan pembukaan Minggu secara sah tanpa error data terlambat.",
+    "Optimasi Kuota TwelveData & Zero Supabase: Penambahan multi-tier local persistent candle cache dan CDN edge cache anti-429."
   ],
   "sha256": "3824cab86c34123c7d2cb1b5554a60c37424600bab183359edc08d2ed0140380",
-  "version": "2.0.0-pro.403",
-  "versionCode": 950403
+  "version": "2.0.0-pro.404",
+  "versionCode": 950404
 }

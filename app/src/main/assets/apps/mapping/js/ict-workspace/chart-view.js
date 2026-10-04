@@ -35,14 +35,35 @@ export function createPriceChart(element,{touchAxes=false}={}) {
       series.setMarkers?.(signalMarkers.sort((a,b)=>a.time-b.time));
 
       lines.forEach(line=>series.removePriceLine(line));lines=[];
-      const markers=plan?.area?[['area.low','AREA BAWAH','#8bb9ff'],['area.high','AREA ATAS','#8bb9ff'],['area.ce','50% CE','#ffd166'],['invalidation','INVALIDASI','#ff8f9b'],['target','LIKUIDITAS','#65d5b1']]:[['entry','ENTRY','#8bb9ff'],['sl','SL','#ff8f9b'],['tp1','TP1','#65d5b1'],['tp','TARGET','#65d5b1']];
-      if(plan)for(const [field,title,color] of markers){
-        const value=field==='area.low'?plan.area.low:field==='area.high'?plan.area.high:field==='area.ce'?plan.area?.ce:plan[field];
-        if(Number.isFinite(value)){
+      if(plan){
+        if(plan.area){
+          const markers=[['area.low','AREA BAWAH','#8bb9ff',0],['area.high','AREA ATAS','#8bb9ff',0],['area.ce','50% CE','#ffd166',2],['invalidation','INVALIDASI','#ef4444',1],['target','LIKUIDITAS','#22c55e',0]];
+          for(const [field,title,color,lineStyle] of markers){
+            const value=field==='area.low'?plan.area.low:field==='area.high'?plan.area.high:field==='area.ce'?plan.area?.ce:plan[field];
+            if(Number.isFinite(value)){
+              const lastPrice=result.candles?.at(-1)?.close;
+              if(lastPrice&&Math.abs(value-lastPrice)>lastPrice*0.25)continue;
+              lines.push(series.createPriceLine({price:value,title,color,lineWidth:1,lineStyle,axisLabelVisible:true}));
+            }
+          }
+        }else{
+          const entryVal=plan.entry;
+          const slVal=plan.stopLoss??plan.sl;
+          const tp1Val=plan.target1??plan.tp1;
+          const tp2Val=plan.target2??plan.target??plan.tp;
+          const items=[
+            {value:entryVal,title:'ENTRY',color:'#38bdf8',lineStyle:0},
+            {value:slVal,title:'SL',color:'#ef4444',lineStyle:0},
+            {value:tp1Val,title:'TP1',color:'#eab308',lineStyle:0},
+            {value:tp2Val,title:tp1Val?'TP2':'TARGET',color:'#22c55e',lineStyle:0}
+          ];
           const lastPrice=result.candles?.at(-1)?.close;
-          if(lastPrice&&Math.abs(value-lastPrice)>lastPrice*0.2)continue;
-          const lineStyle=field==='area.ce'?2:0;
-          lines.push(series.createPriceLine({price:value,title,color,lineWidth:1,lineStyle,axisLabelVisible:true}));
+          for(const it of items){
+            if(Number.isFinite(it.value)){
+              if(lastPrice&&Math.abs(it.value-lastPrice)>lastPrice*0.25)continue;
+              lines.push(series.createPriceLine({price:it.value,title:it.title,color:it.color,lineWidth:1,lineStyle:it.lineStyle,axisLabelVisible:true}));
+            }
+          }
         }
       }
 

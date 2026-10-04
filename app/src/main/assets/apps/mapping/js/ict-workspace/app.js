@@ -72,7 +72,7 @@ function draw(degraded=false){
     if(degraded&&$('source'))$('source').textContent='Belum ada candle. Periksa koneksi lalu tekan Perbarui.';
     return;
   }
-  const activePlan=driverPlan||overlay||result.plan;
+  const activePlan=driverPlan||context?.amy?.plan||overlay||result.plan;
   const presentation={settings:display||loadDisplay(),amy:context?.amy,context,candles:result.candles,tf};
   chart?.draw(result,activePlan,presentation);
   const last=result.candles.at(-1);
@@ -86,18 +86,44 @@ function draw(degraded=false){
       $('source').textContent=`${tf} · Candle ${timeStr} WITA · ${result.fresh?'Candle terkini':'Referensi lama / data terlambat'}`;
     }
   }
-  if($('chart-note'))$('chart-note').textContent=(driverPlan||overlay)?'Level terpasang: batas area, 50% CE, dan target likuiditas.':result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
+  if($('chart-note'))$('chart-note').textContent=(driverPlan||context?.amy?.plan)?'Level terpasang: Entry, SL, TP1, TP2 (Entry Assistant V3)':overlay?'Level terpasang: batas area, 50% CE, dan target likuiditas.':result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
   const coverage=$('ict-coverage');
   if(coverage){
     const k=context?.amy?.levels,p=context?.amy?.pivots;
     coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display?.pivotTf||'D'}: ${p?.[display?.pivotTf||'D']?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';
   }
 }
-window.addEventListener('amyfx:driver-plan',event=>{driverPlan=context?event.detail:null;draw();});
+window.addEventListener('amyfx:driver-plan',event=>{driverPlan=event.detail||null;draw();});
+window.addEventListener('amyfx:assistant-plan',event=>{driverPlan=event.detail||null;draw();});
 window.addEventListener('amyfx:driver-setups',event=>{if(driverPlan){const s=(event.detail||[]).find(s=>s.id===driverPlan.id);driverPlan=s?{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}:null;draw();}});
 window.addEventListener('amyfx:market-context',event=>{context=event.detail;window.amyfxLastContext=context;if(!context)driverPlan=null;renderAmy(context?.amy,display,context?.news,context);const scenario=context?.primary;
   overlay=scenario?.area?{area:scenario.area,invalidation:scenario.invalidation,target:scenario.target}:null;draw();});
-function schedule(){clearTimeout(timer);if(!document.hidden){const interval=isGoldMarketOpen(Date.now()/1000)?60000:300000;timer=setTimeout(refresh,interval);}}
+function getStoredCandles(timeframe){
+  try{
+    if(typeof localStorage==='undefined')return null;
+    const rawData=localStorage.getItem(`amyfx.mapping.candles.${timeframe}`);
+    if(!rawData)return null;
+    const parsed=JSON.parse(rawData);
+    if(Array.isArray(parsed?.values)&&parsed.values.length>0)return parsed.values;
+  }catch(_){}
+  return null;
+}
+function getRefreshInterval(tf){
+  if(!isGoldMarketOpen(Date.now()/1000))return 300000;
+  const durationSec={M1:60,M5:300,M15:900,H1:3600}[tf]||900;
+  const now=Date.now();
+  const nextClose=(Math.floor(now/(durationSec*1000))+1)*(durationSec*1000)+5000;
+  const msUntilClose=nextClose-now;
+  return Math.min(120000,Math.max(90000,msUntilClose));
+}
+function schedule(){
+  clearTimeout(timer);
+  if(!document.hidden){
+    const tf=$('timeframe')?.value||'M15';
+    const interval=isGoldMarketOpen(Date.now()/1000)?getRefreshInterval(tf):300000;
+    timer=setTimeout(refresh,interval);
+  }
+}
 async function refresh(){
   const id=++generation;controller?.abort();controller=new AbortController();const request=controller;
   const timeout=setTimeout(()=>request.abort(),35000),tf=$('timeframe').value;
@@ -120,9 +146,16 @@ async function refresh(){
     draw();
   }catch{
     if(id!==generation)return;
+    if(!raw||!raw.candles?.length){
+      const cachedTf=getStoredCandles(tf);
+      if(cachedTf&&cachedTf.length>0){
+        const closed=!isGoldMarketOpen(Date.now()/1000);
+        raw={candles:filterCandles(cachedTf,closed),context:filterCandles(getStoredCandles('H1')||[],closed),tf,degraded:true};
+      }
+    }
     if(raw)raw.degraded=true;
     draw(true);
-    if($('chart-error'))$('chart-error').textContent='Pembaruan gagal. Data sebelumnya hanya referensi lama.';
+    if($('chart-error'))$('chart-error').textContent='Pembaruan gagal. Menggunakan data cache lokal.';
   }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;schedule();}}
 }
 window.setTab=name=>{
@@ -135,10 +168,25 @@ window.setTab=name=>{
 };
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>window.setTab(el.dataset.tab)));
 $('refresh').addEventListener('click',()=>{refresh();window.dispatchEvent(new CustomEvent('amyfx:refresh-context'));});
-$('timeframe').addEventListener('change',()=>{raw=null;chart?.reset();draw();refresh();});
+$('timeframe').addEventListener('change',()=>{
+  const newTf=$('timeframe').value;
+  const stored=getStoredCandles(newTf);
+  if(stored&&stored.length>0){
+    const closed=!isGoldMarketOpen(Date.now()/1000);
+    raw={candles:filterCandles(stored,closed),context:filterCandles(getStoredCandles('H1')||[],closed),tf:newTf,degraded:true};
+  }else{
+    raw=null;
+  }
+  chart?.reset();draw();refresh();
+});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;controller?.abort();clearTimeout(timer);}else refresh();});
 window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);});
 window.addEventListener('pageshow',event=>{if(event.persisted)refresh();});
 window.addEventListener('online',refresh);
 window.setTab(new URLSearchParams(location.search).get('route')||location.hash.slice(1)||'Dashboard');
+const initialStored=getStoredCandles($('timeframe')?.value||'M15');
+if(initialStored&&initialStored.length>0){
+  const closed=!isGoldMarketOpen(Date.now()/1000);
+  raw={candles:filterCandles(initialStored,closed),context:filterCandles(getStoredCandles('H1')||[],closed),tf:$('timeframe')?.value||'M15',degraded:true};
+}
 draw();refresh();

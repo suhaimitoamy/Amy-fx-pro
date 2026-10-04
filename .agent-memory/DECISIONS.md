@@ -1,5 +1,52 @@
 # Technical Decisions
 
+## 2026-10-04 — Cold-Start Weekend Gap Tolerance & Market Context Weekend Stitching
+
+1. **Weekend Gap Tolerant Bridging (`isWeekendGap`, `pair`, & `contiguous`):**
+   - Di `lib/scalper-engine/amy-ict.mjs`, `lib/scalper-engine/market-context.mjs`, `supabase/functions/scalper-engine/`, dan Android assets `amy-ict.js`, diimplementasikan fungsi `isWeekendGap(t1, t2)` untuk mendeteksi penutupan akhir pekan pasar Gold (Jumat 17:00 NY s.d. Minggu 17:00 NY / selisih ~48 jam / 172800 detik).
+   - `pair(a, b)` dan `contiguous(rows)` kini mentolerir weekend gap sehingga lilin Jumat sore dan lilin awal Minggu tersambung secara sah (weekend-bridged).
+   - Riwayat bar M15 ($\ge 40$) dan H1 ($\ge 30$) terpenuhi sejak menit-menit pertama pembukaan hari Minggu tanpa terputus.
+2. **Fair Market Elapsed Time (`marketElapsedSeconds`):**
+   - Freshness check untuk candle H1, M15, dan M5/M1 menggunakan `marketElapsedSeconds(from, to)` yang mengurangi durasi libur akhir pekan pasar tutup.
+   - Menghilangkan anomali status `DATA TERLAMBAT` palsu saat market baru buka hari Minggu atau saat libur akhir pekan.
+3. **Paritas & Sinkronisasi:**
+   - Byte-for-byte paritas diverifikasi antara `lib/scalper-engine/amy-ict.mjs`, `supabase/functions/scalper-engine/amy-ict.mjs`, dan `app/src/main/assets/apps/mapping/js/ict-workspace/amy-ict.js`.
+   - Validasi sintaks `node --check` dan 15 targeted tests di `tests/market-context-rebuild.test.mjs` lulus 100%.
+
+## 2026-10-04 — Cockpit Mapping UI & Presentation Upgrade: Bias Dashboard V2 & Entry Assistant V3 Plan
+
+1. **Paritas 100% Chart Gold Dijamin:**
+   - Kontainer glassmorphism `.gold-price-panel`, heading, kontrol `[M15 | M5]`, tombol Perbarui, ⛶ Fullscreen, dan canvas 340px dengan vertical drag/pinch zoom harga kanan dipertahankan 100% tanpa perubahan struktur.
+   - `chart-view.js` diperbarui untuk menggambar level rencana Entry Assistant V3: Entry (`#38bdf8`), SL merah (`#ef4444`), TP1 kuning (`#eab308`), TP2 hijau (`#22c55e`).
+2. **Kartu 1: Amy Live Assistant:**
+   - Diperbarui di `ict-presentation.js` untuk merefleksikan sinyal Entry Assistant V3: `BUY ENTRY`, `SELL ENTRY`, `PULLBACK SELL`, `PULLBACK BUY`, atau `STANDBY`.
+   - Menampilkan status Anti-Chase (`READY DI ZONA` vs `MISSED - JANGAN KEJAR`) dan nama Math Zone yang aktif.
+3. **Kartu 3: AMY BIAS DASHBOARD V2:**
+   - Menggantikan kartu Context Hero & Execution lama dengan **Tabel Matriks 16 Baris** seperti tabel Pine Script (1 header row + 15 baris data): BIAS, STRUKTUR, PROTECTED, LIQUIDITY, SWEEP, SWEEP PRICE, DOL, DOL DETAIL, POI, POI PRICE, POI DETAIL, POSISI, RANGE, INVALID, ALASAN INTI.
+4. **Kartu 4: AMY ENTRY ASSISTANT V3 PLAN:**
+   - Menggantikan Setup Driver & Trading Plan lama dengan kartu aksi trading bersih:
+     - Header nama sinyal dengan badge warna.
+     - Status bar Anti-Chase (`READY DI ZONA` vs `MISSED`) & Math Zone.
+     - Banner catatan khusus pullback jika sinyal merupakan pullback korektif.
+     - Grid 4 Kolom: ENTRY, STOP LOSS, TP 1, TP 2 beserta metrik risiko & RR.
+     - Alasan inti eksekusi multi-baris.
+     - Tombol "Tampilkan Level di Chart" yang langsung menggambar garis acuan di canvas dan scroll ke chart.
+5. **Tab Analyze & Driver Tournament:**
+   - 6 Driver dipindahkan secara rapi ke accordion paling bawah di Tab Analyze sebagai arsip/riset.
+   - Murni berjalan offline / lokal tanpa menggunakan library client Supabase.
+
+## 2026-10-04 — Lab Backtest August 2026 Dukascopy Replacement & Full 2026 Parity
+
+1. **Penggantian Data Agustus 2026 ke Standar Sah Dukascopy Bank BID UTC:**
+   - Menghapus/mengkarantina dataset lama HistData Agustus 2026 (`DAT_MT_XAUUSD_M1_202608.zip`, `XAUUSD_2026_08_M15_HISTDATA.csv`, `XAUUSD_2026_08_M5_HISTDATA.csv`) ke `/sdcard/Download/arsip_lama_usang/`.
+   - Mengunduh data resmi dari feed publik Dukascopy Bank BID UTC tanpa manipulasi / tanpa candle sintetis via `dukascopy-node` untuk seluruh timeframe: M1, M5, M15, H1, H4, D1.
+   - Mengemas arsip `XAUUSD_2026_08_DUKASCOPY_BID_UTC_REPAIRED_AUDITED.zip` dengan file verifikasi `XAUUSD_2026_08_AUDIT.json` dan laporan audit `XAUUSD_2026_08_REPAIR_REPORT.txt`.
+   - Meletakkan direct CSV M5 & M15 di `/sdcard/Download/lab backtest/candles/` persis identik dengan bulan September 2026.
+2. **Paritas Arsitektur Dataset 2026 (Januari s.d. September 2026):**
+   - Seluruh bulan di tahun 2026 (Januari – September) kini 100% homogen bersumber dari Dukascopy Bank BID UTC terverifikasi.
+   - `engine.py` diperbarui untuk membaca bulan 8 dan 9 secara seragam melalui handler Dukascopy resmi.
+   - Database fraktal M15 (`fractal_db_m15.npz`) dan laporan bulanan 8-tahun multi-driver (`calculate_monthly_report.py`) disinkronkan.
+
 ## 2026-10-04 — Pro404 Chart Gold Price Zoom, Weekend Filter & Fast Dev Mode
 
 1. **Price Scale Vertical Zoom & Touch Drag Fix:**
