@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.396/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.397/AmyFX-Pro-latest.apk",
   "changelog": [
     "Kembali ke Amy FX Pro 395: Menu utama Video [Beranda | Backtest | Video | Profil], Media Vault terintegrasi, dan Tab Advisor di Mapping aktif kembali.",
     "Navigasi Jurnal Trading: Tab Catatan Pribadi [Library | Jurnal | Performa | Catatan].",
     "Catatan: Chart Gold saat pasar tutup (akhir pekan) menampilkan candle sintetis dari server; perbaikan menyusul."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.396/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.397/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950396,
-  "latest_version_name": "2.0.0-pro.396",
+  "latest_version_code": 950397,
+  "latest_version_name": "2.0.0-pro.397",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
@@ -17,7 +17,7 @@
     "Navigasi Jurnal Trading: Tab Catatan Pribadi [Library | Jurnal | Performa | Catatan].",
     "Catatan: Chart Gold saat pasar tutup (akhir pekan) menampilkan candle sintetis dari server; perbaikan menyusul."
   ],
-  "sha256": "f68a8c575f33b2040f128e9656ae6b5e3023defde60310c8f95649e13f06050b",
-  "version": "2.0.0-pro.396",
-  "versionCode": 950396
+  "sha256": "f4fc51f2ae309a7fd2b1d3367984a0addb7ccde19b7d1ab9ead707f1ec2876fa",
+  "version": "2.0.0-pro.397",
+  "versionCode": 950397
 }
