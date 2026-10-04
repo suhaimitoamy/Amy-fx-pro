@@ -19,7 +19,7 @@
     "Aksi Putar Video Langsung: setiap kartu memiliki tombol 'Putar Video' dan dapat langsung diketuk untuk menonton dengan gestur swipe vertikal ganti video.",
     "Integrasi Multi-Store & Scanner Native: sinkronisasi otomatis item video dari IndexedDB, legacy storage, catatan jurnal, dan Android storage scanner."
   ],
-  "sha256": "",
+  "sha256": "582680b6a711da40d26222bbf309372396c32caf686d73c3ad9dd3459dab3507",
   "version": "2.0.0-pro.402",
   "versionCode": 950402
 }
