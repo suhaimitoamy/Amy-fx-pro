@@ -19,7 +19,7 @@
     "Filter Pasar Libur (Weekend Anti-Spam): Menghentikan injeksi candle flat saat akhir pekan dan menampilkan status penutupan Jumat WITA yang informatif.",
     "Indikator Visual ICT NextGen: Menampilkan overlay PDH/PDL, PWH/PWL, Asia Session (06:00-14:00 WITA), 4-bar swing sweep marker, BOS/MSS, dan FVG/OB dengan level 50% Consequent Encroachment emas."
   ],
-  "sha256": "582680b6a711da40d26222bbf309372396c32caf686d73c3ad9dd3459dab3507",
+  "sha256": "3824cab86c34123c7d2cb1b5554a60c37424600bab183359edc08d2ed0140380",
   "version": "2.0.0-pro.403",
   "versionCode": 950403
 }
