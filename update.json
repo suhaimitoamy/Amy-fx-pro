@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.398/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.399/AmyFX-Pro-latest.apk",
   "changelog": [
     "Tab Video menu utama kini setara Jurnal Trading: tap video langsung fullscreen, swipe ke atas/bawah untuk ganti video (feed vertikal ala TikTok).",
     "Thumbnail video rapi: memakai cover tersimpan dari Jurnal/scanner atau menangkap 1 frame otomatis lalu di-cache, tidak lagi hitam atau berat.",
     "Feed video hemat memori: video yang jauh dari layar dilepas otomatis; tombol Back Android menutup feed tanpa keluar aplikasi."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.398/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.399/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950398,
-  "latest_version_name": "2.0.0-pro.398",
+  "latest_version_code": 950399,
+  "latest_version_name": "2.0.0-pro.399",
   "mandatory": false,
   "releaseDate": "2026-10-04",
   "release_notes": [
@@ -17,7 +17,7 @@
     "Thumbnail video rapi: memakai cover tersimpan dari Jurnal/scanner atau menangkap 1 frame otomatis lalu di-cache, tidak lagi hitam atau berat.",
     "Feed video hemat memori: video yang jauh dari layar dilepas otomatis; tombol Back Android menutup feed tanpa keluar aplikasi."
   ],
-  "sha256": "577ac3ebd56cc7a2f90a282118ff4c986617bb0898d24d60c33d36d033d836c7",
-  "version": "2.0.0-pro.398",
-  "versionCode": 950398
+  "sha256": "761c043023d928ddda627d35c0cc495ac3ac54bca3558269478668d4ca846996",
+  "version": "2.0.0-pro.399",
+  "versionCode": 950399
 }
