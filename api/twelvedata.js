@@ -8,14 +8,14 @@ const MEMORY_CACHE_LIMIT = 40;
 const SHARED_M1_OUTPUT_SIZE = 300;
 
 const CACHE_TTL_SECONDS = Object.freeze({
-  '1min': 45,
-  '5min': 120,
-  '15min': 240,
-  '30min': 360,
-  '1h': 600,
-  '4h': 1800,
-  '1day': 3600,
-  '1week': 14400
+  '1min': 55,
+  '5min': 240,
+  '15min': 600,
+  '30min': 900,
+  '1h': 1800,
+  '4h': 7200,
+  '1day': 14400,
+  '1week': 43200
 });
 
 const memoryCache = globalThis.__amyFxTwelveDataCache
@@ -30,17 +30,11 @@ function parseOutputSize(value) {
 }
 
 function ttlSeconds(interval) {
-  const config = {
-    '1min': 45,
-    '5min': 120,      // minimal 90s
-    '15min': 240,     // minimal 180s - 300s
-    '30min': 360,
-    '1h': 600,        // minimal 600s
-    '4h': 1800,
-    '1day': 3600,
-    '1week': 14400
-  };
-  return config[interval] || 120;
+  const duration = { '1min': 60, '5min': 300, '15min': 900, '30min': 1800,
+    '1h': 3600, '4h': 14400, '1day': 86400, '1week': 604800 }[interval] || 60;
+  const now = Date.now() / 1000;
+  const nextClose = (Math.floor((now - 10) / duration) + 1) * duration + 10;
+  return Math.max(1, Math.min(30, Math.ceil(nextClose - now)));
 }
 
 function cacheKey(symbol, interval, outputsize) {
@@ -58,6 +52,10 @@ function readCache(key, { allowStale = false } = {}) {
   if (!item) return null;
   const now = Date.now();
   if (!allowStale && item.expiresAt <= now) return null;
+  if (allowStale && item.staleUntil && item.staleUntil <= now) {
+    memoryCache.delete(key);
+    return null;
+  }
   return cloneData(item.data);
 }
 
@@ -87,9 +85,10 @@ function writeCache(key, data, ttl) {
 }
 
 function setCacheHeaders(res, ttl, state = 'MISS', source = '') {
-  res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
-  res.setHeader('CDN-Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
-  res.setHeader('Vercel-CDN-Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
+  // A fresh HTTP response must not relabel old candle data as fresh.
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('CDN-Cache-Control', 'no-store');
+  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
   res.setHeader('X-AmyFX-Market-Cache', state);
   if (source) res.setHeader('X-AmyFX-Market-Source', source);
 }
