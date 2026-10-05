@@ -19,7 +19,7 @@
     "Weekend Stitching & Anti-Cold-Start: Menghubungkan candle penutupan Jumat sore dengan pembukaan Minggu secara sah tanpa error data terlambat.",
     "Optimasi Kuota TwelveData & Zero Supabase: Penambahan multi-tier local persistent candle cache dan CDN edge cache anti-429."
   ],
-  "sha256": "3824cab86c34123c7d2cb1b5554a60c37424600bab183359edc08d2ed0140380",
+  "sha256": "eb09a42d3fd6ef39819d55d845da2f377c35cfd273100dfe963615e376f85540",
   "version": "2.0.0-pro.404",
   "versionCode": 950404
 }
