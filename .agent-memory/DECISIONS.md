@@ -587,3 +587,16 @@ Pro382 mengaktifkan evaluasi enam driver nyata atas instruksi user. Kontrak oper
 
 
 Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507d762ab; signed Actions36792997261 and lint36792997230 succeeded. Public update.json enabled at2.0.0-pro.382/950382. Downloaded31,534,089-byte APK SHA25634f42b0f0e34995e7df9ff0a425e3e68b74ec59acfa531f08f0ea007d4b32b3f matches manifest/checksum; all11 changed assets match source.146 regression files pass. Production engine25/setup-reader11/preferences2 active; five engine files byte-identical to source and successful live run returns all6 driver evaluations. Browser360/390 light/dark, toggles, detail refresh, selected chart, offline and overflow checks pass. Replay240 M5 with synthetic calendar produced one Rapid candidate; not a profitability backtest. Earlier build/deployment-pending notes are resolved. Actual Android update receipt remains unobserved.
+
+
+## 2026-10-07 — Perbaikan Backup & Pengurutan Kronologis Tab Catatan Pribadi
+
+1. **Audit & Solusi Backup Tab Catatan (Personal Notes):**
+   - Sebelumnya, fungsi `exportBackup()` hanya mengemas `items` dan `journals` ke dalam `data.json`, sehingga catatan pribadi (`state.personalNotes`) yang disimpan terpisah di `localStorage` tidak ikut ter-backup ke file ZIP.
+   - Perbaikan: `exportBackup()` kini menyertakan `notes: state.personalNotes` ke dalam `data.json`. Pada `importBackup()`, ditambahkan logika pemulihan otomatis (`payload.notes || payload.personalNotes`), merge dengan data lokal, dan auto-render.
+2. **Pengurutan Kronologis Berdasarkan Tanggal (Sort by Date):**
+   - Sebelumnya, saat membuat catatan baru untuk tanggal masa lalu, kode memakai `unshift()` sehingga catatan lama langsung muncul di posisi teratas.
+   - Perbaikan: Ditambahkan fungsi `sortNotes()` yang mengurutkan catatan berdasarkan input tanggal secara descending (`dateB.localeCompare(dateA)`). Catatan terbaru berada di paling atas, sedangkan catatan masa lalu/lama secara otomatis turun ke posisi paling bawah sesuai progres waktu trading pengguna.
+3. **Paritas 1:1 Amy FX Pro & Amy FX PWA (iPhone):**
+   - Perubahan disinkronkan secara identik ke `/root/Amy-fx-pro/app/src/main/assets/apps/journal/app.js` dan `/root/download/Amy-fX-pwa/assets/apps/journal/app-core.js`.
+

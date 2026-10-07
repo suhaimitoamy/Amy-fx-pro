@@ -1,10 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.405/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Penyelarasan Presisi PDH/PDL: Cutoff New York 17:00 Close dan preseden level D1 server agar level harian akurat di 4184.00 tanpa terpotong jam WITA.",
-    "Overhaul Eksekusi 6 Driver Turnamen: Entry Market langsung pada konfirmasi M5 close terpicu (bukan pasif antre limit di diskon dalam).",
-    "Perluasan ICT Sweet Spot Fibo: Optimal Trade Entry (OTE) diperluas ke 61.8%–78.6% pada model Sniper, Swing CHoCH, dan Multi-Driver Ensemble.",
-    "Prioritas & Penyelarasan Volatilitas AMY Entry Assistant V3: Peningkatan toleransi ATR (maxChaseAtr: 0.75, zoneAtr: 0.35) untuk karakteristik Gold."
+    "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
+    "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah).",
+    "Paritas Multiplatform: Penyelarasan penuh logika catatan dan backup antara Amy FX Pro Android dan PWA iPhone."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.405/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-10-07",
   "release_notes": [
-    "Penyelarasan Presisi PDH/PDL: Cutoff New York 17:00 Close dan preseden level D1 server agar level harian akurat di 4184.00 tanpa terpotong jam WITA.",
-    "Overhaul Eksekusi 6 Driver Turnamen: Entry Market langsung pada konfirmasi M5 close terpicu (bukan pasif antre limit di diskon dalam).",
-    "Perluasan ICT Sweet Spot Fibo: Optimal Trade Entry (OTE) diperluas ke 61.8%–78.6% pada model Sniper, Swing CHoCH, dan Multi-Driver Ensemble.",
-    "Prioritas & Penyelarasan Volatilitas AMY Entry Assistant V3: Peningkatan toleransi ATR (maxChaseAtr: 0.75, zoneAtr: 0.35) untuk karakteristik Gold."
+    "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
+    "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah).",
+    "Paritas Multiplatform: Penyelarasan penuh logika catatan dan backup antara Amy FX Pro Android dan PWA iPhone."
   ],
   "sha256": "7fa08296caca7edc6d38496dbf0a4e1dae5ce2c0185852c4f98cec201409fa63",
   "version": "2.0.0-pro.405",
