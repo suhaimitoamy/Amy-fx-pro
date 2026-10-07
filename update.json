@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.406/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.407/AmyFX-Pro-latest.apk",
   "changelog": [
     "Perbaikan Tab Catatan: Memperbaiki tombol Baca Selengkapnya yang tidak bisa dibuka dan tombol Edit catatan yang tidak merespons pada catatan yang sudah dibuat.",
     "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
     "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah)."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.406/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.407/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950406,
-  "latest_version_name": "2.0.0-pro.406",
+  "latest_version_code": 950407,
+  "latest_version_name": "2.0.0-pro.407",
   "mandatory": false,
   "releaseDate": "2026-10-07",
   "release_notes": [
@@ -17,7 +17,7 @@
     "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
     "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah)."
   ],
-  "sha256": "2c2c8b5439241793774267c92e9b8f45285f0dee4ba972c8b18ece8a5bd0b1b9",
-  "version": "2.0.0-pro.406",
-  "versionCode": 950406
+  "sha256": "f71e6b323e3efb0e7adcb591bffabbe3bf10c262cbf3439e29213aca7fa619d6",
+  "version": "2.0.0-pro.407",
+  "versionCode": 950407
 }
