@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.405/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.406/AmyFX-Pro-latest.apk",
   "changelog": [
     "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
     "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah).",
     "Paritas Multiplatform: Penyelarasan penuh logika catatan dan backup antara Amy FX Pro Android dan PWA iPhone."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.405/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.406/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950405,
-  "latest_version_name": "2.0.0-pro.405",
+  "latest_version_code": 950406,
+  "latest_version_name": "2.0.0-pro.406",
   "mandatory": false,
   "releaseDate": "2026-10-07",
   "release_notes": [
@@ -17,7 +17,7 @@
     "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah).",
     "Paritas Multiplatform: Penyelarasan penuh logika catatan dan backup antara Amy FX Pro Android dan PWA iPhone."
   ],
-  "sha256": "7fa08296caca7edc6d38496dbf0a4e1dae5ce2c0185852c4f98cec201409fa63",
-  "version": "2.0.0-pro.405",
-  "versionCode": 950405
+  "sha256": "2c2c8b5439241793774267c92e9b8f45285f0dee4ba972c8b18ece8a5bd0b1b9",
+  "version": "2.0.0-pro.406",
+  "versionCode": 950406
 }
