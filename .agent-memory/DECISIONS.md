@@ -1,5 +1,45 @@
 # Technical Decisions
 
+## 2026-10-07 — Driver Tournament & Entry Execution Overhaul (Fibo Sweet Spot, Market Confirmation, V3 Priority)
+
+1. **Akar Masalah Driver Pasif & Zero Fill (2 Minggu Tanpa Eksekusi):**
+   - 5 dari 6 driver di-hardcode sebagai order LIMIT pasif (`limit = true`) di titik tengah zona diskon (`(zone.low + zone.high)/2`).
+   - Range Fibo di-set terlalu dalam (Deep OTE 75%–78.6%) sehingga dalam kondisi pasar Gold impulsif/trending 2 minggu terakhir, harga tidak pernah koreksi sedalam itu sebelum timeout kedaluwarsa 2 jam (`EXPIRED`).
+   - AMY Entry Assistant V3 memiliki toleransi chase terlalu sempit (`maxChaseAtr: .35` / ~$0.70 di Gold), sehingga langsung dicap `MISSED` dan sinyal tidak terbit ke antarmuka.
+   - Paradoks logika: konfirmasi M5 displacement sudah terjadi menjauh dari zona, tapi titik entry malah disuruh mundur ke belakang di tengah zona Fibo.
+
+2. **Perbaikan & Sinkronisasi 3 Pilar:**
+   - **Pilar 1 (Market Execution pada Konfirmasi M5):** Saat driver mencapai status `CONFIRMED` (retest + displacement M5 valid), level entry di `api/scalper-setups.js` otomatis menggunakan harga penutupan candle konfirmasi M5 (`confirmedEntry`), berstatus `ACTIVE` (bukan antre limit pasif `WAITING_TRIGGER`), dan dihitung target serta risk aktualnya.
+   - **Pilar 2 (Fibo Sweet Spot ICT Realistis):** Rentang Fibonacci diperluas ke OTE Sweet Spot 61.8%–78.6% pada `HIGH_WINRATE_SNIPER_70`, dan 61.8%–75% pada `SWING_CHOCH_OTE` serta `MULTI_DRIVER_ENSEMBLE`. Disinkronkan secara konsisten di `lib/scalper-engine/six-drivers.mjs`, `supabase/functions/scalper-engine/six-drivers.mjs`, dan `app/src/main/assets/apps/mapping/js/engine/six-driver-definitions.js`.
+   - **Pilar 3 (Prioritas & Toleransi Realistis AMY V3):** Toleransi di `amy-ict.mjs` diperlebar ke `maxChaseAtr: .75` (~$1.50-$2.00 breathing room di Gold), `zoneAtr: .35`, dan `retestAtr: .30`. Disinkronkan byte-identical di 3 file (`lib`, `supabase`, `assets/mapping`). Di `api/scalper-setups.js`, susunan kartu diurutkan secara tegas: AMY V3 (`priority: 1`), Confirmed Driver Market Execution (`priority: 2`), dan Armed Watchlist OTE Pullback (`priority: 3`).
+   - Seluruh 66 unit test targeted (`mapping-six-drivers-pro382`, `mapping-six-driver-api-pro382`, `mapping-amy-ict-pro375`, `mapping-pro374-audit-fixes`) lulus 100% tanpa regresi.
+
+## 2026-10-07 — PDH/PDL Alignment with New York 17:00 Close & Server Levels Precedence
+
+1. **Akar Masalah Deviasi PDH (4179 vs 4184):**
+   - Di `nextgen-indicators.js`, pengelompokan lilin intraday ke dalam hari kalender (`dayBuckets`) sebelumnya dipotong berdasarkan jam kalender lokal WITA murni (`00:00 WITA`).
+   - Hal ini memotong sesi perdagangan New York menjadi 2 bagian: pergerakan harga emas sesi sore/malam New York (antara 12:00 NY hingga 17:00 NY, di mana rekor harian 4184 tercapai) terdorong masuk ke keranjang hari esok di WITA, meninggalkan keranjang kemarin dengan titik puncak hanya 4179.
+   - Selain itu, `if (dayKeys.length >= 2)` dievaluasi lebih dulu, sehingga mengabaikan level PDH/PDL otoritatif harian dari D1 yang disediakan server (`serverLevels.pdh`).
+2. **Solusi & Penyelarasan Standar Pasar Gold:**
+   - Dibuat fungsi penentu sesi perdagangan `getTradingDayKey(timeSec)` berbasis **New York 17:00 Close (`America/New_York`)**: seluruh lilin dari pembukaan New York 17:00 hingga penutupan 17:00 hari berikutnya dikelompokkan ke dalam satu sesi perdagangan harian yang utuh.
+   - Puncak sesi sore New York (4184) kini terserap sempurna ke dalam keranjang hari yang sama, menyelaraskan pembacaan lokal dengan grafik TradingView (`AMY_ICT_NextGen.pine`) dan MT5.
+   - Diimplementasikan ekstraksi komprehensif level server/konteks (`serverAmyLevels`, `liquidityLevels` BSL/SSL, dan `context.pd`): jika level harian otoritatif D1 tersedia, sistem mengutamakan level tersebut (`Math.max(serverPdh, localPdh)`) agar tidak terdistorsi oleh keterbatasan buffer lilin intraday lokal.
+   - Ditambahkan unit test di `tests/ict-workspace.test.mjs` untuk memvalidasi preseden level server dan pemotongan sesi New York 17:00 Close (18/18 tests pass).
+
+## 2026-10-06 — Obsidian Vault Clean Parity & Sync with Amy FX Pro Academy
+
+1. **Vault Sanitization & Legacy Archiving:**
+   - Full byte-exact legacy backup created at `/root/backup_obsidian_vault_legacy.tar.gz` (111MB) and personal notes redundancy at `/root/preserved_user_notes/`.
+   - Purged obsolete build scripts (`*.py`), stale drafts, and outdated `.smart-env` vector cache (59MB) from `/sdcard/Download/obsidian/Amy_Trading_Academy_Vault/`.
+   - 100% preservation of user assets: `.obsidian/` configuration & themes, `Jurnal Harian/` (including `Catatan Pribadi/2026-09-25 - Refleksi Jujur dan Pelajaran Toxic Win.md`), `Daily-Brief/`, `Jurnal_Lama/`, and `images/`.
+2. **Complete 3-Semester 36-Pertemuan Parity:**
+   - Transformed entire Amy FX Pro Academy content from `app/src/main/assets/apps/academy/` into clean, native Obsidian Markdown notes.
+   - 492 unique, formatted chapter notes with YAML frontmatter, aliases, Obsidian callouts (`> [!note]`, `> [!tip]`, `> [!warning]`), and bidirectional navigation (`← Sebelumnya | Daftar Bab | Selanjutnya →`).
+   - 36 Pertemuan overview index notes with SKS, duration, and chapter checklists.
+   - Master roadmaps regenerated: `00-KURIKULUM-MULAI-DARI-SINI.md` (full checklist) and `🗺️ Dashboard Utama.md` (MOC hub pinned on mobile).
+   - 5 Glosarium notes updated and linked.
+   - Verified 6,576 wikilinks with 100% chapter link integrity and zero broken internal references.
+
 ## 2026-10-04 — Cold-Start Weekend Gap Tolerance & Market Context Weekend Stitching
 
 1. **Weekend Gap Tolerant Bridging (`isWeekendGap`, `pair`, & `contiguous`):**

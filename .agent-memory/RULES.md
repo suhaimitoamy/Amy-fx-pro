@@ -35,6 +35,7 @@
   2. Saat user meminta update aplikasi, agen **wajib memantau** GitHub Actions workflow (`build-apk.yml`) hingga selesai, memastikan release APK terbit, dan memverifikasi `update.json` pada branch `main` telah aktif terupdate.
 - **Cockpit Mapping Invariant**: Paritas 100% Chart Gold (`.gold-price-panel`) wajib dipertahankan. Kartu 3 adalah Tabel Matriks 16 Baris Bias Dashboard V2, Kartu 4 adalah Amy Entry Assistant V3 Plan, dan 6 Driver dipusatkan di accordion arsip/riset Tab Analyze tanpa menggunakan Supabase client.
 - **Weekend Gap & Cold-Start Rule**: Jeda akhir pekan (Jumat 17:00 NY s.d. Minggu 17:00 NY) wajib ditoleransi pada fungsi `isWeekendGap`, `pair`, dan `contiguous`. Freshness check `H1`, `M15`, `M5` wajib memperhitungkan jam pasar aktif via `marketElapsedSeconds` agar tidak mengunci status ke `DATA TERLAMBAT` saat pasar baru buka hari Minggu atau saat libur akhir pekan.
+- **PDH/PDL NY Close Rule (Pro 407)**: Penentuan hari perdagangan untuk indikator visual PDH/PDL dan PWH/PWL di `nextgen-indicators.js` wajib menggunakan cutoff resmi sesi New York 17:00 Close (`America/New_York`) dan memprioritaskan level harian otoritatif D1 dari server/konteks (`serverAmyLevels.pdh`), dilarang memotong sesi di 00:00 WITA.
 
 ## Memory Rules
 

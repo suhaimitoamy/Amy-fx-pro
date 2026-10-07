@@ -31,8 +31,32 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
   const pdLow = Math.min(...recentSlice.map(c => c.low));
   const pdEq = Number.isFinite(pdHigh) && Number.isFinite(pdLow) ? (pdHigh + pdLow) / 2 : null;
 
-  // 2. Calendar groupings for PDH/PDL and PWH/PWL and Asia Session (06:00-14:00 WITA)
-  // WITA = UTC+8. No DST.
+// New York 17:00 Close (5:00 PM NY) Trading Day Cutoff for XAU/USD
+function getTradingDayKey(timeSec) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    }).formatToParts(new Date(timeSec * 1000));
+    const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    const hour = Number(p.hour);
+    const date = new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)));
+    if (hour >= 17) {
+      date.setUTCDate(date.getUTCDate() + 1);
+    }
+    return date.toISOString().slice(0, 10);
+  } catch {
+    const shifted = timeSec + 7 * 3600;
+    return new Date(shifted * 1000).toISOString().slice(0, 10);
+  }
+}
+
+  // 2. Calendar groupings for PDH/PDL, PWH/PWL and Asia Session (06:00-14:00 WITA)
   let pdh = null, pdl = null, pdhConsumed = false, pdlConsumed = false;
   let pwh = null, pwl = null, pwhConsumed = false, pwlConsumed = false;
   let asiaHigh = null, asiaLow = null, asiaStart = null, asiaEnd = null;
@@ -45,18 +69,22 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
 
   for (let i = 0; i < safeCandles.length; i++) {
     const c = safeCandles[i];
+    // Gold trading day bucket (17:00 NY Close cutoff)
+    const tDayStr = getTradingDayKey(c.time);
+
+    // WITA (UTC+8) for local Asia morning session (06:00-14:00 WITA)
     const witaMs = (c.time + 8 * 3600) * 1000;
     const witaDate = new Date(witaMs);
-    const dayStr = witaDate.toISOString().slice(0, 10);
     const minuteOfDay = witaDate.getUTCHours() * 60 + witaDate.getUTCMinutes();
     const isAsia = minuteOfDay >= 360 && minuteOfDay < 840; // 06:00 - 14:00 WITA
 
-    if (!dayBuckets.has(dayStr)) dayBuckets.set(dayStr, []);
-    dayBuckets.get(dayStr).push(c);
+    if (!dayBuckets.has(tDayStr)) dayBuckets.set(tDayStr, []);
+    dayBuckets.get(tDayStr).push(c);
 
     if (isAsia) {
-      if (!asiaBuckets.has(dayStr)) asiaBuckets.set(dayStr, []);
-      asiaBuckets.get(dayStr).push(c);
+      const asiaDateStr = witaDate.toISOString().slice(0, 10);
+      if (!asiaBuckets.has(asiaDateStr)) asiaBuckets.set(asiaDateStr, []);
+      asiaBuckets.get(asiaDateStr).push(c);
     }
 
     // Week bucket: ISO week string
@@ -70,21 +98,55 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
     weekBuckets.get(weekStr).push(c);
   }
 
-  // Previous Day High / Low
+  // Extract server / context key levels (authoritative D1 Daily source)
+  const serverAmyLevels = context?.amy?.levels || {};
+  const serverLiq = Array.isArray(context?.liquidity) ? context.liquidity : [];
+  const liqPdh = serverLiq.find(l => l.label === 'PDH')?.level;
+  const liqPdl = serverLiq.find(l => l.label === 'PDL')?.level;
+  const liqPwh = serverLiq.find(l => l.label === 'PWH')?.level;
+  const liqPwl = serverLiq.find(l => l.label === 'PWL')?.level;
+
+  const resolvedServerPdh = Number.isFinite(serverAmyLevels.pdh) && serverAmyLevels.pdh > 0
+    ? serverAmyLevels.pdh
+    : (Number.isFinite(liqPdh) && liqPdh > 0
+      ? liqPdh
+      : (Number.isFinite(context?.pd?.pdh) && context.pd.pdh > 0
+        ? context.pd.pdh
+        : (Number.isFinite(context?.levels?.pdh) && context.levels.pdh > 0 ? context.levels.pdh : null)));
+
+  const resolvedServerPdl = Number.isFinite(serverAmyLevels.pdl) && serverAmyLevels.pdl > 0
+    ? serverAmyLevels.pdl
+    : (Number.isFinite(liqPdl) && liqPdl > 0
+      ? liqPdl
+      : (Number.isFinite(context?.pd?.pdl) && context.pd.pdl > 0
+        ? context.pd.pdl
+        : (Number.isFinite(context?.levels?.pdl) && context.levels.pdl > 0 ? context.levels.pdl : null)));
+
+  // Previous Day High / Low from trading day buckets
   const dayKeys = [...dayBuckets.keys()];
+  let localPdh = null;
+  let localPdl = null;
   if (dayKeys.length >= 2) {
     const prevDayKey = dayKeys[dayKeys.length - 2];
-    const prevDayCandles = dayBuckets.get(prevDayKey);
-    pdh = Math.max(...prevDayCandles.map(c => c.high));
-    pdl = Math.min(...prevDayCandles.map(c => c.low));
-  } else if (Number.isFinite(serverLevels.pdh) && Number.isFinite(serverLevels.pdl)) {
-    pdh = serverLevels.pdh;
-    pdl = serverLevels.pdl;
+    const prevDayCandles = dayBuckets.get(prevDayKey) || [];
+    if (prevDayCandles.length > 0) {
+      localPdh = Math.max(...prevDayCandles.map(c => c.high));
+      localPdl = Math.min(...prevDayCandles.map(c => c.low));
+    }
+  }
+
+  // Final resolution: Authoritative Daily D1 preferred, or local NY trading day calculation
+  if (Number.isFinite(resolvedServerPdh) && Number.isFinite(resolvedServerPdl)) {
+    pdh = Number.isFinite(localPdh) ? Math.max(resolvedServerPdh, localPdh) : resolvedServerPdh;
+    pdl = Number.isFinite(localPdl) ? Math.min(resolvedServerPdl, localPdl) : resolvedServerPdl;
+  } else if (Number.isFinite(localPdh) && Number.isFinite(localPdl)) {
+    pdh = localPdh;
+    pdl = localPdl;
   }
 
   // Check PDH / PDL sweeps and reached status in the latest day
   if (dayKeys.length > 0 && Number.isFinite(pdh) && Number.isFinite(pdl)) {
-    const todayCandles = dayBuckets.get(dayKeys[dayKeys.length - 1]);
+    const todayCandles = dayBuckets.get(dayKeys[dayKeys.length - 1]) || [];
     for (const c of todayCandles) {
       if (!pdhConsumed && c.high > pdh && c.close < pdh) {
         sweeps.push({ time: c.time, price: c.high, type: 'PDH_SWEEP', side: 'BUY', symbol: '×', color: '#f97316' });
@@ -99,19 +161,39 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
 
   // Previous Week High / Low
   const weekKeys = [...weekBuckets.keys()];
+  let localPwh = null;
+  let localPwl = null;
   if (weekKeys.length >= 2) {
-    const prevWeekCandles = weekBuckets.get(weekKeys[weekKeys.length - 2]);
-    pwh = Math.max(...prevWeekCandles.map(c => c.high));
-    pwl = Math.min(...prevWeekCandles.map(c => c.low));
-  } else if (Number.isFinite(context?.amy?.pivots?.W?.R1) && Number.isFinite(context?.amy?.pivots?.W?.S1)) {
-    // Fallback if provided
-    pwh = context.amy.pivots.W.R1;
-    pwl = context.amy.pivots.W.S1;
+    const prevWeekCandles = weekBuckets.get(weekKeys[weekKeys.length - 2]) || [];
+    if (prevWeekCandles.length > 0) {
+      localPwh = Math.max(...prevWeekCandles.map(c => c.high));
+      localPwl = Math.min(...prevWeekCandles.map(c => c.low));
+    }
+  }
+
+  const resolvedServerPwh = Number.isFinite(serverAmyLevels.pwh) && serverAmyLevels.pwh > 0
+    ? serverAmyLevels.pwh
+    : (Number.isFinite(liqPwh) && liqPwh > 0
+      ? liqPwh
+      : (Number.isFinite(context?.amy?.pivots?.W?.R1) ? context.amy.pivots.W.R1 : null));
+
+  const resolvedServerPwl = Number.isFinite(serverAmyLevels.pwl) && serverAmyLevels.pwl > 0
+    ? serverAmyLevels.pwl
+    : (Number.isFinite(liqPwl) && liqPwl > 0
+      ? liqPwl
+      : (Number.isFinite(context?.amy?.pivots?.W?.S1) ? context.amy.pivots.W.S1 : null));
+
+  if (Number.isFinite(resolvedServerPwh) && Number.isFinite(resolvedServerPwl)) {
+    pwh = Number.isFinite(localPwh) ? Math.max(resolvedServerPwh, localPwh) : resolvedServerPwh;
+    pwl = Number.isFinite(localPwl) ? Math.min(resolvedServerPwl, localPwl) : resolvedServerPwl;
+  } else if (Number.isFinite(localPwh) && Number.isFinite(localPwl)) {
+    pwh = localPwh;
+    pwl = localPwl;
   }
 
   // Check PWH / PWL sweeps
   if (weekKeys.length > 0 && Number.isFinite(pwh) && Number.isFinite(pwl)) {
-    const currentWeekCandles = weekBuckets.get(weekKeys[weekKeys.length - 1]);
+    const currentWeekCandles = weekBuckets.get(weekKeys[weekKeys.length - 1]) || [];
     for (const c of currentWeekCandles) {
       if (!pwhConsumed && c.high > pwh && c.close < pwh) {
         sweeps.push({ time: c.time, price: c.high, type: 'PWH_SWEEP', side: 'BUY', symbol: '×', color: '#d946ef' });

@@ -58,3 +58,12 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
    - Usia data candle dihitung hanya selama jam pasar buka (waktu pasar tutup 48 jam akhir pekan tidak dihitung sebagai waktu kadaluarsa).
    - Menghilangkan status palsu `DATA TERLAMBAT` saat pembukaan pasar hari Minggu maupun selama libur akhir pekan.
 
+## Penyelarasan Sesi Harian PDH/PDL New York 17:00 Close (Pro 407)
+
+1. **Cutoff Sesi Harian Standar Gold (17:00 New York Close):**
+   - Pengelompokan lilin intraday ke dalam hari perdagangan di `nextgen-indicators.js` diselaraskan dengan batas resmi pasar Gold / Forex internasional (17:00 NY Close / `America/New_York`), bukan 00:00 WITA.
+   - Menghilangkan masalah di mana rekor tertinggi sesi New York (misal 4184) terdorong masuk ke keranjang hari ini di WITA dan menyebabkan PDH kemarin tertinggal di 4179.
+2. **Preseden Level Otoritatif Server (D1):**
+   - Nilai PDH/PDL harian otoritatif dari D1 yang disediakan server / konteks (`serverAmyLevels.pdh`, `liquidityLevels`, `context.pd`) diprioritaskan (`Math.max(serverPdh, localPdh)`), mencegah distorsi dari keterbatasan buffer 300 lilin intraday.
+
+

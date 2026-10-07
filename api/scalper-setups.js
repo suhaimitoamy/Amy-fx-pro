@@ -144,6 +144,16 @@ export default async function handler(req, res) {
         if (driver.plan && (driver.state === 'CONFIRMED' || driver.state === 'ARMED')) {
           const formedAtSec = driver.plan.formedAt ? Math.floor(new Date(driver.plan.formedAt).getTime() / 1000) : (m15.at(-1)?.close_time || m15[0]?.close_time || nowSec);
           const setupId = driver.setupId || `${driver.id}_${driver.plan.direction}_${formedAtSec}`;
+          const isConfirmed = driver.state === 'CONFIRMED';
+          const actualEntry = isConfirmed && driver.plan.confirmedEntry
+            ? driver.plan.confirmedEntry
+            : driver.plan.entry;
+          const actualRisk = Math.abs(actualEntry - driver.plan.stopLoss);
+          const dirSign = driver.plan.direction === 'BUY' ? 1 : -1;
+          const actualTarget = isConfirmed && actualRisk > 0
+            ? Math.round((actualEntry + dirSign * actualRisk * driver.rr) * 10000) / 10000
+            : driver.plan.target;
+
           active.push({
             id: setupId,
             engineVersion: SIX_ENGINE_VERSION,
@@ -154,17 +164,22 @@ export default async function handler(req, res) {
             timeframe: 'M15',
             symbol: 'XAU/USD',
             direction: driver.plan.direction,
-            status: driver.state === 'CONFIRMED' ? 'ACTIVE' : 'WAITING_TRIGGER',
+            status: isConfirmed ? 'ACTIVE' : 'WAITING_TRIGGER',
             recommendationStatus: 'VALID',
-            entry: driver.plan.entry,
+            entry: actualEntry,
             stopLoss: driver.plan.stopLoss,
-            target: driver.plan.target,
-            risk: 1.5,
-            priority: 2,
+            target: actualTarget,
+            risk: actualRisk > 0 ? Math.round(actualRisk * 100) / 100 : 1.5,
+            priority: isConfirmed ? 2 : 3,
+            note: isConfirmed
+              ? 'Konfirmasi M5 close terpicu · Market Execution'
+              : `Menunggu pullback ke zona OTE [${driver.plan.zoneLow} – ${driver.plan.zoneHigh}]`,
             createdAt: driver.plan.formedAt || new Date(formedAtSec * 1000).toISOString()
           });
         }
       }
+
+      active.sort((a, b) => (a.priority || 99) - (b.priority || 99));
     }
 
     const payload = {

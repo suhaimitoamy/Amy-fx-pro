@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.404/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.405/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Adopsi Mesin ICT Concepts amygmgo & Dashboard V2: Matriks status bias M15 16-baris autoritatif, Dealing Range (Premium/Discount/EQ), DOL & POI tracking komprehensif.",
-    "AMY Entry Assistant V3: Deteksi 4 sinyal presisi (Buy/Sell Entry, Pullback Buy/Sell) berbasis Break + Retest + Reject (wick 1.2x), Math Zones (Fibo OTE 0.618-0.786, SNR, Sweeps), dan Anti-Chase Filter.",
-    "Weekend Stitching & Anti-Cold-Start: Menghubungkan candle penutupan Jumat sore dengan pembukaan Minggu secara sah tanpa error data terlambat.",
-    "Optimasi Kuota TwelveData & Zero Supabase: Penambahan multi-tier local persistent candle cache dan CDN edge cache anti-429."
+    "Penyelarasan Presisi PDH/PDL: Cutoff New York 17:00 Close dan preseden level D1 server agar level harian akurat di 4184.00 tanpa terpotong jam WITA.",
+    "Overhaul Eksekusi 6 Driver Turnamen: Entry Market langsung pada konfirmasi M5 close terpicu (bukan pasif antre limit di diskon dalam).",
+    "Perluasan ICT Sweet Spot Fibo: Optimal Trade Entry (OTE) diperluas ke 61.8%–78.6% pada model Sniper, Swing CHoCH, dan Multi-Driver Ensemble.",
+    "Prioritas & Penyelarasan Volatilitas AMY Entry Assistant V3: Peningkatan toleransi ATR (maxChaseAtr: 0.75, zoneAtr: 0.35) untuk karakteristik Gold."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.404/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.405/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950404,
-  "latest_version_name": "2.0.0-pro.404",
+  "latest_version_code": 950405,
+  "latest_version_name": "2.0.0-pro.405",
   "mandatory": false,
-  "releaseDate": "2026-10-05",
+  "releaseDate": "2026-10-07",
   "release_notes": [
-    "Adopsi Mesin ICT Concepts amygmgo & Dashboard V2: Matriks status bias M15 16-baris autoritatif, Dealing Range (Premium/Discount/EQ), DOL & POI tracking komprehensif.",
-    "AMY Entry Assistant V3: Deteksi 4 sinyal presisi (Buy/Sell Entry, Pullback Buy/Sell) berbasis Break + Retest + Reject (wick 1.2x), Math Zones (Fibo OTE 0.618-0.786, SNR, Sweeps), dan Anti-Chase Filter.",
-    "Weekend Stitching & Anti-Cold-Start: Menghubungkan candle penutupan Jumat sore dengan pembukaan Minggu secara sah tanpa error data terlambat.",
-    "Optimasi Kuota TwelveData & Zero Supabase: Penambahan multi-tier local persistent candle cache dan CDN edge cache anti-429."
+    "Penyelarasan Presisi PDH/PDL: Cutoff New York 17:00 Close dan preseden level D1 server agar level harian akurat di 4184.00 tanpa terpotong jam WITA.",
+    "Overhaul Eksekusi 6 Driver Turnamen: Entry Market langsung pada konfirmasi M5 close terpicu (bukan pasif antre limit di diskon dalam).",
+    "Perluasan ICT Sweet Spot Fibo: Optimal Trade Entry (OTE) diperluas ke 61.8%–78.6% pada model Sniper, Swing CHoCH, dan Multi-Driver Ensemble.",
+    "Prioritas & Penyelarasan Volatilitas AMY Entry Assistant V3: Peningkatan toleransi ATR (maxChaseAtr: 0.75, zoneAtr: 0.35) untuk karakteristik Gold."
   ],
   "sha256": "eb09a42d3fd6ef39819d55d845da2f377c35cfd273100dfe963615e376f85540",
-  "version": "2.0.0-pro.404",
-  "versionCode": 950404
+  "version": "2.0.0-pro.405",
+  "versionCode": 950405
 }

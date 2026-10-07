@@ -203,3 +203,30 @@ test('app.js initializes createPriceChart with touchAxes, filters weekend closur
   assert.ok(appSrc.includes('Pasar Tutup (Akhir Pekan)'), 'Must indicate Pasar Tutup (Akhir Pekan) in source');
   assert.ok(appSrc.includes('300000'), 'Must schedule 5m (300000ms) interval when market closed');
 });
+
+test('calculateNextGenIndicators prioritizes server D1 PDH/PDL and respects NY 17:00 cutoff', () => {
+  // Test 1: Authoritative server levels override local truncated buffer
+  const t0 = Date.parse('2026-10-06T12:00:00Z') / 1000;
+  const cs1 = [
+    bar(t0, 4170, 4179, 4165, 4175),
+    bar(t0 + 86400, 4175, 4180, 4172, 4178)
+  ];
+  const indServer = calculateNextGenIndicators(cs1, {
+    context: { amy: { levels: { pdh: 4184, pdl: 4150 } } }
+  });
+  assert.equal(indServer.keyLevels.pdh, 4184, 'PDH must be 4184 from server authoritative level');
+  assert.equal(indServer.keyLevels.pdl, 4150, 'PDL must be 4150 from server authoritative level');
+
+  // Test 2: Local calculation groups by NY 17:00 cutoff, including late session highs before 17:00 NY
+  // 2026-10-06T18:00:00Z = 14:00 EDT (US afternoon session before 17:00 NY close)
+  // 2026-10-06T22:00:00Z = 18:00 EDT (next trading day, 2026-10-07)
+  const usAfternoon = Date.parse('2026-10-06T18:00:00Z') / 1000;
+  const nextTradingDay = Date.parse('2026-10-06T22:00:00Z') / 1000;
+  const cs2 = [
+    bar(usAfternoon, 4175, 4184, 4170, 4182),
+    bar(nextTradingDay, 4182, 4183, 4180, 4181)
+  ];
+  const indLocal = calculateNextGenIndicators(cs2);
+  assert.equal(indLocal.keyLevels.pdh, 4184, 'Local PDH must capture 4184 from US session before 17:00 NY close');
+});
+
