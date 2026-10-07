@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.406/AmyFX-Pro-latest.apk",
   "changelog": [
+    "Perbaikan Tab Catatan: Memperbaiki tombol Baca Selengkapnya yang tidak bisa dibuka dan tombol Edit catatan yang tidak merespons pada catatan yang sudah dibuat.",
     "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
-    "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah).",
-    "Paritas Multiplatform: Penyelarasan penuh logika catatan dan backup antara Amy FX Pro Android dan PWA iPhone."
+    "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah)."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.406/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-10-07",
   "release_notes": [
+    "Perbaikan Tab Catatan: Memperbaiki tombol Baca Selengkapnya yang tidak bisa dibuka dan tombol Edit catatan yang tidak merespons pada catatan yang sudah dibuat.",
     "Integrasi Backup ZIP Catatan: Data catatan pribadi trading kini otomatis diikutsertakan ke dalam file backup ZIP dan dapat dipulihkan kapan saja saat restore.",
-    "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah).",
-    "Paritas Multiplatform: Penyelarasan penuh logika catatan dan backup antara Amy FX Pro Android dan PWA iPhone."
+    "Pengurutan Catatan Kronologis: Catatan pribadi diurutkan presisi berdasarkan tanggal (catatan terbaru di atas, catatan masa lalu/lama otomatis tersusun rapi di bagian bawah)."
   ],
   "sha256": "2c2c8b5439241793774267c92e9b8f45285f0dee4ba972c8b18ece8a5bd0b1b9",
   "version": "2.0.0-pro.406",

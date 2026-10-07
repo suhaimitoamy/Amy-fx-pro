@@ -600,3 +600,16 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 3. **Paritas 1:1 Amy FX Pro & Amy FX PWA (iPhone):**
    - Perubahan disinkronkan secara identik ke `/root/Amy-fx-pro/app/src/main/assets/apps/journal/app.js` dan `/root/download/Amy-fX-pwa/assets/apps/journal/app-core.js`.
 
+
+## 2026-10-07 — Perbaikan Interaksi Catatan (Toggle Expand & Edit Handler)
+
+1. **Tombol "Baca Selengkapnya" (Toggle Collapse):**
+   - Masalah: `handleNoteActions` memeriksa `const id = btn.dataset.id; if (!id) return;` sebelum memeriksa class `toggle-collapse-btn`, padahal tombol tersebut tidak memiliki `data-id`, sehingga fungsi keluar dini.
+   - Solusi: Pindahkan pengecekan `toggle-collapse-btn` ke baris teratas sebelum validasi id, tambahkan `data-id` pada tombol, dan fallback traversal DOM via `.closest('.note-card')`.
+2. **Tombol "Edit" (Edit Handler & Scrolling):**
+   - Masalah: ID catatan dicocokkan dengan `===` tanpa konversi tipe string dan form berada di paling atas tanpa auto-scroll, sehingga pengguna di layar ponsel yang sedang scroll ke bawah tidak melihat form yang terbuka.
+   - Solusi: Pastikan pencocokan string `String(n.id) === String(id)`, auto-scroll ke form via `scrollIntoView({ behavior: 'smooth', block: 'start' })`, fokus ke input judul, ubah label tombol submit menjadi "Perbarui Catatan", dan pastikan setiap catatan lama yang dimuat dari localStorage otomatis memiliki ID unik persisten.
+3. **Bump Versi ke Pro407:**
+   - Versi dinaikkan ke `2.0.0-pro.407` (950407) untuk memicu rilis build APK baru ke pengguna.
+
+

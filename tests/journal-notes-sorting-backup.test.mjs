@@ -41,3 +41,19 @@ test('importBackup restores notes from payload and triggers sort', () => {
   assert.match(source, /if \(Array\.isArray\(payload\.notes \|\| payload\.personalNotes\)\)/);
   assert.match(source, /state\.personalNotes = sortNotes\(\[\.\.\.existingNotesById\.values\(\)\]\)/);
 });
+
+test('handleNoteActions handles toggle-collapse-btn before dataset.id check', () => {
+  const handlerMatch = source.match(/function handleNoteActions\(e\) \{([\s\S]*?)\n\}/);
+  assert.ok(handlerMatch, 'handleNoteActions function must exist');
+  const code = handlerMatch[1];
+  const toggleIndex = code.indexOf('toggle-collapse-btn');
+  const idCheckIndex = code.indexOf('const id = btn.dataset.id;');
+  assert.ok(toggleIndex !== -1, 'toggle-collapse-btn must be handled');
+  assert.ok(toggleIndex < idCheckIndex, 'toggle-collapse-btn must be handled before id check');
+});
+
+test('openNoteForm handles edit mode and scrolls into view', () => {
+  assert.match(source, /dom\.noteForm\.scrollIntoView/);
+  assert.match(source, /submitBtn\.textContent = "Perbarui Catatan"/);
+});
+
