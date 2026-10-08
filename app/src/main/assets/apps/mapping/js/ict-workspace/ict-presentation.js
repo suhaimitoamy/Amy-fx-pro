@@ -28,7 +28,7 @@ export function mappingWarnings(amy,news=null){
   if(!amy)return [];
   const d=amy.dashboard,e=amy.entry,warnings=[];
   if(news?.status==='NEWS_LOCK')warnings.push('NEWS LOCK · Tunda eksekusi.');
-  if(e?.m5Invalid)warnings.push('Harga melewati invalidasi · tunggu close M15.');
+  if(e?.m5Invalid)warnings.push('Close M5 melewati invalidasi · tunggu close M15.');
   else if(d?.invalidStatus===2)warnings.push('Setup batal · tunggu struktur baru.');
   else if(d?.invalidStatus===1)warnings.push(`Dekat invalidasi ${n(d.invalidLevel)}.`);
   if(e?.winDir&&d?.biasDir&&e.winDir!==d.biasDir)warnings.push(`Skor ${e.winDir===1?'BUY':'SELL'} berlawanan bias M15 · tunggu struktur baru.`);
