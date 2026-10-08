@@ -44,9 +44,14 @@ import {
   resetAlert,
   clearAlerts,
   checkPrice,
+  setPreviousPrice,
   getCurrentLivePrice,
   getStats,
-  renderAlertList
+  renderAlertList,
+  checkIctIntrabarSweeps,
+  clearIctCooldowns,
+  getIctCooldowns,
+  isGoldMarketOpen
 } from '../app/src/main/assets/apps/mapping/js/ict-workspace/price-alert-manager.js';
 
 test('PriceAlertManager: getCurrentLivePrice retrieves configured live price', () => {
@@ -205,3 +210,144 @@ test('PriceAlertManager: renderAlertList creates UI structure with active items'
   assert.ok(mockContainer.innerHTML.includes('Daily High'));
   assert.ok(mockContainer.innerHTML.includes('1 Aktif'));
 });
+
+test('PriceAlertManager: checkIctIntrabarSweeps triggers instant 0s BSL sweep alert', () => {
+  clearIctCooldowns();
+  window.Android.notifications = [];
+  window.__amyfxMarketOpen = true;
+
+  window.AmyMarketContext = {
+    session: 'LONDON / NEW YORK OVERLAP',
+    liquidity: [
+      { label: 'BSL', level: 2660.00, side: 'BUY', status: 'ACTIVE' },
+      { label: 'SSL', level: 2635.00, side: 'SELL', status: 'ACTIVE' }
+    ],
+    m15: { structure: 'BULLISH', invalidLevel: 2638.00 }
+  };
+
+  const events = checkIctIntrabarSweeps(2660.50, 2658.00);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].key, 'BSL');
+  assert.equal(events[0].type, 'SWEEP');
+  assert.equal(events[0].level, 2660.00);
+  assert.equal(events[0].price, 2660.50);
+
+  assert.equal(window.Android.notifications.length, 1);
+  assert.ok(window.Android.notifications[0].title.includes('BSL'));
+  assert.ok(window.Android.notifications[0].message.includes('2660.50'));
+});
+
+test('PriceAlertManager: checkIctIntrabarSweeps triggers instant SSL sweep alert', () => {
+  clearIctCooldowns();
+  window.Android.notifications = [];
+  window.__amyfxMarketOpen = true;
+
+  window.AmyMarketContext = {
+    session: 'NEW YORK',
+    liquidity: [
+      { label: 'SSL', level: 2635.00, side: 'SELL', status: 'ACTIVE' }
+    ]
+  };
+
+  const events = checkIctIntrabarSweeps(2634.00, 2636.50);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].key, 'SSL');
+  assert.equal(events[0].type, 'SWEEP');
+  assert.equal(events[0].level, 2635.00);
+});
+
+test('PriceAlertManager: checkIctIntrabarSweeps respects 5-minute anti-jitter cooldown', () => {
+  clearIctCooldowns();
+  window.Android.notifications = [];
+  window.__amyfxMarketOpen = true;
+
+  window.AmyMarketContext = {
+    liquidity: [{ label: 'BSL', level: 2660.00, side: 'BUY', status: 'ACTIVE' }]
+  };
+
+  const first = checkIctIntrabarSweeps(2661.00, 2659.00);
+  assert.equal(first.length, 1);
+  assert.equal(window.Android.notifications.length, 1);
+
+  const second = checkIctIntrabarSweeps(2662.00, 2659.50);
+  assert.equal(second.length, 0);
+  assert.equal(window.Android.notifications.length, 1);
+});
+
+test('PriceAlertManager: checkIctIntrabarSweeps triggers POI entry alert', () => {
+  clearIctCooldowns();
+  window.Android.notifications = [];
+  window.__amyfxMarketOpen = true;
+
+  window.AmyMarketContext = {
+    m15: {
+      poi: { low: 2645.00, high: 2648.00, label: 'Bullish Order Block M15', ce: 2646.50 }
+    }
+  };
+
+  const events = checkIctIntrabarSweeps(2647.00, 2650.00);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'POI');
+  assert.ok(events[0].key.startsWith('POI_'));
+  assert.equal(window.Android.notifications.length, 1);
+  assert.ok(window.Android.notifications[0].title.includes('UJI ZONA POI'));
+});
+
+test('PriceAlertManager: checkIctIntrabarSweeps triggers structure break / invalidation', () => {
+  clearIctCooldowns();
+  window.Android.notifications = [];
+  window.__amyfxMarketOpen = true;
+
+  window.AmyMarketContext = {
+    m15: {
+      structure: 'BULLISH',
+      invalidLevel: 2640.00
+    }
+  };
+
+  const events = checkIctIntrabarSweeps(2639.50, 2642.00);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].key, 'INVALIDATION');
+  assert.equal(events[0].type, 'BREAK');
+  assert.ok(window.Android.notifications[0].title.includes('BREAK STRUKTUR'));
+});
+
+test('PriceAlertManager: checkIctIntrabarSweeps suppresses alerts during market closure', () => {
+  clearIctCooldowns();
+  window.Android.notifications = [];
+
+  window.__amyfxMarketOpen = false;
+  window.AmyMarketContext = {
+    session: 'PASAR TUTUP',
+    liquidity: [{ label: 'BSL', level: 2660.00, side: 'BUY', status: 'ACTIVE' }]
+  };
+
+  const events = checkIctIntrabarSweeps(2665.00, 2655.00);
+
+  assert.equal(events.length, 0);
+  assert.equal(window.Android.notifications.length, 0);
+});
+
+test('PriceAlertManager: checkPrice integrates live ICT sweeps even without manual custom alerts', () => {
+  clearIctCooldowns();
+  localStorage.clear();
+  window.Android.notifications = [];
+  window.__amyfxMarketOpen = true;
+
+  window.AmyMarketContext = {
+    liquidity: [{ label: 'PDH', level: 2670.00, side: 'BUY', status: 'ACTIVE' }]
+  };
+
+  setPreviousPrice(2668.00);
+
+  const triggered = checkPrice(2671.00);
+
+  assert.equal(triggered, true);
+  assert.equal(window.Android.notifications.length, 1);
+  assert.ok(window.Android.notifications[0].title.includes('PDH'));
+});
+

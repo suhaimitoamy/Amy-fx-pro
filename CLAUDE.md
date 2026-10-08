@@ -82,4 +82,45 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
      - Peluru Utama A+ aktif tanpa harus terblokir menunggu M5 break.
    - M5 tetap diizinkan sebagai trigger pendukung jika mendahului, namun M15 close memiliki otoritas penuh.
 
+## Overhaul Pemicu Entry Limit Driver Mapping & Dekopling M15 (Pro 408)
+
+1. **Jendela Waktu Realistis & Likuiditas Valid:**
+   - `entry_deadline` diperpanjang dari 15 menit (900s) menjadi 60–90 menit (`Math.max(3600, driver.hold)`), memberi ruang nafas bagi pasar Gold untuk retrace ke area limit.
+   - Seleksi target likuiditas memilih level yang memiliki ruang bagi target (`validLiquidity || nearestLiquidity`), menghilangkan masalah demosi ke `WAITING_TARGET` akibat pivot minor 2-bar.
+2. **Dekopling Penuh dari Ketergantungan M5 (Otoritas M15 Murni):**
+   - Di `driver-model.js`, verifikasi kesegaran driver diperluas untuk menerima timestamp M15 (`context.source?.M15`) maupun M5.
+   - Di `six-drivers.mjs` (keduanya `lib` dan `supabase`), lilin eksekusi fallback otomatis ke M15 (`M`) saat M5 tidak tersedia. Jendela konfirmasi retest diperluas menjadi 3600s (1 jam) agar retest M15 memiliki waktu cukup dan tidak kedaluwarsa prematur.
+   - Di `market-context.mjs`, kesegaran konteks (`fresh`) berpusat pada kelengkapan H1 dan M15 tanpa membatalkan konteks jika lilin M5 terlambat.
+   - Di antarmuka Mapping (`index.html`, `ict-presentation.js`, `context-panel.js`), seluruh salinan teks M5 yang tertinggal dibersihkan menjadi M15, menyelaraskan tampilan UI 100% dengan strategi trading pengguna.
+3. **Pemicu Sentuhan Harga Real-Time (Touch Trigger):**
+   - Di `api/scalper-setups.js`, sentuhan harga live ke level limit langsung mengaktifkan status ke `ACTIVE` (*"Harga menyentuh level limit · Posisi berjalan"*).
+4. **Sinkronisasi Client Lifecycle Tracker:**
+   - `trade-lifecycle-tracker.js` dinormalisasi untuk mengenali properti model driver (`direction`, `stopLoss`, `target`), dipasangkan listener `amyfx:driver-setups`, dan diaktifkan via `trackAssistantPlan(s)` di `context-panel.js`.
+
+## Live Intrabar Touch Alerts (0s Delay) & Background Worker Sync (Pro 409)
+
+1. **Akar Masalah Keterlambatan Notifikasi (BSL Sweep, Break, POI Test):**
+   - **Closed-Candle Philosophy Delay (13–15 menit):** Sebelumnya, deteksi likuiditas sweep (`detectLiquiditySweep`) dan engine pasar hanya memeriksa lilin yang sudah tertutup (`is_closed: true`). Jika sweep terjadi pada menit ke-2 candle M15, sistem terpaksa menunggu lilin M15 selesai pada menit ke-15:00 (latensi built-in 13–15 menit).
+   - **Background Worker Abortion:** `DriverSetupSyncWorker.kt` mewajibkan timestamp `M5` (`sourceObj?.optLong("M5", 0L)`), menyebabkan worker background Android batal diam-diam saat payload pasar beroperasi murni dengan otoritas M15.
+
+2. **Model Notifikasi 2-Tier Real-Time:**
+   - **Tier 1 (Instant Intrabar Touch Alert · Latensi 0 Detik):**
+     - Di `price-alert-manager.js`, diimplementasikan fungsi `checkIctIntrabarSweeps(current, prev)` yang berjalan di setiap tick harga real-time (`twelvedata-price`, `price-tick`, DOM MutationObserver, periodic safety interval).
+     - Memantau level likuiditas dari konteks aktif (`window.AmyMarketContext` / `amyfx.market-context.v1`):
+       - **BSL / PDH / Asia High / PWH / EQH**: Sentuhan/tembusan ke atas (`prev < level && current >= level`) -> `⚡ SWEEP INTRABAR: <LABEL> ($<LEVEL>)`.
+       - **SSL / PDL / Asia Low / PWL / EQL**: Sentuhan/tembusan ke bawah (`prev > level && current <= level`) -> `⚡ SWEEP INTRABAR: <LABEL> ($<LEVEL>)`.
+       - **Break Struktur / Invalidasi M15**: Tembusan level invalidasi (`prev > inv && current <= inv` untuk Bullish, atau sebaliknya untuk Bearish) -> `⚠️ BREAK STRUKTUR: XAU/USD Menembus $<LEVEL>`.
+       - **Uji Zona POI**: Harga masuk ke rentang POI M15 (`low`–`high`) dari atas maupun bawah -> `🎯 UJI ZONA POI: XAU/USD Masuk ke <LABEL>`.
+     - **Multi-Channel Dispatch:** Dikirim instan melalui jembatan native Android (`window.Android.showNotificationWithUrl`), Web Notification API, Web Audio API chime melodic, haptic vibration, dan top glassmorphism banner (`showIctBanner`).
+     - **Anti-Jitter Cooldown:** Dilengkapi cooldown 5 menit (`ICT_COOLDOWN_MS = 300000`) per level key untuk mencegah getaran/notifikasi berulang akibat fluktuasi tick kecil di sekitar level.
+     - **Weekend Anti-Spam:** Otomatis dibungkam saat pasar tutup (`isGoldMarketOpen() === false` atau `session === 'PASAR TUTUP'`).
+   - **Tier 2 (Confirmed Closed Candle Reclaim):**
+     - Analisis penutupan lilin M15 tetap berjalan normal setelah lilin resmi close untuk mengonfirmasi validitas displacement / MSS atau wick rejection.
+
+3. **Perbaikan Background Worker (`DriverSetupSyncWorker.kt`):**
+   - Timestamp pemeriksaan lilin kini membaca `M15` terlebih dahulu (`sourceObj?.optLong("M15", 0L)`), fallback ke `M5`.
+   - Jendela kesegaran diperluas menjadi 3600 detik (1 jam) agar background worker tidak menghentikan notifikasi saat feed M5 tidak ada.
+
+
+
 

@@ -700,7 +700,8 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
 
 export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={}}){
   const H=clean(h1,nowSeconds,3600),M=clean(m15,nowSeconds,900),T=clean(m5,nowSeconds,300),I=clean(m1,nowSeconds,60),D=clean(d1,nowSeconds);
-  const dashboard=dashboardEngine(M,settings),trigger=triggerEngine(T,settings),levels=keyLevels({m1:I,d1:D,m15:M,nowSeconds});
+  const executionT=T.length>=15?T:M;
+  const dashboard=dashboardEngine(M,settings),trigger=triggerEngine(executionT,settings),levels=keyLevels({m1:I,d1:D,m15:M,nowSeconds});
   const pivots=pivotSources(D,nowSeconds);
   const signals=[],keyHistory=keyLevelHistory(I);let cursor=0,keyCursor=0;
   for(const t of trigger){while(cursor+1<dashboard.history.length&&dashboard.history[cursor+1].time<=t.time)cursor++;
@@ -712,7 +713,7 @@ export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={
   }
   const current=dashboard.current,latestTrigger=last(trigger)||null,entry=entryScore(current,latestTrigger,levels,settings);
   const m15Conf=m15Confirmation(current,levels);
-  const assistant=entryAssistantV3(current,T,levels,pivots,settings);
+  const assistant=entryAssistantV3(current,executionT,levels,pivots,settings);
   const visuals=baseVisuals(M,settings);
   return {
     chartCandles:{M15:M.slice(-500),M5:T.slice(-500),M1:I.slice(-500)},

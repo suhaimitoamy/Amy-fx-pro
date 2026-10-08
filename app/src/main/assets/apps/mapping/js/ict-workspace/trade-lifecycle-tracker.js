@@ -88,20 +88,20 @@ export function getCurrentPrice() {
 
 export function generatePlanKey(plan) {
   if (!plan) return null;
-  const side = plan.side || (plan.signalType > 0 ? 'BUY' : 'SELL');
+  const side = plan.side || plan.direction || (plan.signalType > 0 ? 'BUY' : 'SELL');
   const entry = Number(plan.entry).toFixed(2);
-  const sl = Number(plan.sl).toFixed(2);
-  const tp1 = Number(plan.tp1).toFixed(2);
+  const sl = Number(plan.sl ?? plan.stopLoss).toFixed(2);
+  const tp1 = Number(plan.tp1 ?? plan.target).toFixed(2);
   return `${side}_${entry}_${sl}_${tp1}`;
 }
 
 export function trackAssistantPlan(plan, priceOverride = null) {
-  if (!plan || !plan.entry || !plan.sl || !plan.tp1) return null;
+  if (!plan || !plan.entry) return null;
 
-  const side = plan.side || (plan.signalType > 0 ? 'BUY' : 'SELL');
+  const side = plan.side || plan.direction || (plan.signalType > 0 ? 'BUY' : 'SELL');
   const entry = Number(plan.entry);
-  const sl = Number(plan.sl);
-  const tp1 = Number(plan.tp1);
+  const sl = Number(plan.sl ?? plan.stopLoss);
+  const tp1 = Number(plan.tp1 ?? plan.target);
   const tp2 = plan.tp2 ? Number(plan.tp2) : null;
 
   if (!Number.isFinite(entry) || !Number.isFinite(sl) || !Number.isFinite(tp1)) return null;
@@ -122,8 +122,8 @@ export function trackAssistantPlan(plan, priceOverride = null) {
   }
 
   const currentPrice = priceOverride != null ? priceOverride : getCurrentPrice();
-  let initialStatus = 'ARMED_LIMIT';
-  let triggeredAt = null;
+  let initialStatus = plan.status === 'ACTIVE' ? 'ACTIVE_RUNNING' : 'ARMED_LIMIT';
+  let triggeredAt = plan.status === 'ACTIVE' ? Date.now() : null;
 
   if (currentPrice != null && Number.isFinite(currentPrice)) {
     if (side === 'BUY') {
@@ -157,7 +157,7 @@ export function trackAssistantPlan(plan, priceOverride = null) {
     tp2,
     risk: Number((Math.abs(entry - sl)).toFixed(2)),
     status: initialStatus,
-    signalName: plan.signalName || `${side} ENTRY`,
+    signalName: plan.signalName || plan.driverName || plan.model || `${side} ENTRY`,
     signalType: plan.signalType || (side === 'BUY' ? 1 : -1),
     createdAt: Date.now(),
     triggeredAt,
@@ -1122,6 +1122,16 @@ export function initTradeLifecycleTracker() {
     const plan = event.detail;
     if (plan) {
       trackAssistantPlan(plan);
+    }
+  });
+
+  // 2b. Tangkap setup driver turnamen dari server / mapping
+  window.addEventListener('amyfx:driver-setups', event => {
+    const setups = Array.isArray(event.detail) ? event.detail : [];
+    for (const setup of setups) {
+      if (setup && setup.entry && (setup.stopLoss || setup.sl) && (setup.target || setup.tp1)) {
+        trackAssistantPlan(setup);
+      }
     }
   });
 

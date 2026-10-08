@@ -146,12 +146,14 @@ class DriverSetupSyncWorker(
 
         val amy = contextObj.optJSONObject("amy") ?: return
         val sourceObj = amy.optJSONObject("source") ?: contextObj.optJSONObject("source")
-        val m5Time = sourceObj?.optLong("M5", 0L) ?: 0L
-        if (m5Time <= 0L) return
+        val candleTime = sourceObj?.optLong("M15", 0L)?.takeIf { it > 0L }
+            ?: sourceObj?.optLong("M5", 0L)
+            ?: 0L
+        if (candleTime <= 0L) return
 
         val nowSec = System.currentTimeMillis() / 1000
-        if (nowSec - m5Time > 1800L) {
-            android.util.Log.d("AmyFX-DriverWorker", "M5 candle is stale (${nowSec - m5Time}s old), assistant alerts suppressed.")
+        if (nowSec - candleTime > 3600L) {
+            android.util.Log.d("AmyFX-DriverWorker", "Candle is stale (${nowSec - candleTime}s old), assistant alerts suppressed.")
             return
         }
 
@@ -243,7 +245,7 @@ class DriverSetupSyncWorker(
 
         if (!notify || notifTitle.isBlank() || notifBody.isBlank()) return
 
-        val cacheKey = "assistant_${badge}_${m5Time}"
+        val cacheKey = "assistant_${badge}_${candleTime}"
         val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.contains(cacheKey)) return
 

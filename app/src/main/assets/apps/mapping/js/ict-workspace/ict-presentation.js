@@ -28,7 +28,7 @@ export function mappingWarnings(amy,news=null){
   if(!amy)return [];
   const d=amy.dashboard,e=amy.entry,warnings=[];
   if(news?.status==='NEWS_LOCK')warnings.push('NEWS LOCK · Tunda eksekusi.');
-  if(e?.m5Invalid)warnings.push('Close M5 melewati invalidasi · tunggu close M15.');
+  if(e?.m5Invalid)warnings.push('Harga melewati invalidasi · tunggu close M15.');
   else if(d?.invalidStatus===2)warnings.push('Setup batal · tunggu struktur baru.');
   else if(d?.invalidStatus===1)warnings.push(`Dekat invalidasi ${n(d.invalidLevel)}.`);
   if(e?.winDir&&d?.biasDir&&e.winDir!==d.biasDir)warnings.push(`Skor ${e.winDir===1?'BUY':'SELL'} berlawanan bias M15 · tunggu struktur baru.`);
@@ -40,7 +40,7 @@ export function compactChartNarration(amy,news=null){
   return (amy?.entry?.text||'Menunggu candle tertutup.').split('\n').filter(Boolean).slice(0,2);
 }
 const rowNames={'PROTECTED':'Protected swing','LIQUIDITY':'Likuiditas','SWEEP PRICE':'Harga sweep','DOL':'Target DOL','DOL DETAIL':'Jarak DOL','POI PRICE':'Area & CE','POI DETAIL':'Lokasi POI','RANGE':'Dealing Range','INVALID':'Invalidasi','ALASAN INTI':'Ringkasan'};
-const layerNames={bias:'Bias M15',sweep:'Liquidity sweep',poi:'Area POI',poiBonus:'Reaksi POI',dol:'Target DOL',location:'Premium / Discount',displacement:'Displacement M5',structure:'Break struktur M5',asia:'Level Asia'};
+const layerNames={bias:'Bias M15',sweep:'Liquidity sweep',poi:'Area POI',poiBonus:'Reaksi POI',dol:'Target DOL',location:'Premium / Discount',displacement:'Displacement',structure:'Break struktur',asia:'Level Asia'};
 const readable=text=>String(text).replaceAll('NO CLEAR BIAS','Bias belum jelas').replaceAll('EQ Zone','Zona EQ').replaceAll('Near Invalid','Dekat invalidasi').replaceAll('No Bias','Tanpa bias').replaceAll('Against Bias','Lawan bias').replaceAll('With Bias','Searah bias').replaceAll('Bad Location','Lokasi kurang ideal').replaceAll('Healthy','Lokasi sesuai').replaceAll('Reached','Tercapai').replaceAll('Active','Aktif').replaceAll('Secondary','Tambahan').replaceAll('Ignore','Abaikan').replaceAll('Main','Utama').replaceAll('None','Belum ada').replaceAll('Fresh','Baru').replaceAll('Old','Lama').replaceAll('Dist ','Jarak ').replaceAll('Extreme ','Ekstrem ').replaceAll('Draw to ','Menuju ');
 export function isGoldMarketOpen(nowSeconds = Math.floor(Date.now() / 1000)) {
   try {
@@ -189,7 +189,7 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     badgeEl.textContent='STANDBY';
     badgeEl.className='assistant-badge badge-neutral';
     root.className='amy-live-assistant';
-    primaryEl.textContent='Memeriksa aksi harga M15 / M5...';
+    primaryEl.textContent='Memeriksa aksi harga M15...';
     subEl.textContent='Menunggu data candle tertutup server.';
     if(confEl)confEl.textContent='Confluence: —';
     if(clockEl)clockEl.textContent='Live Sync';
@@ -281,16 +281,16 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
   }
   if(clockEl){
     const nowStr=new Date().toLocaleTimeString('id-ID',{timeZone:'Asia/Makassar',hour:'2-digit',minute:'2-digit'})+' WITA';
-    clockEl.textContent=`M5: ${nowStr}`;
+    clockEl.textContent=`M15: ${nowStr}`;
   }
 
-  const m5Time = amy.source?.M5;
+  const candleTime = amy.source?.M15 || amy.source?.M5;
   const nowSec = Math.floor(Date.now() / 1000);
-  const isStale = !m5Time || (nowSec - m5Time > 1800);
+  const isStale = !candleTime || (nowSec - candleTime > 3600);
 
-  if(notify && notifTitle && settings?.assistantNotif !== false && !isStale && m5Time){
+  if(notify && notifTitle && settings?.assistantNotif !== false && !isStale && candleTime){
     try{
-      const timeKey = m5Time;
+      const timeKey = candleTime;
       const eventKey = `${badge}|${timeKey}`;
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_assistant_events') : null;
       const notified = raw ? JSON.parse(raw) : {};
@@ -374,7 +374,7 @@ export function renderEntryAssistantPlan(amy,context=null){
     if(tp1Val)tp1Val.textContent='—';if(tp1Sub)tp1Sub.textContent='RR: —';
     if(tp2Val)tp2Val.textContent='—';if(tp2Sub)tp2Sub.textContent='Runner: —';
     if(reasonsEl){
-      const items=ast?.reasons&&ast.reasons.length?ast.reasons:['Menunggu konfirmasi candle tertutup M15 & M5.','Belum ada pemicu entry aktif di zona matematika.'];
+      const items=ast?.reasons&&ast.reasons.length?ast.reasons:['Menunggu konfirmasi candle tertutup M15.','Belum ada pemicu entry aktif di zona matematika.'];
       reasonsEl.innerHTML=items.map(r=>`<li>${esc(r)}</li>`).join('');
     }
     if(btnChart){btnChart.disabled=true;btnChart.style.opacity='0.5';btnChart.onclick=null;}
@@ -434,7 +434,7 @@ export function renderAmy(amy,settings,news=null,context=null){
   const dash=document.getElementById('amy-dashboard'),assistant=document.getElementById('amy-assistant'),score=document.getElementById('amy-score-panel');
   const alert=document.getElementById('mapping-alert');if(alert){const warnings=mappingWarnings(amy,news);alert.hidden=!warnings.length;alert.textContent=warnings.join(' ');}
   if(dash){dash.hidden=!settings.dashboard;dash.innerHTML=amy?`<div class="section-heading"><h2>Rincian bias M15</h2><span>Candle tertutup</span></div><dl class="amy-dashboard">${dashboardRows(amy).map(([a,b])=>`<div><dt>${esc(rowNames[a]||a)}</dt><dd>${esc(readable(b))}</dd></div>`).join('')}</dl>`:'<p>Menunggu konteks server yang segar.</p>';}
-  if(assistant){assistant.hidden=false;assistant.innerHTML=amy?`<h2>Entry Assistant · M5</h2><p class="amy-narration">${esc(news?.status==='NEWS_LOCK'?news.note:amy.entry.text)}</p><small>Skor confluence adalah poin model, bukan peluang menang.</small>`:'<p>Menunggu candle tertutup.</p>';}
+  if(assistant){assistant.hidden=false;assistant.innerHTML=amy?`<h2>Entry Assistant · M15</h2><p class="amy-narration">${esc(news?.status==='NEWS_LOCK'?news.note:amy.entry.text)}</p><small>Skor confluence adalah poin model, bukan peluang menang.</small>`:'<p>Menunggu candle tertutup.</p>';}
   if(score){score.hidden=!settings.panel;const e=amy?.entry;score.innerHTML=e?`<h2>${esc(e.grade)} · ${e.score}/100 poin</h2><p>BUY ${e.buy} | SELL ${e.sell} · ${directions(e.winDir)}</p><table class="amy-score-table"><thead><tr><th>Lapisan</th><th>BUY</th><th>SELL</th></tr></thead><tbody>${Object.keys(e.breakdown.buy||{}).map(k=>`<tr><td>${esc(layerNames[k]||k)}</td><td>${e.breakdown.buy[k]}</td><td>${e.breakdown.sell[k]}</td></tr>`).join('')}</tbody></table><small>Skor mentah dibatasi 100; dekat invalidasi: skor × 0.7.</small>`:'<p>Skor belum tersedia.</p>';}
   renderLiveAssistant(amy,news,settings,context);
   renderBiasDashboardV2(amy,context);

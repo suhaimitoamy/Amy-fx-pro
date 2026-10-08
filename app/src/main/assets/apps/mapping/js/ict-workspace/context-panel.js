@@ -45,8 +45,8 @@ function renderTournament(c) {
   const container=$('driver-tournament-list'),badge=$('tournament-leader-badge');
   if(!container)return;
   const evaluation=currentDriverEvaluation(payload,c);
-  const labels={DISABLED:'NONAKTIF',DATA_STALE:'DATA TERLAMBAT',NEWS_LOCK:'NEWS LOCK',CALENDAR_UNVERIFIED:'KALENDER BELUM VALID',WAITING_STRUCTURE:'MENUNGGU STRUKTUR',ARMED:'MENUNGGU RETEST',WAITING_M5_BREAK:'MENUNGGU BREAK M5',WAITING_TARGET:'MENUNGGU TARGET',CONFIRMED:'TERKONFIRMASI',RISK_PAUSED:'BATAS RISIKO',INVALIDATED:'BATAL',EXPIRED:'KEDALUWARSA',WAITING_TRIGGER:'MENUNGGU LIMIT',WAITING_NEXT_OPEN:'MENUNGGU OPEN',ACTIVE:'AKTIF · SIMULASI',BE_ACTIVE:'BE AKTIF · SIMULASI'};
-  if(badge){badge.textContent=!c?'MENUNGGU KONTEKS':!evaluation?'Evaluasi strategi belum tersedia':`${evaluation.drivers.filter(d=>d.state==='CONFIRMED').length}/6 driver terkonfirmasi · M5 ${time(evaluation.sourceTime)}`;badge.style.color='var(--muted)';}
+  const labels={DISABLED:'NONAKTIF',DATA_STALE:'DATA TERLAMBAT',NEWS_LOCK:'NEWS LOCK',CALENDAR_UNVERIFIED:'KALENDER BELUM VALID',WAITING_STRUCTURE:'MENUNGGU STRUKTUR',ARMED:'MENUNGGU RETEST',WAITING_M5_BREAK:'MENUNGGU RETEST',WAITING_TARGET:'MENUNGGU TARGET',CONFIRMED:'TERKONFIRMASI',RISK_PAUSED:'BATAS RISIKO',INVALIDATED:'BATAL',EXPIRED:'KEDALUWARSA',WAITING_TRIGGER:'MENUNGGU LIMIT',WAITING_NEXT_OPEN:'MENUNGGU OPEN',ACTIVE:'AKTIF · SIMULASI',BE_ACTIVE:'BE AKTIF · SIMULASI'};
+  if(badge){badge.textContent=!c?'MENUNGGU KONTEKS':!evaluation?'Evaluasi strategi belum tersedia':`${evaluation.drivers.filter(d=>d.state==='CONFIRMED').length}/6 driver terkonfirmasi · M15 ${time(evaluation.sourceTime)}`;badge.style.color='var(--muted)';}
   const opened=new Set(Array.from(container.querySelectorAll?.('details[open]')||[]).map(el=>el.dataset.driver));
   container.innerHTML=getTournamentDrivers(payload?.history).map((d,idx)=>{
     const live=evaluation?.drivers.find(x=>x.id===d.id),stats=evaluation?.statistics?.[d.id];
@@ -92,7 +92,7 @@ function renderDriverSetups(c){
   const isClosed = c?.session === 'PASAR TUTUP' || !isMarketOpenNow();
   const e=currentDriverEvaluation(payload,c),items=c&&e&&!isClosed?(payload?.active||[]):[];
   if(summary)summary.textContent=isClosed?'Pasar tutup · Rencana driver nonaktif di akhir pekan.':!c?'Menunggu data server terkini.':!e?'Menunggu evaluasi driver.':items.length?`${items.length} rencana driver · evaluasi ${time(e.sourceTime)}`:'Belum ada trigger driver baru. Alasan tiap driver tersedia di Detail.';
-  root.innerHTML=isClosed?'<div class="empty-state">Pasar Gold tutup. Evaluasi driver akan aktif kembali saat pasar buka.</div>':items.map(s=>`<details class="inline-detail"><summary>${esc(s.driverName)} · ${esc(s.direction)} · ${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'MENUNGGU LIMIT':'MENUNGGU OPEN'):driverSetupReady(s,c)?'AKTIF · SIMULASI':'WAIT · PERIKSA DATA / BERITA'}</summary><p>Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}</p><p>${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'Limit Fib aktif setelah observasi; tunggu retest berikutnya.':'Entry acuan; harga final mengikuti open setelah observasi.'):'Harga milik posisi model; jangan mengejar entry yang sudah lewat.'}</p><button type="button" data-driver-plan="${esc(s.id)}">Tampilkan level di chart</button></details>`).join('');
+  root.innerHTML=isClosed?'<div class="empty-state">Pasar Gold tutup. Evaluasi driver akan aktif kembali saat pasar buka.</div>':items.map(s=>`<details class="inline-detail"><summary>${esc(s.driverName)} · ${esc(s.direction)} · ${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'MENUNGGU LIMIT':'MENUNGGU OPEN'):(s.status==='ACTIVE'||driverSetupReady(s,c))?'AKTIF · SIMULASI':'WAIT · PERIKSA DATA / BERITA'}</summary><p>Entry ${number(s.entry)} · SL ${number(s.stopLoss)} · TP ${number(s.target)}</p><p>${['WAITING_TRIGGER','WAITING_NEXT_OPEN'].includes(s.status)?(s.status==='WAITING_TRIGGER'?'Limit Fib aktif setelah observasi; tunggu retest berikutnya.':'Entry acuan; harga final mengikuti open setelah observasi.'):'Harga milik posisi model; jangan mengejar entry yang sudah lewat.'}</p><button type="button" data-driver-plan="${esc(s.id)}">Tampilkan level di chart</button></details>`).join('');
   if (!isClosed) {
     try {
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_driver_plans') : null;
@@ -110,6 +110,7 @@ function renderDriverSetups(c){
             window.Android.showNotificationWithUrl(title, body, `${location.href.split('#')[0]}#Dashboard`);
           }
         }
+        trackAssistantPlan(s);
       }
       if (hasNew && typeof localStorage !== 'undefined') {
         const keys = Object.keys(notified).slice(-40);
@@ -130,7 +131,7 @@ function empty(reason){
   for(const id of ['h1-bias','h1-health','m15-poi','m15-range','m15-control','m15-risk','m1-confirmation','m1-evidence','m5-confirmation','m5-evidence']){
     setTxt(id,'—');
   }
-  setTxt('primary-status','MENUNGGU');setTxt('primary-scenario','Tunggu candle H1, M15, dan M5 yang segar.');
+  setTxt('primary-status','MENUNGGU');setTxt('primary-scenario','Tunggu candle H1 dan M15 yang segar.');
   setTxt('alternative-scenario','Belum ada skenario alternatif yang dapat ditinjau.');
   setTxt('execution-status','BELUM SIAP');setTxt('execution-reason',reason);
   setHtml('execution-checklist','');setHtml('evidence','');setHtml('liquidity','<p>Level belum tersedia.</p>');
@@ -149,13 +150,13 @@ function render(){
   }
   const setTxt=(i,v)=>{const el=$(i);if(el)el.textContent=v;};
   const setHtml=(i,v)=>{const el=$(i);if(el)el.innerHTML=v;};
-  const tf=c.source?.M5?'M5':'M1';
-  const confTime=c.source?.M5||c.source?.M1;
-  const confObj=c.m5||c.m1;
+  const tf=c.source?.M15?'M15':(c.source?.M5?'M5':'M1');
+  const confTime=c.source?.M15||c.source?.M5||c.source?.M1;
+  const confObj=c.m15||c.m5||c.m1;
   setTxt('connection','Candle server terkini');setTxt('context-state','KONTEKS · BUKAN SINYAL');
   setTxt('market-state',(c.marketState||'MENUNGGU').replaceAll('NO_SETUP','Belum ada setup').replaceAll('BULLISH','Bullish').replaceAll('BEARISH','Bearish').replaceAll('NEUTRAL','Netral'));
   setTxt('market-story',c.narrative||'Menunggu penjelasan server.');
-  setTxt('context-source',`H1 ${time(c.source.H1)} · M15 ${time(c.source.M15)} · ${tf} ${time(confTime)}`);
+  setTxt('context-source',`H1 ${time(c.source?.H1)} · M15 ${time(c.source?.M15)}${c.source?.M5?` · M5 ${time(c.source.M5)}`:''}`);
   const dr = c.m15?.dealingRange;
   const drLoc = dr?.location ? ` [${dr.location}]` : '';
   const confScore = c.confluence ? ` · Skor: ${c.confluence.score}/100 (${c.confluence.grade})${c.confluence.winDir?` · dominan ${c.confluence.winDir===1?'BUY':'SELL'}`:''}` : '';
@@ -166,7 +167,7 @@ function render(){
   const aPlus = c.execution?.aPlusReady === true && c.execution?.status === 'READY TO REVIEW' && c.confluence?.score >= 75;
   setTxt('m15-risk',aPlus?`🟢 Grade A+${drLoc}: Bukti lengkap${confScore}`:c.m15?.opposingControl?`H1 berlawanan · konteks tambahan${drLoc}${confScore}`:`BIAS M15${drLoc} · BELUM A+${confScore}`);
   const confStatus=id(confObj?.status||'WAITING');
-  const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep atau respons POI dan break/displacement M5.';
+  const confEvidence=confObj?.sweep?`Sweep ${number(confObj.sweep.level)} · MSS ${number(confObj.mss?.level)}`:'Menunggu sweep atau respons POI dan konfirmasi struktur M15.';
   setTxt('m5-confirmation',confStatus);
   setTxt('m1-confirmation',confStatus);
   setTxt('m5-evidence',confEvidence);

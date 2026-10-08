@@ -198,4 +198,33 @@ test('Trade Lifecycle Tracker: ARMED -> ACTIVE -> TP & SL Flow', async (t) => {
     assert.ok(mockContainer.innerHTML.includes('+2.00 pts'), 'Net poin harus +2.00 pts');
     assert.ok(mockContainer.innerHTML.includes('2 SELESAI'), 'Total selesai harus 2');
   });
+
+  await t.test('7. DRIVER LIMIT (ARMED_LIMIT) dengan stopLoss & target -> Trigger saat harga menyentuh entry', () => {
+    notificationsSent.length = 0;
+
+    const driverSetup = {
+      id: 'driver_sniper_buy_1',
+      driverName: 'Sniper · Deep OTE',
+      direction: 'BUY',
+      entry: 2640.00,
+      stopLoss: 2635.00,
+      target: 2648.00,
+      status: 'WAITING_TRIGGER'
+    };
+
+    // Harga saat ini 2644.00 (di atas entry limit 2640.00)
+    const trade = trackAssistantPlan(driverSetup, 2644.00);
+    assert.ok(trade, 'Driver setup harus berhasil didaftarkan');
+    assert.equal(trade.status, 'ARMED_LIMIT', 'Status awal harus ARMED_LIMIT');
+    assert.equal(trade.signalName, 'Sniper · Deep OTE');
+
+    // Harga bergerak turun menyentuh entry 2640.00
+    updatePrice(2640.00, 2644.00, 2639.50);
+
+    const history = loadTradeHistory();
+    const updated = history.find(t => t.id === trade.id);
+    assert.ok(updated);
+    assert.equal(updated.status, 'ACTIVE_RUNNING', 'Status driver harus beralih ke ACTIVE_RUNNING saat limit tersentuh');
+    assert.ok(notificationsSent.some(n => n.title.includes('2640.00 Aktif!')), 'Notifikasi trigger driver harus dikirim');
+  });
 });

@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     const h1 = convertCandles(res60?.values || res60, 3600);
 
     // Jika TwelveData gagal / rate limit (429) dan candle tidak lengkap, gunakan cachePayload jika ada
-    if ((!m15.length || !m5.length || !h1.length) && cachePayload) {
+    if ((!m15.length || !h1.length) && cachePayload) {
       console.warn('scalper-setups: Incomplete candle data from TwelveData (rate limit / error), serving stale cachePayload');
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
@@ -141,7 +141,7 @@ export default async function handler(req, res) {
 
       // 2. Evaluasi Six Drivers Turnamen
       for (const driver of driverEvaluation.drivers || []) {
-        if (driver.plan && (driver.state === 'CONFIRMED' || driver.state === 'ARMED')) {
+        if (driver.plan && (driver.state === 'CONFIRMED' || driver.state === 'ARMED' || driver.state === 'WAITING_M5_BREAK')) {
           const formedAtSec = driver.plan.formedAt ? Math.floor(new Date(driver.plan.formedAt).getTime() / 1000) : (m15.at(-1)?.close_time || m15[0]?.close_time || nowSec);
           const setupId = driver.setupId || `${driver.id}_${driver.plan.direction}_${formedAtSec}`;
           const isConfirmed = driver.state === 'CONFIRMED';
@@ -154,6 +154,14 @@ export default async function handler(req, res) {
             ? Math.round((actualEntry + dirSign * actualRisk * driver.rr) * 10000) / 10000
             : driver.plan.target;
 
+          // Cek apakah harga saat ini sudah mencapai/menyentuh entry limit
+          const curPrice = m5.at(-1)?.close || m15.at(-1)?.close || null;
+          const isLimitTriggered = !isConfirmed && curPrice != null && actualEntry != null && (
+            (driver.plan.direction === 'BUY' && curPrice <= actualEntry && curPrice > driver.plan.stopLoss) ||
+            (driver.plan.direction === 'SELL' && curPrice >= actualEntry && curPrice < driver.plan.stopLoss)
+          );
+          const finalStatus = isConfirmed || isLimitTriggered ? 'ACTIVE' : 'WAITING_TRIGGER';
+
           active.push({
             id: setupId,
             engineVersion: SIX_ENGINE_VERSION,
@@ -164,16 +172,22 @@ export default async function handler(req, res) {
             timeframe: 'M15',
             symbol: 'XAU/USD',
             direction: driver.plan.direction,
-            status: isConfirmed ? 'ACTIVE' : 'WAITING_TRIGGER',
+            status: finalStatus,
             recommendationStatus: 'VALID',
             entry: actualEntry,
             stopLoss: driver.plan.stopLoss,
+            sl: driver.plan.stopLoss,
             target: actualTarget,
+            tp1: actualTarget,
             risk: actualRisk > 0 ? Math.round(actualRisk * 100) / 100 : 1.5,
-            priority: isConfirmed ? 2 : 3,
+            priority: isConfirmed ? 2 : (isLimitTriggered ? 2 : 3),
             note: isConfirmed
               ? 'Konfirmasi M5 close terpicu · Market Execution'
-              : `Menunggu pullback ke zona OTE [${driver.plan.zoneLow} – ${driver.plan.zoneHigh}]`,
+              : (isLimitTriggered
+                  ? 'Harga menyentuh level limit · Posisi berjalan'
+                  : (driver.state === 'WAITING_M5_BREAK'
+                      ? 'Retest zona tercapai · Menunggu break M5'
+                      : `Menunggu pullback ke zona OTE [${driver.plan.zoneLow} – ${driver.plan.zoneHigh}]`)),
             createdAt: driver.plan.formedAt || new Date(formedAtSec * 1000).toISOString()
           });
         }

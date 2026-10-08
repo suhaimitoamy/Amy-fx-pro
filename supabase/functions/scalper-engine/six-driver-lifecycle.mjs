@@ -22,7 +22,7 @@ export function advanceSixSetup(input,{m1=[],m5=[],nowSeconds=Math.floor(Date.no
     if(first.open_time>s.quality.entry_deadline)return finish(s,'CANCELLED',null,first.open_time,'Open pertama teramati setelah batas entry.');
     const sign=signOf(s),entry=limit?(sign===1?Math.min(first.open,s.entry_price):Math.max(first.open,s.entry_price)):first.open,stop=s.initial_stop_loss,risk=(entry-stop)*sign,target=round(entry+sign*risk*s.quality.target_r);
     const move=Math.abs(entry-s.entry_price),liquidity=num(s.quality.liquidity_target);
-    if(!(risk>0)||move>s.atr_at_signal*.5||liquidity==null||(liquidity-target)*sign<0)return finish(s,'INVALIDATED',null,first.open_time,'Gap open mengubah geometri atau menghabiskan ruang target.');
+    if(!(risk>0)||move>s.atr_at_signal*1.5||liquidity==null||(liquidity-target)*sign<0)return finish(s,'INVALIDATED',null,first.open_time,'Gap open mengubah geometri atau menghabiskan ruang target.');
     s=update(s,{status:'ACTIVE',entry_price:entry,entry_candle_open_time:first.open_time,risk:round(risk),target_price:target,break_even_trigger:s.quality.be_at_r?round(entry+sign*risk*s.quality.be_at_r):null,quality:{entry_locked:true,entry_timestamp:first.open_time,fill_model:limit?'OBSERVED_LIMIT':'OBSERVED_NEXT_OPEN',intrabar_limit_fill:limit&&entry!==first.open,max_hold_seconds:s.quality.max_hold_seconds}});
   }
   const sign=signOf(s),entry=s.entry_price,risk=s.risk,deadline=s.entry_candle_open_time+s.quality.max_hold_seconds;

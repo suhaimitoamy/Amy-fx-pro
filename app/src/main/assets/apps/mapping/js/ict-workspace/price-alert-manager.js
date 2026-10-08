@@ -272,7 +272,7 @@ export function triggerHapticFeedback() {
  * Show in-app glassmorphism notification banner
  */
 export function showInAppBanner(alert, price) {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || typeof document.getElementById !== 'function' || typeof document.createElement !== 'function') return;
 
   const bannerId = 'amyfx-price-alert-banner';
   let banner = document.getElementById(bannerId);
@@ -383,6 +383,402 @@ export function notifyTriggeredAlert(alert, currentPrice) {
   triggerHapticFeedback();
 }
 
+export const ICT_COOLDOWN_MS = 300000; // 5 menit per level
+const ictAlertCooldowns = new Map();
+
+/**
+ * Check if Gold market is open (filtering weekends and closed sessions)
+ */
+export function isGoldMarketOpen(nowSeconds = Math.floor(Date.now() / 1000)) {
+  if (typeof window !== 'undefined' && typeof window.__amyfxMarketOpen === 'boolean') {
+    return window.__amyfxMarketOpen;
+  }
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hourCycle: 'h23',
+      hour: '2-digit',
+      minute: '2-digit',
+      weekday: 'short'
+    }).formatToParts(new Date(nowSeconds * 1000));
+    const values = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    const weekday = values.weekday;
+    const hour = Number(values.hour) + Number(values.minute) / 60;
+    if (weekday === 'Sat') return false;
+    if (weekday === 'Sun') return hour >= 17;
+    if (weekday === 'Fri') return hour < 17;
+    if (hour >= 17 && hour < 18) return false;
+    return true;
+  } catch (_) {
+    return true;
+  }
+}
+
+/**
+ * Retrieve active ICT market context from window or localStorage
+ */
+export function getIctContext() {
+  if (typeof window !== 'undefined') {
+    if (window.AmyMarketContext) return window.AmyMarketContext;
+    if (window.amyfxLastContext) return window.amyfxLastContext;
+    try {
+      const stored = localStorage.getItem('amyfx.market-context.v1');
+      if (stored) return JSON.parse(stored);
+    } catch (_) {}
+  }
+  return null;
+}
+
+export function getIctCooldowns() {
+  return new Map(ictAlertCooldowns);
+}
+
+export function clearIctCooldowns() {
+  ictAlertCooldowns.clear();
+}
+
+/**
+ * Show in-app glassmorphism banner for ICT intrabar event
+ */
+export function showIctBanner(event) {
+  if (typeof document === 'undefined' || typeof document.getElementById !== 'function' || typeof document.createElement !== 'function') return;
+
+  const bannerId = 'amyfx-price-alert-banner';
+  let banner = document.getElementById(bannerId);
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = bannerId;
+    banner.setAttribute('role', 'alert');
+    banner.style.cssText = `
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999999;
+      width: calc(100% - 32px);
+      max-width: 440px;
+      background: rgba(19, 30, 45, 0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid #38BDF8;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.65), 0 0 18px rgba(56, 189, 248, 0.35);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: #fff;
+      font-family: inherit;
+      box-sizing: border-box;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    `;
+    document.body.appendChild(banner);
+  } else {
+    banner.style.borderColor = '#38BDF8';
+    banner.style.boxShadow = '0 12px 36px rgba(0,0,0,0.65), 0 0 18px rgba(56, 189, 248, 0.35)';
+  }
+
+  const icon = event.type === 'SWEEP' ? '⚡' : event.type === 'POI' ? '🎯' : '⚠️';
+  const badgeColor = event.type === 'SWEEP' ? '#38BDF8' : event.type === 'POI' ? '#A855F7' : '#EF4444';
+
+  banner.innerHTML = `
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+      <div style="font-size:26px; line-height:1; filter:drop-shadow(0 0 6px ${badgeColor});">${icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:11px; font-weight:800; color:${badgeColor}; letter-spacing:0.08em; text-transform:uppercase;">
+          LIVE ICT INTRABAR · 0s DELAY
+        </div>
+        <div style="font-size:15px; font-weight:800; margin:3px 0; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>${escapeHtml(event.title)}</span>
+        </div>
+        <div style="font-size:12px; color:#94A3B8; line-height:1.4;">
+          ${escapeHtml(event.message)}
+        </div>
+      </div>
+      <button type="button" id="close-price-alert-banner" aria-label="Tutup notifikasi" style="background:transparent; border:0; color:#94A3B8; font-size:22px; cursor:pointer; padding:0 4px; line-height:1;">&times;</button>
+    </div>
+  `;
+
+  const closeBtn = document.getElementById('close-price-alert-banner');
+  if (closeBtn) {
+    closeBtn.onclick = () => { banner.remove(); };
+  }
+
+  setTimeout(() => {
+    if (banner && banner.parentNode) {
+      banner.style.opacity = '0';
+      banner.style.transform = 'translate(-50%, -15px)';
+      setTimeout(() => banner.remove(), 350);
+    }
+  }, 8000);
+}
+
+/**
+ * Multi-channel dispatch for ICT live intrabar event
+ */
+export function dispatchIctLiveNotification(event) {
+  const title = event.title;
+  const message = event.message;
+  const url = (typeof location !== 'undefined' ? location.href.split('#')[0] : '') + '#Dashboard';
+
+  // 1. Android Native Notification Bridge
+  try {
+    if (typeof window !== 'undefined') {
+      if (window.Android?.showNotificationWithUrl) {
+        window.Android.showNotificationWithUrl(title, message, url);
+      } else if (window.Android?.showNotification) {
+        window.Android.showNotification(title, message);
+      }
+    }
+  } catch (err) {
+    console.warn('[IctAlert] Gagal Android notification bridge:', err);
+  }
+
+  // 2. Web Notification API
+  try {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body: message,
+        icon: '/favicon.ico',
+        tag: 'amyfx_ict_' + event.key
+      });
+    }
+  } catch (_) {}
+
+  // 3. Audio Beep & Haptic Feedback
+  playAlertBeep();
+  triggerHapticFeedback();
+
+  // 4. In-App Glassmorphism Banner
+  showIctBanner(event);
+
+  // 5. Custom Event Dispatch
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('amyfx:ict-intrabar-alert', { detail: event }));
+  }
+}
+
+/**
+ * Check real-time live intrabar sweeps and breaks (0s latency)
+ * Monitors BSL, SSL, Asia High/Low, PDH/PDL, Structure Invalidation, and POI test
+ * @param {number} current - Current live price tick
+ * @param {number|null} prev - Previous price tick
+ * @returns {Array} List of triggered ICT events
+ */
+export function checkIctIntrabarSweeps(current, prev) {
+  if (!current || !prev || Math.abs(current - prev) < 0.001) return [];
+
+  if (!isGoldMarketOpen()) return [];
+
+  const ctx = getIctContext();
+  if (ctx?.session === 'PASAR TUTUP' || (typeof window !== 'undefined' && window.AmyMarketContext?.session === 'PASAR TUTUP')) {
+    return [];
+  }
+
+  const now = Date.now();
+  const triggeredEvents = [];
+
+  const tryTrigger = (key, eventData) => {
+    const last = ictAlertCooldowns.get(key);
+    if (last && (now - last) < ICT_COOLDOWN_MS) {
+      return false;
+    }
+    ictAlertCooldowns.set(key, now);
+    const item = { key, ...eventData };
+    triggeredEvents.push(item);
+    dispatchIctLiveNotification(item);
+    return true;
+  };
+
+  // 1. Check liquidity levels (BSL, SSL, PDH, PDL, ASIA H, ASIA L, PWH, PWL, etc.)
+  const rawLiquidity = Array.isArray(ctx?.liquidity) ? ctx.liquidity : [];
+  const processedKeys = new Set();
+
+  for (const item of rawLiquidity) {
+    if (!item || !item.label) continue;
+    if (item.status === 'TAKEN') continue;
+
+    const level = parsePrice(item.level);
+    if (!level) continue;
+
+    const label = String(item.label).trim().toUpperCase();
+    const side = item.side ? String(item.side).toUpperCase() : null;
+    const isHighSide = side === 'BUY' || /HIGH|BSL|PDH|PWH|EQH/.test(label);
+    const isLowSide = side === 'SELL' || /LOW|SSL|PDL|PWL|EQL/.test(label);
+
+    if (isHighSide && !processedKeys.has(label)) {
+      processedKeys.add(label);
+      if (prev < level && current >= level) {
+        tryTrigger(label, {
+          type: 'SWEEP',
+          label,
+          level,
+          price: current,
+          title: `⚡ SWEEP INTRABAR: ${label} ($${level.toFixed(2)})`,
+          message: `XAU/USD menyentuh/menembus level ${label} di $${current.toFixed(2)}. Pantau potensi wick sweep / rejection!`
+        });
+      }
+    } else if (isLowSide && !processedKeys.has(label)) {
+      processedKeys.add(label);
+      if (prev > level && current <= level) {
+        tryTrigger(label, {
+          type: 'SWEEP',
+          label,
+          level,
+          price: current,
+          title: `⚡ SWEEP INTRABAR: ${label} ($${level.toFixed(2)})`,
+          message: `XAU/USD menyentuh/menembus level ${label} di $${current.toFixed(2)}. Pantau potensi wick sweep / rejection!`
+        });
+      }
+    }
+  }
+
+  // Fallback checks from ctx.keyLevels, ctx.amy.levels, ctx.amy.dashboard
+  const keyLevels = ctx?.keyLevels || {};
+  const amyLevels = ctx?.amy?.levels || {};
+  const d = ctx?.amy?.dashboard || {};
+
+  // BSL
+  const bsl = parsePrice(d.bsl ?? keyLevels.bsl);
+  if (bsl && !processedKeys.has('BSL')) {
+    if (prev < bsl && current >= bsl) {
+      tryTrigger('BSL', {
+        type: 'SWEEP',
+        label: 'BSL',
+        level: bsl,
+        price: current,
+        title: `⚡ SWEEP INTRABAR: BSL ($${bsl.toFixed(2)})`,
+        message: `XAU/USD menyentuh/menembus Buy-Side Liquidity di $${current.toFixed(2)}. Pantau potensi wick rejection!`
+      });
+    }
+  }
+
+  // SSL
+  const ssl = parsePrice(d.ssl ?? keyLevels.ssl);
+  if (ssl && !processedKeys.has('SSL')) {
+    if (prev > ssl && current <= ssl) {
+      tryTrigger('SSL', {
+        type: 'SWEEP',
+        label: 'SSL',
+        level: ssl,
+        price: current,
+        title: `⚡ SWEEP INTRABAR: SSL ($${ssl.toFixed(2)})`,
+        message: `XAU/USD menyentuh/menembus Sell-Side Liquidity di $${current.toFixed(2)}. Pantau potensi wick rejection!`
+      });
+    }
+  }
+
+  // PDH
+  const pdh = parsePrice(amyLevels.pdh ?? keyLevels.pdh);
+  if (pdh && !processedKeys.has('PDH')) {
+    if (prev < pdh && current >= pdh) {
+      tryTrigger('PDH', {
+        type: 'SWEEP',
+        label: 'PDH',
+        level: pdh,
+        price: current,
+        title: `⚡ SWEEP INTRABAR: PDH ($${pdh.toFixed(2)})`,
+        message: `XAU/USD menembus High Kemarin (PDH) di $${current.toFixed(2)}. Pantau reaksi harga!`
+      });
+    }
+  }
+
+  // PDL
+  const pdl = parsePrice(amyLevels.pdl ?? keyLevels.pdl);
+  if (pdl && !processedKeys.has('PDL')) {
+    if (prev > pdl && current <= pdl) {
+      tryTrigger('PDL', {
+        type: 'SWEEP',
+        label: 'PDL',
+        level: pdl,
+        price: current,
+        title: `⚡ SWEEP INTRABAR: PDL ($${pdl.toFixed(2)})`,
+        message: `XAU/USD menembus Low Kemarin (PDL) di $${current.toFixed(2)}. Pantau reaksi harga!`
+      });
+    }
+  }
+
+  // ASIA HIGH
+  const asiaHigh = parsePrice(amyLevels.asiaHigh ?? keyLevels.asiaHigh);
+  if (asiaHigh && !processedKeys.has('ASIA H') && !processedKeys.has('ASIA HIGH')) {
+    if (prev < asiaHigh && current >= asiaHigh) {
+      tryTrigger('ASIA_HIGH', {
+        type: 'SWEEP',
+        label: 'ASIA HIGH',
+        level: asiaHigh,
+        price: current,
+        title: `⚡ SWEEP INTRABAR: ASIA HIGH ($${asiaHigh.toFixed(2)})`,
+        message: `XAU/USD menembus High Sesi Asia di $${current.toFixed(2)}. Pantau reaksi harga!`
+      });
+    }
+  }
+
+  // ASIA LOW
+  const asiaLow = parsePrice(amyLevels.asiaLow ?? keyLevels.asiaLow);
+  if (asiaLow && !processedKeys.has('ASIA L') && !processedKeys.has('ASIA LOW')) {
+    if (prev > asiaLow && current <= asiaLow) {
+      tryTrigger('ASIA_LOW', {
+        type: 'SWEEP',
+        label: 'ASIA LOW',
+        level: asiaLow,
+        price: current,
+        title: `⚡ SWEEP INTRABAR: ASIA LOW ($${asiaLow.toFixed(2)})`,
+        message: `XAU/USD menembus Low Sesi Asia di $${current.toFixed(2)}. Pantau reaksi harga!`
+      });
+    }
+  }
+
+  // 2. Check Structure Breaks & Invalidations (BOS / MSS / Trend Invalidation)
+  const invalidLevel = parsePrice(ctx?.m15?.invalidLevel ?? d.invalidLevel ?? ctx?.invalidLevel);
+  const biasDir = d.biasDir ?? (ctx?.m15?.structure === 'BULLISH' || ctx?.primary?.side === 'BUY' ? 1 : ctx?.m15?.structure === 'BEARISH' || ctx?.primary?.side === 'SELL' ? -1 : 0);
+
+  if (invalidLevel) {
+    if (biasDir === 1 && prev > invalidLevel && current <= invalidLevel) {
+      tryTrigger('INVALIDATION', {
+        type: 'BREAK',
+        label: 'INVALIDASI STRUKTUR BULLISH',
+        level: invalidLevel,
+        price: current,
+        title: `⚠️ BREAK STRUKTUR: XAU/USD Menembus $${invalidLevel.toFixed(2)}`,
+        message: `Harga menembus di bawah level invalidasi ($${invalidLevel.toFixed(2)}). Bias Bullish M15 terancam batal!`
+      });
+    } else if (biasDir === -1 && prev < invalidLevel && current >= invalidLevel) {
+      tryTrigger('INVALIDATION', {
+        type: 'BREAK',
+        label: 'INVALIDASI STRUKTUR BEARISH',
+        level: invalidLevel,
+        price: current,
+        title: `⚠️ BREAK STRUKTUR: XAU/USD Menembus $${invalidLevel.toFixed(2)}`,
+        message: `Harga menembus di atas level invalidasi ($${invalidLevel.toFixed(2)}). Bias Bearish M15 terancam batal!`
+      });
+    }
+  }
+
+  // 3. Check POI Test / Entry (Point of Interest)
+  const poi = ctx?.m15?.poi || d.poi;
+  const poiLow = parsePrice(poi?.low);
+  const poiHigh = parsePrice(poi?.high);
+  if (poiLow && poiHigh) {
+    const pMin = Math.min(poiLow, poiHigh);
+    const pMax = Math.max(poiLow, poiHigh);
+    const poiKey = `POI_${Math.round(pMin)}_${Math.round(pMax)}`;
+
+    const enteredFromAbove = prev > pMax && current <= pMax && current >= pMin;
+    const enteredFromBelow = prev < pMin && current >= pMin && current <= pMax;
+
+    if (enteredFromAbove || enteredFromBelow) {
+      const poiLabel = poi.label || poi.kind || 'POI M15';
+      tryTrigger(poiKey, {
+        type: 'POI',
+        label: poiLabel,
+        level: poi.ce ? Number(poi.ce) : (pMin + pMax) / 2,
+        price: current,
+        title: `🎯 UJI ZONA POI: XAU/USD Masuk ke ${poiLabel}`,
+        message: `Harga menguji zona POI ($${pMin.toFixed(2)} - $${pMax.toFixed(2)}). Siapkan konfirmasi respons!`
+      });
+    }
+  }
+
+  return triggeredEvents;
+}
+
 /**
  * Reset or set previous price reference (useful for testing or reconnect)
  */
@@ -398,11 +794,21 @@ export function checkPrice(newPrice) {
   const current = parsePrice(newPrice);
   if (!current) return false;
 
+  const prev = previousPrice;
+  let ictTriggered = false;
+
+  if (prev !== null) {
+    const ictEvents = checkIctIntrabarSweeps(current, prev);
+    if (ictEvents && ictEvents.length > 0) {
+      ictTriggered = true;
+    }
+  }
+
   const alerts = getAlerts();
   const activeAlerts = alerts.filter(a => a.status === 'ACTIVE');
   if (!activeAlerts.length) {
     previousPrice = current;
-    return false;
+    return ictTriggered;
   }
 
   const triggeredAlerts = [];
@@ -411,20 +817,20 @@ export function checkPrice(newPrice) {
   for (const alert of activeAlerts) {
     const target = alert.targetPrice;
     // Base previous price: prioritize alert's last checked price, fallback to createdPrice, then global previousPrice
-    const prev = alert.lastCheckedPrice != null
+    const p = alert.lastCheckedPrice != null
       ? alert.lastCheckedPrice
-      : (alert.createdPrice != null ? alert.createdPrice : (previousPrice !== null ? previousPrice : current));
+      : (alert.createdPrice != null ? alert.createdPrice : (prev !== null ? prev : current));
 
     let isTriggered = false;
 
     if (alert.direction === 'CROSS_ABOVE') {
       // Crossed from below to above or exact hit
-      if (prev <= target && current >= target) {
+      if (p <= target && current >= target) {
         isTriggered = true;
       }
     } else if (alert.direction === 'CROSS_BELOW') {
       // Crossed from above to below or exact hit
-      if (prev >= target && current <= target) {
+      if (p >= target && current <= target) {
         isTriggered = true;
       }
     }
@@ -455,7 +861,7 @@ export function checkPrice(newPrice) {
     renderAllRegisteredContainers();
   }
 
-  return triggeredAlerts.length > 0;
+  return (triggeredAlerts.length > 0) || ictTriggered;
 }
 
 /**
@@ -822,11 +1228,18 @@ const priceAlertManager = {
   playAlertBeep,
   triggerHapticFeedback,
   showInAppBanner,
+  showIctBanner,
+  dispatchIctLiveNotification,
   renderAlertList,
   openAddAlertDialog,
   mountPriceAlertWidget,
   initPriceAlertObserver,
-  getStats
+  getStats,
+  checkIctIntrabarSweeps,
+  isGoldMarketOpen,
+  getIctContext,
+  getIctCooldowns,
+  clearIctCooldowns
 };
 
 // Auto-register to global window / globalThis for cross-module & UI accessibility

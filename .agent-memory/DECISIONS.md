@@ -1,6 +1,61 @@
 # Technical Decisions
 
-## 2026-10-07 — Driver Tournament & Entry Execution Overhaul (Fibo Sweet Spot, Market Confirmation, V3 Priority)
+## 2026-10-08 — Live Intrabar Touch Alerts (0s Latency) for Liquidity Sweeps, Breaks & POI Tests (Pro 409)
+
+1. **Akar Masalah Keterlambatan Notifikasi (BSL Sweep, Break, POI Test):**
+   - **Closed-Candle Latency (13–15 Menit):** Engine server dan deteksi likuiditas sweep sebelumnya mengandalkan lilin yang telah resmi ditutup (`is_closed: true`). Jika sweep BSL/SSL atau breakout terjadi di awal lilin M15 (misalnya menit ke-2), notifikasi baru terpicu setelah candle M15 selesai pada menit ke-15:00, menghasilkan jeda 13–15 menit yang merugikan aksi reaksi cepat sniper.
+   - **Kegagalan Background Worker Android:** `DriverSetupSyncWorker.kt` mewajibkan `m5Time` (`sourceObj?.optLong("M5", 0L)`). Saat feed beralih ke M15 murni, background worker Android menganggap data kadaluwarsa/hilang dan batal diam-diam.
+
+2. **Solusi & Implementasi 2-Tier Real-Time Model:**
+   - **Tier 1 (Instant Intrabar Touch Alert · Latensi 0s):**
+     - Dibuat fungsi `checkIctIntrabarSweeps(current, prev)` di `app/src/main/assets/apps/mapping/js/ict-workspace/price-alert-manager.js`.
+     - Fungsi ini dievaluasi pada setiap tick harga live (`amyfx:twelvedata-price`, `amyfx:price-tick`, MutationObserver pada `#chart-price`, serta safety loop 2.5s).
+     - Memeriksa level-level kritis aktif dari `window.AmyMarketContext` / `localStorage`:
+       - **BSL / PDH / Asia High / PWH / EQH**: Tembusan ke atas (`prev < level && current >= level`) -> `⚡ SWEEP INTRABAR: <LABEL>`.
+       - **SSL / PDL / Asia Low / PWL / EQL**: Tembusan ke bawah (`prev > level && current <= level`) -> `⚡ SWEEP INTRABAR: <LABEL>`.
+       - **Break Struktur / Invalidasi M15**: Tembusan ke bawah pada bias Bullish atau tembusan ke atas pada bias Bearish -> `⚠️ BREAK STRUKTUR: XAU/USD Menembus $<LEVEL>`.
+       - **Uji Zona POI**: Harga masuk ke rentang POI M15 (`low`–`high`) dari atas maupun bawah -> `🎯 UJI ZONA POI: XAU/USD Masuk ke <LABEL>`.
+     - **Multi-Channel Instant Dispatch:** Notifikasi langsung dikirim via Android Native Bridge (`window.Android.showNotificationWithUrl`), Web Notification API, Web Audio API chime chime melodic, haptic vibration, dan top glassmorphism banner (`showIctBanner`).
+     - **Anti-Jitter Cooldown:** Diterapkan cooldown 5 menit (`ICT_COOLDOWN_MS = 300000`) per level key agar tidak terjadi getaran/notifikasi berulang saat harga bolak-balik di sekitar level.
+     - **Weekend Anti-Spam:** Otomatis dibungkam saat pasar tutup (`isGoldMarketOpen() === false` atau `session === 'PASAR TUTUP'`).
+   - **Tier 2 (Confirmed Closed Candle Reclaim):**
+     - Analisis candle tertutup M15 tetap berjalan normal setelah lilin resmi close untuk mengonfirmasi kelanjutan displacement / MSS atau wick rejection.
+   - **Background Worker Android Sync:**
+     - `DriverSetupSyncWorker.kt` diperbarui untuk membaca `M15` terlebih dahulu (`sourceObj?.optLong("M15", 0L)`), fallback ke `M5`, dan batas kedaluwarsa diperluas ke 3600s (1 jam).
+   - Validasi sintaks `node --check` dan targeted unit tests (16/16 di `tests/price-alert-manager.test.mjs`, 8/8 di `tests/trade-lifecycle-tracker.test.mjs`, 21/21 di `tests/mapping-six-drivers-pro382.test.mjs`, 15/15 di API/audit) lulus 100%.
+
+## 2026-10-08 — Driver Mapping Full M15 Authority Decoupling & Residual M5 Removal
+
+1. **Akar Masalah Residual M5 & Disparitas Timeframe:**
+   - **Konteks & Strategi Trading Nyata Pengguna:** Seluruh alur kerja Cockpit Mapping, Amy Bias Matrix V2, Laya Advisor Panel (187k lilin historis M15), Dealing Range 50% CE, dan grafik Gold utama beroperasi pada time frame **M15**.
+   - **Warisan Kode M5 di Background yang Memblokir Trigger:**
+     - `driver-model.js` menolak evaluasi driver (`return null`) jika `e.sourceTime !== context.source?.M5`.
+     - `lib/scalper-engine/six-drivers.mjs` memaksa `sixConfirmation` pada lilin M5 dan memberi status `WAITING_M5_BREAK` saat zona disentuh, menuntut break displacement M5 dalam batas waktu sempit 30 menit (hanya 2 bar M15), sehingga setup kadaluwarsa (`EXPIRED`) sebelum lilin M5 terbentuk.
+     - `market-context.mjs` mematikan kesegaran (`fresh = false`) jika lilin M5 tidak lengkap atau terlambat >15 menit.
+     - `api/scalper-setups.js` jatuh ke cache basi jika endpoint data 5min TwelveData mengalami rate limit.
+     - Salinan teks UI di antarmuka mapping masih menampilkan string warisan M5 (`Memeriksa aksi harga M15 / M5...`, `Entry Assistant · M5`, dll).
+
+2. **Perbaikan & Sinkronisasi Otoritas M15 Murni:**
+   - **Pilar 1 (Penyelarasan Driver Model & Source Time):** Di `driver-model.js`, `currentDriverEvaluation` disesuaikan agar menerima timestamp lilin M15 maupun M5 (`e.sourceTime === context.source?.M15 || e.sourceTime === context.source?.M5`), dan toleransi evaluasi diperpanjang hingga 2100s (35 menit) untuk ritme M15.
+   - **Pilar 2 (Fallback Otoritas Eksekusi M15 pada Six Drivers):** Di `six-drivers.mjs` (keduanya `lib` dan `supabase`), `executionCandles` otomatis menggunakan `T` (jika tersedia ≥30 bar) atau `M` (M15). Jendela konfirmasi sentuhan diperluas ke 3600s (1 jam) agar retest M15 memiliki ruang bernapas yang cukup sebelum kedaluwarsa.
+   - **Pilar 3 (Kemandirian Data Market Context):** Di `market-context.mjs`, parameter `fresh` tidak lagi mewajibkan M5 jika lilin M15 dan H1 lengkap dan segar. Di `api/scalper-setups.js`, kegagalan 5min TwelveData tidak lagi memicu fallback cache basi.
+   - **Pilar 4 (Pembersihan Teks Antarmuka Mapping):** Seluruh label `M5` di antarmuka Mapping (`index.html`, `ict-presentation.js`, `context-panel.js`) dibersihkan menjadi `M15`, menyelaraskan 100% narasi antarmuka dengan strategi trading pengguna.
+   - Seluruh 44 targeted tests (`mapping-six-drivers-pro382`, `trade-lifecycle-tracker`, `mapping-six-driver-api-pro382`, `mapping-pro374-audit-fixes`) lulus 100%.
+
+## 2026-10-08 — Driver Mapping Entry Limit Trigger Overhaul (Realistic Tolerances, WAITING_M5_BREAK Retention, Touch Trigger & Client Lifecycle Sync)
+
+1. **Akar Masalah Kegagalan Trigger Entry Limit:**
+   - **Toleransi Deadline Terlalu Ketat:** `entry_deadline` sebelumnya di-hardcode hanya 15 menit (`nowSeconds + 900`). Dalam time frame M5 (3 bar lilin), retrace Gold ke zona limit hampir tidak pernah selesai dalam 15 menit sehingga seluruh order limit dibatalkan (`CANCELLED`).
+   - **Filter Likuiditas Terlalu Restriktif:** Algoritma mengambil likuiditas terdekat (`nearestLiquidity`) di antara entry dan target. Adanya minor pivot kecil 2-bar M15 langsung menggagalkan `targetOk` dan mendemot status dari `CONFIRMED` ke `WAITING_TARGET`.
+   - **Hilangnya Setup di API Saat Retest:** Di `api/scalper-setups.js`, filter hanya meloloskan `CONFIRMED` dan `ARMED`. Begitu harga menyentuh zona (touch), engine internal mengubah status menjadi `WAITING_M5_BREAK` sehingga kartu setup lenyap dari antarmuka aktif alih-alih aktif terpicu.
+   - **Ketiadaan Evaluasi Sentuhan Harga (Touch Trigger):** API tidak memeriksa apakah harga candle saat ini telah mencapai level limit, dan `trade-lifecycle-tracker.js` di browser/HP tidak mendengarkan `amyfx:driver-setups` serta tidak menormalisasi properti `stopLoss` / `target` milik model driver.
+
+2. **Perbaikan Terpadu (4 Pilar Eksekusi):**
+   - **Pilar 1 (Deadline Realistis & Likuiditas Valid):** `entry_deadline` diperpanjang dari 900s menjadi `Math.max(3600, driver.hold)` (60–90 menit). Likuiditas target memilih level aktif yang mengakomodasi target (`validLiquidity || nearestLiquidity`) agar tidak terblokir oleh minor pivot 2-bar. Toleransi gap move dinaikkan ke `1.5 * ATR` di `six-driver-lifecycle.mjs`.
+   - **Pilar 2 (Retensi WAITING_M5_BREAK di API):** Di `api/scalper-setups.js`, status `WAITING_M5_BREAK` dipertahankan dalam daftar `active` dengan catatan jelas (*"Retest zona tercapai · Menunggu break M5"*), mencegah setup menghilang saat harga menyentuh area.
+   - **Pilar 3 (Touch Trigger Real-Time di API):** Di `api/scalper-setups.js`, jika harga candle saat ini (`m5` / `m15`) menyentuh level limit (`actualEntry`) tanpa menembus SL, status langsung bertransisi ke `ACTIVE` (*"Harga menyentuh level limit · Posisi berjalan"*).
+   - **Pilar 4 (Integrasi Penuh Client Lifecycle Tracker):** Di `trade-lifecycle-tracker.js`, didukung normalisasi properti driver (`plan.direction`, `stopLoss`, `target`). Ditambahkan listener `amyfx:driver-setups` dan pemanggilan `trackAssistantPlan(s)` di `context-panel.js` sehingga saat harga tick live menyentuh entry limit, status lokal beralih ke `ACTIVE_RUNNING`, mengirim notifikasi Android trigger, haptic bergetar, dan tercatat otomatis di Win Rate Archive.
+
 
 1. **Akar Masalah Driver Pasif & Zero Fill (2 Minggu Tanpa Eksekusi):**
    - 5 dari 6 driver di-hardcode sebagai order LIMIT pasif (`limit = true`) di titik tengah zona diskon (`(zone.low + zone.high)/2`).
