@@ -182,6 +182,8 @@ class DriverSetupSyncWorker(
         val poiKind = poi?.optString("kind", "POI")?.ifBlank { "POI" } ?: "POI"
         val poiSide = poi?.optString("side", "").orEmpty()
 
+        val sweepDetails = resolveSweepDetails(amy, contextObj, lines)
+
         if (newsStatus == "NEWS_LOCK") {
             badge = "NEWS_LOCK"
             notifTitle = "🛡️ Asisten Amy: NEWS LOCK Aktif"
@@ -212,16 +214,15 @@ class DriverSetupSyncWorker(
             val sub = "Struktur M5 terkonfirmasi searah tren. Siapkan observasi entry."
             notifBody = "$primary. $sub"
             notify = true
-        } else if (lines.any { it.contains("swept", ignoreCase = true) }) {
-            val isSsl = lines.any { it.contains("SSL", ignoreCase = true) }
-            badge = if (isSsl) "SSL_SWEPT" else "BSL_SWEPT"
-            val badgeLabel = if (isSsl) "SSL SWEPT" else "BSL SWEPT"
-            notifTitle = "💧 Asisten Amy: $badgeLabel"
-            val primary = "💧 ${if (isSsl) "Sell-Side (SSL)" else "Buy-Side (BSL)"} Swept di M5"
-            val sweepLine = lines.find { it.contains("swept", ignoreCase = true) } ?: ""
-            val followLine = lines.find { it.contains("konfirmasi", ignoreCase = true) } ?: "Likuiditas terambil, pantau reaksi harga."
-            val sub = "$sweepLine · $followLine".trim(' ', '·')
-            notifBody = "$primary. $sub"
+        } else if (sweepDetails != null) {
+            val levelStr = String.format(java.util.Locale.US, "%.2f", sweepDetails.level)
+            val extremeStr = String.format(java.util.Locale.US, "%.2f", sweepDetails.extreme)
+            val sweepBadge = sweepDetails.name.replace(" ", "_").uppercase(java.util.Locale.US)
+            badge = "${sweepBadge}_SWEPT"
+            notifTitle = "💧 Asisten Amy: ${sweepDetails.name} @ $levelStr Swept!"
+            val primary = "💧 ${sweepDetails.name} @ $levelStr Swept!"
+            val sub = "Tersapu hingga ekor $extremeStr. Pantau pembentukan rejection untuk potensi ${sweepDetails.side}."
+            notifBody = "$primary $sub"
             notify = true
         } else if (inPoi) {
             badge = "DI_AREA_POI"
@@ -248,6 +249,155 @@ class DriverSetupSyncWorker(
 
         showDriverNotification(notifTitle, notifBody, cacheKey)
         prefs.edit().putLong(cacheKey, System.currentTimeMillis()).apply()
+    }
+
+    private data class SweepDetails(
+        val name: String,
+        val level: Double,
+        val extreme: Double,
+        val side: String
+    )
+
+    private fun resolveSweepDetails(amy: JSONObject, contextObj: JSONObject, lines: List<String>): SweepDetails? {
+        val dashboard = amy.optJSONObject("dashboard")
+        val trigger = amy.optJSONObject("trigger")
+        val levels = amy.optJSONObject("levels") ?: contextObj.optJSONObject("levels")
+        val liquidity = contextObj.optJSONArray("liquidity")
+        val candle = trigger?.optJSONObject("candle") ?: dashboard?.optJSONObject("candle") ?: amy.optJSONObject("candle")
+        val cHigh = candle?.optDouble("high", 0.0) ?: 0.0
+        val cLow = candle?.optDouble("low", 0.0) ?: 0.0
+        val cClose = candle?.optDouble("close", 0.0) ?: 0.0
+
+        // 1. Asia High / Asia Low sweep
+        val asiaHigh = levels?.optDouble("asiaHigh", 0.0) ?: 0.0
+        val asiaLow = levels?.optDouble("asiaLow", 0.0) ?: 0.0
+        var liqAsiaHighSweptLevel = 0.0
+        var liqAsiaLowSweptLevel = 0.0
+
+        if (liquidity != null) {
+            for (i in 0 until liquidity.length()) {
+                val item = liquidity.optJSONObject(i) ?: continue
+                val label = item.optString("label", "")
+                val status = item.optString("status", "")
+                if (status.equals("SWEPT", ignoreCase = true)) {
+                    if (label.contains("asia high", ignoreCase = true)) {
+                        liqAsiaHighSweptLevel = item.optDouble("level", 0.0)
+                    } else if (label.contains("asia low", ignoreCase = true)) {
+                        liqAsiaLowSweptLevel = item.optDouble("level", 0.0)
+                    }
+                }
+            }
+        }
+
+        val textAsiaHigh = lines.any { it.contains("asia high", ignoreCase = true) && it.contains("swept", ignoreCase = true) }
+        val textAsiaLow = lines.any { it.contains("asia low", ignoreCase = true) && it.contains("swept", ignoreCase = true) }
+
+        if (liqAsiaHighSweptLevel > 0.0 || textAsiaHigh || (asiaHigh > 0.0 && cHigh > asiaHigh && cClose < asiaHigh)) {
+            val lvl = if (liqAsiaHighSweptLevel > 0.0) liqAsiaHighSweptLevel else if (asiaHigh > 0.0) asiaHigh else cHigh
+            val ext = if (cHigh > lvl) cHigh else lvl + 1.20
+            return SweepDetails("Asia High", lvl, ext, "SELL")
+        }
+        if (liqAsiaLowSweptLevel > 0.0 || textAsiaLow || (asiaLow > 0.0 && cLow > 0.0 && cLow < asiaLow && cClose > asiaLow)) {
+            val lvl = if (liqAsiaLowSweptLevel > 0.0) liqAsiaLowSweptLevel else if (asiaLow > 0.0) asiaLow else cLow
+            val ext = if (cLow > 0.0 && cLow < lvl) cLow else lvl - 1.20
+            return SweepDetails("Asia Low", lvl, ext, "BUY")
+        }
+
+        // 2. PDH / PDL sweep
+        val pdh = levels?.optDouble("pdh", 0.0) ?: 0.0
+        val pdl = levels?.optDouble("pdl", 0.0) ?: 0.0
+        var liqPdhSweptLevel = 0.0
+        var liqPdlSweptLevel = 0.0
+
+        if (liquidity != null) {
+            for (i in 0 until liquidity.length()) {
+                val item = liquidity.optJSONObject(i) ?: continue
+                val label = item.optString("label", "")
+                val status = item.optString("status", "")
+                if (status.equals("SWEPT", ignoreCase = true)) {
+                    if (label.contains("pdh", ignoreCase = true) || label.contains("previous day high", ignoreCase = true)) {
+                        liqPdhSweptLevel = item.optDouble("level", 0.0)
+                    } else if (label.contains("pdl", ignoreCase = true) || label.contains("previous day low", ignoreCase = true)) {
+                        liqPdlSweptLevel = item.optDouble("level", 0.0)
+                    }
+                }
+            }
+        }
+
+        val textPdh = lines.any { it.contains("pdh", ignoreCase = true) && it.contains("swept", ignoreCase = true) }
+        val textPdl = lines.any { it.contains("pdl", ignoreCase = true) && it.contains("swept", ignoreCase = true) }
+
+        if (liqPdhSweptLevel > 0.0 || textPdh || (pdh > 0.0 && cHigh > pdh && cClose < pdh)) {
+            val lvl = if (liqPdhSweptLevel > 0.0) liqPdhSweptLevel else if (pdh > 0.0) pdh else cHigh
+            val ext = if (cHigh > lvl) cHigh else lvl + 1.20
+            return SweepDetails("PDH", lvl, ext, "SELL")
+        }
+        if (liqPdlSweptLevel > 0.0 || textPdl || (pdl > 0.0 && cLow > 0.0 && cLow < pdl && cClose > pdl)) {
+            val lvl = if (liqPdlSweptLevel > 0.0) liqPdlSweptLevel else if (pdl > 0.0) pdl else cLow
+            val ext = if (cLow > 0.0 && cLow < lvl) cLow else lvl - 1.20
+            return SweepDetails("PDL", lvl, ext, "BUY")
+        }
+
+        // 3. BSL / SSL sweep
+        val sweepObj = dashboard?.optJSONObject("sweep")
+        val dSweepPrice = sweepObj?.optDouble("price", 0.0) ?: 0.0
+        val dSweepExtreme = sweepObj?.optDouble("extreme", 0.0) ?: 0.0
+        val dSweepDir = sweepObj?.optInt("dir", 0) ?: (dashboard?.optInt("sweepDir", 0) ?: 0)
+        val sweepStatus = dashboard?.optInt("sweepStatus", 0) ?: 0
+
+        val trgSweepDir = trigger?.optInt("sweepDir", 0) ?: 0
+        val trgSweptPrice = trigger?.optDouble("sweptPrice", 0.0) ?: 0.0
+        val trgSweepExtreme = trigger?.optDouble("sweepExtreme", 0.0) ?: 0.0
+
+        val bslLevel = dashboard?.optDouble("bsl", 0.0) ?: (levels?.optDouble("bsl", 0.0) ?: 0.0)
+        val sslLevel = dashboard?.optDouble("ssl", 0.0) ?: (levels?.optDouble("ssl", 0.0) ?: 0.0)
+
+        var liqBslSwept = false
+        var liqSslSwept = false
+        if (liquidity != null) {
+            for (i in 0 until liquidity.length()) {
+                val item = liquidity.optJSONObject(i) ?: continue
+                val label = item.optString("label", "")
+                val status = item.optString("status", "")
+                if (status.equals("SWEPT", ignoreCase = true)) {
+                    if (label.equals("BSL", ignoreCase = true)) liqBslSwept = true
+                    if (label.equals("SSL", ignoreCase = true)) liqSslSwept = true
+                }
+            }
+        }
+
+        val hasSsl = (sweepStatus == 1 && dSweepDir == 1) ||
+            (trgSweepDir == 1) ||
+            lines.any { it.contains("ssl", ignoreCase = true) && it.contains("swept", ignoreCase = true) } ||
+            liqSslSwept
+
+        val hasBsl = (sweepStatus == 1 && dSweepDir == -1) ||
+            (trgSweepDir == -1) ||
+            lines.any { it.contains("bsl", ignoreCase = true) && it.contains("swept", ignoreCase = true) } ||
+            liqBslSwept
+
+        if (hasSsl) {
+            val lvl = if (dSweepDir == 1 && dSweepPrice > 0.0) dSweepPrice else if (trgSweepDir == 1 && trgSweptPrice > 0.0) trgSweptPrice else if (sslLevel > 0.0) sslLevel else if (cLow > 0.0) cLow else 2642.50
+            val ext = if (dSweepDir == 1 && dSweepExtreme > 0.0) dSweepExtreme else if (trgSweepDir == 1 && trgSweepExtreme > 0.0) trgSweepExtreme else if (cLow > 0.0 && cLow < lvl) cLow else lvl - 1.70
+            return SweepDetails("SSL", lvl, ext, "BUY")
+        }
+
+        if (hasBsl) {
+            val lvl = if (dSweepDir == -1 && dSweepPrice > 0.0) dSweepPrice else if (trgSweepDir == -1 && trgSweptPrice > 0.0) trgSweptPrice else if (bslLevel > 0.0) bslLevel else if (cHigh > 0.0) cHigh else 2665.30
+            val ext = if (dSweepDir == -1 && dSweepExtreme > 0.0) dSweepExtreme else if (trgSweepDir == -1 && trgSweepExtreme > 0.0) trgSweepExtreme else if (cHigh > lvl) cHigh else lvl + 1.70
+            return SweepDetails("BSL", lvl, ext, "SELL")
+        }
+
+        // 4. Any line containing "swept"
+        if (lines.any { it.contains("swept", ignoreCase = true) }) {
+            val isSsl = lines.any { it.contains("ssl", ignoreCase = true) }
+            val name = if (isSsl) "SSL" else "BSL"
+            val lvl = if (isSsl) (if (sslLevel > 0.0) sslLevel else if (cLow > 0.0) cLow else 2642.50) else (if (bslLevel > 0.0) bslLevel else if (cHigh > 0.0) cHigh else 2665.30)
+            val ext = if (isSsl) (if (cLow > 0.0 && cLow < lvl) cLow else lvl - 1.70) else (if (cHigh > lvl) cHigh else lvl + 1.70)
+            return SweepDetails(name, lvl, ext, if (isSsl) "BUY" else "SELL")
+        }
+
+        return null
     }
 
     private fun showDriverNotification(title: String, body: String, targetId: String) {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {clean,wilderAtr,pivotAt,dashboardEngine,triggerEngine,keyLevels,classicPivot,pivotSources,entryScore,analyzeAmy,baseVisuals,fibonacci,sessions,AMY_POLICY} from '../supabase/functions/scalper-engine/amy-ict.mjs';
+import {clean,wilderAtr,pivotAt,dashboardEngine,triggerEngine,keyLevels,classicPivot,pivotSources,entryScore,analyzeAmy,baseVisuals,fibonacci,sessions,AMY_POLICY,m15Confirmation} from '../supabase/functions/scalper-engine/amy-ict.mjs';
 import {buildMarketContext} from '../supabase/functions/scalper-engine/market-context.mjs';
 import {dashboardRows,DISPLAY_DEFAULTS} from '../app/src/main/assets/apps/mapping/js/ict-workspace/ict-presentation.js';
 const now=Date.parse('2026-09-24T12:37:00Z')/1000;
@@ -73,4 +73,54 @@ test('primary target never exposes opposing, already reached or wrong-side DOL l
     const allowed=d.dolStatus===1&&d.dolDir===d.biasDir&&(p.side==='BUY'?d.dolTarget>c.price:d.dolTarget<c.price);
     if(!allowed)assert.equal(p.target,null);else assert.equal(p.target,d.dolTarget);
   }
+});
+
+test('M15 Wick Rejection >= 1.2x body at POI/SSL confirms BUY directly without waiting for M5 break', () => {
+  const dWick = { biasDir: 1, invalidStatus: 0, ssl: 97, candle: { open: 100, close: 101, low: 95, high: 101.5 } };
+  const conf = m15Confirmation(dWick, { ssl: 97 });
+  assert.equal(conf.confirmed, true);
+  assert.equal(conf.wickReject, true);
+  assert.equal(conf.type, 'WICK_REJECTION');
+  assert.equal(conf.side, 'BUY');
+});
+
+test('M15 Displacement Break (BOS/MSS) searah bias dengan body tebal confirms directly', () => {
+  const dDisp = { biasDir: 1, invalidStatus: 0, bullMss: true, bullDisp: true, candle: { open: 100, close: 108, low: 99.5, high: 109 } };
+  const conf = m15Confirmation(dDisp);
+  assert.equal(conf.confirmed, true);
+  assert.equal(conf.displacementBreak, true);
+  assert.equal(conf.type, 'DISPLACEMENT_BREAK');
+  assert.equal(conf.side, 'BUY');
+});
+
+test('M15 50% CE Bounce di Dealing Range yang sehat confirms directly', () => {
+  const dCe = { biasDir: 1, invalidStatus: 0, priceZone: -1, locationStatus: 1, eq: 100, candle: { open: 99.5, close: 101, low: 98, high: 101.5 } };
+  const conf = m15Confirmation(dCe);
+  assert.equal(conf.confirmed, true);
+  assert.equal(conf.ceBounce, true);
+  assert.equal(conf.type, 'CE_BOUNCE');
+  assert.equal(conf.side, 'BUY');
+});
+
+test('M15 direct confirmation sets CONFIRMED status and activates Entry Assistant plan without waiting for M5 break', () => {
+  const m15Bars = candles(900, 100, .18);
+  const lastM15 = m15Bars[99];
+  lastM15.open = 3318;
+  lastM15.close = 3319;
+  lastM15.low = 3310;
+  lastM15.high = 3319.5;
+  const m5Bars = candles(300, 80, 0); // Flat M5 without break or displacement
+  const ctx = buildMarketContext({
+    nowSeconds: now,
+    h1: candles(3600, 60, .25),
+    m15: m15Bars,
+    m5: m5Bars,
+    d1: candles(86400, 45, 1),
+    calendar: [{ country: 'USD', impact: 'High', title: 'CPI', date: '2026-09-24T16:00:00Z' }]
+  });
+  assert.equal(ctx.m15.directConfirmed, true);
+  assert.equal(ctx.m5.status, 'CONFIRMED');
+  assert.equal(ctx.execution.status, 'READY');
+  assert.ok(ctx.plan);
+  assert.equal(ctx.plan.status, 'READY');
 });

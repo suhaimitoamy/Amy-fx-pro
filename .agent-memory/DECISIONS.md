@@ -609,7 +609,25 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 2. **Tombol "Edit" (Edit Handler & Scrolling):**
    - Masalah: ID catatan dicocokkan dengan `===` tanpa konversi tipe string dan form berada di paling atas tanpa auto-scroll, sehingga pengguna di layar ponsel yang sedang scroll ke bawah tidak melihat form yang terbuka.
    - Solusi: Pastikan pencocokan string `String(n.id) === String(id)`, auto-scroll ke form via `scrollIntoView({ behavior: 'smooth', block: 'start' })`, fokus ke input judul, ubah label tombol submit menjadi "Perbarui Catatan", dan pastikan setiap catatan lama yang dimuat dari localStorage otomatis memiliki ID unik persisten.
-3. **Bump Versi ke Pro407:**
-   - Versi dinaikkan ke `2.0.0-pro.407` (950407) untuk memicu rilis build APK baru ke pengguna.
+## 2026-10-08 — M15 Otoritas Penuh & Konfirmasi Eksekusi Mandiri (Pro 408)
+
+1. **M15 Direct Confirmation Authority:**
+   - Logika konfirmasi dirombak agar candle M15 yang resmi close menjadi konfirmasi eksekusi sah dan mandiri (`m15Confirmation(d, levels)`), tanpa harus terblokir menunggu M5 break struktur.
+   - Tiga kriteria konfirmasi mandiri M15:
+     a) **M15 Wick Rejection >= 1.2x body di POI atau likuiditas**: Lower wick (BUY) atau upper wick (SELL) >= 1.2x body pada POI aktif atau level likuiditas utama (SSL, BSL, Asia Low/High, PDL/PDH).
+     b) **M15 Displacement Break (BOS / MSS) searah bias**: Break struktur M15 searah bias dengan candle displacement ber-body tebal (`bullDisp` / `bearDisp` > 1.2x rata-rata 20 bar).
+     c) **M15 50% CE Bounce di Dealing Range sehat**: Pengujian dan pemantulan dari level 50% CE (Equilibrium Dealing Range atau 50% CE POI) di zona Diskon untuk BUY atau zona Premium untuk SELL.
+2. **Sinkronisasi Engine & State Execution:**
+   - Di `entryAssistantV3`: Saat M15 close terkonfirmasi, `rawSignalType` langsung aktif (`1` untuk Buy, `-1` untuk Sell), `entryFresh` dijamin aktif, `status: 'READY'`, dan `plan` (Entry, SL, TP1, TP2, RR) langsung diterbitkan.
+   - Di `buildMarketContext`:
+     - Checklist `ok` konfirmasi eksekusi (`executionConfirmed = m15DirectConfirmed || alignedTrigger`) terpenuhi langsung oleh M15 close.
+     - Checklist POI dan Sweep diperluas untuk mengakomodasi wick rejection di likuiditas dan CE bounce M15.
+     - `confirmation.status` langsung menjadi `CONFIRMED`.
+     - `execution.status` menjadi `READY` atau `READY TO REVIEW` (jika A+ memenuhi syarat skor dan DOL target).
+     - Event `ENTRY_SIGNAL` atau `A_PLUS_READY` dipicu tanpa menunggu M5.
+3. **Paritas & Verifikasi:**
+   - Byte-identical parity terjaga 100% antara `app/src/main/assets/apps/mapping/js/ict-workspace/amy-ict.js`, `supabase/functions/scalper-engine/amy-ict.mjs`, dan `lib/scalper-engine/amy-ict.mjs`.
+   - File `market-context.mjs` di `supabase/functions` dan `lib` disinkronkan identik.
+   - Seluruh 34 unit test di `tests/mapping-amy-ict-pro375.test.mjs` lulus dengan 100% passing rate.
 
 

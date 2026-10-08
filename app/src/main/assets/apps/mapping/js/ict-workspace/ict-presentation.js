@@ -65,6 +65,103 @@ export function isGoldMarketOpen(nowSeconds = Math.floor(Date.now() / 1000)) {
     return day !== 0 && day !== 6;
   }
 }
+export function detectLiquiditySweep(amy, context = null) {
+  if (!amy) return null;
+  const d = amy.dashboard;
+  const e = amy.entry;
+  const trg = amy.trigger;
+  const ctx = context || (typeof window !== 'undefined' ? window.AmyMarketContext : null);
+  const levels = amy.levels || ctx?.levels || ctx?.keyLevels || {};
+  const c = trg?.candle || d?.candle || amy.candle || (amy.chartCandles && amy.chartCandles.length ? amy.chartCandles[amy.chartCandles.length - 1] : null);
+  const lines = (e?.text || '').split('\n').map(s => s.trim()).filter(Boolean);
+  const liqList = Array.isArray(ctx?.liquidity) ? ctx.liquidity : [];
+
+  const num = x => (x != null && Number.isFinite(Number(x))) ? Number(x) : null;
+
+  // 1. Asia High / Asia Low sweep
+  const asiaHigh = num(levels.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
+  const asiaLow = num(levels.asiaLow ?? ctx?.keyLevels?.asiaLow);
+  const liqAsiaHighSwept = liqList.find(l => /asia\s*high/i.test(l.label) && /swept/i.test(l.status));
+  const liqAsiaLowSwept = liqList.find(l => /asia\s*low/i.test(l.label) && /swept/i.test(l.status));
+  const textAsiaHigh = lines.some(l => /asia\s*high.*swept/i.test(l));
+  const textAsiaLow = lines.some(l => /asia\s*low.*swept/i.test(l));
+
+  if (liqAsiaHighSwept || textAsiaHigh || (c && asiaHigh && c.high > asiaHigh && c.close < asiaHigh)) {
+    const lvl = num(liqAsiaHighSwept?.level) || asiaHigh || (c ? c.high : 0);
+    const ext = (c && c.high > lvl) ? c.high : (lvl ? lvl + 1.20 : 0);
+    return { name: 'Asia High', level: lvl, extreme: ext, side: 'SELL' };
+  }
+  if (liqAsiaLowSwept || textAsiaLow || (c && asiaLow && c.low < asiaLow && c.close > asiaLow)) {
+    const lvl = num(liqAsiaLowSwept?.level) || asiaLow || (c ? c.low : 0);
+    const ext = (c && c.low < lvl) ? c.low : (lvl ? lvl - 1.20 : 0);
+    return { name: 'Asia Low', level: lvl, extreme: ext, side: 'BUY' };
+  }
+
+  // 2. PDH / PDL sweep
+  const pdh = num(levels.pdh ?? ctx?.keyLevels?.pdh);
+  const pdl = num(levels.pdl ?? ctx?.keyLevels?.pdl);
+  const liqPdhSwept = liqList.find(l => /pdh|previous\s*day\s*high/i.test(l.label) && /swept/i.test(l.status));
+  const liqPdlSwept = liqList.find(l => /pdl|previous\s*day\s*low/i.test(l.label) && /swept/i.test(l.status));
+  const textPdh = lines.some(l => /pdh.*swept/i.test(l));
+  const textPdl = lines.some(l => /pdl.*swept/i.test(l));
+
+  if (liqPdhSwept || textPdh || (c && pdh && c.high > pdh && c.close < pdh)) {
+    const lvl = num(liqPdhSwept?.level) || pdh || (c ? c.high : 0);
+    const ext = (c && c.high > lvl) ? c.high : (lvl ? lvl + 1.20 : 0);
+    return { name: 'PDH', level: lvl, extreme: ext, side: 'SELL' };
+  }
+  if (liqPdlSwept || textPdl || (c && pdl && c.low < pdl && c.close > pdl)) {
+    const lvl = num(liqPdlSwept?.level) || pdl || (c ? c.low : 0);
+    const ext = (c && c.low < lvl) ? c.low : (lvl ? lvl - 1.20 : 0);
+    return { name: 'PDL', level: lvl, extreme: ext, side: 'BUY' };
+  }
+
+  // 3. BSL / SSL sweep
+  const dSweepPrice = num(d?.sweep?.price);
+  const dSweepExtreme = num(d?.sweep?.extreme);
+  const dSweepDir = num(d?.sweep?.dir) ?? (d?.sweepDir || 0);
+
+  const trgSweepDir = num(trg?.sweepDir) || 0;
+  const trgSweptPrice = num(trg?.sweptPrice);
+  const trgSweepExtreme = num(trg?.sweepExtreme);
+
+  const bslLevel = num(d?.bsl) || num(levels.bsl) || num(liqList.find(l => l.label === 'BSL')?.level) || num(d?.protectedHigh);
+  const sslLevel = num(d?.ssl) || num(levels.ssl) || num(liqList.find(l => l.label === 'SSL')?.level) || num(d?.protectedLow);
+
+  const hasSslSweep = (d?.sweepStatus === 1 && dSweepDir === 1) ||
+    (trgSweepDir === 1) ||
+    lines.some(l => /ssl.*swept/i.test(l)) ||
+    liqList.some(l => l.label === 'SSL' && /swept/i.test(l.status));
+
+  const hasBslSweep = (d?.sweepStatus === 1 && dSweepDir === -1) ||
+    (trgSweepDir === -1) ||
+    lines.some(l => /bsl.*swept/i.test(l)) ||
+    liqList.some(l => l.label === 'BSL' && /swept/i.test(l.status));
+
+  if (hasSslSweep) {
+    const lvl = (dSweepDir === 1 && dSweepPrice) || (trgSweepDir === 1 && trgSweptPrice) || sslLevel || (c ? c.low : 2642.50);
+    const ext = (dSweepDir === 1 && dSweepExtreme) || (trgSweepDir === 1 && trgSweepExtreme) || (c && c.low < lvl ? c.low : lvl - 1.70);
+    return { name: 'SSL', level: lvl, extreme: ext, side: 'BUY' };
+  }
+
+  if (hasBslSweep) {
+    const lvl = (dSweepDir === -1 && dSweepPrice) || (trgSweepDir === -1 && trgSweptPrice) || bslLevel || (c ? c.high : 2665.30);
+    const ext = (dSweepDir === -1 && dSweepExtreme) || (trgSweepDir === -1 && trgSweepExtreme) || (c && c.high > lvl ? c.high : lvl + 1.70);
+    return { name: 'BSL', level: lvl, extreme: ext, side: 'SELL' };
+  }
+
+  // 4. Any line containing "swept"
+  if (lines.some(l => l.toLowerCase().includes('swept'))) {
+    const isSsl = lines.some(l => /ssl/i.test(l));
+    const name = isSsl ? 'SSL' : 'BSL';
+    const lvl = isSsl ? (sslLevel || (c ? c.low : 2642.50)) : (bslLevel || (c ? c.high : 2665.30));
+    const ext = isSsl ? (c && c.low < lvl ? c.low : lvl - 1.70) : (c && c.high > lvl ? c.high : lvl + 1.70);
+    return { name, level: lvl, extreme: ext, side: isSsl ? 'BUY' : 'SELL' };
+  }
+
+  return null;
+}
+
 export function renderLiveAssistant(amy,news=null,settings={},context=null){
   const root=document.getElementById('amy-live-assistant');
   const badgeEl=document.getElementById('assistant-badge');
@@ -108,6 +205,7 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
 
   const mathZoneText=ast?.mathZone||(d?.priceZone===-1?'Diskon (Discount Zone)':d?.priceZone===1?'Premium Zone':'Equilibrium Zone');
   const antiChaseText=ast?.status==='READY'?'READY DI ZONA':ast?.status==='MISSED'?'MISSED - JANGAN KEJAR':'STANDBY';
+  const sweepInfo=detectLiquiditySweep(amy,context);
 
   if(news?.status==='NEWS_LOCK'){
     badge='NEWS LOCK';badgeClass='badge-news';stateClass='assistant-state-news';
@@ -150,6 +248,15 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     primary=`🔥 Rejection Kuat di Area ${d?.poi?.kind||'POI'}`;
     sub=`Candle menolak ${isBuy?'bawah':'atas'} dengan wick panjang. Math Zone: ${mathZoneText} · Anti-Chase: ${antiChaseText}`;
     notify=true;notifTitle=`🔥 Asisten Amy: ${badge}`;notifBody=`${primary}. ${sub}`;
+  }else if(sweepInfo){
+    badge=`${sweepInfo.name.toUpperCase()} SWEPT`;
+    badgeClass='badge-sweep';
+    stateClass='assistant-state-sweep';
+    primary=`💧 ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
+    sub=`Tersapu hingga ekor ${n(sweepInfo.extreme)}. Pantau pembentukan rejection untuk potensi ${sweepInfo.side}.`;
+    notify=true;
+    notifTitle=`💧 Asisten Amy: ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
+    notifBody=`${primary} ${sub}`;
   }else if(d?.biasDir){
     const isBull=d.biasDir===1;
     badge='STANDBY';badgeClass='badge-neutral';

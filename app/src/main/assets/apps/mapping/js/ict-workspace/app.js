@@ -77,6 +77,9 @@ function draw(degraded=false){
   chart?.draw(result,activePlan,presentation);
   const last=result.candles.at(-1);
   if($('chart-price'))$('chart-price').textContent=last?last.close.toFixed(2):'—';
+  if(last&&Number.isFinite(last.close)&&typeof window.AmyPriceAlertManager?.checkPrice==='function'){
+    window.AmyPriceAlertManager.checkPrice(last.close);
+  }
   if($('source')){
     const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
     if(closed){
@@ -168,6 +171,18 @@ window.setTab=name=>{
 };
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>window.setTab(el.dataset.tab)));
 $('refresh').addEventListener('click',()=>{refresh();window.dispatchEvent(new CustomEvent('amyfx:refresh-context'));});
+$('btn-custom-price-alert')?.addEventListener('click',()=>{
+  if(typeof window.AmyPriceAlertManager?.openAddAlertDialog==='function'){
+    window.AmyPriceAlertManager.openAddAlertDialog();
+  }
+});
+$('btn-plan-price-alert')?.addEventListener('click',()=>{
+  const plan=driverPlan||context?.amy?.assistant?.plan||context?.amy?.plan;
+  const prefill=plan?.entry||null;
+  if(typeof window.AmyPriceAlertManager?.openAddAlertDialog==='function'){
+    window.AmyPriceAlertManager.openAddAlertDialog(prefill);
+  }
+});
 $('timeframe').addEventListener('change',()=>{
   const newTf=$('timeframe').value;
   const stored=getStoredCandles(newTf);

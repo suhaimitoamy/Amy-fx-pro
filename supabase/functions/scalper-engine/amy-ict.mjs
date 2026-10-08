@@ -135,7 +135,7 @@ export function dashboardEngine(candles,options={}){
       dolStatus===1?`Target DOL: ${number(dolTarget)}`:dolStatus===2?'DOL Reached':null,
       poi?`POI: ${poi.side} ${poi.kind} (${poi.lifecycle})`:null
     ].filter(Boolean).join(' · ');
-    const item={time:c.close_time,candle:{...c},atr:atr[i],biasDir:bias,mssDir:mss,bullMss:Boolean(bull),bearMss:Boolean(bear),protectedHigh:ph?.level??null,protectedLow:pl?.level??null,
+    const item={time:c.close_time,candle:{...c},atr:atr[i],biasDir:bias,mssDir:mss,bullMss:Boolean(bull),bearMss:Boolean(bear),bullDisp:Boolean(bullDisp),bearDisp:Boolean(bearDisp),protectedHigh:ph?.level??null,protectedLow:pl?.level??null,
       invalidLevel:invalid,invalidStatus,rangeHigh:high,rangeLow:low,eq,eqLow,eqHigh,priceZone,locationStatus:bias&&priceZone?-bias*priceZone:0,
       bsl:ph?.level??null,ssl:pl?.level??null,sweep:sweep?{...sweep}:invalidSweep,sweepDir:sweep?.dir||0,sweepStatus,dolDir,dolTarget,dolStatus,dolAlign,dolDistance:dolTarget==null?null:Math.abs(dolTarget-c.close),
       poi:poi?{...poi}:null,poiPriority:priority,poiLocation:poiLoc,poiDistance:distance(c.close,poi),alasanInti:coreReason,coreReason};
@@ -203,15 +203,89 @@ export function pivotSources(d1,nowSeconds){
   const priorWeek=d1.filter(c=>c.open_time>=weekStart-7*86400&&c.open_time<weekStart),priorMonth=d1.filter(c=>c.open_time>=Date.UTC(date.year,date.month-2,1)/1000&&c.open_time<monthStart);
   return {D:classicPivot(last(d1)),W:priorWeek.length>=4?classicPivot(aggregate(priorWeek)):null,M:priorMonth.length>=15?classicPivot(aggregate(priorMonth)):null};
 }
+export function m15Confirmation(d, levels={}){
+  if(!d||!d.candle||!d.biasDir||d.invalidStatus===2) {
+    return {confirmed:false,type:null,reason:null,wickReject:false,displacementBreak:false,ceBounce:false,dir:0,side:null};
+  }
+  const c=d.candle,s=DEFAULTS,cBody=body(c),safeBody=Math.max(cBody,s.tick);
+  const upperWick=c.high-Math.max(c.open,c.close),lowerWick=Math.min(c.open,c.close)-c.low;
+  const poi=d.poi,inPoi=Boolean(poi&&overlaps(c,poi));
+
+  // a) M15 Wick Rejection >= 1.2x body di POI atau likuiditas (SSL/BSL/Asia/PDH/PDL)
+  const ssl=levels?.ssl??d.ssl,bsl=levels?.bsl??d.bsl;
+  const asiaLow=levels?.asiaLow??null,asiaHigh=levels?.asiaHigh??null;
+  const pdl=levels?.pdl??null,pdh=levels?.pdh??null;
+
+  const sslHit=ssl!=null&&c.low<=ssl&&c.close>ssl;
+  const bslHit=bsl!=null&&c.high>=bsl&&c.close<bsl;
+  const asiaLowHit=asiaLow!=null&&c.low<=asiaLow&&c.close>asiaLow;
+  const asiaHighHit=asiaHigh!=null&&c.high>=asiaHigh&&c.close<asiaHigh;
+  const pdlHit=pdl!=null&&c.low<=pdl&&c.close>pdl;
+  const pdhHit=pdh!=null&&c.high>=pdh&&c.close<pdh;
+
+  const buyTargetLiq=inPoi||sslHit||asiaLowHit||pdlHit;
+  const sellTargetLiq=inPoi||bslHit||asiaHighHit||pdhHit;
+
+  const buyWickReject=d.biasDir===1&&buyTargetLiq&&lowerWick>=safeBody*s.rejectWick;
+  const sellWickReject=d.biasDir===-1&&sellTargetLiq&&upperWick>=safeBody*s.rejectWick;
+  const wickReject=buyWickReject||sellWickReject;
+
+  // b) M15 Displacement Break (BOS / MSS) searah bias dengan body tebal
+  const buyDispBreak=d.biasDir===1&&(d.bullMss||d.mssDir===1)&&Boolean(d.bullDisp);
+  const sellDispBreak=d.biasDir===-1&&(d.bearMss||d.mssDir===-1)&&Boolean(d.bearDisp);
+  const displacementBreak=buyDispBreak||sellDispBreak;
+
+  // c) M15 50% CE Bounce di Dealing Range yang sehat (Diskon untuk BUY, Premium untuk SELL)
+  const buyHealthyDr=d.priceZone===-1||d.locationStatus===1;
+  const sellHealthyDr=d.priceZone===1||d.locationStatus===1;
+
+  const buyEqBounce=d.eq!=null&&c.low<=d.eq&&c.close>=d.eq;
+  const buyPoiCeBounce=poi?.ce!=null&&c.low<=poi.ce&&c.close>=poi.ce;
+  const buyCeBounce=d.biasDir===1&&buyHealthyDr&&(buyEqBounce||buyPoiCeBounce)&&c.close>=c.open;
+
+  const sellEqBounce=d.eq!=null&&c.high>=d.eq&&c.close<=d.eq;
+  const sellPoiCeBounce=poi?.ce!=null&&c.high>=poi.ce&&c.close<=poi.ce;
+  const sellCeBounce=d.biasDir===-1&&sellHealthyDr&&(sellEqBounce||sellPoiCeBounce)&&c.close<=c.open;
+  const ceBounce=buyCeBounce||sellCeBounce;
+
+  const confirmed=Boolean(wickReject||displacementBreak||ceBounce);
+  const type=wickReject?'WICK_REJECTION':displacementBreak?'DISPLACEMENT_BREAK':ceBounce?'CE_BOUNCE':null;
+  const where=inPoi?`${poi.side} ${poi.kind}`:sslHit?'SSL':bslHit?'BSL':asiaLowHit?'Asia Low':asiaHighHit?'Asia High':pdlHit?'PDL':pdhHit?'PDH':'likuiditas';
+  const reason=wickReject
+    ? `M15 Wick Rejection >= 1.2x body di ${where}`
+    : displacementBreak
+    ? `M15 Displacement Break (${d.biasDir===1?'Bullish':'Bearish'}) searah bias`
+    : ceBounce
+    ? `M15 50% CE Bounce di Dealing Range ${d.biasDir===1?'Diskon':'Premium'}`
+    : null;
+
+  return {
+    confirmed,
+    type,
+    reason,
+    wickReject:Boolean(wickReject),
+    displacementBreak:Boolean(displacementBreak),
+    ceBounce:Boolean(ceBounce),
+    dir:d.biasDir,
+    side:d.biasDir===1?'BUY':d.biasDir===-1?'SELL':null
+  };
+}
 export function entryScore(d,t,levels={},options={}){
   const s={...DEFAULTS,...options};if(!d||!t)return {buy:0,sell:0,winDir:0,score:0,grade:'NO_SETUP',breakdown:{},text:'Menunggu candle tertutup.'};
   const c=t.candle,poi=d.poi,inPoi=Boolean(poi&&overlaps(c,poi)),safe=Math.max(body(c),s.tick);
   const rejectBuy=d.biasDir===1&&inPoi&&c.close>c.open&&Math.min(c.open,c.close)-c.low>=safe*s.rejectWick;
   const rejectSell=d.biasDir===-1&&inPoi&&c.close<c.open&&c.high-Math.max(c.open,c.close)>=safe*s.rejectWick;
+  const m15Conf=m15Confirmation(d,levels);
+  const m15BuyDisp=m15Conf.confirmed&&d.biasDir===1&&m15Conf.displacementBreak;
+  const m15SellDisp=m15Conf.confirmed&&d.biasDir===-1&&m15Conf.displacementBreak;
+  const m15BuyStruct=m15Conf.confirmed&&d.biasDir===1&&(d.bullMss||m15Conf.displacementBreak);
+  const m15SellStruct=m15Conf.confirmed&&d.biasDir===-1&&(d.bearMss||m15Conf.displacementBreak);
+  const m15BuyReject=m15Conf.confirmed&&d.biasDir===1&&(m15Conf.wickReject||m15Conf.ceBounce);
+  const m15SellReject=m15Conf.confirmed&&d.biasDir===-1&&(m15Conf.wickReject||m15Conf.ceBounce);
   const layer=dir=>({bias:d.biasDir===dir?20:0,sweep:d.sweepStatus===1&&d.sweepDir===dir?20:d.sweepStatus===2&&d.sweepDir===dir?8:t.sweepDir===dir?12:0,
-    poi:poi&&d.biasDir===dir?(d.poiLocation===-dir?15:8):0,poiBonus:dir===1&&rejectBuy||dir===-1&&rejectSell?5:inPoi&&d.biasDir===dir?3:0,
+    poi:poi&&d.biasDir===dir?(d.poiLocation===-dir?15:8):0,poiBonus:dir===1&&(rejectBuy||m15BuyReject)||dir===-1&&(rejectSell||m15SellReject)?5:inPoi&&d.biasDir===dir?3:0,
     dol:d.dolDir===dir?(d.dolStatus===1?10:d.dolStatus===2?5:0):0,location:d.priceZone===-dir?10:d.priceZone===0?3:0,
-    displacement:(dir===1?t.bullDisp:t.bearDisp)?15:0,structure:(dir===1?t.bullBreak:t.bearBreak)?10:0,
+    displacement:(dir===1?(t.bullDisp||m15BuyDisp):(t.bearDisp||m15SellDisp))?15:0,structure:(dir===1?(t.bullBreak||m15BuyStruct):(t.bearBreak||m15SellStruct))?10:0,
     asia:dir===1?(levels.asiaLow!=null&&c.low<=levels.asiaLow&&c.close>levels.asiaLow?5:levels.asiaHigh!=null&&c.close>levels.asiaHigh?3:0):
       (levels.asiaHigh!=null&&c.high>=levels.asiaHigh&&c.close<levels.asiaHigh?5:levels.asiaLow!=null&&c.close<levels.asiaLow?3:0)});
   const buyLayers=layer(1),sellLayers=layer(-1),total=x=>Math.min(100,Object.values(x).reduce((a,b)=>a+b,0));
@@ -225,7 +299,8 @@ export function entryScore(d,t,levels={},options={}){
   if(m5Invalid&&d.invalidStatus!==2){lines.push('⚠ Close M5 melewati invalid M15','Eksekusi ditahan; tunggu konfirmasi close M15');importance=5;}
   else if(d.invalidStatus===2){lines.push('⚠ Setup batal',`Close melewati invalid ${number(d.invalidLevel)}`,'Tunggu struktur baru');importance=5;}
   else {
-    if(rejectBuy||rejectSell){lines.push(`Rejection kuat dari ${poi.side} ${poi.kind}`,`Wick ${rejectBuy?'bawah':'atas'} panjang · konfirmasi ${rejectBuy?'BUY':'SELL'}`);importance=5;}
+    if(m15Conf.confirmed){lines.push(`Konfirmasi M15: ${m15Conf.reason}`,`Otoritas penuh M15 · status CONFIRMED (${m15Conf.side})`);importance=5;}
+    else if(rejectBuy||rejectSell){lines.push(`Rejection kuat dari ${poi.side} ${poi.kind}`,`Wick ${rejectBuy?'bawah':'atas'} panjang · konfirmasi ${rejectBuy?'BUY':'SELL'}`);importance=5;}
     else if(d.biasDir===1&&t.bullBreak&&t.bullDisp||d.biasDir===-1&&t.bearBreak&&t.bearDisp){lines.push(`Valid break ${d.biasDir===1?'bullish':'bearish'} dengan displacement`,'Struktur M5 terkonfirmasi');importance=4;}
     else if(inPoi){lines.push(`${poi.side} ${poi.kind} tersentuh`,'Pantau rejection di zona ini');importance=3;}
     else if(nearPoi){lines.push(`Harga mendekati ${poi.side} ${poi.kind}`,'Siapkan pengamatan reaksi');importance=2;}
@@ -248,7 +323,7 @@ export function entryScore(d,t,levels={},options={}){
     if(score>=40)lines.push(`Confluence ${score}/100 poin`);
   }
   if(winDir&&d.biasDir&&winDir!==d.biasDir)lines.push(`Skor dominan ${winDir===1?'BUY':'SELL'} ${score}/100 berlawanan bias M15; tunggu struktur baru.`);
-  return {m5Invalid:Boolean(m5Invalid),time:t.time,buy,sell,rawBuy:total(buyLayers),rawSell:total(sellLayers),winDir,score,grade,breakdown:{buy:buyLayers,sell:sellLayers},inPoi,rejectBuy,rejectSell,importance,dir,text:lines.join('\n')};
+  return {m5Invalid:Boolean(m5Invalid),time:t.time,buy,sell,rawBuy:total(buyLayers),rawSell:total(sellLayers),winDir,score,grade,breakdown:{buy:buyLayers,sell:sellLayers},inPoi,rejectBuy,rejectSell,m15Confirmation:m15Conf,importance,dir,text:lines.join('\n')};
 }
 export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options={}){
   const s = { ...DEFAULTS, ...options };
@@ -432,25 +507,30 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
   const pullbackSellZone = basePullbackSellZone && mathSellZone;
   const pullbackBuyZone = basePullbackBuyZone && mathBuyZone;
 
-  const trendBuyBreak = contextOk && d.biasDir === 1 && trendBuyZone && breakBuyFresh;
-  const trendSellBreak = contextOk && d.biasDir === -1 && trendSellZone && breakSellFresh;
+  const m15Conf = m15Confirmation(d, levels);
+  const m15DirectConfirmed = Boolean(m15Conf.confirmed && contextOk && d.biasDir !== 0);
+  const m15BuyTrend = m15DirectConfirmed && d.biasDir === 1;
+  const m15SellTrend = m15DirectConfirmed && d.biasDir === -1;
+
+  const trendBuyBreak = contextOk && d.biasDir === 1 && (trendBuyZone && breakBuyFresh || (m15BuyTrend && m15Conf.displacementBreak));
+  const trendSellBreak = contextOk && d.biasDir === -1 && (trendSellZone && breakSellFresh || (m15SellTrend && m15Conf.displacementBreak));
   const pullbackSellBreak = contextOk && d.biasDir === 1 && pullbackSellZone && breakSellFresh;
   const pullbackBuyBreak = contextOk && d.biasDir === -1 && pullbackBuyZone && breakBuyFresh;
 
-  const trendBuyReject = contextOk && d.biasDir === 1 && trendBuyZone && bullRejectNow;
-  const trendSellReject = contextOk && d.biasDir === -1 && trendSellZone && bearRejectNow;
+  const trendBuyReject = contextOk && d.biasDir === 1 && (trendBuyZone && bullRejectNow || (m15BuyTrend && (m15Conf.wickReject || m15Conf.ceBounce)));
+  const trendSellReject = contextOk && d.biasDir === -1 && (trendSellZone && bearRejectNow || (m15SellTrend && (m15Conf.wickReject || m15Conf.ceBounce)));
   const pullbackSellReject = contextOk && d.biasDir === 1 && pullbackSellZone && bearRejectNow;
   const pullbackBuyReject = contextOk && d.biasDir === -1 && pullbackBuyZone && bullRejectNow;
 
   let rawSignalType = 0;
   if (pullbackSellBreak || pullbackSellReject) rawSignalType = -2;
   else if (pullbackBuyBreak || pullbackBuyReject) rawSignalType = 2;
-  else if (trendBuyBreak || trendBuyReject) rawSignalType = 1;
-  else if (trendSellBreak || trendSellReject) rawSignalType = -1;
+  else if (trendBuyBreak || trendBuyReject || m15BuyTrend) rawSignalType = 1;
+  else if (trendSellBreak || trendSellReject || m15SellTrend) rawSignalType = -1;
 
   const rawSignalDir = (rawSignalType === 1 || rawSignalType === 2) ? 1 : (rawSignalType === -1 || rawSignalType === -2) ? -1 : 0;
-  const rawSignalIsBreak = rawSignalType === 1 ? trendBuyBreak :
-    rawSignalType === -1 ? trendSellBreak :
+  const rawSignalIsBreak = rawSignalType === 1 ? (trendBuyBreak || (m15BuyTrend && m15Conf.displacementBreak)) :
+    rawSignalType === -1 ? (trendSellBreak || (m15SellTrend && m15Conf.displacementBreak)) :
     rawSignalType === -2 ? pullbackSellBreak :
     rawSignalType === 2 ? pullbackBuyBreak : false;
 
@@ -476,10 +556,11 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
   const sellFresh = rawSignalDir === -1 && rawEntryCandidate != null &&
     c.close <= rawEntryCandidate + zoneTol && c.close >= rawEntryCandidate - chaseTol;
 
-  const entryFresh = rawSignalType === 0 ? true : (rawSignalDir === 1 ? buyFresh : sellFresh);
+  const m15Fresh = m15DirectConfirmed;
+  const entryFresh = rawSignalType === 0 ? true : (m15Fresh || (rawSignalDir === 1 ? buyFresh : sellFresh));
   const signalType = (rawSignalType !== 0 && entryFresh) ? rawSignalType : 0;
   const missedSignal = (rawSignalType !== 0 && !entryFresh);
-  const status = missedSignal ? 'MISSED' : signalType !== 0 ? 'READY' : 'NO ENTRY';
+  const status = missedSignal && !m15Fresh ? 'MISSED' : signalType !== 0 ? 'READY' : 'NO ENTRY';
 
   let entry = rawEntryCandidate ?? c.close;
   let sl = null, tp1 = null, tp2 = null, risk = null, rr1 = null, rr2 = null;
@@ -565,7 +646,8 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
 
   const reasons = [
     `Bias utama: ${d.biasDir === 1 ? 'Bullish' : d.biasDir === -1 ? 'Bearish' : 'Neutral'}`,
-    rawSignalIsBreak ? 'Pemicu: Break + Retest + Rejection (wick 1.2x)' :
+    m15DirectConfirmed ? `Pemicu M15: ${m15Conf.reason} (Otoritas M15 Close)` :
+      rawSignalIsBreak ? 'Pemicu: Break + Retest + Rejection (wick 1.2x)' :
       rawSignalType !== 0 ? 'Pemicu: Rejection area (wick 1.2x)' :
       missedSignal ? 'Status: Missed entry' : 'Status: No entry',
     `Math zone: ${zoneText}`,
@@ -608,6 +690,8 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
     inFiboOte: inBuyFibZone || inSellFibZone,
     nearSnr: nearSupport || nearResistance,
     touchPoi: inPoi,
+    m15Confirmation: m15Conf,
+    directConfirmed: m15DirectConfirmed,
     plan,
     reason: reasons.join('\n'),
     reasons
@@ -627,6 +711,7 @@ export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={
     const entry=entryScore(d,t,historicLevels,settings);if(entry.score>=60&&d.biasDir&&entry.winDir===d.biasDir&&d.invalidStatus<2)signals.push({...entry,time:t.candle.open_time});
   }
   const current=dashboard.current,latestTrigger=last(trigger)||null,entry=entryScore(current,latestTrigger,levels,settings);
+  const m15Conf=m15Confirmation(current,levels);
   const assistant=entryAssistantV3(current,T,levels,pivots,settings);
   const visuals=baseVisuals(M,settings);
   return {
@@ -639,6 +724,7 @@ export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={
     trigger:latestTrigger,
     levels,
     pivots,
+    m15Confirmation:m15Conf,
     events:dashboard.events,
     signals:signals.slice(-100),
     h1:dashboardEngine(H,settings).current,

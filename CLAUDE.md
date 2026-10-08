@@ -66,4 +66,20 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
 2. **Preseden Level Otoritatif Server (D1):**
    - Nilai PDH/PDL harian otoritatif dari D1 yang disediakan server / konteks (`serverAmyLevels.pdh`, `liquidityLevels`, `context.pd`) diprioritaskan (`Math.max(serverPdh, localPdh)`), mencegah distorsi dari keterbatasan buffer 300 lilin intraday.
 
+## M15 Otoritas Penuh & Konfirmasi Eksekusi Mandiri (Pro 408)
+
+1. **M15 Direct Confirmation Authority:**
+   - Candle M15 yang resmi close adalah otoritas konfirmasi penuh dan mandiri untuk memicu eksekusi tanpa terblokir menunggu M5 break struktur.
+   - Kriteria konfirmasi mandiri M15:
+     a) M15 Wick Rejection >= 1.2x body di POI atau likuiditas (SSL/BSL/Asia/PDH/PDL).
+     b) M15 Displacement Break (BOS / MSS) searah bias dengan body tebal (`bullDisp` / `bearDisp`).
+     c) M15 50% CE Bounce di Dealing Range yang sehat (Diskon untuk BUY, Premium untuk SELL).
+2. **Aktivasi Otomatis & Trigger Pendukung M5:**
+   - Saat M15 close memenuhi salah satu kriteria di atas:
+     - Status konfirmasi menjadi `CONFIRMED`.
+     - Status eksekusi menjadi `READY` atau `READY TO REVIEW` (Grade A+).
+     - Pemicu Entry Assistant V3 Plan aktif dan menghasilkan rencana eksekusi (Entry, SL, TP1, TP2, RR).
+     - Peluru Utama A+ aktif tanpa harus terblokir menunggu M5 break.
+   - M5 tetap diizinkan sebagai trigger pendukung jika mendahului, namun M15 close memiliki otoritas penuh.
+
 

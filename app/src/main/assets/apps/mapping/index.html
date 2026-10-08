@@ -55,7 +55,10 @@
     <div class="assistant-footer">
       <span id="assistant-confluence-tag" class="assistant-tag">Confluence: —</span>
       <span id="assistant-clock" class="assistant-clock">Live Sync</span>
-      <button type="button" onclick="window.setTab('Advisor')" style="margin-left:auto; display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:var(--amy-accent,#F5C451); text-decoration:none; background:rgba(245,196,81,0.12); padding:4px 8px; border-radius:6px; border:1px solid rgba(245,196,81,0.3); cursor:pointer;"><span>⚡ Laya AI Advisor</span></button>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+        <button type="button" id="btn-custom-price-alert" style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#fff; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); padding:4px 8px; border-radius:6px; cursor:pointer;" title="Pasang Alarm Target Harga"><span>🔔 Pasang Alarm</span></button>
+        <button type="button" onclick="window.setTab('Advisor')" style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:var(--amy-accent,#F5C451); text-decoration:none; background:rgba(245,196,81,0.12); padding:4px 8px; border-radius:6px; border:1px solid rgba(245,196,81,0.3); cursor:pointer;"><span>⚡ Laya AI Advisor</span></button>
+      </div>
     </div>
   </article>
   <article class="price-map gold-price-panel"><section id="gold-chart-workspace" aria-label="Chart Gold XAU/USD">
@@ -150,9 +153,12 @@
     </div>
 
     <!-- Action Button -->
-    <div class="plan-actions">
-      <button type="button" id="btn-show-plan-chart" class="btn-show-plan-chart">
+    <div class="plan-actions" style="display:flex; gap:8px;">
+      <button type="button" id="btn-show-plan-chart" class="btn-show-plan-chart" style="flex:1;">
         📈 Tampilkan Level di Chart
+      </button>
+      <button type="button" id="btn-plan-price-alert" class="btn-show-plan-chart" style="background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#fff; width:auto; padding:0 14px;" title="Pasang Alarm Target Entry/TP">
+        🔔 Alarm Level
       </button>
     </div>
 
@@ -349,6 +355,8 @@
 <script src="../academy/trading-practice/vendor/lightweight-charts.standalone.production.js"></script>
 <script src="js/scanner-visibility-gate.js"></script>
 <script src="js/notification-route-sync.js"></script>
+<script type="module" src="js/ict-workspace/price-alert-manager.js"></script>
+<script type="module" src="js/ict-workspace/trade-lifecycle-tracker.js"></script>
 <script type="module" src="js/ict-workspace/app.js"></script>
 <script type="module" src="js/ict-workspace/context-panel.js"></script>
 <script src="js/ict-workspace/advisor-panel.js"></script>

@@ -3,6 +3,7 @@ import {ENDPOINT} from './scalper-model.js';
 import {currentContext} from './context-model.js';
 import {SIX_DRIVERS} from '../engine/six-driver-definitions.js';
 import {currentDriverEvaluation,driverSetupReady} from './driver-model.js';
+import {renderLifecycleArchive,trackAssistantPlan} from './trade-lifecycle-tracker.js';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -202,8 +203,7 @@ function render(){
 }
 function renderArchive(){
   const el=$('history');
-  if(el)el.innerHTML=(payload?.history||[]).filter(x=>x.symbol==='XAU/USD').slice(0,20).map(s=>row(`${s.direction} · ${s.status} · ${s.driverName||s.model}`,
-    `Candle ${time(s.signalCandleCloseTime)} · entry historis ${number(s.entry)} · SL ${number(s.stopLoss)} · target ${number(s.target)}`)).join('')||'<p>Belum ada riwayat lama dalam respons 24 jam terakhir.</p>';
+  if(el)renderLifecycleArchive(el,payload?.history);
 }
 function schedule(){
   clearTimeout(timer);
@@ -268,4 +268,8 @@ try{
   }
 }catch(_){}
 render();refresh();void initializeMethods();
+if(typeof document?.querySelectorAll==='function'){
+  document.querySelectorAll('[data-tab="History"]').forEach(el=>el.addEventListener('click',renderArchive));
+}
+window.addEventListener('amyfx:lifecycle-state-change',renderArchive);
 
