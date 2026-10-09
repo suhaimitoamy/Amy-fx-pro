@@ -121,6 +121,11 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
    - Timestamp pemeriksaan lilin kini membaca `M15` terlebih dahulu (`sourceObj?.optLong("M15", 0L)`), fallback ke `M5`.
    - Jendela kesegaran diperluas menjadi 3600 detik (1 jam) agar background worker tidak menghentikan notifikasi saat feed M5 tidak ada.
 
+## Kebijakan Supabase Dikunci Total & Zero-Touch Invariant (Pro 410)
 
-
-
+1. **Status Beku Supabase (Frozen State):**
+   - Proyek Supabase (`amy-market-data` / `wliecyxzlwhmtftnfnps`) resmi dikunci dan dibiarkan dalam kondisi apa adanya (*frozen state*).
+   - **DILARANG MENGHAPUS, MEROMBAK, MENAMBAH TABEL, ATAU MENDEPLOY ULANG APAPUN** ke Supabase.
+2. **Kemandirian Penuh Amy FX Pro (Zero-Supabase Runtime):**
+   - Aplikasi Amy FX Pro telah beroperasi 100% mandiri mengandalkan Vercel Serverless (`api/twelvedata`, `api/scalper-setups`, `api/news`, `api/calendar`), TwelveData WebSocket, dan mesin eksekusi offline lokal di HP tanpa library Supabase client.
+   - Seluruh integrasi baru (termasuk library backtest candle) tidak boleh membebani Supabase.

@@ -1,5 +1,16 @@
 # Technical Decisions
 
+## 2026-10-09 — Kebijakan Zero-Touch Supabase & Penetapan Kemandirian Runtime Vercel/Lokal (Pro 410)
+
+1. **Konteks & Audit Status Supabase:**
+   - Proyek Supabase `amy-market-data` (`wliecyxzlwhmtftnfnps`) berada dalam status **RESTRICTED** (`exceed_egress_quota`) akibat aktivitas kueri historis data candle massal pada tabel lama `candles`.
+   - Meskipun Supabase terkunci, audit komprehensif membuktikan aplikasi Amy FX Pro 100% normal dan berjalan lancar karena seluruh fitur inti (Chart Gold M15/M5, TwelveData WebSocket, Indikator ICT NextGen, Alarm Sentuh Intrabar 0s, Advisor Verdict, Kalender, Berita, dan Six Drivers) telah beroperasi murni di Vercel (`api/twelvedata`, `api/scalper-setups`, `api/news`, `api/calendar`) serta mesin JavaScript offline di HP.
+
+2. **Keputusan Mutlak Zero-Touch Supabase (Kunci Permanen):**
+   - **Dilarang Menghapus & Dilarang Merombak:** Proyek Supabase tidak dihapus dan dilarang diotak-atik atau dirombak sama sekali. Anggap Supabase dalam status terkunci permanen dan biarkan apa adanya (*frozen state*).
+   - **Dilarang Menambah Beban/Deploy Baru:** Dilarang mendeploy fungsi baru, menambah migrasi SQL, atau menaruh dataset candle ke Supabase.
+   - **Kemandirian Penuh (Zero-Supabase Dependency):** Seluruh arsitektur runtime masa depan, pengayaan data backtest, dan fitur baru diarahkan 100% menggunakan Vercel Serverless, static CDN, atau penyimpanan lokal tanpa melibatkan Supabase client.
+
 ## 2026-10-08 — Live Intrabar Touch Alerts (0s Latency) for Liquidity Sweeps, Breaks & POI Tests (Pro 409)
 
 1. **Akar Masalah Keterlambatan Notifikasi (BSL Sweep, Break, POI Test):**
