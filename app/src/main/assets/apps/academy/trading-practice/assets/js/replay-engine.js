@@ -43,8 +43,13 @@
     this.pause();
     await this.loadTimeline();
     var requested = core.finite(timestamp);
-    var index = requested == null ? Math.min(80, this.timeline.length - 1) : lowerBound(this.timeline, requested);
-    if (requested != null && this.timeline[index] !== requested && index > 0) index -= 1;
+    var index;
+    if (requested == null || requested < this.timeline[0] || requested > this.timeline[this.timeline.length - 1]) {
+      index = Math.min(80, this.timeline.length - 1);
+    } else {
+      index = lowerBound(this.timeline, requested);
+      if (this.timeline[index] !== requested && index > 0) index -= 1;
+    }
     index = Math.max(0, Math.min(index, this.timeline.length - 1));
     this.cursor = this.timeline[index];
     this.startTime = this.cursor;

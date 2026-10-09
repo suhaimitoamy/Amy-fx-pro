@@ -36,8 +36,16 @@
     select.innerHTML = sources.map(function (item) {
       return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(optionLabel(item)) + '</option>';
     }).join('');
-    var desired = preferredId || provider.selectedSourceId();
-    if (!sources.some(function (item) { return item.id === desired; })) desired = provider.SAMPLE_ID;
+    var desired = preferredId;
+    if (!desired || !sources.some(function (item) { return item.id === desired; })) {
+      desired = provider.selectedSourceId();
+    }
+    var packCandidate = sources.find(function (item) { return item.kind === 'pack' || (item.id && item.id.indexOf('pack:') === 0); });
+    if (!sources.some(function (item) { return item.id === desired; })) {
+      desired = packCandidate ? packCandidate.id : (sources[0] ? sources[0].id : provider.SAMPLE_ID);
+    } else if (desired === provider.SAMPLE_ID && packCandidate && !preferredId) {
+      desired = packCandidate.id;
+    }
     select.value = desired;
     provider.setSelectedSourceId(desired);
     return desired;
@@ -157,6 +165,9 @@
     chart.options.timeframeSeconds = ({M1:60,M5:300,M15:900,M30:1800,H1:3600,H4:14400,D1:86400})[ui.byId('timeframe').value] || 900;
     chart.setDrawingTimeBoundary(payload.cursor);
     chart.setCandles(payload.candles, firstRender);
+    if (firstRender && chart.chart && chart.chart.timeScale) {
+      chart.chart.timeScale().fitContent();
+    }
     firstRender = false;
     var current = ui.currentCandle(payload.candles);
     ui.renderOhlc('ohlc', current, payload.cursor);
@@ -251,6 +262,65 @@
     }
   }
 
+  async function initCloudLibrary() {
+    var yearSelect = ui.byId('cloudYearSelect');
+    var monthSelect = ui.byId('cloudMonthSelect');
+    var installBtn = ui.byId('cloudInstallBtn');
+    if (!yearSelect || !monthSelect || !installBtn) return;
+
+    var manifest = null;
+    function updateMonthOptions() {
+      var y = yearSelect.value;
+      monthSelect.innerHTML = '<option value="ALL">Semua Bulan (Tahun Penuh)</option>';
+      if (manifest && manifest[y]) {
+        manifest[y].forEach(function (m) {
+          var opt = document.createElement('option');
+          opt.value = m.file;
+          opt.textContent = m.label + ' (' + m.sizeKb + ' KB)';
+          monthSelect.appendChild(opt);
+        });
+      }
+    }
+
+    async function refreshManifest() {
+      try {
+        manifest = await provider.loadCloudManifest();
+        updateMonthOptions();
+      } catch (_) {}
+    }
+
+    yearSelect.addEventListener('change', updateMonthOptions);
+    updateMonthOptions();
+    refreshManifest();
+
+    installBtn.addEventListener('click', async function () {
+      var year = yearSelect.value;
+      var month = monthSelect.value;
+      installBtn.disabled = true;
+      var originalText = installBtn.textContent;
+      installBtn.textContent = 'Mengunduh…';
+      ui.status('cloudInstallStatus', 'Menghubungkan ke Cloud…');
+      try {
+        var results = await provider.installCloudPack(year, month, function (prog) {
+          if (prog && prog.message) ui.status('cloudInstallStatus', prog.message);
+        });
+        ui.status('cloudInstallStatus', '✓ ' + (results.length || 1) + ' pack berhasil dipasang!', false, true);
+        var firstId = results[0] ? results[0].id : null;
+        if (firstId) {
+          await refreshSources(firstId);
+          await changeSource(firstId);
+        } else {
+          await refreshSources();
+        }
+      } catch (err) {
+        ui.status('cloudInstallStatus', 'Gagal: ' + err.message, true);
+      } finally {
+        installBtn.disabled = false;
+        installBtn.textContent = originalText;
+      }
+    });
+  }
+
   async function changeSource(value) {
     playing = false;
     ui.text('playPause', 'Putar');
@@ -262,7 +332,13 @@
     provider.setSelectedSourceId(value);
     firstRender = true;
     ui.status('replayStatus', 'Memuat pack historis…');
-    try { await replay.setSource(value, null); }
+    try {
+      await replay.setSource(value, null);
+      if (chart) {
+        chart.resize();
+        if (chart.chart && chart.chart.timeScale) chart.chart.timeScale().fitContent();
+      }
+    }
     catch (error) { ui.status('replayStatus', error.message, true); }
   }
 
@@ -271,16 +347,24 @@
     ui.byId('tradeForm').addEventListener('submit', saveTrade);
     ui.byId('replayHistoryRows').addEventListener('click', deleteHistoryTrade);
     await renderHistory();
+    await initCloudLibrary();
     var saved = storage.loadReplayState() || {};
     ui.byId('timeframe').value = saved.timeframe || 'M15';
     ui.byId('speed').value = String(saved.speedMs || 900);
-    var selectedSource = await refreshSources(saved.sourceId || provider.selectedSourceId());
+    var activeGlobalSource = provider.selectedSourceId();
+    var preferredSource = (activeGlobalSource && activeGlobalSource !== provider.SAMPLE_ID)
+      ? activeGlobalSource
+      : (saved.sourceId || activeGlobalSource);
+    var selectedSource = await refreshSources(preferredSource);
     chart = new window.AmyCandleChart.CandleChart(ui.byId('chart'), {
       storageKey: 'amy.practice.v1.drawings.replay',
       allowDrawingProjection: true, stayInDrawingMode: false, followReplay: true,
       onCrosshair: function (candle, time) { if (candle) ui.renderOhlc('ohlc', candle, Number(time)); }
     });
     ui.bindDrawingToolbar(chart);
+    window.addEventListener('resize', function () {
+      if (chart) chart.resize();
+    });
     replay = new window.AmyReplayEngine.ReplayController({
       symbol: 'XAUUSD', timeframe: ui.byId('timeframe').value, sourceId: selectedSource,
       speedMs: Number(ui.byId('speed').value), onChange: render,
@@ -296,7 +380,12 @@
       chart.chart.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: true } });
       ui.text('playPause', 'Putar');
       var initial = replay.timeline[Math.min(80, replay.timeline.length - 1)];
-      replay.start(initial).catch(function (error) { ui.status('replayStatus', error.message, true); });
+      replay.start(initial).then(function () {
+        if (chart) {
+          chart.resize();
+          if (chart.chart && chart.chart.timeScale) chart.chart.timeScale().fitContent();
+        }
+      }).catch(function (error) { ui.status('replayStatus', error.message, true); });
     });
     ui.byId('playPause').addEventListener('click', function () {
       playing = !playing;
@@ -312,7 +401,13 @@
       ui.tradeReady(false);
       ui.decisionState('saving', 'Mengganti timeframe', 'Menjaga cursor yang sama tanpa membuka candle masa depan.');
       chart.setTradeLevels([]);
-      try { await replay.setTimeframe(this.value); } catch (error) { ui.status('replayStatus', error.message, true); }
+      try {
+        await replay.setTimeframe(this.value);
+        if (chart) {
+          chart.resize();
+          if (chart.chart && chart.chart.timeScale) chart.chart.timeScale().fitContent();
+        }
+      } catch (error) { ui.status('replayStatus', error.message, true); }
     });
     ui.byId('datasetSource').addEventListener('change', function () { changeSource(this.value); });
     ui.byId('replaySlider').addEventListener('input', function () {
@@ -322,8 +417,17 @@
       if (time != null) replay.seek(time).catch(function (error) { ui.status('replayStatus', error.message, true); });
     });
     window.addEventListener('pagehide', function () { replay.destroy(); chart.destroy(); }, { once: true });
-    try { await replay.start(saved.sourceId === selectedSource ? saved.cursor : null); }
-    catch (error) { ui.status('replayStatus', error.message, true); }
+    try {
+      firstRender = true;
+      var targetCursor = (saved.sourceId === selectedSource && saved.cursor) ? saved.cursor : null;
+      await replay.start(targetCursor);
+      if (chart) {
+        chart.resize();
+        if (chart.chart && chart.chart.timeScale) chart.chart.timeScale().fitContent();
+      }
+    } catch (error) {
+      ui.status('replayStatus', error.message, true);
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { init().catch(function (error) { ui.status('replayStatus', error.message, true); }); }, { once: true });

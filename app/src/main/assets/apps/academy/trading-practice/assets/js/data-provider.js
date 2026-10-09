@@ -32,12 +32,27 @@
 
   function loadSample() {
     if (!samplePromise) {
-      samplePromise = fetch(sampleUrl, { cache: 'no-store' })
-        .then(function (response) {
-          if (!response.ok) throw new Error('Dataset sample tidak dapat dibaca.');
-          return response.json();
-        })
-        .then(unpackSample);
+      var candidateUrls = [
+        sampleUrl,
+        typeof location !== 'undefined' ? new URL('assets/data/xauusd-m1-sample.json', location.href).href : null,
+        typeof location !== 'undefined' ? new URL('../data/xauusd-m1-sample.json', location.href).href : null
+      ].filter(Boolean);
+
+      samplePromise = (async function () {
+        for (var i = 0; i < candidateUrls.length; i += 1) {
+          try {
+            var resp = await fetch(candidateUrls[i], { cache: 'no-store' });
+            if (resp.ok) {
+              var json = await resp.json();
+              return unpackSample(json);
+            }
+          } catch (_) {}
+        }
+        return {
+          id: SAMPLE_ID, kind: 'sample', symbol: 'XAUUSD', timeframe: 'M1',
+          source: 'Sample UI', sampleOnly: true, start: null, end: null, rowCount: 0, candles: []
+        };
+      })();
     }
     return samplePromise;
   }
@@ -259,17 +274,24 @@
 
   async function listSources(symbol) {
     var requested = String(symbol || 'XAUUSD').toUpperCase();
-    var sample = await loadSample();
-    var packs = (await storage.listHistoricalPacks()).filter(function (item) { return item.symbol === requested; }).map(function (item) {
-      return Object.assign({ kind: 'pack', sampleOnly: false }, item);
-    });
-    var legacy = await legacySources(requested);
+    var sample = null;
+    try { sample = await loadSample(); } catch (_) {}
+    var packs = [];
+    try {
+      packs = (await storage.listHistoricalPacks()).filter(function (item) { return item.symbol === requested; }).map(function (item) {
+        return Object.assign({ kind: 'pack', sampleOnly: false }, item);
+      });
+    } catch (_) {}
+    var legacy = [];
+    try { legacy = await legacySources(requested); } catch (_) {}
     var output = [];
-    if (sample.symbol === requested) output.push({
-      id: sample.id, kind: 'sample', symbol: sample.symbol, timeframe: sample.timeframe,
-      source: sample.source, sampleOnly: true, start: sample.start, end: sample.end, rowCount: sample.rowCount,
-      label: 'Sample · Maret 2009'
-    });
+    if (sample && sample.symbol === requested && (sample.rowCount > 0 || !packs.length)) {
+      output.push({
+        id: sample.id, kind: 'sample', symbol: sample.symbol, timeframe: sample.timeframe,
+        source: sample.source, sampleOnly: true, start: sample.start, end: sample.end, rowCount: sample.rowCount,
+        label: 'Sample · Maret 2009'
+      });
+    }
     return output.concat(packs, legacy);
   }
 

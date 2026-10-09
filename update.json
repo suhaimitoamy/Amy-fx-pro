@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.411/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.412/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Perbaikan Endpoint Cloud Candle di Android: Memperbaiki resolusi endpoint proxy https://amy-fx.vercel.app/api/candles pada WebView native Android agar pengunduhan pack bulanan/tahunan berjalan mulus tanpa Failed to fetch.",
-    "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
-    "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
-    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline."
+    "Perpustakaan Cloud Langsung di Candle Replay: Mengintegrasikan panel Perpustakaan Cloud (2019–2026) langsung ke Candle Replay sehingga data candle 8 tahun dapat diunduh dan diputar instan tanpa harus berpindah halaman.",
+    "Perbaikan Inisialisasi Chart Replay: Memperbaiki seleksi pack aktif dan sinkronisasi cursor agar chart candle tidak kosong saat membuka Candle Replay.",
+    "Auto-Fit & Responsive Layout: Penyesuaian viewport chart otomatis (fitContent & resize observer) saat berpindah dataset atau orientasi layar.",
+    "Penyimpanan Lokal Andal: Graceful fallback dan isolasi pack di IndexedDB menjamin dataset historis selalu siap dipakai offline."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.411/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.412/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950411,
-  "latest_version_name": "2.0.0-pro.411",
+  "latest_version_code": 950412,
+  "latest_version_name": "2.0.0-pro.412",
   "mandatory": false,
   "releaseDate": "2026-10-09",
   "release_notes": [
-    "Perbaikan Endpoint Cloud Candle di Android: Memperbaiki resolusi endpoint proxy https://amy-fx.vercel.app/api/candles pada WebView native Android agar pengunduhan pack bulanan/tahunan berjalan mulus tanpa Failed to fetch.",
-    "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
-    "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
-    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline."
+    "Perpustakaan Cloud Langsung di Candle Replay: Mengintegrasikan panel Perpustakaan Cloud (2019–2026) langsung ke Candle Replay sehingga data candle 8 tahun dapat diunduh dan diputar instan tanpa harus berpindah halaman.",
+    "Perbaikan Inisialisasi Chart Replay: Memperbaiki seleksi pack aktif dan sinkronisasi cursor agar chart candle tidak kosong saat membuka Candle Replay.",
+    "Auto-Fit & Responsive Layout: Penyesuaian viewport chart otomatis (fitContent & resize observer) saat berpindah dataset atau orientasi layar.",
+    "Penyimpanan Lokal Andal: Graceful fallback dan isolasi pack di IndexedDB menjamin dataset historis selalu siap dipakai offline."
   ],
   "sha256": "f6ca2def815c0341944716b1cf3c447be2b5492661c918685b573e56bdc0d196",
-  "version": "2.0.0-pro.411",
-  "versionCode": 950411
+  "version": "2.0.0-pro.412",
+  "versionCode": 950412
 }

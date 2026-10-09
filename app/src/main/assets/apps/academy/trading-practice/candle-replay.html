@@ -10,7 +10,33 @@
   <div class="ohlc-strip"><span>Cursor<strong id="ohlcTime">—</strong></span><span>O<strong id="ohlcOpen">—</strong></span><span>H<strong id="ohlcHigh">—</strong></span><span>L<strong id="ohlcLow">—</strong></span><span>C<strong id="ohlcClose">—</strong></span><span>Terlihat<strong id="visibleCount">0 candle</strong></span></div>
   <div class="practice-layout">
     <section><div id="chart" class="practice-chart-shell"></div><div class="practice-panel" style="margin-top:12px"><input id="replaySlider" class="replay-slider" type="range" min="0" max="100" value="0" aria-label="Posisi replay"><div class="replay-controls" style="margin-top:10px"><button id="resetReplay">Awal</button><button id="previousCandle">−1</button><button id="nextCandle">+1</button><button id="nextFive">+5</button><button id="playPause">Putar</button></div><div id="replayStatus" class="practice-status">Menyiapkan replay…</div><details class="replay-source"><summary>Info data</summary><p id="sourceNote" class="source-note"></p></details></div></section>
-    <aside class="practice-side"><section class="practice-panel"><h2>Catat keputusan</h2><form id="tradeForm"><div class="practice-form-grid"><label class="practice-field">Keputusan<select name="bias"><option>WAIT</option><option>BUY</option><option>SELL</option></select></label><label class="practice-field">Entry<input name="entry" inputmode="decimal"></label><label class="practice-field">Stop Loss<input name="stopLoss" inputmode="decimal"></label><label class="practice-field">Take Profit<input name="takeProfit" inputmode="decimal"></label><label class="practice-field full">Catatan<textarea name="notes" placeholder="Alasan keputusan sebelum membuka candle berikutnya"></textarea></label></div><button id="tradeSubmit" class="practice-button" type="submit" disabled>Simpan keputusan</button></form><div id="decisionLockState" class="decision-lock-state" data-state="idle"><span>Belum dikunci</span><strong>Pilih posisi replay</strong></div><div id="tradeStatus" class="practice-status" role="status" aria-live="polite">Hasil mengikuti candle berikutnya.</div></section><section class="practice-panel"><a class="btn" href="chart-analysis.html">Kelola data historis →</a></section><details class="practice-panel"><summary>Panduan replay</summary><p>Ganti timeframe tidak memindahkan waktu di dalam pack aktif. +1 berarti satu candle timeframe aktif. Setup tersimpan lokal dan tidak dihitung sebagai strategi otomatis.</p></details></aside>
+    <aside class="practice-side">
+      <section class="practice-panel cloud-library-panel">
+        <h2>Perpustakaan Cloud (2019–2026)</h2>
+        <p>Pasang data candle historis XAU/USD langsung dari cloud tanpa upload manual (8 tahun penuh, multi-timeframe M1–D1).</p>
+        <div class="practice-form-grid" style="grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <label class="practice-field">Tahun
+            <select id="cloudYearSelect">
+              <option value="2026">2026 (9 Bulan)</option>
+              <option value="2025">2025 (12 Bulan)</option>
+              <option value="2024">2024 (12 Bulan)</option>
+              <option value="2023">2023 (12 Bulan)</option>
+              <option value="2022">2022 (12 Bulan)</option>
+              <option value="2021">2021 (12 Bulan)</option>
+              <option value="2020">2020 (12 Bulan)</option>
+              <option value="2019">2019 (12 Bulan)</option>
+            </select>
+          </label>
+          <label class="practice-field">Bulan
+            <select id="cloudMonthSelect">
+              <option value="ALL">Semua Bulan (Tahun Penuh)</option>
+            </select>
+          </label>
+        </div>
+        <button id="cloudInstallBtn" class="practice-button" type="button" style="width:100%; font-weight:bold; background:var(--gold, #d4af37); color:#070b12;">⚡ Pasang dari Cloud</button>
+        <div id="cloudInstallStatus" class="practice-status" role="status" aria-live="polite">Siap mengunduh dari Cloud.</div>
+      </section>
+      <section class="practice-panel"><h2>Catat keputusan</h2><form id="tradeForm"><div class="practice-form-grid"><label class="practice-field">Keputusan<select name="bias"><option>WAIT</option><option>BUY</option><option>SELL</option></select></label><label class="practice-field">Entry<input name="entry" inputmode="decimal"></label><label class="practice-field">Stop Loss<input name="stopLoss" inputmode="decimal"></label><label class="practice-field">Take Profit<input name="takeProfit" inputmode="decimal"></label><label class="practice-field full">Catatan<textarea name="notes" placeholder="Alasan keputusan sebelum membuka candle berikutnya"></textarea></label></div><button id="tradeSubmit" class="practice-button" type="submit" disabled>Simpan keputusan</button></form><div id="decisionLockState" class="decision-lock-state" data-state="idle"><span>Belum dikunci</span><strong>Pilih posisi replay</strong></div><div id="tradeStatus" class="practice-status" role="status" aria-live="polite">Hasil mengikuti candle berikutnya.</div></section><section class="practice-panel"><a class="btn" href="chart-analysis.html">Kelola data historis →</a></section><details class="practice-panel"><summary>Panduan replay</summary><p>Ganti timeframe tidak memindahkan waktu di dalam pack aktif. +1 berarti satu candle timeframe aktif. Setup tersimpan lokal dan tidak dihitung sebagai strategi otomatis.</p></details></aside>
   </div>
   </div>
   <section id="replayHistory" class="practice-panel replay-history" aria-labelledby="replayHistoryTitle">
