@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.409/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.410/AmyFX-Pro-latest.apk",
   "changelog": [
     "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
     "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
     "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline.",
     "Paritas & Sinkronisasi Sempurna: Dukungan multi-timeframe komprehensif untuk pengujian strategi ICT NextGen dan Deep OTE 78.6%."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.409/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.410/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950409,
-  "latest_version_name": "2.0.0-pro.409",
+  "latest_version_code": 950410,
+  "latest_version_name": "2.0.0-pro.410",
   "mandatory": false,
   "releaseDate": "2026-10-09",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline.",
     "Paritas & Sinkronisasi Sempurna: Dukungan multi-timeframe komprehensif untuk pengujian strategi ICT NextGen dan Deep OTE 78.6%."
   ],
-  "sha256": "14b6c12013006d59c32afbe6629e4aec7fca41ef716ec8b61bb487befef87cda",
-  "version": "2.0.0-pro.409",
-  "versionCode": 950409
+  "sha256": "4a765b7df1b33fa64834d754e641468dc6f52787c3592cd9e6939e0aa24d045b",
+  "version": "2.0.0-pro.410",
+  "versionCode": 950410
 }
