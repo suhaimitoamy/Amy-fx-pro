@@ -19,7 +19,7 @@
     "Label Pack & Indikator Timeframe Jelas: Label pack historis menampilkan dukungan penuh (M1–D1), strip OHLC menampilkan waktu lilin candle bucket terbuka yang sinkron, dan badge TF aktif disematkan.",
     "Agregasi Candle Cepat & Ringan: Fast-path agregasi biner memangkas overhead pemrosesan data historis hingga 10x lebih cepat di perangkat."
   ],
-  "sha256": "PENDING_BUILD_HASH",
+  "sha256": "7c4ac4cb0670191e81b667554394313195271c41d8fb790d70061b9c80c9cb35",
   "version": "2.0.0-pro.413",
   "versionCode": 950413
 }
