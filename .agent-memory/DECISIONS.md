@@ -709,4 +709,15 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
    - File `market-context.mjs` di `supabase/functions` dan `lib` disinkronkan identik.
    - Seluruh 34 unit test di `tests/mapping-amy-ict-pro375.test.mjs` lulus dengan 100% passing rate.
 
+## 2026-10-09 — Perpustakaan Cloud di Candle Replay & Perbaikan Chart Kosong (Pro 412)
+
+1. **Integrasi Panel Perpustakaan Cloud di Candle Replay (`candle-replay.html`):**
+   - Menambahkan section `.cloud-library-panel` (Pilih Tahun 2019–2026, Pilih Bulan, Tombol ⚡ Pasang dari Cloud) langsung ke dalam aside Candle Replay.
+   - Fungsi `initCloudLibrary()` mengunduh pack dari Cloud (Vercel proxy/GitHub dataset), menyimpannya ke IndexedDB, me-refresh dropdown pack, dan langsung berpindah ke pack yang baru dipasang via `changeSource(firstId)`.
+2. **Akar Masalah Chart Replay Kosong & Solusinya:**
+   - **Stale Replay State Gotcha:** Sebelumnya `storage.loadReplayState()` mengutamakan `saved.sourceId` lama (sample Maret 2009) daripada pack aktif yang baru diunduh di `provider.selectedSourceId()`. Kini pack aktif global selalu diprioritaskan.
+   - **Out-of-Range Cursor Bounds:** Timestamp cursor lama dari dataset lain (misal 2009 vs 2025) sebelumnya menyebabkan `lowerBound` memilih bar index 0 sehingga chart hanya memuat 1 candle (tampak kosong). Kini `ReplayController.prototype.start` memverifikasi rentang timeline: jika timestamp di luar batas dataset, otomatis me-reset ke `Math.min(80, timeline.length - 1)` sehingga 80 candle awal langsung tampil penuh.
+   - **Resilience Sample Loader:** `loadSample()` di `data-provider.js` dibungkus multi-fallback dan `listSources()` dibungkus per-sumber try/catch sehingga kegagalan fetch sample lokal/offline tidak memblokir pembacaan pack IndexedDB.
+   - **Responsive Auto-Fit:** `chart.setCandles` memanggil `fitContent()` pada render pertama, serta `chart.resize()` dan listener `window.addEventListener('resize')` dipasang agar kanvas chart selalu fit ke dimensi kontainer.
+
 
