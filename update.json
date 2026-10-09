@@ -1,11 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.409/AmyFX-Pro-latest.apk",
   "changelog": [
-    "M15 Otoritas Penuh: Konfirmasi candle M15 yang resmi close (Wick Rejection, Displacement Break BOS/MSS, atau 50% CE Bounce) langsung menjadi pemicu setup dan Peluru Utama A+ tanpa terblokir menunggu break M5.",
-    "Alarm Harga Kustom: Fitur pasang target harga manual di Amy Asisten dengan notifikasi instan di HP, in-app banner toast, getar haptik, dan nada audio chime 2-tone saat harga tersentuh.",
-    "Restrukturisasi Total Tab Advisor: Menghubungkan Tab Advisor 100% langsung ke live market context M15 & H1 (Dynamic Verdict APPROVED/REJECTED/CONDITIONAL, deteksi rezim pasar asli, sinkron level eksekusi, 100% offline di HP).",
-    "Notifikasi Trigger/TP/SL & Tab Arsip Win Rate: Notifikasi berdering di HP saat entry limit tersentuh, TP tercapai, atau SL kena. Tab Arsip dirombak memuat Card Win Rate di paling atas dan posisi running (tanpa spam pending limit).",
-    "Notifikasi Sweep Likuiditas Presisi: Notifikasi sweep BSL, SSL, Asia High/Low, PDH/PDL kini wajib menyertakan nominal harga yang disapu dan ekor sapuan ekstrem secara presisi."
+    "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
+    "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
+    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline.",
+    "Paritas & Sinkronisasi Sempurna: Dukungan multi-timeframe komprehensif untuk pengujian strategi ICT NextGen dan Deep OTE 78.6%."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.409/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -15,11 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-10-09",
   "release_notes": [
-    "M15 Otoritas Penuh: Konfirmasi candle M15 yang resmi close (Wick Rejection, Displacement Break BOS/MSS, atau 50% CE Bounce) langsung menjadi pemicu setup dan Peluru Utama A+ tanpa terblokir menunggu break M5.",
-    "Alarm Harga Kustom: Fitur pasang target harga manual di Amy Asisten dengan notifikasi instan di HP, in-app banner toast, getar haptik, dan nada audio chime 2-tone saat harga tersentuh.",
-    "Restrukturisasi Total Tab Advisor: Menghubungkan Tab Advisor 100% langsung ke live market context M15 & H1 (Dynamic Verdict APPROVED/REJECTED/CONDITIONAL, deteksi rezim pasar asli, sinkron level eksekusi, 100% offline di HP).",
-    "Notifikasi Trigger/TP/SL & Tab Arsip Win Rate: Notifikasi berdering di HP saat entry limit tersentuh, TP tercapai, atau SL kena. Tab Arsip dirombak memuat Card Win Rate di paling atas dan posisi running (tanpa spam pending limit).",
-    "Notifikasi Sweep Likuiditas Presisi: Notifikasi sweep BSL, SSL, Asia High/Low, PDH/PDL kini wajib menyertakan nominal harga yang disapu dan ekor sapuan ekstrem secara presisi."
+    "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
+    "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
+    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline.",
+    "Paritas & Sinkronisasi Sempurna: Dukungan multi-timeframe komprehensif untuk pengujian strategi ICT NextGen dan Deep OTE 78.6%."
   ],
   "sha256": "14b6c12013006d59c32afbe6629e4aec7fca41ef716ec8b61bb487befef87cda",
   "version": "2.0.0-pro.409",
