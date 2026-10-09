@@ -267,10 +267,6 @@
     if (!yearSelect || !monthSelect || !installBtn) return;
 
     var manifest = null;
-    try {
-      manifest = await provider.loadCloudManifest();
-    } catch (_) {}
-
     function updateMonthOptions() {
       var y = yearSelect.value;
       monthSelect.innerHTML = '<option value="ALL">Semua Bulan (Tahun Penuh)</option>';
@@ -284,8 +280,16 @@
       }
     }
 
+    async function refreshManifest() {
+      try {
+        manifest = await provider.loadCloudManifest();
+        updateMonthOptions();
+      } catch (_) {}
+    }
+
     yearSelect.addEventListener('change', updateMonthOptions);
     updateMonthOptions();
+    refreshManifest();
 
     installBtn.addEventListener('click', async function () {
       var year = yearSelect.value;

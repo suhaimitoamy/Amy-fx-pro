@@ -352,10 +352,13 @@
   }
 
   function cloudApiBase() {
-    if (typeof location !== 'undefined' && location.protocol === 'file:') {
-      return 'https://amy-fx.vercel.app/api/candles';
+    if (typeof location !== 'undefined') {
+      var h = String(location.hostname || '').toLowerCase();
+      if (h === 'localhost' || h === '127.0.0.1') {
+        return '/api/candles';
+      }
     }
-    return '/api/candles';
+    return 'https://amy-fx.vercel.app/api/candles';
   }
 
   var cloudManifestCache = null;

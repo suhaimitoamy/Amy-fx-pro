@@ -1,10 +1,10 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.410/AmyFX-Pro-latest.apk",
   "changelog": [
+    "Perbaikan Endpoint Cloud Candle di Android: Memperbaiki resolusi endpoint proxy https://amy-fx.vercel.app/api/candles pada WebView native Android agar pengunduhan pack bulanan/tahunan berjalan mulus tanpa Failed to fetch.",
     "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
     "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
-    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline.",
-    "Paritas & Sinkronisasi Sempurna: Dukungan multi-timeframe komprehensif untuk pengujian strategi ICT NextGen dan Deep OTE 78.6%."
+    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.410/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -14,10 +14,10 @@
   "mandatory": false,
   "releaseDate": "2026-10-09",
   "release_notes": [
+    "Perbaikan Endpoint Cloud Candle di Android: Memperbaiki resolusi endpoint proxy https://amy-fx.vercel.app/api/candles pada WebView native Android agar pengunduhan pack bulanan/tahunan berjalan mulus tanpa Failed to fetch.",
     "Perpustakaan Cloud Candle 8 Tahun (2019–2026): Unduh dan pasang data multi-timeframe XAU/USD (M1 s.d. D1) per bulan langsung dari menu Trading Practice / Backtest secara instan tanpa upload manual.",
     "Arsitektur Zero-Touch Supabase: Kemandirian penuh sistem cloud data candle via Vercel streaming proxy dan GitHub Release dataset publik tanpa membebani kuota Supabase.",
-    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline.",
-    "Paritas & Sinkronisasi Sempurna: Dukungan multi-timeframe komprehensif untuk pengujian strategi ICT NextGen dan Deep OTE 78.6%."
+    "Penyimpanan Cepat IndexedDB: Parsing dan integrasi ribuan candle historis langsung ke database lokal browser HP untuk pengujian strategi dan latihan trading offline."
   ],
   "sha256": "4a765b7df1b33fa64834d754e641468dc6f52787c3592cd9e6939e0aa24d045b",
   "version": "2.0.0-pro.410",
