@@ -19,7 +19,7 @@
     "Auto-Fit & Responsive Layout: Penyesuaian viewport chart otomatis (fitContent & resize observer) saat berpindah dataset atau orientasi layar.",
     "Penyimpanan Lokal Andal: Graceful fallback dan isolasi pack di IndexedDB menjamin dataset historis selalu siap dipakai offline."
   ],
-  "sha256": "f6ca2def815c0341944716b1cf3c447be2b5492661c918685b573e56bdc0d196",
+  "sha256": "2ab281a8e9b3b2b0d81998f3a42a33f213053a2ec8301ee3f0e65207fae01900",
   "version": "2.0.0-pro.412",
   "versionCode": 950412
 }
