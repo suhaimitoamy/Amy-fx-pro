@@ -75,7 +75,7 @@
     var ym = date && Number.isFinite(date.getTime())
       ? date.toISOString().slice(0, 7)
       : 'tanpa tanggal';
-    return ym + ' · ' + Number(meta && meta.rowCount || 0).toLocaleString('id-ID') + ' M1';
+    return ym + ' · ' + Number(meta && meta.rowCount || 0).toLocaleString('id-ID') + ' bar (M1–D1)';
   }
 
   function cachePut(id, value) {
@@ -325,9 +325,10 @@
     var timeframe = String(options.timeframe || 'M15').toUpperCase();
     var source = await sourceFor(options.symbol || 'XAUUSD', timeframe, options.sourceId);
     var cursor = options.cursor == null ? null : core.finite(options.cursor);
+    var isTrusted = Array.isArray(source.candles);
     var candles = cursor == null
-      ? core.aggregateCandles(source.candles, timeframe, { sourceTimeframe: source.timeframe })
-      : core.visibleCandles(source.candles, cursor, timeframe, source.timeframe);
+      ? core.aggregateCandles(source.candles, timeframe, { sourceTimeframe: source.timeframe, trustedSeries: isTrusted })
+      : core.visibleCandles(source.candles, cursor, timeframe, source.timeframe, { trustedSeries: isTrusted });
     return {
       sourceId: source.id,
       symbol: source.symbol,

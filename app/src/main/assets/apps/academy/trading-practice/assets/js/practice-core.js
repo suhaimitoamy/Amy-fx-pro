@@ -99,14 +99,30 @@
       throw new Error('Timeframe tidak dapat diagregasi dari sumber yang dipilih.');
     }
     var cursor = finite(options.cursor);
-    var normalized = normalizeCandles(items).filter(function (candle) {
-      return cursor == null || candle.time <= cursor;
-    });
+    var normalized;
+    if (options.trustedSeries === true && Array.isArray(items)) {
+      normalized = items;
+      if (cursor != null) {
+        var low = 0;
+        var high = normalized.length;
+        while (low < high) {
+          var mid = (low + high) >> 1;
+          if (normalized[mid].time <= cursor) low = mid + 1;
+          else high = mid;
+        }
+        normalized = normalized.slice(0, low);
+      }
+    } else {
+      normalized = normalizeCandles(items).filter(function (candle) {
+        return cursor == null || candle.time <= cursor;
+      });
+    }
     if (targetSeconds === sourceSeconds) return normalized.map(function (candle) { return Object.assign({}, candle); });
 
     var output = [];
     var current = null;
-    normalized.forEach(function (candle) {
+    for (var i = 0; i < normalized.length; i += 1) {
+      var candle = normalized[i];
       var bucket = Math.floor(candle.time / targetSeconds) * targetSeconds;
       if (!current || current.time !== bucket) {
         if (current) output.push(current);
@@ -120,24 +136,25 @@
           lastSourceTime: candle.time
         };
       } else {
-        current.high = Math.max(current.high, candle.high);
-        current.low = Math.min(current.low, candle.low);
+        if (candle.high > current.high) current.high = candle.high;
+        if (candle.low < current.low) current.low = candle.low;
         current.close = candle.close;
         current.sourceCount += 1;
         current.lastSourceTime = candle.time;
       }
-    });
+    }
     if (current) output.push(current);
     return output;
   }
 
-  function visibleCandles(items, cursor, timeframe, sourceTimeframe) {
+  function visibleCandles(items, cursor, timeframe, sourceTimeframe, options) {
     var safeCursor = finite(cursor);
     if (safeCursor == null) return [];
-    var visible = aggregateCandles(items, timeframe, {
+    var opts = Object.assign({}, options, {
       sourceTimeframe: sourceTimeframe || 'M1',
       cursor: safeCursor
     });
+    var visible = aggregateCandles(items, timeframe, opts);
     if (visible.some(function (candle) { return candle.lastSourceTime > safeCursor || candle.time > safeCursor; })) {
       throw new Error('Replay invariant gagal: future candle terdeteksi.');
     }

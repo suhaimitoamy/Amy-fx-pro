@@ -29,6 +29,7 @@
     this.requestSequence = 0;
     this.movePending = false;
     this.speedMs = Number(options.speedMs || 900);
+    this.isDefaultInitial = true;
     this.onChange = typeof options.onChange === 'function' ? options.onChange : function () {};
     this.onEnd = typeof options.onEnd === 'function' ? options.onEnd : function () {};
   }
@@ -46,9 +47,11 @@
     var index;
     if (requested == null || requested < this.timeline[0] || requested > this.timeline[this.timeline.length - 1]) {
       index = Math.min(80, this.timeline.length - 1);
+      this.isDefaultInitial = true;
     } else {
       index = lowerBound(this.timeline, requested);
       if (this.timeline[index] !== requested && index > 0) index -= 1;
+      this.isDefaultInitial = false;
     }
     index = Math.max(0, Math.min(index, this.timeline.length - 1));
     this.cursor = this.timeline[index];
@@ -61,7 +64,10 @@
     this.requestSequence += 1;
     this.timeframe = String(timeframe || 'M15').toUpperCase();
     await this.loadTimeline();
-    if (this.cursor == null) this.cursor = this.timeline[Math.min(80, this.timeline.length - 1)];
+    if (this.cursor == null || this.isDefaultInitial) {
+      this.cursor = this.timeline[Math.min(80, this.timeline.length - 1)];
+      this.startTime = this.cursor;
+    }
     return this.emit('timeframe', this.cursor);
   };
 
@@ -72,10 +78,12 @@
     this.cursor = null;
     this.startTime = null;
     this.timeline = [];
+    this.isDefaultInitial = true;
     return this.start(timestamp == null ? null : timestamp);
   };
 
   ReplayController.prototype.move = async function (count) {
+    this.isDefaultInitial = false;
     if (!this.timeline.length) await this.loadTimeline();
     var previous = this.cursor;
     var insertion = lowerBound(this.timeline, this.cursor == null ? this.timeline[0] : this.cursor);
@@ -88,6 +96,7 @@
 
   ReplayController.prototype.seek = async function (timestamp) {
     this.pause();
+    this.isDefaultInitial = false;
     if (!this.timeline.length) await this.loadTimeline();
     var requested = core.finite(timestamp);
     if (requested == null) throw new Error('Timestamp replay tidak valid.');

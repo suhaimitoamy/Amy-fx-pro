@@ -401,3 +401,43 @@ test('reaching the final replay bar stops playback rather than repeatedly replac
   try { await replay.move(1); assert.equal(replay.playTimer, null); assert.equal(ended, 1); }
   finally { replay.destroy(); }
 });
+
+test('switching timeframe from default initial position yields full candle context on M15 and M30', async () => {
+  const core = context.AmyPracticeCore;
+  const longMinutes = Array.from({ length: 3000 }, (_, index) => ({
+    time: 1700000000 + index * 60,
+    open: 2600 + index * 0.1, high: 2601 + index * 0.1, low: 2599 + index * 0.1, close: 2600.5 + index * 0.1
+  }));
+  const provider = {
+    async getTimeline({ timeframe }) {
+      return core.aggregateCandles(longMinutes, timeframe, { sourceTimeframe: 'M1', trustedSeries: true })
+        .map(candle => candle.lastSourceTime ?? candle.time);
+    },
+    async getCandles({ timeframe, cursor }) {
+      return {
+        source: 'test', sampleOnly: true,
+        candles: core.visibleCandles(longMinutes, cursor, timeframe, 'M1', { trustedSeries: true })
+      };
+    }
+  };
+  const controller = new context.AmyReplayEngine.ReplayController({ provider, timeframe: 'M1' });
+  await controller.start();
+  assert.equal(controller.isDefaultInitial, true);
+  
+  // Switch to M15: should initialize full M15 context (81 bars) rather than getting stuck at 6 bars
+  const m15 = await controller.setTimeframe('M15');
+  assert.ok(m15.candles.length >= 80, `Expected at least 80 M15 candles, got ${m15.candles.length}`);
+  
+  // Advance 1 M15 bar: should cleanly increment candle count
+  const nextBar = await controller.move(1);
+  assert.equal(nextBar.candles.length, m15.candles.length + 1);
+  
+  // Switch to M30: preserves the user's navigated timeline position (41 M30 bars for ~20h of data)
+  const m30 = await controller.setTimeframe('M30');
+  assert.ok(m30.candles.length >= 40, `Expected at least 40 M30 candles for navigated position, got ${m30.candles.length}`);
+
+  // Fresh M30 start from default initial position yields full 80+ bars
+  const freshM30 = new context.AmyReplayEngine.ReplayController({ provider, timeframe: 'M30' });
+  const m30Start = await freshM30.start();
+  assert.ok(m30Start.candles.length >= 80, `Expected at least 80 M30 candles on fresh start, got ${m30Start.candles.length}`);
+});

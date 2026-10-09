@@ -27,7 +27,7 @@
 
   function optionLabel(item) {
     if (item.sampleOnly) return 'Sample · Maret 2009';
-    return dateLabel(item.start) + ' · ' + Number(item.rowCount || 0).toLocaleString('id-ID') + ' ' + String(item.timeframe || 'M1') + (item.repairedAudited ? ' · audited' : '');
+    return dateLabel(item.start) + ' · ' + Number(item.rowCount || 0).toLocaleString('id-ID') + ' bar (M1–D1)' + (item.repairedAudited ? ' · audited' : '');
   }
 
   async function refreshSources(preferredId) {
@@ -162,7 +162,7 @@
     ui.tradeReady(false);
     delete ui.byId('tradeForm').dataset.lockedDecisionId;
     chart.setTradeLevels([]);
-    chart.options.timeframeSeconds = ({M1:60,M5:300,M15:900,M30:1800,H1:3600,H4:14400,D1:86400})[ui.byId('timeframe').value] || 900;
+    chart.options.timeframeSeconds = ({M1:60,M5:300,M15:900,M30:1800,H1:3600,H4:14400,D1:86400})[payload.timeframe] || 900;
     chart.setDrawingTimeBoundary(payload.cursor);
     chart.setCandles(payload.candles, firstRender);
     if (firstRender && chart.chart && chart.chart.timeScale) {
@@ -170,13 +170,14 @@
     }
     firstRender = false;
     var current = ui.currentCandle(payload.candles);
-    ui.renderOhlc('ohlc', current, payload.cursor);
+    ui.renderOhlc('ohlc', current, current ? current.time : payload.cursor);
+    if (ui.byId('ohlcTf')) ui.text('ohlcTf', payload.timeframe);
     ui.text('visibleCount', payload.candles.length + ' candle');
     var slider = ui.byId('replaySlider');
     slider.max = Math.max(0, replay.timeline.length - 1);
     slider.value = timelineIndex(payload.cursor);
-    ui.status('replayStatus', 'Cursor ' + core.formatWita(payload.cursor, true) + ' · data sesudah cursor tidak dikirim ke chart.');
-    ui.text('sourceNote', 'Sumber: ' + payload.source + (payload.sampleOnly ? ' · sample UI, bukan hasil backtest.' : ' · pack historis lokal.'));
+    ui.status('replayStatus', '[' + payload.timeframe + '] · Candle ' + core.formatWita(current ? current.time : payload.cursor, true) + ' · data sesudah cursor tidak dikirim ke chart.');
+    ui.text('sourceNote', 'Sumber: ' + payload.source + (payload.sampleOnly ? ' · sample UI, bukan hasil backtest.' : ' · pack historis lokal (' + payload.timeframe + ').'));
     storage.saveReplayState({
       timeframe: payload.timeframe,
       cursor: payload.cursor,
@@ -399,7 +400,7 @@
       firstRender = true;
       latestPayload = null;
       ui.tradeReady(false);
-      ui.decisionState('saving', 'Mengganti timeframe', 'Menjaga cursor yang sama tanpa membuka candle masa depan.');
+      ui.decisionState('saving', 'Mengganti timeframe ' + this.value, 'Menyelaraskan candle ' + this.value + ' tanpa membuka masa depan.');
       chart.setTradeLevels([]);
       try {
         await replay.setTimeframe(this.value);

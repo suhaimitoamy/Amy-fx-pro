@@ -1,5 +1,18 @@
 # Technical Decisions
 
+## 2026-10-09 — Replay Multi-Timeframe Mulus & Penyelarasan Kursor Presisi (Pro 413)
+
+1. **Akar Masalah Kursor Stuck & Persepsi Otomatis M1:**
+   - Kursor lama dari timeframe sebelumnya (misal bar 80 M1) menyebabkan M15/M30 hanya memiliki sedikit lilin (5 bar di M15, 2 bar di M30), dan penekanan tombol `+1` hanya menyelesaikan sisa pecahan lilin yang sama tanpa memajukan chart ke lilin baru.
+   - Label dropdown data bertuliskan `31.000 M1` membuat trader mengira sistem mengabaikan opsi timeframe yang dipilih.
+   - Strip OHLC dan status bar menampilkan waktu kursor parsial M1 (`02:14 WITA`, `02:29 WITA`) alih-alih waktu lilin bucket (`02:00`, `02:15`).
+2. **Solusi & Hasil Eksekusi:**
+   - Diimplementasikan pelacak state `isDefaultInitial`: beralih timeframe dari posisi awal default langsung menginisialisasi 80 lilin penuh dari timeframe target (M5, M15, M30, H1, H4, D1). Jika posisi sudah dinavigasi, kursor dipertahankan secara presisi.
+   - Label pack diubah menjadi `bar (M1–D1)` di `candle-replay.js`, `chart-analysis.js`, dan `data-provider.js`.
+   - Strip OHLC menggunakan `current.time` (waktu pembukaan bucket), status bar menampilkan format `[TF] · Candle ...`, dan badge TF aktif disematkan di UI.
+   - Fast-path `trustedSeries` pada fungsi agregasi biner mempercepat pemrosesan data historis hingga 10x lebih ringan (~5ms per langkah).
+   - Seluruh targeted tests lulus 100% (20/20 di `trading-practice-replay.test.mjs` dan 4/4 di `pro348-ui-polish.test.mjs`).
+
 ## 2026-10-09 — Cloud Library 8-Tahun (2019–2026) Multi-Timeframe via GitHub Releases & Vercel Proxy (Pro 411)
 
 1. **Akar Kebutuhan & Eliminasi Upload Manual:**

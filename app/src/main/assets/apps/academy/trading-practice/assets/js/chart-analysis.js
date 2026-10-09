@@ -40,7 +40,7 @@
 
   function optionLabel(item) {
     if (item.sampleOnly) return 'Sample · Maret 2009';
-    return dateLabel(item.start) + ' · ' + Number(item.rowCount || 0).toLocaleString('id-ID') + ' M1' + (item.repairedAudited ? ' · audited' : '');
+    return dateLabel(item.start) + ' · ' + Number(item.rowCount || 0).toLocaleString('id-ID') + ' bar (M1–D1)' + (item.repairedAudited ? ' · audited' : '');
   }
 
   async function renderPackLibrary(sources) {

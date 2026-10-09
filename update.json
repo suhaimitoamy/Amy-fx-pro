@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.412/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.413/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Perpustakaan Cloud Langsung di Candle Replay: Mengintegrasikan panel Perpustakaan Cloud (2019–2026) langsung ke Candle Replay sehingga data candle 8 tahun dapat diunduh dan diputar instan tanpa harus berpindah halaman.",
-    "Perbaikan Inisialisasi Chart Replay: Memperbaiki seleksi pack aktif dan sinkronisasi cursor agar chart candle tidak kosong saat membuka Candle Replay.",
-    "Auto-Fit & Responsive Layout: Penyesuaian viewport chart otomatis (fitContent & resize observer) saat berpindah dataset atau orientasi layar.",
-    "Penyimpanan Lokal Andal: Graceful fallback dan isolasi pack di IndexedDB menjamin dataset historis selalu siap dipakai offline."
+    "Replay Multi-Timeframe Mulus: Perbaikan engine replay dan penyelarasan cursor sehingga perpindahan timeframe ke M5, M15, M30, H1, H4, dan D1 langsung memuat konteks lilin candle utuh tanpa terhambat.",
+    "Playback & Step Presisi: Tombol +1, +5, dan Putar memajukan lilin candle secara responsif dan akurat pada semua timeframe yang dipilih.",
+    "Label Pack & Indikator Timeframe Jelas: Label pack historis menampilkan dukungan penuh (M1–D1), strip OHLC menampilkan waktu lilin candle bucket terbuka yang sinkron, dan badge TF aktif disematkan.",
+    "Agregasi Candle Cepat & Ringan: Fast-path agregasi biner memangkas overhead pemrosesan data historis hingga 10x lebih cepat di perangkat."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.412/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.413/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950412,
-  "latest_version_name": "2.0.0-pro.412",
+  "latest_version_code": 950413,
+  "latest_version_name": "2.0.0-pro.413",
   "mandatory": false,
   "releaseDate": "2026-10-09",
   "release_notes": [
-    "Perpustakaan Cloud Langsung di Candle Replay: Mengintegrasikan panel Perpustakaan Cloud (2019–2026) langsung ke Candle Replay sehingga data candle 8 tahun dapat diunduh dan diputar instan tanpa harus berpindah halaman.",
-    "Perbaikan Inisialisasi Chart Replay: Memperbaiki seleksi pack aktif dan sinkronisasi cursor agar chart candle tidak kosong saat membuka Candle Replay.",
-    "Auto-Fit & Responsive Layout: Penyesuaian viewport chart otomatis (fitContent & resize observer) saat berpindah dataset atau orientasi layar.",
-    "Penyimpanan Lokal Andal: Graceful fallback dan isolasi pack di IndexedDB menjamin dataset historis selalu siap dipakai offline."
+    "Replay Multi-Timeframe Mulus: Perbaikan engine replay dan penyelarasan cursor sehingga perpindahan timeframe ke M5, M15, M30, H1, H4, dan D1 langsung memuat konteks lilin candle utuh tanpa terhambat.",
+    "Playback & Step Presisi: Tombol +1, +5, dan Putar memajukan lilin candle secara responsif dan akurat pada semua timeframe yang dipilih.",
+    "Label Pack & Indikator Timeframe Jelas: Label pack historis menampilkan dukungan penuh (M1–D1), strip OHLC menampilkan waktu lilin candle bucket terbuka yang sinkron, dan badge TF aktif disematkan.",
+    "Agregasi Candle Cepat & Ringan: Fast-path agregasi biner memangkas overhead pemrosesan data historis hingga 10x lebih cepat di perangkat."
   ],
-  "sha256": "2ab281a8e9b3b2b0d81998f3a42a33f213053a2ec8301ee3f0e65207fae01900",
-  "version": "2.0.0-pro.412",
-  "versionCode": 950412
+  "sha256": "PENDING_BUILD_HASH",
+  "version": "2.0.0-pro.413",
+  "versionCode": 950413
 }
