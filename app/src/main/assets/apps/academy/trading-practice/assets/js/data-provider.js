@@ -351,6 +351,58 @@
     return results[0];
   }
 
+  function cloudApiBase() {
+    if (typeof location !== 'undefined' && location.protocol === 'file:') {
+      return 'https://amy-fx.vercel.app/api/candles';
+    }
+    return '/api/candles';
+  }
+
+  var cloudManifestCache = null;
+  async function loadCloudManifest() {
+    if (cloudManifestCache) return cloudManifestCache;
+    try {
+      var resp = await fetch(cloudApiBase() + '?manifest=1');
+      if (resp.ok) {
+        cloudManifestCache = await resp.json();
+        return cloudManifestCache;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  async function installCloudPack(year, monthOption, onProgress) {
+    if (!root.AmyZipArchive) throw new Error('ZIP reader Practice belum dimuat.');
+    
+    var fileName = null;
+    var provenance = 'Cloud XAUUSD ' + year;
+
+    if (!monthOption || monthOption === 'ALL') {
+      fileName = 'XAUUSD_' + year + '_MONTHLY_ARCHIVES_REPAIRED_AUDITED.zip';
+      provenance += ' (Tahun Penuh)';
+    } else {
+      fileName = monthOption;
+      provenance += ' (' + monthOption + ')';
+    }
+
+    if (onProgress) onProgress({ stage: 'download', message: 'Mengunduh ' + fileName + ' dari Cloud…' });
+    
+    var resp = await fetch(cloudApiBase() + '?file=' + encodeURIComponent(fileName));
+    if (!resp.ok) {
+      throw new Error('Gagal mengunduh file dari Cloud (HTTP ' + resp.status + ').');
+    }
+
+    var blob = await resp.blob();
+    try { Object.defineProperty(blob, 'name', { value: fileName }); } catch (_) {}
+
+    var results = [];
+    if (onProgress) onProgress({ stage: 'extract', message: 'Mengekstrak dan memasang pack…' });
+    await scanZip(blob, { name: fileName, provenance: provenance }, 0, results, onProgress);
+    
+    if (onProgress) onProgress({ stage: 'done', packCount: results.length, message: results.length + ' pack berhasil dipasang!' });
+    return results;
+  }
+
   root.AmyPracticeData = Object.freeze({
     SAMPLE_ID: SAMPLE_ID,
     loadSample: loadSample,
@@ -363,6 +415,8 @@
     importFile: importFile,
     importFiles: importFiles,
     deleteSource: deleteSource,
-    sourceFor: sourceFor
+    sourceFor: sourceFor,
+    loadCloudManifest: loadCloudManifest,
+    installCloudPack: installCloudPack
   });
 })(typeof window !== 'undefined' ? window : globalThis);

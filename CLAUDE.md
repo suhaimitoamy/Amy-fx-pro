@@ -129,3 +129,13 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
 2. **Kemandirian Penuh Amy FX Pro (Zero-Supabase Runtime):**
    - Aplikasi Amy FX Pro telah beroperasi 100% mandiri mengandalkan Vercel Serverless (`api/twelvedata`, `api/scalper-setups`, `api/news`, `api/calendar`), TwelveData WebSocket, dan mesin eksekusi offline lokal di HP tanpa library Supabase client.
    - Seluruh integrasi baru (termasuk library backtest candle) tidak boleh membebani Supabase.
+
+## Cloud Library 8-Tahun (2019–2026) Multi-Timeframe (Pro 411)
+
+1. **Penyimpanan Dataset Cloud di GitHub Releases:**
+   - Seluruh dataset 8 tahun XAU/USD (2019–2026) multi-timeframe (M1, M5, M15, H1, H4, D1) di-host di GitHub Releases (`amyfx-market-dataset-8years`), memuat 8 arsip tahunan (~42 MB) dan 93 file bulanan (~400–600 KB per bulan).
+2. **Streaming Proxy Vercel & Cache Lokal:**
+   - Serverless endpoint `api/candles.js` melayani manifest katalog dan streaming arsip bulanan dengan header CORS `*` dan edge CDN cache.
+   - Server Termux (`tools/serve-local.mjs`) menyediakan zero-latency local fallback langsung dari `/sdcard/Download/lab backtest/candles/monthly/`.
+   - Modul `data-provider.js` dan UI `chart-analysis.html` mengizinkan unduh dan instalasi instan per tahun atau per bulan langsung ke IndexedDB tanpa perlu upload manual.
+

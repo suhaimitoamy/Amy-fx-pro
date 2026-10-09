@@ -283,6 +283,65 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname === '/api/candles') {
+      try {
+        const fileParam = parsedUrl.searchParams.get('file');
+        const manifestParam = parsedUrl.searchParams.get('manifest');
+        const localMonthlyDir = '/sdcard/Download/lab backtest/candles/monthly';
+        const localManifest = '/sdcard/Download/lab backtest/candles/manifest_months.json';
+
+        if ((manifestParam === '1' || manifestParam === 'true') && fs.existsSync(localManifest)) {
+          const data = fs.readFileSync(localManifest, 'utf-8');
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'public, max-age=3600'
+          });
+          res.end(data);
+          return;
+        }
+
+        if (fileParam && fs.existsSync(path.join(localMonthlyDir, fileParam))) {
+          const buf = fs.readFileSync(path.join(localMonthlyDir, fileParam));
+          res.writeHead(200, {
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${fileParam}"`,
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'public, max-age=31536000, immutable'
+          });
+          res.end(buf);
+          return;
+        }
+
+        const handler = (await import('../api/candles.js')).default;
+        let statusCode = 200;
+        const outHeaders = {};
+        const fakeRes = {
+          setHeader: (k, v) => { outHeaders[k] = v; },
+          status: (c) => { statusCode = c; return fakeRes; },
+          json: (d) => {
+            outHeaders['Content-Type'] = 'application/json; charset=utf-8';
+            res.writeHead(statusCode, outHeaders);
+            res.end(JSON.stringify(d));
+          },
+          send: (b) => {
+            res.writeHead(statusCode, outHeaders);
+            res.end(b);
+          }
+        };
+        const fakeReq = {
+          method: req.method,
+          query: Object.fromEntries(parsedUrl.searchParams.entries())
+        };
+        await handler(fakeReq, fakeRes);
+        return;
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'candles_api_failed', details: err.message }));
+        return;
+      }
+    }
+
     if (pathname === '/api/scalper-setups') {
       try {
         const handler = (await import('../api/scalper-setups.js')).default;

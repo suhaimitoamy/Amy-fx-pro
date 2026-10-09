@@ -1,5 +1,18 @@
 # Technical Decisions
 
+## 2026-10-09 — Cloud Library 8-Tahun (2019–2026) Multi-Timeframe via GitHub Releases & Vercel Proxy (Pro 411)
+
+1. **Akar Kebutuhan & Eliminasi Upload Manual:**
+   - Trader sebelumnya harus membuka file picker HP dan mengunggah file ZIP/CSV secara manual setiap kali latihan/backtest di menu Trading Practice (`chart-analysis.html` & `candle-replay.html`).
+   - Kapasitas database Supabase terbukti sempit dan terkunci jika diisi baris candle, sementara menaruh data candle di asset web/Git akan membengkakkan ukuran APK dan repository.
+
+2. **Arsitektur Hybrid Zero-Bloat Cloud Library:**
+   - **Hosting Penyimpanan:** Seluruh data 8 tahun (2019 s.d. September 2026) multi-timeframe (M1, M5, M15, H1, H4, D1) yang telah diaudit (`REPAIRED_AUDITED`) dipublikasikan ke **GitHub Releases** (`amyfx-market-dataset-8years`), memuat 8 arsip tahunan (~42 MB) dan 93 arsip bulanan (~400-600 KB per bulan).
+   - **Streaming Proxy & CDN Caching:** Dibuat Vercel serverless function `api/candles.js` yang menyediakan header CORS `*`, manifest katalog dinamis, dan streaming unduhan per bulan (400–600 KB) dengan edge cache permanen (`s-maxage=31536000, immutable`).
+   - **Local Fallback di Termux:** Server lokal `tools/serve-local.mjs` langsung membaca file lokal dari `/sdcard/Download/lab backtest/candles/monthly/` dalam 0.01 detik tanpa internet.
+   - **Antarmuka Pengguna & Smart Cache:** Di `chart-analysis.html`, ditambahkan kontrol **Perpustakaan Cloud (2019–2026)** untuk memilih Tahun (8 tahun) dan Bulan. File yang diunduh langsung diekstrak oleh `data-provider.js` dan disimpan permanen di IndexedDB browser/PWA iPhone.
+   - **Hasil & Integritas:** Ukuran APK Android bertambah 0 byte, ukuran repository Git bertambah 0 byte, dan pengujian regresi targeted (`trading-practice-chart-regression` & `trading-practice-replay`) lulus 100% (34/34 tests).
+
 ## 2026-10-09 — Kebijakan Zero-Touch Supabase & Penetapan Kemandirian Runtime Vercel/Lokal (Pro 410)
 
 1. **Konteks & Audit Status Supabase:**

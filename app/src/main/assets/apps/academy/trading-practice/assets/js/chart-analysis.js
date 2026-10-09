@@ -260,6 +260,57 @@
     }
   }
 
+  async function initCloudLibrary() {
+    var yearSelect = ui.byId('cloudYearSelect');
+    var monthSelect = ui.byId('cloudMonthSelect');
+    var installBtn = ui.byId('cloudInstallBtn');
+    if (!yearSelect || !monthSelect || !installBtn) return;
+
+    var manifest = null;
+    try {
+      manifest = await provider.loadCloudManifest();
+    } catch (_) {}
+
+    function updateMonthOptions() {
+      var y = yearSelect.value;
+      monthSelect.innerHTML = '<option value="ALL">Semua Bulan (Tahun Penuh)</option>';
+      if (manifest && manifest[y]) {
+        manifest[y].forEach(function (m) {
+          var opt = document.createElement('option');
+          opt.value = m.file;
+          opt.textContent = m.label + ' (' + m.sizeKb + ' KB)';
+          monthSelect.appendChild(opt);
+        });
+      }
+    }
+
+    yearSelect.addEventListener('change', updateMonthOptions);
+    updateMonthOptions();
+
+    installBtn.addEventListener('click', async function () {
+      var year = yearSelect.value;
+      var month = monthSelect.value;
+      installBtn.disabled = true;
+      var originalText = installBtn.textContent;
+      installBtn.textContent = 'Mengunduh…';
+      ui.status('cloudInstallStatus', 'Menghubungkan ke Cloud…');
+      try {
+        var results = await provider.installCloudPack(year, month, function (prog) {
+          if (prog && prog.message) ui.status('cloudInstallStatus', prog.message);
+        });
+        ui.status('cloudInstallStatus', '✓ ' + (results.length || 1) + ' pack berhasil dipasang!', false, true);
+        var firstId = results[0] ? results[0].id : null;
+        await refreshSources(firstId);
+        if (!isLive) await loadHistorical(true);
+      } catch (err) {
+        ui.status('cloudInstallStatus', 'Gagal: ' + err.message, true);
+      } finally {
+        installBtn.disabled = false;
+        installBtn.textContent = originalText;
+      }
+    });
+  }
+
   async function init() {
     ui.tradeReady(false);
     ui.byId('tradeForm').addEventListener('submit', saveTrade);
@@ -269,6 +320,7 @@
     });
     ui.bindDrawingToolbar(chart);
     await refreshSources();
+    await initCloudLibrary();
     ui.byId('timeframe').addEventListener('change', async function () {
       try {
         if (isLive) {
