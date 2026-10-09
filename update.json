@@ -13,7 +13,7 @@
   "latest_version_code": 950409,
   "latest_version_name": "2.0.0-pro.409",
   "mandatory": false,
-  "releaseDate": "2026-10-08",
+  "releaseDate": "2026-10-09",
   "release_notes": [
     "M15 Otoritas Penuh: Konfirmasi candle M15 yang resmi close (Wick Rejection, Displacement Break BOS/MSS, atau 50% CE Bounce) langsung menjadi pemicu setup dan Peluru Utama A+ tanpa terblokir menunggu break M5.",
     "Alarm Harga Kustom: Fitur pasang target harga manual di Amy Asisten dengan notifikasi instan di HP, in-app banner toast, getar haptik, dan nada audio chime 2-tone saat harga tersentuh.",
@@ -21,7 +21,7 @@
     "Notifikasi Trigger/TP/SL & Tab Arsip Win Rate: Notifikasi berdering di HP saat entry limit tersentuh, TP tercapai, atau SL kena. Tab Arsip dirombak memuat Card Win Rate di paling atas dan posisi running (tanpa spam pending limit).",
     "Notifikasi Sweep Likuiditas Presisi: Notifikasi sweep BSL, SSL, Asia High/Low, PDH/PDL kini wajib menyertakan nominal harga yang disapu dan ekor sapuan ekstrem secara presisi."
   ],
-  "sha256": "dcf23094a07374f9c8170a5bfd51fc112c25ac5f35eeddbd3dd77990be113636",
+  "sha256": "14b6c12013006d59c32afbe6629e4aec7fca41ef716ec8b61bb487befef87cda",
   "version": "2.0.0-pro.409",
   "versionCode": 950409
 }
