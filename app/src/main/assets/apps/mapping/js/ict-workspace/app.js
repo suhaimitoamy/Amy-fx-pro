@@ -3,11 +3,17 @@ import {loadCandles} from './data.js';
 import {normalize,analyze,timestamp} from './engine.js';
 import {createPriceChart} from './chart-view.js';
 import {mountDisplay,renderAmy,loadDisplay,isGoldMarketOpen} from './ict-presentation.js';
+import {mountEconomicEventBanner} from './economic-countdown.js';
+import {updateDealingRangeBadge} from './dealing-range-badge.js';
+import {startCockpitSessionPill} from '../engine/market-session-clock.js';
+import {initDetailsPersistence} from './details-persistence.js';
 const $=id=>document.getElementById(id);
 let context=null,display=null,driverPlan=null;
 let chart=null,controller=null,generation=0,timer=null,overlay=null,raw=null;
 try{chart=createPriceChart($('chart'),{touchAxes:true});}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
 const fullscreen=mountChartFullscreen(chart);
+try{mountEconomicEventBanner();}catch(_){}
+try{startCockpitSessionPill('cockpit-session-pill');}catch(_){}
 $('chart-auto-price')?.addEventListener('click',()=>chart?.autoPrice());
 display=mountDisplay(next=>{display=next;renderAmy(context?.amy,display,context?.news,context);draw();});
 // A cached trade plan from the previous application version must not be served as current context.
@@ -76,10 +82,17 @@ function draw(degraded=false){
   const presentation={settings:display||loadDisplay(),amy:context?.amy,context,candles:result.candles,tf};
   chart?.draw(result,activePlan,presentation);
   const last=result.candles.at(-1);
-  if($('chart-price'))$('chart-price').textContent=last?last.close.toFixed(2):'—';
-  if(last&&Number.isFinite(last.close)&&typeof window.AmyPriceAlertManager?.checkPrice==='function'){
-    window.AmyPriceAlertManager.checkPrice(last.close);
+  const currentLive=Number(window.amyfxCurrentPrice);
+  const displayPrice=(Number.isFinite(currentLive)&&currentLive>0)?currentLive:(last?last.close:null);
+  if($('chart-price'))$('chart-price').textContent=displayPrice?displayPrice.toFixed(2):'—';
+  const dr = context?.m15?.dealingRange || context?.amy?.levels?.dealingRange || context?.dealingRange;
+  if(displayPrice&&$('chart-dealing-range-badge')){
+    updateDealingRangeBadge($('chart-dealing-range-badge'), displayPrice, dr);
   }
+  if(displayPrice&&Number.isFinite(displayPrice)&&typeof window.AmyPriceAlertManager?.checkPrice==='function'){
+    window.AmyPriceAlertManager.checkPrice(displayPrice);
+  }
+  if(displayPrice)chart?.updateActiveCandle?.(displayPrice);
   if($('source')){
     const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
     if(closed){
@@ -96,20 +109,74 @@ function draw(degraded=false){
     coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display?.pivotTf||'D'}: ${p?.[display?.pivotTf||'D']?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';
   }
 }
+function applyLivePrice(price, timestamp){
+  if(!Number.isFinite(price)||price<=0)return;
+  window.amyfxCurrentPrice=price;
+  if($('chart-price'))$('chart-price').textContent=price.toFixed(2);
+  const dr=context?.m15?.dealingRange||context?.amy?.levels?.dealingRange||context?.dealingRange;
+  if($('chart-dealing-range-badge')){
+    updateDealingRangeBadge($('chart-dealing-range-badge'),price,dr);
+  }
+  chart?.updateActiveCandle?.(price,timestamp);
+  if(typeof window.AmyPriceAlertManager?.checkPrice==='function'){
+    window.AmyPriceAlertManager.checkPrice(price);
+  }
+}
+window.addEventListener('amyfx:twelvedata-price',event=>{
+  const detail=event?.detail;
+  applyLivePrice(Number(detail?.price),Number(detail?.timestamp));
+});
+window.addEventListener('amyfx:live-price-display',event=>{
+  const detail=event?.detail;
+  applyLivePrice(Number(detail?.price),Number(detail?.capturedAt));
+});
+function startBrowserLivePriceStream(){
+  if(typeof window==='undefined'||window.Android||window.AmyLivePrice||window.__amyFxSseStarted)return;
+  if(typeof EventSource!=='function')return;
+  window.__amyFxSseStarted=true;
+  try{
+    const es=new EventSource('https://amy-fx.vercel.app/api/live-price');
+    es.onmessage=(event)=>{
+      try{
+        const data=JSON.parse(event.data);
+        if(data&&Number.isFinite(Number(data.price))){
+          applyLivePrice(Number(data.price),Number(data.timestamp)||Date.now());
+        }
+      }catch(_){}
+    };
+  }catch(_){}
+}
+startBrowserLivePriceStream();
 window.addEventListener('amyfx:driver-plan',event=>{driverPlan=event.detail||null;draw();});
 window.addEventListener('amyfx:assistant-plan',event=>{driverPlan=event.detail||null;draw();});
 window.addEventListener('amyfx:driver-setups',event=>{if(driverPlan){const s=(event.detail||[]).find(s=>s.id===driverPlan.id);driverPlan=s?{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}:null;draw();}});
 window.addEventListener('amyfx:market-context',event=>{context=event.detail;window.amyfxLastContext=context;if(!context)driverPlan=null;renderAmy(context?.amy,display,context?.news,context);const scenario=context?.primary;
-  overlay=scenario?.area?{area:scenario.area,invalidation:scenario.invalidation,target:scenario.target}:null;draw();});
-function getStoredCandles(timeframe){
+  overlay=scenario?.area?{area:scenario.area,invalidation:scenario.invalidation,target:scenario.target}:null;
+  const currentDr = context?.m15?.dealingRange || context?.amy?.levels?.dealingRange || context?.dealingRange;
+  const currentPrice = parseFloat($('chart-price')?.textContent) || 0;
+  if($('chart-dealing-range-badge') && currentPrice > 0){
+    updateDealingRangeBadge($('chart-dealing-range-badge'), currentPrice, currentDr);
+  }
+  draw();});
+function getStoredCandlesInfo(timeframe){
   try{
     if(typeof localStorage==='undefined')return null;
     const rawData=localStorage.getItem(`amyfx.mapping.candles.${timeframe}`);
     if(!rawData)return null;
     const parsed=JSON.parse(rawData);
-    if(Array.isArray(parsed?.values)&&parsed.values.length>0)return parsed.values;
+    if(Array.isArray(parsed?.values)&&parsed.values.length>0){
+      const age=Date.now()-(parsed.time||0);
+      return {
+        candles:parsed.values,
+        time:parsed.time||0,
+        outdated:age>48*3600*1000
+      };
+    }
   }catch(_){}
   return null;
+}
+function getStoredCandles(timeframe){
+  return getStoredCandlesInfo(timeframe)?.candles||null;
 }
 function getRefreshInterval(tf){
   if(!isGoldMarketOpen(Date.now()/1000))return 300000;
@@ -130,7 +197,7 @@ function schedule(){
 async function refresh(){
   const id=++generation;controller?.abort();controller=new AbortController();const request=controller;
   const timeout=setTimeout(()=>request.abort(),35000),tf=$('timeframe').value;
-  $('refresh').disabled=true;if($('chart-error'))$('chart-error').textContent='';
+  $('refresh').disabled=true;if($('chart-error')){ $('chart-error').textContent=''; $('chart-error').style.color=''; }
   if(raw)draw();
   try{
     const [response,h1Context]=await Promise.all([
@@ -147,18 +214,34 @@ async function refresh(){
     if(!result.candles.length||(previous&&result.sourceTime<previous.sourceTime))throw Error('Candle tidak lengkap atau lebih lama');
     raw=next;window.amyfxLastCandles=candles;
     draw();
+    if(response.outdated||response.isExpired){
+      if($('chart-error')){
+        const dateStr=response.cachedTime?new Date(response.cachedTime).toLocaleDateString('id-ID'):'Lampau';
+        $('chart-error').textContent=`Mode Offline: Menampilkan data arsip (${dateStr}). Hubungkan internet untuk aksi harga terkini.`;
+        $('chart-error').style.color='#f59e0b';
+      }
+    }
   }catch{
     if(id!==generation)return;
+    const storedInfo=getStoredCandlesInfo(tf);
     if(!raw||!raw.candles?.length){
-      const cachedTf=getStoredCandles(tf);
-      if(cachedTf&&cachedTf.length>0){
+      if(storedInfo?.candles&&storedInfo.candles.length>0){
         const closed=!isGoldMarketOpen(Date.now()/1000);
-        raw={candles:filterCandles(cachedTf,closed),context:filterCandles(getStoredCandles('H1')||[],closed),tf,degraded:true};
+        raw={candles:filterCandles(storedInfo.candles,closed),context:filterCandles(getStoredCandles('H1')||[],closed),tf,degraded:true};
       }
     }
     if(raw)raw.degraded=true;
     draw(true);
-    if($('chart-error'))$('chart-error').textContent='Pembaruan gagal. Menggunakan data cache lokal.';
+    if($('chart-error')){
+      if(storedInfo?.outdated){
+        const dateStr=storedInfo.time?new Date(storedInfo.time).toLocaleDateString('id-ID'):'Lampau';
+        $('chart-error').textContent=`Mode Offline: Menampilkan data arsip (${dateStr}). Hubungkan internet untuk aksi harga terkini.`;
+        $('chart-error').style.color='#f59e0b';
+      }else{
+        $('chart-error').textContent='Pembaruan gagal. Menggunakan data cache lokal.';
+        $('chart-error').style.color='';
+      }
+    }
   }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;schedule();}}
 }
 window.setTab=name=>{
@@ -172,6 +255,11 @@ window.setTab=name=>{
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>window.setTab(el.dataset.tab)));
 $('refresh').addEventListener('click',()=>{refresh();window.dispatchEvent(new CustomEvent('amyfx:refresh-context'));});
 $('btn-custom-price-alert')?.addEventListener('click',()=>{
+  if(typeof window.AmyPriceAlertManager?.openAddAlertDialog==='function'){
+    window.AmyPriceAlertManager.openAddAlertDialog();
+  }
+});
+$('btn-chart-custom-price-alert')?.addEventListener('click',()=>{
   if(typeof window.AmyPriceAlertManager?.openAddAlertDialog==='function'){
     window.AmyPriceAlertManager.openAddAlertDialog();
   }
@@ -204,4 +292,6 @@ if(initialStored&&initialStored.length>0){
   const closed=!isGoldMarketOpen(Date.now()/1000);
   raw={candles:filterCandles(initialStored,closed),context:filterCandles(getStoredCandles('H1')||[],closed),tf:$('timeframe')?.value||'M15',degraded:true};
 }
+initDetailsPersistence();
 draw();refresh();
+

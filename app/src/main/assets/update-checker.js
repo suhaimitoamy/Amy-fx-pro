@@ -1,11 +1,12 @@
 (function () {
-  const VERSION = window.AmyFXAppVersion || { name: '2.0.0-pro.413', code: 950413 };
-  const CURRENT_VERSION_CODE = Number(VERSION.code) || 950413;
-  const CURRENT_VERSION_NAME = String(VERSION.name || '2.0.0-pro.413');
+  const VERSION = window.AmyFXAppVersion || { name: '2.0.0-amyfx.419', code: 950419 };
+  const CURRENT_VERSION_CODE = Number(VERSION.code) || 950419;
+  const CURRENT_VERSION_NAME = String(VERSION.name || '2.0.0-amyfx.419');
   const UPDATE_URL = window.AmyFXUpdateManifestUrl
-    || 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
+    || 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/main/update.json';
   const CHECK_INTERVAL_MS = 15 * 60 * 1000;
   const RESUME_DELAY_MS = 900;
+  const RESUME_COOLDOWN = 10 * 60 * 1000;
 
   let lastCheckAt = 0;
   let hiddenAt = 0;
@@ -50,7 +51,7 @@
   }
 
   function displayVersionName(name) {
-    return String(name || '').replace(/-(?:preview|pro)(?:\.|-)?/i, ' · build ');
+    return String(name || '').replace(/-(?:preview|pro|amyfx)(?:\.|-)?/i, ' · build ');
   }
 
   function humanBytes(value) {
@@ -141,7 +142,7 @@
     const message = 'Amy FX ' + displayVersionName(latestName) + ' siap dipasang.';
     try {
       if (window.Android && typeof window.Android.showNotification === 'function') {
-        window.Android.showNotification('Update Amy FX Pro Tersedia', message);
+        window.Android.showNotification('Update Amy FX Tersedia', message);
       } else {
         notify(message);
       }
@@ -187,7 +188,7 @@
       : (Array.isArray(data.changelog) ? data.changelog : []);
 
     box.innerHTML = `
-      <div style="color:var(--amy-accent, #69B7FF);font-weight:850;font-size:20px;margin-bottom:8px">Pembaruan Amy FX Pro Tersedia</div>
+      <div style="color:var(--amy-accent, #69B7FF);font-weight:850;font-size:20px;margin-bottom:8px">Pembaruan Amy FX Tersedia</div>
       <div style="color:#ddd;line-height:1.5;margin-bottom:14px">
         Versi kamu: <b>${escapeHtml(displayVersionName(CURRENT_VERSION_NAME))}</b> (${CURRENT_VERSION_CODE})<br>
         Versi terbaru: <b>${escapeHtml(displayVersionName(latestName || latestCode))}</b> (${latestCode})
@@ -248,7 +249,7 @@
     }
 
     function startDownload() {
-      const downloadUrl = data.apk_url || data.downloadUrl || 'https://github.com/suhaimitoamy/Amy-fx-pro/releases/latest';
+      const downloadUrl = data.apk_url || data.downloadUrl || 'https://github.com/suhaimitoamy/Amy-fx/releases/latest';
       status.style.color = '#ddd';
       if (hasNativeUpdater()) {
         nativeUi = {
@@ -263,8 +264,13 @@
           downloading: true
         };
         setNativeState('starting', `Menyiapkan unduhan Amy FX ${displayVersionName(latestName)}...`);
+        const expectedSha = String(data.sha256 || data.apk_sha256 || '').trim();
         try {
-          window.Android.startAppUpdate(String(downloadUrl), String(latestName), Number(latestCode));
+          if (expectedSha) {
+            window.Android.startAppUpdate(String(downloadUrl), String(latestName), Number(latestCode), expectedSha);
+          } else {
+            window.Android.startAppUpdate(String(downloadUrl), String(latestName), Number(latestCode));
+          }
         } catch (error) {
           window.AmyFXUpdateNative.onError(error?.message || 'Updater native tidak dapat dijalankan.');
         }
@@ -353,13 +359,19 @@
       hiddenAt = Date.now();
       return;
     }
-    const wasAway = hiddenAt && Date.now() - hiddenAt > 1200;
+    const now = Date.now();
+    const wasAway = hiddenAt && now - hiddenAt > 1200;
     hiddenAt = 0;
-    if (wasAway) setTimeout(() => checkUpdate({ force: true }), RESUME_DELAY_MS);
+    if (wasAway && now - lastCheckAt > RESUME_COOLDOWN) {
+      setTimeout(() => checkUpdate({ force: false }), RESUME_DELAY_MS);
+    }
   });
 
   window.addEventListener('pageshow', event => {
-    if (event.persisted) setTimeout(() => checkUpdate({ force: true }), RESUME_DELAY_MS);
+    const now = Date.now();
+    if (event.persisted && now - lastCheckAt > RESUME_COOLDOWN) {
+      setTimeout(() => checkUpdate({ force: false }), RESUME_DELAY_MS);
+    }
   });
 
   if (document.readyState === 'loading') {

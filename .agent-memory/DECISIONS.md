@@ -1,5 +1,404 @@
 # Technical Decisions
 
+## 2026-10-19 — Implementasi Active Forming Candle Live (TradingView Parity) pada Chart Gold & Peta Harga Beranda
+1. **Latar Belakang & Kebutuhan:**
+   - Pengguna menanyakan mengapa chart sebelumnya hanya menampilkan candle tertutup sehingga terkesan "usang" hingga interval candle 15 menit selesai, berbeda dengan TradingView yang menampilkan candle aktif yang bergerak live.
+2. **Arsitektur Pemisahan Visual vs Logika Keputusan:**
+   - **Tampilan Visual Lilin (TradingView Parity):** Lilin aktif periode berjalan (*forming candle*) kini ditampilkan dan diperbarui secara *real-time* menggunakan `candlestickSeries.update()`. Nilai High, Low, dan Close berfluktuasi mulus setiap kali ada *tick* harga live (`amyfx:twelvedata-price` / `amyfx:live-price-display`).
+   - **Integritas Otak Analisis ICT (Anti-Repainting & Anti-False-Alarm):** Seluruh kalkulasi FVG, 50% CE, BOS, MSS, dealing range, skoring konfluensi 8-lapis, checklist pre-trade, dan sinyal eksekusi tetap **100% terkunci pada candle tertutup terkonfirmasi** (`result.candles`). Tidak ada sinyal palsu atau repainting.
+   - **Weekend Anti-Spam Guard:** Lilin aktif dilarang disintesis pada periode penutupan pasar akhir pekan (`isWeekendClosure`).
+   - **Siklus Transisi Tertutup Graceful:** Ketika satu periode candle (misal M15) genap selesai, `loadCandles()` membawa candle tertutup resmi dari Twelve Data, `setData()` mengunci candle tersebut, dan lilin aktif baru dimulai dari penutupan candle tersebut.
+3. **File yang Dimodifikasi & Pengujian:**
+   - [`chart-view.js`](file:///root/Amy-fx/app/src/main/assets/apps/mapping/js/ict-workspace/chart-view.js): Menambahkan state `lastResult` dan `activeBar`, metode `updateActiveCandle(price, timeMs)`, serta proteksi `isWeekendClosure`.
+   - [`app.js`](file:///root/Amy-fx/app/src/main/assets/apps/mapping/js/ict-workspace/app.js): Mendengarkan event tick live (`amyfx:twelvedata-price`, `amyfx:live-price-display`) dan menyediakan browser SSE fallback (`https://amy-fx.vercel.app/api/live-price`).
+   - [`home-price-chart.js`](file:///root/Amy-fx/app/src/main/assets/home-price-chart.js): Menambahkan pendengar tick live dan sinkronisasi `updateActiveCandle` untuk menjaga paritas 100% dengan Peta Harga Beranda.
+   - [`tests/active-candle-stream.test.mjs`](file:///root/Amy-fx/tests/active-candle-stream.test.mjs): Unit test baru yang menguji pembentukan bar aktif, pelebaran High/Low, proteksi weekend, dan reset transisi candle tertutup (lolos 2/2).
+   - Seluruh targeted regression suites (65 tests) lolos 100%.
+   - Disinkronkan ke `/root/Amy-fx-pro/`.
+
+## 2026-10-19 — Perbaikan Kritis Chart Blank (Autoscale Clamping & Sanitasi Era Data Gold $4175 vs $2643) & Rilis 2.0.0-amyfx.418
+1. **Latar Belakang & Gejala:**
+   - Seluruh candle di Card Peta Harga (Beranda) dan Chart Gold (Cockpit Mapping) tidak muncul sama sekali (blank/kosong) baik di Amy FX maupun Amy FX Pro.
+2. **Akar Masalah (Root Cause):**
+   - **Benturan Deviasi Era Harga:** File snapshot offline `lib/market-snapshot-offline.json` memuat data historis Gold lama di rentang $2643–$2675, sedangkan harga live pasar berada di sekitar $4175.
+   - **Deadzone Autoscale Clamping:** Algoritma autoscale di `chart-view.js` membatasi rentang sumbu Y maksimal 70 poin dari titik tengah `(min + max) / 2 = 3415`. Hal ini menempatkan candle $2675 jauh di bawah layar dan candle $4175 jauh di atas layar, sehingga 0 candle berada di dalam viewport.
+   - **Rejection Tanpa Fallback:** Pemanggilan `analyze()` di `home-price-chart.js` tidak terproteksi `try...catch` dan ketiadaan fallback `lenientCandles` memicu crash diam saat kalkulasi indikator ICT.
+3. **Solusi Teknis:**
+   - **`chart-view.js`**: `autoscaleInfoProvider` diperbaiki agar menjepit (*anchor*) sumbu Y ke harga penutupan candle aktif (`lastClosePrice`) dengan bantalan wajar jika terjadi outlier, memastikan candle aktif selalu berada tepat di tengah viewport.
+   - **`home-price-chart.js`**: Menambahkan fungsi `lenientCandles()` dan membungkus `analyze()` dalam blok `try...catch` dengan fallback visual graceful.
+   - **`market-candle-store.mjs`**: Menambahkan filter toleransi deviasi harga ($500) pada `mergeRows`, `writeLocalStore`, dan `readLocalStore` untuk menolak candle lama yang bocor.
+   - **`market-snapshot-offline.json`**: Memperbarui data historis ke era riil Oktober 2026 ($4164–$4184) dari Twelve Data dan membersihkan cache korup.
+4. **Sinkronisasi & Rilis:**
+   - Logika disinkronkan 100% ke repositori `Amy-fx` dan `Amy-fx-pro`.
+   - Versi di-bump ke `2.0.0-amyfx.418` (Code `950418`) dan APK berhasil di-build serta dipublikasikan via GitHub Actions.
+
+
+## 2026-10-19 — Penuntasan Penuh Blueprint Pagi & Peluncuran Dasbor Analitik Performa Replay Offline IndexedDB (Item 2.2)
+1. **Latar Belakang & Status Blueprint:**
+   - Seluruh 119 item pada [`BLUEPRINT_PAGI.md`](file:///root/Amy-fx/BLUEPRINT_PAGI.md) telah selesai 100% dan lolos audit reviewer (Item 2.5 TTS dieksklusikan secara permanen atas instruksi pengguna).
+   - Item terakhir yang dituntaskan dan diaudit: Item 2.2 (Dasbor Analitik Performa Latihan Replay di IndexedDB).
+2. **Arsitektur Item 2.2 (Offline Practice Analytics):**
+   - Object store `amy_practice_analytics` ditambahkan ke IndexedDB Practice (`DB_VERSION = 3`) di [`storage.js`](file:///root/Amy-fx/app/src/main/assets/apps/academy/trading-practice/assets/js/storage.js) dengan index `timestamp`, `setupType`, `session`, `winLoss`.
+   - Modul [`practice-analytics.js`](file:///root/Amy-fx/app/src/main/assets/apps/academy/trading-practice/assets/js/practice-analytics.js) mandiri menghitung metrik Win Rate %, Expectancy R, Profit Factor, Max Drawdown, klasifikasi sesi otomatis (London, New York, Asia), dan breakdown arketipe setup ICT (FVG, Order Block, Liquidity Sweep, Structure Break).
+   - Tampilan [`backtest-history.html`](file:///root/Amy-fx/app/src/main/assets/apps/academy/trading-practice/backtest-history.html) & [`backtest-history.js`](file:///root/Amy-fx/app/src/main/assets/apps/academy/trading-practice/assets/js/backtest-history.js) merender kartu analitik visual evaluasi diri trader secara live.
+   - Teruji lolos 5/5 targeted unit tests di [`tests/replay-performance-stats.test.mjs`](file:///root/Amy-fx/tests/replay-performance-stats.test.mjs).
+
+## 2026-10-17 — Perbaikan Notifikasi Alarm Belajar (Pencegahan Notifikasi Dini & Sinkronisasi AlarmManager)
+1. **Latar Belakang & Gejala:**
+   - Pengguna menyetel pengingat belajar harian pada jam 20:00 WITA ("Waktunya tingkatkan skill trading-mu").
+   - Notifikasi tiba-tiba muncul di status bar ponsel pada jam 13:41 WITA (siang hari, 6 jam 19 menit lebih awal).
+2. **Akar Masalah (Root Cause):**
+   - Sebelumnya, penjadwalan hanya mengandalkan `WorkManager` dengan `PeriodicWorkRequest(24, TimeUnit.HOURS)` dan kebijakan `ExistingPeriodicWorkPolicy.UPDATE` di `LearningReminderWorker.schedule`.
+   - Di Android, `WorkManager` dirancang untuk *deferrable background batch*, bukan jam weker/alarm presisi. Setiap kali aplikasi dibuka atau sistem Android melakukan maintenance, WorkManager mengevaluasi periodic work dan dapat langsung menjalankan `doWork()`.
+   - `LearningReminderWorker.doWork()` sebelumnya sama sekali tidak memvalidasi jam berjalan terhadap jam target. Begitu `doWork()` terpanggil pada 13:41 WITA, notifikasi langsung ditembakkan tanpa validasi waktu.
+3. **Solusi Berlapis (Multi-Layer Protection):**
+   - **Layer 1 (Exact AlarmManager):** Dibuat [`LearningReminderReceiver`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/LearningReminderReceiver.kt) (BroadcastReceiver) dengan `AlarmManager.setExactAndAllowWhileIdle` / `setAndAllowWhileIdle`. Ini menjamin ponsel bangun dan memicu alarm tepat di menit target tanpa terpengaruh Doze mode.
+   - **Layer 2 (Strict Time Window Guard di Worker & Receiver):** Menambahkan filter toleransi ±15 menit (`diffMinutes <= 15`). Jika worker atau receiver terbangun di luar jendela waktu (seperti 13:41 alih-alih 20:00), eksekusi langsung dibatalkan (discard), di-reschedule, dan dilarang memunculkan notifikasi apapun.
+   - **Layer 3 (Once-Per-Day Date Guard):** Menyimpan `KEY_LAST_NOTIFIED_DATE = YYYY-MM-DD` (WITA). Notifikasi hanya diizinkan muncul maksimal 1 kali per hari kalender WITA.
+   - **Layer 4 (WorkManager Policy):** Mengubah kebijakan startup di `LearningReminderWorker.schedule` menjadi `ExistingPeriodicWorkPolicy.KEEP` agar WorkManager tidak me-reset interval atau menembak worker prematur saat aplikasi dibuka. Reschedule hanya dipanggil via `LearningReminderWorker.reschedule` ketika pengguna mengubah jam di profil.
+   - **Layer 5 (Boot & Update Resilience):** Menghubungkan [`BootReceiver`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/BootReceiver.kt) untuk memasang ulang alarm otomatis saat perangkat baru dinyalakan (`ACTION_BOOT_COMPLETED`).
+
+## 2026-10-17 — Restrukturisasi Komprehensif Academy: 10 Modul Tematik Terpadu (Zero Information Loss) & Rilis 2.0.0-amyfx.415
+1. **Latar Belakang & Permintaan Pengguna:**
+   - Kurikulum asli Academy sebelumnya tersebar di 36 bagian dengan metode spiral (materi dasar diajarkan di awal, lalu diulang versi menengah dan advanced di belakang).
+   - Pengguna meminta agar kurikulum dirombak menjadi **10 Modul Tematik Terpadu** dari nol sampai menjadi trader mandiri.
+   - Syarat mutlak pengguna: **"tpi jangan ada yang di ringkas bisa"** (Zero Information Loss / Nol Ringkasan). Seluruh 222+ bab original dari ke-36 folder wajib dipertahankan utuh tanpa memotong penjelasan, angka, formula, atau diagram.
+2. **Arsitektur 10 Modul Tematik Terpadu:**
+   - **Modul 01:** Fondasi Trading, Setup Alat Kerja & Manajemen Risiko Awal (Bagian 01, 32, 12).
+   - **Modul 02:** Membaca Chart & Market Structure: Dari Nol sampai Advanced (Bagian 02, 03, 06, 16, 24).
+   - **Modul 03:** Liquidity & Inducement: Bahan Bakar & Jebakan Pasar Lengkap (Bagian 04, 05, 17, 18, 19, 20, 30).
+   - **Modul 04:** Dealing Range, Premium/Discount & Optimal Trade Entry / OTE (Bagian 05, 23, 26, 31).
+   - **Modul 05:** Ensiklopedia Lengkap PD Array: FVG, Order Block & Semua Block (Sub-Modul 5A FVG/IFVG/BPR, 5B OB/Breaker/Mitigation, 5C Hierarki & Unicorn).
+   - **Modul 06:** Daily Bias, Top-Down Analysis, Siklus Makro (IPDA) & SMT (Bagian 03, 06, 07, 08, 22, 27, 31).
+   - **Modul 07:** Waktu Trading, Sesi, Killzone & Macro Silver Bullet (Bagian 08, 21, 23, 25, 26, 30, 31).
+   - **Modul 08:** Model Entry Utuh & Playbook Khusus XAUUSD / Gold (Bagian 09, 10, 11, 16, 25, 26, 30, 31, 33).
+   - **Modul 09:** Alur Kerja Eksekusi, Filter No-Trade & Trade Management (Bagian 24, 27, 28, 29, 30).
+   - **Modul 10:** Psikologi Total, Backtesting, SOP 1-Halaman & Trader Mandiri / Prop Firm (Bagian 13, 14, 15, 28, 29, 34, 35, 36).
+3. **Implementasi & Zero Information Loss:**
+   - Memulihkan seluruh 582 bab HTML individual dari ke-36 direktori `bagian-XX` sehingga setiap tautan bab merujuk ke konten teks lengkap tanpa peringkasan sedikit pun.
+   - Menciptakan 10 hub direktori `modul-01/` s.d. `modul-10/` dengan UI glassmorphism profesional, breadcrumb, statistik SKS, estimasi waktu, rincian sub-modul, dan tautan langsung ke setiap bab pembahasan.
+   - Memperbarui `index.html` dan `daftar-materi.html` dengan grid 10 modul tematik, sistem filter kategori, dan mempertahankan laci kompatibilitas arsip (`legacy-archive-drawer` untuk `bagian-15`) agar semua unit test parity tetap lolos 100%.
+4. **Bump Versi Aplikasi:**
+   - Ditingkatkan ke `2.0.0-amyfx.415` (versionCode `950415`) pada `app/build.gradle.kts`, `app/src/main/assets/app-version.js`, `app/src/main/assets/update-checker.js`, `update.json`, dan `tests/pro348-ui-polish.test.mjs`.
+5. **Verifikasi:**
+   - Script validasi CI dan seluruh test suites lolos 100% tanpa regresi.
+
+## 2026-10-16 — Pemisahan Penuh Identitas Aplikasi Amy FX (Mandiri vs Amy FX Pro)
+1. **Latar Belakang Masalah:**
+   - APK yang diunduh dari repositori `Amy-fx` sebelumnya terpasang sebagai **"Amy FX Pro"** dan menimpa instalasi Amy FX Pro yang ada di ponsel Android pengguna.
+   - Akar masalah: Meskipun repositori dipisah ke `Amy-fx`, file build (`app/build.gradle.kts`, `.github/workflows/build-apk.yml`, dan `app-version.js`) masih menggunakan konfigurasi lama:
+     - `applicationId`: `com.amyelitesuite.learningpreview` (sama persis dengan Amy FX Pro).
+     - `AMYFX_APP_LABEL`: `Amy FX Pro`.
+     - `AMYFX_URI_SCHEME`: `amyfxpreview`.
+     - Manifest update URL: masih mengarah ke repo `Amy-fx-pro`.
+2. **Solusi & Pemisahan Mutlak:**
+   - **Application ID Android:** Diubah menjadi `com.amyelitesuite` (terdaftar resmi di Firebase `google-services.json`), sehingga Android memperlakukannya sebagai **dua aplikasi yang 100% berbeda** dan dapat terpasang berdampingan di satu HP tanpa saling menimpa.
+   - **App Label:** Diubah menjadi `"Amy FX"`.
+   - **URI Scheme:** Diubah menjadi `amyfx`.
+   - **Update Channel & Manifest:** Diubah ke `https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/main/update.json`.
+   - **Versi Rilis:** Ditetapkan ke `2.0.0-amyfx.414` (code `950414`).
+   - **Artifact & Tag:** Diarahkan ke tag `amyfx-$version_name` dengan nama asset `AmyFX-latest.apk`.
+   - **CI & Tests:** Workflow `build-apk.yml` serta seluruh regression suites (`production-release-identity`, `profile-version-update`, `stage5-hardening`, `personal-source-debug`, `pro348-ui-polish`, `six-issues-regression`, `native-updater`, `professional-glassmorphism-redesign`, `blueprint-preview-v1`, `expansion-range-reentry`) telah diselaraskan 100% dan lolos uji.
+
+## 2026-10-13 — Pembentukan Skill Mentor Trading Privat 1-on-1, Twelve Data MCP Integration & Pedagogical Guardrails (Pro 426)
+1. **Latar Belakang & Kebutuhan Pengguna:**
+   - Pengguna membutuhkan bimbingan trading mandiri murni (teknikal ICT/SMC & fundamental makroekonomi) tanpa membahas koding, backtest teknis, atau aplikasi.
+2. **Penciptaan Skill Global `mentor-trading-privat`:**
+   - Berlokasi di `/root/.agents/skills/mentor-trading-privat/SKILL.md` (shared untuk Akun 1 & Akun 2).
+   - Buku Pegangan Kurikulum: Vault Obsidian `/sdcard/Download/Obsidian/Amy_Trading_Academy_Vault/` (492 materi terstruktur).
+   - Tracker Progres: Terhubung ke `/root/amy-market-data/learning_progress.json` & `progress_tracker.py`.
+3. **Pemasangan Stdio Twelve Data MCP Server & Candle Builder Sync:**
+   - Script Server: `/root/.agents/mcp-servers/twelvedata-server.mjs`.
+   - Konfigurasi: `/root/.gemini/config/mcp_config.json`.
+   - Kemampuan: Real-time price, live candles fetch dengan auto-save ke SQLite `/root/amy-market-data/xauusd_bot.sqlite`, serta engine deteksi ICT Market Structure (BSL, SSL, Sweeps, BOS, MSS/CHoCH, Active FVGs dengan 50% CE, dan Dealing Range Premium/Discount).
+4. **Pedagogical Guardrails & Anti-Distraksi:**
+   - *Chunking Method:* Menyampaikan materi bertahap 2-3 segmen logis per topik tanpa memangkas ilmu (Zero Information Loss).
+   - *Anti-Halusinasi & Real-World Gold Rules:* Menolak Stop Loss mikro $1 di Gold; menerapkan SL struktural di balik sweep dan TP ke Draw on Liquidity nyata dengan RR >= 1:2.
+   - *Cross-Semester Thematic Synthesis:* Membedah 1 konsep secara mendalam dengan merangkum seluruh catatan terkait dari Semester 1, 2, dan 3 dalam 8 Pilar Keahlian.
+   - *True Level 0 Rule:* Dilarang menyodorkan chart atau jargon teknikal/institusional jika mulai dari nol; wajib dari logika manusia/pasar nyata.
+   - *On-Context Discipline:* Dilarang melempar saran topik baru atau menu bercabang di akhir respons. Dicatat permanen di `/root/GEMINI.md` (Seksi 10 & 11) dan `RULES.md` (Pro 421).
+
+## 2026-10-12 — Cockpit Mapping Professional Upgrade: Dual Entry Engine, Swing Stop Loss M5/M15 & Liquidity Targets
+1. **Latar Belakang & Keluhan Pengguna:**
+   - Aturan driver terlalu ketat: Terlalu banyak limit order menggantung (`WAITING_TRIGGER`) alih-alih eksekusi entry riil saat momentum kencang, menyebabkan setup terlewat.
+   - Stop Loss terlalu sempit dan kaku ($0.1$ ATR / ~20 sen) tanpa berpatokan pada Protected Swing Low/High M5/M15, sehingga mudah tersapu noise/spread wicks XAU/USD. TP dipatok kaku 0.8R alih-alih mengejar external liquidity pools (BSL/SSL).
+2. **Dual Entry Engine (Market Execution on Displacement vs OTE Limit on Retest):**
+   - Mengintegrasikan `Dual Entry` pada Six Drivers (`six-drivers.mjs`, `api/scalper-setups.js`):
+     - Jika konfirmasi displacement M5 terpicu (`isConfirmed`), status menjadi `ACTIVE` dengan `marketEntry` (harga close candle displacement) dan note: *Konfirmasi M5 close terpicu · Market Execution*.
+     - Jika harga belum konfirmasi tapi menyentuh level limit (`isLimitTriggered`), posisi berjalan otomatis.
+     - Jika sedang menunggu retrace, menyajikan rencana limit di zona OTE.
+3. **Stop Loss Berbasis Swing M5/M15 Institusional:**
+   - Stop loss buffer diperluas secara adaptif: `swingBuffer = Math.max(0.60, Math.min(1.50, event.atr * 0.25))` bersandar pada swing extreme pivots M5/M15.
+4. **TP2 Likuiditas Riil & R:R Proporsional:**
+   - TP1 mengunci target dasar model, TP2 mengejar target likuiditas eksternal nyata (BSL / SSL / PDH / PDL).
+   - Menghitung `realRr` dinamis berdasarkan jarak ke likuiditas pool.
+5. **Hardening Sweep Reclaim Fallback Logic:**
+   - Memperbaiki bug di `sweep-acceptance.js` di mana level/close bernilai null sebelumnya mengembalikan `reclaimed = true`. Kini di-fallback ke `false` (`SWEEP_UNCONFIRMED`) agar tidak memunculkan false signal rejection saat data unconfirmed.
+6. **Cockpit UI & Watch Card Hardening:**
+   - Memperbarui `scalper-entry-watch-v1.js`, `scalper-panel.js`, dan `scalper-model.js` dengan label status akurat, detail dual entry, serta penyesuaian label TP1 & TP2 Likuiditas.
+7. **Verifikasi:** 64 targeted unit tests PASS (4.3s) tanpa regresi. Disinkronkan ke upstream `Amy-fx-pro` dan `Amy-fX-pwa`.
+
+## 2026-10-12 — Peralihan Fokus Penuh ke Amy FX sebagai Aplikasi Pribadi Pengguna
+1. **Latar Belakang & Keputusan Pengguna:**
+   - Pengguna menetapkan bahwa mulai saat ini fokus pengembangan harian, koding, fitur baru, dan rilis aplikasi beralih 100% ke repositori pribadi **`Amy-fx`** (`/root/Amy-fx` dan `/sdcard/Download/Amy-fx`).
+   - `Amy-fx-pro` (`/root/Amy-fx-pro`) dipertahankan sebagai basis referensi / upstream template.
+2. **Implementasi & Paritas:**
+   - Seluruh kode dari Pro telah disalin 100% ke `Amy-fx` (Cockpit Mapping, Chart Gold ICT, Candle Replay multi-timeframe, 36 modul Academy, dan Vercel serverless).
+   - Keystore penandatanganan rilis permanen (`AMYFX_PRO_KEYSTORE_BASE64`) telah dikonfigurasi pada repositori `suhaimitoamy/Amy-fx` dan build rilis APK (`Amy FX Pro 2.0.0-pro.413`) telah berhasil diterbitkan via GitHub Actions.
+   - Server web lokal `tools/serve-local.mjs` di `Amy-fx` siap digunakan untuk pengujian cepat.
+
+## 2026-10-12 — Neural Link Chat Auto-Healing, Timeout Shield & Complete Office Audit (Pro 425)
+
+1. **Akar Masalah "Neural Link Chat Error / Tidak Ada Chat":**
+   - **Penyebab Utama:** File `office_conversation_id.txt` sebelumnya menyimpan ID percakapan Antigravity (`75eec3f5-...`) yang mengalami network timeout pada stream gRPC Google server.
+   - Karena tidak ada mekanisme pembersihan otomatis, setiap kali pengguna mengetik pesan baru, `server.mjs` memanggil `agy --conversation 75eec3f5-...` yang menggantung tanpa henti selama lebih dari 6.5 menit (387561 ms), lalu memuntahkan pesan error mentah `AGY_ERROR: {"short_error":"connection timed out"}`.
+   - Akibatnya, chat freeze, input terkunci, dan pengguna melihat error tanpa balasan.
+
+2. **Penyempurnaan Backend `server.mjs` (Zero-Stall & Auto-Heal):**
+   - **Disk Validation:** Memverifikasi keberadaan folder percakapan di disk `/root/.gemini/antigravity-cli/brain/` sebelum mengoper flag `--conversation`. Jika tidak ada, ID otomatis di-reset ke sesi segar.
+   - **Auto-Unlink Stale Sessions:** Jika child process `agy` keluar dengan `code !== 0` atau terdeteksi `network issue` / `timed out` / `grpc error`, file `office_conversation_id.txt` seketika di-unlink/dihapus agar prompt berikutnya langsung memulai sesi baru tanpa terjebak.
+   - **Timeout Shield (120s):** Child process Antigravity diberi batas waktu maksimum 120 detik. Jika menggantung, proses otomatis di-kill secara graceful dan sesi di-reset mandiri.
+   - **User-Friendly Error Sanitization:** Mengubah dump JSON gRPC mentah menjadi notifikasi ramah pemulihan jaringan.
+
+3. **Penyempurnaan Frontend `public/app.js` & Riwayat Chat:**
+   - **Multi-Agent Recovery Filter:** Memperbaiki bug di baris 1092 di mana loop recovery hanya mendeteksi balasan dari `prime` / `nova`. Kini mencakup seluruh armada (`swarm`, `laya`, `builder`, `coder`, `chronos`, `qa`, `recon`, `scribe`, `hermes`).
+   - **Auto-Expand Chat Drawer:** Menghubungkan fungsi `toggleChatMinimize(false)` pada tombol aksi monitor (`btnMonChat` & `btnMonTask`) sehingga drawer chat otomatis terbuka penuh dan fokus ke input teks saat pengguna menekan tombol bicara/tugas.
+   - **Pembersihan Log History:** Menghapus entri dump error gRPC lama dari `chat_history.json`.
+   - **Verifikasi Fungsional:** Uji coba live via curl membuktikan stream SSE menerima delta teks huruf-per-huruf dalam 10 detik dan event `done` sukses tercatat.
+
+## 2026-10-12 — Tactical Bird's Eye View Priority, Orbit Touch Normalization & Seamless Dual-Mode Exploration (Pro 424)
+
+1. **Restorasi Mode Pantauan Atas (Bird's Eye / 3D Orbit) sebagai Mode Utama Default:**
+   - **Keluhan Pengguna:** Mode First-Person terus-menerus membatasi keleluasaan memantau pergerakan seluruh bot dari atas seperti di versi awal.
+   - **Solusi:**
+     - Startup default 3D dikembalikan ke mode `ORBIT` (Pantauan Atas) pada koordinat kamera optimal `(0, 145, 230)` dengan target meja War Room tengah `(0, 8, 0)` dan sudut isometrik taktis ~33°.
+     - Seluruh stasiun robot melingkar ($R=110$), animasi bot, dan mobilitas Sims terlihat leluasa 100% dari atas.
+
+2. **Penyelarasan Touch Event & OrbitControls Normalization:**
+   - **Akar Masalah Kontrol Layar Sentuh:** Event `touchstart` sebelumnya mencegat sentuhan di 65% area layar kanan untuk First-Person look-around bahkan saat berada di mode Orbit, sehingga OrbitControls di HP/tablet terblokir.
+   - **Solusi:** `touchstart` look-around dibatasi ketat hanya aktif jika `camMode === 'FIRST_PERSON'`. Saat di mode `ORBIT`, OrbitControls memegang kendali penuh tanpa gangguan (1 jari putar 360°, 2 jari pinch zoom & pan).
+
+3. **Dual-Mode Ergonomics (Pantauan Atas vs POV Jalan Kaki):**
+   - **Tombol Toggle Cepat di Toolbar:**
+     - `🦅 PANTAUAN ATAS` (default) ↔ `🚶 JALAN KAKI (POV)`.
+     - Tombol `🦅 RESET ATAS` instan mengembalikan kamera ke sudut pandang bird's-eye view default.
+     - Joystick analog virtual otomatis disembunyikan di mode Pantauan Atas (layar 100% bebas hambatan) dan otomatis muncul saat masuk ke POV Jalan Kaki.
+   - **Inspeksi Bot Non-Intrusif (`inspectAgentFromAbove`):**
+     - Mengklik bot/meja di mode Pantauan Atas tidak lagi memaksa kamera terkunci ke tanah; kamera meluncur halus dari atas ke stasiun robot (`Y = 36`) dengan OrbitControls tetap aktif dan Live Work Monitor HUD terbuka.
+
+## 2026-10-12 — Zero-Obstruction Open Citadel, Station Proximity & Live Robot Work Monitoring (Pro 423)
+
+1. **Zero-Obstruction & Open-Plan Walkway Citadel:**
+   - **Keluhan Pengguna:** Gedung luar dan pohon-pohon menghalangi pemandangan & jalan, dan pengguna tidak bisa mendekat ke stasiun meja robot.
+   - **Solusi:**
+     - Mengosongkan 19 gedung pencakar langit luar (`buildCitySkyline`) dan seluruh pohon kristal / tiang jalan / kuil monolith Zonai.
+     - Mengubah platform sektor kamar menjadi *open-plan walk-in* tanpa balustrade, pagar kaca samping, atau pylon penghalang.
+     - Memperpendek radius orbit stasiun dari $R=210$ ke $R=110$ (dimensi lantai 48x44), sehingga stasiun robot berada di jarak ideal yang cepat dan leluasa dicapai.
+
+2. **Live Robot Work Monitor HUD (`#agent-work-monitor`):**
+   - **Deteksi Proximity Otomatis:** Saat avatar mendekati meja kerja robot ($dist < 26$), sistem otomatis memunculkan panel monitor kerja holografis di bagian atas layar dengan aksen warna neon sesuai robot.
+   - **Data Pekerjaan Riil (Anti-Halusinasi):** Menampilkan tugas nyata sistem per robot (bukan klaim fiktif), kapasitas nalar (100% High Effort), dan telemetri pasar live ($XAU/USD).
+   - **Integrasi Tombol Aksi:**
+     - Tombol `💬 BICARA LANGSUNG`: Membuka drawer chat dan menyematkan target `@AGENT` di input chat.
+     - Tombol `⚡ TUGASKAN KERJA`: Menyematkan template instruksi spesialis robot ke input chat.
+     - Tombol `✕`: Menutup panel secara halus.
+   - **Auto-Hide:** Saat avatar melangkah menjauh ($dist \ge 30$), panel monitor otomatis ditutup.
+
+3. **Fast Teleport & Direct First-Person POV Face-to-Face (`walkToAgentWorkstation`):**
+   - Dropdown `🚀 KUNJUNGI MEJA ROBOT...` memposisikan avatar langsung di depan meja robot ($14$ unit di depan stasiun), mengarahkan sudut pandang kamera (yaw) sejajar wajah robot, dan langsung membuka Live Work Monitor HUD.
+
+## 2026-10-12 — First-Person POV Exploration & Physics Normalization (Pro 422)
+
+1. **Eliminasi Avatar Karakter di Layar (Layar Plong 100%):**
+   - **Keluhan Pengguna:** Model karakter mecha terlalu besar, memblokir separuh pandangan HP vertikal, dan orientasi third-person membuat navigasi membingungkan.
+   - **Solusi:** Seluruh mesh avatar (`avatarGroup.visible = false`), badge sprite, dan ground ring disembunyikan total dari viewport kamera.
+   - **First-Person POV:** Kamera diposisikan langsung pada ketinggian mata operator (`eyeY = mesh.position.y + 6.2 + eyeBob`), menghadirkan sensasi berjalan langsung di dalam kantor virtual secara imersif dan leluasa tanpa ada objek karakter yang menghalangi pandangan.
+
+2. **Perbaikan Vektor Arah Gerak POV & Penyelarasan Look-Around:**
+   - **Akar Masalah Kontrol Terbalik:** Sebelumnya `yaw` dievaluasi 0 saat mode bukan `ZELDA_RPG`, dan `touchmove`/`mousemove` mengabaikan mode `FIRST_PERSON`. Akibatnya, saat kamera menoleh, pergerakan joystick tidak mengikuti arah pandang dan terasa bergerak terbalik.
+   - **Resolusi Matematis:**
+     - Vektor maju di bidang horizontal XZ: `fwdX = -Math.sin(fpYaw)`, `fwdZ = -Math.cos(fpYaw)`.
+     - Vektor kanan (strafe): `rightX = Math.cos(fpYaw)`, `rightZ = -Math.sin(fpYaw)`.
+     - Dorong joystick ke ATAS selalu MAJU lurus ke mana pun mata kamera sedang memandang.
+     - Dorong ke BAWAH selalu MUNDUR menjauhi pandangan.
+     - Dorong ke KANAN/KIRI melakukan strafe kanan/kiri secara tegak lurus.
+   - **Look-Around Luwes:**
+     - Swipe di area bebas (kanan layar) memutar pandangan 360° secara mulus (`fpYaw` horizontal, `fpPitch` vertikal dikunci antara -1.18 s.d. +1.18 rad agar leher tidak terbalik).
+     - Tombol `🎯 RESET POV` (`snapFocus`) langsung mengembalikan arah pandangan tegak lurus horizontal ke depan.
+
+3. **Normalisasi Fisika Nyata (Snappy & Alami, Anti-Gravitasi Bulan):**
+   - Lompatan disesuaikan ke standar manusiawi yang lincah: `jumpVelocity: 1.4`, `gravity: -0.16`, `fallGravity: -0.26`, `maxFallSpeed: -2.2`.
+   - Menghilangkan efek melayang lama tanpa bobot di udara. Pendaratan ke lantai (Y = 6) terasa solid dan instan.
+   - Trampolin Quantum Launch Pad melontarkan dengan impuls proporsional (`vy = 3.6`) dan mendarat mantap.
+   - Halus footstep head-bobbing (`eyeBob`) saat melangkah di lantai.
+
+## 2026-10-12 — Zelda Action RPG Camera System & Realistic Action Physics Overhaul (Pro 421)
+
+1. **Resolusi Vektor Joystick Terbalik & Orientasi Kamera Sempurna:**
+   - **Akar Masalah:** Sebelumnya kalkulasi `Math.atan2(moveX, moveZ)` memicu sudut 180° saat jempol digeser ke atas (`normY < 0`), sehingga karakter malah mundur mendekati kamera.
+   - **Perbaikan Vektor 3D Standard Game Dev:**
+     - `forwardInput = -moveZ` (ke atas = maju positif, ke bawah = mundur negatif).
+     - `rightInput = moveX` (ke kanan = positif, ke kiri = negatif).
+     - Transformasi arah ke dunia 3D: `worldDir = (camForward * forwardInput) + (camRight * rightInput)`.
+     - Geser jempol ke ATAS kini 100% bergerak MAJU ke depan menjauhi kamera, ke BAWAH bergerak MUNDUR, ke KANAN ke kanan, dan ke KIRI ke kiri.
+
+2. **Perombakan Sistem Fisika Nyata (Realistic Action Game Physics):**
+   - **Snappy Jump & Dynamic Fall Multiplier:**
+     - Menghapus efek melayang lambat tanpa bobot. Gravitasi dinaikkan secara proporsional (`gravity: -0.19`, dengan `fallGravity: -0.32` saat turun ke bawah).
+     - Durasi lompatan menjadi akrobatik, snappy, dan memuaskan (~20 frame / 0.35 detik) dengan tinggi proporsional (~7 unit seimbang dengan tubuh mecha).
+     - Kecepatan jatuh maksimum dibatasi (`maxFallSpeed: -2.2`) untuk mencegah tunneling.
+   - **Hentakan Mendarat (Squash & Stretch Landing Recoil):**
+     - Saat lepas landas: tubuh mengalami peregangan vertikal (*stretch* `scale.set(0.88, 1.25, 0.88)`).
+     - Saat mendarat dari udara: tubuh mengalami kompresi elastis (*squash* `scale.set(1.22, 0.76, 1.22)`), memicu letupan debu/spark emas di lantai dan suara taktil landing, lalu kembali elastis ke normal via spring lerp.
+   - **Footstep Bobbing & Inersia Badan:**
+     - Saat berlari di lantai, tubuh berbobot menjejak lantai naik-turun (`mesh.position.y = 6 + Math.abs(Math.sin(walkCycle)) * 0.65`) dengan ayunan tangan ritmis dan badan condong ke depan (*pitch lean*).
+   - **Solid Obstacle Colliders:**
+     - Meja bundar War Room di tengah (R = 26) dan Kuil Kuno Monolith (R = 19) kini memiliki deteksi tabrakan fisik elastis, sehingga karakter tidak menembus objek seperti hantu.
+   - **Perbaikan Launch Pad Springs:** Platform pelontar melontarkan karakter dengan impuls hidrolik tinggi (`vy = 4.6`) dan peregangan tubuh hidrolik.
+
+2. **Ekspansi Dunia RPG Kaya (Rich Environment Population):**
+   - **4 Kuil Kuno (Zonai Shrines / Ancient Monoliths):** Ditempatkan di 4 sudut diagonal (NW, NE, SW, SE) dengan pondasi heksagonal batu obsidian bertingkat 3, 4 pilar kristal spiral, inti energi berputar mengambang di udara, dan cincin runik vertikal.
+   - **16 Pohon Kristal Neon (Bioluminescent Flora):** Pohon kristal low-poly 3-tier dengan pucuk kristal berpijar tersebar di ring taman dalam dan luar.
+   - **10 Tiang Lampu Jalan Heksagonal:** Menerangi jalan setapak dan koridor sektor dengan tudung lentera cyan neon.
+   - **4 Quantum Launch Pads (Trampolin Pelontar Vertikal):** Ditempatkan di 4 penjuru (Utara, Selatan, Timur, Barat). Ketika Amy menginjak platform ini, Amy langsung terlontar tinggi ke udara (`p.vy = 4.2`) dengan letupan spark plasma dan notifikasi HUD.
+   - **8 Peti Suplai Interaktif (Loot Chests):** Peti baja cyberpunk yang terbuka otomatis saat didekati oleh Amy, memancarkan pilar sinar vertikal dan memberikan loot taktis (misal: *Algoritma ICT Deep OTE 78.6%*, *Blueprint Megastructure Titan*, dll.).
+   - **War Room Central Holographic World Globe:** Bola dunia 360° wireframe berputar di atas meja War Room dengan titik-titik pusat trading dunia (New York, London, Tokyo, Sydney).
+   - Seluruh geometri Three.js berpoligon rendah (low-poly) teroptimasi ARM64 sehingga FPS terkunci 60 FPS mulus di smartphone.
+
+## 2026-10-12 — Resolusi Freeze Chat Kantor & Dukungan Penuh Kendali Mecha HP (Pro 420)
+
+1. **Akar Masalah Freeze Chat Kantor Teridentifikasi:**
+   - Proses child CLI Antigravity di background (`PID 10308`) berjalan terlalu lama mengeksekusi multi-tool search pada sesi nalar tinggi (`--effort high`), menyebabkan koneksi streaming SSE di browser smartphone terkatung-katung.
+   - Proses macet telah dihentikan, dan file riwayat chat disinkronkan kembali dengan laporan eksekutif lengkap.
+
+2. **Dukungan Penuh 100% Smartphone / Layar Sentuh HP (Mobile RPG Controls):**
+   - Menghapus ketergantungan pada keyboard desktop (WASD / Panah / Spasi).
+   - Mengaktifkan **Dual Mobile Control System**:
+     1. **Analog Virtual Joystick 360°:** Ditempatkan di sudut kiri bawah dengan listener sentuh native (`touchstart`, `touchmove`, `touchend` di window) sehingga gerakan jempol bebas geser 360 derajat tanpa pernah putus.
+     2. **Tap-To-Move (Ketuk Lantai):** Deteksi sentuhan jari pada lantai 3D Three.js memunculkan target suar berdenyut dan menggerakkan avatar Amy langsung ke titik yang disentuh.
+     3. **Tombol Aksi Touchscreen:** `⚡ LOMPAT` (Jet Thruster vertical leap), `🚀 LARI` (Sprint toggle), dan `🎯 FOKUS` (Kamera memusat ke Amy).
+   - Sintaks divalidasi 100% via `node --check`.
+
+## 2026-10-12 — Aktivasi Dewan Citadel & Kolaboratif Dynamic Multi-Agent Swarm (Pro 419)
+
+1. **Akar Masalah "Silo Tunggal Nova" Teridentifikasi & Dituntaskan:**
+   - Ditemukan bahwa chat Neural Link sebelumnya selalu terkunci pada agen tunggal Nova (`targetId = 'prime'`) karena selector default mengisolasi instruksi ke Nova sendirian dengan prompt guard sempit.
+   - Akibatnya, saat Operator Amy memberikan instruksi kompleks atau pertanyaan berbobot, agen spesialis lain (Laya, Forge, Titan, Chrono, Aegis, Scribe, Hermes) tidak ikut ter-trigger.
+
+2. **Aktivasi Default "DEWAN CITADEL // Kolaboratif Tim":**
+   - Mengubah selector frontend (`#chat-target-agent`) dan backend routing (`server.mjs`) agar secara default mengaktifkan mode kolaboratif penuh (`targetId = 'swarm'`).
+   - Menerapkan protokol **⚡ LAYA (Swarm Router & Dispatcher)** sebagai pembuka respon: mengevaluasi tingkat kompleksitas instruksi (Level 0 Direct s.d. Level 5 Enterprise Swarm) sesuai panduan `laya-subagent-dispatcher`.
+   - Mengorkestrasi respon lintas peran spesialis:
+     - ⚡ **LAYA:** Triage kompleksitas & alokasi tugas.
+     - 🤖 **NOVA:** Logika penalaran & strategi sentral.
+     - 🔨 **FORGE:** Baris kode teknis & sintesis file (eksekusi tool nyata tanpa halusinasi).
+     - 📐 **TITAN:** Arsitektur fisik 3D, blueprint menara bertingkat, dan tata ruang.
+     - 🔬 **CHRONO:** Kuantitatif, data pasar live XAU/USD, dan pengujian formula OTE 78.6%.
+     - 🛡️ **AEGIS:** Sentinel QA, terminal syntax check, dan audit stabilitas.
+     - 📚 **SCRIBE:** Studio format dokumen & remaster PDF.
+     - 🎙️ **HERMES:** Penutup resmi dengan Dossier Eksekutif ringkas untuk Operator Amy.
+
+3. **Integrasi Visual & Simulasi 3D Real-Time:**
+   - Menambahkan parser delta streaming di `public/app.js`: saat tag agen (misal `⚡ [LAYA]`, `🔨 [FORGE]`, dll.) terdeteksi dalam aliran teks SSE, robot 3D Three.js yang bersangkutan langsung menerima pulsa data neon, terbangun, dan melangkah ke meja War Room untuk berkolaborasi.
+   - Styling dialogue box cyber-glassmorphism di `public/style.css` dengan aksen border warna neon unik per agen.
+   - Validasi sintaks 100% via `node --check` dan reload aman zero-downtime via `pm2 reload amy-office`.
+
+4. **Kapasitas Nalar Maksimal 100% (High Reasoning Effort & Eliminasi Gaya Kaku):**
+   - Mengubah parameter agy CLI dari `--effort low` ke `--effort high` di `server.mjs`.
+   - Mengeliminasi sandiwara template drama yang kaku dan memperbolehkan agen berpikir dalam (*deep Chain-of-Thought*), bernalar fleksibel, dan berkomunikasi lugas serta berbobot tinggi layaknya tim insinyur dan trader pro senior.
+
+## 2026-10-12 — Integrasi Data Real-Time XAU/USD & Protokol Anti-Halusinasi Virtual Office (Pro 418)
+
+1. **Akar Masalah Halusinasi Teridentifikasi & Dieliminasi:**
+   - Ditemukan bahwa respons rapat War Room sebelumnya berhalusinasi mengarang angka fiktif ($2,880 – $2,915) karena dua faktor:
+     - `public/office-simulation-3d.js` memiliki angka statis hardcoded ($2,948.50 pada grafik dan rentang $2,880 – $2,915 pada skrip dialog War Room).
+     - `server.mjs` belum menyuntikkan data live market ke prompt reasoning saat user bertanya seputar trading/market/buy/sell/limit.
+2. **Koneksi Langsung ke API Vercel Amy FX Pro:**
+   - Menambahkan helper `fetchRealMarketContext()` di `server.mjs` yang mengambil feed langsung dari `https://amy-fx.vercel.app/api/scalper-setups` dan `api/twelvedata`.
+   - Menginjeksi telemetri pasar nyata: Harga Terkini ($4,189.76 – $4,198.21), Dealing Range M15 (Low 4,184.15 s.d. High 4,200.09, EQ 4,192.12), Posisi Zona (Discount / Premium), M15 Structure (BULLISH MSS 4,196.70), Confluence Score (28/100 NO_SETUP), dan Status 6 Drivers (WAITING_STRUCTURE).
+3. **Endpoint `/api/market-data` & Paritas Visual 3D Engine:**
+   - Mengaktifkan REST endpoint `GET /api/market-data` di `server.mjs` dengan cache TTL 30 detik.
+   - Mengupdate `public/office-simulation-3d.js` agar secara periodik mengambil data live dari `/api/market-data`, memperbarui canvas chart wall dengan harga nyata dan level FVG/OTE aktual, serta menyelaraskan dialog 10 robot di War Room 100% berbasis data nyata engine.
+4. **Validasi & Zero-Touch PM2:**
+   - Syntax diverifikasi via `node --check` dan service `amy-office` direload mulus via `pm2 reload amy-office`.
+5. **Eliminasi Total Klaim Pekerjaan Palsu di Sims Autonomous Loop:**
+   - Ditemukan bahwa siklus The Sims (`startSimsAutonomousLifeLoop`) memunculkan balon dialog palsu setiap 4.5 detik di atas kepala robot (misal Chrono mengaku sedang backtest 8 tahun, Forge mengaku sedang refactor shader Three.js, Scribe mengaku menerjemahkan PDF) padahal tidak ada tugas nyata yang sedang berjalan.
+   - Seluruh teks klaim tugas fiktif diganti 100% dengan status ambient standby jujur ("Standby di stasiun kerja", "Rehat sejenak di lounge", "Menunggu instruksi").
+   - Interval diperlambat dari 4.5s ke 12s agar tenang dan tidak spamming.
+   - Penambahan `systemGuard` di `server.mjs`: Melarang AI mengklaim tugas/koding sudah selesai jika tool belum benar-benar dipanggil dan dieksekusi secara nyata.
+
+## 2026-10-10 — Masterclass PDF Amy FX Academy Modul 02 [Membaca Chart & Anatomi Candlestick] (Pro 417)
+
+1. **Penerbitan Masterclass Ebook Vertikal A4 Standar Institusional (24 Halaman):**
+   - Mengompilasi materi 9 bab utuh dari Obsidian Vault (`bagian-02-membaca-chart/`) menjadi dokumen Ebook masterclass vertikal A4 publikasi resmi (24 Halaman, 645 KB).
+   - Mempertahankan 100% gaya tutur mentor alami Amy FX (analogi pasar cabai, pedal gas mobil tol, pendaki gunung, bola karet kamar, boneka Rusia Matryoshka, tarik tambang).
+
+2. **Diagram Teknikal HD 16:9 Dark Theme Murni (Bebas Ilustrasi Jadul):**
+   - Menghapus ketergantungan pada ilustrasi 3D usang dan menggantikannya dengan 9 diagram teknikal HD 16:9 beresolusi tinggi bertema TradingView Dark (#0A0F18 / #111827):
+     - Bab 01: Anatomi Chart (Sumbu Y Harga, Sumbu X Waktu, Jejak Transaksi).
+     - Bab 02: Anatomi Candlestick OHLC & Prinsip Harga Close Sebagai Raja.
+     - Bab 03: Dinamika Tarik Tambang Bullish vs Bearish & Sesi Istirahat Pullback.
+     - Bab 04: Perbandingan Momentum Body (Gas) vs Wick Rejection (Rem).
+     - Bab 05: Sifat Fractal & Multi-Timeframe (1 Candle H1 = 4 Candle M15).
+     - Bab 06: Formasi 3-Candle Sah Swing High (Atap A) & Swing Low (Mangkok V).
+     - Bab 07: Tiga Arah Trend (HH-HL Tangga Naik, LH-LL Tangga Turun, Sideways Ping-Pong).
+     - Bab 08: Support & Resistance Role Reversal (RBS Retest Entry).
+     - Bab 09: Siklus 4 Fase Market Structure (Akumulasi, Mark-Up, Distribusi, Mark-Down) & Konfirmasi BOS vs Alarm CHoCH (MSS).
+
+3. **Tata Letak & Checklist Kelulusan Presisi:**
+   - Halaman 1: Cover Masterclass berwibawa dengan preview chart Bab 02.
+   - Halaman 2: Kata Pengantar Mentor & Silabus 9 Bab lengkap dalam 1 halaman rapi.
+   - Halaman 3-23: Bab 01 s.d. Bab 09 dengan header bab independen dan diagram 16:9.
+   - Halaman 24: Lembar Checklist Kelulusan 9 poin dengan kartu bergaris emas dan sertifikasi kelulusan menuju Modul 03.
+   - Otomatis didistribusikan ke `/sdcard/Download/`, Telegram, Documents, dan `/root/`.
+
+
+1. **Transformasi Materi Web Academy ke Format Masterclass Slide Persegi (810x810):**
+   - Materi Modul 01 Amy FX Academy (`apps/academy/bagian-01-pemula-nol/index.html`) diterjemahkan dan ditransformasikan menjadi Masterclass Slide PDF 8 halaman dengan standar estetika identik dengan `ICT Entry Models [Bahasa Indonesia].pdf`.
+   - Menghubungkan kurikulum web Amy FX Pro langsung dengan aset infografis institusional murni Michael J. Huddleston.
+
+2. **Penerapan Standar "Zero-Patchwork" & Vector Polish:**
+   - **Cover Slide:** Heading Navy (`#0A192F`), aksen Gold (`#C59B27`), badge kurikulum `MODUL 01 • 1 SKS`, dan ringkasan silabus terstruktur.
+   - **Bab 01 s.d. 06:** Penjelasan mendalam tentang IPDA, Karakteristik Gold XAU/USD vs Forex/Indeks, Perhitungan Lot/Pip/Spread, Metrik Finansial (Balance, Equity, Margin, Free Margin) dengan Peringatan Hukum Besi Risiko 1-2%, Logika Penempatan Stop Loss & Take Profit, dan Membongkar Jebakan Indikator Retail.
+   - **Grafik & Diagram Bersih:** Diagram SSL Liquidity Sweep, Penempatan SL Invalidation Point bersanding dengan Target Low-Hanging Fruit, serta Breaker Block (+BB/-BB) dan Fair Value Gap (BISI/SIBI) tanpa tambal sulam.
+   - **Vector Checkmarks:** Halaman rangkuman akhir menggunakan vector checkmarks dinamis bersarang di dalam badge badge lingkaran hijau toska.
+   - **Distribusi Otomatis:** Output disimpan langsung di `/sdcard/Download/Amy FX Academy - Modul 01 [Fondasi Pasar].pdf` dan disinkronkan ke Telegram, Documents, dan root.
+
+## 2026-10-10 — Skill Global smart-pdf-remaster & Remaster Penuh Ebook ICT Entry Models (Pro 415)
+
+1. **Akar Masalah Kegagalan Translasi PDF Lama (Tambal Sulam & Overflow):**
+   - Percobaan awal translasi file PDF grafik/slide presentasi (`ICT Entry Models.pdf`) menggunakan metode in-place overlay langsung menempelkan teks terjemahan di atas file biner tanpa reflow.
+   - Karena bahasa Indonesia lebih panjang 20–30%, teks saling menimpa (*overlap*), meluber keluar margin, memotong nomor langkah, dan teks diagram tengah (infografis langkah 1-5, anatomi Breaker Block, FVG BISI/SIBI) tertinggal dalam bahasa Inggris.
+
+2. **Arsitektur Standar Remaster "Zero-Patchwork" & Pembuatan Skill Global:**
+   - Diciptakan skill global resmi `/root/.agents/skills/smart-pdf-remaster/` yang menetapkan SOP remastering dokumen PDF grafis:
+     - **Clean Canvas Clearing:** Tutupi area teks lama dengan poligon/kotak sewarna latar belakang asli (`rgb(1, 1, 1)`).
+     - **Tipografi Berlapis & Reflow Manual:** Header tag ("1 dari 6"), Judul Utama (Bold 28–32pt), Paragraf terstruktur dengan `wrapText`, dan Infografis langkah dengan nomor transparan (*faint background numbers*) serta teks terpusat (*centered*).
+     - **Preservasi Istilah Murni ICT:** Akronim institusional murni (`FVG`, `MSS`, `BOS`, `BSL`, `SSL`, `OTE`, `BB`, `BISI`, `SIBI`) dipertahankan secara utuh dan tepat.
+     - **Multi-Lokasi Distribusi Otomatis:** Output langsung disalin ke `/sdcard/Download/`, `/sdcard/Download/Telegram/`, `/sdcard/Download/Documents/`, dan `/root/`.
+     - **Verifikasi Visual Mutlak (QC):** Halaman kunci wajib di-render ke PNG via `pdftoppm` dan diverifikasi dengan `view_file` sebelum diserahkan.
+   - Buku `ICT Entry Models [Bahasa Indonesia].pdf` berhasil diremaster penuh 32 halaman dengan tingkat keterbacaan sempurna tanpa cacat visual.
+
+
+## 2026-10-10 — Overhaul Kurikulum Academy: Eliminasi Mitos Retail SMC & Penggabungan 3 Semester ke 12 Modul Master Terpadu (Pro 414)
+
+1. **Akar Masalah Kurikulum Lama (Bloat & Konten Menyesatkan):**
+   - Kurikulum sebelumnya membengkak hingga 36 pertemuan dan 492 sub-bab yang sarat pengulangan (*bloated*) dan desinkronisasi nama direktori (misal folder `bagian-17-fvg` berisi Liquidity Mapping).
+   - Tersusupi konsep retail SMC palsu yang bertentangan dengan ajaran Michael J. Huddleston (ICT Murni):
+     - Mitos mekanis *"IDM = pullback pertama wajib disapu sebelum BOS sah"*, yang menjebak trader melawan tren kuat.
+     - Penyelundupan istilah *"CHoCH"*, memicu false break di timeframe mikro.
+     - Mitos *"Bank mengalami floating loss di Order Block dan berusaha keluar di BE"*.
+     - Pengacauan terminologi Consequent Encroachment (CE) pada Order Block (seharusnya Mean Threshold).
+     - Penggunaan jam sesi statis WIB yang mengabaikan siklus Daylight Saving Time (DST) New York.
+   - Kontradiksi internal di mana materi academy bertentangan dengan engine teknikal Amy FX Pro (`AMY_ICT_NextGen.pine`) yang mengevaluasi konfirmasi langsung dari displacement candle M15 tanpa syarat IDM.
+
+2. **Solusi & Hasil Eksekusi Penyatuan Kurikulum:**
+   - **Konsolidasi 12 Modul Master Terpadu:** Seluruh materi esensial dari Semester 1, 2, dan 3 dipadatkan dan disatukan menjadi 12 Modul Master komprehensif (Modul 01 s.d. 12) yang 100% patuh pada metodologi ICT murni dan paritas dengan Cockpit Mapping.
+   - **Pembersihan Bersih (Zero-Bloat):** Lebih dari 41.000 baris materi usang dan repetitif dibersihkan.
+   - **Seamless Forwarding:** Direktori `bagian-13` s.d. `bagian-36` diubah menjadi redirector cerdas yang mengalihkan pembaca ke Modul Master yang relevan, menjaga kompatibilitas bookmark dan pengujian otomatis tanpa broken link.
+   - **Modern UI Redesign:** Antarmuka `index.html` dan `daftar-materi.html` diperbarui dengan visual Dark Premium Fintech, filter kategori dinamis, dan navigasi ramah mobile.
+   - **Integritas Pengujian:** Seluruh 31 targeted test suites (`guided-academy`, `blueprint-preview-stabilization`, `market-learning-live-examples`, `preview-connectivity-final-v3`) lulus 100%.
+
 ## 2026-10-09 — Replay Multi-Timeframe Mulus & Penyelarasan Kursor Presisi (Pro 413)
 
 1. **Akar Masalah Kursor Stuck & Persepsi Otomatis M1:**
@@ -732,5 +1131,29 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
    - **Out-of-Range Cursor Bounds:** Timestamp cursor lama dari dataset lain (misal 2009 vs 2025) sebelumnya menyebabkan `lowerBound` memilih bar index 0 sehingga chart hanya memuat 1 candle (tampak kosong). Kini `ReplayController.prototype.start` memverifikasi rentang timeline: jika timestamp di luar batas dataset, otomatis me-reset ke `Math.min(80, timeline.length - 1)` sehingga 80 candle awal langsung tampil penuh.
    - **Resilience Sample Loader:** `loadSample()` di `data-provider.js` dibungkus multi-fallback dan `listSources()` dibungkus per-sumber try/catch sehingga kegagalan fetch sample lokal/offline tidak memblokir pembacaan pack IndexedDB.
    - **Responsive Auto-Fit:** `chart.setCandles` memanggil `fitContent()` pada render pertama, serta `chart.resize()` dan listener `window.addEventListener('resize')` dipasang agar kanvas chart selalu fit ke dimensi kontainer.
+
+## 2026-10-10 — Remaster Ebook Masterclass: Amy FX Academy Modul 01 [Fondasi Pasar]
+
+1. **Format Publikasi & Tipografi Nyaman:**
+   - Format 8-page slide 810x810 yang terlalu padat/kecil digantikan secara penuh oleh format Masterclass Ebook A4 Vertikal multi-halaman (24 Halaman).
+   - Tipografi standar Helvetica/Helvetica-Bold ukuran 11.5pt dengan line-height 17.5pt untuk teks narasi, menghasilkan kenyamanan membaca optimal di layar ponsel dan tablet tanpa perlu pinch-zoom berlebihan.
+2. **Integritas Materi Obsidian Vault 100% Murni:**
+   - Seluruh teks penjelasan mentor alami dari `/sdcard/Download/obsidian/Amy_Trading_Academy_Vault/bagian-01-pemula-nol/` (9 file Markdown) dipulihkan seutuhnya.
+   - Analogi orisinal (mengemudi mobil manual, modal peluru, beras sekarung vs lot, pedagang pasar tradisional vs pohon jati investor, gorengan, dsb.) dipertahankan tanpa peringkasan berlebih.
+3. **Integrasi Infografis HD 16:9 & Diagram Teknis:**
+   - 9 infografis resolusi tinggi 1200x675 (16:9) dari `/sdcard/Download/obsidian/Amy_Trading_Academy_Vault/images/` diintegrasikan di setiap bab pembuka.
+   - Tambahan diagram teknis candlestick penempatan Stop Loss logis berbasis invalidation point tersemat di Bab 07.
+4. **Struktur Halaman Bersih & Nir-Tumpang Tindih:**
+   - Halaman 1: Cover mandiri berkelas institusional dengan 4 pilar kurikulum dan metadata penerbitan.
+   - Halaman 2: Kata Pengantar Mentor & Daftar Isi lengkap 9 bab.
+   - Halaman 3–23: Bab 01 s.d. Bab 09, masing-masing bab dimulai pada halaman baru dengan running header dan nomor halaman konsisten.
+   - Halaman 24: Checklist Kelulusan Mandiri dengan 8 kartu evaluasi (vektor centang hijau dan teks wrap rapi) serta teaser Modul 02.
+5. **Distribusi Otomatis & Verifikasi Visual:**
+   - Ebook otomatis terdistribusi ke 4 lokasi:
+     - `/sdcard/Download/Amy FX Academy - Modul 01 [Fondasi Pasar].pdf`
+     - `/sdcard/Download/Documents/Amy FX Academy - Modul 01 [Fondasi Pasar].pdf`
+     - `/sdcard/Download/Telegram/Amy FX Academy - Modul 01 [Fondasi Pasar].pdf`
+     - `/root/Amy FX Academy - Modul 01 [Fondasi Pasar].pdf`
+   - Verifikasi visual 100% via `pdftoppm` dan `view_file` pada halaman 1, 2, 3, 5, 6, dan 24 mengonfirmasi bebas glitch, bebas terpotong, dan tata letak elegan.
 
 

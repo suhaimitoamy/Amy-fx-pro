@@ -31,6 +31,15 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
 3. **Protokol Pemulihan Error (Golden Rule):**
    - Jika Chart Gold mengalami error atau glitch visual saat pengembangan indikator, **AI DILARANG mengutak-atik struktur sembarangan dan WAJIB MENUNGGU PERINTAH LANGSUNG dari user untuk disamakan kembali dengan Peta Harga.**
 
+## Active Forming Candle Live (TradingView Parity) (Pro 419)
+
+1. **Lilin Terakhir Bergerak Live (`candlestickSeries.update`):**
+   - Di kedua chart (Chart Gold Mapping dan Peta Harga Beranda), lilin aktif periode berjalan (*forming candle*) kini diperbarui secara *real-time* mengikuti setiap *tick* harga live (`amyfx:twelvedata-price` / `amyfx:live-price-display`).
+   - Body lilin, jarum atas (High), dan jarum bawah (Low) bergerak dinamis tanpa menunggu 15 menit selesai.
+2. **Integritas Analisis ICT Tetap Terkunci (*Zero Repainting*):**
+   - Seluruh logika keputusan (FVG, 50% CE, BOS, MSS, dealing range, skoring konfluensi, checklist pre-trade) tetap dihitung 100% dari closed candles terkonfirmasi.
+   - Weekend Anti-Spam: Tidak ada sintesis lilin saat penutupan pasar akhir pekan.
+
 ## Fast Dev Mode & Larangan Full npm test Otomatis (Pro 404)
 
 1. **Dilarang Menjalankan Full npm test (148 Suites) Secara Rutin:**
@@ -162,3 +171,65 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
    - **Penyelarasan Waktu OHLC & Badge TF:** Strip OHLC kini menggunakan `current.time` (waktu pembukaan bucket, misal 02:00 WITA, 02:15 WITA), status bar menampilkan format eksplisit `[M15] · Candle ...`, dan badge TF aktif disematkan di strip info.
    - **Fast-Path Agregasi Biner:** Optimasi `trustedSeries` pada `aggregateCandles` dan `visibleCandles` menggunakan pencarian biner pada slice data yang sudah terurut, memangkas waktu pemrosesan dari ~450ms menjadi ~5ms per langkah untuk playback ultra-responsif di perangkat mobile.
 
+## Kurikulum Master ICT Terpadu (12 Modul Murni) & Purifikasi Retail SMC (Pro 414)
+
+1. **Purifikasi Konsep Retail SMC (Zero-Tolerance False Concepts):**
+   - **Eliminasi Mitos IDM Mekanis:** Menghapus aturan buatan retail *"pullback 1 wajib di-sweep sebelum BOS sah"*. Struktur ICT murni ditentukan oleh Swing Fractal 3/5 lilin dan Displacement.
+   - **Eliminasi Istilah CHoCH:** Seluruh penyebutan istilah retail CHoCH dibersihkan dan distandarkan menjadi MSS (Market Structure Shift) institusional.
+   - **Eliminasi Mitos Antropomorfis Bank:** Menghapus narasi fiktif *"Bank floating rugi di OB dan mau keluar di BE"*, digantikan dengan mekanisme sejati *Repricing Efficiency IPDA*.
+   - **Standardisasi Terminologi:** Titik tengah 50% bodi Order Block adalah *Mean Threshold (MT)*, sedangkan 50% FVG/Wick adalah *Consequent Encroachment (CE)*.
+   - **Standar Waktu New York & DST:** Seluruh jam Killzone dan Macro berpatokan resmi pada New York Time (EST/EDT) dengan penjelasan pergeseran musiman Daylight Saving Time (DST).
+2. **Penyatuan Kurikulum (Merge 3 Semester -> 12 Modul Master Terpadu):**
+   - 3 Semester dengan 36 bagian (492 bab repetitif/bloated) disatukan menjadi **12 Modul Master Terpadu** yang padat, terstruktur, dan 100% selaras dengan skrip `AMY_ICT_NextGen.pine` serta Cockpit Mapping Amy FX Pro.
+   - Folder `bagian-13` s.d. `bagian-36` dialihkan secara transparan ke modul master yang relevan tanpa merusak URL lama atau pengujian otomatis.
+   - Antarmuka Beranda (`index.html`) dan Silabus (`daftar-materi.html`) menampilkan navigasi 12 Modul Master Dark Premium Fintech dengan filter kategori dinamis.
+
+## Virtual Office Live Market Telemetry & Protokol Anti-Halusinasi (Pro 418)
+
+1. **Eliminasi Angka Statis & Hardcoded:**
+   - Semua angka harga mock lama ($2,880 – $2,948) di kanvas 3D dan skrip War Room telah dibersihkan total.
+   - Frontend 3D secara periodik melakukan polling ke endpoint internal `/api/market-data` (port 8090).
+2. **Koneksi Engine Real-Time Vercel:**
+   - `server.mjs` terhubung langsung ke `https://amy-fx.vercel.app/api/scalper-setups` dan `api/twelvedata`.
+   - Setiap query analisa pasar, buy/sell, atau order limit secara otomatis menyuntikkan telemetri nyata (Harga XAU/USD, Dealing Range M15, EQ, Struktur, Confluence Score, 6 Drivers state) ke dalam prompt dewan robot agar bebas halusinasi.
+
+## Virtual Office First-Person POV Exploration & Physics Normalization (Pro 422)
+
+1. **Karakter Tersembunyi & Layar Plong 100%:**
+   - Seluruh mesh karakter mecha (`avatarGroup.visible = false`) disembunyikan agar layar HP plong dan tidak terhalang.
+   - Kamera diposisikan pada level mata operator (`eyeY = mesh.position.y + 6.2 + eyeBob`) untuk eksplorasi First-Person POV sejati.
+2. **Kontrol Arah POV Intuitif:**
+   - Vektor pergerakan dikunci ke arah pandang kamera (`fpYaw`): Joystick atas = MAJU lurus searah kamera, bawah = MUNDUR, kanan/kiri = STRAFE.
+   - Swipe kanan layar memutar pandangan 360° secara luwes (Yaw & Pitch vertikal terbatasi).
+3. **Fisika Snappy Realistis:**
+   - Lompatan cepat dan manusiawi (`jumpVelocity: 1.4`, `gravity: -0.16`, `fallGravity: -0.26`, `maxFallSpeed: -2.2`) menghilangkan efek mengambang di bulan.
+   - Trampolin Quantum Launch Pad melontarkan dengan ketinggian proporsional (`vy = 3.6`) dan mendarat mantap.
+
+## Mentor Trading Privat 1-on-1, Twelve Data MCP & Pedagogical Guardrails (Pro 426)
+
+1. **Skill Global `mentor-trading-privat`:**
+   - Ditempatkan di `/root/.agents/skills/mentor-trading-privat/SKILL.md` (shared Akun 1 & Akun 2).
+   - Menghubungkan kurikulum materi Obsidian (`Amy_Trading_Academy_Vault`) dengan engine pasar riil.
+2. **Twelve Data MCP & Candle Builder Sync:**
+   - Server MCP mandiri di `/root/.agents/mcp-servers/twelvedata-server.mjs`.
+   - Konfigurasi di `/root/.gemini/config/mcp_config.json`.
+   - Mengambil data live dan otomatis menyimpan ke SQLite `/root/amy-market-data/xauusd_bot.sqlite`.
+   - Menyediakan tool analisis ICT lengkap: BSL, SSL, Sweeps, BOS, MSS/CHoCH, Active FVGs (CE 50%), dan Dealing Range.
+3. **Pedagogical Guardrails & Anti-Distraksi:**
+   - **Chunking Method:** Materi diajarkan per 2-3 segmen logis tanpa memangkas ilmu (Zero Information Loss).
+   - **On-Context Discipline (Pro 421):** AI fokus 100% pada pertanyaan user tanpa melempar opsi atau saran cabang yang tidak diminta.
+   - **True Level 0 Rule:** Dilarang menampilkan chart atau istilah teknikal jika mulai dari nol; wajib dari logika berdagang awam dan analogi fisik.
+   - **Real-World Gold Rules:** Menolak SL mikro $1 di Gold; menerapkan SL struktural di balik sweep dan TP ke DOL nyata dengan RR >= 1:2.
+
+## Academy Learning Reminder & Alarm Guardrails (Pro 427)
+
+1. **Exact-Time Native Alarm (`AlarmManager`):**
+   - Pengingat belajar harian di [`LearningReminderReceiver`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/LearningReminderReceiver.kt) menggunakan `AlarmManager.setExactAndAllowWhileIdle` / `setAndAllowWhileIdle` pada timezone WITA (`Asia/Makassar`).
+   - Mencegah pergeseran waktu akibat Doze mode Android atau optimasi baterai.
+2. **Strict Time-Window Guard (±15 Menit):**
+   - Baik di [`LearningReminderWorker`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/LearningReminderWorker.kt) maupun [`LearningReminderReceiver`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/LearningReminderReceiver.kt), notifikasi hanya diizinkan muncul jika waktu sekarang berada dalam rentang toleransi ±15 menit dari jam yang disetel pengguna (misal 20:00 WITA).
+   - Menolak dan membuang (discard) eksekusi prematur (seperti 13:41 WITA saat WorkManager mengevaluasi periodic work saat app baru dibuka).
+3. **Once-Per-Day Date Guard (`KEY_LAST_NOTIFIED_DATE`):**
+   - Notifikasi hanya dapat dikirim maksimal 1 kali per hari kalender WITA (`YYYY-MM-DD`).
+4. **Boot Resilience:**
+   - [`BootReceiver`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/BootReceiver.kt) secara otomatis mengaktifkan ulang alarm saat perangkat reboot (`ACTION_BOOT_COMPLETED`).
