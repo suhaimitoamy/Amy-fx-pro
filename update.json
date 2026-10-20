@@ -32,5 +32,6 @@
     "Pembersih Cache Sementara 1-Tap di Profil: Membersihkan file sementara, cache unduhan, dan video temp dalam 1 ketukan."
   ],
   "version": "2.0.0-pro.420",
-  "versionCode": 950420
+  "versionCode": 950420,
+  "sha256": "a392acb761c2f6ea26604941d1e907452dcad6eee7b445a6ac4ae7cf8c63ddf6"
 }
