@@ -36,6 +36,23 @@ test('FVG needs a 1.2× previous-20-body displacement and a 0.15–0.75 ATR gap'
   assert.ok(zones[0].widthAtr <= 0.75);
 });
 
+test('FVG identifies Candle 2 (middle) displacement with Candle 3 gap confirmation (Pine Script parity)', () => {
+  const values = Array.from({ length: 20 }, (_, index) =>
+    candle(100, 100.5, 99.5, index % 2 ? 99.9 : 100.1, index)
+  );
+  values.push(candle(100, 100.5, 99.5, 100.1, 20)); // Candle 1 (origin): high 100.5
+  values.push(candle(100.2, 102.5, 100.1, 102.3, 21)); // Candle 2 (middle displacement): body 2.1
+  values.push(candle(102.3, 102.4, 100.8, 101.5, 22)); // Candle 3 (confirmation): low 100.8 > 100.5
+  const zones = detectFvgConcepts(values, { currentPrice: 101.5 });
+  assert.equal(zones.length, 1);
+  assert.equal(zones[0].direction, 'BULLISH');
+  assert.equal(zones[0].bottom, 100.5);
+  assert.equal(zones[0].top, 100.8);
+  assert.equal(zones[0].displacementIndex, 21);
+  assert.equal(zones[0].originIndex, 20);
+  assert.equal(zones[0].availableIndex, 22);
+});
+
 test('full wick mitigation is preserved as terminal history and does not self-convert', () => {
   const values = filteredFvgSeed();
   values.push(candle(101, 101.1, 100.4, 100.6, 23));
@@ -61,7 +78,7 @@ test('Order Block requires the immediate opposite origin and a 2× mean-body dis
   };
   const zones = detectOrderBlockConcepts(values, structure, { htfCandles: {}, currentPrice: 102.8 });
   assert.equal(zones.length, 1);
-  assert.equal(zones[0].bottom, 100.2);
+  assert.equal(zones[0].bottom, 100.5);
   assert.equal(zones[0].top, 101);
   assert.equal(zones[0].originIndex, 21);
   assert.equal(zones[0].availableIndex, 22);
@@ -97,3 +114,34 @@ test('OB imbalance metadata never reads candles after the structure break', () =
   ];
   assert.equal(obCreatedImbalance(values, 0, 2, 'BULLISH'), false);
 });
+
+test('Item 2.36: FVG 50% CE touch sniffer detects retest at midpoint and activates sniper signal', () => {
+  // Setup standard bullish FVG: bottom = 100.5, top = 100.7, mid (50% CE) = 100.6
+  const values = filteredFvgSeed();
+  // Candle 23: Retrace into FVG touching 50% CE (low 100.55 <= 100.6) and closes above CE (close 100.65)
+  values.push(candle(101.5, 101.6, 100.55, 100.65, 23));
+  const zones = detectFvgConcepts(values, { currentPrice: 100.65 });
+  assert.equal(zones.length, 1);
+  const fvg = zones[0];
+  assert.equal(fvg.bottom, 100.5);
+  assert.equal(fvg.top, 100.7);
+  assert.equal(fvg.ceLevel, 100.6);
+  assert.equal(fvg.ceTouched, true);
+  assert.equal(fvg.ceRespect, true);
+  assert.equal(fvg.mitigationState, 'CE_TOUCHED');
+  assert.equal(fvg.ceSignal, true);
+  assert.equal(fvg.ceSignalText, '[ 🎯 FVG 50% CE Retest Valid ]');
+});
+
+test('Item 2.36: FVG shallow retest is classified as PARTIALLY_MITIGATED when not reaching 50% CE', () => {
+  const values = filteredFvgSeed();
+  // Candle 23: Shallow touch (low 100.68, doesn't reach CE 100.6)
+  values.push(candle(101.5, 101.6, 100.68, 100.8, 23));
+  const zones = detectFvgConcepts(values, { currentPrice: 100.8 });
+  assert.equal(zones.length, 1);
+  const fvg = zones[0];
+  assert.equal(fvg.ceTouched, false);
+  assert.equal(fvg.mitigationState, 'PARTIALLY_MITIGATED');
+  assert.equal(fvg.ceSignal, false);
+});
+

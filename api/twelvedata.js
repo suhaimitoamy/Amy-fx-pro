@@ -1,4 +1,42 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getCandles, marketStoreInfo } from '../lib/market-candle-store.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SNAPSHOT_PATH = path.join(__dirname, '../lib/market-snapshot-offline.json');
+
+function readSnapshotFallback(symbol, interval, limit = 300) {
+  try {
+    if (fs.existsSync(SNAPSHOT_PATH)) {
+      const raw = fs.readFileSync(SNAPSHOT_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      const safeSymbol = String(symbol || 'XAU_USD').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      const safeInterval = String(interval || '').toLowerCase();
+      const rows = parsed?.snapshots?.[`${safeSymbol}_${safeInterval}`];
+      if (Array.isArray(rows) && rows.length) {
+        const values = rows.slice(0, limit).map(row => ({
+          datetime: new Date(Number(row.open_time) * 1000).toISOString().replace('.000Z', 'Z'),
+          open: String(row.open),
+          high: String(row.high),
+          low: String(row.low),
+          close: String(row.close),
+          volume: String(row.volume_tick || 0)
+        }));
+        return {
+          status: 'ok',
+          meta: { symbol, interval },
+          values,
+          source: 'offline-snapshot',
+          amyfxCacheState: 'STALE_FALLBACK',
+          closedOnly: true
+        };
+      }
+    }
+  } catch (_) {}
+  return null;
+}
 
 const ALLOWED_INTERVALS = new Set([
   '1min', '5min', '15min', '30min', '1h', '4h', '1day', '1week'
@@ -7,7 +45,7 @@ const MAX_OUTPUT_SIZE = 5_000;
 const MEMORY_CACHE_LIMIT = 40;
 const SHARED_M1_OUTPUT_SIZE = 300;
 
-const CACHE_TTL_SECONDS = Object.freeze({
+export const CACHE_TTL_SECONDS = Object.freeze({
   '1min': 55,
   '5min': 240,
   '15min': 600,
@@ -137,7 +175,8 @@ export default async function handler(req, res) {
     return res.redirect(307, canonicalM1Url(symbol));
   }
 
-  const ttl = ttlSeconds(interval);
+  const configuredTtl = CACHE_TTL_SECONDS[interval] || 60;
+  const ttl = interval === '1min' || interval === '5min' ? ttlSeconds(interval) : configuredTtl;
   const key = cacheKey(symbol, interval, requestedOutputSize);
   const fresh = readCache(key);
   if (fresh) {
@@ -170,15 +209,18 @@ export default async function handler(req, res) {
       || error?.statusCode === 429
       || /429|rate limit/i.test(error?.message || '');
 
-    const stale = readCache(key, { allowStale: true }) || findAnyCached(symbol, interval);
+    const stale = readCache(key, { allowStale: true })
+      || findAnyCached(symbol, interval)
+      || readSnapshotFallback(symbol, interval, requestedOutputSize);
     if (stale) {
       setCacheHeaders(res, Math.min(ttl, 60), 'STALE_FALLBACK', stale.source || 'memory-stale');
       return res.status(200).json({
         ...stale,
         amyfxCacheState: 'STALE_FALLBACK',
         rateLimited: isRateLimited,
+        staleFallback: true,
         warning: isRateLimited
-          ? 'TwelveData rate limit (HTTP 429), serving cached data'
+          ? 'TwelveData rate limit (HTTP 429), serving offline/cached snapshot'
           : (error?.message || 'Upstream provider error')
       });
     }

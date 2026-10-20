@@ -63,23 +63,23 @@
 
   // Live price resolver
   function getLivePrice(ctx, candles) {
-    if (ctx?.amy?.assistant?.plan?.entry && Number(ctx.amy.assistant.plan.entry) > 0) {
-      return Number(ctx.amy.assistant.plan.entry);
+    if (typeof window !== 'undefined' && window.amyfxCurrentPrice && Number(window.amyfxCurrentPrice) > 0) {
+      return Number(window.amyfxCurrentPrice);
     }
-    if (ctx?.primary?.entry && Number(ctx.primary.entry) > 0) {
-      return Number(ctx.primary.entry);
+    const chartPriceEl = typeof document !== 'undefined' ? document.getElementById('chart-price') : null;
+    if (chartPriceEl) {
+      const p = parseFloat(chartPriceEl.textContent.replace(/[^0-9.]/g, ''));
+      if (Number.isFinite(p) && p > 0) return p;
     }
     if (candles?.length) {
       const last = candles.at(-1);
       if (last?.close && Number(last.close) > 0) return Number(last.close);
     }
-    if (typeof window !== 'undefined' && window.amyfxCurrentPrice && Number(window.amyfxCurrentPrice) > 0) {
-      return Number(window.amyfxCurrentPrice);
+    if (ctx?.amy?.assistant?.plan?.entry && Number(ctx.amy.assistant.plan.entry) > 0) {
+      return Number(ctx.amy.assistant.plan.entry);
     }
-    const chartPriceEl = document.getElementById('chart-price');
-    if (chartPriceEl) {
-      const p = parseFloat(chartPriceEl.textContent.replace(/[^0-9.]/g, ''));
-      if (Number.isFinite(p) && p > 0) return p;
+    if (ctx?.primary?.entry && Number(ctx.primary.entry) > 0) {
+      return Number(ctx.primary.entry);
     }
     return 2650.0;
   }
@@ -378,11 +378,19 @@
             mae = Math.max(0.2, Number(mae.toFixed(2)));
 
             let result = 'BE';
-            if (mfe >= levels.tpTarget && mae < levels.slBuf) {
-              result = 'WIN';
-            } else if (mae >= levels.slBuf && mfe < levels.tpTarget) {
-              result = 'LOSS';
-            } else if (mfe >= levels.tpTarget * 0.7) {
+            for (const bar of forwardBars) {
+              const barMae = bias === 'BUY' ? entryP - bar.low : bar.high - entryP;
+              const barMfe = bias === 'BUY' ? bar.high - entryP : entryP - bar.low;
+              if (barMae >= levels.slBuf) {
+                result = 'LOSS';
+                break; // SL penetrated first chronologically
+              }
+              if (barMfe >= levels.tpTarget) {
+                result = 'WIN';
+                break; // TP reached before SL
+              }
+            }
+            if (result === 'BE' && mfe >= levels.tpTarget * 0.7) {
               result = 'WIN';
             }
 
@@ -713,10 +721,19 @@
 
   // Auto-bind context listeners early if DOM ready
   if (typeof window !== 'undefined') {
-    window.addEventListener('amyfx:market-context', () => {
-      const advPanel = document.getElementById('Advisor');
-      if (advPanel && !advPanel.hidden) runAudit();
-    });
+    if (typeof window.addEventListener === 'function') {
+      window.addEventListener('amyfx:market-context', () => {
+        const advPanel = document.getElementById('Advisor');
+        if (advPanel && !advPanel.hidden) runAudit();
+      });
+    }
+
+    window.AmyAdvisorPanel = {
+      getLivePrice,
+      calculateATR,
+      computeFractalTwinMatches,
+      runAudit: () => runAudit()
+    };
   }
 
 })();

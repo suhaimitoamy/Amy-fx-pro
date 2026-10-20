@@ -82,10 +82,15 @@ body.mapping-chart-fullscreen>:not(#gold-chart-workspace):not(script){visibility
 @media(max-width:380px){#gold-chart-workspace.is-fullscreen .chart-heading h2{font-size:15px}#gold-chart-workspace.is-fullscreen #chart-fullscreen{font-size:12px;padding:8px 10px}}
 
 /* Pro403: Chart Gold = salinan 1:1 card "Peta harga" Beranda (styles.css .home-price-panel). */
-body.amyfx-module--ict main article.gold-price-panel{min-width:0;margin:0 0 22px!important;padding:16px!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:22px!important;background:rgba(255,255,255,.065)!important;backdrop-filter:blur(24px) saturate(180%)!important;-webkit-backdrop-filter:blur(24px) saturate(180%)!important;box-shadow:0 12px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12)!important;overflow:hidden;transition:transform .2s ease,border-color .2s ease}
+body.amyfx-module--ict main article.gold-price-panel{min-width:0;margin:0 0 22px!important;padding:16px!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:22px!important;background:rgba(255,255,255,.065)!important;backdrop-filter:blur(24px) saturate(180%)!important;-webkit-backdrop-filter:blur(24px) saturate(180%)!important;box-shadow:0 12px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12)!important;overflow:hidden;transition:transform .2s ease,border-color .2s ease;touch-action:pan-y!important}
 #gold-chart-workspace .chart-heading{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:22px 2px 10px}
 #gold-chart-workspace .chart-heading h2{margin:2px 0 0;color:var(--amy-text,#fff);font-size:.98rem!important;font-weight:800;line-height:1.3}
 #gold-chart-workspace #chart-price{margin:0;color:var(--amy-text,#fff);font-size:1rem;font-weight:700;font-family:inherit}
+#gold-chart-workspace .chart-price-wrap{display:flex;align-items:center;gap:8px}
+.dr-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:0.03em;text-transform:uppercase;white-space:nowrap;line-height:1.2;transition:all 0.3s ease}
+.dr-badge.dr-discount{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.4);box-shadow:0 0 10px rgba(34,197,94,0.2)}
+.dr-badge.dr-premium{background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 10px rgba(239,68,68,0.2)}
+.dr-badge.dr-neutral{background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.18);box-shadow:0 0 8px rgba(255,255,255,0.1)}
 #gold-chart-workspace .gold-chart-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #gold-chart-workspace .gold-chart-controls label{display:inline;margin:0;color:var(--amy-text,#fff);font-size:1rem;min-width:0}
 #gold-chart-workspace .gold-chart-controls :is(button,select){display:inline-block;width:auto;min-height:42px!important;padding:8px 14px!important;color:var(--amy-text,#fff)!important;background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:12px!important;backdrop-filter:blur(10px);font-weight:700;cursor:pointer}
@@ -95,7 +100,9 @@ body.amyfx-module--ict main article.gold-price-panel{min-width:0;margin:0 0 22px
 #gold-chart-workspace>p{margin:8px 0;color:var(--amy-text,#fff);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 #gold-chart-workspace #chart-error:empty{display:none}
 #gold-chart-workspace #chart-error{color:#ef4444}
-body.amyfx-module--ict #gold-chart-workspace #chart{width:100%;min-width:0;height:340px;min-height:340px;border:0!important;border-radius:0!important;background:transparent!important}
+body.amyfx-module--ict #gold-chart-workspace #chart{width:100%;min-width:0;height:340px;min-height:340px;border:0!important;border-radius:0!important;background:transparent!important;touch-action:pan-y}
+body.amyfx-module--ict #gold-chart-workspace #chart tr:first-child td:last-child,
+body.amyfx-module--ict #gold-chart-workspace #chart tr:first-child td:last-child canvas{touch-action:none!important}
 #gold-chart-workspace.is-fullscreen .chart-heading{margin:0}
 #gold-chart-workspace.is-fullscreen>p{margin:2px 0}
 #gold-chart-workspace.is-fullscreen #chart-note:empty{display:none}
@@ -263,6 +270,8 @@ body.amyfx-module--ict #gold-chart-workspace #chart{width:100%;min-width:0;heigh
 .bias-val-warn { color: #f59e0b !important; }
 .bias-val-sweep { color: #00bcd4 !important; font-weight: 700; }
 .bias-val-gold { color: #F5C451 !important; font-weight: 700; }
+.bias-val-purple { color: #c084fc !important; font-weight: 700; }
+.bias-val-cyan { color: #38bdf8 !important; font-weight: 700; }
 
 /* Card 4: AMY ENTRY ASSISTANT V3 PLAN Card */
 .amy-assistant-plan-card {
@@ -334,6 +343,11 @@ body.amyfx-module--ict #gold-chart-workspace #chart{width:100%;min-width:0;heigh
   background: rgba(255, 255, 255, 0.08);
   color: #94a3b8;
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.pill-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 .plan-math-zone {
   font-size: 11px;
@@ -430,3 +444,97 @@ body.amyfx-module--ict #gold-chart-workspace #chart{width:100%;min-width:0;heigh
   opacity: 0.92;
   transform: translateY(-1px);
 }
+
+/* Item 2.27: Economic Event Countdown & No-Trade Window Banner */
+.economic-event-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  margin: 0 auto 12px;
+  padding: 8px 14px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: amy-banner-pulse 2.5s ease-in-out infinite;
+  transition: all 0.25s ease;
+}
+
+@keyframes amy-banner-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.88; transform: scale(0.995); }
+}
+
+.economic-event-banner.is-no-trade {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.25);
+}
+
+.economic-event-banner.is-upcoming {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fde68a;
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.2);
+}
+
+.economic-event-banner .banner-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  animation: amy-dot-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes amy-dot-ping {
+  0% { transform: scale(0.9); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+  100% { transform: scale(0.9); opacity: 1; }
+}
+
+.economic-event-banner .dot-critical {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+.economic-event-banner .dot-warning {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+}
+
+.economic-event-banner .banner-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.economic-event-banner .badge-critical {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fecaca;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.economic-event-banner .badge-warning {
+  background: rgba(245, 158, 11, 0.3);
+  color: #fef08a;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.economic-event-banner .banner-message {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+

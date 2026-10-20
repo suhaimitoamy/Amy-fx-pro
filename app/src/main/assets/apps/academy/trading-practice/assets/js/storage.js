@@ -5,14 +5,15 @@
   if (root.AmyPracticeStorage) return;
 
   var DB_NAME = 'amy_fx_trading_practice_v1';
-  var DB_VERSION = 2;
+  var DB_VERSION = 3;
   var FALLBACK_PREFIX = 'amy.practice.v1.';
   var STORES = Object.freeze({
     datasets: 'datasets',
     trades: 'trades',
     guided: 'guidedResults',
     packs: 'historicalPacks',
-    packFiles: 'historicalPackFiles'
+    packFiles: 'historicalPackFiles',
+    analytics: 'amy_practice_analytics'
   });
   var dbPromise = null;
 
@@ -48,10 +49,32 @@
           packs.createIndex('importedAt', 'importedAt');
         }
         if (!db.objectStoreNames.contains(STORES.packFiles)) db.createObjectStore(STORES.packFiles, { keyPath: 'id' });
+        if (!db.objectStoreNames.contains(STORES.analytics)) {
+          var analytics = db.createObjectStore(STORES.analytics, { keyPath: 'id' });
+          analytics.createIndex('timestamp', 'timestamp');
+          analytics.createIndex('setupType', 'setupType');
+          analytics.createIndex('session', 'session');
+        }
       };
-      request.onsuccess = function () { resolve(request.result); };
-      request.onerror = function () { reject(request.error || new Error('IndexedDB gagal dibuka')); };
-      request.onblocked = function () { reject(new Error('Upgrade database Practice terblokir. Tutup halaman Practice lain lalu coba lagi.')); };
+      request.onsuccess = function () {
+        var db = request.result;
+        if (db) {
+          db.onclose = function () { dbPromise = null; };
+          db.onversionchange = function () {
+            try { db.close(); } catch (_) {}
+            dbPromise = null;
+          };
+        }
+        resolve(db);
+      };
+      request.onerror = function () {
+        dbPromise = null;
+        reject(request.error || new Error('IndexedDB gagal dibuka'));
+      };
+      request.onblocked = function () {
+        dbPromise = null;
+        reject(new Error('Upgrade database Practice terblokir. Tutup halaman Practice lain lalu coba lagi.'));
+      };
     });
     return dbPromise;
   }
@@ -248,6 +271,19 @@
     catch (_) { return null; }
   }
 
+  async function savePracticeAnalytics(record) {
+    var item = Object.assign({}, record, {
+      id: record.id || identifier('analytics'),
+      timestamp: Number(record.timestamp || Date.now())
+    });
+    return put(STORES.analytics, item);
+  }
+
+  async function listPracticeAnalytics() {
+    var items = await getAll(STORES.analytics);
+    return items.sort(function (a, b) { return Number(b.timestamp || 0) - Number(a.timestamp || 0); });
+  }
+
   root.AmyPracticeStorage = Object.freeze({
     datasetId: datasetId,
     saveDataset: saveDataset,
@@ -267,6 +303,8 @@
     listGuidedResults: function () { return getAll(STORES.guided); },
     saveReplayState: saveReplayState,
     loadReplayState: loadReplayState,
+    savePracticeAnalytics: savePracticeAnalytics,
+    listPracticeAnalytics: listPracticeAnalytics,
     identifier: identifier
   });
 })(typeof window !== 'undefined' ? window : globalThis);

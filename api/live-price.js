@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       if (upstream.readyState === WebSocket.OPEN) upstream.send(JSON.stringify({ action: 'heartbeat' }));
     }, 10000);
     // Reconnect before the configured function deadline; never invent a quote.
-    const lifetime = setTimeout(finish, 25000);
+    const lifetime = setTimeout(finish, 20000);
     res.on('close', finish);
     upstream.addEventListener('open', () => {
       if (ended) return;
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       const timestamp = raw > 100000000000 ? raw : raw * 1000;
       const age = Date.now() - timestamp;
       if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(timestamp)
-          || timestamp <= 0 || timestamp < lastTimestamp || age > 45000 || age < -60000) return;
+          || timestamp <= 0 || timestamp < lastTimestamp || age > 300000 || age < -300000) return;
       lastTimestamp = timestamp;
       send({ event: 'price', source: 'TWELVE_DATA_WEBSOCKET', symbol: 'XAU/USD', price, timestamp });
     });

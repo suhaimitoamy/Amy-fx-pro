@@ -42,7 +42,8 @@ test('ambiguous and gap execution never fabricate wins',()=>{
 });
 test('pending expiry, session end and time exit are explicit',()=>{
  assert.equal(advance(plan,bar(t+300),13,300).status,'EXPIRED');
- assert.equal(advance(plan,bar(Date.parse('2026-09-08T14:00:00Z')/1000),1,300).status,'EXPIRED');
+ assert.equal(advance(plan,bar(Date.parse('2026-09-12T14:00:00Z')/1000),1,300).status,'EXPIRED');
+ assert.equal(advance(plan,bar(Date.parse('2026-09-08T14:00:00Z')/1000,105,106,104,105),1,300).status,'PENDING');
  assert.equal(advance({...plan,status:'ACTIVE',filledAt:t,fillIndex:0},bar(t+300,101,103,99,102),48,300).status,'TIME_EXIT');
 });
 test('missing history returns WAIT without invented levels',()=>{
@@ -61,6 +62,42 @@ test('provider rejects errors and preserves staleness metadata',async()=>{
  await assert.rejects(loadCandles('M5',null,async()=>({ok:false,status:429})));
  const got=await loadCandles('M5',null,response({values:[bar(t)],source:'stale-cache'}));
  assert.equal(got.degraded,true);assert.deepEqual(got.candles,[bar(t)]);
+});
+
+test('offline cache fallback validates 48-hour TTL age and sets isExpired metadata', async () => {
+ const originalLocal = globalThis.localStorage;
+ try {
+   const store = new Map();
+   globalThis.localStorage = {
+     getItem: k => store.get(k) ?? null,
+     setItem: (k, v) => store.set(k, String(v))
+   };
+   const failingFetcher = async () => ({ ok: false, status: 500 });
+   const now = Date.now();
+
+   // 1. Fresh cache (2 hours old) -> degraded: true, isExpired: false
+   store.set('amyfx.mapping.candles.M5', JSON.stringify({
+     time: now - (2 * 3600 * 1000),
+     values: [bar(t)]
+   }));
+   const freshCache = await loadCandles('M5', null, failingFetcher);
+   assert.equal(freshCache.degraded, true);
+   assert.equal(freshCache.isExpired, false);
+   assert.ok(freshCache.staleAgeMs >= 2 * 3600 * 1000);
+
+   // 2. Expired cache (72 hours old) -> degraded: true, isExpired: true
+   store.set('amyfx.mapping.candles.M5', JSON.stringify({
+     time: now - (72 * 3600 * 1000),
+     values: [bar(t)]
+   }));
+   const expiredCache = await loadCandles('M5', null, failingFetcher);
+   assert.equal(expiredCache.degraded, true);
+   assert.equal(expiredCache.isExpired, true);
+   assert.ok(expiredCache.staleAgeMs >= 72 * 3600 * 1000);
+ } finally {
+   if (originalLocal === undefined) delete globalThis.localStorage;
+   else globalThis.localStorage = originalLocal;
+ }
 });
 test('production page has one market context authority, complete local assets and accessible navigation',()=>{
  const html=readFileSync(root+'index.html','utf8');
@@ -130,12 +167,28 @@ test('mirrored SELL setup follows the same rules; no one-sided suppression',()=>
  assert.equal(result.signal,'SELL');assert.ok(result.plan.sl>result.plan.entry);
  assert.equal(result.plan.tp,170);assert.ok(result.plan.rr>=MODEL.minRR);
 });
-test('no FVG and insufficient nearest-target reward both stay WAIT',()=>{
+test('no FVG and insufficient all-targets reward both stay WAIT; dynamic fallback selects >= 2R target',()=>{
  const {cs,hs}=scenario();
  const noGap=cs.map(c=>({...c}));noGap[noGap.length-1].low=99;
  assert.equal(analyze({candles:noGap,context:hs,tf:'M5',now:t+310}).plan,null);
+
+ // When all liquidity targets are < 2R, setup correctly stays WAIT
  const closeTarget=cs.map(c=>({...c}));closeTarget[20].high=115;
  assert.equal(analyze({candles:closeTarget,context:hs,tf:'M5',now:t+310}).plan,null);
+
+ // Item 2.26: When nearest target is < 2R but higher target >= 2R exists, fallback selects higher target
+ const fallbackTarget=cs.map(c=>({...c}));
+ fallbackTarget[23]=bar(fallbackTarget[23].time,100,102,98,100);
+ fallbackTarget[24]=bar(fallbackTarget[24].time,100,102,98,100);
+ fallbackTarget[25]=bar(fallbackTarget[25].time,100,114,98,100); // 114 is < 2R from entry 104
+ fallbackTarget[26]=bar(fallbackTarget[26].time,100,102,98,100);
+ fallbackTarget[27]=bar(fallbackTarget[27].time,100,102,98,100);
+ const fallbackPlan=analyze({candles:fallbackTarget,context:hs,tf:'M5',now:t+310}).plan;
+ assert.ok(fallbackPlan, 'Dynamic fallback should recover setup using external target');
+ assert.equal(fallbackPlan.tp, 130);
+ assert.equal(fallbackPlan.tp1, 114);
+ assert.equal(fallbackPlan.tp2, 130);
+ assert.ok(fallbackPlan.rr >= MODEL.minRR);
 });
 
 test('calculateNextGenIndicators returns safe defaults on empty or partial inputs', () => {

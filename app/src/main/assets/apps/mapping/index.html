@@ -24,6 +24,7 @@
   <div style="flex:1; text-align:center; padding:0 8px;">
     <small style="display:block; letter-spacing:0.14em; color:var(--muted); font-size:10px; font-weight:700;">AMY FX PRO · XAU/USD</small>
     <h1 style="margin:2px 0 0; font-size:1.15rem; line-height:1.2; font-weight:800; color:#fff; letter-spacing:0.02em;">XAU/USD Market Intelligence</h1>
+    <div id="cockpit-session-pill" class="cockpit-session-pill" style="display:inline-block; margin-top:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--amy-accent,#F5C451); letter-spacing:0.02em;">[ ⏳ Memuat Sesi... ]</div>
   </div>
   <div style="display:flex; align-items:center; gap:8px;">
     <span id="connection" role="status" style="margin:0; font-size:11px; padding:3px 8px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);">Memuat</span>
@@ -35,6 +36,7 @@
     </button>
   </div>
 </header>
+<div id="economic-event-banner" class="economic-event-banner" style="display:none;" role="alert" aria-live="polite"></div>
 <main id="app">
 <nav aria-label="Panel Mapping"><button data-tab="Dashboard" aria-selected="true">Konteks</button><button data-tab="Analyze" aria-selected="false">Detail</button><button data-tab="Advisor" aria-selected="false">Advisor</button><button data-tab="History" aria-selected="false">Arsip</button></nav>
 <p id="error" role="alert" hidden></p>
@@ -62,29 +64,35 @@
     </div>
   </article>
   <article class="price-map gold-price-panel"><section id="gold-chart-workspace" aria-label="Chart Gold XAU/USD">
-    <div class="section-heading chart-heading"><h2>Chart Gold · XAU/USD</h2><strong id="chart-price">—</strong></div>
-    <div class="gold-chart-controls"><label>Timeframe <select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="refresh">Perbarui</button><button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">⛶ Fullscreen</button></div>
+    <div class="section-heading chart-heading">
+      <h2>Chart Gold · XAU/USD</h2>
+      <div class="chart-price-wrap" style="display:flex; align-items:center; gap:8px;">
+        <span id="chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM 50% · NETRAL ⚪</span>
+        <strong id="chart-price">—</strong>
+      </div>
+    </div>
+    <div class="gold-chart-controls"><label>Timeframe <select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="refresh">Perbarui</button><button type="button" id="btn-chart-custom-price-alert" title="Pasang Alarm Target Harga">🔔 Pasang Alarm</button><button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">⛶ Fullscreen</button></div>
     <p id="source" role="status">Memuat candle tertutup…</p><p id="chart-error" role="alert"></p>
     <div id="chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
     <p id="chart-note"></p>
   </section><details class="ict-settings" style="display:none;"><summary>Atur tampilan chart</summary><div id="ict-controls"></div></details></article>
-  <!-- KARTU 3: AMY BIAS DASHBOARD V2 (16-Row Pine Script Matrix Table) -->
+  <!-- KARTU 3: AMY ICT CONTEXT V4 (11-Row Pure Market Context Table) -->
   <article id="amy-bias-dashboard-card" class="amy-bias-dashboard-card">
     <div class="section-heading">
       <h2 style="font-size:15px; text-transform:uppercase; letter-spacing:0.06em; color:var(--amy-accent,#F5C451); margin:0;">
-        AMY BIAS DASHBOARD V2
+        AMY ICT CONTEXT V4
       </h2>
-      <span id="bias-dashboard-status" style="font-size:11px; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,0.08); color:var(--muted); font-weight:700;">M15 MAPPING</span>
+      <span id="bias-dashboard-status" style="font-size:11px; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,0.08); color:var(--muted); font-weight:700;">INTRADAY CONTEXT</span>
     </div>
     <div id="amy-bias-matrix" class="amy-bias-matrix">
       <table class="bias-table">
         <thead>
           <tr>
-            <th colspan="2" id="bias-table-header" class="bias-th-main">AMY ICT — M15 CURRENT MAPPING</th>
+            <th colspan="2" id="bias-table-header" class="bias-th-main">AMY ICT CONTEXT V4 [INTRADAY]</th>
           </tr>
         </thead>
         <tbody id="bias-table-body">
-          <tr><td colspan="2" style="text-align:center; padding:16px; color:var(--muted);">Memuat matriks bias M15...</td></tr>
+          <tr><td colspan="2" style="text-align:center; padding:16px; color:var(--muted);">Memuat matriks konteks V4...</td></tr>
         </tbody>
       </table>
     </div>
@@ -110,7 +118,9 @@
     <!-- Anti-Chase & Status Banner -->
     <div class="plan-status-bar">
       <span id="plan-anti-chase-pill" class="anti-chase-pill pill-neutral">STANDBY</span>
+      <span id="plan-rejection-pill" class="anti-chase-pill pill-neutral" style="display:none;">⚖️ Menunggu Rejection Close</span>
       <span id="plan-math-zone" class="plan-math-zone">Math Zone: —</span>
+      <button type="button" id="btn-quick-lot-calc" class="btn-lot-calc-pill" title="Hitung Lot & Risiko">⚡ Hitung Lot</button>
     </div>
 
     <!-- Pullback Notice (Shown only if signal is Pullback) -->
@@ -152,14 +162,38 @@
       </ul>
     </div>
 
+    <!-- Pre-Trade Confluence Checklist 4-Poin (Item 2.22) -->
+    <div id="plan-pretrade-checklist-box" class="plan-reasons-box" style="margin-top:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="font-size:11.5px; margin:0; text-transform:uppercase; color:var(--amy-accent,#F5C451); letter-spacing:0.05em; font-weight:800;">
+          🛡️ Pre-Trade Confluence Checklist
+        </h3>
+        <span id="pretrade-checklist-score" style="font-size:11px; font-weight:800; color:#94a3b8; background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px;">0/4 Kriteria</span>
+      </div>
+      <div id="pretrade-checklist-items" style="display:grid; grid-template-columns:1fr; gap:6px; font-size:11px; color:#cbd5e1;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk-pretrade-session"> <span>Sesi Aktif: London / NY Killzone</span></label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk-pretrade-zone"> <span>Zona OTE / Dealing Range Terkonfirmasi</span></label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk-pretrade-liquidity"> <span>Validasi Likuiditas: Sweep BSL/SSL &amp; Rejection</span></label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="chk-pretrade-rr"> <span>Rasio Risk-to-Reward &ge; 1:2.0</span></label>
+      </div>
+    </div>
+
     <!-- Action Button -->
-    <div class="plan-actions" style="display:flex; gap:8px;">
-      <button type="button" id="btn-show-plan-chart" class="btn-show-plan-chart" style="flex:1;">
-        📈 Tampilkan Level di Chart
+    <div class="plan-actions" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+      <button type="button" id="btn-take-trade" class="btn-show-plan-chart" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#94a3b8; font-weight:800; opacity:0.6; cursor:not-allowed;" disabled title="Ambil Setup setelah lolos minimal 3/4 checklist pre-trade">
+        🛡️ Ambil Trade (0/4)
       </button>
-      <button type="button" id="btn-plan-price-alert" class="btn-show-plan-chart" style="background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#fff; width:auto; padding:0 14px;" title="Pasang Alarm Target Entry/TP">
-        🔔 Alarm Level
-      </button>
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="btn-show-plan-chart" class="btn-show-plan-chart" style="flex:1;">
+          📈 Tampilkan Level di Chart
+        </button>
+        <button type="button" id="btn-open-lot-calc" class="btn-show-plan-chart" style="background:rgba(245,196,81,0.15); border-color:rgba(245,196,81,0.4); color:#F5C451; width:auto; padding:0 14px;" title="Kalkulator Lot & Risiko Instan">
+          ⚡ Hitung Lot
+        </button>
+        <button type="button" id="btn-plan-price-alert" class="btn-show-plan-chart" style="background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#fff; width:auto; padding:0 14px;" title="Pasang Alarm Target Entry/TP">
+          🔔 Alarm Level
+        </button>
+      </div>
     </div>
 
     <!-- Hidden compatibility elements for legacy trading plan selectors -->
@@ -357,6 +391,7 @@
 <script src="js/notification-route-sync.js"></script>
 <script type="module" src="js/ict-workspace/price-alert-manager.js"></script>
 <script type="module" src="js/ict-workspace/trade-lifecycle-tracker.js"></script>
+<script type="module" src="js/ict-workspace/lot-calculator.js"></script>
 <script type="module" src="js/ict-workspace/app.js"></script>
 <script type="module" src="js/ict-workspace/context-panel.js"></script>
 <script src="js/ict-workspace/advisor-panel.js"></script>

@@ -4,6 +4,15 @@
 // Dispatches Android notifications and renders Win Rate Archive tab.
 
 export const STORAGE_KEY = 'amyfx_trade_lifecycle_history';
+export const UNIFIED_TRADE_STATES = Object.freeze({
+  ARMED_LIMIT: 'ARMED_LIMIT',
+  ACTIVE_RUNNING: 'ACTIVE_RUNNING',
+  CLOSED_TP: 'CLOSED_TP',
+  CLOSED_SL: 'CLOSED_SL',
+  MISSED: 'MISSED',
+  CANCELLED_GAP: 'CANCELLED_GAP',
+  CANCELLED: 'CANCELLED'
+});
 const NOTIFIED_KEY = 'amyfx_notified_assistant_lifecycle';
 
 let lastKnownPrice = null;
@@ -127,6 +136,10 @@ export function trackAssistantPlan(plan, priceOverride = null) {
 
   if (currentPrice != null && Number.isFinite(currentPrice)) {
     if (side === 'BUY') {
+      // Jika harga saat ini sudah mencapai atau melampaui TP1, setup sudah usang/tercapai
+      if (currentPrice >= tp1) {
+        return null;
+      }
       // Jika harga saat ini sudah mencapai atau menyentuh entry (tapi belum tembus SL)
       if (currentPrice <= entry && currentPrice > sl) {
         initialStatus = 'ACTIVE_RUNNING';
@@ -137,6 +150,10 @@ export function trackAssistantPlan(plan, priceOverride = null) {
       }
     } else {
       // SELL
+      // Jika harga saat ini sudah mencapai atau melampaui TP1, setup sudah usang/tercapai
+      if (currentPrice <= tp1) {
+        return null;
+      }
       if (currentPrice >= entry && currentPrice < sl) {
         initialStatus = 'ACTIVE_RUNNING';
         triggeredAt = Date.now();
@@ -199,6 +216,15 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
       let triggered = false;
 
       if (trade.side === 'BUY') {
+        const touchHigh = high != null && Number.isFinite(high) ? high : price;
+        if (touchHigh >= trade.tp1) {
+          trade.status = 'MISSED';
+          trade.cancelReason = 'TP1 reached before Entry fill';
+          trade.closedAt = timestamp ? (timestamp > 1e11 ? timestamp : timestamp * 1000) : Date.now();
+          changed = true;
+          continue;
+        }
+
         const touchLow = low != null && Number.isFinite(low) ? low : price;
         if (touchLow <= trade.entry) {
           // Validasi tidak langsung tembus SL
@@ -212,6 +238,15 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
         }
       } else {
         // SELL
+        const touchLow = low != null && Number.isFinite(low) ? low : price;
+        if (touchLow <= trade.tp1) {
+          trade.status = 'MISSED';
+          trade.cancelReason = 'TP1 reached before Entry fill';
+          trade.closedAt = timestamp ? (timestamp > 1e11 ? timestamp : timestamp * 1000) : Date.now();
+          changed = true;
+          continue;
+        }
+
         const touchHigh = high != null && Number.isFinite(high) ? high : price;
         if (touchHigh >= trade.entry) {
           if (touchHigh >= trade.sl) {
@@ -735,6 +770,16 @@ function injectLifecycleStyles() {
       color: #EF4444;
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
+    .closed-outcome-badge.missed {
+      background: rgba(245, 196, 81, 0.15);
+      color: #F5C451;
+      border: 1px solid rgba(245, 196, 81, 0.35);
+    }
+    .closed-outcome-badge.cancelled {
+      background: rgba(148, 163, 184, 0.15);
+      color: #94A3B8;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
     .closed-pair-title {
       font-size: 12px;
       font-weight: 700;
@@ -821,7 +866,7 @@ export function renderLifecycleArchive(container, serverHistory = null) {
   // FILTER ANTI-SPAM WAJIB:
   // Setup dengan status pending limit (ARMED_LIMIT atau yang belum tersentuh) DILARANG masuk Arsip!
   const activeRunningTrades = allTrades.filter(t => t.status === 'ACTIVE_RUNNING');
-  const closedTrackerTrades = allTrades.filter(t => t.status === 'CLOSED_TP' || t.status === 'CLOSED_SL');
+  const closedTrackerTrades = allTrades.filter(t => t.status === 'CLOSED_TP' || t.status === 'CLOSED_SL' || t.status === 'MISSED' || t.status === 'CANCELLED' || t.status === 'CANCELLED_GAP');
 
   // Integrasi server driver history jika ada (hanya yang sudah selesai TP_HIT atau SL_HIT)
   const serverClosedTrades = [];
@@ -1004,17 +1049,21 @@ export function renderLifecycleArchive(container, serverHistory = null) {
   } else {
     closedSectionHtml = combinedClosed.slice(0, 25).map(t => {
       const isTp = t.status === 'CLOSED_TP';
+      const isMissed = t.status === 'MISSED';
+      const isCancelled = t.status === 'CANCELLED' || t.status === 'CANCELLED_GAP';
       const isBuy = t.side === 'BUY';
       const pts = Number(t.profitPoints || 0);
       const ptsText = pts > 0 ? `+${pts.toFixed(2)} pts` : `${pts.toFixed(2)} pts`;
       const timeStr = formatWitaTime(t.closedAt || t.triggeredAt);
+      const badgeClass = isTp ? 'tp' : isMissed ? 'missed' : isCancelled ? 'cancelled' : 'sl';
+      const badgeText = isTp ? `🎯 TP HIT (${ptsText})` : isMissed ? '⏳ MISSED (TP Duluan)' : isCancelled ? '🚫 CANCELLED (Gap SL)' : `🛑 SL HIT (${ptsText})`;
 
       return `
         <div class="closed-trade-card">
           <div class="closed-card-head">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="closed-outcome-badge ${isTp ? 'tp' : 'sl'}">
-                ${isTp ? '🎯 TP HIT (' + ptsText + ')' : '🛑 SL HIT (' + ptsText + ')'}
+              <span class="closed-outcome-badge ${badgeClass}">
+                ${badgeText}
               </span>
               <strong class="closed-pair-title">${t.side} XAU/USD</strong>
             </div>

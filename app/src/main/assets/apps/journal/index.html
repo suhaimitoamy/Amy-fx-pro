@@ -103,7 +103,7 @@
             <label class="ghost-button compact import-button" for="drawerRestoreInput" style="flex: 1; font-size: 11px; padding: 6px 10px; font-weight: 750; text-align: center; cursor: pointer;">
               📤 Restore
             </label>
-            <input id="drawerRestoreInput" type="file" accept=".zip,application/zip" hidden>
+            <input id="drawerRestoreInput" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
           </div>
           <div class="drawer-actions-row" style="display: flex; gap: 8px; margin-top: 6px;">
             <button class="ghost-button compact" id="drawerPinBtn" type="button" style="flex: 1; font-size: 11px; padding: 6px 8px; font-weight: 700;">
@@ -423,9 +423,10 @@
               <p id="statisticsCount">Performa trading</p>
             </div>
             <div class="section-actions">
+              <button class="ghost-button" id="syncObsidianBtn" type="button" title="Sinkronkan catatan & trade ke Obsidian Catatan Pribadi">📓 Simpan ke Obsidian</button>
               <button class="ghost-button" id="exportAllBtn" type="button">Backup</button>
               <label class="ghost-button import-button" for="importBackupInput">Restore</label>
-              <input id="importBackupInput" type="file" accept=".zip,application/zip" hidden>
+              <input id="importBackupInput" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
               <button class="ghost-button" id="scanStorageBtn" type="button">Scan HP</button>
               <input id="storageScanInput" type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.csv,.ppt,.pptx" hidden>
               <button class="ghost-button" id="setPinBtn" type="button">PIN</button>
@@ -444,6 +445,7 @@
               <p id="notesCount">0 catatan</p>
             </div>
             <div class="section-actions">
+              <button class="ghost-button" id="syncNotesObsidianBtn" type="button" title="Sinkronkan catatan ke Obsidian Catatan Pribadi">📓 Simpan ke Obsidian</button>
               <button class="primary-button" id="newNoteBtn" type="button">+ Catat Baru</button>
             </div>
           </div>
@@ -484,7 +486,7 @@
               <button class="primary-button" id="journalNewHabitBtn" type="button">+ Kebiasaan</button>
               <button class="ghost-button" id="headBackupBtn" type="button">Backup ZIP</button>
               <label class="ghost-button import-button" for="headRestoreInput">Restore</label>
-              <input id="headRestoreInput" type="file" accept=".zip,application/zip" hidden>
+              <input id="headRestoreInput" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
             </div>
           </div>
 
@@ -617,7 +619,7 @@
             <div class="section-actions" style="margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
               <button class="ghost-button" id="exportAllBtnHabits" type="button">Backup ZIP</button>
               <label class="ghost-button import-button" for="importBackupInputHabits">Restore</label>
-              <input id="importBackupInputHabits" type="file" accept=".zip,application/zip" hidden>
+              <input id="importBackupInputHabits" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
               <button class="ghost-button" id="setPinBtnHabits" type="button">PIN</button>
               <button class="ghost-button danger" id="clearPinBtnHabits" type="button">Hapus PIN</button>
             </div>
@@ -847,6 +849,7 @@
     </dialog>
 
     <script src="./jszip.min.js?v=20260623" defer></script>
+    <script src="./journal-schema.js?v=20261018-1" defer></script>
     <script src="./journal-analytics.js?v=20260925-1" defer></script>
     <script src="./app.js?v=20261001-media3" defer></script>
     <script src="./background-video.js?v=20260725-bg1" defer></script>

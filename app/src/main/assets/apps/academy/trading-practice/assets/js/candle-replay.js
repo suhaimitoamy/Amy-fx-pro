@@ -70,6 +70,7 @@
       var evidence = trade.outcomeEvidence;
       var label = trade.bias === 'WAIT' ? 'WAIT · tidak entry' :
         (trade.result === 'WIN' ? 'TP tercapai' : trade.result === 'LOSS' ? 'SL tercapai' :
+        trade.result === 'MISSED' ? 'Order batal · TP tercapai sebelum entry' :
         trade.entryStatus === 'ACTIVE' ? 'Aktif · menunggu SL/TP' : 'Menunggu entry tersentuh');
       var detail = '';
       if (evidence) {
@@ -80,7 +81,7 @@
       } else if (trade.result !== 'OPEN') {
         detail = '<p>Catatan lama: bukti candle belum tersimpan.</p>';
       }
-      var tone = trade.result === 'WIN' ? 'result-win' : trade.result === 'LOSS' ? 'result-loss' : 'result-open';
+      var tone = trade.result === 'WIN' ? 'result-win' : trade.result === 'LOSS' ? 'result-loss' : trade.result === 'MISSED' ? 'result-missed' : 'result-open';
       return '<article class="replay-history-item"><strong>' + escapeHtml(trade.bias) + ' · ' + escapeHtml(trade.timeframe) +
         ' · ' + escapeHtml(core.formatWita(trade.tradeTime, true)) + '</strong>' +
         '<p class="' + tone + '">' + label + '</p>' +
@@ -184,10 +185,15 @@
       speedMs: replay.speedMs,
       sourceId: payload.sourceId
     });
+    try {
+      localStorage.setItem('amy_replay_last_cursor_' + payload.sourceId, String(payload.cursor));
+      localStorage.setItem('amy_practice_last_cursor_' + payload.sourceId, String(payload.cursor));
+    } catch (_) {}
     outcomeQueue = outcomeQueue.catch(function () {}).then(function () { return updateOutcomes(payload); });
     await outcomeQueue;
     await renderHistory();
     if (latestPayload === payload) await syncDecisionState(payload);
+    updateResumeButton();
   }
 
   async function move(count) {
@@ -322,6 +328,36 @@
     });
   }
 
+  function updateResumeButton() {
+    var resumeBtn = ui.byId('btnResumeReplay');
+    if (!resumeBtn) return;
+    if (!resumeBtn.style) resumeBtn.style = {};
+    var currentSource = (provider && typeof provider.selectedSourceId === 'function')
+      ? provider.selectedSourceId()
+      : ((typeof latestPayload !== 'undefined' && latestPayload) ? latestPayload.sourceId : '');
+    var savedCursor = localStorage.getItem('amy_replay_last_cursor_' + currentSource) ||
+                      localStorage.getItem('amy_practice_last_cursor_' + currentSource);
+    var savedNum = Number(savedCursor);
+    if (savedNum && replay && savedNum !== replay.cursor && replay.timeline.indexOf(savedNum) !== -1) {
+      resumeBtn.style.display = 'inline-flex';
+      var barIdx = replay.timeline.indexOf(savedNum) + 1;
+      resumeBtn.innerHTML = '<span>📍 Lanjutkan (' + core.formatWita(savedNum, false) + ' · Bar ' + barIdx + ')</span>';
+      resumeBtn.onclick = async function () {
+        resumeBtn.disabled = true;
+        try {
+          await replay.seek(savedNum);
+          resumeBtn.style.display = 'none';
+        } catch (e) {
+          ui.status('replayStatus', e.message, true);
+        } finally {
+          resumeBtn.disabled = false;
+        }
+      };
+    } else {
+      resumeBtn.style.display = 'none';
+    }
+  }
+
   async function changeSource(value) {
     playing = false;
     ui.text('playPause', 'Putar');
@@ -339,6 +375,7 @@
         chart.resize();
         if (chart.chart && chart.chart.timeScale) chart.chart.timeScale().fitContent();
       }
+      updateResumeButton();
     }
     catch (error) { ui.status('replayStatus', error.message, true); }
   }
@@ -426,6 +463,7 @@
         chart.resize();
         if (chart.chart && chart.chart.timeScale) chart.chart.timeScale().fitContent();
       }
+      updateResumeButton();
     } catch (error) {
       ui.status('replayStatus', error.message, true);
     }

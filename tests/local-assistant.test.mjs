@@ -19,3 +19,104 @@ test('all active module entry points load local assistant',()=>{for(const p of [
 test('server context is persisted for cross-page access and old mapping plans are retired',()=>{const mapping=fs.readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/app.js','utf8');const panel=fs.readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/context-panel.js','utf8');assert.match(mapping,/localStorage.removeItem\('amyfx.ict.mapping.v1'/);assert.match(panel,/localStorage.setItem\('amyfx.market-context.v1'/);assert.match(panel,/currentContext\(payload\)/);});
 
 test('natural-language reading and news questions keep relevant intent',async()=>{const c=runtime({'amyfx.assistant.news.v1':JSON.stringify({items:[{text:'Gold menguat'}]})});assert.match((await c.AmyLocalAssistant.ask('ada berita apa sekarang')).text,/Gold menguat/);assert.match((await c.AmyLocalAssistant.ask('terakhir aku baca apa')).text,/Catatan belajar/);assert.match((await c.AmyLocalAssistant.ask('jelasin FVG dong')).text,/Dari materi Academy/);});
+
+test('IndexedDB query falls back from journals.v2 to items.v2 for assistant journal analysis (item 1.59)', async () => {
+  const storeMap = new Map();
+  storeMap.set('items.v2', { value: [{ result: 'Win', profit: 250, market: 'XAUUSD', title: 'Legacy Trade' }] });
+  
+  const mockDb = {
+    objectStoreNames: { contains: name => name === 'metadata' },
+    transaction: () => ({
+      objectStore: () => ({
+        get: key => {
+          const req = {};
+          setTimeout(() => {
+            req.result = storeMap.get(key);
+            req.onsuccess?.();
+          }, 0);
+          return req;
+        }
+      })
+    }),
+    close: () => {}
+  };
+
+  const mockIndexedDB = {
+    open: () => {
+      const req = {};
+      setTimeout(() => {
+        req.result = mockDb;
+        req.onsuccess?.();
+      }, 0);
+      return req;
+    }
+  };
+
+  const c = {
+    setTimeout, clearTimeout, URL,
+    localStorage: { getItem: () => null },
+    indexedDB: mockIndexedDB
+  };
+  c.window = c;
+  c.globalThis = c;
+  vm.createContext(c);
+  vm.runInContext(source, c);
+  vm.runInContext(fs.readFileSync('app/src/main/assets/apps/shared/amy-local-knowledge.js', 'utf8'), c);
+
+  const res = await c.AmyLocalAssistant.ask('evaluasi jurnal saya');
+  assert.match(res.text, /Legacy Trade/);
+  assert.match(res.text, /Total profit tercatat 250/);
+});
+
+test('Smart Journal Winrate, Profit Factor, Best Hour, and Emotional Reflection Summary (item 2.29)', async () => {
+  const journalEntries = [
+    {
+      result: 'Win',
+      profit: 300,
+      pnlPips: 30,
+      actualEntryTime: '2026-10-18T12:30:00Z', // 20:30 WITA
+      pair: 'XAU/USD',
+      emotion: 'Disiplin menunggu MSS'
+    },
+    {
+      result: 'Loss',
+      loss: 100,
+      pnlPips: -10,
+      actualEntryTime: '2026-10-18T06:00:00Z', // 14:00 WITA
+      pair: 'XAU/USD',
+      emotion: 'FOMO kejar candle hijau'
+    },
+    {
+      result: 'Win',
+      profit: 200,
+      pnlPips: 20,
+      actualEntryTime: '2026-10-18T13:00:00Z', // 21:00 WITA
+      pair: 'XAU/USD',
+      mistake: 'Sedikit Overtrade tapi masih TP'
+    }
+  ];
+
+  const c = runtime({
+    'tradingLibraryManager.journals.v1': JSON.stringify(journalEntries)
+  });
+
+  // Test intent and profit factor metrics
+  const evalRes = await c.AmyLocalAssistant.ask('evaluasi performa jurnal saya');
+  assert.match(evalRes.text, /Profit Factor:\s*5/); // 500 / 100 = 5
+  assert.match(evalRes.text, /Net Pips:\s*40/); // 30 - 10 + 20 = 40
+  assert.match(evalRes.text, /Jam Paling Menguntungkan:\s*20:00 WITA/); // best hour
+  assert.match(evalRes.text, /Rasio:\s*2,5/); // avgWin (250) / avgLoss (100) = 2.5
+
+  // Test emotion reflection intent
+  const emotionRes = await c.AmyLocalAssistant.ask('bagaimana emosi trading saya?');
+  assert.match(emotionRes.text, /Refleksi Emosi & Disiplin/);
+  assert.match(emotionRes.text, /FOMO \(1x\)/);
+  assert.match(emotionRes.text, /Overtrade \(1x\)/);
+  assert.match(emotionRes.text, /Saran Disiplin/);
+});
+test('Local Assistant: FAB button displays AMY label and accessibility aria-label (item 1.39)', () => {
+  const code = fs.readFileSync('app/src/main/assets/apps/shared/amy-local-assistant.js', 'utf8');
+  assert.match(code, /<button id="amy-local-fab" type="button" aria-label="Buka Asisten Amy">/);
+  assert.match(code, /<span>AMY<\/span>/);
+  assert.doesNotMatch(code, /<span>CS<\/span>/, 'CS label must be removed to avoid confusion with Customer Service');
+});

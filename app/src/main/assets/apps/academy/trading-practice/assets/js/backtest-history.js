@@ -7,7 +7,12 @@
   function esc(value) {
     var node = document.createElement('span'); node.textContent = String(value == null ? '' : value); return node.innerHTML;
   }
-  function resultClass(result) { return result === 'WIN' ? 'result-win' : (result === 'LOSS' ? 'result-loss' : 'result-open'); }
+  function resultClass(result) {
+    if (result === 'WIN') return 'result-win';
+    if (result === 'LOSS') return 'result-loss';
+    if (result === 'MISSED') return 'result-missed';
+    return 'result-open';
+  }
   function level(value) { return value == null ? '—' : core.price(value); }
   function rValue(value) { return value == null ? '—' : Number(value).toFixed(2) + 'R'; }
   function decision(trade) {
@@ -15,6 +20,12 @@
   }
   function outcome(trade) {
     var evidence = trade && trade.outcomeEvidence;
+    if (trade.result === 'MISSED') {
+      var missedDetail = evidence
+        ? 'Target TP ' + level(evidence.level) + ' tercapai sebelum entry · candle ' + core.formatWita(evidence.candleTime, true)
+        : 'Target TP tercapai sebelum limit entry tersentuh';
+      return '<span class="badge-missed">[ ⏳ MISSED ]</span><small class="history-evidence">' + esc(missedDetail) + '</small>';
+    }
     if (!evidence || !['SL', 'TP'].includes(evidence.type)) return esc(trade.result);
     var label = evidence.type + ' tersentuh';
     var detail = 'Level ' + level(evidence.level) + ' · candle ' + core.formatWita(evidence.candleTime, true) +
@@ -50,12 +61,65 @@
     }).join('') + '</tbody></table>' : '<div class="empty-state">Belum ada hasil Guided Practice.</div>';
   }
 
+  function renderAnalytics(trades) {
+    if (!window.AmyPracticeAnalytics) return;
+    var stats = window.AmyPracticeAnalytics.computeStats(trades);
+
+    ui.text('metricWinRate', stats.winRate + '%');
+    ui.text('metricExpectancy', (stats.expectancyR >= 0 ? '+' : '') + stats.expectancyR.toFixed(2) + 'R');
+    ui.text('metricProfitFactor', stats.profitFactor.toFixed(2));
+    ui.text('metricMaxDD', stats.maxDrawdownR.toFixed(1) + 'R');
+
+    var setupList = ui.byId('setupBreakdownList');
+    if (setupList) {
+      if (stats.breakdownBySetup && stats.breakdownBySetup.length) {
+        setupList.innerHTML = stats.breakdownBySetup.map(function (s) {
+          return '<div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);">' +
+            '<span><strong>' + esc(s.setup) + '</strong> <small style="color:var(--text-muted); font-size:11px;">(' + s.wins + 'W / ' + s.losses + 'L' + (s.missed ? ' / ' + s.missed + 'M' : '') + ')</small></span>' +
+            '<span style="font-weight:700; color:' + (s.winRate >= 50 ? '#00e676' : '#ff5252') + '">' + s.winRate + '% <small style="color:#f5c451;">(' + (s.totalR >= 0 ? '+' : '') + s.totalR + 'R)</small></span>' +
+            '</div>';
+        }).join('');
+      } else {
+        setupList.innerHTML = '<div class="empty-state" style="font-size:12px; padding:8px 0;">Belum ada setup tersimpan.</div>';
+      }
+    }
+
+    var sessionList = ui.byId('sessionBreakdownList');
+    if (sessionList) {
+      var activeSessions = (stats.breakdownBySession || []).filter(function (s) { return s.total > 0; });
+      if (activeSessions.length) {
+        sessionList.innerHTML = activeSessions.map(function (s) {
+          return '<div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);">' +
+            '<span><strong>' + esc(s.session) + '</strong> <small style="color:var(--text-muted); font-size:11px;">(' + s.wins + 'W / ' + s.losses + 'L)</small></span>' +
+            '<span style="font-weight:700; color:' + (s.winRate >= 50 ? '#00e676' : '#ff5252') + '">' + s.winRate + '% (' + s.total + ' trade)</span>' +
+            '</div>';
+        }).join('');
+      } else {
+        sessionList.innerHTML = '<div class="empty-state" style="font-size:12px; padding:8px 0;">Belum ada data sesi.</div>';
+      }
+    }
+
+    if (window.AmyPracticeStorage && typeof window.AmyPracticeStorage.savePracticeAnalytics === 'function') {
+      window.AmyPracticeStorage.savePracticeAnalytics({
+        id: 'latest-summary',
+        timestamp: Date.now(),
+        winRate: stats.winRate,
+        expectancyR: stats.expectancyR,
+        profitFactor: stats.profitFactor,
+        maxDrawdownR: stats.maxDrawdownR,
+        totalTrades: stats.totalTrades,
+        closedTrades: stats.closedTrades
+      }).catch(function () {});
+    }
+  }
+
   async function load() {
     allTrades = await window.AmyPracticeStorage.listTrades();
     ui.text('metricTotal', allTrades.length);
     ui.text('metricWin', allTrades.filter(function (item) { return item.result === 'WIN'; }).length);
     ui.text('metricLoss', allTrades.filter(function (item) { return item.result === 'LOSS'; }).length);
     ui.text('metricOpen', allTrades.filter(function (item) { return item.result === 'OPEN'; }).length);
+    renderAnalytics(allTrades);
     renderTrades(); await renderGuided();
   }
   function init() {

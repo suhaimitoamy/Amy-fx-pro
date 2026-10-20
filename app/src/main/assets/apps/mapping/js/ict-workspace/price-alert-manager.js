@@ -8,9 +8,19 @@
 const STORAGE_KEY = 'amyfx_custom_price_alerts';
 
 let previousPrice = null;
+let lastPersistenceTime = 0;
 let audioCtx = null;
 const registeredContainers = new Set();
 let observerInitialized = false;
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('beforeunload', () => {
+    try {
+      const active = getAlerts();
+      if (active.length > 0) saveAlerts(active);
+    } catch (_) {}
+  });
+}
 
 /**
  * Safely parse numbers
@@ -121,6 +131,7 @@ export function addAlert(targetPrice, options = {}) {
     targetPrice: Math.round(target * 100) / 100,
     direction,
     createdPrice: Math.round(curPrice * 100) / 100,
+    lastCheckedPrice: Math.round(curPrice * 100) / 100,
     createdAt: Date.now(),
     triggeredAt: null,
     status: 'ACTIVE',
@@ -215,8 +226,22 @@ export function clearAlerts(mode = 'all') {
 /**
  * Play a clear, high-fidelity 2-tone melodic notification chime via Web Audio API
  */
-export function playAlertBeep() {
+export function playAlertBeep(soundType = 'default') {
   if (typeof window === 'undefined') return;
+  try {
+    if (typeof window.Android?.playNativeChime === 'function') {
+      window.Android.playNativeChime(soundType);
+      return;
+    }
+    if (soundType === 'gold' && typeof window.Android?.playGoldChime === 'function') {
+      window.Android.playGoldChime();
+      return;
+    }
+    if (typeof window.Android?.playNotificationSound === 'function') {
+      window.Android.playNotificationSound(soundType);
+      return;
+    }
+  } catch (_) {}
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
@@ -257,9 +282,13 @@ export function playAlertBeep() {
 /**
  * Trigger vibration / haptic feedback on Android or modern browser
  */
-export function triggerHapticFeedback() {
+export function triggerHapticFeedback(patternType = 'TOUCH') {
   if (typeof window === 'undefined') return;
   try {
+    if (typeof window.Android?.triggerPatternHaptic === 'function') {
+      window.Android.triggerPatternHaptic(patternType);
+      return;
+    }
     if (window.Android?.triggerHaptic) {
       window.Android.triggerHaptic(18);
     } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -813,6 +842,7 @@ export function checkPrice(newPrice) {
 
   const triggeredAlerts = [];
   let hasChange = false;
+  let lastCheckedDirty = false;
 
   for (const alert of activeAlerts) {
     const target = alert.targetPrice;
@@ -824,18 +854,21 @@ export function checkPrice(newPrice) {
     let isTriggered = false;
 
     if (alert.direction === 'CROSS_ABOVE') {
-      // Crossed from below to above or exact hit
-      if (p <= target && current >= target) {
+      // Strictly crossed from below to above (eliminate spurious instant trigger when p == target)
+      if (p < target && current >= target) {
         isTriggered = true;
       }
     } else if (alert.direction === 'CROSS_BELOW') {
-      // Crossed from above to below or exact hit
-      if (p >= target && current <= target) {
+      // Strictly crossed from above to below (eliminate spurious instant trigger when p == target)
+      if (p > target && current <= target) {
         isTriggered = true;
       }
     }
 
-    alert.lastCheckedPrice = current;
+    if (alert.lastCheckedPrice !== current) {
+      alert.lastCheckedPrice = current;
+      lastCheckedDirty = true;
+    }
 
     if (isTriggered) {
       alert.status = 'TRIGGERED';
@@ -850,6 +883,7 @@ export function checkPrice(newPrice) {
 
   if (hasChange) {
     saveAlerts(alerts);
+    lastPersistenceTime = Date.now();
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('amyfx:price-alert-triggered', {
         detail: { triggeredAlerts, price: current }
@@ -859,6 +893,13 @@ export function checkPrice(newPrice) {
       }));
     }
     renderAllRegisteredContainers();
+  } else if (lastCheckedDirty) {
+    const now = Date.now();
+    // Persist lastCheckedPrice regularly (throttled 3s or Node test environment) to avoid losing state on reload
+    if (now - lastPersistenceTime >= 3000 || typeof process !== 'undefined') {
+      saveAlerts(alerts);
+      lastPersistenceTime = now;
+    }
   }
 
   return (triggeredAlerts.length > 0) || ictTriggered;

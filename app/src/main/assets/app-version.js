@@ -1,14 +1,14 @@
-// Amy FX — Gold market context; manual execution only.
+// Amy FX Pro — Gold market context; manual execution only.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-amyfx.419', code: 950419 });
+  const VERSION = Object.freeze({ name: '2.0.0-pro.420', code: 950420 });
   window.AmyFXAppVersion = VERSION;
-  window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx/main/update.json';
+  window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
   function displayVersionName(name) {
     return String(name || '').replace(/-(?:preview|pro|amyfx)(?:\.|-)?/i, ' · build ');
   }
 
   function versionText() {
-    return `Amy FX · v${displayVersionName(VERSION.name)}`;
+    return `Amy FX Pro · v${displayVersionName(VERSION.name)}`;
   }
 
   function injectVersionRow() {

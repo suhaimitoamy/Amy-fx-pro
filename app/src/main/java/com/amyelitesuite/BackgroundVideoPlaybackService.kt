@@ -31,6 +31,8 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
         const val EXTRA_POSITION_MS = "position_ms"
         const val EXTRA_LOOP = "loop"
         const val EXTRA_TEMP_PATH = "temp_path"
+        const val EXTRA_TARGET_URL = "target_url"
+        const val DEFAULT_TARGET_URL = "https://appassets.androidplatform.net/assets/apps/academy/index.html"
 
         const val STATE_PREFS = "AmyBackgroundVideoState"
         const val STATE_ACTIVE = "active"
@@ -51,13 +53,30 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
     private var currentTitle = ""
     private var currentTempPath: String? = null
     private var currentLoop = true
+    private var currentTargetUrl = DEFAULT_TARGET_URL
     private var lastError = ""
 
     private val stateTicker = object : Runnable {
         override fun run() {
-            publishState()
-            mainHandler.postDelayed(this, 500L)
+            if (::player.isInitialized && player.isPlaying) {
+                publishState()
+                mainHandler.postDelayed(this, 500L)
+            }
         }
+    }
+
+    private fun updateSessionActivity() {
+        val openAppIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_TARGET_URL, currentTargetUrl)
+        }
+        val sessionActivity = PendingIntent.getActivity(
+            this,
+            4701,
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        mediaSession?.setSessionActivity(sessionActivity)
     }
 
     override fun onCreate() {
@@ -74,7 +93,13 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
             setWakeMode(C.WAKE_MODE_LOCAL)
             repeatMode = Player.REPEAT_MODE_ONE
             addListener(object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) = publishState()
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    publishState()
+                    mainHandler.removeCallbacks(stateTicker)
+                    if (isPlaying) {
+                        mainHandler.postDelayed(stateTicker, 500L)
+                    }
+                }
                 override fun onPlaybackStateChanged(playbackState: Int) = publishState()
                 override fun onPositionDiscontinuity(
                     oldPosition: Player.PositionInfo,
@@ -91,7 +116,7 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
 
         val openAppIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("target_url", "https://appassets.androidplatform.net/assets/apps/journal/index.html")
+            putExtra(EXTRA_TARGET_URL, currentTargetUrl)
         }
         val sessionActivity = PendingIntent.getActivity(
             this,
@@ -105,7 +130,9 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
             .build()
 
         publishState()
-        mainHandler.post(stateTicker)
+        if (::player.isInitialized && player.isPlaying) {
+            mainHandler.post(stateTicker)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
@@ -143,6 +170,11 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
         currentTitle = intent.getStringExtra(EXTRA_TITLE).orEmpty().ifBlank { "Video Trading" }
         currentTempPath = nextTempPath
         currentLoop = intent.getBooleanExtra(EXTRA_LOOP, true)
+        val incomingTargetUrl = intent.getStringExtra(EXTRA_TARGET_URL)?.takeIf { it.isNotBlank() }
+        if (!incomingTargetUrl.isNullOrBlank() && incomingTargetUrl != currentTargetUrl) {
+            currentTargetUrl = incomingTargetUrl
+            updateSessionActivity()
+        }
         lastError = ""
 
         val uri = when {
@@ -165,6 +197,7 @@ class BackgroundVideoPlaybackService : MediaSessionService() {
     }
 
     private fun stopPlaybackAndService() {
+        mainHandler.removeCallbacks(stateTicker)
         player.stop()
         player.clearMediaItems()
         cleanupTempFile(currentTempPath)

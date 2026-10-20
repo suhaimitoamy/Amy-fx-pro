@@ -430,6 +430,24 @@ function bindEvents() {
   dom.exportAllBtn?.addEventListener("click", exportBackup);
   dom.importBackupInput?.addEventListener("change", importBackup);
 
+  const handleObsidianSync = () => {
+    if (!window.AmyJournalExport) return window.showToast?.("Modul ekspor belum siap.");
+    const res = window.AmyJournalExport.syncToObsidian(state.journals, state.personalNotes);
+    if (res.ok) {
+      const msg = res.target === 'native'
+        ? `Berhasil disinkronkan ke Obsidian (${res.count} item)!`
+        : `Markdown tersimpan (${res.count} item)!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      else alert(msg);
+    } else {
+      if (typeof window.showToast === 'function') window.showToast(res.message || "Gagal sinkronisasi.");
+      else alert(res.message || "Gagal sinkronisasi.");
+    }
+  };
+
+  document.getElementById("syncObsidianBtn")?.addEventListener("click", handleObsidianSync);
+  document.getElementById("syncNotesObsidianBtn")?.addEventListener("click", handleObsidianSync);
+
   // Quick Backup, Restore & PIN forwards from Header and Drawer
   document.getElementById("headBackupBtn")?.addEventListener("click", () => dom.exportAllBtn?.click());
   document.getElementById("headRestoreInput")?.addEventListener("change", (e) => {
@@ -5362,6 +5380,44 @@ async function importBackup(event) {
   if (restoreLabel) restoreLabel.textContent = 'Membaca backup...';
 
   try {
+    // Item 2.32: Direct CSV / JSON instant restore & reconciliation
+    if (file.name.toLowerCase().endsWith('.csv') || file.type.includes('csv')) {
+      const text = await file.text();
+      const entries = (typeof AmyJournalExport !== 'undefined' && AmyJournalExport.parseCsv)
+        ? AmyJournalExport.parseCsv(text)
+        : [];
+      if (!entries.length) throw new Error('File CSV kosong atau tidak memiliki format baris data jurnal valid.');
+      const reconciled = (typeof AmyJournalExport !== 'undefined' && AmyJournalExport.reconcileJournals)
+        ? AmyJournalExport.reconcileJournals(state.journals || [], entries)
+        : { added: entries, skippedCount: 0, merged: [...(state.journals || []), ...entries] };
+      state.journals = reconciled.merged;
+      await saveJournals(state.journals, { throwOnError: true });
+      if (typeof render === 'function') render();
+      if (typeof showToast === 'function') {
+        showToast(`Berhasil memulihkan ${reconciled.added.length} jurnal (${reconciled.skippedCount} duplikat dilewati).`);
+      }
+      return;
+    }
+
+    if (file.name.toLowerCase().endsWith('.json') || file.type.includes('json')) {
+      const text = await file.text();
+      const parsed = (typeof AmyJournalExport !== 'undefined' && AmyJournalExport.parseAndValidateBackup)
+        ? AmyJournalExport.parseAndValidateBackup(text)
+        : { ok: true, entries: JSON.parse(text) };
+      if (!parsed.ok) throw new Error(parsed.error);
+      const entries = parsed.entries || [];
+      const reconciled = (typeof AmyJournalExport !== 'undefined' && AmyJournalExport.reconcileJournals)
+        ? AmyJournalExport.reconcileJournals(state.journals || [], entries)
+        : { added: entries, skippedCount: 0, merged: [...(state.journals || []), ...entries] };
+      state.journals = reconciled.merged;
+      await saveJournals(state.journals, { throwOnError: true });
+      if (typeof render === 'function') render();
+      if (typeof showToast === 'function') {
+        showToast(`Berhasil memulihkan ${reconciled.added.length} jurnal (${reconciled.skippedCount} duplikat dilewati).`);
+      }
+      return;
+    }
+
     const archive = await openBackupArchive(file);
     const dataEntry = archive.entries.find((entry) => entry.name === 'data.json');
     if (!dataEntry) throw new Error('data.json tidak ditemukan di dalam backup.');
@@ -5575,14 +5631,19 @@ async function clearLocalPin() {
 async function enforcePinLock() {
   const savedHash = localStorage.getItem(PIN_KEY);
   if (!savedHash) return;
-  document.body.append(makeLockOverlay());
+  document.body.classList.add("is-locked");
+  const overlay = makeLockOverlay();
+  document.body.append(overlay);
   return new Promise((resolve) => {
-    const input = document.querySelector("#pinUnlockInput");
-    const message = document.querySelector("#pinUnlockMessage");
-    const button = document.querySelector("#pinUnlockBtn");
+    const input = overlay.querySelector("#pinUnlockInput");
+    const message = overlay.querySelector("#pinUnlockMessage");
+    const button = overlay.querySelector("#pinUnlockBtn");
+    const bioBtn = overlay.querySelector("#biometricUnlockBtn");
+
     const unlock = async () => {
       if (await hashText(input.value) === savedHash) {
-        document.querySelector(".pin-lock")?.remove();
+        document.body.classList.remove("is-locked");
+        overlay.remove();
         resolve();
       } else {
         message.textContent = "PIN salah.";
@@ -5592,7 +5653,34 @@ async function enforcePinLock() {
     };
     button.addEventListener("click", unlock);
     input.addEventListener("keydown", (event) => { if (event.key === "Enter") unlock(); });
-    input.focus();
+
+    // Item 2.31: Biometric Fingerprint & Face Unlock Bridge
+    const hasBiometric = Boolean(window.Android && typeof window.Android.isBiometricAvailable === 'function' && window.Android.isBiometricAvailable());
+    const triggerBiometric = () => {
+      if (!window.Android?.authenticateBiometric) return;
+      window.onBiometricAuthResult = (success, error) => {
+        if (success) {
+          document.body.classList.remove("is-locked");
+          overlay.remove();
+          resolve();
+        } else if (error && error !== 'USE_PIN' && error !== 'CANCELLED') {
+          message.textContent = error;
+        }
+      };
+      window.Android.authenticateBiometric(
+        "Buka Kunci Jurnal Amy FX",
+        "Sentuh sensor sidik jari atau gunakan pengenalan wajah",
+        "window.onBiometricAuthResult"
+      );
+    };
+
+    if (hasBiometric && bioBtn) {
+      bioBtn.style.display = "block";
+      bioBtn.addEventListener("click", triggerBiometric);
+      setTimeout(triggerBiometric, 300);
+    }
+
+    setTimeout(() => input.focus(), 50);
   });
 }
 
@@ -5601,10 +5689,15 @@ function makeLockOverlay() {
   overlay.className = "pin-lock";
   overlay.innerHTML = `
     <div class="pin-card">
-      <div class="brand-mark">TL</div>
-      <h2>Masukkan PIN</h2>
-      <input id="pinUnlockInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN">
-      <button id="pinUnlockBtn" class="primary-button" type="button">Buka</button>
+      <div class="brand-mark" style="width:52px;height:52px;font-size:12px;font-weight:900;letter-spacing:0.5px;margin:0 auto 4px auto;" aria-label="Amy FX">AMY FX</div>
+      <div style="font-size: 28px; line-height: 1; margin: 4px 0 2px 0;" aria-hidden="true">🔒</div>
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text, #fff); margin: 0;">Masukkan PIN</h2>
+      <p style="font-size: 12px; color: var(--muted-strong, rgba(255,255,255,0.6)); margin: 0 0 4px 0;">Jurnal Trading Terproteksi</p>
+      <input id="pinUnlockInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN Keamanan">
+      <button id="pinUnlockBtn" class="primary-button" type="button">Buka Kunci</button>
+      <button id="biometricUnlockBtn" class="ghost-button" type="button" style="display:none; width:100%; margin-top:8px; font-size:12px; font-weight:700; color:var(--amy-accent,#F5C451); border:1px solid rgba(245,196,81,0.3); background:rgba(245,196,81,0.08); border-radius:8px; padding:10px; cursor:pointer;">
+        👆 Buka dengan Sidik Jari / Wajah
+      </button>
       <p id="pinUnlockMessage"></p>
     </div>`;
   return overlay;

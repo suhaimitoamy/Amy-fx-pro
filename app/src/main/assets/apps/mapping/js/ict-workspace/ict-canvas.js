@@ -13,6 +13,16 @@ const COLORS = {
   BPR: '#d9e68a'
 };
 
+export function getCandlesFingerprint(tf, candles) {
+  if (!candles || !candles.length) return '';
+  const firstC = candles[0];
+  const lastC = candles[candles.length - 1];
+  const t0 = firstC?.time ?? firstC?.datetime ?? 0;
+  const t1 = lastC?.time ?? lastC?.datetime ?? 0;
+  const c1 = lastC?.close ?? 0;
+  return `${tf}:${candles.length}:${t0}:${t1}:${c1}`;
+}
+
 export function createIctCanvas(element, chart, series) {
   const canvas = document.createElement('canvas');
   canvas.className = 'ict-overlay';
@@ -48,7 +58,7 @@ export function createIctCanvas(element, chart, series) {
     const plotRight = Math.max(0, w - chart.priceScale('right').width());
     const plotBottom = Math.max(0, h - chart.timeScale().height());
 
-    const key = tf + JSON.stringify(candles);
+    const key = getCandlesFingerprint(tf, candles);
     if (key !== visualKey || !indicators) {
       visualKey = key;
       indicators = state.indicators || calculateNextGenIndicators(candles, {
@@ -239,7 +249,7 @@ export function createIctCanvas(element, chart, series) {
       label(`SSL ${ssl.level.toFixed(2)}`, Math.max(4, Math.min(xx + 4, plotRight - 90)), yy - 3, '#22c55e');
     }
 
-    // 7. Sweep Markers ('×' for BSL/SSL, '◆' for Asia)
+    // 7. Sweep Markers ('×' for BSL/SSL, '◆' for Asia) & Dynamic Sweep Line (Item 2.24)
     for (const sw of indicators?.liquidity?.sweeps || []) {
       const xx = x(sw.time), yy = y(sw.price);
       if (xx == null || yy == null || xx < 0 || xx > plotRight) continue;
@@ -249,6 +259,22 @@ export function createIctCanvas(element, chart, series) {
       const offset = sw.side === 'BUY' ? -4 : (fontSize + 4);
       ctx.fillText(sw.symbol, xx, yy + offset);
       ctx.textAlign = 'left';
+
+      // Grafis Garis Sweep Dinamis: garis horizontal putus-putus berkedip halus pada level likuiditas yang tersapu
+      const sweepLevel = Number(sw.level ?? sw.price);
+      const syy = y(sweepLevel);
+      if (syy != null) {
+        ctx.setLineDash([5, 3]);
+        ctx.strokeStyle = sw.color || '#f59e0b';
+        ctx.lineWidth = s.lineWidth || 1;
+        ctx.beginPath();
+        ctx.moveTo(xx, syy);
+        ctx.lineTo(lineRight, syy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        const tag = sw.reclaimed ? '🎯 Reclaimed Valid' : '⚖️ Menunggu Rejection Close';
+        label(`${sw.label || 'SWEEP'} ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 3, sw.color || '#f59e0b');
+      }
     }
 
     // 8. Infinite/Horizontal Key Levels on Canvas (renders clean labels directly on chart)

@@ -32,6 +32,12 @@ test("native player handles loop, audio focus, noisy audio and persistent state"
   assert.match(service, /ACTION_STOP/);
 });
 
+test("stateTicker is paused when video is not playing to avoid disk thrashing", () => {
+  assert.match(service, /player\.isPlaying/);
+  assert.match(service, /mainHandler\.removeCallbacks\(stateTicker\)/);
+});
+
+
 test("IndexedDB video transfer is chunked, ordered and size validated", () => {
   assert.match(journal, /const CHUNK_SIZE = 512 \* 1024/);
   assert.match(journal, /blob\.slice\(/);
@@ -56,4 +62,13 @@ test("web player autoplays, loops, hands off on lifecycle and prevents dual play
   assert.match(activity, /mediaPlaybackRequiresUserGesture = false/);
   assert.match(activity, /AmyBackgroundVideo\?\.handoffFromNativeLifecycle/);
   assert.match(activity, /AmyBackgroundVideo\?\.resumeFromNativeLifecycle/);
+});
+
+test("MediaSession deep link routes to Academy by default and resolves caller URL", () => {
+  assert.match(service, /EXTRA_TARGET_URL = "target_url"/);
+  assert.match(service, /DEFAULT_TARGET_URL = "https:\/\/appassets\.androidplatform\.net\/assets\/apps\/academy\/index\.html"/);
+  assert.match(service, /updateSessionActivity\(\)/);
+  assert.doesNotMatch(service, /assets\/apps\/journal\/index\.html/);
+  assert.match(activity, /playBackgroundVideoWithTarget/);
+  assert.match(activity, /BackgroundVideoPlaybackService\.EXTRA_TARGET_URL/);
 });

@@ -45,12 +45,44 @@
     return { bias: bias, entry: entry, stopLoss: stopLoss, takeProfit: takeProfit };
   }
 
+  function calculateExecutionFriction(bias, entryPrice, candle, options) {
+    if (!Number.isFinite(entryPrice)) return { fillPrice: entryPrice, spreadPips: 0, slippagePips: 0, frictionCost: 0 };
+    var candleRange = (candle && Number.isFinite(candle.high) && Number.isFinite(candle.low))
+      ? (Number(candle.high) - Number(candle.low))
+      : 2.0;
+    var isVolatile = candleRange > 4.0;
+    var baseSpreadPips = isVolatile ? 4.5 : 2.0; // 2.0 pips ($0.20) in calm market, 4.5 pips ($0.45) in volatile market
+    var spreadPoints = baseSpreadPips * 0.10;
+
+    var isMarket = options && options.isMarket;
+    var slippagePips = isMarket ? ((candleRange > 6.0 ? 1.5 : 0.5) * (options.slippageFactor !== undefined ? options.slippageFactor : 1.0)) : 0;
+    var slippagePoints = slippagePips * 0.10;
+
+    var fillPrice = entryPrice;
+    if (bias === 'BUY') {
+      fillPrice = Math.round((entryPrice + (spreadPoints / 2) + slippagePoints) * 100) / 100;
+    } else if (bias === 'SELL') {
+      fillPrice = Math.round((entryPrice - (spreadPoints / 2) - slippagePoints) * 100) / 100;
+    }
+
+    return {
+      fillPrice: fillPrice,
+      spreadPips: baseSpreadPips,
+      slippagePips: slippagePips,
+      frictionCost: Math.round(Math.abs(fillPrice - entryPrice) * 100) / 100
+    };
+  }
+
   function create(input) {
     var geometry = validate(input);
     var currentPrice = core.finite(input.currentPrice);
-    var activeAtSave = geometry.bias !== 'WAIT' && currentPrice != null && Math.abs(currentPrice - geometry.entry) <= 0.000001;
+    var isMarket = input.orderType === 'MARKET' || (currentPrice != null && Math.abs(currentPrice - geometry.entry) <= 0.25);
+    var activeAtSave = geometry.bias !== 'WAIT' && isMarket;
     var tradeTime = Number(input.tradeTime);
     if (!Number.isFinite(tradeTime)) throw new Error('Timestamp keputusan tidak valid. Tunggu sampai cursor replay siap.');
+    var friction = activeAtSave
+      ? calculateExecutionFriction(geometry.bias, geometry.entry, input.currentCandle, { isMarket: true, slippageFactor: input.slippageFactor })
+      : { fillPrice: geometry.entry, spreadPips: 0, slippagePips: 0, frictionCost: 0 };
     return {
       id: input.id || (input.lockDecision ? decisionId(input) : root.AmyPracticeStorage.identifier('trade')),
       symbol: String(input.symbol || 'XAUUSD').toUpperCase(),
@@ -58,11 +90,16 @@
       replayStartTime: Number(input.replayStartTime || input.tradeTime),
       tradeTime: tradeTime,
       decisionCandleTime: tradeTime,
+      orderType: input.orderType || (activeAtSave ? 'MARKET' : 'LIMIT'),
       sourceId: String(input.sourceId || ''),
       locked: Boolean(input.lockDecision),
       lockedAt: input.lockDecision ? Number(input.lockedAt || Date.now()) : null,
       bias: geometry.bias,
       entry: geometry.entry,
+      fillPrice: friction.fillPrice,
+      spreadPips: friction.spreadPips,
+      slippagePips: friction.slippagePips,
+      frictionCost: friction.frictionCost,
       stopLoss: geometry.stopLoss,
       takeProfit: geometry.takeProfit,
       result: geometry.bias === 'WAIT' ? 'OPEN' : 'OPEN',
@@ -91,13 +128,55 @@
       delete next.closedAt;
       delete next.resolution;
     }
-    var sequence = core.normalizeCandles(candles).filter(function (candle) { return candle.time > Number(record.tradeTime || 0) && (record.entryActivatedAt == null || candle.time >= Number(record.entryActivatedAt)); });
+    var sequence = core.normalizeCandles(candles).filter(function (candle) {
+      if (next.entryStatus === 'ACTIVE') {
+        var minTime = Number(next.entryActivatedAt || next.tradeTime || 0);
+        return candle.time >= minTime;
+      }
+      return candle.time > Number(next.tradeTime || 0);
+    });
     for (var i = 0; i < sequence.length; i += 1) {
       var candle = sequence[i];
       if (next.entryStatus !== 'ACTIVE') {
-        if (!touched(candle, next.entry)) continue;
-        next.entryStatus = 'ACTIVE';
-        next.entryActivatedAt = candle.time;
+        var entryHit = touched(candle, next.entry);
+        if (entryHit) {
+          next.entryStatus = 'ACTIVE';
+          next.entryActivatedAt = candle.time;
+        } else {
+          var targetHitBeforeEntry = (next.bias === 'BUY' && Number(candle.high) >= Number(next.takeProfit)) ||
+                                     (next.bias === 'SELL' && Number(candle.low) <= Number(next.takeProfit)) ||
+                                     touched(candle, next.takeProfit);
+          if (targetHitBeforeEntry) {
+            next.result = 'MISSED';
+            next.entryStatus = 'EXPIRED_TARGET_HIT_FIRST';
+            next.r = 0;
+            next.closedAt = candle.time;
+            next.resolution = 'TARGET_HIT_BEFORE_FILL';
+            next.outcomeEvidence = {
+              type: 'MISSED', level: Number(next.takeProfit), candleTime: candle.time,
+              candleHigh: Number(candle.high), candleLow: Number(candle.low),
+              ambiguous: false
+            };
+            break;
+          }
+          var slHitBeforeEntry = (next.bias === 'BUY' && Number(candle.low) <= Number(next.stopLoss)) ||
+                                 (next.bias === 'SELL' && Number(candle.high) >= Number(next.stopLoss)) ||
+                                 touched(candle, next.stopLoss);
+          if (slHitBeforeEntry) {
+            next.result = 'CANCELLED';
+            next.entryStatus = 'CANCELLED_GAP_SL';
+            next.r = 0;
+            next.closedAt = candle.time;
+            next.resolution = 'SL_HIT_BEFORE_FILL';
+            next.outcomeEvidence = {
+              type: 'CANCELLED_GAP', level: Number(next.stopLoss), candleTime: candle.time,
+              candleHigh: Number(candle.high), candleLow: Number(candle.low),
+              ambiguous: false
+            };
+            break;
+          }
+          continue;
+        }
       }
       var stopHit = touched(candle, next.stopLoss);
       var targetHit = touched(candle, next.takeProfit);
@@ -115,7 +194,10 @@
       }
       if (targetHit) {
         next.result = 'WIN';
-        next.r = Number(next.plannedR || 0);
+        var entryForR = Number.isFinite(next.fillPrice) ? next.fillPrice : next.entry;
+        var riskAmount = Math.abs(entryForR - next.stopLoss);
+        var rewardAmount = Math.abs(next.takeProfit - entryForR);
+        next.r = (riskAmount > 0) ? Math.round((rewardAmount / riskAmount) * 100) / 100 : Number(next.plannedR || 0);
         next.closedAt = candle.time;
         next.resolution = 'TP_HIT';
         next.outcomeEvidence = {
@@ -131,5 +213,5 @@
     return next;
   }
 
-  root.AmyPracticeTrades = Object.freeze({ create: create, validate: validate, evaluate: evaluate, plannedR: plannedR, decisionId: decisionId });
+  root.AmyPracticeTrades = Object.freeze({ create: create, validate: validate, evaluate: evaluate, plannedR: plannedR, decisionId: decisionId, calculateExecutionFriction: calculateExecutionFriction });
 })(typeof window !== 'undefined' ? window : globalThis);

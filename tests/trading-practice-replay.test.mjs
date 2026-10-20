@@ -258,6 +258,59 @@ test('IndexedDB write resolves only after the transaction commit event', async (
   assert.equal(resolved, true);
 });
 
+test('IndexedDB error or block resets dbPromise to allow subsequent connection retry', async () => {
+  let openAttempts = 0;
+  let shouldFail = true;
+  const requests = [];
+  const indexedDB = {
+    open() {
+      openAttempts++;
+      const req = {};
+      requests.push(req);
+      queueMicrotask(() => {
+        if (shouldFail) {
+          req.error = new Error('Transient DB failure');
+          if (req.onerror) req.onerror();
+        } else {
+          req.result = {
+            objectStoreNames: { contains: () => true },
+            transaction() {
+              const tx = {
+                objectStore() {
+                  return { put() { return {}; } };
+                }
+              };
+              queueMicrotask(() => { if (tx.oncomplete) tx.oncomplete(); });
+              return tx;
+            }
+          };
+          if (req.onsuccess) req.onsuccess();
+        }
+      });
+      return req;
+    }
+  };
+  const runtime = { console, indexedDB, Blob, localStorage: { getItem: () => null, setItem() {} }, setTimeout, clearTimeout, queueMicrotask };
+  runtime.globalThis = runtime;
+  vm.createContext(runtime);
+  const run = name => vm.runInContext(readFileSync(new URL(name, base), 'utf8'), runtime, { filename: name });
+  run('practice-core.js');
+  run('storage.js');
+
+  // First call should fail and reject
+  await assert.rejects(
+    () => runtime.AmyPracticeStorage.saveHistoricalPack({ id: 'pack-retry' }, new Blob(['data'])),
+    /Transient DB failure/
+  );
+  assert.equal(openAttempts, 1);
+
+  // Subsequent call after recovering should trigger a new open attempt instead of permanent rejection
+  shouldFail = false;
+  const result = await runtime.AmyPracticeStorage.saveHistoricalPack({ id: 'pack-retry' }, new Blob(['data']));
+  assert.equal(openAttempts, 2, 'Subsequent call must retry indexedDB.open() rather than caching failed promise');
+  assert.equal(result.id, 'pack-retry');
+});
+
 test('fallback trade remains readable and newer outcomes win over stale IndexedDB records', async () => {
   const shared = new Map();
   let primary;
@@ -441,3 +494,126 @@ test('switching timeframe from default initial position yields full candle conte
   const m30Start = await freshM30.start();
   assert.ok(m30Start.candles.length >= 80, `Expected at least 80 M30 candles on fresh start, got ${m30Start.candles.length}`);
 });
+
+test('D1 aggregation uses NY 17:00 close offset to merge Sunday session into Monday daily bar (item 1.62)', () => {
+  const core = context.AmyPracticeCore;
+  // Choose a base day aligned to NY 17:00 (multiple of 86400 + 17*3600)
+  // Let base = 86400 * 1000 + 17 * 3600 = 86461200
+  const sunday1700 = 86400 * 1000 + 17 * 3600;
+  
+  // Create 3 candles:
+  // 1. Sunday 18:00 (1 hour after open)
+  // 2. Monday 10:00 (next calendar day UTC)
+  // 3. Monday 18:00 (next trading day NY)
+  const candles = [
+    { time: sunday1700 + 3600, open: 2600, high: 2610, low: 2595, close: 2605 },
+    { time: sunday1700 + 17 * 3600, open: 2605, high: 2620, low: 2600, close: 2615 },
+    { time: sunday1700 + 86400 + 3600, open: 2615, high: 2630, low: 2610, close: 2625 }
+  ];
+
+  const d1Candles = core.aggregateCandles(candles, 'D1');
+  // First two candles fall in the same D1 bar [sunday1700, sunday1700 + 86400)
+  assert.equal(d1Candles.length, 2, 'Sunday + Monday session must merge into 1 daily bar, not 2 separate bars');
+  assert.equal(d1Candles[0].time, sunday1700);
+  assert.equal(d1Candles[0].open, 2600);
+  assert.equal(d1Candles[0].high, 2620);
+  assert.equal(d1Candles[0].low, 2595);
+  assert.equal(d1Candles[0].close, 2615);
+  assert.equal(d1Candles[0].sourceCount, 2);
+
+  // Second D1 candle starts at next day 17:00
+  assert.equal(d1Candles[1].time, sunday1700 + 86400);
+  assert.equal(d1Candles[1].open, 2615);
+  assert.equal(d1Candles[1].high, 2630);
+
+  // Verify visibleCandles invariant holds with cursor
+  const visible = core.visibleCandles(candles, sunday1700 + 17 * 3600, 'D1');
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].time, sunday1700);
+  assert.equal(visible[0].lastSourceTime, sunday1700 + 17 * 3600);
+});
+
+test('Item 2.37: Multi-timeframe synced playback projects cursor and retrieves MTF context', async () => {
+  const core = context.AmyPracticeCore;
+  const provider = {
+    async getTimeline({ timeframe }) {
+      return core.aggregateCandles(minuteCandles, timeframe, { sourceTimeframe: 'M1' }).map(c => c.lastSourceTime ?? c.time);
+    },
+    async getCandles({ timeframe, cursor }) {
+      return {
+        source: 'test',
+        candles: core.visibleCandles(minuteCandles, cursor, timeframe, 'M1')
+      };
+    }
+  };
+  const controller = new context.AmyReplayEngine.ReplayController({ provider, timeframe: 'M1' });
+  await controller.start(180);
+
+  // Test projectTimeframeCursor for H1 (3600s) and M5 (300s)
+  const projectionH1 = controller.projectTimeframeCursor('H1');
+  assert.equal(projectionH1.targetTimeframe, 'H1');
+  assert.equal(projectionH1.candleOpenTime, 0);
+  assert.equal(projectionH1.candleCloseTime, 3600);
+  assert.equal(projectionH1.intraCandleElapsedSec, 180);
+
+  const projectionM5 = controller.projectTimeframeCursor('M5');
+  assert.equal(projectionM5.targetTimeframe, 'M5');
+  assert.equal(projectionM5.candleOpenTime, 0);
+  assert.equal(projectionM5.candleCloseTime, 300);
+  assert.equal(projectionM5.intraCandleElapsedSec, 180);
+
+  // Test getMultiTimeframeContext
+  const mtfContext = await controller.getMultiTimeframeContext(['M1', 'M5']);
+  assert.ok(mtfContext.M1);
+  assert.ok(mtfContext.M5);
+  assert.equal(mtfContext.M1.cursor, 180);
+  assert.equal(mtfContext.M5.cursor, 180);
+  assert.equal(mtfContext.M5.candles.length, 1);
+  assert.equal(mtfContext.M5.candles[0].lastSourceTime, 180);
+});
+
+test('Item 2.30: synthesizeNyCloseD1 aggregates 17:00 NY Close D1 and derives PDH, PDL, and True Day Range', () => {
+  const core = context.AmyPracticeCore;
+  // Sunday July 5, 2026: 18:00 NY (22:00 UTC) -> 1783375200
+  // Monday July 6, 2026: 10:00 NY (14:00 UTC) -> 1783432800
+  // Monday July 6, 2026: 18:00 NY (22:00 UTC) -> Tuesday trading day! 1783461600
+  // Tuesday July 7, 2026: 10:00 NY (14:00 UTC) -> 1783519200
+  const candles = [
+    // Sunday open bar (Sunday 18:00 NY)
+    { time: 1783375200, open: 2650.0, high: 2655.0, low: 2648.0, close: 2652.0 },
+    // Monday day bar (Monday 10:00 NY)
+    { time: 1783432800, open: 2652.0, high: 2665.0, low: 2645.0, close: 2660.0 },
+    // Monday evening bar (Monday 18:00 NY = start of Tuesday trading day)
+    { time: 1783461600, open: 2660.0, high: 2670.0, low: 2658.0, close: 2668.0 },
+    // Tuesday day bar (Tuesday 10:00 NY)
+    { time: 1783519200, open: 2668.0, high: 2675.0, low: 2662.0, close: 2672.0 }
+  ];
+
+  const d1Bars = core.synthesizeNyCloseD1(candles);
+  // Must merge Sunday + Monday into Monday trading bar (bar 0), and Mon evening + Tue into Tuesday bar (bar 1)
+  assert.equal(d1Bars.length, 2, 'Sunday open must merge with Monday into exactly 1 institutional trading day');
+
+  // Monday Trading Day Bar
+  const monday = d1Bars[0];
+  assert.equal(monday.open, 2650.0);
+  assert.equal(monday.high, 2665.0);
+  assert.equal(monday.low, 2645.0);
+  assert.equal(monday.close, 2660.0);
+  assert.equal(monday.pdh, null, 'First day has no previous day');
+  assert.equal(monday.trueDayRange, 20.0); // 2665 - 2645 = 20
+  assert.equal(monday.equilibrium, 2655.0); // (2665 + 2645) / 2 = 2655
+
+  // Tuesday Trading Day Bar
+  const tuesday = d1Bars[1];
+  assert.equal(tuesday.open, 2660.0);
+  assert.equal(tuesday.high, 2675.0);
+  assert.equal(tuesday.low, 2658.0);
+  assert.equal(tuesday.close, 2672.0);
+  assert.equal(tuesday.pdh, 2665.0, 'Tuesday PDH must match Monday high');
+  assert.equal(tuesday.pdl, 2645.0, 'Tuesday PDL must match Monday low');
+  assert.equal(tuesday.trueDayRange, 17.0); // 2675 - 2658 = 17
+  assert.equal(tuesday.equilibrium, 2666.5);
+});
+
+
+

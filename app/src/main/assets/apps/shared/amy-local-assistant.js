@@ -16,7 +16,7 @@
   function journals() {
     return new Promise(resolve=>{
       let done=false,db;const finish=v=>{if(done)return;done=true;clearTimeout(timer);db?.close();resolve(v);};
-      const fallback=()=>finish({rows:list(read('tradingLibraryManager.journals.v1',[])),fallback:true});
+      const fallback=()=>finish({rows:list(read('tradingLibraryManager.journals.v1',read('tradingLibraryManager.items.v1',[]))),fallback:true});
       const timer=setTimeout(fallback,1800);
       try{
         const req=root.indexedDB.open('tradingLibraryManager.files');
@@ -25,8 +25,23 @@
         req.onsuccess=()=>{
           db=req.result;if(done){db.close();return;}
           if(!db.objectStoreNames.contains('metadata')){fallback();return;}
-          const r=db.transaction('metadata','readonly').objectStore('metadata').get('journals.v2');
-          r.onsuccess=()=>Array.isArray(r.result?.value)?finish({rows:r.result.value,fallback:false}):fallback();r.onerror=fallback;
+          const store=db.transaction('metadata','readonly').objectStore('metadata');
+          const checkItems=()=>{
+            const rItems=store.get('items.v2');
+            rItems.onsuccess=()=>{
+              const iRows=rItems.result?.value;
+              if(Array.isArray(iRows)&&iRows.length)finish({rows:iRows,fallback:false});
+              else fallback();
+            };
+            rItems.onerror=fallback;
+          };
+          const rJournals=store.get('journals.v2');
+          rJournals.onsuccess=()=>{
+            const jRows=rJournals.result?.value;
+            if(Array.isArray(jRows)&&jRows.length)finish({rows:jRows,fallback:false});
+            else checkItems();
+          };
+          rJournals.onerror=checkItems;
         };
       }catch{fallback();}
     });
@@ -35,7 +50,7 @@
     const found=[];
     if(/\b(harga|price|mapping|market|xau|gold|emas|sinyal|signal|bias|arah|entry|setup|stop loss|target|sl|tp)\b/.test(q))found.push('mapping');
     if(/\b(news|berita|kabar|headline|ekonomi)\b/.test(q))found.push('news');
-    if(/\b(jurnal|journal|transaksi|profit|rugi|winrate|win rate|performa|evaluasi|kesalahan|emosi|disiplin)\b/.test(q))found.push('journal');
+    if(/\b(jurnal|journal|transaksi|profit|rugi|winrate|win rate|performa|evaluasi|kesalahan|emosi|disiplin|psikologi|fomo|overtrade|revenge)\b/.test(q))found.push('journal');
     if(/\b(belajar|baca|bacaan|membaca|pelajari|academy|akademi|tutorial|progres|progress|latihan|soal|skor|nilai|materi|pelajaran)\b/.test(q))found.push('academy');
     // Personal trade questions use Journal, unless Mapping is explicitly named.
     if(found.includes('journal')&&!/mapping|harga|market|xau|gold|emas|sinyal|signal|bias|arah/.test(q))return found.filter(id=>id!=='mapping');
@@ -83,15 +98,68 @@
   function journal(q,data){
     const rows=data.rows; if(!rows.length)return `Belum ada jurnal yang dapat dibaca.${data.fallback?' Penyimpanan utama kosong/tidak tersedia; cache lokal juga kosong.':''}`;
     const win=rows.filter(r=>norm(r.result)==='win').length,loss=rows.filter(r=>norm(r.result)==='loss').length,be=rows.filter(r=>['be','break even','breakeven'].includes(norm(r.result))).length;
-    const profit=rows.reduce((s,r)=>s+(Number(r.profit)||0),0),lossAmount=rows.reduce((s,r)=>s+(Number(r.loss)||0),0),completed=win+loss+be;
-    let text=`Jurnal: ${rows.length} transaksi; ${win} win, ${loss} loss, ${be} BE, ${rows.length-completed} belum selesai/lainnya. Win rate ${completed?number(win/completed*100)+'%':'belum tersedia'} (win / transaksi selesai, termasuk BE).\nTotal profit tercatat ${number(profit)}, loss ${number(lossAmount)}, selisih ${number(profit-lossAmount)} dalam satuan input jurnal.`;
+    const profit=rows.reduce((s,r)=>s+(Number(r.profit)||(Number(r.pnlMoney)>0?Number(r.pnlMoney):0)||0),0);
+    const lossAmount=rows.reduce((s,r)=>s+(Number(r.loss)||(Number(r.pnlMoney)<0?Math.abs(Number(r.pnlMoney)):0)||0),0);
+    const netPips=rows.reduce((s,r)=>s+(Number(r.pnlPips||r.pips)||0),0);
+    const completed=win+loss+be;
+    const profitFactor=lossAmount>0?number(profit/lossAmount):(profit>0?'Infinity (tanpa loss)':'1.00');
+    const avgWin=win>0?profit/win:0;
+    const avgLoss=loss>0?lossAmount/loss:0;
+    const winLossRatio=avgLoss>0?number(avgWin/avgLoss):'-';
+
+    const hourProfits={};
+    rows.forEach(r=>{
+      const t = r.actualEntryTime || r.analysisTime || r.date || r.createdAt;
+      if(t){
+        const d = new Date(t);
+        if(!isNaN(d.getTime())){
+          const h = (d.getUTCHours() + 8) % 24; // WITA
+          const p = Number(r.profit)||(Number(r.pnlMoney)>0?Number(r.pnlMoney):0)||0;
+          hourProfits[h] = (hourProfits[h] || 0) + p;
+        }
+      }
+    });
+    let bestHour = null, maxHProfit = -Infinity;
+    for(const [h, p] of Object.entries(hourProfits)){
+      if(p > maxHProfit && p > 0){
+        maxHProfit = p;
+        bestHour = h;
+      }
+    }
+    const bestHourStr = bestHour !== null ? `${String(bestHour).padStart(2,'0')}:00 WITA` : 'belum ada data jam';
+
+    let text=`Jurnal: ${rows.length} transaksi; ${win} win, ${loss} loss, ${be} BE, ${rows.length-completed} belum selesai/lainnya. Win rate ${completed?number(win/completed*100)+'%':'belum tersedia'} (win / transaksi selesai, termasuk BE).\nTotal profit tercatat ${number(profit)}, loss ${number(lossAmount)}, selisih ${number(profit-lossAmount)} dalam satuan input jurnal.`+
+      `\n• Profit Factor: ${profitFactor} | Net Pips: ${number(netPips)}`+
+      `\n• Rata-rata Win vs Loss: ${number(avgWin)} / ${number(avgLoss)} (Rasio: ${winLossRatio})`+
+      `\n• Jam Paling Menguntungkan: ${bestHourStr}`;
+
+    const isEmotionQuery = /emosi|psikologi|mental|fomo|overtrade|revenge|disiplin/.test(q);
+    const emotionTags = [];
+    rows.forEach(r=>{
+      const rawText = [r.emotion, r.mistake, r.mistakes, r.notes, r.evaluation].filter(Boolean).join(' ').toLowerCase();
+      if(/fomo/.test(rawText)) emotionTags.push('FOMO');
+      if(/overtrade|over trading/.test(rawText)) emotionTags.push('Overtrade');
+      if(/revenge/.test(rawText)) emotionTags.push('Revenge Trading');
+      if(/takut|fear/.test(rawText)) emotionTags.push('Fear of Loss');
+      if(/serakah|greed/.test(rawText)) emotionTags.push('Greed');
+      if(/geser sl|lebar sl|tanpa sl/.test(rawText)) emotionTags.push('Pelanggaran SL');
+    });
+
+    if(isEmotionQuery || emotionTags.length > 0){
+      const counts = {};
+      emotionTags.forEach(t => counts[t] = (counts[t] || 0) + 1);
+      const tagSummary = Object.entries(counts).map(([k,v])=>`${k} (${v}x)`).join(', ') || 'tidak ada catatan emosi negatif terdeteksi';
+      text += `\n\n🧠 Refleksi Emosi & Disiplin: ${tagSummary}.\n`+
+        `Saran Disiplin: Patuhi SOP ICT dengan sabar. Jangan entry tanpa konfirmasi MSS + FVG di Killzone, dan batasi risiko maksimal 1-2% per setup.`;
+    }
+
     if(data.fallback)text+='\nSumber: cache lokal; penyimpanan utama tidak tersedia.';
     let sorted=rows.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')));
     const date=q.match(/\b20\d{2} \d{2} \d{2}\b/);if(date)sorted=sorted.filter(r=>r.date===date[0].replaceAll(' ','-'));
     if(/loss|rugi|kalah/.test(q))sorted=sorted.filter(r=>norm(r.result)==='loss');
-    if(/win|menang/.test(q)&&!/rate/.test(q))sorted=sorted.filter(r=>norm(r.result)==='win');
+    if(/win|menang/.test(q)&&!/rate|rasio/.test(q))sorted=sorted.filter(r=>norm(r.result)==='win');
     const fields=/evaluasi|kesalahan|emosi|disiplin|review|pelajaran/.test(q)?['evaluation','mistakes','lessons','emotion']:['setup'];
-    text+='\n'+sorted.slice(0,5).map(r=>`${r.date||''} · ${r.title||'Jurnal'} · ${r.market||''} · ${r.result||''}\n`+fields.map(f=>r[f]?`${({evaluation:'Evaluasi',mistakes:'Kesalahan',lessons:'Pelajaran',emotion:'Emosi',setup:'Setup'})[f]}: ${String(r[f]).slice(0,800)}`:'').filter(Boolean).join('\n')).join('\n');
+    text+='\n'+sorted.slice(0,5).map(r=>`${r.date||''} · ${r.title||r.pair||'Jurnal'} · ${r.market||r.timeframe||''} · ${r.result||''}\n`+fields.map(f=>r[f]?`${({evaluation:'Evaluasi',mistakes:'Kesalahan',lessons:'Pelajaran',emotion:'Emosi',setup:'Setup'})[f]}: ${String(r[f]).slice(0,800)}`:'').filter(Boolean).join('\n')).join('\n');
     return text;
   }
   function academy(){
@@ -138,7 +206,7 @@
   function mount(){
     if(!root.document?.body||document.getElementById('amy-local-root'))return;
     const style=document.createElement('style');style.textContent=`#amy-local-root{font:14px/1.6 system-ui;color:#e4edf8}#amy-local-root [hidden]{display:none!important}#amy-local-root button,#amy-local-root input,#amy-local-root a{font:inherit}@keyframes aiSparkBreathe{0%,100%{transform:scale(1);opacity:1;filter:drop-shadow(0 0 8px #f5c451)}50%{transform:scale(1.22);opacity:0.85;filter:drop-shadow(0 0 16px #f5c451)}}#amy-local-fab{position:fixed;right:20px;bottom:90px;z-index:10000;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(24,34,58,0.88) 0%,rgba(10,14,26,0.92) 100%);backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);border:1px solid rgba(245,196,81,0.55);border-top:1px solid rgba(255,255,255,0.35);border-radius:9999px;color:#fff;font-size:11.5px;font-weight:800;letter-spacing:0.05em;padding:10px 18px;box-shadow:0 16px 40px rgba(0,0,0,0.65),inset 0 1px 1px 0 rgba(255,255,255,0.25),0 0 20px rgba(245,196,81,0.3);cursor:pointer;transition:transform .2s cubic-bezier(0.16,1,0.3,1),box-shadow .2s ease,border-color .2s ease}#amy-local-fab:hover{transform:translateY(-2px) scale(1.02);border-color:rgba(245,196,81,0.9);box-shadow:0 20px 48px rgba(0,0,0,0.75),inset 0 1px 1px 0 rgba(255,255,255,0.35),0 0 28px rgba(245,196,81,0.45)}#amy-local-fab:active{transform:scale(0.97)}#amy-local-fab .ai-spark{color:#f5c451;font-size:14px;line-height:1;display:inline-block;animation:aiSparkBreathe 2.4s infinite ease-in-out;filter:drop-shadow(0 0 8px #f5c451)}#amy-local-panel{position:fixed;right:16px;bottom:90px;width:min(430px,calc(100vw - 24px));height:min(600px,75dvh);max-height:75vh;z-index:10001;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(16,24,45,0.95) 0%,rgba(8,12,22,0.96) 100%);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(245,196,81,0.35);border-top:1px solid rgba(255,255,255,0.3);border-radius:22px;box-shadow:0 24px 64px rgba(0,0,0,0.8),inset 0 1px 1px 0 rgba(255,255,255,0.2),0 0 25px rgba(245,196,81,0.15);overflow:hidden}#amy-local-panel header,#amy-local-panel form{display:flex;gap:8px;padding:12px;background:rgba(20,29,51,0.9)}#amy-local-panel header strong{flex:1;color:#f8fafc;font-weight:800}#amy-local-panel button{background:rgba(245,196,81,0.15);color:#f5c451;border:1px solid rgba(245,196,81,0.35);border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:700}#amy-local-panel button:hover{background:rgba(245,196,81,0.25)}#amy-local-panel input{min-width:0;flex:1;background:rgba(7,11,20,0.8);color:white;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px}#amy-local-messages{overflow:auto;flex:1;padding:12px;overscroll-behavior:contain}#amy-local-messages p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 14px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)}#amy-local-messages a{color:#60a5fa;display:block}#amy-local-panel small{padding:4px 12px 0;color:#94a3b8;font-size:11px}#amy-local-panel .prompts{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px}#amy-local-panel .prompts button{background:rgba(255,255,255,0.06);color:#cbd5e1;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;font-size:11px}#amy-local-panel .prompts button:hover{border-color:rgba(245,196,81,0.5);color:#fff}`;document.head.appendChild(style);
-    const host=document.createElement('div');host.id='amy-local-root';host.innerHTML='<button id="amy-local-fab" type="button"><span class="ai-spark">✦</span><span>CS</span></button><section id="amy-local-panel" hidden aria-label="Asisten Amy"><header><strong>Amy · Asisten aplikasi</strong><button type="button" id="amy-local-close" aria-label="Tutup asisten">Tutup</button></header><small>Lokal · tanpa API AI / LLM · membaca data aplikasi</small><div class="prompts"></div><div id="amy-local-messages" aria-live="polite"></div><form><input aria-label="Pertanyaan untuk Amy" placeholder="Tanya data atau materi aplikasi…" maxlength="2000"><button type="submit">Kirim</button></form></section>';document.body.appendChild(host);
+    const host=document.createElement('div');host.id='amy-local-root';host.innerHTML='<button id="amy-local-fab" type="button" aria-label="Buka Asisten Amy"><span class="ai-spark">✦</span><span>AMY</span></button><section id="amy-local-panel" hidden aria-label="Asisten Amy"><header><strong>Amy · Asisten aplikasi</strong><button type="button" id="amy-local-close" aria-label="Tutup asisten">Tutup</button></header><small>Lokal · tanpa API AI / LLM · membaca data aplikasi</small><div class="prompts"></div><div id="amy-local-messages" aria-live="polite"></div><form><input aria-label="Pertanyaan untuk Amy" placeholder="Tanya data atau materi aplikasi…" maxlength="2000"><button type="submit">Kirim</button></form></section>';document.body.appendChild(host);
     const panel=host.querySelector('section'),input=host.querySelector('input'),messages=host.querySelector('#amy-local-messages'),fab=host.querySelector('#amy-local-fab');
     const open=()=>{panel.hidden=false;fab.hidden=true;input.focus();};const close=()=>{panel.hidden=true;fab.hidden=false;fab.focus();};fab.onclick=open;host.querySelector('#amy-local-close').onclick=close;panel.addEventListener('keydown',e=>{if(e.key==='Escape')close();});root.addEventListener('amyfx:open-mentor',open);
     function append(text,links=[]){const p=document.createElement('p');p.textContent=text;messages.appendChild(p);links.forEach(l=>{try{const url=new URL(l.path,base);if(!url.href.startsWith(base))return;const a=document.createElement('a');a.href=url.href;a.textContent=l.label;p.appendChild(a);}catch{}});while(messages.children.length>40)messages.firstChild.remove();messages.scrollTop=messages.scrollHeight;}

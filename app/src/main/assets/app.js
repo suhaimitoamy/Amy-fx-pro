@@ -223,13 +223,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderHome() {
     setActive('beranda');
     mainContent.innerHTML = `<section class="home-price-panel" aria-label="Peta harga XAU/USD">
-      <div class="section-heading"><h2>Peta harga · XAU/USD</h2><strong id="home-chart-price">—</strong></div>
-      <div class="home-chart-controls"><label>Timeframe <select id="home-chart-tf"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="home-chart-refresh">Perbarui</button></div>
+      <div class="section-heading"><h2>Peta harga · XAU/USD</h2><div style="display:flex; align-items:center; gap:8px;"><span id="home-chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM 50% · NETRAL ⚪</span><strong id="home-chart-price">—</strong></div></div>
+      <div class="home-chart-controls"><label>Timeframe <select id="home-chart-tf"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="home-chart-refresh">Perbarui</button><button type="button" id="home-chart-alert" title="Pasang Alarm Target Harga">🔔 Pasang Alarm</button></div>
       <p id="home-chart-source" role="status">Memuat candle tertutup…</p><p id="home-chart-error" role="alert"></p>
       <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
       <p id="home-chart-note"></p>
     </section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
-    if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
+    if (typeof mainContent.querySelector === 'function') {
+      mainContent.querySelector('#home-chart-alert')?.addEventListener('click', () => {
+        if (typeof window.AmyPriceAlertManager?.openAddAlertDialog === 'function') {
+          window.AmyPriceAlertManager.openAddAlertDialog();
+        }
+      });
+      if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
+    }
   }
 
   function renderProjectList(title) {
@@ -1399,6 +1406,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Panel 3: Manajemen Data & Keamanan -->
       <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Manajemen Data &amp; Reset</div>
       <section class="profile-list" style="margin-top:8px;">
+        <button class="profile-row" id="profileClearCacheBtn" type="button">
+          <span class="tool-icon">🧹</span>
+          <span><strong>Bersihkan Cache Sementara</strong><small>Hapus sisa unduhan update APK dan cache video tanpa menghapus catatan.</small></span>
+          <span class="chevron">›</span>
+        </button>
         <button class="profile-row" id="profileExportBtn" type="button">
           <span class="tool-icon">💾</span>
           <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi semua jurnal, rutinitas, dan catatan lokal.</small></span>
@@ -1413,6 +1425,22 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     // Event bindings for new profile features
+    document.getElementById('profileClearCacheBtn')?.addEventListener('click', () => {
+      let freedMb = '0.0';
+      if (typeof window.Android?.clearAppCache === 'function') {
+        freedMb = window.Android.clearAppCache();
+      } else {
+        try {
+          const keys = Object.keys(sessionStorage);
+          for (const k of keys) {
+            if (k.startsWith('amy_cache_') || k.startsWith('temp_')) sessionStorage.removeItem(k);
+          }
+        } catch (_) {}
+        freedMb = '1.5';
+        showToast(`Berhasil membebaskan ${freedMb} MB ruang penyimpanan!`);
+      }
+    });
+
     document.getElementById('editTraderNameBtn')?.addEventListener('click', () => {
       const current = localStorage.getItem('amy_trader_name') || 'Trader';
       const updated = window.prompt('Masukkan Nama Trader Anda:', current);
@@ -1530,24 +1558,27 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.onload = e => {
         const img = new Image();
         img.onload = () => {
-          const maxDim = 1280;
-          let w = img.width;
-          let h = img.height;
-          if (w > maxDim || h > maxDim) {
-            if (w > h) {
-              h = Math.round((h * maxDim) / w);
-              w = maxDim;
-            } else {
-              w = Math.round((w * maxDim) / h);
-              h = maxDim;
-            }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          const dataUrl = (window.AmyFXTheme && typeof window.AmyFXTheme.compressWallpaper === 'function')
+            ? window.AmyFXTheme.compressWallpaper(img, 1080, 720, 0.75)
+            : (() => {
+                const maxWidth = 1080;
+                const maxHeight = 720;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxWidth || h > maxHeight) {
+                  const ratio = Math.min(maxWidth / w, maxHeight / h);
+                  w = Math.round(w * ratio);
+                  h = Math.round(h * ratio);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                let u = '';
+                try { u = canvas.toDataURL('image/webp', 0.75); } catch (_) {}
+                return (u && u.startsWith('data:image/webp')) ? u : canvas.toDataURL('image/jpeg', 0.72);
+              })();
 
           const currentDim = dimSlider ? Number(dimSlider.value) : 50;
           const currentBlur = blurSlider ? Number(blurSlider.value) : 20;

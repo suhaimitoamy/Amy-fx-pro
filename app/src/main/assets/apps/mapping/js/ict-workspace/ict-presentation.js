@@ -65,6 +65,30 @@ export function isGoldMarketOpen(nowSeconds = Math.floor(Date.now() / 1000)) {
     return day !== 0 && day !== 6;
   }
 }
+
+export function isPreMarketWarming(nowSeconds = Math.floor(Date.now() / 1000)) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hourCycle: 'h23',
+      hour: '2-digit',
+      minute: '2-digit',
+      weekday: 'short'
+    }).formatToParts(new Date(nowSeconds * 1000));
+    const values = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    const hour = Number(values.hour) + Number(values.minute) / 60;
+    return values.weekday === 'Sun' && hour >= 16.9166 && hour < 17;
+  } catch (_) {
+    return false;
+  }
+}
+
+export function getMarketPowerState(nowSeconds = Math.floor(Date.now() / 1000)) {
+  if (isGoldMarketOpen(nowSeconds)) return 'MARKET_OPEN';
+  if (isPreMarketWarming(nowSeconds)) return 'PRE_MARKET_WARMUP';
+  return 'DEEP_SLEEP';
+}
+
 export function detectLiquiditySweep(amy, context = null) {
   if (!amy) return null;
   const d = amy.dashboard;
@@ -138,15 +162,19 @@ export function detectLiquiditySweep(amy, context = null) {
     lines.some(l => /bsl.*swept/i.test(l)) ||
     liqList.some(l => l.label === 'BSL' && /swept/i.test(l.status));
 
+  const marketPrice = num(amy?.currentPrice) || num(amy?.price) || (typeof window !== 'undefined' ? (num(window.amyfxCurrentPrice) || num(window.currentPrice)) : null) || 0;
+  const defaultSsl = c ? c.low : marketPrice;
+  const defaultBsl = c ? c.high : marketPrice;
+
   if (hasSslSweep) {
-    const lvl = (dSweepDir === 1 && dSweepPrice) || (trgSweepDir === 1 && trgSweptPrice) || sslLevel || (c ? c.low : 2642.50);
-    const ext = (dSweepDir === 1 && dSweepExtreme) || (trgSweepDir === 1 && trgSweepExtreme) || (c && c.low < lvl ? c.low : lvl - 1.70);
+    const lvl = (dSweepDir === 1 && dSweepPrice) || (trgSweepDir === 1 && trgSweptPrice) || sslLevel || defaultSsl;
+    const ext = (dSweepDir === 1 && dSweepExtreme) || (trgSweepDir === 1 && trgSweepExtreme) || (c && c.low < lvl ? c.low : (lvl ? lvl - 1.70 : 0));
     return { name: 'SSL', level: lvl, extreme: ext, side: 'BUY' };
   }
 
   if (hasBslSweep) {
-    const lvl = (dSweepDir === -1 && dSweepPrice) || (trgSweepDir === -1 && trgSweptPrice) || bslLevel || (c ? c.high : 2665.30);
-    const ext = (dSweepDir === -1 && dSweepExtreme) || (trgSweepDir === -1 && trgSweepExtreme) || (c && c.high > lvl ? c.high : lvl + 1.70);
+    const lvl = (dSweepDir === -1 && dSweepPrice) || (trgSweepDir === -1 && trgSweptPrice) || bslLevel || defaultBsl;
+    const ext = (dSweepDir === -1 && dSweepExtreme) || (trgSweepDir === -1 && trgSweepExtreme) || (c && c.high > lvl ? c.high : (lvl ? lvl + 1.70 : 0));
     return { name: 'BSL', level: lvl, extreme: ext, side: 'SELL' };
   }
 
@@ -154,12 +182,189 @@ export function detectLiquiditySweep(amy, context = null) {
   if (lines.some(l => l.toLowerCase().includes('swept'))) {
     const isSsl = lines.some(l => /ssl/i.test(l));
     const name = isSsl ? 'SSL' : 'BSL';
-    const lvl = isSsl ? (sslLevel || (c ? c.low : 2642.50)) : (bslLevel || (c ? c.high : 2665.30));
-    const ext = isSsl ? (c && c.low < lvl ? c.low : lvl - 1.70) : (c && c.high > lvl ? c.high : lvl + 1.70);
+    const lvl = isSsl ? (sslLevel || defaultSsl) : (bslLevel || defaultBsl);
+    const ext = isSsl ? (c && c.low < lvl ? c.low : (lvl ? lvl - 1.70 : 0)) : (c && c.high > lvl ? c.high : (lvl ? lvl + 1.70 : 0));
     return { name, level: lvl, extreme: ext, side: isSsl ? 'BUY' : 'SELL' };
   }
 
   return null;
+}
+
+export function dashboardContextV4Rows(amy, context = null) {
+  const d = amy?.dashboard;
+  const ctx = context || (typeof window !== 'undefined' ? window.AmyMarketContext : null);
+  const levels = amy?.levels || ctx?.levels || ctx?.keyLevels || {};
+  const currentPrice = (typeof window !== 'undefined' && Number.isFinite(Number(window.amyfxCurrentPrice)) && Number(window.amyfxCurrentPrice) > 0)
+    ? Number(window.amyfxCurrentPrice)
+    : (Number.isFinite(Number(amy?.currentPrice)) && Number(amy?.currentPrice) > 0)
+    ? Number(amy.currentPrice)
+    : (Number.isFinite(Number(ctx?.price)) && Number(ctx.price) > 0)
+    ? Number(ctx.price)
+    : (Number.isFinite(Number(d?.candle?.close)) && Number(d.candle.close) > 0)
+    ? Number(d.candle.close)
+    : 0;
+
+  // 1. Timeframe Matrix Directions
+  const isHtfBull = (ctx?.h1?.bias === 'BULLISH') || (d?.biasDir === 1);
+  const isMtfBull = (ctx?.m15?.structure === 'BULLISH') || (d?.mssDir === 1);
+  const isLtfBull = (ctx?.m5?.status === 'CONFIRMED' ? (ctx?.primary?.side === 'BUY') : Boolean(amy?.trigger?.bullBreak || amy?.trigger?.bullDisp || ((amy?.entry?.buy || 0) > (amy?.entry?.sell || 0))));
+
+  const isFullBullAlign = isHtfBull && isMtfBull && isLtfBull;
+  const isFullBearAlign = !isHtfBull && !isMtfBull && !isLtfBull;
+  const isBullPullback = isHtfBull && (!isLtfBull || !isMtfBull);
+  const isBearPullback = !isHtfBull && (isLtfBull || isMtfBull);
+
+  // 2. Dealing Range & Percent
+  const rHigh = Number(ctx?.m15?.dealingRange?.rangeHigh ?? d?.rangeHigh ?? d?.protectedHigh ?? levels?.bsl);
+  const rLow = Number(ctx?.m15?.dealingRange?.rangeLow ?? d?.rangeLow ?? d?.protectedLow ?? levels?.ssl);
+  const hasRange = Number.isFinite(rHigh) && Number.isFinite(rLow) && rHigh > rLow;
+  const eqMid = hasRange ? (rHigh + rLow) / 2 : null;
+  const rangePct = (hasRange && currentPrice > 0) ? Math.min(100, Math.max(0, Math.round(((currentPrice - rLow) / (rHigh - rLow)) * 100))) : 50;
+  const isDiscount = rangePct < 47.5;
+  const isPremium = rangePct > 52.5;
+  const zoneLabel = isDiscount ? `DISCOUNT (<47.5%) [${rangePct}%]` : isPremium ? `PREMIUM (>52.5%) [${rangePct}%]` : `EQUILIBRIUM (50%) [${rangePct}%]`;
+
+  // 3. Sweeps & Liquidity
+  const sweep = detectLiquiditySweep(amy, ctx);
+  const sslSwept = (sweep?.side === 'BUY' && (sweep.name === 'SSL' || sweep.name === 'PDL' || sweep.name === 'Asia Low')) || (d?.sweepStatus === 1 && d?.sweepDir === 1);
+  const bslSwept = (sweep?.side === 'SELL' && (sweep.name === 'BSL' || sweep.name === 'PDH' || sweep.name === 'Asia High')) || (d?.sweepStatus === 1 && d?.sweepDir === -1);
+  const pdhSwept = sweep?.name === 'PDH';
+  const pdlSwept = sweep?.name === 'PDL';
+  const asiaHighSwept = sweep?.name === 'Asia High';
+  const asiaLowSwept = sweep?.name === 'Asia Low';
+
+  // 4. Supply & Demand Zones (M15)
+  const poi = d?.poi || ctx?.m15?.poi;
+  const inBullDemand = (poi?.side === 'BUY' && (d?.poiLocation === -1 || (currentPrice > 0 && poi.low != null && poi.high != null && currentPrice >= poi.low && currentPrice <= poi.high)));
+  const inBearSupply = (poi?.side === 'SELL' && (d?.poiLocation === 1 || (currentPrice > 0 && poi.low != null && poi.high != null && currentPrice >= poi.low && currentPrice <= poi.high)));
+
+  // 5. Narrative Phase & Action Guide
+  let phaseStatus = '';
+  let actionGuide = '';
+  let phaseClass = 'bias-val-gold';
+
+  if (isHtfBull) {
+    if (sslSwept || pdlSwept || asiaLowSwept) {
+      phaseStatus = 'MANIPULASI BAWAH (SSL/PDL/Asia L Tersapu di Tren Bullish)';
+      actionGuide = 'Likuiditas Bawah Sudah Diambil — Pantau CHoCH Naik di M5';
+      phaseClass = 'bias-val-gold';
+    } else if (isBullPullback && inBullDemand) {
+      phaseStatus = 'PULLBACK DI ZONA DEMAND (HTF Bullish, LTF Turun Masuk POI)';
+      actionGuide = 'Harga di Demand/Discount — JANGAN SELL! Tunggu M5 CHoCH Bullish';
+      phaseClass = 'bias-val-gold';
+    } else if (isBullPullback) {
+      phaseStatus = 'FASE PULLBACK / KOREKSI TURUN (HTF Bullish vs M5 Bearish)';
+      actionGuide = 'Penurunan Ini Koreksi Menuju Discount — Awas Jebakan Sell di Bawah!';
+      phaseClass = 'bias-val-purple';
+    } else if (isFullBullAlign && isPremium) {
+      phaseStatus = `EKSPANSI BULLISH DI AREA PREMIUM (${rangePct}%)`;
+      actionGuide = 'Tren Naik Kuat Menuju BSL, Tapi Rawan Pullback (Jangan FOMO Buy di Pucuk)';
+      phaseClass = 'bias-val-bull';
+    } else {
+      phaseStatus = 'SEARAH BULLISH (HTF, M15, & M5 Kompak Naik)';
+      actionGuide = 'Struktur Sehat Searah Menuju Magnet Likuiditas Atas (BSL / PDH)';
+      phaseClass = 'bias-val-bull';
+    }
+  } else {
+    if (bslSwept || pdhSwept || asiaHighSwept) {
+      phaseStatus = 'MANIPULASI ATAS (BSL/PDH/Asia H Tersapu di Tren Bearish)';
+      actionGuide = 'Likuiditas Atas Sudah Diambil — Pantau CHoCH Turun di M5';
+      phaseClass = 'bias-val-gold';
+    } else if (isBearPullback && inBearSupply) {
+      phaseStatus = 'PULLBACK DI ZONA SUPPLY (HTF Bearish, LTF Naik Masuk POI)';
+      actionGuide = 'Harga di Supply/Premium — JANGAN BUY! Tunggu M5 CHoCH Bearish';
+      phaseClass = 'bias-val-gold';
+    } else if (isBearPullback) {
+      phaseStatus = 'FASE PULLBACK / KOREKSI NAIK (HTF Bearish vs M5 Bullish)';
+      actionGuide = 'Kenaikan Ini Koreksi Menuju Premium — Awas Jebakan Buy di Pucuk!';
+      phaseClass = 'bias-val-purple';
+    } else if (isFullBearAlign && isDiscount) {
+      phaseStatus = `EKSPANSI BEARISH DI AREA DISCOUNT (${rangePct}%)`;
+      actionGuide = 'Tren Turun Kuat Menuju SSL, Tapi Rawan Pullback (Jangan FOMO Sell di Dasar)';
+      phaseClass = 'bias-val-bear';
+    } else {
+      phaseStatus = 'SEARAH BEARISH (HTF, M15, & M5 Kompak Turun)';
+      actionGuide = 'Struktur Sehat Searah Menuju Magnet Likuiditas Bawah (SSL / PDL)';
+      phaseClass = 'bias-val-bear';
+    }
+  }
+
+  // Row 1: MATRIKS 3-TIMEFRAME
+  const tfMatrix = `H1 (Major): ${isHtfBull ? 'BULLISH' : 'BEARISH'}  |  M15 (Swing): ${isMtfBull ? 'BULLISH' : 'BEARISH'}  |  M5 (Orderflow): ${isLtfBull ? 'BULLISH' : 'BEARISH'}`;
+  const tfMatrixClass = isHtfBull ? 'bias-val-bull' : 'bias-val-bear';
+
+  // Row 3: DEALING RANGE & ZONA
+  const rngInfo = hasRange
+    ? `${zoneLabel}  |  Range: ${n(rLow)} - ${n(rHigh)} (EQ: ${n(eqMid)})`
+    : '—';
+  const rngClass = (isHtfBull && isDiscount) || (!isHtfBull && isPremium) ? 'bias-val-bull' : '';
+
+  // Row 4: MAGNET ATAS (BSL/PDH)
+  const bslVal = Number(levels?.bsl ?? d?.bsl ?? rHigh);
+  const pdhVal = Number(levels?.pdh ?? ctx?.keyLevels?.pdh);
+  const distBSL = (Number.isFinite(bslVal) && currentPrice > 0) ? Math.abs(bslVal - currentPrice) : null;
+  const bslInfo = `M15 BSL: ${n(bslVal)}${distBSL != null ? ` ($${distBSL.toFixed(2)})` : ''}${bslSwept ? ' [SWEPT]' : ''}  |  PDH: ${n(pdhVal)}${pdhSwept ? ' [SWEPT]' : ''}`;
+  const bslClass = (bslSwept || pdhSwept) ? 'bias-val-gold' : (isHtfBull ? 'bias-val-cyan' : '');
+
+  // Row 5: MAGNET BAWAH (SSL/PDL)
+  const sslVal = Number(levels?.ssl ?? d?.ssl ?? rLow);
+  const pdlVal = Number(levels?.pdl ?? ctx?.keyLevels?.pdl);
+  const distSSL = (Number.isFinite(sslVal) && currentPrice > 0) ? Math.abs(currentPrice - sslVal) : null;
+  const sslInfo = `M15 SSL: ${n(sslVal)}${distSSL != null ? ` ($${distSSL.toFixed(2)})` : ''}${sslSwept ? ' [SWEPT]' : ''}  |  PDL: ${n(pdlVal)}${pdlSwept ? ' [SWEPT]' : ''}`;
+  const sslClass = (sslSwept || pdlSwept) ? 'bias-val-gold' : (!isHtfBull ? 'bias-val-cyan' : '');
+
+  // Row 6: SESI & ASIA RANGE
+  const sessName = ctx?.session || 'LONDON';
+  const asiaHigh = Number(levels?.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
+  const asiaLow = Number(levels?.asiaLow ?? ctx?.keyLevels?.asiaLow);
+  const asiaStat = asiaHighSwept ? 'Asia High Swept' : asiaLowSwept ? 'Asia Low Swept' : 'Dalam Range';
+  const sessInfo = `Sesi Aktif: ${sessName}  |  Asia H/L: ${n(asiaHigh)} / ${n(asiaLow)} (${asiaStat})`;
+  const sessClass = (asiaHighSwept || asiaLowSwept) ? 'bias-val-gold' : '';
+
+  // Row 7: INDUCEMENT (IDM)
+  const idmVal = isHtfBull
+    ? (Number(d?.protectedLow) || (poi?.side === 'BUY' ? Number(poi.low) : null))
+    : (Number(d?.protectedHigh) || (poi?.side === 'SELL' ? Number(poi.high) : null));
+  const idmSwept = (d?.sweepStatus === 1) || (isHtfBull ? sslSwept : bslSwept);
+  const idmInfo = Number.isFinite(idmVal)
+    ? `IDM (M15): ${n(idmVal)} ${idmSwept ? '[SUDAH DISAPU — POI di Belakangnya Valid]' : '[BELUM DISAPU — Waspada Umpan Likuiditas]'}`
+    : 'Menunggu Pembentukan Swing IDM';
+  const idmClass = idmSwept ? 'bias-val-bull' : 'bias-val-gold';
+
+  // Row 8: ZONA SUPPLY (M15)
+  const bearOB = (poi?.side === 'SELL' && poi?.kind === 'OB') ? poi : null;
+  const bearFVG = (poi?.side === 'SELL' && poi?.kind === 'FVG') ? poi : null;
+  const supObTxt = bearOB ? `${n(bearOB.low)}-${n(bearOB.high)}` : 'Mitigated';
+  const supFvgTxt = bearFVG ? `${n(bearFVG.low)}-${n(bearFVG.high)}` : 'Mitigated';
+  const supInfo = `Supply OB: ${supObTxt}  |  Bear FVG: ${supFvgTxt}${inBearSupply ? '  [HARGA DI DALAM SUPPLY!]' : ''}`;
+  const supClass = inBearSupply ? 'bias-val-bear' : '';
+
+  // Row 9: ZONA DEMAND (M15)
+  const bullOB = (poi?.side === 'BUY' && poi?.kind === 'OB') ? poi : null;
+  const bullFVG = (poi?.side === 'BUY' && poi?.kind === 'FVG') ? poi : null;
+  const demObTxt = bullOB ? `${n(bullOB.low)}-${n(bullOB.high)}` : 'Mitigated';
+  const demFvgTxt = bullFVG ? `${n(bullFVG.low)}-${n(bullFVG.high)}` : 'Mitigated';
+  const demInfo = `Demand OB: ${demObTxt}  |  Bull FVG: ${demFvgTxt}${inBullDemand ? '  [HARGA DI DALAM DEMAND!]' : ''}`;
+  const demClass = inBullDemand ? 'bias-val-bull' : '';
+
+  // Row 10: BATAS CHoCH (H1)
+  const htfLow = Number(ctx?.h1?.swingLow ?? ctx?.h1?.protectedLevel ?? (hasRange ? rLow - 10 : 2630));
+  const htfHigh = Number(ctx?.h1?.swingHigh ?? ctx?.h1?.protectedLevel ?? (hasRange ? rHigh + 10 : 2685));
+  const invInfo = `HTF Bullish Batal Jika Tutup < ${n(htfLow)}  |  HTF Bearish Batal Jika Tutup > ${n(htfHigh)}`;
+
+  return [
+    ['MATRIKS 3-TIMEFRAME', tfMatrix, tfMatrixClass],
+    ['FASE NARASI MARKET', phaseStatus, phaseClass],
+    ['DEALING RANGE & ZONA', rngInfo, rngClass],
+    ['MAGNET ATAS (BSL/PDH)', bslInfo, bslClass],
+    ['MAGNET BAWAH (SSL/PDL)', sslInfo, sslClass],
+    ['SESI & ASIA RANGE', sessInfo, sessClass],
+    ['INDUCEMENT (IDM)', idmInfo, idmClass],
+    ['ZONA SUPPLY (M15)', supInfo, supClass],
+    ['ZONA DEMAND (M15)', demInfo, demClass],
+    ['BATAS CHoCH (H1)', invInfo, ''],
+    ['PANDUAN KONTEKS', actionGuide, phaseClass]
+  ];
 }
 
 export function renderLiveAssistant(amy,news=null,settings={},context=null){
@@ -172,7 +377,8 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
   if(!root||!badgeEl||!primaryEl||!subEl)return;
 
   const ctx=context||(typeof window!=='undefined'?window.AmyMarketContext:null);
-  const isClosed=!isGoldMarketOpen()||ctx?.session==='PASAR TUTUP'||(typeof window!=='undefined'&&window.AmyMarketContext?.session==='PASAR TUTUP');
+  const marketOpen = typeof ctx?.isMarketOpen === 'boolean' ? ctx.isMarketOpen : isGoldMarketOpen(ctx?.nowSeconds);
+  const isClosed=!marketOpen||ctx?.session==='PASAR TUTUP'||(typeof window!=='undefined'&&window.AmyMarketContext?.session==='PASAR TUTUP');
 
   if(isClosed){
     badgeEl.textContent='PASAR TUTUP';
@@ -257,16 +463,37 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     notify=true;
     notifTitle=`💧 Asisten Amy: ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
     notifBody=`${primary} ${sub}`;
-  }else if(d?.biasDir){
-    const isBull=d.biasDir===1;
-    badge='STANDBY';badgeClass='badge-neutral';
-    stateClass=isBull?'assistant-state-bull':'assistant-state-bear';
-    primary=`Bias M15: ${isBull?'Bullish (Mencari Buy)':'Bearish (Mencari Sell)'} · STANDBY`;
-    sub=`Anti-Chase: STANDBY · Math Zone: ${mathZoneText}`;
   }else{
-    badge='STANDBY';badgeClass='badge-neutral';stateClass='';
-    primary='Kondisi Pasar Netral / Belum Ada Bias Jelas';
-    sub=`Anti-Chase: STANDBY · Math Zone: ${mathZoneText}`;
+    const v4Rows = dashboardContextV4Rows(amy, context);
+    const phaseRow = v4Rows.find(r => r[0] === 'FASE NARASI MARKET');
+    const guideRow = v4Rows.find(r => r[0] === 'PANDUAN KONTEKS');
+    if(phaseRow && guideRow && phaseRow[1]){
+      primary = phaseRow[1];
+      sub = guideRow[1];
+      if(primary.includes('SEARAH BULLISH') || primary.includes('EKSPANSI BULLISH')){
+        badge = 'SEARAH BULLISH'; badgeClass = 'badge-bull'; stateClass = 'assistant-state-bull';
+      } else if(primary.includes('SEARAH BEARISH') || primary.includes('EKSPANSI BEARISH')){
+        badge = 'SEARAH BEARISH'; badgeClass = 'badge-bear'; stateClass = 'assistant-state-bear';
+      } else if(primary.includes('PULLBACK')){
+        badge = 'FASE PULLBACK'; badgeClass = 'badge-warn'; stateClass = 'assistant-state-sweep';
+      } else if(primary.includes('MANIPULASI')){
+        badge = 'MANIPULASI'; badgeClass = 'badge-sweep'; stateClass = 'assistant-state-sweep';
+      } else {
+        const isBull = (d?.biasDir === 1) || (ctx?.h1?.bias === 'BULLISH');
+        badge = 'STANDBY'; badgeClass = 'badge-neutral';
+        stateClass = isBull ? 'assistant-state-bull' : 'assistant-state-bear';
+      }
+    } else if(d?.biasDir){
+      const isBull = d.biasDir === 1;
+      badge = 'STANDBY'; badgeClass = 'badge-neutral';
+      stateClass = isBull ? 'assistant-state-bull' : 'assistant-state-bear';
+      primary = `Bias M15: ${isBull ? 'Bullish (Mencari Buy)' : 'Bearish (Mencari Sell)'} · STANDBY`;
+      sub = `Anti-Chase: STANDBY · Math Zone: ${mathZoneText}`;
+    } else {
+      badge = 'STANDBY'; badgeClass = 'badge-neutral'; stateClass = '';
+      primary = 'Kondisi Pasar Netral / Belum Ada Bias Jelas';
+      sub = `Anti-Chase: STANDBY · Math Zone: ${mathZoneText}`;
+    }
   }
 
   badgeEl.textContent=badge;
@@ -311,39 +538,26 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
 }
 
 export function renderBiasDashboardV2(amy,context=null){
-  const tbody=document.getElementById('bias-table-body'),headerEl=document.getElementById('bias-table-header');
+  const tbody=document.getElementById('bias-table-body'),headerEl=document.getElementById('bias-table-header'),statusEl=document.getElementById('bias-dashboard-status');
   if(!tbody)return;
   if(!amy||!amy.dashboard){
     tbody.innerHTML='<tr><td colspan="2" style="text-align:center; padding:16px; color:var(--muted);">Menunggu konteks server yang segar...</td></tr>';
-    if(headerEl)headerEl.textContent='AMY ICT — M15 CURRENT MAPPING';
+    if(headerEl)headerEl.textContent='AMY ICT CONTEXT V4 [INTRADAY]';
     return;
   }
-  const d=amy.dashboard;
+  const rows=dashboardContextV4Rows(amy,context);
+  const tfRow=rows.find(r=>r[0]==='MATRIKS 3-TIMEFRAME');
+  const isFullBull=tfRow&&tfRow[1].includes('Major): BULLISH')&&tfRow[1].includes('Swing): BULLISH')&&tfRow[1].includes('Orderflow): BULLISH');
+  const isFullBear=tfRow&&tfRow[1].includes('Major): BEARISH')&&tfRow[1].includes('Swing): BEARISH')&&tfRow[1].includes('Orderflow): BEARISH');
+  const alignBadge=(isFullBull||isFullBear)?'SEARAH (ALIGNED)':'FASE PULLBACK / TRANSISI';
   if(headerEl){
-    const stateText=context?.marketState||(d.biasDir===1?'BULLISH':d.biasDir===-1?'BEARISH':'NEUTRAL');
-    headerEl.textContent=`AMY ICT — M15 CURRENT MAPPING · ${stateText}`;
+    headerEl.textContent=`AMY ICT CONTEXT V4 [INTRADAY] · STATUS: ${alignBadge}`;
   }
-  const rows=dashboardRows(amy);
-  tbody.innerHTML=rows.map(([key,val])=>{
-    let valClass='';
-    const upperVal=String(val).toUpperCase();
-    if(key==='BIAS'){
-      valClass=upperVal.includes('NAIK')||upperVal.includes('BUY')?'bias-val-bull':upperVal.includes('TURUN')||upperVal.includes('SELL')?'bias-val-bear':'';
-    }else if(key==='STRUKTUR'){
-      valClass=upperVal.includes('BULLISH')?'bias-val-bull':upperVal.includes('BEARISH')?'bias-val-bear':'';
-    }else if(key==='SWEEP'){
-      valClass=upperVal.includes('SWEPT')?'bias-val-sweep':'';
-    }else if(key==='DOL'){
-      valClass=upperVal.includes('REACHED')?'bias-val-bull':upperVal.includes('ACTIVE')?'bias-val-gold':'';
-    }else if(key==='POSISI'){
-      valClass=upperVal.includes('DISCOUNT')?'bias-val-bull':upperVal.includes('PREMIUM')?'bias-val-warn':'';
-    }else if(key==='INVALID'){
-      valClass=upperVal.includes('NEAR')||upperVal.includes('INVALID')?'bias-val-bear':'bias-val-bull';
-    }else if(key==='ALASAN INTI'){
-      valClass='bias-val-gold';
-    }
-    return `<tr><td class="bias-key-col">${esc(key)}</td><td class="bias-val-col ${valClass}">${esc(val)}</td></tr>`;
-  }).join('');
+  if(statusEl){
+    statusEl.textContent=alignBadge;
+    statusEl.style.color=isFullBull?'#00e676':isFullBear?'#ff5252':'#F5C451';
+  }
+  tbody.innerHTML=rows.map(([key,val,valClass])=>`<tr><td class="bias-key-col">${esc(key)}</td><td class="bias-val-col ${valClass||''}">${esc(val)}</td></tr>`).join('');
 }
 
 export function renderEntryAssistantPlan(amy,context=null){
@@ -352,6 +566,7 @@ export function renderEntryAssistantPlan(amy,context=null){
   const ast=amy?.assistant||null,plan=ast?.plan||amy?.plan||null;
   const badgeEl=document.getElementById('plan-signal-badge');
   const antiChaseEl=document.getElementById('plan-anti-chase-pill');
+  const rejectionEl=document.getElementById('plan-rejection-pill');
   const mathZoneEl=document.getElementById('plan-math-zone');
   const pullbackEl=document.getElementById('plan-pullback-notice');
   const entryVal=document.getElementById('plan-entry-val');
@@ -367,6 +582,7 @@ export function renderEntryAssistantPlan(amy,context=null){
   if(!plan){
     if(badgeEl){badgeEl.textContent='MENUNGGU KONFIRMASI';badgeEl.className='plan-badge badge-neutral';}
     if(antiChaseEl){antiChaseEl.textContent='STANDBY';antiChaseEl.className='anti-chase-pill pill-neutral';}
+    if(rejectionEl)rejectionEl.style.display='none';
     if(mathZoneEl)mathZoneEl.textContent=`Math Zone: ${ast?.mathZone||'Menunggu zona terkonfirmasi'}`;
     if(pullbackEl)pullbackEl.style.display='none';
     if(entryVal)entryVal.textContent='—';
@@ -396,6 +612,23 @@ export function renderEntryAssistantPlan(amy,context=null){
       antiChaseEl.textContent='STANDBY';antiChaseEl.className='anti-chase-pill pill-neutral';
     }
   }
+
+  // Visual Rejection Candle Body Filter (Item 2.24)
+  const sweepInfo=ast?.sweep||plan?.sweep||amy?.sweep||null;
+  const rejectionState=ast?.rejectionState||plan?.rejectionState||(ast?.reclaimed?'SWEEP_REJECTION':(ast?.waitingRejectionClose?'SWEEP_UNCONFIRMED':null));
+  if(rejectionEl){
+    if(rejectionState==='SWEEP_REJECTION'||ast?.reclaimed===true||plan?.reclaimed===true){
+      rejectionEl.style.display='inline-block';
+      rejectionEl.textContent='🎯 Reclaimed Valid';
+      rejectionEl.className='anti-chase-pill pill-ready';
+    }else if(rejectionState==='SWEEP_UNCONFIRMED'||ast?.waitingRejectionClose||(sweepInfo&&!ast?.reclaimed)){
+      rejectionEl.style.display='inline-block';
+      rejectionEl.textContent='⚖️ Menunggu Rejection Close';
+      rejectionEl.className='anti-chase-pill pill-warning';
+    }else{
+      rejectionEl.style.display='none';
+    }
+  }
   if(mathZoneEl)mathZoneEl.textContent=`Math Zone: ${ast?.mathZone||'Fibo OTE / SNR / POI'}`;
   if(pullbackEl){
     if(isPullback){
@@ -418,6 +651,74 @@ export function renderEntryAssistantPlan(amy,context=null){
     const items=ast?.reasons&&ast.reasons.length?ast.reasons:(plan.reason||'').split('\n').filter(Boolean);
     reasonsEl.innerHTML=items.map(r=>`<li>${esc(r)}</li>`).join('');
   }
+
+  // Pre-Trade Confluence Checklist 4-Poin (Item 2.22)
+  const chkSession=document.getElementById('chk-pretrade-session');
+  const chkZone=document.getElementById('chk-pretrade-zone');
+  const chkLiq=document.getElementById('chk-pretrade-liquidity');
+  const chkRR=document.getElementById('chk-pretrade-rr');
+  const scoreEl=document.getElementById('pretrade-checklist-score');
+  const btnTakeTrade=document.getElementById('btn-take-trade');
+
+  const sessionText=String(amy?.session||ast?.session||plan?.session||'').toUpperCase();
+  const cSession=sessionText.includes('LONDON')||sessionText.includes('NEW_YORK')||sessionText.includes('NY')||sessionText.includes('KILLZONE')||(new Date().getUTCHours()+8>=14&&new Date().getUTCHours()+8<=23);
+  const mathZoneText=String(ast?.mathZone||plan?.zone||'').toUpperCase();
+  const cZone=mathZoneText.includes('OTE')||mathZoneText.includes('DISCOUNT')||mathZoneText.includes('PREMIUM')||mathZoneText.includes('FIBO')||Boolean(plan?.entry);
+  const cLiq=Boolean(ast?.reclaimed||ast?.rejectionState==='SWEEP_REJECTION'||ast?.sweep||plan?.sweep);
+  const cRR=Number(plan?.rr2||plan?.rr||plan?.rr1||0)>=2.0;
+
+  if(chkSession)chkSession.checked=cSession;
+  if(chkZone)chkZone.checked=cZone;
+  if(chkLiq)chkLiq.checked=cLiq;
+  if(chkRR)chkRR.checked=cRR;
+
+  const updatePreTradeUI=()=>{
+    const s1=Boolean(chkSession?.checked);
+    const s2=Boolean(chkZone?.checked);
+    const s3=Boolean(chkLiq?.checked);
+    const s4=Boolean(chkRR?.checked);
+    const currentScore=[s1,s2,s3,s4].filter(Boolean).length;
+    if(scoreEl)scoreEl.textContent=`${currentScore}/4 Kriteria`;
+
+    if(btnTakeTrade){
+      if(currentScore>=3){
+        btnTakeTrade.disabled=false;
+        btnTakeTrade.style.background='linear-gradient(135deg, #059669 0%, #10b981 100%)';
+        btnTakeTrade.style.color='#ffffff';
+        btnTakeTrade.style.border='1px solid #34d399';
+        btnTakeTrade.style.boxShadow='0 0 16px rgba(16,185,129,0.4)';
+        btnTakeTrade.style.opacity='1';
+        btnTakeTrade.style.cursor='pointer';
+        btnTakeTrade.textContent=`🚀 Ambil Trade (${currentScore}/4 Aman)`;
+        btnTakeTrade.onclick=()=>{
+          try{
+            localStorage.setItem('amy_pretrade_selected_setup',JSON.stringify({
+              time:Date.now(),
+              plan,
+              checklist:{session:s1,zone:s2,liquidity:s3,rr:s4,score:currentScore}
+            }));
+            if(window.Android?.triggerHaptic)window.Android.triggerHaptic(50);
+            window.location.href='../journal/index.html?prefill=1';
+          }catch(_){}
+        };
+      }else{
+        btnTakeTrade.disabled=true;
+        btnTakeTrade.style.background='rgba(255,255,255,0.06)';
+        btnTakeTrade.style.color='#94a3b8';
+        btnTakeTrade.style.border='1px solid rgba(255,255,255,0.15)';
+        btnTakeTrade.style.boxShadow='none';
+        btnTakeTrade.style.opacity='0.6';
+        btnTakeTrade.style.cursor='not-allowed';
+        btnTakeTrade.textContent=`🛡️ Ambil Trade (${currentScore}/4)`;
+        btnTakeTrade.onclick=null;
+      }
+    }
+  };
+
+  [chkSession,chkZone,chkLiq,chkRR].forEach(chk=>{
+    if(chk)chk.onchange=updatePreTradeUI;
+  });
+  updatePreTradeUI();
 
   if(btnChart){
     btnChart.disabled=false;btnChart.style.opacity='1';

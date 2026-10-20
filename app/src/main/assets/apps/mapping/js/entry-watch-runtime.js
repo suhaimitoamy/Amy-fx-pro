@@ -244,7 +244,7 @@ function sendNotification(watch) {
   const recent = Object.fromEntries(Object.entries(store).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 80));
   writeJson(NOTIFY_KEY, recent);
   const data = notificationData(watch);
-  const route = `${location.href.split('#')[0]}#Analyze`;
+  const route = `${typeof location !== 'undefined' ? location.href.split('#')[0] : ''}#Analyze`;
   if (window.Android?.showNotificationWithUrl) {
     window.Android.showNotificationWithUrl(data.title, data.body, route);
   } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -391,10 +391,10 @@ function persistAndRender(state, watch, forecast) {
   const signature = signatureOf(watch, forecast);
   attachToResult(state, watch, forecast);
   previous = watch;
-  writeJson(STORAGE_KEY, watch);
-  syncScanner(watch);
   if (signature !== lastSignature) {
     lastSignature = signature;
+    writeJson(STORAGE_KEY, watch);
+    syncScanner(watch);
     sendNotification(watch);
     try { window.render?.(); } catch (_) {}
   }

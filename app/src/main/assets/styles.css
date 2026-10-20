@@ -10,13 +10,16 @@
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   overflow: hidden;
   transition: transform 0.2s ease, border-color 0.2s ease;
+  touch-action: pan-y;
 }
 .home-price-panel .section-heading{flex-wrap:wrap;gap:8px}
 .home-price-panel p{font-size:12px;line-height:1.5;margin:8px 0;overflow-wrap:anywhere}
 .home-chart-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .home-chart-controls button,.home-chart-controls select{min-height:42px;padding:8px 14px;color:var(--text-main);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:12px;backdrop-filter:blur(10px);font-weight:700;cursor:pointer}
 .home-chart-controls button:hover{border-color:var(--primary-gold);color:var(--primary-gold)}
-#home-price-chart{width:100%;height:340px;min-width:0}
+#home-price-chart{width:100%;height:340px;min-width:0;touch-action:pan-y}
+#home-price-chart tr:first-child td:last-child,
+#home-price-chart tr:first-child td:last-child canvas{touch-action:none!important}
 #home-chart-error:empty{display:none}
 #home-chart-error{color:#ef4444}
 
@@ -2231,3 +2234,37 @@ body.is-reel-open .bottom-nav {
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Item 2.7: Mini-Badge Status Dealing Range */
+.dr-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+.dr-badge.dr-discount {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+}
+.dr-badge.dr-premium {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+.dr-badge.dr-neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+

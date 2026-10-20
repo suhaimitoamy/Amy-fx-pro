@@ -196,4 +196,48 @@ test('AmyFxNotificationGate code guarantees strict market closure silence', asyn
   const workerCode = fs.readFileSync('app/src/main/java/com/amyelitesuite/DriverSetupSyncWorker.kt', 'utf8');
   assert.ok(workerCode.includes('isGoldMarketOpen'));
   assert.ok(workerCode.includes('PASAR TUTUP'));
+
+  // Item 1.58 & 1.13: Pre-check weekend before HTTP execution in doWork()
+  const doWorkIndex = workerCode.indexOf('override suspend fun doWork()');
+  const gateCheckIndex = workerCode.indexOf('if (!AmyFxNotificationGate.isGoldMarketOpen', doWorkIndex);
+  const requestBuilderIndex = workerCode.indexOf('Request.Builder()', doWorkIndex);
+  assert.ok(doWorkIndex !== -1, 'doWork must exist');
+  assert.ok(gateCheckIndex !== -1, 'Pre-check isGoldMarketOpen must exist in doWork()');
+  assert.ok(workerCode.includes('SessionClock.isGoldMarketOpen()'), 'doWork must call SessionClock.isGoldMarketOpen()');
+  assert.ok(requestBuilderIndex !== -1, 'Request.Builder must exist in doWork()');
+  assert.ok(gateCheckIndex < requestBuilderIndex, 'Pre-check isGoldMarketOpen must occur before Request.Builder() in doWork()');
+
+  const clockCode = fs.readFileSync('app/src/main/java/com/amyelitesuite/SessionClock.kt', 'utf8');
+  assert.ok(clockCode.includes('fun isGoldMarketOpen'), 'SessionClock must implement isGoldMarketOpen');
+  assert.ok(clockCode.includes('fun isPreMarketWarming'), 'SessionClock must implement isPreMarketWarming');
+  assert.ok(clockCode.includes('fun getMarketPowerMode'), 'SessionClock must implement getMarketPowerMode');
 });
+
+test('Item 2.20: getMarketPowerState transitions accurately through DEEP_SLEEP, PRE_MARKET_WARMUP, and MARKET_OPEN', async () => {
+  const { getMarketPowerState, isPreMarketWarming } = await import('../lib/scalper-engine/market-context.mjs');
+
+  // Saturday afternoon -> DEEP_SLEEP
+  const saturday = Date.parse('2026-10-03T16:00:00Z') / 1000;
+  assert.equal(getMarketPowerState(saturday), 'DEEP_SLEEP');
+  assert.equal(isPreMarketWarming(saturday), false);
+
+  // Sunday 16:50 NY (20:50 UTC) -> DEEP_SLEEP (before 16:55 warmup window)
+  const sunEarly = Date.parse('2026-10-04T20:50:00Z') / 1000;
+  assert.equal(getMarketPowerState(sunEarly), 'DEEP_SLEEP');
+  assert.equal(isPreMarketWarming(sunEarly), false);
+
+  // Sunday 16:57 NY (20:57 UTC) -> PRE_MARKET_WARMUP (within 5-min warmup window 16:55 - 17:00 NY)
+  const sunWarmup = Date.parse('2026-10-04T20:57:00Z') / 1000;
+  assert.equal(getMarketPowerState(sunWarmup), 'PRE_MARKET_WARMUP');
+  assert.equal(isPreMarketWarming(sunWarmup), true);
+
+  // Sunday 17:02 NY (21:02 UTC) -> MARKET_OPEN
+  const sunOpen = Date.parse('2026-10-04T21:02:00Z') / 1000;
+  assert.equal(getMarketPowerState(sunOpen), 'MARKET_OPEN');
+  assert.equal(isPreMarketWarming(sunOpen), false);
+
+  // Wednesday 10:00 NY (14:00 UTC) -> MARKET_OPEN
+  const wedOpen = Date.parse('2026-10-07T14:00:00Z') / 1000;
+  assert.equal(getMarketPowerState(wedOpen), 'MARKET_OPEN');
+});
+

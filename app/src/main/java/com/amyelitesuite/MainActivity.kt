@@ -43,6 +43,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebViewAssetLoader
 import java.io.File
@@ -256,17 +257,38 @@ class MainActivity : Activity() {
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             if (url.startsWith("blob:")) {
                 webView.evaluateJavascript("""
-                    fetch('$url')
-                        .then(res => res.blob())
-                        .then(blob => {
-                            var reader = new FileReader();
-                            reader.readAsDataURL(blob);
-                            reader.onloadend = function() {
-                                Android.saveBlob(reader.result, 'Trading_Report_${System.currentTimeMillis()}.pdf');
-                            }
-                        });
+                    (function() {
+                        try {
+                            var targetUrl = '$url';
+                            var anchor = document.querySelector('a[href="' + targetUrl + '"]');
+                            var filename = (anchor && anchor.getAttribute('download')) || '';
+                            fetch(targetUrl)
+                                .then(function(res) { return res.blob(); })
+                                .then(function(blob) {
+                                    var ext = '';
+                                    if (blob.type.indexOf('csv') !== -1) ext = '.csv';
+                                    else if (blob.type.indexOf('json') !== -1) ext = '.json';
+                                    else if (blob.type.indexOf('pdf') !== -1) ext = '.pdf';
+                                    else if (blob.type.indexOf('zip') !== -1) ext = '.zip';
+                                    else if (blob.type.indexOf('png') !== -1) ext = '.png';
+                                    else if (blob.type.indexOf('jpeg') !== -1 || blob.type.indexOf('jpg') !== -1) ext = '.jpg';
+                                    else ext = '.bin';
+
+                                    if (!filename) {
+                                        filename = 'Trading_Export_' + Date.now() + ext;
+                                    } else if (filename.indexOf('.') === -1 && ext) {
+                                        filename = filename + ext;
+                                    }
+                                    var reader = new FileReader();
+                                    reader.readAsDataURL(blob);
+                                    reader.onloadend = function() {
+                                        Android.saveBlob(reader.result, filename);
+                                    };
+                                });
+                        } catch (e) {}
+                    })();
                 """.trimIndent(), null)
-                Toast.makeText(this, "Generating PDF...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Mengunduh file...", Toast.LENGTH_SHORT).show()
             } else if (url.startsWith("http")) {
                 try {
                     val request = DownloadManager.Request(Uri.parse(url))
@@ -327,7 +349,15 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         if (::twelveDataPriceBridge.isInitialized) twelveDataPriceBridge.close()
-        if (::webView.isInitialized) webView.removeJavascriptInterface("AmyLivePrice")
+        if (::webView.isInitialized) {
+            (webView.parent as? android.view.ViewGroup)?.removeView(webView)
+            webView.stopLoading()
+            webView.removeJavascriptInterface("Android")
+            webView.removeJavascriptInterface("AmyLivePrice")
+            webView.removeJavascriptInterface("AmyNativeAIRepair")
+            webView.removeJavascriptInterface("AmyNativeAI")
+            webView.destroy()
+        }
         super.onDestroy()
     }
 
@@ -369,6 +399,26 @@ class MainActivity : Activity() {
             }
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)
+
+            val goldAudioAttributes = android.media.AudioAttributes.Builder()
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                .build()
+            val goldSoundUri = android.net.Uri.parse("android.resource://$packageName/${R.raw.amy_gold_chime}")
+            val goldChannel = NotificationChannel(
+                AmyFxApplication.GOLD_SIGNAL_CHANNEL_ID,
+                "Amy FX Sinyal Emas A+",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifikasi khusus sinyal Grade A+ dengan denting bel emas kristal"
+                enableLights(true)
+                lightColor = Color.rgb(255, 215, 0)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 80, 50, 80, 50, 120)
+                setShowBadge(true)
+                setSound(goldSoundUri, goldAudioAttributes)
+            }
+            nm.createNotificationChannel(goldChannel)
         }
     }
 
@@ -660,7 +710,8 @@ class MainActivity : Activity() {
 
     private fun applyAmyFxRoute(route: String?) {
         val safeRoute = when (route) {
-            "Dashboard", "Analyze", "Setups", "History", "Settings" -> route
+            "Dashboard", "Analyze", "Setups", "History", "Settings",
+            "Mapping", "MarketIntel", "Academy", "Practice", "Journal" -> route
             else -> return
         }
         if (!::webView.isInitialized) return
@@ -716,6 +767,52 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun openPdfDocument(filePath: String?) {
+            (mContext as Activity).runOnUiThread {
+                try {
+                    val rawPath = filePath?.trim()
+                    if (rawPath.isNullOrEmpty()) {
+                        Toast.makeText(mContext, "Jalur file PDF tidak valid", Toast.LENGTH_SHORT).show()
+                        return@runOnUiThread
+                    }
+                    val initialFile = File(rawPath)
+                    val file = if (initialFile.exists()) {
+                        initialFile
+                    } else {
+                        val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        val inDownloads = File(downloads, rawPath)
+                        if (inDownloads.exists()) inDownloads else initialFile
+                    }
+                    if (!file.exists()) {
+                        Toast.makeText(mContext, "File PDF tidak ditemukan: ${file.name}", Toast.LENGTH_SHORT).show()
+                        return@runOnUiThread
+                    }
+                    val uri = FileProvider.getUriForFile(
+                        mContext,
+                        "${mContext.packageName}.fileprovider",
+                        file
+                    )
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, "application/pdf")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    val chooser = Intent.createChooser(intent, "Buka Dokumen PDF Amy FX")
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    mContext.startActivity(chooser)
+                } catch (e: Exception) {
+                    android.util.Log.e("AmyFX-MainActivity", "Gagal membuka PDF via Intent", e)
+                    Toast.makeText(mContext, "Gagal membuka PDF: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun openPdf(filePath: String?) {
+            openPdfDocument(filePath)
+        }
+
+        @JavascriptInterface
         fun setSystemUiTheme(theme: String?) {
             (mContext as Activity).runOnUiThread {
                 val light = theme.equals("light", ignoreCase = true)
@@ -746,6 +843,11 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun startAppUpdate(downloadUrl: String?, versionName: String?, versionCode: Int, sha256: String?) {
+            nativeUpdater.start(downloadUrl.orEmpty(), versionName.orEmpty(), versionCode, sha256)
+        }
+
+        @JavascriptInterface
         fun cancelAppUpdate() {
             nativeUpdater.cancel(deletePending = true)
         }
@@ -773,37 +875,101 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
-        fun startBackgroundScanner(apiKey: String?, bsl: String?, ssl: String?) {
+        fun triggerPatternHaptic(patternType: String?) {
             try {
-                if (!this@MainActivity.hasRequiredPermissions()) {
-                    (mContext as Activity).runOnUiThread {
-                        this@MainActivity.maybeRequestNotificationPermission()
-                        Toast.makeText(mContext, "Aktifkan izin notifikasi agar alert mengambang muncul.", Toast.LENGTH_LONG).show()
-                    }
-                    return
+                val vibrator = mContext.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+                val pattern = when (patternType?.uppercase()?.trim()) {
+                    "REJECTION", "FVG", "TOUCH" -> longArrayOf(0, 50, 40, 60)
+                    "BREAK", "MSS", "BOS" -> longArrayOf(0, 100, 60, 150)
+                    "TARGET", "TP", "SL", "GOLD_A_PLUS" -> longArrayOf(0, 80, 50, 80, 50, 120)
+                    else -> longArrayOf(0, 40)
                 }
-
-                val prefs = mContext.getSharedPreferences("AmyFXPrefs", Context.MODE_PRIVATE)
-                prefs.edit()
-                    .remove("api_key")
-                    .putBoolean("scanner_enabled", true)
-                    .apply()
-                SecurePrefs.remove(mContext, "api_key")
-                val cleanBsl = bsl?.trim()?.takeIf { it.isNotBlank() && it != "undefined" && it != "null" }
-                val cleanSsl = ssl?.trim()?.takeIf { it.isNotBlank() && it != "undefined" && it != "null" }
-                prefs.edit().apply {
-                    if (cleanBsl != null) putString("scanner_bsl_target", cleanBsl)
-                    if (cleanSsl != null) putString("scanner_ssl_target", cleanSsl)
-                }.apply()
-                val intent = Intent(mContext, ScannerService::class.java).apply {
-                    putExtra("bsl", cleanBsl)
-                    putExtra("ssl", cleanSsl)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(android.os.VibrationEffect.createWaveform(pattern, -1))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(pattern, -1)
                 }
-                // ScannerService is a retired compatibility stub; never call startForegroundService
-                mContext.startService(intent)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+
+        @JavascriptInterface
+        fun playNotificationSound() {
+            playNotificationSound("default")
+        }
+
+        @JavascriptInterface
+        fun playNotificationSound(soundType: String?) {
+            try {
+                if (soundType == "gold" || soundType == "crystal" || soundType == "GOLD_A_PLUS") {
+                    playNativeChime(soundType)
+                    return
+                }
+                val notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                val ringtone = RingtoneManager.getRingtone(mContext, notificationUri)
+                ringtone?.play()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun playNativeChime(chimeType: String?) {
+            try {
+                val mp = android.media.MediaPlayer.create(mContext, R.raw.amy_gold_chime)
+                if (mp != null) {
+                    mp.setOnCompletionListener { it.release() }
+                    mp.start()
+                    return
+                }
+            } catch (e: Exception) {
+                // Fallback
+            }
+            playGoldChime()
+        }
+
+        @JavascriptInterface
+        fun playChime(soundType: String?) {
+            playNativeChime(soundType)
+        }
+
+        @JavascriptInterface
+        fun playGoldChime() {
+            try {
+                val mp = android.media.MediaPlayer.create(mContext, R.raw.amy_gold_chime)
+                if (mp != null) {
+                    mp.setOnCompletionListener { it.release() }
+                    mp.start()
+                    return
+                }
+            } catch (e: Exception) {
+                // Fallback
+            }
+            try {
+                val toneGen = android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 100)
+                toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP2, 350)
+            } catch (e: Exception) {
+                try {
+                    val notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                    val ringtone = RingtoneManager.getRingtone(mContext, notificationUri)
+                    ringtone?.play()
+                } catch (err: Exception) {
+                    err.printStackTrace()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun startBackgroundScanner(apiKey: String?, bsl: String?, ssl: String?) {
+            // ScannerService is a retired compatibility stub.
+            // Redundant SharedPreferences writes and service launches removed to eliminate flash wear and CPU wakeups.
+            try {
+                SecurePrefs.remove(mContext, "api_key")
+            } catch (_: Exception) {}
         }
 
         @JavascriptInterface
@@ -815,15 +981,7 @@ class MainActivity : Activity() {
 
         @JavascriptInterface
         fun stopBackgroundScanner() {
-            try {
-                mContext.getSharedPreferences("AmyFXPrefs", Context.MODE_PRIVATE)
-                    .edit().putBoolean("scanner_enabled", false).apply()
-                val intent = Intent(mContext, ScannerService::class.java)
-                intent.action = "STOP_SCANNER"
-                mContext.startService(intent)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            // Retired compatibility stub; no-op to eliminate redundant disk writes.
         }
 
         @JavascriptInterface
@@ -935,8 +1093,25 @@ class MainActivity : Activity() {
             loop: Boolean,
             tempPath: String
         ): Boolean {
+            val callerUrl = if (::webView.isInitialized) webView.url else null
+            return playBackgroundVideoWithTarget(source, sourceKey, title, positionMsText, loop, tempPath, callerUrl)
+        }
+
+        @JavascriptInterface
+        fun playBackgroundVideoWithTarget(
+            source: String,
+            sourceKey: String,
+            title: String,
+            positionMsText: String,
+            loop: Boolean,
+            tempPath: String,
+            targetUrl: String?
+        ): Boolean {
             if (source.isBlank()) return false
             return try {
+                val resolvedTarget = targetUrl?.takeIf { it.isNotBlank() }
+                    ?: (if (::webView.isInitialized) webView.url else null)
+                    ?: BackgroundVideoPlaybackService.DEFAULT_TARGET_URL
                 val intent = Intent(mContext, BackgroundVideoPlaybackService::class.java).apply {
                     action = BackgroundVideoPlaybackService.ACTION_PLAY
                     putExtra(BackgroundVideoPlaybackService.EXTRA_SOURCE, source)
@@ -945,6 +1120,7 @@ class MainActivity : Activity() {
                     putExtra(BackgroundVideoPlaybackService.EXTRA_POSITION_MS, positionMsText.toLongOrNull() ?: 0L)
                     putExtra(BackgroundVideoPlaybackService.EXTRA_LOOP, loop)
                     putExtra(BackgroundVideoPlaybackService.EXTRA_TEMP_PATH, tempPath)
+                    putExtra(BackgroundVideoPlaybackService.EXTRA_TARGET_URL, resolvedTarget)
                 }
                 ContextCompat.startForegroundService(mContext, intent)
                 true
@@ -1140,6 +1316,21 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun recordLastStudiedLesson(folderOrTitle: String?, titleOrUrl: String?) {
+            try {
+                if (folderOrTitle != null && titleOrUrl != null) {
+                    if (folderOrTitle.contains("modul-") || folderOrTitle.contains("bagian-")) {
+                        recordLastStudiedLesson(titleOrUrl, "", folderOrTitle)
+                    } else {
+                        recordLastStudiedLesson(folderOrTitle, titleOrUrl, "")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
         fun saveLearningReminderConfig(enabled: Boolean, timeOfDay: String?): Boolean {
             return try {
                 val cleanTime = timeOfDay?.trim()?.takeIf { it.matches(Regex("^\\d{1,2}:\\d{2}$")) } ?: "20:00"
@@ -1148,7 +1339,8 @@ class MainActivity : Activity() {
                     putBoolean(LearningReminderWorker.KEY_ENABLED, enabled)
                     putString(LearningReminderWorker.KEY_TIME, cleanTime)
                 }.apply()
-                LearningReminderWorker.schedule(mContext)
+                LearningReminderReceiver.schedule(mContext)
+                LearningReminderWorker.reschedule(mContext)
                 true
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -1258,17 +1450,164 @@ class MainActivity : Activity() {
                 val cleanBase64 = base64Data.replaceFirst("^data:.*?;base64,".toRegex(), "")
                 val fileAsBytes = Base64.decode(cleanBase64, 0)
 
-                val os = openDownloadOutputStream(filename, "application/pdf") ?: throw IllegalStateException("Gagal membuat file")
+                val mimeType = when {
+                    filename.endsWith(".csv", ignoreCase = true) -> "text/csv"
+                    filename.endsWith(".json", ignoreCase = true) -> "application/json"
+                    filename.endsWith(".md", ignoreCase = true) -> "text/markdown"
+                    filename.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
+                    filename.endsWith(".zip", ignoreCase = true) -> "application/zip"
+                    filename.endsWith(".png", ignoreCase = true) -> "image/png"
+                    filename.endsWith(".jpg", ignoreCase = true) || filename.endsWith(".jpeg", ignoreCase = true) -> "image/jpeg"
+                    else -> "application/octet-stream"
+                }
+
+                val os = openDownloadOutputStream(filename, mimeType) ?: throw IllegalStateException("Gagal membuat file")
                 os.write(fileAsBytes)
                 os.flush()
                 os.close()
 
                 (mContext as Activity).runOnUiThread {
-                    Toast.makeText(mContext, "File tersimpan di folder Download", Toast.LENGTH_LONG).show()
+                    Toast.makeText(mContext, "File tersimpan: $filename", Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 (mContext as Activity).runOnUiThread {
                     Toast.makeText(mContext, "Gagal menyimpan file", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun saveObsidianMarkdown(filename: String, content: String): Boolean {
+            return try {
+                val cleanName = if (filename.endsWith(".md", ignoreCase = true)) filename else "$filename.md"
+                val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val targetDir = File(downloads, "Obsidian/Catatan Pribadi/Trading Journal").apply { mkdirs() }
+                val targetFile = File(targetDir, cleanName)
+                targetFile.writeText(content, Charsets.UTF_8)
+                (mContext as Activity).runOnUiThread {
+                    Toast.makeText(mContext, "Disimpan ke Obsidian: $cleanName", Toast.LENGTH_LONG).show()
+                }
+                true
+            } catch (e: Exception) {
+                try {
+                    val cleanName = if (filename.endsWith(".md", ignoreCase = true)) filename else "$filename.md"
+                    val os = openDownloadOutputStream(cleanName, "text/markdown") ?: return false
+                    os.write(content.toByteArray(Charsets.UTF_8))
+                    os.flush()
+                    os.close()
+                    (mContext as Activity).runOnUiThread {
+                        Toast.makeText(mContext, "Tersimpan di Download: $cleanName", Toast.LENGTH_LONG).show()
+                    }
+                    true
+                } catch (err: Exception) {
+                    false
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun clearAppCache(): String {
+            var freedBytes = 0L
+            try {
+                val updatesDir = File(mContext.cacheDir, "updates")
+                if (updatesDir.exists()) {
+                    updatesDir.walkBottomUp().forEach { file ->
+                        if (file.isFile) {
+                            freedBytes += file.length()
+                            file.delete()
+                        } else if (file != updatesDir) {
+                            file.delete()
+                        }
+                    }
+                }
+
+                val videoDir = File(mContext.cacheDir, "background-video")
+                if (videoDir.exists()) {
+                    videoDir.walkBottomUp().forEach { file ->
+                        if (file.isFile) {
+                            freedBytes += file.length()
+                            file.delete()
+                        } else if (file != videoDir) {
+                            file.delete()
+                        }
+                    }
+                }
+
+                mContext.cacheDir.listFiles()?.forEach { file ->
+                    if (file.isFile && (file.name.endsWith(".part") || file.name.endsWith(".tmp") || file.name.startsWith("Trading_Report_"))) {
+                        freedBytes += file.length()
+                        file.delete()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            val freedMb = String.format(java.util.Locale.US, "%.1f", freedBytes / (1024.0 * 1024.0))
+            (mContext as Activity).runOnUiThread {
+                Toast.makeText(mContext, "Berhasil membebaskan $freedMb MB ruang penyimpanan!", Toast.LENGTH_LONG).show()
+            }
+            return freedMb
+        }
+
+        @android.annotation.SuppressLint("MissingPermission")
+        @JavascriptInterface
+        fun isBiometricAvailable(): Boolean {
+            return try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val biometricManager = mContext.getSystemService(android.hardware.biometrics.BiometricManager::class.java)
+                    biometricManager?.canAuthenticate() == android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val fingerprintManager = mContext.getSystemService(android.hardware.fingerprint.FingerprintManager::class.java)
+                    fingerprintManager?.isHardwareDetected == true && fingerprintManager.hasEnrolledFingerprints()
+                } else {
+                    false
+                }
+            } catch (_: Throwable) {
+                false
+            }
+        }
+
+        @android.annotation.SuppressLint("MissingPermission")
+        @JavascriptInterface
+        fun authenticateBiometric(title: String, subtitle: String, callbackJs: String) {
+            val act = mContext as? Activity ?: return
+            act.runOnUiThread {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        val cancellationSignal = android.os.CancellationSignal()
+                        val prompt = android.hardware.biometrics.BiometricPrompt.Builder(act)
+                            .setTitle(title.ifBlank { "Buka Kunci Jurnal Amy FX" })
+                            .setSubtitle(subtitle.ifBlank { "Sentuh sensor sidik jari atau gunakan pengenalan wajah" })
+                            .setNegativeButton("Gunakan PIN", act.mainExecutor, { _, _ ->
+                                webView.evaluateJavascript("$callbackJs(false, 'USE_PIN')", null)
+                            })
+                            .build()
+
+                        prompt.authenticate(cancellationSignal, act.mainExecutor,
+                            object : android.hardware.biometrics.BiometricPrompt.AuthenticationCallback() {
+                                override fun onAuthenticationSucceeded(result: android.hardware.biometrics.BiometricPrompt.AuthenticationResult?) {
+                                    super.onAuthenticationSucceeded(result)
+                                    webView.evaluateJavascript("$callbackJs(true, null)", null)
+                                }
+
+                                override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
+                                    super.onAuthenticationError(errorCode, errString)
+                                    val safeErr = errString?.toString()?.replace("'", "\\'") ?: "Error"
+                                    webView.evaluateJavascript("$callbackJs(false, '$safeErr')", null)
+                                }
+
+                                override fun onAuthenticationFailed() {
+                                    super.onAuthenticationFailed()
+                                    webView.evaluateJavascript("if (typeof window.onBiometricFailed === 'function') window.onBiometricFailed();", null)
+                                }
+                            })
+                    } else {
+                        webView.evaluateJavascript("$callbackJs(false, 'BIOMETRIC_UNSUPPORTED')", null)
+                    }
+                } catch (e: Throwable) {
+                    val safeErr = e.message?.replace("'", "\\'") ?: "Exception"
+                    webView.evaluateJavascript("$callbackJs(false, '$safeErr')", null)
                 }
             }
         }
