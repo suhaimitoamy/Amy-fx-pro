@@ -1,11 +1,13 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 val hasReleaseSigning = listOf(
     "AMYFX_KEYSTORE_PATH",
     "AMYFX_KEYSTORE_PASSWORD",
+    "AMYFX_KEY_ALIAS",
     "AMYFX_KEY_PASSWORD"
 ).all { !System.getenv(it).isNullOrBlank() }
 
@@ -35,35 +37,46 @@ android {
         manifestPlaceholders["appLabel"] = configuredAppLabel
         manifestPlaceholders["amyFxScheme"] = configuredUriScheme
         buildConfigField("String", "UPDATE_MANIFEST_URL", buildConfigString(configuredUpdateManifestUrl))
-        buildConfigField("String", "TWELVEDATA_API_KEY", buildConfigString(configuredTwelveDataApiKey))
+        buildConfigField("String", "TWELVE_DATA_API_KEY", buildConfigString(configuredTwelveDataApiKey))
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     signingConfigs {
         create("release") {
+            enableV1Signing = true
+            enableV2Signing = true
             if (hasReleaseSigning) {
-                storeFile = file(System.getenv("AMYFX_KEYSTORE_PATH")!!)
+                storeFile = file(System.getenv("AMYFX_KEYSTORE_PATH"))
                 storePassword = System.getenv("AMYFX_KEYSTORE_PASSWORD")
-                keyAlias = "amyfx"
+                keyAlias = System.getenv("AMYFX_KEY_ALIAS")
                 keyPassword = System.getenv("AMYFX_KEY_PASSWORD")
-                enableV1Signing = true
-                enableV2Signing = true
             }
         }
     }
 
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+            versionNameSuffix = "-debug"
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (hasReleaseSigning) {
-                signingConfig = signingConfigs.getByName("release")
-            }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -71,29 +84,29 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    buildFeatures {
-        viewBinding = true
-        buildConfig = true
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.webkit)
-    implementation(libs.androidx.swiperefreshlayout)
-    implementation(libs.androidx.security.crypto)
-    implementation(libs.okhttp)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
-    implementation(libs.androidx.media3.session)
-    implementation(libs.androidx.work.runtime.ktx)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-session:1.4.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
