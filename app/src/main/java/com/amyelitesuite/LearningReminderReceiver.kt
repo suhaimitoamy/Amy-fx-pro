@@ -227,9 +227,9 @@ class LearningReminderReceiver : BroadcastReceiver() {
                 Log.w("AmyFX-ReminderReceiver", "SecurityException scheduling exact alarm (Android 13/14+ permission revoked), falling back to inexact alarm", se)
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, target.timeInMillis, pendingIntent)
+                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextTarget.timeInMillis, pendingIntent)
                     } else {
-                        alarmManager.set(AlarmManager.RTC_WAKEUP, target.timeInMillis, pendingIntent)
+                        alarmManager.set(AlarmManager.RTC_WAKEUP, nextTarget.timeInMillis, pendingIntent)
                     }
                 } catch (fallbackEx: Exception) {
                     Log.e("AmyFX-ReminderReceiver", "Failed to schedule inexact fallback alarm", fallbackEx)
@@ -237,7 +237,7 @@ class LearningReminderReceiver : BroadcastReceiver() {
             } catch (e: Exception) {
                 Log.w("AmyFX-ReminderReceiver", "Failed to schedule alarm, falling back", e)
                 try {
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, target.timeInMillis, pendingIntent)
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, nextTarget.timeInMillis, pendingIntent)
                 } catch (_: Exception) {}
             }
         }
