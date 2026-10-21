@@ -1,15 +1,15 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.420/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.421/AmyFX-Pro-latest.apk",
   "changelog": [
     "Latihan Soal: 60 studi kasus eksekusi nyata XAU/USD (Gold $2620-$2660) menggantikan bank soal lama.",
     "5 Pilar Keputusan: Filter Inducement, Killzone Timing, Dealing Range, SL Invalidation, dan Psikologi Eksekusi.",
     "Pembersihan Menu Backtest: Menghapus modul Fractal Advisor & Laya AI yang tidak relevan."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.420/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.421/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950420,
-  "latest_version_name": "2.0.0-pro.420",
+  "latest_version_code": 950421,
+  "latest_version_name": "2.0.0-pro.421",
   "mandatory": false,
   "releaseDate": "2026-10-21",
   "release_notes": [
@@ -17,7 +17,7 @@
     "5 Pilar Keputusan: Filter Inducement, Killzone Timing, Dealing Range, SL Invalidation, dan Psikologi Eksekusi.",
     "Pembersihan Menu Backtest: Menghapus modul Fractal Advisor & Laya AI yang tidak relevan."
   ],
-  "version": "2.0.0-pro.420",
-  "versionCode": 950420,
-  "sha256": "55f8b4fb8d01219eb668eea76c915c9aab283f56ae748af9441c5d7585235e55"
+  "version": "2.0.0-pro.421",
+  "versionCode": 950421,
+  "sha256": "a92d06871231f9c87bc27ec7a7180460a9df7df2337051f20eb0edbd3805e36f"
 }
