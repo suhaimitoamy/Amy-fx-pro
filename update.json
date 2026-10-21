@@ -11,7 +11,7 @@
   "latest_version_code": 950420,
   "latest_version_name": "2.0.0-pro.420",
   "mandatory": false,
-  "releaseDate": "2026-10-20",
+  "releaseDate": "2026-10-21",
   "release_notes": [
     "AMY ICT CONTEXT V4: Kompas navigasi pasar 11-baris objektif tanpa repainting di Cockpit Mapping.",
     "Pemulihan 594 Bab Akademi: Seluruh materi 10 modul tematik kembali lengkap offline.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.420",
   "versionCode": 950420,
-  "sha256": "a392acb761c2f6ea26604941d1e907452dcad6eee7b445a6ac4ae7cf8c63ddf6"
+  "sha256": "55f8b4fb8d01219eb668eea76c915c9aab283f56ae748af9441c5d7585235e55"
 }
