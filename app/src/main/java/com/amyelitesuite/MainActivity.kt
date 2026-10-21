@@ -1333,7 +1333,7 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun saveLearningReminderConfig(enabled: Boolean, timeOfDay: String?): Boolean {
             return try {
-                val cleanTime = timeOfDay?.trim()?.takeIf { it.matches(Regex("^\\d{1,2}:\\d{2}$")) } ?: "20:00"
+                val cleanTime = timeOfDay?.trim()?.takeIf { it.matches(Regex("^[0-9:, ]+$")) } ?: "20:00"
                 val prefs = mContext.getSharedPreferences(LearningReminderWorker.PREFS, Context.MODE_PRIVATE)
                 prefs.edit().apply {
                     putBoolean(LearningReminderWorker.KEY_ENABLED, enabled)

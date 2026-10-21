@@ -1,6 +1,6 @@
 // Amy FX Pro — Gold market context; manual execution only.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-pro.420', code: 950420 });
+  const VERSION = Object.freeze({ name: '2.0.0-pro.421', code: 950421 });
   window.AmyFXAppVersion = VERSION;
   window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
   function displayVersionName(name) {
@@ -38,7 +38,7 @@
       window.AmyFXUpdate.checkNow({ announce: true });
       return;
     }
-    window.showToast?.(`Versi terpasang: Amy FX v${displayVersionName(VERSION.name)} (${VERSION.code}). Pemeriksa update sedang dimuat.`);
+    window.showToast?.(`Versi terpasang: Amy FX Pro v${displayVersionName(VERSION.name)} (${VERSION.code}). Pemeriksa update sedang dimuat.`);
     setTimeout(() => window.AmyFXUpdate?.checkNow?.({ announce: true }), 800);
   }
 

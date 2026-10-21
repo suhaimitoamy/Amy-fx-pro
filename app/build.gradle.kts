@@ -1,13 +1,11 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 val hasReleaseSigning = listOf(
     "AMYFX_KEYSTORE_PATH",
     "AMYFX_KEYSTORE_PASSWORD",
-    "AMYFX_KEY_ALIAS",
     "AMYFX_KEY_PASSWORD"
 ).all { !System.getenv(it).isNullOrBlank() }
 
@@ -32,51 +30,40 @@ android {
         applicationId = configuredApplicationId
         minSdk = 26
         targetSdk = 35
-        versionCode = (System.getenv("AMYFX_VERSION_CODE")?.toIntOrNull() ?: 950420)
-        versionName = System.getenv("AMYFX_VERSION_NAME") ?: "2.0.0-pro.420"
+        versionCode = (System.getenv("AMYFX_VERSION_CODE")?.toIntOrNull() ?: 950421)
+        versionName = System.getenv("AMYFX_VERSION_NAME") ?: "2.0.0-pro.421"
         manifestPlaceholders["appLabel"] = configuredAppLabel
         manifestPlaceholders["amyFxScheme"] = configuredUriScheme
         buildConfigField("String", "UPDATE_MANIFEST_URL", buildConfigString(configuredUpdateManifestUrl))
-        buildConfigField("String", "TWELVE_DATA_API_KEY", buildConfigString(configuredTwelveDataApiKey))
-
+        buildConfigField("String", "TWELVEDATA_API_KEY", buildConfigString(configuredTwelveDataApiKey))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildFeatures {
-        buildConfig = true
     }
 
     signingConfigs {
         create("release") {
-            enableV1Signing = true
-            enableV2Signing = true
             if (hasReleaseSigning) {
-                storeFile = file(System.getenv("AMYFX_KEYSTORE_PATH"))
+                storeFile = file(System.getenv("AMYFX_KEYSTORE_PATH")!!)
                 storePassword = System.getenv("AMYFX_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("AMYFX_KEY_ALIAS")
+                keyAlias = "amyfx"
                 keyPassword = System.getenv("AMYFX_KEY_PASSWORD")
+                enableV1Signing = true
+                enableV2Signing = true
             }
         }
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = false
-            versionNameSuffix = "-debug"
-        }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            if (hasReleaseSigning) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -84,29 +71,29 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-
-    lint {
-        abortOnError = false
-        checkReleaseBuilds = false
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
     }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.webkit:webkit:1.12.1")
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-session:1.4.1")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-messaging")
-
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.webkit)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.okhttp)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

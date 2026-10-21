@@ -299,29 +299,41 @@ export function dashboardContextV4Rows(amy, context = null) {
     : '—';
   const rngClass = (isHtfBull && isDiscount) || (!isHtfBull && isPremium) ? 'bias-val-bull' : '';
 
-  // Row 4: MAGNET ATAS (BSL/PDH)
+  // Row 4: MAGNET ATAS (BSL/PDH) - Logika Jujur [SWEPT] vs [BREAK] dari V4.3
   const bslVal = Number(levels?.bsl ?? d?.bsl ?? rHigh);
   const pdhVal = Number(levels?.pdh ?? ctx?.keyLevels?.pdh);
   const distBSL = (Number.isFinite(bslVal) && currentPrice > 0) ? Math.abs(bslVal - currentPrice) : null;
-  const bslInfo = `M15 BSL: ${n(bslVal)}${distBSL != null ? ` ($${distBSL.toFixed(2)})` : ''}${bslSwept ? ' [SWEPT]' : ''}  |  PDH: ${n(pdhVal)}${pdhSwept ? ' [SWEPT]' : ''}`;
+  const bslBroken = !bslSwept && Number.isFinite(bslVal) && currentPrice >= bslVal && bslVal > 0;
+  const pdhBroken = !pdhSwept && Number.isFinite(pdhVal) && currentPrice > pdhVal && pdhVal > 0;
+  const bslStat = bslSwept ? ' [SWEPT]' : bslBroken ? ' [BREAK]' : '';
+  const pdhStat = pdhSwept ? ' [SWEPT]' : pdhBroken ? ' [BREAK]' : '';
+  const bslInfo = `M15 BSL: ${n(bslVal)}${distBSL != null ? ` ($${distBSL.toFixed(2)})` : ''}${bslStat}  |  PDH: ${n(pdhVal)}${pdhStat}`;
   const bslClass = (bslSwept || pdhSwept) ? 'bias-val-gold' : (isHtfBull ? 'bias-val-cyan' : '');
 
-  // Row 5: MAGNET BAWAH (SSL/PDL)
+  // Row 5: MAGNET BAWAH (SSL/PDL) - Logika Jujur [SWEPT] vs [BREAK] dari V4.3
   const sslVal = Number(levels?.ssl ?? d?.ssl ?? rLow);
   const pdlVal = Number(levels?.pdl ?? ctx?.keyLevels?.pdl);
   const distSSL = (Number.isFinite(sslVal) && currentPrice > 0) ? Math.abs(currentPrice - sslVal) : null;
-  const sslInfo = `M15 SSL: ${n(sslVal)}${distSSL != null ? ` ($${distSSL.toFixed(2)})` : ''}${sslSwept ? ' [SWEPT]' : ''}  |  PDL: ${n(pdlVal)}${pdlSwept ? ' [SWEPT]' : ''}`;
+  const sslBroken = !sslSwept && Number.isFinite(sslVal) && currentPrice <= sslVal && sslVal > 0;
+  const pdlBroken = !pdlSwept && Number.isFinite(pdlVal) && currentPrice < pdlVal && pdlVal > 0;
+  const sslStat = sslSwept ? ' [SWEPT]' : sslBroken ? ' [BREAK]' : '';
+  const pdlStat = pdlSwept ? ' [SWEPT]' : pdlBroken ? ' [BREAK]' : '';
+  const sslInfo = `M15 SSL: ${n(sslVal)}${distSSL != null ? ` ($${distSSL.toFixed(2)})` : ''}${sslStat}  |  PDL: ${n(pdlVal)}${pdlStat}`;
   const sslClass = (sslSwept || pdlSwept) ? 'bias-val-gold' : (!isHtfBull ? 'bias-val-cyan' : '');
 
-  // Row 6: SESI & ASIA RANGE
+  // Row 6: SESI & ASIA RANGE - Deteksi Sweep Sesi V4.3
   const sessName = ctx?.session || 'LONDON';
   const asiaHigh = Number(levels?.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
   const asiaLow = Number(levels?.asiaLow ?? ctx?.keyLevels?.asiaLow);
-  const asiaStat = asiaHighSwept ? 'Asia High Swept' : asiaLowSwept ? 'Asia Low Swept' : 'Dalam Range';
-  const sessInfo = `Sesi Aktif: ${sessName}  |  Asia H/L: ${n(asiaHigh)} / ${n(asiaLow)} (${asiaStat})`;
+  const asiaHBrk = !asiaHighSwept && Number.isFinite(asiaHigh) && currentPrice > asiaHigh;
+  const asiaLBrk = !asiaLowSwept && Number.isFinite(asiaLow) && currentPrice < asiaLow;
+  const asiaHStat = asiaHighSwept ? 'H-Swept' : asiaHBrk ? 'H-Break' : '';
+  const asiaLStat = asiaLowSwept ? 'L-Swept' : asiaLBrk ? 'L-Break' : '';
+  const asiaBoth = (asiaHStat && asiaLStat) ? `${asiaHStat} & ${asiaLStat}` : (asiaHStat || asiaLStat || 'Dalam Range');
+  const sessInfo = `Sesi Aktif: ${sessName}  |  Asia H/L: ${n(asiaHigh)} / ${n(asiaLow)} (${asiaBoth})`;
   const sessClass = (asiaHighSwept || asiaLowSwept) ? 'bias-val-gold' : '';
 
-  // Row 7: INDUCEMENT (IDM)
+  // Row 7: INDUCEMENT (IDM) - Validasi Cerdas V4.3
   const idmVal = isHtfBull
     ? (Number(d?.protectedLow) || (poi?.side === 'BUY' ? Number(poi.low) : null))
     : (Number(d?.protectedHigh) || (poi?.side === 'SELL' ? Number(poi.high) : null));
@@ -331,26 +343,32 @@ export function dashboardContextV4Rows(amy, context = null) {
     : 'Menunggu Pembentukan Swing IDM';
   const idmClass = idmSwept ? 'bias-val-bull' : 'bias-val-gold';
 
-  // Row 8: ZONA SUPPLY (M15)
+  // Row 8: ZONA SUPPLY (M15) - Anti-False Reject [DI ZONA!] vs [REJECT!]
   const bearOB = (poi?.side === 'SELL' && poi?.kind === 'OB') ? poi : null;
   const bearFVG = (poi?.side === 'SELL' && poi?.kind === 'FVG') ? poi : null;
   const supObTxt = bearOB ? `${n(bearOB.low)}-${n(bearOB.high)}` : 'Mitigated';
   const supFvgTxt = bearFVG ? `${n(bearFVG.low)}-${n(bearFVG.high)}` : 'Mitigated';
-  const supInfo = `Supply OB: ${supObTxt}  |  Bear FVG: ${supFvgTxt}${inBearSupply ? '  [HARGA DI DALAM SUPPLY!]' : ''}`;
-  const supClass = inBearSupply ? 'bias-val-bear' : '';
+  const isBearReject = !inBearSupply && (poi?.side === 'SELL') && (amy?.entry?.rejectSell || (currentPrice > 0 && bearOB && currentPrice < bearOB.low && bearOB.low - currentPrice <= 3.0));
+  const supStat = inBearSupply ? '  [DI ZONA!]' : isBearReject ? '  [REJECT!]' : '';
+  const supInfo = `Supply OB: ${supObTxt}  |  Bear FVG: ${supFvgTxt}${supStat}`;
+  const supClass = inBearSupply ? 'bias-val-gold' : isBearReject ? 'bias-val-bear' : '';
 
-  // Row 9: ZONA DEMAND (M15)
+  // Row 9: ZONA DEMAND (M15) - Anti-False Reject [DI ZONA!] vs [REJECT!]
   const bullOB = (poi?.side === 'BUY' && poi?.kind === 'OB') ? poi : null;
   const bullFVG = (poi?.side === 'BUY' && poi?.kind === 'FVG') ? poi : null;
   const demObTxt = bullOB ? `${n(bullOB.low)}-${n(bullOB.high)}` : 'Mitigated';
   const demFvgTxt = bullFVG ? `${n(bullFVG.low)}-${n(bullFVG.high)}` : 'Mitigated';
-  const demInfo = `Demand OB: ${demObTxt}  |  Bull FVG: ${demFvgTxt}${inBullDemand ? '  [HARGA DI DALAM DEMAND!]' : ''}`;
-  const demClass = inBullDemand ? 'bias-val-bull' : '';
+  const isBullReject = !inBullDemand && (poi?.side === 'BUY') && (amy?.entry?.rejectBuy || (currentPrice > 0 && bullOB && currentPrice > bullOB.high && currentPrice - bullOB.high <= 3.0));
+  const demStat = inBullDemand ? '  [DI ZONA!]' : isBullReject ? '  [REJECT!]' : '';
+  const demInfo = `Demand OB: ${demObTxt}  |  Bull FVG: ${demFvgTxt}${demStat}`;
+  const demClass = inBullDemand ? 'bias-val-gold' : isBullReject ? 'bias-val-bull' : '';
 
   // Row 10: BATAS CHoCH (H1)
   const htfLow = Number(ctx?.h1?.swingLow ?? ctx?.h1?.protectedLevel ?? (hasRange ? rLow - 10 : 2630));
   const htfHigh = Number(ctx?.h1?.swingHigh ?? ctx?.h1?.protectedLevel ?? (hasRange ? rHigh + 10 : 2685));
-  const invInfo = `HTF Bullish Batal Jika Tutup < ${n(htfLow)}  |  HTF Bearish Batal Jika Tutup > ${n(htfHigh)}`;
+  const isTestingChoch = (isHtfBull && currentPrice > 0 && currentPrice < htfLow) || (!isHtfBull && currentPrice > 0 && currentPrice > htfHigh);
+  const chochStat = isTestingChoch ? ' [TEMBUS — Tunggu Close!]' : '';
+  const invInfo = (isHtfBull ? `H1 Batal Bullish < ${n(htfLow)}  |  M15 < ${n(rLow)}` : `H1 Batal Bearish > ${n(htfHigh)}  |  M15 > ${n(rHigh)}`) + chochStat;
 
   return [
     ['MATRIKS 3-TIMEFRAME', tfMatrix, tfMatrixClass],
