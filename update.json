@@ -1,23 +1,22 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.423/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.424/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Perbaikan Kritis Notifikasi: Eliminasi delay 45 menit pada notifikasi SSL/BSL Swept.",
-    "Presisi Waktu Notifikasi: Mengikat waktu sweep asli pada candle penutupan dan pangkas toleransi stale dari 60 menit ke 15 menit.",
-    "Sanitasi Fallback: Menghapus level hardcoded lama dan menggunakan harga live dinamis."
+    "Perbaikan Rilis Aktual Data Ekonomi: Mengaktifkan ekstraksi instan data aktual (contoh: 194K Klaim Pengangguran / Jobless Claims) dari feed berita real-time @SM_News_24h.",
+    "Sinkronisasi Dua Arah Kalender & Sentimen: Nilai aktual kini langsung diperbarui secara reaktif di tab Sentimen Makro dan Kalender tanpa jeda delay.",
+    "Presisi Analisis Pasca-Rilis: Evaluasi dampak dovish/hawkish langsung aktif seketika setelah angka keluar."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.423/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.424/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950423,
-  "latest_version_name": "2.0.0-pro.423",
+  "latest_version_code": 950424,
+  "latest_version_name": "2.0.0-pro.424",
   "mandatory": false,
   "releaseDate": "2026-10-22",
   "release_notes": [
-    "Perbaikan Kritis Notifikasi: Eliminasi delay 45 menit pada notifikasi SSL/BSL Swept.",
-    "Presisi Waktu Notifikasi: Mengikat waktu sweep asli pada candle penutupan dan pangkas toleransi stale dari 60 menit ke 15 menit.",
-    "Sanitasi Fallback: Menghapus level hardcoded lama dan menggunakan harga live dinamis."
+    "Perbaikan Rilis Aktual Data Ekonomi: Mengaktifkan ekstraksi instan data aktual (contoh: 194K Klaim Pengangguran / Jobless Claims) dari feed berita real-time @SM_News_24h.",
+    "Sinkronisasi Dua Arah Kalender & Sentimen: Nilai aktual kini langsung diperbarui secara reaktif di tab Sentimen Makro dan Kalender tanpa jeda delay.",
+    "Presisi Analisis Pasca-Rilis: Evaluasi dampak dovish/hawkish langsung aktif seketika setelah angka keluar."
   ],
-  "version": "2.0.0-pro.423",
-  "versionCode": 950423,
-  "sha256": "7b91f611abf6c0e64c88f3c37b6b6bcca44be3d158dcb489268d3124bc87e437"
+  "version": "2.0.0-pro.424",
+  "versionCode": 950424
 }
