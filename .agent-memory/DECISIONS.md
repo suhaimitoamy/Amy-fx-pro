@@ -1,5 +1,28 @@
 # Technical Decisions
 
+## 2026-10-22 — Rombak Total Kurikulum Akademi Amy FX (Level 0 s.d. Level 6 Micro-Learning Tanpa Fluff)
+1. **Latar Belakang & Kebutuhan:**
+   - Format lama kurikulum Akademi terdiri dari 10 modul / 222 bab yang terfragmentasi (594 berkas), membuat pengguna overwhelmed dan kesulitan menentukan urutan belajar sekuensial.
+   - Pengguna menginstruksikan agar ilmu-ilmu penting di arsip lama (seperti cara memilih FVG/OB yang bagus, Inducement, Silver Bullet, dll.) tidak dibuang begitu saja, melainkan dimasukkan dan dikembangkan sebagai sub-pelajaran lanjutan (`Pelajaran 05`, `06`, dst.) pada level yang sesuai.
+   - Pengguna menegaskan standar penulisan trading profesional: Nol basa-basi/salam pembuka, nol istilah bocoran AI, nol emoji berlebihan, dan wajib konsisten mengusung format 4 kartu baku (Inti Konsep, Checklist Syarat, Diagram SVG/Tabel Komparasi, Aturan Main Eksekusi) + 1 Kuis Pemahaman Kilat.
+2. **Arsitektur Kurikulum Baru (Total 42 Pelajaran):**
+   - **Level 0 (Fondasi Nol Mutlak — 4 Pelajaran):** Logika berdagang awam, mekanisme untung Sell, analogi fisik lot/pip/leverage beras, risiko Margin Call (100% tanpa grafik sesuai Aturan 11 GEMINI.md).
+   - **Level 1 (Membaca Arah Pasar — 7 Pelajaran):** Anatomi candlestick, 3 fase pasar, BOS vs MSS, Diskon vs Premium, Valid Swing High/Low, Internal vs External Structure, Equal Highs & Equal Lows (EQH/EQL).
+   - **Level 2 (Senjata Utama & Filter ICT — 10 Pelajaran):** Master FVG, Inversion FVG, Kolam Likuiditas (BSL/SSL), Order Block, FVG Kuat vs Lemah, OB Valid vs Palsu, Kapan Memilih FVG vs OB, Inducement (IDM), POI Utama vs Sekunder, Breaker & Mitigation Block.
+   - **Level 3 (Waktu & Sesi Emas — 6 Pelajaran):** Siklus 3 sesi dunia, Killzone XAU/USD, SOP News Lock, model Silver Bullet, Judas Swing London, Peta Likuiditas Pra-Sesi.
+   - **Level 4 (Playbook Setup A+ — 6 Pelajaran):** Deep OTE 78.6% + FVG, Sweep MSS, SOP Eksekusi & RR 1:2+, Turtle Soup (Liquidity Raid), Inversion FVG + Breaker, SOP Partial TP & Breakeven.
+   - **Level 5 (Pertahanan Modal & Emosi — 5 Pelajaran):** Aturan risiko 1% + kalkulator lot, SOP 2-peluru stop, manajemen drawdown portofolio, checklist 5-gerbang pra-entry, format standar jurnal evaluasi.
+   - **Level 6 (Bedah Kasus Nyata XAU/USD — 4 Pelajaran):** Alur analisa top-down (Daily > H1 > M5), studi kasus Peluru Utama New York (+4R), studi kasus menghindari jebakan news (CPI/NFP), studi kasus reversal London ke New York.
+3. **Infrastruktur Penunjang & Penyelarasan Gaya Bahasa (Tone Refinement):**
+   - Mengeliminasi total bahasa kaku seperti buku teks/skripsi pada seluruh 22 materi baru (Level 1 s.d. Level 6) melalui 5 sub-agent tone refiners.
+   - Menghadirkan kotak `<div class="ml-analogi">` di setiap materi (analogi gunung vs kerikil, ombak vs riak ember, toples gula EQH, diskon mal FVG, satpam asli vs gadungan OB, cacing kail pancing IDM, mobil balap F1 vs bus, sniper jam 10 malam Silver Bullet, gerak tipu bola Judas Swing, sup kura-kura Turtle Soup, palang tol patah IFVG, pedagang balik modal Partial TP, rem darurat jalan licin Drawdown, 5 gerbang tol pra-entry, rekaman CCTV atlet jurnal, dan helikopter vs pejalan kaki Top-Down).
+   - Mesin micro-learning: `micro-learning.css` (mobile-first glassmorphism, responsive) & `micro-learning.js` (evaluasi kuis interaktif instan, feedback edukatif, auto-save status baca di localStorage).
+   - Arsip lama (10 modul / 222 bab) tetap diawetkan dalam drawer tertutup (`<details>`) di bagian bawah beranda akademi untuk referensi mendalam tanpa mengintimidasi pemula.
+4. **Verifikasi & Sinkronisasi:**
+   - Audit otomatis 42 berkas HTML: 0 Error, 0 Warning.
+   - Seluruh endpoint HTTP di port 8080 terverifikasi status 200 OK.
+   - Disinkronkan penuh ke `/root/Amy-fx` dan `/root/Amy-fx-pro/`.
+
 ## 2026-10-21 — Eliminasi Total Modul Driver & Notifikasi Setup Driver (Preservasi Penuh Notifikasi ICT Liquidity & Structure)
 1. **Latar Belakang & Keluhan Pengguna:**
    - Pengguna melaporkan bahwa notifikasi `⚡ Setup Driver:` terlalu spam dan hasil analisanya sering salah karena sifat model sinyal mekanikal yang kaku.
