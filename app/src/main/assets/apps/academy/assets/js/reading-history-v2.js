@@ -198,7 +198,7 @@
         '</h3>' +
         (last.section ? '<div style="font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;">' + escapeHtml(last.section) + '</div>' : '') +
       '</div>' +
-      '<a class="btn primary sm" href="' + absolutePath(last.path) + '" style="font-weight:700;font-size:11.5px;padding:6px 14px;border-radius:8px;white-space:nowrap;flex-shrink:0;">' +
+      '<a class="btn primary sm" href="' + absolutePath(last.path) + '" aria-label="Lanjutkan dari posisi terakhir" title="Lanjutkan dari posisi terakhir" style="font-weight:700;font-size:11.5px;padding:6px 14px;border-radius:8px;white-space:nowrap;flex-shrink:0;">' +
         'Lanjut →' +
       '</a>' +
     '</div>';
