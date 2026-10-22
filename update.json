@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.422/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.423/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Akademi Amy FX: Kurikulum baru Level 0 s.d. Level 6 dengan 42 pelajaran micro-learning tuntas & analogi dunia nyata.",
-    "Filter POI Mendalam: Pemilihan FVG valid vs lemah, Order Block institusi vs palsu, dan Inducement (IDM).",
-    "Model Eksekusi & Manajemen Risiko: Playbook Turtle Soup, Silver Bullet NY, alur Top-Down, dan perampingan card riwayat baca."
+    "Perbaikan Kritis Notifikasi: Eliminasi delay 45 menit pada notifikasi SSL/BSL Swept.",
+    "Presisi Waktu Notifikasi: Mengikat waktu sweep asli pada candle penutupan dan pangkas toleransi stale dari 60 menit ke 15 menit.",
+    "Sanitasi Fallback: Menghapus level hardcoded lama dan menggunakan harga live dinamis."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.422/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.423/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950422,
-  "latest_version_name": "2.0.0-pro.422",
+  "latest_version_code": 950423,
+  "latest_version_name": "2.0.0-pro.423",
   "mandatory": false,
   "releaseDate": "2026-10-22",
   "release_notes": [
-    "Akademi Amy FX: Kurikulum baru Level 0 s.d. Level 6 dengan 42 pelajaran micro-learning tuntas & analogi dunia nyata.",
-    "Filter POI Mendalam: Pemilihan FVG valid vs lemah, Order Block institusi vs palsu, dan Inducement (IDM).",
-    "Model Eksekusi & Manajemen Risiko: Playbook Turtle Soup, Silver Bullet NY, alur Top-Down, dan perampingan card riwayat baca."
+    "Perbaikan Kritis Notifikasi: Eliminasi delay 45 menit pada notifikasi SSL/BSL Swept.",
+    "Presisi Waktu Notifikasi: Mengikat waktu sweep asli pada candle penutupan dan pangkas toleransi stale dari 60 menit ke 15 menit.",
+    "Sanitasi Fallback: Menghapus level hardcoded lama dan menggunakan harga live dinamis."
   ],
-  "version": "2.0.0-pro.422",
-  "versionCode": 950422,
+  "version": "2.0.0-pro.423",
+  "versionCode": 950423,
   "sha256": "8482548ed6d97e928aa3f7c5502cd3a51f76d3dda1a4f88b524a7c2fa57832a2"
 }

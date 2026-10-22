@@ -1,5 +1,20 @@
 # Technical Decisions
 
+## 2026-10-22 — Perbaikan Kritis Notifikasi Asisten Amy: Eliminasi Delay 45 Menit pada SSL/BSL Swept & Sanitasi Stale
+1. **Latar Belakang & Gejala:**
+   - Pengguna melaporkan notifikasi `💧 Asisten Amy: SSL Swept!` muncul 45 menit terlambat dari peristiwa sweep aslinya di pasar.
+2. **Akar Masalah (Root Cause):**
+   - **Umur Fresh Sweep Terlalu Panjang (8 Bar / 2 Jam):** Di `amy-ict.js`, `freshBars: 8` membuat `sweepStatus === 1` bertahan selama 8 candle M15 (120 menit). Logika notifikasi keliru menganggapnya sebagai event baru di setiap bar.
+   - **Cache Key Mengikat Waktu Candle Berjalan, Bukan Waktu Sweep:** Di `DriverSetupSyncWorker.kt` dan `ict-presentation.js`, `cacheKey` dibuat dari `candleTime` (waktu bar M15 saat ini yang terus berganti tiap 15m), bukan `sweep.time`. Akibatnya setiap pergantian candle (menit 15, 30, 45) diperlakukan sebagai notifikasi baru.
+   - **Toleransi Kadaluarsa Terlalu Longgar (1 Jam) & Doze Mode:** Batas `isStale` 3600 detik (1 jam) menyebabkan background worker Android atau aplikasi yang baru dibuka di menit ke-45 tetap menembakkan notifikasi basi.
+   - **Harga Fallback Jadul:** Fallback hardcoded $2642.50 dan $2665.30 yang sudah usang di era harga $4080+.
+3. **Solusi Teknis:**
+   - **`ict-presentation.js`**: `detectLiquiditySweep()` kini mengembalikan `time` dan `index` asli dari bar sweep. `renderAssistant` memverifikasi kesegaran event (`nowSec - sweepInfo.time <= 900`). Kunci notifikasi mengikat `sweepInfo.time` dan toleransi stale dipangkas dari 3600s menjadi 900s (15 menit).
+   - **`DriverSetupSyncWorker.kt`**: `SweepDetails` kini membawa `sweepTime`. Notifikasi sweep hanya diizinkan jika `sweepAge <= 900s`. Kunci SharedPreferences mengikat `sweepDetails.sweepTime`. Toleransi stale dipangkas ke 900s, dan fallback hardcoded $2642/$2665 diganti dengan harga dinamis `defaultLow`/`defaultHigh`/`currentPrice`.
+4. **Verifikasi & Sinkronisasi:**
+   - Targeted unit tests lolos 53/53.
+   - Disinkronkan 100% ke repositori `Amy-fx`, `Amy-fx-pro`, dan `Amy-fX-pwa`.
+
 ## 2026-10-22 — Rombak Total Kurikulum Akademi Amy FX (Level 0 s.d. Level 6 Micro-Learning Tanpa Fluff)
 1. **Latar Belakang & Kebutuhan:**
    - Format lama kurikulum Akademi terdiri dari 10 modul / 222 bab yang terfragmentasi (594 berkas), membuat pengguna overwhelmed dan kesulitan menentukan urutan belajar sekuensial.

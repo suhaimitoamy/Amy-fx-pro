@@ -113,12 +113,14 @@ export function detectLiquiditySweep(amy, context = null) {
   if (liqAsiaHighSwept || textAsiaHigh || (c && asiaHigh && c.high > asiaHigh && c.close < asiaHigh)) {
     const lvl = num(liqAsiaHighSwept?.level) || asiaHigh || (c ? c.high : 0);
     const ext = (c && c.high > lvl) ? c.high : (lvl ? lvl + 1.20 : 0);
-    return { name: 'Asia High', level: lvl, extreme: ext, side: 'SELL' };
+    const sweepTime = num(liqAsiaHighSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    return { name: 'Asia High', level: lvl, extreme: ext, side: 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
   if (liqAsiaLowSwept || textAsiaLow || (c && asiaLow && c.low < asiaLow && c.close > asiaLow)) {
     const lvl = num(liqAsiaLowSwept?.level) || asiaLow || (c ? c.low : 0);
     const ext = (c && c.low < lvl) ? c.low : (lvl ? lvl - 1.20 : 0);
-    return { name: 'Asia Low', level: lvl, extreme: ext, side: 'BUY' };
+    const sweepTime = num(liqAsiaLowSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    return { name: 'Asia Low', level: lvl, extreme: ext, side: 'BUY', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
   // 2. PDH / PDL sweep
@@ -132,12 +134,14 @@ export function detectLiquiditySweep(amy, context = null) {
   if (liqPdhSwept || textPdh || (c && pdh && c.high > pdh && c.close < pdh)) {
     const lvl = num(liqPdhSwept?.level) || pdh || (c ? c.high : 0);
     const ext = (c && c.high > lvl) ? c.high : (lvl ? lvl + 1.20 : 0);
-    return { name: 'PDH', level: lvl, extreme: ext, side: 'SELL' };
+    const sweepTime = num(liqPdhSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    return { name: 'PDH', level: lvl, extreme: ext, side: 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
   if (liqPdlSwept || textPdl || (c && pdl && c.low < pdl && c.close > pdl)) {
     const lvl = num(liqPdlSwept?.level) || pdl || (c ? c.low : 0);
     const ext = (c && c.low < lvl) ? c.low : (lvl ? lvl - 1.20 : 0);
-    return { name: 'PDL', level: lvl, extreme: ext, side: 'BUY' };
+    const sweepTime = num(liqPdlSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    return { name: 'PDL', level: lvl, extreme: ext, side: 'BUY', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
   // 3. BSL / SSL sweep
@@ -169,13 +173,15 @@ export function detectLiquiditySweep(amy, context = null) {
   if (hasSslSweep) {
     const lvl = (dSweepDir === 1 && dSweepPrice) || (trgSweepDir === 1 && trgSweptPrice) || sslLevel || defaultSsl;
     const ext = (dSweepDir === 1 && dSweepExtreme) || (trgSweepDir === 1 && trgSweepExtreme) || (c && c.low < lvl ? c.low : (lvl ? lvl - 1.70 : 0));
-    return { name: 'SSL', level: lvl, extreme: ext, side: 'BUY' };
+    const sweepTime = num(d?.sweep?.time) || num(trg?.time) || num(liqList.find(l => l.label === 'SSL' && /swept/i.test(l.status))?.sourceTime) || null;
+    return { name: 'SSL', level: lvl, extreme: ext, side: 'BUY', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
   if (hasBslSweep) {
     const lvl = (dSweepDir === -1 && dSweepPrice) || (trgSweepDir === -1 && trgSweptPrice) || bslLevel || defaultBsl;
     const ext = (dSweepDir === -1 && dSweepExtreme) || (trgSweepDir === -1 && trgSweepExtreme) || (c && c.high > lvl ? c.high : (lvl ? lvl + 1.70 : 0));
-    return { name: 'BSL', level: lvl, extreme: ext, side: 'SELL' };
+    const sweepTime = num(d?.sweep?.time) || num(trg?.time) || num(liqList.find(l => l.label === 'BSL' && /swept/i.test(l.status))?.sourceTime) || null;
+    return { name: 'BSL', level: lvl, extreme: ext, side: 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
   // 4. Any line containing "swept"
@@ -184,7 +190,8 @@ export function detectLiquiditySweep(amy, context = null) {
     const name = isSsl ? 'SSL' : 'BSL';
     const lvl = isSsl ? (sslLevel || defaultSsl) : (bslLevel || defaultBsl);
     const ext = isSsl ? (c && c.low < lvl ? c.low : (lvl ? lvl - 1.70 : 0)) : (c && c.high > lvl ? c.high : (lvl ? lvl + 1.70 : 0));
-    return { name, level: lvl, extreme: ext, side: isSsl ? 'BUY' : 'SELL' };
+    const sweepTime = num(d?.sweep?.time) || num(trg?.time) || null;
+    return { name, level: lvl, extreme: ext, side: isSsl ? 'BUY' : 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
   return null;
@@ -299,41 +306,29 @@ export function dashboardContextV4Rows(amy, context = null) {
     : '—';
   const rngClass = (isHtfBull && isDiscount) || (!isHtfBull && isPremium) ? 'bias-val-bull' : '';
 
-  // Row 4: MAGNET ATAS (BSL/PDH) - Logika Jujur [SWEPT] vs [BREAK] dari V4.3
+  // Row 4: MAGNET ATAS (BSL/PDH)
   const bslVal = Number(levels?.bsl ?? d?.bsl ?? rHigh);
   const pdhVal = Number(levels?.pdh ?? ctx?.keyLevels?.pdh);
   const distBSL = (Number.isFinite(bslVal) && currentPrice > 0) ? Math.abs(bslVal - currentPrice) : null;
-  const bslBroken = !bslSwept && Number.isFinite(bslVal) && currentPrice >= bslVal && bslVal > 0;
-  const pdhBroken = !pdhSwept && Number.isFinite(pdhVal) && currentPrice > pdhVal && pdhVal > 0;
-  const bslStat = bslSwept ? ' [SWEPT]' : bslBroken ? ' [BREAK]' : '';
-  const pdhStat = pdhSwept ? ' [SWEPT]' : pdhBroken ? ' [BREAK]' : '';
-  const bslInfo = `M15 BSL: ${n(bslVal)}${distBSL != null ? ` ($${distBSL.toFixed(2)})` : ''}${bslStat}  |  PDH: ${n(pdhVal)}${pdhStat}`;
+  const bslInfo = `M15 BSL: ${n(bslVal)}${distBSL != null ? ` ($${distBSL.toFixed(2)})` : ''}${bslSwept ? ' [SWEPT]' : ''}  |  PDH: ${n(pdhVal)}${pdhSwept ? ' [SWEPT]' : ''}`;
   const bslClass = (bslSwept || pdhSwept) ? 'bias-val-gold' : (isHtfBull ? 'bias-val-cyan' : '');
 
-  // Row 5: MAGNET BAWAH (SSL/PDL) - Logika Jujur [SWEPT] vs [BREAK] dari V4.3
+  // Row 5: MAGNET BAWAH (SSL/PDL)
   const sslVal = Number(levels?.ssl ?? d?.ssl ?? rLow);
   const pdlVal = Number(levels?.pdl ?? ctx?.keyLevels?.pdl);
   const distSSL = (Number.isFinite(sslVal) && currentPrice > 0) ? Math.abs(currentPrice - sslVal) : null;
-  const sslBroken = !sslSwept && Number.isFinite(sslVal) && currentPrice <= sslVal && sslVal > 0;
-  const pdlBroken = !pdlSwept && Number.isFinite(pdlVal) && currentPrice < pdlVal && pdlVal > 0;
-  const sslStat = sslSwept ? ' [SWEPT]' : sslBroken ? ' [BREAK]' : '';
-  const pdlStat = pdlSwept ? ' [SWEPT]' : pdlBroken ? ' [BREAK]' : '';
-  const sslInfo = `M15 SSL: ${n(sslVal)}${distSSL != null ? ` ($${distSSL.toFixed(2)})` : ''}${sslStat}  |  PDL: ${n(pdlVal)}${pdlStat}`;
+  const sslInfo = `M15 SSL: ${n(sslVal)}${distSSL != null ? ` ($${distSSL.toFixed(2)})` : ''}${sslSwept ? ' [SWEPT]' : ''}  |  PDL: ${n(pdlVal)}${pdlSwept ? ' [SWEPT]' : ''}`;
   const sslClass = (sslSwept || pdlSwept) ? 'bias-val-gold' : (!isHtfBull ? 'bias-val-cyan' : '');
 
-  // Row 6: SESI & ASIA RANGE - Deteksi Sweep Sesi V4.3
+  // Row 6: SESI & ASIA RANGE
   const sessName = ctx?.session || 'LONDON';
   const asiaHigh = Number(levels?.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
   const asiaLow = Number(levels?.asiaLow ?? ctx?.keyLevels?.asiaLow);
-  const asiaHBrk = !asiaHighSwept && Number.isFinite(asiaHigh) && currentPrice > asiaHigh;
-  const asiaLBrk = !asiaLowSwept && Number.isFinite(asiaLow) && currentPrice < asiaLow;
-  const asiaHStat = asiaHighSwept ? 'H-Swept' : asiaHBrk ? 'H-Break' : '';
-  const asiaLStat = asiaLowSwept ? 'L-Swept' : asiaLBrk ? 'L-Break' : '';
-  const asiaBoth = (asiaHStat && asiaLStat) ? `${asiaHStat} & ${asiaLStat}` : (asiaHStat || asiaLStat || 'Dalam Range');
-  const sessInfo = `Sesi Aktif: ${sessName}  |  Asia H/L: ${n(asiaHigh)} / ${n(asiaLow)} (${asiaBoth})`;
+  const asiaStat = asiaHighSwept ? 'Asia High Swept' : asiaLowSwept ? 'Asia Low Swept' : 'Dalam Range';
+  const sessInfo = `Sesi Aktif: ${sessName}  |  Asia H/L: ${n(asiaHigh)} / ${n(asiaLow)} (${asiaStat})`;
   const sessClass = (asiaHighSwept || asiaLowSwept) ? 'bias-val-gold' : '';
 
-  // Row 7: INDUCEMENT (IDM) - Validasi Cerdas V4.3
+  // Row 7: INDUCEMENT (IDM)
   const idmVal = isHtfBull
     ? (Number(d?.protectedLow) || (poi?.side === 'BUY' ? Number(poi.low) : null))
     : (Number(d?.protectedHigh) || (poi?.side === 'SELL' ? Number(poi.high) : null));
@@ -343,32 +338,26 @@ export function dashboardContextV4Rows(amy, context = null) {
     : 'Menunggu Pembentukan Swing IDM';
   const idmClass = idmSwept ? 'bias-val-bull' : 'bias-val-gold';
 
-  // Row 8: ZONA SUPPLY (M15) - Anti-False Reject [DI ZONA!] vs [REJECT!]
+  // Row 8: ZONA SUPPLY (M15)
   const bearOB = (poi?.side === 'SELL' && poi?.kind === 'OB') ? poi : null;
   const bearFVG = (poi?.side === 'SELL' && poi?.kind === 'FVG') ? poi : null;
   const supObTxt = bearOB ? `${n(bearOB.low)}-${n(bearOB.high)}` : 'Mitigated';
   const supFvgTxt = bearFVG ? `${n(bearFVG.low)}-${n(bearFVG.high)}` : 'Mitigated';
-  const isBearReject = !inBearSupply && (poi?.side === 'SELL') && (amy?.entry?.rejectSell || (currentPrice > 0 && bearOB && currentPrice < bearOB.low && bearOB.low - currentPrice <= 3.0));
-  const supStat = inBearSupply ? '  [DI ZONA!]' : isBearReject ? '  [REJECT!]' : '';
-  const supInfo = `Supply OB: ${supObTxt}  |  Bear FVG: ${supFvgTxt}${supStat}`;
-  const supClass = inBearSupply ? 'bias-val-gold' : isBearReject ? 'bias-val-bear' : '';
+  const supInfo = `Supply OB: ${supObTxt}  |  Bear FVG: ${supFvgTxt}${inBearSupply ? '  [HARGA DI DALAM SUPPLY!]' : ''}`;
+  const supClass = inBearSupply ? 'bias-val-bear' : '';
 
-  // Row 9: ZONA DEMAND (M15) - Anti-False Reject [DI ZONA!] vs [REJECT!]
+  // Row 9: ZONA DEMAND (M15)
   const bullOB = (poi?.side === 'BUY' && poi?.kind === 'OB') ? poi : null;
   const bullFVG = (poi?.side === 'BUY' && poi?.kind === 'FVG') ? poi : null;
   const demObTxt = bullOB ? `${n(bullOB.low)}-${n(bullOB.high)}` : 'Mitigated';
   const demFvgTxt = bullFVG ? `${n(bullFVG.low)}-${n(bullFVG.high)}` : 'Mitigated';
-  const isBullReject = !inBullDemand && (poi?.side === 'BUY') && (amy?.entry?.rejectBuy || (currentPrice > 0 && bullOB && currentPrice > bullOB.high && currentPrice - bullOB.high <= 3.0));
-  const demStat = inBullDemand ? '  [DI ZONA!]' : isBullReject ? '  [REJECT!]' : '';
-  const demInfo = `Demand OB: ${demObTxt}  |  Bull FVG: ${demFvgTxt}${demStat}`;
-  const demClass = inBullDemand ? 'bias-val-gold' : isBullReject ? 'bias-val-bull' : '';
+  const demInfo = `Demand OB: ${demObTxt}  |  Bull FVG: ${demFvgTxt}${inBullDemand ? '  [HARGA DI DALAM DEMAND!]' : ''}`;
+  const demClass = inBullDemand ? 'bias-val-bull' : '';
 
   // Row 10: BATAS CHoCH (H1)
   const htfLow = Number(ctx?.h1?.swingLow ?? ctx?.h1?.protectedLevel ?? (hasRange ? rLow - 10 : 2630));
   const htfHigh = Number(ctx?.h1?.swingHigh ?? ctx?.h1?.protectedLevel ?? (hasRange ? rHigh + 10 : 2685));
-  const isTestingChoch = (isHtfBull && currentPrice > 0 && currentPrice < htfLow) || (!isHtfBull && currentPrice > 0 && currentPrice > htfHigh);
-  const chochStat = isTestingChoch ? ' [TEMBUS — Tunggu Close!]' : '';
-  const invInfo = (isHtfBull ? `H1 Batal Bullish < ${n(htfLow)}  |  M15 < ${n(rLow)}` : `H1 Batal Bearish > ${n(htfHigh)}  |  M15 > ${n(rHigh)}`) + chochStat;
+  const invInfo = `HTF Bullish Batal Jika Tutup < ${n(htfLow)}  |  HTF Bearish Batal Jika Tutup > ${n(htfHigh)}`;
 
   return [
     ['MATRIKS 3-TIMEFRAME', tfMatrix, tfMatrixClass],
@@ -426,6 +415,7 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
   let primary=lines[0]||'Kondisi pasar seimbang';
   let sub='Menunggu konfirmasi candle tertutup.';
   let notify=false,notifTitle='',notifBody='';
+  const nowSec = Math.floor(Date.now() / 1000);
 
   const mathZoneText=ast?.mathZone||(d?.priceZone===-1?'Diskon (Discount Zone)':d?.priceZone===1?'Premium Zone':'Equilibrium Zone');
   const antiChaseText=ast?.status==='READY'?'READY DI ZONA':ast?.status==='MISSED'?'MISSED - JANGAN KEJAR':'STANDBY';
@@ -478,9 +468,16 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     stateClass='assistant-state-sweep';
     primary=`💧 ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
     sub=`Tersapu hingga ekor ${n(sweepInfo.extreme)}. Pantau pembentukan rejection untuk potensi ${sweepInfo.side}.`;
-    notify=true;
-    notifTitle=`💧 Asisten Amy: ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
-    notifBody=`${primary} ${sub}`;
+    const sweepAge = sweepInfo.time ? (nowSec - sweepInfo.time) : 0;
+    const isLatestBar = sweepInfo.index != null && Array.isArray(amy.chartCandles) && amy.chartCandles.length
+      ? (sweepInfo.index === amy.chartCandles.length - 1)
+      : true;
+    const isFresh = sweepInfo.time ? (sweepAge >= 0 && sweepAge <= 900) : isLatestBar;
+    if(isFresh){
+      notify=true;
+      notifTitle=`💧 Asisten Amy: ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
+      notifBody=`${primary} ${sub}`;
+    }
   }else{
     const v4Rows = dashboardContextV4Rows(amy, context);
     const phaseRow = v4Rows.find(r => r[0] === 'FASE NARASI MARKET');
@@ -530,12 +527,11 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
   }
 
   const candleTime = amy.source?.M15 || amy.source?.M5;
-  const nowSec = Math.floor(Date.now() / 1000);
-  const isStale = !candleTime || (nowSec - candleTime > 3600);
+  const isStale = !candleTime || (nowSec - candleTime > 900);
 
   if(notify && notifTitle && settings?.assistantNotif !== false && !isStale && candleTime){
     try{
-      const timeKey = candleTime;
+      const timeKey = (badge.includes('SWEPT') && sweepInfo?.time) ? sweepInfo.time : candleTime;
       const eventKey = `${badge}|${timeKey}`;
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_assistant_events') : null;
       const notified = raw ? JSON.parse(raw) : {};
