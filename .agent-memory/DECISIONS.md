@@ -1,5 +1,20 @@
 # Technical Decisions
 
+## 2026-10-22 — Perbaikan Rilis Aktual Data Ekonomi (Jobless Claims 194K) & Reaktivitas Real-Time Kalender/Sentimen
+1. **Latar Belakang & Gejala:**
+   - Pengguna melaporkan bahwa rilis data ekonomi AS (Initial Jobless Claims pada 20:30 WITA) tidak memunculkan angka aktual `194K` di aplikasi Amy FX Pro, melainkan tetap menampilkan tanda strip (`—`) meski sudah lewat 20+ menit.
+2. **Akar Masalah (Root Cause):**
+   - **Keterbatasan Endpoint Statis Kalender:** Faireconomy (`ff_calendar_thisweek.json`) adalah data statis mingguan yang hanya memuat jadwal, forecast, dan previous. Angka aktual tidak pernah di-stream secara real-time dari Faireconomy.
+   - **Defek Regex Parser Berita:** Di `apps/market-intel/app.js`, regex `extractActualForEvent()` hanya mencari label `(?:Aktual|Actual|Hasil|Rilis)`. Sedangkan bot berita live Telegram (`@SM_News_24h`) menggunakan label `•Current: 194K` (Inggris) atau `•Saat ini: 194K` (Indonesia). Karena kata `Current` dan `Saat ini` tidak terdaftar, parser gagal menangkap angka `194K` dan mengembalikan `null`.
+   - **Ketidakterhubungan Tab Kalender & Sentimen:** Tab Kalender (`renderCalendar()`) sebelumnya sama sekali tidak memanggil fungsi ekstraksi aktual dari feed berita, sehingga kartu kalender selalu kosong dari angka rilis. Tab Sentimen juga tidak me-refresh dirinya saat data berita baru selesai diunduh di latar belakang.
+3. **Solusi Teknis:**
+   - **Penyempurnaan Regex Multi-Format:** Menambahkan `Current`, `Saat ini`, `Sebenarnya`, `Result` pada regex serta dukungan bullet point `•` dan simbol Unicode.
+   - **Enrichment Sentral & Reaktif:** Membuat fungsi `enrichCalendarEventsWithNews()` yang otomatis memperkaya data kalender dan sentimen secara instan dari cache maupun saat feed berita baru tiba.
+   - **Sinkronisasi Tab Latar Belakang:** Ketika `loadNews()` menerima breaking news baru, aplikasi langsung memicu enrichment kalender, re-render tampilan kalender, dan mengkalkulasi ulang sentimen makro (`loadSentiment(true)`) tanpa jeda.
+4. **Verifikasi & Rilis:**
+   - Diuji langsung terhadap feed berita riil id `61702`: Data klaim pengangguran 194K berhasil diekstraksi sempurna (`actual: 194K`, bias `BEARISH_PRESSURE`).
+   - Bump versi Amy FX Pro ke `2.0.0-pro.424` (code `950424`), commit, push, dan workflow GitHub Actions Build and Release terpantau berjalan sukses.
+
 ## 2026-10-22 — Perbaikan Kritis Notifikasi Asisten Amy: Eliminasi Delay 45 Menit pada SSL/BSL Swept & Sanitasi Stale
 1. **Latar Belakang & Gejala:**
    - Pengguna melaporkan notifikasi `💧 Asisten Amy: SSL Swept!` muncul 45 menit terlambat dari peristiwa sweep aslinya di pasar.
