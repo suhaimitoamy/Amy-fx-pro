@@ -233,3 +233,18 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
    - Notifikasi hanya dapat dikirim maksimal 1 kali per hari kalender WITA (`YYYY-MM-DD`).
 4. **Boot Resilience:**
    - [`BootReceiver`](file:///root/Amy-fx/app/src/main/java/com/amyelitesuite/BootReceiver.kt) secara otomatis mengaktifkan ulang alarm saat perangkat reboot (`ACTION_BOOT_COMPLETED`).
+
+## Standar Baku Cron Pemantau Teknikal 15 Menitan XAU/USD (Pro 430)
+
+1. **Jadwal & Trigger Waktu:**
+   - Menit `:00, :15, :30, :45` jam dinding (`0,15,30,45 * * * *`, ExactTiming: true) pada timezone WITA (UTC+8).
+2. **Karakter & Format Laporan:**
+   - 100% murni teknikal ICT tanpa berita/fundamental makro.
+   - 4 Pilar Wajib: (1) Live Price riil, (2) Bedah evolusi 3 candle M5 terakhir, (3) Peta Likuiditas ICT (BSL, SSL, EQ 50%, FVG M5, Invalidasi Tren), (4) Level Aksi & Kompas Sayang (Anti-Yes-Man, larangan entry di zona cincang, jemputan di lantai/plafon ekstrem target 100 pips).
+3. **Kanal Pengiriman:**
+   - Murni di chat Antigravity (dilarang kirim ke Telegram).
+4. **Emergency Sentinel Alert:**
+   - Siaga mendeteksi lonjakan ekstrem di menit 5/10 (jebol lantai kritis atau konfirmasi MSS kilat) tanpa harus menunggu 15 menit.
+5. **Auto-Trigger di Sesi Baru:**
+   - Kata kunci *"pantau market"*, *"nyalakan pemantau"*, *"aktifkan cron"*, *"lapor 15 menit"*, atau *"pos pantau"* otomatis mengaktifkan cron ini tanpa perlu re-konfigurasi manual.
+

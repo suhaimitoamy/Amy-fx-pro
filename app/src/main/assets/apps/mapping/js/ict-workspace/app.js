@@ -200,14 +200,20 @@ async function refresh(){
   $('refresh').disabled=true;if($('chart-error')){ $('chart-error').textContent=''; $('chart-error').style.color=''; }
   if(raw)draw();
   try{
-    const [response,h1Context]=await Promise.all([
+    const [response,h1Context,m5Response]=await Promise.all([
       loadCandles(tf,request.signal),
-      loadCandles('H1',request.signal).catch(()=>({candles:[],degraded:true}))
+      loadCandles('H1',request.signal).catch(()=>({candles:[],degraded:true})),
+      (tf==='M15'?loadCandles('M5',request.signal).catch(()=>null):Promise.resolve(null))
     ]);
     if(id!==generation)return;
     const closed=!isGoldMarketOpen(Date.now()/1000);
     const candles=filterCandles(response.candles,closed);
     const contextCandles=filterCandles(h1Context.candles,closed);
+    if(m5Response?.candles?.length){
+      window.amyfxLastCandlesM5=filterCandles(m5Response.candles,closed);
+    }else if(tf==='M5'){
+      window.amyfxLastCandlesM5=candles;
+    }
     const next={candles,context:contextCandles,tf,degraded:response.degraded||h1Context.degraded};
     const result=analyze({...next,now:Date.now()/1000});
     const previous=raw?analyze({...raw,now:Date.now()/1000}):null;
@@ -246,10 +252,11 @@ async function refresh(){
 }
 window.setTab=name=>{
   if(name!=='Dashboard')fullscreen?.close();
-  const tab=['Dashboard','Analyze','History'].includes(name)?name:'Dashboard';
+  const tab=['Dashboard','Analyze','Advisor','History'].includes(name)?name:'Dashboard';
   document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==tab);
   document.querySelectorAll('[data-tab]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.tab===tab)));
   if(tab==='Dashboard')chart?.resize();
+  if(tab==='Advisor'&&typeof window.initAdvisorPanel==='function')window.initAdvisorPanel();
 };
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>window.setTab(el.dataset.tab)));
 $('refresh').addEventListener('click',()=>{refresh();window.dispatchEvent(new CustomEvent('amyfx:refresh-context'));});
