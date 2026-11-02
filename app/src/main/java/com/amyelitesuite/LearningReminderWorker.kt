@@ -13,8 +13,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
@@ -51,12 +51,17 @@ class LearningReminderWorker(
             val currentMinute = nowWita.get(Calendar.MINUTE)
             val currentMinutesOfDay = currentHour * 60 + currentMinute
 
-            // Match if current time is within 15 minutes of one of the configured target times
-            val matchedTarget = targetTimes.firstOrNull { (th, tm, _) ->
-                val targetMinutesOfDay = th * 60 + tm
-                val diffMinutes = Math.abs(currentMinutesOfDay - targetMinutesOfDay)
-                !(diffMinutes > 15 && diffMinutes < (24 * 60 - 15))
-            }
+            // Match if current time is within [-5m .. +120m] of one of the configured target times
+            val matchedTarget = targetTimes
+                .filter { (th, tm, _) ->
+                    val targetMinutesOfDay = th * 60 + tm
+                    val diff = currentMinutesOfDay - targetMinutesOfDay
+                    (diff >= -5 && diff <= 120) || (diff <= -1435)
+                }
+                .minByOrNull { (th, tm, _) ->
+                    val targetMinutesOfDay = th * 60 + tm
+                    Math.abs(currentMinutesOfDay - targetMinutesOfDay)
+                }
 
             if (matchedTarget == null) {
                 android.util.Log.w(
@@ -70,6 +75,7 @@ class LearningReminderWorker(
             }
 
             val slotTimeStr = matchedTarget.third
+            val slotNotifiedKey = "${KEY_LAST_NOTIFIED_DATE}_$slotTimeStr"
 
             // ONCE-PER-SLOT DATE GUARD:
             val witaDateKey = String.format(
@@ -80,7 +86,7 @@ class LearningReminderWorker(
                 nowWita.get(Calendar.DAY_OF_MONTH),
                 slotTimeStr
             )
-            val lastNotifiedSlot = prefs.getString(KEY_LAST_NOTIFIED_DATE, null)
+            val lastNotifiedSlot = prefs.getString(slotNotifiedKey, null)
             if (lastNotifiedSlot == witaDateKey) {
                 android.util.Log.d("AmyFX-LearningWorker", "Already notified today for slot $slotTimeStr ($witaDateKey). Skipping.")
                 schedule(applicationContext)
@@ -96,8 +102,11 @@ class LearningReminderWorker(
             val title = "📚 Waktunya Tingkatkan Skill Trading-mu!"
             val message = "Materi terakhir yang kamu pelajari: \"$resolvedTitle\". Yuk lanjutkan belajar sekarang! (Jadwal: $slotTimeStr)"
 
-            showNotification(title, message, resolvedUrl)
-            prefs.edit().putString(KEY_LAST_NOTIFIED_DATE, witaDateKey).apply()
+            showNotification(title, message, resolvedUrl, witaDateKey)
+            prefs.edit()
+                .putString(slotNotifiedKey, witaDateKey)
+                .putString(KEY_LAST_NOTIFIED_DATE, witaDateKey)
+                .apply()
 
             // Re-anchor schedule strictly to next target time
             schedule(applicationContext)
@@ -108,17 +117,9 @@ class LearningReminderWorker(
         }
     }
 
-    private fun showNotification(title: String, message: String, targetUrl: String) {
+    private fun showNotification(title: String, message: String, targetUrl: String, witaDateKey: String) {
         if (!canPostNotifications()) return
 
-        val nowWita = Calendar.getInstance(WITA_TIME_ZONE)
-        val witaDateKey = String.format(
-            java.util.Locale.US,
-            "%04d-%02d-%02d",
-            nowWita.get(Calendar.YEAR),
-            nowWita.get(Calendar.MONTH) + 1,
-            nowWita.get(Calendar.DAY_OF_MONTH)
-        )
         val gateKey = "learning_reminder|$witaDateKey"
         if (!AmyFxNotificationGate.shouldNotify(applicationContext, gateKey, System.currentTimeMillis())) {
             return
@@ -245,19 +246,13 @@ class LearningReminderWorker(
             val nextTarget = candidateTargets.minByOrNull { it.timeInMillis } ?: return
             val initialDelayMs = (nextTarget.timeInMillis - now.timeInMillis).coerceAtLeast(0L)
 
-            val request = PeriodicWorkRequestBuilder<LearningReminderWorker>(24, TimeUnit.HOURS)
+            val request = OneTimeWorkRequestBuilder<LearningReminderWorker>()
                 .setInitialDelay(initialDelayMs, TimeUnit.MILLISECONDS)
                 .build()
 
-            val policy = if (forceReenqueue) {
-                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE
-            } else {
-                ExistingPeriodicWorkPolicy.KEEP
-            }
-
-            workManager.enqueueUniquePeriodicWork(
+            workManager.enqueueUniqueWork(
                 UNIQUE_WORK_NAME,
-                policy,
+                ExistingWorkPolicy.REPLACE,
                 request
             )
         }

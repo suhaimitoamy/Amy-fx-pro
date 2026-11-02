@@ -48,17 +48,28 @@ class LearningReminderReceiver : BroadcastReceiver() {
             val currentMinute = nowWita.get(Calendar.MINUTE)
             val currentMinutesOfDay = currentHour * 60 + currentMinute
 
-            // Strict time-window guard: only notify if within 15 minutes of one of the scheduled times
-            val matchedTarget = targetTimes.firstOrNull { (th, tm, _) ->
-                val targetMinutesOfDay = th * 60 + tm
-                val diffMinutes = Math.abs(currentMinutesOfDay - targetMinutesOfDay)
-                !(diffMinutes > 15 && diffMinutes < (24 * 60 - 15))
-            }
+            val intentSlotTime = intent?.getStringExtra("slot_time")?.trim()
+
+            // Find matching slot target:
+            // 1) Match exact slot passed in intent
+            // 2) Or match slot within [-5m .. +120m] window (accommodating Doze/sleep batching delays)
+            val matchedTarget = if (!intentSlotTime.isNullOrBlank()) {
+                targetTimes.firstOrNull { it.third == intentSlotTime }
+            } else null ?: targetTimes
+                .filter { (th, tm, _) ->
+                    val targetMinutesOfDay = th * 60 + tm
+                    val diff = currentMinutesOfDay - targetMinutesOfDay
+                    (diff >= -5 && diff <= 120) || (diff <= -1435)
+                }
+                .minByOrNull { (th, tm, _) ->
+                    val targetMinutesOfDay = th * 60 + tm
+                    Math.abs(currentMinutesOfDay - targetMinutesOfDay)
+                }
 
             if (matchedTarget == null) {
                 Log.w(
                     "AmyFX-ReminderReceiver",
-                    "Spurious alarm trigger at %02d:%02d, expected one of [%s]. Discarding.".format(
+                    "Spurious alarm trigger at %02d:%02d, expected one of [%s]. Rescheduling next slot.".format(
                         currentHour, currentMinute, timeStr
                     )
                 )
@@ -67,6 +78,7 @@ class LearningReminderReceiver : BroadcastReceiver() {
             }
 
             val slotTimeStr = matchedTarget.third
+            val slotNotifiedKey = "${LearningReminderWorker.KEY_LAST_NOTIFIED_DATE}_$slotTimeStr"
 
             // Once-per-slot date guard (supports Pagi, Siang, Malam on the same day)
             val witaDateKey = String.format(
@@ -77,7 +89,7 @@ class LearningReminderReceiver : BroadcastReceiver() {
                 nowWita.get(Calendar.DAY_OF_MONTH),
                 slotTimeStr
             )
-            val lastNotifiedSlot = prefs.getString(LearningReminderWorker.KEY_LAST_NOTIFIED_DATE, null)
+            val lastNotifiedSlot = prefs.getString(slotNotifiedKey, null)
             if (lastNotifiedSlot == witaDateKey) {
                 Log.d("AmyFX-ReminderReceiver", "Already notified for slot $slotTimeStr today ($witaDateKey). Skipping.")
                 schedule(context)
@@ -94,7 +106,10 @@ class LearningReminderReceiver : BroadcastReceiver() {
             val message = "Materi terakhir yang kamu pelajari: \"$resolvedTitle\". Yuk lanjutkan belajar sekarang! (Jadwal: $slotTimeStr)"
 
             showNotification(context, title, message, resolvedUrl, witaDateKey)
-            prefs.edit().putString(LearningReminderWorker.KEY_LAST_NOTIFIED_DATE, witaDateKey).apply()
+            prefs.edit()
+                .putString(slotNotifiedKey, witaDateKey)
+                .putString(LearningReminderWorker.KEY_LAST_NOTIFIED_DATE, witaDateKey)
+                .apply()
 
             // Schedule next upcoming alarm
             schedule(context)
@@ -189,14 +204,18 @@ class LearningReminderReceiver : BroadcastReceiver() {
                 if (target.before(now) || target.timeInMillis <= now.timeInMillis) {
                     target.add(Calendar.DAY_OF_YEAR, 1)
                 }
-                target
+                val slotStr = String.format(java.util.Locale.US, "%02d:%02d", th, tm)
+                Pair(target, slotStr)
             }
 
-            val nextTarget = candidateTargets.minByOrNull { it.timeInMillis } ?: return
+            val nextEntry = candidateTargets.minByOrNull { it.first.timeInMillis } ?: return
+            val nextTarget = nextEntry.first
+            val nextSlotStr = nextEntry.second
 
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
             val intent = Intent(context, LearningReminderReceiver::class.java).apply {
                 action = ACTION_TRIGGER_REMINDER
+                putExtra("slot_time", nextSlotStr)
             }
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
