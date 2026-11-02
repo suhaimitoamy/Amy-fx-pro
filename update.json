@@ -1,16 +1,16 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.431/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.432/AmyFX-Pro-latest.apk",
   "changelog": [
     "Dual-Engine M15+M5 Cockpit Mapping: Sinkronisasi paralel M15 untuk tren makro & M5 untuk pemicu eksekusi sniper.",
     "Detektor 3-Candle M5 Absorption: Validasi instan kehabisan tenaga (rejection & sweep) di area ekstrem Diskon/SSL & Premium/BSL.",
     "Protokol Anti-Yes-Man & ZONA CINCANG: Peringatan tegas rem disiplin dan pembekuan tombol entry saat harga berada di poros Equilibrium 50%.",
     "Target Presisi Sayang (100 Pips): Formulasi TP1 +50 pips (kunci profit & BE) dan TP2 +100 pips (Draw on Liquidity)."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.431/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.432/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950431,
-  "latest_version_name": "2.0.0-pro.431",
+  "latest_version_code": 950432,
+  "latest_version_name": "2.0.0-pro.432",
   "mandatory": false,
   "releaseDate": "2026-11-02",
   "release_notes": [
@@ -19,7 +19,7 @@
     "Protokol Anti-Yes-Man & ZONA CINCANG: Peringatan tegas rem disiplin dan pembekuan tombol entry saat harga berada di poros Equilibrium 50%.",
     "Target Presisi Sayang (100 Pips): Formulasi TP1 +50 pips (kunci profit & BE) dan TP2 +100 pips (Draw on Liquidity)."
   ],
-  "version": "2.0.0-pro.431",
-  "versionCode": 950431,
-  "sha256": "0fe521a859a5f4c400be3cb40105f428493476cc6a51116379986eea0be4b79d"
+  "version": "2.0.0-pro.432",
+  "versionCode": 950432,
+  "sha256": "51ef3d603d9c08a8bc5eb9b90249fff26b1b8b4f2b3acb9a421ac1f1f281f988"
 }
