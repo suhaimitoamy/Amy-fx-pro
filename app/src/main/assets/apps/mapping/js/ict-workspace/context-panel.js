@@ -112,14 +112,12 @@ function empty(reason){
   setTxt('gold-condition','Menunggu data volatilitas.');setTxt('news-awareness','Periksa berita berdampak tinggi secara manual.');
   renderTournament(null);renderDriverSetups(null);
   {
+    try{localStorage.removeItem('amyfx.market-context.v1');}catch{}
     window.AmyMarketContext=null;window.dispatchEvent(new CustomEvent('amyfx:market-context',{detail:null}));
   }
 }
 function render(){
-  let c=failed?null:currentContext(payload);
-  if(!c&&payload?.context?.version==='amyfx-gold-context-v1'){
-    c=payload.context;
-  }
+  const c=failed?null:currentContext(payload);
   if(!c){
     empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');
     return;
