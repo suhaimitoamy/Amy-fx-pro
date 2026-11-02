@@ -93,6 +93,7 @@ function draw(degraded=false){
     window.AmyPriceAlertManager.checkPrice(displayPrice);
   }
   if(displayPrice)chart?.updateActiveCandle?.(displayPrice);
+  renderAmy(context?.amy, display||loadDisplay(), context?.news, context);
   if($('source')){
     const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
     if(closed){
@@ -120,6 +121,10 @@ function applyLivePrice(price, timestamp){
   chart?.updateActiveCandle?.(price,timestamp);
   if(typeof window.AmyPriceAlertManager?.checkPrice==='function'){
     window.AmyPriceAlertManager.checkPrice(price);
+  }
+  if(!window.__lastV6TickRender||Date.now()-window.__lastV6TickRender>2000){
+    window.__lastV6TickRender=Date.now();
+    renderAmy(context?.amy,display||loadDisplay(),context?.news,context);
   }
 }
 window.addEventListener('amyfx:twelvedata-price',event=>{

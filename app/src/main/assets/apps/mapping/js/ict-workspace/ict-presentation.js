@@ -548,6 +548,252 @@ export function dashboardContextV4Rows(amy, context = null) {
   ];
 }
 
+export function dashboardContextV6Rows(amy, context = null) {
+  const d = amy?.dashboard;
+  const ctx = context || (typeof window !== 'undefined' ? window.AmyMarketContext : null);
+  const ind = (typeof window !== 'undefined' ? window.amyfxLastIndicators : null);
+  const chartCandles = (typeof window !== 'undefined' && Array.isArray(window.amyfxLastCandles) && window.amyfxLastCandles.length > 0)
+    ? window.amyfxLastCandles
+    : (Array.isArray(amy?.chartCandles) ? amy.chartCandles : []);
+
+  let candleHigh = null;
+  let candleLow = null;
+  if (chartCandles.length > 0) {
+    const slice = chartCandles.slice(-80);
+    candleHigh = Math.max(...slice.map(c => Number(c.high)));
+    candleLow = Math.min(...slice.map(c => Number(c.low)));
+  }
+
+  const levels = amy?.levels || ctx?.levels || ctx?.keyLevels || {};
+  const currentPrice = (typeof window !== 'undefined' && Number.isFinite(Number(window.amyfxCurrentPrice)) && Number(window.amyfxCurrentPrice) > 0)
+    ? Number(window.amyfxCurrentPrice)
+    : (Number.isFinite(Number(amy?.currentPrice)) && Number(amy?.currentPrice) > 0)
+    ? Number(amy.currentPrice)
+    : (Number.isFinite(Number(ctx?.price)) && Number(ctx.price) > 0)
+    ? Number(ctx.price)
+    : (Number.isFinite(Number(d?.candle?.close)) && Number(d.candle.close) > 0)
+    ? Number(d.candle.close)
+    : 0;
+
+  // 1. 3-TF Order Flow
+  const isHtfBull = (ind?.structure?.trend === 'BULL') || (ctx?.h1?.bias === 'BULLISH') || (d?.biasDir === 1);
+  const isMtfBull = (ind?.keyLevels?.trend === 'BULL') || (ctx?.m15?.structure === 'BULLISH') || (d?.mssDir === 1);
+  const isLtfBull = (ctx?.m5?.status === 'CONFIRMED' ? (ctx?.primary?.side === 'BUY') : Boolean(amy?.trigger?.bullBreak || amy?.trigger?.bullDisp || ((amy?.entry?.buy || 0) > (amy?.entry?.sell || 0))));
+
+  const isFullBullAlign = isHtfBull && isMtfBull && isLtfBull;
+  const isFullBearAlign = !isHtfBull && !isMtfBull && !isLtfBull;
+  const isBullPullback = isHtfBull && (!isLtfBull || !isMtfBull);
+  const isBearPullback = !isHtfBull && (isLtfBull || isMtfBull);
+
+  // 2. Dealing Range & Percent (prioritize live chart candles / indicators over stale server numbers)
+  const indHigh = ind?.keyLevels?.pdHigh || candleHigh;
+  const indLow = ind?.keyLevels?.pdLow || candleLow;
+  const ctxHigh = Number(ctx?.m15?.dealingRange?.rangeHigh ?? ctx?.keyLevels?.rangeHigh);
+  const ctxLow = Number(ctx?.m15?.dealingRange?.rangeLow ?? ctx?.keyLevels?.rangeLow);
+
+  const rHigh = (Number.isFinite(indHigh) && indHigh > 0 && (!currentPrice || Math.abs(indHigh - currentPrice) < 80))
+    ? indHigh
+    : (Number.isFinite(ctxHigh) && ctxHigh > 0 && (!currentPrice || Math.abs(ctxHigh - currentPrice) < 80))
+    ? ctxHigh
+    : Number(d?.rangeHigh ?? d?.protectedHigh ?? levels?.bsl);
+
+  const rLow = (Number.isFinite(indLow) && indLow > 0 && (!currentPrice || Math.abs(currentPrice - indLow) < 80))
+    ? indLow
+    : (Number.isFinite(ctxLow) && ctxLow > 0 && (!currentPrice || Math.abs(currentPrice - ctxLow) < 80))
+    ? ctxLow
+    : Number(d?.rangeLow ?? d?.protectedLow ?? levels?.ssl);
+
+  const hasRange = Number.isFinite(rHigh) && Number.isFinite(rLow) && rHigh > rLow;
+  const eqMid = hasRange ? (rHigh + rLow) / 2 : null;
+  const rangePct = (hasRange && currentPrice > 0) ? Math.min(100, Math.max(0, Math.round(((currentPrice - rLow) / (rHigh - rLow)) * 100))) : 50;
+  const isDiscount = rangePct < 47.5;
+  const isPremium = rangePct > 52.5;
+  const zoneLabel = isDiscount ? `DISCOUNT (<47.5%) [${rangePct}%]` : isPremium ? `PREMIUM (>52.5%) [${rangePct}%]` : `EQUILIBRIUM (50%) [${rangePct}%]`;
+
+  // 3. Batas Ekspansi (Std Dev -2.0 & -4.0 ala AMY ICT V6.1)
+  const atrVal = Number(d?.atr || ctx?.volatility?.atr || 5.0);
+  const legRange = hasRange ? Math.max(rHigh - rLow, atrVal * 2) : (atrVal * 3);
+  const expNorm = ind?.expansion?.expNorm ?? (isMtfBull ? (rHigh + legRange * 1.0) : (rLow - legRange * 1.0));
+  const expMax = ind?.expansion?.expMax ?? (isMtfBull ? (rHigh + legRange * 2.5) : (rLow - legRange * 2.5));
+  const hitExpNorm = isMtfBull ? (currentPrice >= expNorm) : (currentPrice <= expNorm);
+  const hitExpMax = isMtfBull ? (currentPrice >= expMax) : (currentPrice <= expMax);
+
+  // 4. Sweeps & Liquidity
+  const sweep = detectLiquiditySweep(amy, ctx);
+  const sslSwept = (sweep?.side === 'BUY' && (sweep.name === 'SSL' || sweep.name === 'PDL' || sweep.name === 'Asia Low')) || (d?.sweepStatus === 1 && d?.sweepDir === 1);
+  const bslSwept = (sweep?.side === 'SELL' && (sweep.name === 'BSL' || sweep.name === 'PDH' || sweep.name === 'Asia High')) || (d?.sweepStatus === 1 && d?.sweepDir === -1);
+  const pdhSwept = sweep?.name === 'PDH' || Boolean(ind?.keyLevels?.pdhConsumed);
+  const pdlSwept = sweep?.name === 'PDL' || Boolean(ind?.keyLevels?.pdlConsumed);
+  const asiaHighSwept = sweep?.name === 'Asia High' || Boolean(ind?.keyLevels?.asiaHighConsumed);
+  const asiaLowSwept = sweep?.name === 'Asia Low' || Boolean(ind?.keyLevels?.asiaLowConsumed);
+
+  // 5. Supply & Demand (PDA)
+  const indOb = ind?.poi?.ob?.[0];
+  const indFvg = ind?.poi?.fvg?.[0];
+  const poi = indOb || indFvg || d?.poi || ctx?.m15?.poi;
+  const inBullDemand = (poi?.side === 'BUY' && (d?.poiLocation === -1 || (currentPrice > 0 && poi.low != null && poi.high != null && currentPrice >= poi.low && currentPrice <= poi.high)));
+  const inBearSupply = (poi?.side === 'SELL' && (d?.poiLocation === 1 || (currentPrice > 0 && poi.low != null && poi.high != null && currentPrice >= poi.low && currentPrice <= poi.high)));
+  const rejBullDemand = !inBullDemand && poi?.side === 'BUY' && currentPrice > (poi.high || 0) && (currentPrice - (poi.high || 0)) <= atrVal;
+  const rejBearSupply = !inBearSupply && poi?.side === 'SELL' && currentPrice < (poi.low || 0) && ((poi.low || 0) - currentPrice) <= atrVal;
+
+  // 6. Inducement (IDM)
+  const idmVal = ind?.idm?.level ?? (isHtfBull
+    ? (Number(d?.protectedLow) || (poi?.side === 'BUY' ? Number(poi.low) : (rLow + atrVal * 0.5)))
+    : (Number(d?.protectedHigh) || (poi?.side === 'SELL' ? Number(poi.high) : (rHigh - atrVal * 0.5))));
+  const idmSwept = (ind?.idm?.swept === true) || (d?.sweepStatus === 1) || (isHtfBull ? sslSwept : bslSwept);
+
+  // 7. Narasi Fase Market & Action Guide
+  let phaseStatus = '';
+  let actionGuide = '';
+  let phaseClass = 'bias-val-gold';
+
+  if (isHtfBull) {
+    if (inBullDemand) {
+      phaseStatus = 'DI ZONA BELI ICT: Menguji Demand / Bullish OB' + (idmSwept ? ' (IDM Swept!)' : '');
+      actionGuide = 'Harga di Zona Beli — JANGAN SELL! Tunggu Konfirmasi MSS Naik M5';
+      phaseClass = 'bias-val-gold';
+    } else if (rejBullDemand) {
+      phaseStatus = 'REJEKSI DARI DEMAND / +OB (Memantul Naik)';
+      actionGuide = 'Demand Menahan Harga — Ikuti Order Flow Naik di M5';
+      phaseClass = 'bias-val-bull';
+    } else if (hitExpMax && isMtfBull) {
+      phaseStatus = 'BATAS NAIK (HABIS) TERCAPAI (Klimaks Ekspansi)';
+      actionGuide = 'Ekspansi Mencapai Batas Habis — DILARANG BUY DI PUCUK!';
+      phaseClass = 'bias-val-gold';
+    } else if (hitExpNorm && isMtfBull) {
+      phaseStatus = 'TARGET NAIK (NORMAL) TERCAPAI (Waspada Pullback)';
+      actionGuide = 'Target Normal Tercapai — Amankan Profit / Tunggu Retracement';
+      phaseClass = 'bias-val-bull';
+    } else if (sslSwept || pdlSwept || asiaLowSwept) {
+      phaseStatus = 'JUDAS SWING / MANIPULASI SSL (Sweep Bawah di Tren Bullish)';
+      actionGuide = 'Likuiditas Bawah Disapu — Tunggu Konfirmasi M5 MSS Naik';
+      phaseClass = 'bias-val-gold';
+    } else if (isBullPullback) {
+      phaseStatus = 'FASE PULLBACK / KOREKSI TURUN (HTF Bullish vs M5 Bearish)';
+      actionGuide = isPremium ? 'Koreksi Wajar Menuju Discount — Cari Pantulan di Demand' : 'Harga Sudah di Discount — Pantau Rejeksi di Demand / +FVG';
+      phaseClass = 'bias-val-purple';
+    } else {
+      phaseStatus = 'EKSPANSI BULLISH SEARAH (H1 / M15 / M5 Kompak Naik)';
+      actionGuide = 'Order Flow Naik Menuju Target Normal & BSL';
+      phaseClass = 'bias-val-bull';
+    }
+  } else {
+    if (inBearSupply) {
+      phaseStatus = 'DI ZONA JUAL ICT: Menguji Supply / Bearish OB' + (idmSwept ? ' (IDM Swept!)' : '');
+      actionGuide = 'Harga di Zona Jual — JANGAN BUY! Tunggu Konfirmasi MSS Turun M5';
+      phaseClass = 'bias-val-gold';
+    } else if (rejBearSupply) {
+      phaseStatus = 'REJEKSI DARI SUPPLY / -OB (Memantul Turun)';
+      actionGuide = 'Supply Menolak Harga — Ikuti Order Flow Turun di M5';
+      phaseClass = 'bias-val-bear';
+    } else if (hitExpMax && !isMtfBull) {
+      phaseStatus = 'BATAS TURUN (HABIS) TERCAPAI (Klimaks Ekspansi)';
+      actionGuide = 'Ekspansi Mencapai Batas Habis — DILARANG SELL DI DASAR!';
+      phaseClass = 'bias-val-gold';
+    } else if (hitExpNorm && !isMtfBull) {
+      phaseStatus = 'TARGET TURUN (NORMAL) TERCAPAI (Waspada Pullback)';
+      actionGuide = 'Target Normal Tercapai — Amankan Profit / Tunggu Retracement';
+      phaseClass = 'bias-val-bear';
+    } else if (bslSwept || pdhSwept || asiaHighSwept) {
+      phaseStatus = 'JUDAS SWING / MANIPULASI BSL (Sweep Atas di Tren Bearish)';
+      actionGuide = 'Likuiditas Atas Disapu — Tunggu Konfirmasi M5 MSS Turun';
+      phaseClass = 'bias-val-gold';
+    } else if (isBearPullback) {
+      phaseStatus = 'FASE PULLBACK / KOREKSI NAIK (HTF Bearish vs M5 Bullish)';
+      actionGuide = 'Pantulan Koreksi Naik Menuju Premium — Awas Jebakan Buy di Pucuk!';
+      phaseClass = 'bias-val-purple';
+    } else {
+      phaseStatus = 'EKSPANSI BEARISH SEARAH (H1 / M15 / M5 Kompak Turun)';
+      actionGuide = 'Order Flow Turun Menuju Target Normal & SSL';
+      phaseClass = 'bias-val-bear';
+    }
+  }
+
+  // 8. Format Rows (AMY ICT V6.1 Standard)
+  const tfMatrix = `H1: ${isHtfBull ? 'BULL' : 'BEAR'}  |  M15: ${isMtfBull ? 'BULL' : 'BEAR'}  |  M5: ${isLtfBull ? 'BULL' : 'BEAR'}`;
+  const tfMatrixClass = isHtfBull ? 'bias-val-bull' : 'bias-val-bear';
+
+  const expDirName = isMtfBull ? 'Naik' : 'Turun';
+  const expStatTxt = `Target ${expDirName} (Normal): ${n(expNorm)} ${hitExpNorm ? '[Tercapai]' : ''}  |  Batas Habis: ${n(expMax)} ${hitExpMax ? '[Klimaks!]' : ''}`;
+  const expClass = hitExpMax ? 'bias-val-gold' : hitExpNorm ? 'bias-val-cyan' : '';
+
+  const rngInfo = hasRange ? `${zoneLabel}  |  ${n(rLow)} - ${n(rHigh)} (EQ: ${n(eqMid)})` : '—';
+  const rngClass = (isHtfBull && isDiscount) || (!isHtfBull && isPremium) ? 'bias-val-bull' : '';
+
+  const bslVal = Number(ind?.liquidity?.bsl?.[0]?.level ?? levels?.bsl ?? d?.bsl ?? rHigh);
+  const pdhVal = Number(ind?.keyLevels?.pdh ?? levels?.pdh ?? ctx?.keyLevels?.pdh);
+  const pwhVal = Number(ind?.keyLevels?.pwh ?? levels?.pwh ?? ctx?.keyLevels?.pwh);
+  const bslInfo = `M15 BSL: ${n(bslVal)}${bslSwept ? ' [SWEPT]' : ''}  |  PDH: ${n(pdhVal)}${pdhSwept ? ' [SWEPT]' : ''}  |  PWH: ${n(pwhVal)}`;
+  const bslClass = (bslSwept || pdhSwept) ? 'bias-val-gold' : (isHtfBull ? 'bias-val-cyan' : '');
+
+  const sslVal = Number(ind?.liquidity?.ssl?.[0]?.level ?? levels?.ssl ?? d?.ssl ?? rLow);
+  const pdlVal = Number(ind?.keyLevels?.pdl ?? levels?.pdl ?? ctx?.keyLevels?.pdl);
+  const pwlVal = Number(ind?.keyLevels?.pwl ?? levels?.pwl ?? ctx?.keyLevels?.pwl);
+  const sslInfo = `M15 SSL: ${n(sslVal)}${sslSwept ? ' [SWEPT]' : ''}  |  PDL: ${n(pdlVal)}${pdlSwept ? ' [SWEPT]' : ''}  |  PWL: ${n(pwlVal)}`;
+  const sslClass = (sslSwept || pdlSwept) ? 'bias-val-gold' : (!isHtfBull ? 'bias-val-cyan' : '');
+
+  const sessName = ctx?.session || 'LONDON';
+  const asiaHigh = Number(ind?.keyLevels?.asiaHigh ?? levels?.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
+  const asiaLow = Number(ind?.keyLevels?.asiaLow ?? levels?.asiaLow ?? ctx?.keyLevels?.asiaLow);
+  const asiaStat = asiaHighSwept ? 'Asia H Swept' : asiaLowSwept ? 'Asia L Swept' : 'In Range';
+  const sessInfo = `${sessName}  |  Asia: ${n(asiaLow)} - ${n(asiaHigh)} (${asiaStat})`;
+  const sessClass = (asiaHighSwept || asiaLowSwept) ? 'bias-val-gold' : '';
+
+  const idmInfo = Number.isFinite(idmVal)
+    ? `${n(idmVal)} ${idmSwept ? '[SUDAH DISAPU — Origin OB Valid]' : '[BELUM DISAPU — Awas Inducement]'}`
+    : 'Menunggu Internal Pullback';
+  const idmClass = idmSwept ? 'bias-val-bull' : 'bias-val-gold';
+
+  const bearOB = (poi?.side === 'SELL' && poi?.kind === 'OB') ? poi : null;
+  const bearFVG = (poi?.side === 'SELL' && poi?.kind === 'FVG') ? poi : null;
+  const supObTxt = bearOB ? `${n(bearOB.low)}-${n(bearOB.high)} [Fresh]` : 'Mitigated';
+  const supFvgTxt = bearFVG ? `${n(bearFVG.low)}-${n(bearFVG.high)}` : 'Mitigated';
+  const supInfo = `-OB: ${supObTxt}  |  -FVG: ${supFvgTxt}${inBearSupply ? '  [DI ZONA!]' : ''}`;
+  const supClass = inBearSupply ? 'bias-val-bear' : '';
+
+  const bullOB = (poi?.side === 'BUY' && poi?.kind === 'OB') ? poi : null;
+  const bullFVG = (poi?.side === 'BUY' && poi?.kind === 'FVG') ? poi : null;
+  const demObTxt = bullOB ? `${n(bullOB.low)}-${n(bullOB.high)} [Fresh]` : 'Mitigated';
+  const demFvgTxt = bullFVG ? `${n(bullFVG.low)}-${n(bullFVG.high)}` : 'Mitigated';
+  const demInfo = `+OB: ${demObTxt}  |  +FVG: ${demFvgTxt}${inBullDemand ? '  [DI ZONA!]' : ''}`;
+  const demClass = inBullDemand ? 'bias-val-bull' : '';
+
+  const htfLow = Number(ctx?.h1?.swingLow ?? ctx?.h1?.protectedLevel ?? (hasRange ? rLow - 10 : 2630));
+  const htfHigh = Number(ctx?.h1?.swingHigh ?? ctx?.h1?.protectedLevel ?? (hasRange ? rHigh + 10 : 2685));
+  const nwogVal = Number(levels?.nwog ?? ctx?.keyLevels?.nwog);
+  const nwogTag = Number.isFinite(nwogVal) ? `  |  NWOG: ${n(nwogVal)}` : '';
+  const htfWallTxt = `H1 -OB: ${n(htfHigh)}  |  H1 +OB: ${n(htfLow)}${nwogTag}`;
+
+  const invInfo = isHtfBull ? `H1 Batal Bull < ${n(htfLow)}` : `H1 Batal Bear > ${n(htfHigh)}`;
+
+  const buyZoneName = inBullDemand ? 'Di Origin +OB -> Tunggu MSS M5' : 'Demand M15 / +FVG';
+  const sellZoneName = inBearSupply ? 'Di Origin -OB -> Tunggu MSS M5' : 'Supply M15 / -FVG';
+  let entryRecTxt = '';
+  if (isHtfBull) {
+    entryRecTxt = !isMtfBull ? `Buy H1: ${buyZoneName}  |  Sell M15: ${sellZoneName}` : `Fokus Buy (H1/M15): ${buyZoneName}`;
+  } else {
+    entryRecTxt = isMtfBull ? `Sell H1: ${sellZoneName}  |  Buy M15: ${buyZoneName}` : `Fokus Sell (H1/M15): ${sellZoneName}`;
+  }
+  const recClass = (inBullDemand || inBearSupply) ? 'bias-val-gold' : isHtfBull ? 'bias-val-bull' : 'bias-val-bear';
+
+  return [
+    ['3-TF ORDER FLOW', tfMatrix, tfMatrixClass],
+    ['FASE MARKET', phaseStatus, phaseClass],
+    ['BATAS EKSPANSI', expStatTxt, expClass],
+    ['DEALING RANGE & ZONA', rngInfo, rngClass],
+    ['DRAW ON LIQ (BSL)', bslInfo, bslClass],
+    ['DRAW ON LIQ (SSL)', sslInfo, sslClass],
+    ['KILLZONE & ASIA', sessInfo, sessClass],
+    ['INDUCEMENT (IDM)', idmInfo, idmClass],
+    ['BEARISH PDA (M15)', supInfo, supClass],
+    ['BULLISH PDA (M15)', demInfo, demClass],
+    ['JEJAK HTF & NWOG', htfWallTxt, ''],
+    ['BATAS MSS / CHoCH', invInfo, ''],
+    ['TARGET ENTRY (2-ARAH)', entryRecTxt, recClass],
+    ['PANDUAN KONTEKS ICT', actionGuide, phaseClass]
+  ];
+}
+
 export function renderLiveAssistant(amy,news=null,settings={},context=null){
   const root=document.getElementById('amy-live-assistant');
   const badgeEl=document.getElementById('assistant-badge');
@@ -739,18 +985,19 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
 export function renderBiasDashboardV2(amy,context=null){
   const tbody=document.getElementById('bias-table-body'),headerEl=document.getElementById('bias-table-header'),statusEl=document.getElementById('bias-dashboard-status');
   if(!tbody)return;
-  if(!amy||!amy.dashboard){
+  const hasLiveCandles=(typeof window!=='undefined'&&Array.isArray(window.amyfxLastCandles)&&window.amyfxLastCandles.length>0);
+  if(!amy?.dashboard&&!context&&!hasLiveCandles){
     tbody.innerHTML='<tr><td colspan="2" style="text-align:center; padding:16px; color:var(--muted);">Menunggu konteks server yang segar...</td></tr>';
-    if(headerEl)headerEl.textContent='AMY ICT CONTEXT V4 [INTRADAY]';
+    if(headerEl)headerEl.textContent='AMY ICT V6.1 [INTRA]';
     return;
   }
-  const rows=dashboardContextV4Rows(amy,context);
-  const tfRow=rows.find(r=>r[0]==='MATRIKS 3-TIMEFRAME');
-  const isFullBull=tfRow&&tfRow[1].includes('Major): BULLISH')&&tfRow[1].includes('Swing): BULLISH')&&tfRow[1].includes('Orderflow): BULLISH');
-  const isFullBear=tfRow&&tfRow[1].includes('Major): BEARISH')&&tfRow[1].includes('Swing): BEARISH')&&tfRow[1].includes('Orderflow): BEARISH');
+  const rows=dashboardContextV6Rows(amy,context);
+  const tfRow=rows.find(r=>r[0]==='3-TF ORDER FLOW');
+  const isFullBull=tfRow&&tfRow[1].includes('H1: BULL')&&tfRow[1].includes('M15: BULL')&&tfRow[1].includes('M5: BULL');
+  const isFullBear=tfRow&&tfRow[1].includes('H1: BEAR')&&tfRow[1].includes('M15: BEAR')&&tfRow[1].includes('M5: BEAR');
   const alignBadge=(isFullBull||isFullBear)?'SEARAH (ALIGNED)':'FASE PULLBACK / TRANSISI';
   if(headerEl){
-    headerEl.textContent=`AMY ICT CONTEXT V4 [INTRADAY] · STATUS: ${alignBadge}`;
+    headerEl.textContent=`AMY ICT V6.1 [INTRA] · STATUS: ${alignBadge}`;
   }
   if(statusEl){
     statusEl.textContent=alignBadge;
@@ -985,7 +1232,13 @@ export function renderEntryAssistantPlan(amy,context=null){
 export function renderAmy(amy,settings,news=null,context=null){
   const dash=document.getElementById('amy-dashboard'),assistant=document.getElementById('amy-assistant'),score=document.getElementById('amy-score-panel');
   const alert=document.getElementById('mapping-alert');if(alert){const warnings=mappingWarnings(amy,news);alert.hidden=!warnings.length;alert.textContent=warnings.join(' ');}
-  if(dash){dash.hidden=!settings.dashboard;dash.innerHTML=amy?`<div class="section-heading"><h2>Rincian bias M15</h2><span>Candle tertutup</span></div><dl class="amy-dashboard">${dashboardRows(amy).map(([a,b])=>`<div><dt>${esc(rowNames[a]||a)}</dt><dd>${esc(readable(b))}</dd></div>`).join('')}</dl>`:'<p>Menunggu konteks server yang segar.</p>';}
+  if(dash){
+    dash.hidden=!settings.dashboard;
+    const v6Rows=dashboardContextV6Rows(amy,context);
+    dash.innerHTML=(v6Rows&&v6Rows.length)
+      ?`<div class="section-heading"><h2>Rincian Presisi ICT V6.1</h2><span>Live &amp; Candle Tertutup</span></div><dl class="amy-dashboard">${v6Rows.map(([a,b,cls])=>`<div><dt>${esc(a)}</dt><dd class="${cls||''}">${esc(b)}</dd></div>`).join('')}</dl>`
+      :'<p>Menunggu konteks server yang segar.</p>';
+  }
   if(assistant){assistant.hidden=false;assistant.innerHTML=amy?`<h2>Entry Assistant · M15</h2><p class="amy-narration">${esc(news?.status==='NEWS_LOCK'?news.note:amy.entry.text)}</p><small>Skor confluence adalah poin model, bukan peluang menang.</small>`:'<p>Menunggu candle tertutup.</p>';}
   if(score){score.hidden=!settings.panel;const e=amy?.entry;score.innerHTML=e?`<h2>${esc(e.grade)} · ${e.score}/100 poin</h2><p>BUY ${e.buy} | SELL ${e.sell} · ${directions(e.winDir)}</p><table class="amy-score-table"><thead><tr><th>Lapisan</th><th>BUY</th><th>SELL</th></tr></thead><tbody>${Object.keys(e.breakdown.buy||{}).map(k=>`<tr><td>${esc(layerNames[k]||k)}</td><td>${e.breakdown.buy[k]}</td><td>${e.breakdown.sell[k]}</td></tr>`).join('')}</tbody></table><small>Skor mentah dibatasi 100; dekat invalidasi: skor × 0.7.</small>`:'<p>Skor belum tersedia.</p>';}
   renderLiveAssistant(amy,news,settings,context);
