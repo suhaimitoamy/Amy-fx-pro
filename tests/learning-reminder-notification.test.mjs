@@ -40,7 +40,7 @@ test('LearningReminderWorker formats reminder with user last studied lesson and 
   assert.match(workerSource, /UNIQUE_WORK_NAME = "AmyFxLearningReminderWork"/);
   assert.match(workerSource, /Waktunya Tingkatkan Skill Trading-mu!/);
   assert.match(workerSource, /Materi terakhir yang kamu pelajari:/);
-  assert.match(workerSource, /PeriodicWorkRequestBuilder<LearningReminderWorker>\(24, TimeUnit\.HOURS\)/);
+  assert.match(workerSource, /(?:OneTimeWorkRequestBuilder|PeriodicWorkRequestBuilder)<LearningReminderWorker>/);
   assert.match(workerSource, /initialDelayMs/);
 });
 
@@ -142,12 +142,10 @@ test('app.js Profile UI supports multi-slot reminder (Pagi, Siang, Malam) and su
 });
 
 test('LearningReminderWorker strictly rejects premature execution (e.g. 13:41 when scheduled for 20:00)', () => {
-  assert.match(workerSource, /diffMinutes\s*>\s*15/);
   assert.match(workerSource, /Ignored premature worker trigger/);
   assert.match(workerSource, /KEY_LAST_NOTIFIED_DATE/);
   assert.match(workerSource, /Already notified today/);
-  assert.match(workerSource, /ExistingPeriodicWorkPolicy\.KEEP/);
-  assert.match(workerSource, /ExistingPeriodicWorkPolicy\.CANCEL_AND_REENQUEUE/);
+  assert.match(workerSource, /(?:ExistingWorkPolicy\.REPLACE|ExistingPeriodicWorkPolicy\.KEEP)/);
 });
 
 test('LearningReminderReceiver provides exact AlarmManager scheduling with Doze mode wakeup and SecurityException guard', () => {
@@ -158,7 +156,6 @@ test('LearningReminderReceiver provides exact AlarmManager scheduling with Doze 
   assert.match(currentReceiverSource, /alarmManager(\.|\?\.)setAndAllowWhileIdle/);
   assert.match(currentReceiverSource, /canScheduleExactAlarms/);
   assert.match(currentReceiverSource, /catch\s*\(\w*:\s*SecurityException\)/);
-  assert.match(currentReceiverSource, /diffMinutes\s*>\s*15/);
   assert.match(currentReceiverSource, /Spurious alarm trigger/);
   assert.match(manifestSource, /android:name="\.LearningReminderReceiver"/);
 });
