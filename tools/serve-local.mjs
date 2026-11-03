@@ -55,7 +55,7 @@ try:
     rows = cur.execute('''
         SELECT open_time, open, high, low, close, volume_tick
         FROM candles
-        WHERE timeframe = ?
+        WHERE timeframe = ? AND open_time <= datetime('now')
         ORDER BY open_time DESC
         LIMIT ?
     ''', ('${tfStr}', ${limit})).fetchall()
@@ -120,8 +120,9 @@ function initLocalCandleCache() {
       const raw = fs.readFileSync(CANDLE_CACHE_FILE, 'utf8');
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
+        const nowSec = Math.floor(Date.now() / 1000);
         for (const [key, value] of Object.entries(parsed)) {
-          if (value && value.data) {
+          if (value && value.data && (!value.closeSec || value.closeSec <= (nowSec + 7200))) {
             localCandleCache.set(key, value);
           }
         }
@@ -399,6 +400,37 @@ const requestHandler = async (req, res) => {
       return;
     }
 
+    if (pathname === '/api/live-price') {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+      });
+      try {
+        const upstream = await fetch('https://amy-fx.vercel.app/api/live-price', {
+          headers: { 'Accept': 'text/event-stream' }
+        });
+        if (!upstream.ok || !upstream.body) {
+          res.end(': upstream unavailable\n\n');
+          return;
+        }
+        const reader = upstream.body.getReader();
+        req.on('close', () => {
+          try { reader.cancel(); } catch (_) {}
+        });
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(value);
+        }
+        res.end();
+      } catch (_) {
+        if (!res.writableEnded) res.end();
+      }
+      return;
+    }
+
     if (pathname === '/api/twelvedata') {
       const symbol = (parsedUrl.searchParams.get('symbol') || 'XAU/USD').toUpperCase();
       const interval = (parsedUrl.searchParams.get('interval') || '15min').toLowerCase();
@@ -413,7 +445,7 @@ const requestHandler = async (req, res) => {
       // Check if cache has data and hasn't passed candle close time
       const cached = localCandleCache.get(cacheKey) || localCandleCache.get(fallbackKey);
       if (cached && cached.data) {
-        const isFresh = isWeekend || (cached.closeSec && nowSec < cached.closeSec);
+        const isFresh = isWeekend || (cached.closeSec && nowSec < cached.closeSec && cached.closeSec <= (nowSec + intervalSec * 2));
         if (isFresh) {
           res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8',
@@ -457,7 +489,9 @@ const requestHandler = async (req, res) => {
         const isValid = upstream.status === 200 && parsed && parsed.status !== 'error' && Array.isArray(parsed.values) && parsed.values.length > 0 && !isUpstreamStale;
 
         if (isValid) {
-          const closeSec = openSec ? (openSec + intervalSec) : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
+          const closeSec = (openSec && openSec <= nowSec + 60)
+            ? (openSec + intervalSec)
+            : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
           const entry = {
             data: parsed,
             rawJson: dataText,
@@ -492,7 +526,9 @@ const requestHandler = async (req, res) => {
             const sMs = Date.parse(sDt);
             if (Number.isFinite(sMs)) sOpenSec = Math.floor(sMs / 1000);
           }
-          const sCloseSec = sOpenSec ? (sOpenSec + intervalSec) : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
+          const sCloseSec = (sOpenSec && sOpenSec <= nowSec + 60)
+            ? (sOpenSec + intervalSec)
+            : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
           const sEntry = {
             data: sqliteCandles,
             rawJson: JSON.stringify(sqliteCandles),

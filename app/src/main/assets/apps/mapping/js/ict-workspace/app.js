@@ -175,7 +175,10 @@ function startBrowserLivePriceStream(){
   if(typeof EventSource!=='function')return;
   window.__amyFxSseStarted=true;
   try{
-    const es=new EventSource('https://amy-fx.vercel.app/api/live-price');
+    const host=typeof location!=='undefined'?String(location.hostname||''):'';
+    const isLocal=/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+    const url=isLocal?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
+    const es=new EventSource(url);
     es.onmessage=(event)=>{
       try{
         const data=JSON.parse(event.data);

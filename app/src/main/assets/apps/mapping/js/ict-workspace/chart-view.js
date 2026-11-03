@@ -63,11 +63,16 @@ export function createPriceChart(element,{touchAxes=false}={}) {
         series.setData(result.candles);
         key=result.candles.length?next:'';
         if(initial&&result.candles.length){
-          const total=result.candles.length;
-          chart.timeScale().setVisibleLogicalRange({
-            from: Math.max(0, total - 45),
-            to: total + 4
-          });
+          if(typeof chart.timeScale().setVisibleLogicalRange==='function'){
+            const total=result.candles.length;
+            chart.timeScale().setVisibleLogicalRange({
+              from: Math.max(0, total - 45),
+              to: total + 4
+            });
+          }
+          if(typeof chart.timeScale().fitContent==='function'){
+            chart.timeScale().fitContent();
+          }
         }
       }
       if(presentation&&!ict)ict=createIctCanvas(element,chart,series);

@@ -68,10 +68,32 @@ function lenientCandles(values) {
 
 export function mountHomeChart(root) {
   const $=id=>root.querySelector('#'+id);
-  let view=null,raw=null,controller=null,timer=null,generation=0,disposed=false;
+  let view=null,raw=null,controller=null,timer=null,generation=0,disposed=false,es=null;
   let h1Cache=null,h1CacheTime=0;
   try { view=createPriceChart($('home-price-chart')); }
   catch { $('home-price-chart').textContent='Chart tidak tersedia. Coba muat ulang aplikasi.';return ()=>{}; }
+  function startBrowserLivePriceStream(){
+    if(typeof window==='undefined'||window.Android||window.AmyLivePrice||window.__amyFxHomeSseStarted)return;
+    if(typeof EventSource!=='function')return;
+    window.__amyFxHomeSseStarted=true;
+    try{
+      const host=typeof location!=='undefined'?String(location.hostname||''):'';
+      const isLocal=/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+      const url=isLocal?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
+      es=new EventSource(url);
+      es.onmessage=(event)=>{
+        try{
+          const data=JSON.parse(event.data);
+          if(data&&Number.isFinite(Number(data.price))){
+            handleLiveTick({detail:{price:Number(data.price),timestamp:Number(data.timestamp)||Date.now()}});
+          }
+        }catch(_){}
+      };
+      es.onerror=()=>{
+        // Browser automatically retries EventSource connection
+      };
+    }catch(_){}
+  }
   function render(degraded=false){
     const tf=$('home-chart-tf').value;
     const closed=!isGoldMarketOpen(Date.now()/1000);
@@ -202,7 +224,13 @@ export function mountHomeChart(root) {
   window.addEventListener('amyfx:twelvedata-price',handleLiveTick);
   window.addEventListener('amyfx:live-price-display',handleLiveTick);
   refresh();
+  startBrowserLivePriceStream();
   return ()=>{disposed=true;stop();view.destroy();
+    if(es){
+      try{es.close();}catch(_){}
+      es=null;
+      window.__amyFxHomeSseStarted=false;
+    }
     $('home-chart-refresh').removeEventListener('click',refresh);$('home-chart-tf').removeEventListener('change',change);
     document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',refresh);
     window.removeEventListener('pagehide',stop);window.removeEventListener('pageshow',pageshow);

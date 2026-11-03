@@ -248,3 +248,19 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
 5. **Auto-Trigger di Sesi Baru:**
    - Kata kunci *"pantau market"*, *"nyalakan pemantau"*, *"aktifkan cron"*, *"lapor 15 menit"*, atau *"pos pantau"* otomatis mengaktifkan cron ini tanpa perlu re-konfigurasi manual.
 
+## Pembersihan Modul Terisolasi & Penguatan Integritas Runtime (Pro 433)
+
+1. **Purge Modul Fractal Advisor & Legacy Laya (Nomor 8):**
+   - Modul `apps/fractal-advisor/` (1.210 baris) dihapus permanen bersama `api/fractal-audit.js` dan route backend di `tools/serve-local.mjs`.
+2. **Pembersihan Modul Indikator / Ghost Tab Kode (Nomor 4):**
+   - Menghapus tab filter Kode dan tombol mati `data-open="indikator"` di menu Media agar antarmuka Video fokus murni sebagai media replay.
+3. **Pembersihan Tautan Rusak Academy (Nomor 5):**
+   - 1.931 tautan 404/rusak di seluruh materi Academy dibersihkan menjadi teks murni, dan 33 tautan navigasi awalan angka dinormalisasi (0 broken links).
+4. **Perbaikan Runtime & Fitur Profil (Nomor 1, 2, 3, 6, 7):**
+   - Menghilangkan crash `NotFoundError` di 12 halaman utama Academy saat memasang theme toggle button.
+   - Mengunci validasi kesegaran candle dengan pengecekan timeframe (`raw?.tf === next.tf`) di Home Chart & Cockpit Mapping.
+   - Menyinkronkan cadangan ekspor profil dengan basis data riil Jurnal (IndexedDB `journals.v2`) dan menyediakan tombol Pulihkan / Impor Cadangan Data.
+   - Memunculkan kembali kartu personalisasi Nama Trader di Profil.
+   - Menghilangkan konflik guard pada `profile-system-settings-v1.js` agar kustomisasi warna kaca berjalan mulus.
+
+
