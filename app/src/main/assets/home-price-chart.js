@@ -140,7 +140,7 @@ export function mountHomeChart(root) {
       const next={candles:safeEntryCandles,context:safeContextCandles,tf,degraded:entry.degraded||actualContext.degraded};
       const result=analyze({...next,now:Date.now()/1000});
       const previous=raw?analyze({...raw,now:Date.now()/1000}):null;
-      if(!result.candles.length||(previous&&result.sourceTime<previous.sourceTime))throw Error('Candle tidak lengkap atau lebih lama');
+      if(!result.candles.length||(previous&&raw?.tf===next.tf&&result.sourceTime<previous.sourceTime))throw Error('Candle tidak lengkap atau lebih lama');
       raw=next;render();
     } catch {
       if(disposed||id!==generation)return;

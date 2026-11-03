@@ -431,8 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
       filteredItems = allItems.filter(it => it.mediaKind === 'image' || it.type === 'Gambar Chart' || (it.mediaType && it.mediaType.startsWith('image/')));
     } else if (currentMediaFilter === 'Dokumen') {
       filteredItems = allItems.filter(isDocItem);
-    } else if (currentMediaFilter === 'Kode') {
-      filteredItems = [];
     } else {
       // 'Semua'
       filteredItems = allItems.filter(it => isMediaItem(it) || isDocItem(it));
@@ -445,26 +443,14 @@ document.addEventListener('DOMContentLoaded', () => {
       { id: 'Semua', label: `Semua (${totalMediaCount})` },
       { id: 'Video', label: 'Video Replay' },
       { id: 'Gambar', label: 'Gambar & Chart' },
-      { id: 'Dokumen', label: 'Dokumen PDF' },
-      { id: 'Kode', label: 'Kode Tersimpan' }
+      { id: 'Dokumen', label: 'Dokumen PDF' }
     ].map(p => `
       <button class="pill ${currentMediaFilter === p.id ? 'active' : ''}" data-media-filter="${p.id}" type="button">${p.label}</button>
     `).join('');
 
     let contentHTML = '';
 
-    if (currentMediaFilter === 'Kode') {
-      const codeItems = [];
-      if (hasSavedCode) {
-        codeItems.push(`<button class="collection-item" data-koleksi="kode"><span class="app-icon code">${svgs.code}</span><span><strong>Kode indikator tersimpan</strong><small>Buka kembali Pine Script yang disimpan di perangkat ini.</small></span><span class="chevron" aria-hidden="true">›</span></button>`);
-      }
-      if (favoriteIndicators.length) {
-        codeItems.push(`<button class="collection-item" data-open="indikator"><span class="app-icon indicator">${svgs.indicator}</span><span><strong>${favoriteIndicators.length} indikator favorit</strong><small>Favorit aktual dari library indikator perangkat ini.</small></span><span class="chevron" aria-hidden="true">›</span></button>`);
-      }
-      contentHTML = codeItems.length
-        ? `<div class="collection-list slide-up">${codeItems.join('')}</div>`
-        : `<div class="empty-state-card slide-up"><div style="font-size:32px; margin-bottom:8px;">💻</div><strong>Belum ada item tersimpan</strong><span>Simpan kode Pine Script dari menu Indikator agar muncul di sini.</span></div>`;
-    } else if (filteredItems.length === 0) {
+    if (filteredItems.length === 0) {
       contentHTML = `
         <div class="empty-state-card slide-up" style="text-align:center; padding:36px 20px; border-radius:20px; background:var(--surface-color); border:1px solid var(--border-color); margin-top:10px;">
           <div style="font-size:42px; margin-bottom:12px;">🎬</div>
@@ -1288,9 +1274,25 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      <!-- Kartu Profil Trader -->
+      <section class="profile-glass-panel slide-up" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #d4af37, #996515); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#070b14; box-shadow:0 0 12px rgba(212,175,55,0.35);">
+            🏆
+          </div>
+          <div>
+            <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; display:block;">Trader Pro Amy FX</span>
+            <strong id="traderNameTitle" style="font-size:16px; font-weight:800; color:var(--text-main);">${escapeHtml(localStorage.getItem('amy_trader_name') || 'Trader')}</strong>
+          </div>
+        </div>
+        <button type="button" id="editTraderNameBtn" class="glass-preset-btn" style="padding:6px 14px; font-size:12px; font-weight:700;">
+          <span>✏️ Ubah Nama</span>
+        </button>
+      </section>
+
       <!-- Trading Environment Customization -->
       <div class="profile-section-title" style="margin-top:8px;">Trading Environment Customization</div>
-      <section class="profile-glass-panel slide-up" data-amyfx-color-settings="true">
+      <section class="profile-glass-panel slide-up">
         <div class="glass-group-label">Mode Tampilan</div>
         <div class="theme-selector">
           <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
@@ -1445,9 +1447,15 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
         <button class="profile-row" id="profileExportBtn" type="button">
           <span class="tool-icon">💾</span>
-          <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi semua jurnal, rutinitas, dan catatan lokal.</small></span>
+          <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi semua jurnal riil, rutinitas, dan catatan lokal.</small></span>
           <span class="chevron">›</span>
         </button>
+        <button class="profile-row" id="profileImportBtn" type="button">
+          <span class="tool-icon">📥</span>
+          <span><strong>Pulihkan / Impor Cadangan Data</strong><small>Pulihkan data profil, kebiasaan, dan jurnal dari file backup JSON.</small></span>
+          <span class="chevron">›</span>
+        </button>
+        <input type="file" id="profileImportFileInput" accept="application/json" style="display:none;">
         <button class="profile-row danger-row" data-profile-action="clear" type="button">
           <span class="tool-icon">×</span>
           <span><strong>Bersihkan Data Lokal</strong><small>Menghapus riwayat, jurnal, dan koleksi lokal secara aman.</small></span>
@@ -1551,7 +1559,48 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Notifikasi pengingat belajar dikirim!');
     });
 
-    document.getElementById('profileExportBtn')?.addEventListener('click', () => {
+    async function loadJournalsForBackup() {
+      let journals = [];
+      try {
+        if ('indexedDB' in window) {
+          const db = await new Promise((res, rej) => {
+            const req = indexedDB.open('tradingLibraryManager.files');
+            req.onsuccess = () => res(req.result);
+            req.onerror = () => rej(req.error);
+          });
+          if (db.objectStoreNames.contains('metadata')) {
+            const row = await new Promise((res) => {
+              const tx = db.transaction('metadata', 'readonly');
+              const req = tx.objectStore('metadata').get('journals.v2');
+              req.onsuccess = () => res(req.result?.value || []);
+              req.onerror = () => res([]);
+            });
+            if (Array.isArray(row) && row.length) journals = row;
+          }
+          db.close();
+        }
+      } catch (_) {}
+
+      if (!journals.length) {
+        try {
+          const raw = localStorage.getItem('tradingLibraryManager.journals.v1');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length) journals = parsed;
+          }
+        } catch (_) {}
+      }
+
+      if (!journals.length) {
+        journals = readJsonArray('amy_journal_entries');
+      }
+
+      return journals;
+    }
+
+    document.getElementById('profileExportBtn')?.addEventListener('click', async () => {
+      showToast('Menyiapkan file cadangan profil & data...');
+      const journalsList = await loadJournalsForBackup();
       const backupData = {
         app: 'Amy FX Pro',
         exportedAt: new Date().toISOString(),
@@ -1560,7 +1609,7 @@ document.addEventListener('DOMContentLoaded', () => {
         risk: localStorage.getItem('amy_default_risk') || '1.5',
         habits: readJsonSafe('amy_habits_v2', []),
         completedHabits: readJsonSafe('amy_completed_dates_v2', {}),
-        journals: readJsonArray('amy_journal_entries')
+        journals: journalsList
       };
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -1569,7 +1618,67 @@ document.addEventListener('DOMContentLoaded', () => {
       a.download = `amyfx-pro-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('File backup profil & data berhasil diunduh.');
+      showToast(`Cadangan berhasil diunduh (${journalsList.length} jurnal disertakan).`);
+    });
+
+    const importFileInput = document.getElementById('profileImportFileInput');
+    document.getElementById('profileImportBtn')?.addEventListener('click', () => {
+      importFileInput?.click();
+    });
+
+    importFileInput?.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data || typeof data !== 'object') throw new Error('Format file tidak valid.');
+
+        if (data.traderName) localStorage.setItem('amy_trader_name', String(data.traderName));
+        if (data.balance) localStorage.setItem('amy_default_balance', String(data.balance));
+        if (data.risk) localStorage.setItem('amy_default_risk', String(data.risk));
+        if (Array.isArray(data.habits)) localStorage.setItem('amy_habits_v2', JSON.stringify(data.habits));
+        if (data.completedHabits && typeof data.completedHabits === 'object') {
+          localStorage.setItem('amy_completed_dates_v2', JSON.stringify(data.completedHabits));
+        }
+
+        let journalCount = 0;
+        if (Array.isArray(data.journals) && data.journals.length) {
+          journalCount = data.journals.length;
+          localStorage.setItem('tradingLibraryManager.journals.v1', JSON.stringify(data.journals));
+          localStorage.setItem('amy_journal_entries', JSON.stringify(data.journals));
+
+          try {
+            if ('indexedDB' in window) {
+              const db = await new Promise((res, rej) => {
+                const req = indexedDB.open('tradingLibraryManager.files');
+                req.onsuccess = () => res(req.result);
+                req.onerror = () => rej(req.error);
+              });
+              if (db.objectStoreNames.contains('metadata')) {
+                await new Promise((res) => {
+                  const tx = db.transaction('metadata', 'readwrite');
+                  tx.objectStore('metadata').put({
+                    id: 'journals.v2',
+                    value: data.journals,
+                    updatedAt: new Date().toISOString()
+                  });
+                  tx.oncomplete = () => res();
+                  tx.onerror = () => res();
+                });
+              }
+              db.close();
+            }
+          } catch (_) {}
+        }
+
+        showToast(`Cadangan data berhasil dipulihkan! (${journalCount} jurnal dipulihkan).`);
+        renderProfile();
+      } catch (err) {
+        showToast('Gagal memulihkan cadangan: ' + (err.message || 'File rusak'));
+      } finally {
+        event.target.value = '';
+      }
     });
 
     // Preset color buttons

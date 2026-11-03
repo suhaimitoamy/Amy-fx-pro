@@ -30,7 +30,7 @@
     <div class="breadcrumb"><a href="../index.html">Beranda</a> › <a href="../daftar-materi.html">Daftar Materi</a></div>
     <div class="eyebrow">Bagian 19 — POI Selection Masterclass</div>
     <h1>Old High dan Old Low sebagai Referensi Liquidity</h1>
-<div class="note"><strong>Ikhtisar</strong><br><p>Dalam hierarki <em><a href="pd-array.html">PD Array</a></em> (Premium/Discount Array) algoritma <a href="ipda.html">IPDA</a>, kasta absolut tertinggi tidak dipegang oleh <em><a href="order-block.html">Order Block</a></em> atau <em><a href="fair-value-gap.html">Fair Value Gap</a></em>. Kasta raja dipegang mutlak oleh <strong>Old High</strong> (Puncak Lama) dan <strong>Old Low</strong> (Lembah Lama). <a href="ipda.html">IPDA</a> mengalihkan pandangannya dari satu Old High ke Old Low lainnya layaknya radar pemandu rudal.</p></div>
+<div class="note"><strong>Ikhtisar</strong><br><p>Dalam hierarki <em>PD Array</em> (Premium/Discount Array) algoritma IPDA, kasta absolut tertinggi tidak dipegang oleh <em>Order Block</em> atau <em>Fair Value Gap</em>. Kasta raja dipegang mutlak oleh <strong>Old High</strong> (Puncak Lama) dan <strong>Old Low</strong> (Lembah Lama). IPDA mengalihkan pandangannya dari satu Old High ke Old Low lainnya layaknya radar pemandu rudal.</p></div>
 
 <h2>1. Anatomi "Old High" &amp; "Old Low"</h2>
 <p>Apa yang membuat sebuah puncak/lembah layak disebut "Lama" (<em>Old</em>) dan menjadi rujukan utama algoritma?
@@ -38,17 +38,17 @@ Bukan sekadar <em>swing</em> kecil di <em>timeframe</em> M1, melainkan titik-tit
 <p>Berikut adalah referensi tingkat Dewa (<em>God Tier</em>) bagi algoritma:
 1.  <strong>PMH / PML (Previous Month High / Low):</strong> Target kuartalan. Jika harga memecahkan PMH, sentimen makro akan meledak brutal.
 2.  <strong>PWH / PWL (Previous Week High / Low):</strong> Target mingguan favorit dalam siklus <em>PO3 Weekly</em>.
-3.  <strong>PDH / PDL (Previous Day High / Low):</strong> Target harian absolut. Hampir setiap hari, <a href="ipda.html">IPDA</a> akan berusaha menyapu PDH atau PDL hari kemarin untuk mendapatkan "bensin" likuiditas.
+3.  <strong>PDH / PDL (Previous Day High / Low):</strong> Target harian absolut. Hampir setiap hari, IPDA akan berusaha menyapu PDH atau PDL hari kemarin untuk mendapatkan "bensin" likuiditas.
 4.  <strong>Session High/Low:</strong> (Misal: <em>Asia High</em>, <em>London Low</em>). Ini adalah target mikroskopis ( <em>Intraday</em> ).</p>
 <h2>2. Kenapa Mereka Berada di Puncak Hierarki?</h2>
-<p>Sebuah <em><a href="fair-value-gap.html">Fair Value Gap</a></em> HANYA berisi ketidakseimbangan harga algoritmik.
+<p>Sebuah <em>Fair Value Gap</em> HANYA berisi ketidakseimbangan harga algoritmik.
 Namun, sebuah <strong>Old High</strong> (misalnya Puncak Harga Kemarin/PDH) berisi sesuatu yang jauh lebih berharga: <strong>UANG SUNGGUHAN DARI TRADER RITEL.</strong></p>
 <p>Di atas <em>Previous Day High</em> terdapat:
 *   <em>Buy Stop</em> (Pesanan Beli otomatis dari <em>trader breakout</em> yang menembak ke atas).
 *   <em>Stop Loss</em> / <em>Buy to Cover</em> (Pesanan Beli otomatis dari <em>trader</em> yang sedang menahan posisi <em>Sell</em>).</p>
 <p>Karena area ini adalah sarang jutaan dolar yang beristirahat, algoritma bank sentral memprioritaskan pergerakan ke level-level ini di atas semua indikator teknikal apa pun.</p>
 <h2>3. Cara Menggunakan Old High/Low (Matrix Setup)</h2>
-<p>Anda TIDAK menggunakan <em>Old High/Low</em> sebagai batas <em><a href="support.html">Support</a></em> atau <em><a href="resistance.html">Resistance</a></em> (untuk berharap harga memantul). Anda menggunakannya sebagai <strong>Zona Kematian (Kill Zone) Pencipta Setup.</strong></p>
+<p>Anda TIDAK menggunakan <em>Old High/Low</em> sebagai batas <em>Support</em> atau <em>Resistance</em> (untuk berharap harga memantul). Anda menggunakannya sebagai <strong>Zona Kematian (Kill Zone) Pencipta Setup.</strong></p>
 <ul>
 <li><strong>Skenario (Liquidity Raid):</strong>
     Harga mendekati PDH (Previous Day High). Anda TIDAK melakukan apa-apa.
@@ -59,7 +59,7 @@ Namun, sebuah <strong>Old High</strong> (misalnya Puncak Harga Kemarin/PDH) beri
 </ul>
 <p>Anda baru saja membonceng (<em>ride</em>) institusi sesaat setelah mereka memakan likuiditas <em>Stop Loss</em> ritel (yang diletakkan di luar tembok PDH). Anda menjual aset tepat setelah "uang bodoh" terpaksa membelinya.</p>
 <div class="note"><strong></strong><br><p><strong>Aturan Layar Bersih:</strong>
-Sebelum Anda menandai FVG atau <em><a href="order-block.html">Order Block</a></em> apa pun setiap paginya, hal pertama yang WAJIB ditarik garis lurus horizontal-nya adalah PDH dan PDL dari 24 jam ke belakang. Jika Anda tidak tahu di mana <em>High/Low</em> kemarin, Anda bertrading dalam kegelapan.</p></div>
+Sebelum Anda menandai FVG atau <em>Order Block</em> apa pun setiap paginya, hal pertama yang WAJIB ditarik garis lurus horizontal-nya adalah PDH dan PDL dari 24 jam ke belakang. Jika Anda tidak tahu di mana <em>High/Low</em> kemarin, Anda bertrading dalam kegelapan.</p></div>
   <div class="quiz-container" data-module="liquidity-masterclass"></div>
 <script src="../assets/js/quiz.js"></script>
 </section>

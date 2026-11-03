@@ -43,6 +43,45 @@ const CANDLE_CACHE_FILE = path.resolve(ROOT_DIR, 'data/candle_cache.json');
 const localCandleCache = new Map();
 let lastScalperSetupsPayload = null;
 
+async function getLocalSqliteCandles(interval, limit = 300) {
+  try {
+    const tfMap = { '1min': 'M1', '5min': 'M5', '15min': 'M15', '30min': 'M30', '1h': 'H1', '4h': 'H4', '1day': 'D1' };
+    const tfStr = tfMap[interval] || interval.toUpperCase();
+    const script = `
+import sqlite3, json
+try:
+    conn = sqlite3.connect('/root/amy-market-data/xauusd_bot.sqlite')
+    cur = conn.cursor()
+    rows = cur.execute('''
+        SELECT open_time, open, high, low, close, volume_tick
+        FROM candles
+        WHERE timeframe = ?
+        ORDER BY open_time DESC
+        LIMIT ?
+    ''', ('${tfStr}', ${limit})).fetchall()
+    values = []
+    for r in rows:
+        values.append({
+            'datetime': r[0].replace(' ', 'T') + 'Z',
+            'open': str(r[1]),
+            'high': str(r[2]),
+            'low': str(r[3]),
+            'close': str(r[4]),
+            'volume': str(r[5])
+        })
+    print(json.dumps({'status': 'ok', 'meta': {'symbol': 'XAU/USD', 'interval': '${interval}'}, 'values': values, 'source': 'local-sqlite'}))
+except Exception as e:
+    print(json.dumps({'status': 'error', 'message': str(e)}))
+`;
+    const { stdout } = await execFileAsync('python3', ['-c', script], { timeout: 3500 });
+    const parsed = JSON.parse(stdout);
+    if (parsed && parsed.status === 'ok' && Array.isArray(parsed.values) && parsed.values.length > 0) {
+      return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+
 const CANDLE_INTERVAL_SECONDS = {
   '1min': 60,
   '5min': 300,
@@ -237,41 +276,6 @@ const requestHandler = async (req, res) => {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     let pathname = decodeURIComponent(parsedUrl.pathname);
 
-    if (pathname === '/api/fractal-audit' || pathname === '/api/fractal-advisor') {
-      const bias = (parsedUrl.searchParams.get('bias') || 'BUY').toUpperCase();
-      const barIdx = parsedUrl.searchParams.get('bar') || '-1';
-      const sweep = parsedUrl.searchParams.get('sweep') || 'true';
-      const ote = parsedUrl.searchParams.get('ote') || 'true';
-      
-      try {
-        const scriptPath = '/sdcard/Download/lab backtest/amy_fractal_advisor.py';
-        const { stdout } = await execFileAsync('python3', [
-          scriptPath,
-          '--audit-latest',
-          '--json',
-          '--bias', bias === 'SELL' ? 'SELL' : 'BUY',
-          '--bar-idx', barIdx,
-          '--sweep', sweep,
-          '--ote', ote
-        ], { timeout: 8000 });
-        
-        res.writeHead(200, {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'no-store'
-        });
-        res.end(stdout);
-        return;
-      } catch (err) {
-        res.writeHead(500, {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Access-Control-Allow-Origin': '*'
-        });
-        res.end(JSON.stringify({ error: 'Advisor run failed', details: err.message }));
-        return;
-      }
-    }
-
     if (pathname === '/api/calendar') {
       const events = await getLocalCalendarData();
       res.writeHead(200, {
@@ -434,16 +438,25 @@ const requestHandler = async (req, res) => {
         try { parsed = JSON.parse(dataText); } catch (_) {}
 
         const is429 = upstream.status === 429 || (parsed && (parsed.status === 'error' && /429|rate limit/i.test(parsed.message || '')));
-        const isValid = upstream.status === 200 && parsed && parsed.status !== 'error' && Array.isArray(parsed.values) && parsed.values.length > 0;
+
+        let openSec = 0;
+        if (parsed?.values?.[0]?.datetime) {
+          const dt = parsed.values[0].datetime;
+          const norm = dt.endsWith('Z') ? dt : dt.replace(' ', 'T') + 'Z';
+          const ms = Date.parse(norm);
+          if (Number.isFinite(ms)) openSec = Math.floor(ms / 1000);
+        }
+
+        const isUpstreamStale = Boolean(
+          parsed?.staleFallback === true ||
+          parsed?.rateLimited === true ||
+          /stale/i.test(parsed?.source || '') ||
+          (openSec > 0 && (nowSec - openSec) > 172800)
+        );
+
+        const isValid = upstream.status === 200 && parsed && parsed.status !== 'error' && Array.isArray(parsed.values) && parsed.values.length > 0 && !isUpstreamStale;
 
         if (isValid) {
-          let openSec = 0;
-          if (parsed.values[0]?.datetime) {
-            const dt = parsed.values[0].datetime;
-            const norm = dt.endsWith('Z') ? dt : dt.replace(' ', 'T') + 'Z';
-            const ms = Date.parse(norm);
-            if (Number.isFinite(ms)) openSec = Math.floor(ms / 1000);
-          }
           const closeSec = openSec ? (openSec + intervalSec) : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
           const entry = {
             data: parsed,
@@ -467,6 +480,41 @@ const requestHandler = async (req, res) => {
             'Cache-Control': 'no-store'
           });
           res.end(dataText);
+          return;
+        }
+
+        // Upstream failed or returned stale fallback / 429. Try local SQLite DB fallback!
+        const sqliteCandles = await getLocalSqliteCandles(interval, parseInt(outputsize, 10) || 300);
+        if (sqliteCandles && sqliteCandles.values && sqliteCandles.values.length > 0) {
+          let sOpenSec = 0;
+          const sDt = sqliteCandles.values[0]?.datetime;
+          if (sDt) {
+            const sMs = Date.parse(sDt);
+            if (Number.isFinite(sMs)) sOpenSec = Math.floor(sMs / 1000);
+          }
+          const sCloseSec = sOpenSec ? (sOpenSec + intervalSec) : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
+          const sEntry = {
+            data: sqliteCandles,
+            rawJson: JSON.stringify(sqliteCandles),
+            storedAt: Date.now(),
+            storedAtSec: nowSec,
+            openSec: sOpenSec,
+            closeSec: sCloseSec,
+            symbol,
+            interval,
+            outputsize
+          };
+          localCandleCache.set(cacheKey, sEntry);
+          localCandleCache.set(fallbackKey, sEntry);
+          saveCandleCacheToFile();
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'X-AmyFX-Market-Cache': 'LOCAL_SQLITE_HIT',
+            'Cache-Control': 'no-store'
+          });
+          res.end(JSON.stringify(sqliteCandles));
           return;
         }
 

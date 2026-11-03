@@ -163,8 +163,10 @@
 
     // Insert before hamburger or at end of nav
     var hamburger = nav.querySelector('.hamburger');
-    if (hamburger) {
+    if (hamburger && hamburger.parentNode === nav) {
       nav.insertBefore(btn, hamburger);
+    } else if (hamburger && hamburger.parentNode) {
+      hamburger.parentNode.insertBefore(btn, hamburger);
     } else {
       nav.appendChild(btn);
     }

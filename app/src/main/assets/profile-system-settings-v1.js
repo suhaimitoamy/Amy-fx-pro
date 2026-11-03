@@ -45,7 +45,7 @@
 
   function injectSettings() {
     const selector = document.querySelector('#main-content .theme-selector');
-    if (!selector || document.querySelector('[data-amyfx-color-settings]')) return;
+    if (!selector || document.querySelector('.color-customizer')) return;
 
     const colors = window.AmyFXTheme?.colors || {};
     const defaults = getThemeDefaults();

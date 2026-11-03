@@ -51,11 +51,11 @@
 <p>Oleh karena itu, ketika harga berhasil mencapai <a href="external-liquidity.html">External Liquidity</a>, dua hal penting biasanya terjadi:</p>
 <p>1. <strong>Reaksi Penolakan (Reversal):</strong> Karena banyaknya pesanan yang terkumpul di sana, algoritma sering kali mengambil likuiditas tersebut (<a href="liquidity-sweep.html">Liquidity Sweep</a>) lalu berbalik arah secara dramatis.</p>
 <p>2. <strong>Perubahan Bias (Directional Bias):</strong> Setelah harga berhasil menyapu <a href="external-liquidity.html">External Liquidity</a> di salah satu sisi (misalnya sisi atas), tugas algoritma di area ekstrem tersebut selesai. Harga tidak lagi punya alasan untuk terus naik, sehingga ia akan mulai mencari target di arah yang berlawanan (ke bawah).</p>
-<h2>Siklus Harga (<a href="price-delivery.html">Price Delivery</a> Cycle)</h2>
-<p>Ini adalah rahasia terbesar dalam membaca algoritma harga (<a href="ipda.html">IPDA</a>). Algoritma pengiriman harga bekerja dalam sebuah siklus yang berulang tanpa henti:</p>
+<h2>Siklus Harga (Price Delivery Cycle)</h2>
+<p>Ini adalah rahasia terbesar dalam membaca algoritma harga (IPDA). Algoritma pengiriman harga bekerja dalam sebuah siklus yang berulang tanpa henti:</p>
 <p><strong>Dari Eksternal menuju Internal, lalu dari Internal kembali ke Eksternal.</strong></p>
 <p>Artinya:</p>
-<p>1. Ketika harga menembus Swing High (mengambil <strong><a href="external-liquidity.html">External Liquidity</a></strong>), harga akan turun (pullback) mencari area ketidakseimbangan (seperti FVG atau <a href="order-block.html">Order Block</a>) yang ada di <em>dalam</em> rentang harga tersebut (ini yang disebut <a href="internal-liquidity.html">Internal Liquidity</a>).</p>
+<p>1. Ketika harga menembus Swing High (mengambil <strong><a href="external-liquidity.html">External Liquidity</a></strong>), harga akan turun (pullback) mencari area ketidakseimbangan (seperti FVG atau Order Block) yang ada di <em>dalam</em> rentang harga tersebut (ini yang disebut <a href="internal-liquidity.html">Internal Liquidity</a>).</p>
 <p>2. Setelah harga menyentuh area Internal tersebut, ia akan mendapat energi baru, lalu memantul kembali ke luar untuk mengejar <strong><a href="external-liquidity.html">External Liquidity</a></strong> berikutnya (mencetak Swing High baru atau mengejar Swing Low di seberang).</p>
 <h2>Cara Menentukan External Range</h2>
 <p>Untuk bisa memanfaatkan konsep ini, kamu harus tahu cara menentukan batasan areanya (range). Berikut langkah praktisnya:</p>

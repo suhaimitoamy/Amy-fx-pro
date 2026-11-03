@@ -58,7 +58,18 @@ export function createPriceChart(element,{touchAxes=false}={}) {
       const first=cs[0], last=cs[cs.length-1];
       if(last&&Number.isFinite(last.close))lastClosePrice=last.close;
       const next=`${result.tf}:${cs.length}:${first?.time}:${first?.close}:${last?.time}:${last?.open}:${last?.high}:${last?.low}:${last?.close}`;
-      if(next!==key){const initial=!key;series.setData(result.candles);key=result.candles.length?next:'';if(initial&&result.candles.length)chart.timeScale().fitContent();}
+      if(next!==key){
+        const initial=!key;
+        series.setData(result.candles);
+        key=result.candles.length?next:'';
+        if(initial&&result.candles.length){
+          const total=result.candles.length;
+          chart.timeScale().setVisibleLogicalRange({
+            from: Math.max(0, total - 45),
+            to: total + 4
+          });
+        }
+      }
       if(presentation&&!ict)ict=createIctCanvas(element,chart,series);
       if(presentation&&rightBars!==presentation.settings?.rightBars){rightBars=presentation.settings.rightBars;chart.applyOptions({timeScale:{rightOffset:rightBars}});}
 
