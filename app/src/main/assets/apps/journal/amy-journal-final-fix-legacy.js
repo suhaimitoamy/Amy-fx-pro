@@ -200,9 +200,14 @@
   }
 
   function polyfillCssEscape() {
-    window.CSS = window.CSS || {};
-    if (typeof window.CSS.escape === 'function') return;
-    window.CSS.escape = value => String(value).replace(/[^a-zA-Z0-9_-]/g, char => `\\${char.codePointAt(0).toString(16)} `);
+    try {
+      if (!('CSS' in window) || typeof window.CSS !== 'object' || window.CSS === null) {
+        window.CSS = {};
+      }
+      if (typeof window.CSS?.escape !== 'function') {
+        window.CSS.escape = value => String(value).replace(/[^a-zA-Z0-9_-]/g, char => `\\${char.codePointAt(0).toString(16)} `);
+      }
+    } catch (_) {}
   }
 
   function ensureLegacyGlobals() {

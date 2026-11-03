@@ -71,7 +71,11 @@ function draw(degraded=false){
   }else if(context?.amy?.chartCandles?.[tf]?.length){
     const rawCandles=context.amy.chartCandles[tf].map(c=>({time:c.open_time,open:c.open,high:c.high,low:c.low,close:c.close}));
     const candles=filterCandles(rawCandles,closed);
-    result={candles,tf,plan:null,sourceTime:candles.at(-1)?.time||null,fresh:false};
+    const lastTime=candles.at(-1)?.time||0;
+    const ageSec=Math.floor(Date.now()/1000)-lastTime;
+    const maxFresh=tf==='M5'?1200:2700; // 20m untuk M5, 45m untuk M15
+    const isFresh=closed||(lastTime>0&&ageSec<=maxFresh);
+    result={candles,tf,plan:null,sourceTime:lastTime||null,fresh:isFresh};
   }
   if(!result||!result.candles?.length){
     if($('chart-price'))$('chart-price').textContent='—';
@@ -94,6 +98,9 @@ function draw(degraded=false){
   }
   if(displayPrice)chart?.updateActiveCandle?.(displayPrice);
   renderAmy(context?.amy, display||loadDisplay(), context?.news, context);
+  if(displayPrice&&$('chart-dealing-range-badge')){
+    updateDealingRangeBadge($('chart-dealing-range-badge'), displayPrice, dr);
+  }
   if($('source')){
     const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
     if(closed){
@@ -109,6 +116,31 @@ function draw(degraded=false){
     const k=context?.amy?.levels,p=context?.amy?.pivots;
     coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display?.pivotTf||'D'}: ${p?.[display?.pivotTf||'D']?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';
   }
+
+  // Sinkronisasi otomatis Snapshot Likuiditas ke Market Intel
+  try {
+    const k=context?.amy?.levels||context?.levels||{};
+    const lvlList=[];
+    if(Number.isFinite(k.bsl))lvlList.push({kind:'high',level:k.bsl,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
+    if(Number.isFinite(k.pdh))lvlList.push({kind:'high',level:k.pdh,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
+    if(Number.isFinite(k.ssl))lvlList.push({kind:'low',level:k.ssl,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
+    if(Number.isFinite(k.pdl))lvlList.push({kind:'low',level:k.pdl,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
+    if(lvlList.length>0&&displayPrice){
+      const snap={
+        model:'ICT-SWEEP-MSS-FVG-1',
+        tf,
+        signal:'WAIT',
+        fresh:true,
+        sourceTime:last?.time||Math.floor(Date.now()/1000),
+        capturedAt:Date.now(),
+        close:displayPrice,
+        levels:lvlList,
+        reason:'Peta likuiditas tersinkronisasi dari Cockpit Mapping.',
+        plan:null
+      };
+      localStorage.setItem('amyfx.ict.mapping.v1',JSON.stringify(snap));
+    }
+  }catch(_){}
 }
 function applyLivePrice(price, timestamp){
   if(!Number.isFinite(price)||price<=0)return;
@@ -125,6 +157,9 @@ function applyLivePrice(price, timestamp){
   if(!window.__lastV6TickRender||Date.now()-window.__lastV6TickRender>2000){
     window.__lastV6TickRender=Date.now();
     renderAmy(context?.amy,display||loadDisplay(),context?.news,context);
+    if($('chart-dealing-range-badge')){
+      updateDealingRangeBadge($('chart-dealing-range-badge'),price,dr);
+    }
   }
 }
 window.addEventListener('amyfx:twelvedata-price',event=>{

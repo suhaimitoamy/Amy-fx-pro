@@ -43,6 +43,12 @@ try {
         capturedAt:Date.now(),close:serverCtx.price,levels,reason:'Likuiditas aktif dari konteks pasar Amy FX.',plan:null};
     }
   }
+  if (!snapshot) {
+    const localCandles = JSON.parse(localStorage.getItem('amyfx.mapping.candles.M15') || 'null');
+    if (Array.isArray(localCandles) && localCandles.length > 5) {
+      snapshot = snapshotFromCandles(localCandles, Date.now() / 1000);
+    }
+  }
 } catch {}
 function paint() {
   const valid=validSnapshot(snapshot),fresh=isFresh(snapshot)&&!failed;
