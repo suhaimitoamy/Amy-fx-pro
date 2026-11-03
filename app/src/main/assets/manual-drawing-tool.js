@@ -2,7 +2,14 @@
  * Amy FX Pro — Manual Chart Drawing Engine
  * Memberikan kemampuan menggambar Zona (Rectangle), Level Harga (Horizontal Ray),
  * dan Target 100 Pips (Risk-Reward Box), serta memilih, menggeser, dan mengubah
- * ukuran (resize) kotak zona dengan handle titik putih interaktif seperti TradingView.
+ * ukuran (resize) kotak zona dengan handle 8-titik interaktif seperti TradingView.
+ *
+ * Anti-Warp & Gesture Isolation:
+ * - timeToScreenX & priceToScreenY melakukan proyeksi matematis mulus sehingga
+ *   kotak tidak pernah loncat/melar saat dicubit (pinch zoom).
+ * - Mode 'Geser' (Pan) 100% pasif (pointer-events: none) agar gestur pinch-to-zoom
+ *   dan scroll chart di HP berjalan mulus tanpa menggeser kotak secara tidak sengaja.
+ * - Multi-touch guard: Gestur 2 jari otomatis diabaikan oleh engine gambar.
  */
 
 export function createManualDrawingTool({ container, chart, series, getTf }) {
@@ -13,9 +20,10 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
   let activeTool = 'pan'; // 'pan' | 'edit' | 'zone' | 'line' | 'target100'
   let selectedId = null;
 
-  // Dragging / Resizing state
+  // Multi-touch & Dragging state
+  const activeTouchIds = new Set();
   let isDragging = false;
-  let dragMode = null; // 'create-zone' | 'handle' | 'move-zone' | 'move-line' | 'move-target'
+  let dragMode = null; // 'create-zone' | 'handle' | 'move-zone'
   let dragHandle = null; // 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
   let dragStart = null;
   let dragCurrent = null;
@@ -70,20 +78,20 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
   toolbar.className = 'manual-drawing-toolbar';
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Alat Gambar Chart');
-  toolbar.style.display = 'none'; // Visible when fullscreen
+  toolbar.style.display = 'none';
 
   function renderToolbar() {
     const selectedItem = selectedId ? drawings.find(d => d.id === selectedId) : null;
-    if (selectedItem) {
+    if (selectedItem && activeTool === 'edit') {
       toolbar.innerHTML = `
         <span style="font-size:11px;font-weight:800;color:#F5C451;padding:0 4px;">EDIT ZONA</span>
         <button type="button" class="draw-btn" data-action="extend" title="Perpanjang Zona ke Kanan">➡️ Perpanjang</button>
         <button type="button" class="draw-btn" data-action="delete-selected" title="Hapus Zona Ini" style="color:#ef4444;">🗑️ Hapus</button>
-        <button type="button" class="draw-btn is-active" data-action="done" title="Selesai Edit">✓ Selesai</button>
+        <button type="button" class="draw-btn is-active" data-action="done" title="Selesai & Kunci Zona">✓ Selesai</button>
       `;
     } else {
       toolbar.innerHTML = `
-        <button type="button" class="draw-btn ${activeTool === 'pan' ? 'is-active' : ''}" data-tool="pan" title="Geser / Zoom Chart">🖐️ Geser</button>
+        <button type="button" class="draw-btn ${activeTool === 'pan' ? 'is-active' : ''}" data-tool="pan" title="Geser / Cubit Zoom Chart">🖐️ Geser</button>
         <button type="button" class="draw-btn ${activeTool === 'edit' ? 'is-active' : ''}" data-tool="edit" title="Pilih & Ubah Ukuran Zona">✏️ Edit</button>
         <button type="button" class="draw-btn ${activeTool === 'zone' ? 'is-active' : ''}" data-tool="zone" title="Gambar Kotak Zona (FVG / OB)">🔲 +Zona</button>
         <button type="button" class="draw-btn ${activeTool === 'line' ? 'is-active' : ''}" data-tool="line" title="Garis Level Harga">📏 Level</button>
@@ -99,28 +107,34 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
 
   function setActiveTool(tool) {
     activeTool = tool;
-    if (activeTool !== 'edit' && !selectedId) {
+    if (activeTool !== 'edit') {
       selectedId = null;
     }
     renderToolbar();
 
-    if (activeTool === 'pan' && !selectedId) {
+    // STRICT GESTURE ISOLATION:
+    // In 'pan' mode, canvas MUST have pointerEvents = 'none' so pinch-to-zoom is 100% clean
+    if (activeTool === 'pan') {
       canvas.style.pointerEvents = 'none';
       canvas.style.cursor = 'default';
     } else {
       canvas.style.pointerEvents = 'auto';
-      canvas.style.cursor = activeTool === 'edit' || selectedId ? 'pointer' : 'crosshair';
+      canvas.style.cursor = activeTool === 'edit' ? 'pointer' : 'crosshair';
     }
+    paint();
   }
 
   function setSelected(id) {
     selectedId = id;
-    renderToolbar();
     if (selectedId) {
-      canvas.style.pointerEvents = 'auto';
-      canvas.style.cursor = 'default';
-    } else if (activeTool === 'pan') {
+      activeTool = 'edit';
+    }
+    renderToolbar();
+    if (activeTool === 'pan') {
       canvas.style.pointerEvents = 'none';
+      canvas.style.cursor = 'default';
+    } else {
+      canvas.style.pointerEvents = 'auto';
       canvas.style.cursor = 'default';
     }
     paint();
@@ -135,13 +149,12 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     const action = btn.getAttribute('data-action');
 
     if (tool) {
-      setSelected(null);
       setActiveTool(tool);
     } else if (action === 'extend') {
       const item = drawings.find(d => d.id === selectedId);
       if (item && item.type === 'zone') {
         const nowSec = Math.floor(Date.now() / 1000);
-        item.t2 = nowSec + 7200; // extend 2 hours into current/future bars
+        item.t2 = nowSec + 7200;
         saveDrawings();
         paint();
       }
@@ -150,9 +163,7 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
         drawings = drawings.filter(d => d.id !== selectedId);
         selectedId = null;
         saveDrawings();
-        renderToolbar();
         setActiveTool('pan');
-        paint();
       }
     } else if (action === 'done') {
       setSelected(null);
@@ -162,7 +173,6 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
         drawings.pop();
         selectedId = null;
         saveDrawings();
-        renderToolbar();
         paint();
       }
     } else if (action === 'clear') {
@@ -170,14 +180,58 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
         drawings = [];
         selectedId = null;
         saveDrawings();
-        renderToolbar();
         setActiveTool('pan');
-        paint();
       }
     }
   });
 
-  // 4. Coordinate Conversions
+  // 4. Continuous Mathematical Projection for Coordinates (No Warping / Jumping)
+  function timeToScreenX(t) {
+    if (!Number.isFinite(t)) return null;
+    try {
+      const direct = chart.timeScale().timeToCoordinate(t);
+      if (direct != null && Number.isFinite(direct)) return direct;
+    } catch (_) {}
+
+    // Fallback: project smoothly using visible time range
+    try {
+      const vr = chart.timeScale().getVisibleRange();
+      if (vr && Number.isFinite(vr.from) && Number.isFinite(vr.to) && vr.to > vr.from) {
+        const xFrom = chart.timeScale().timeToCoordinate(vr.from) ?? 0;
+        const xTo = chart.timeScale().timeToCoordinate(vr.to) ?? (container.clientWidth || 300);
+        const timeSpan = vr.to - vr.from;
+        const pxSpan = xTo - xFrom;
+        if (timeSpan > 0 && pxSpan > 0) {
+          const rate = pxSpan / timeSpan;
+          return xFrom + (t - vr.from) * rate;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  function priceToScreenY(p) {
+    if (!Number.isFinite(p)) return null;
+    try {
+      const direct = series.priceToCoordinate(p);
+      if (direct != null && Number.isFinite(direct)) return direct;
+    } catch (_) {}
+
+    // Fallback: project smoothly using visible container height
+    try {
+      const h = container.clientHeight || 340;
+      const topPrice = series.coordinateToPrice(0);
+      const bottomPrice = series.coordinateToPrice(h);
+      if (Number.isFinite(topPrice) && Number.isFinite(bottomPrice) && topPrice !== bottomPrice) {
+        const rate = h / (topPrice - bottomPrice);
+        return (topPrice - p) * rate;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   function getCoords(e) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -198,28 +252,40 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
       }
     } catch (_) {}
 
+    // If coordinateToTime returned null (clicked beyond right edge into future)
+    if (time == null) {
+      try {
+        const vr = chart.timeScale().getVisibleRange();
+        if (vr && Number.isFinite(vr.from) && Number.isFinite(vr.to)) {
+          const xFrom = chart.timeScale().timeToCoordinate(vr.from) ?? 0;
+          const xTo = chart.timeScale().timeToCoordinate(vr.to) ?? (container.clientWidth || 300);
+          const pxSpan = xTo - xFrom;
+          if (pxSpan > 0) {
+            const rate = (vr.to - vr.from) / pxSpan;
+            time = Math.round(vr.from + (x - xFrom) * rate);
+          }
+        }
+      } catch (_) {}
+    }
+
     return { x, y, time, price };
   }
 
   // 5. Hit Testing for Selection & Resizing
   function getZoneBounds(d) {
-    const y1 = series.priceToCoordinate(d.p1);
-    const y2 = series.priceToCoordinate(d.p2);
-    let x1 = d.t1 ? chart.timeScale().timeToCoordinate(d.t1) : null;
-    let x2 = d.t2 ? chart.timeScale().timeToCoordinate(d.t2) : null;
-    const w = container.clientWidth || 300;
+    const y1 = priceToScreenY(d.p1);
+    const y2 = priceToScreenY(d.p2);
+    const x1 = timeToScreenX(d.t1);
+    const x2 = timeToScreenX(d.t2);
 
-    if (y1 == null || y2 == null) return null;
-    if (x1 == null && x2 != null) x1 = 0;
-    if (x2 == null && x1 != null) x2 = w;
-    if (x1 == null && x2 == null) { x1 = 0; x2 = w; }
+    if (y1 == null || y2 == null || x1 == null || x2 == null) return null;
 
     const minX = Math.min(x1, x2);
     const maxX = Math.max(x1, x2);
     const minY = Math.min(y1, y2);
     const maxY = Math.max(y1, y2);
 
-    return { minX, maxX, minY, maxY, width: Math.max(20, maxX - minX), height: Math.max(6, maxY - minY) };
+    return { minX, maxX, minY, maxY, width: Math.max(12, maxX - minX), height: Math.max(4, maxY - minY) };
   }
 
   function getZoneHandles(d) {
@@ -245,26 +311,26 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
       const d = drawings[i];
       if (d.type === 'zone') {
         const b = getZoneBounds(d);
-        if (b && x >= b.minX - 10 && x <= b.maxX + 10 && y >= b.minY - 10 && y <= b.maxY + 10) {
+        if (b && x >= b.minX - 12 && x <= b.maxX + 12 && y >= b.minY - 12 && y <= b.maxY + 12) {
           return d;
         }
       } else if (d.type === 'line') {
-        const yLine = series.priceToCoordinate(d.price);
-        if (yLine != null && Math.abs(y - yLine) <= 16) {
+        const yLine = priceToScreenY(d.price);
+        if (yLine != null && Math.abs(y - yLine) <= 18) {
           return d;
         }
       } else if (d.type === 'target100') {
-        const yEntry = series.priceToCoordinate(d.entry);
-        const yTp = series.priceToCoordinate(d.tp);
-        const ySl = series.priceToCoordinate(d.sl);
-        let xTarget = d.time ? chart.timeScale().timeToCoordinate(d.time) : null;
+        const yEntry = priceToScreenY(d.entry);
+        const yTp = priceToScreenY(d.tp);
+        const ySl = priceToScreenY(d.sl);
+        let xTarget = timeToScreenX(d.time);
         const w = container.clientWidth || 300;
         if (xTarget == null) xTarget = Math.max(10, w - 165);
 
         if (yEntry != null && yTp != null && ySl != null) {
           const top = Math.min(yTp, ySl);
           const bottom = Math.max(yTp, ySl);
-          if (x >= xTarget - 10 && x <= xTarget + 160 && y >= top - 10 && y <= bottom + 10) {
+          if (x >= xTarget - 12 && x <= xTarget + 160 && y >= top - 12 && y <= bottom + 12) {
             return d;
           }
         }
@@ -273,17 +339,30 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     return null;
   }
 
-  // 6. Pointer Event Handlers
+  // 6. Pointer Event Handlers (With Strict Multi-Touch / Pinch Protection)
   function onPointerDown(e) {
+    activeTouchIds.add(e.pointerId);
+
+    // ANTI-PINCH GUARD: If 2 or more fingers touch, immediately abort any zone drag
+    if (activeTouchIds.size > 1) {
+      isDragging = false;
+      dragMode = null;
+      dragHandle = null;
+      try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+      paint();
+      return;
+    }
+
+    if (activeTool === 'pan') return;
+
     const p = getCoords(e);
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
 
-    // Check if user is clicking on a selected zone's handle
-    if (selectedId) {
+    // Handle Resize / Move for Selected Zone
+    if (selectedId && activeTool === 'edit') {
       const selectedItem = drawings.find(d => d.id === selectedId);
       if (selectedItem && selectedItem.type === 'zone') {
         const handles = getZoneHandles(selectedItem);
-        // generous 24px touch target radius for mobile fingers
         const hitHandle = handles.find(h => Math.hypot(h.x - p.x, h.y - p.y) <= 24);
         if (hitHandle) {
           e.preventDefault();
@@ -298,7 +377,6 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
           return;
         }
 
-        // Check if user is dragging inside the selected zone to move it
         const b = getZoneBounds(selectedItem);
         if (b && p.x >= b.minX && p.x <= b.maxX && p.y >= b.minY && p.y <= b.maxY) {
           e.preventDefault();
@@ -314,8 +392,8 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
       }
     }
 
-    // If Edit tool is active or user clicked on an existing shape
-    if (activeTool === 'edit' || selectedId) {
+    // Selecting an existing shape in Edit mode
+    if (activeTool === 'edit') {
       const hit = findDrawingAt(p.x, p.y);
       if (hit) {
         e.preventDefault();
@@ -323,16 +401,10 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
         setSelected(hit.id);
         return;
       } else {
-        // Tapped outside
         setSelected(null);
-        if (activeTool === 'edit') {
-          setActiveTool('pan');
-        }
         return;
       }
     }
-
-    if (activeTool === 'pan') return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -385,6 +457,17 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
   }
 
   function onPointerMove(e) {
+    // If multi-touch active, ignore drag
+    if (activeTouchIds.size > 1) {
+      if (isDragging) {
+        isDragging = false;
+        dragMode = null;
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        paint();
+      }
+      return;
+    }
+
     if (!isDragging || !dragStart) return;
     e.preventDefault();
     e.stopPropagation();
@@ -434,13 +517,14 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
       }
     }
 
-    // Creating new zone
     if (dragMode === 'create-zone') {
       paint();
     }
   }
 
   function onPointerUp(e) {
+    activeTouchIds.delete(e.pointerId);
+
     if (!isDragging) return;
     isDragging = false;
     try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
@@ -448,7 +532,6 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     if (dragMode === 'handle' || dragMode === 'move-zone') {
       const item = drawings.find(d => d.id === selectedId);
       if (item && item.type === 'zone') {
-        // Normalize so p1 is always high and p2 is always low
         const high = Math.max(item.p1, item.p2);
         const low = Math.min(item.p1, item.p2);
         item.p1 = high;
@@ -494,7 +577,7 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
           };
           drawings.push(newZone);
           saveDrawings();
-          // Automatically select the newly created zone so Sayang can fine-tune handles immediately!
+          // Automatically switch to Edit tool with handles visible so Sayang can fine-tune
           setSelected(newZone.id);
           return;
         }
@@ -504,29 +587,22 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     }
   }
 
+  function onPointerCancel(e) {
+    activeTouchIds.delete(e.pointerId);
+    isDragging = false;
+    dragMode = null;
+    dragHandle = null;
+    dragStart = null;
+    dragCurrent = null;
+    paint();
+  }
+
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
-  canvas.addEventListener('pointercancel', onPointerUp);
+  canvas.addEventListener('pointercancel', onPointerCancel);
 
-  // 7. Subscribe to Chart Tap when in Pan mode to allow selecting zones
-  let unsubClick = null;
-  try {
-    if (typeof chart.subscribeClick === 'function') {
-      unsubClick = (param) => {
-        if (!param || !param.point) return;
-        const hit = findDrawingAt(param.point.x, param.point.y);
-        if (hit) {
-          setSelected(hit.id);
-        } else if (selectedId) {
-          setSelected(null);
-        }
-      };
-      chart.subscribeClick(unsubClick);
-    }
-  } catch (_) {}
-
-  // 8. Paint Engine
+  // 7. Paint Engine
   function paint() {
     if (!ctx || !container) return;
     const w = container.clientWidth || 300;
@@ -540,9 +616,15 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
+    // Clip to chart drawing area
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
+
     // Render Saved Drawings
     for (const d of drawings) {
-      const isSelected = d.id === selectedId;
+      const isSelected = d.id === selectedId && activeTool === 'edit';
 
       if (d.type === 'zone') {
         const b = getZoneBounds(d);
@@ -558,9 +640,11 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
 
           ctx.font = 'bold 10px monospace, sans-serif';
           ctx.fillStyle = isSelected ? '#ffffff' : (d.border || '#F5C451');
-          ctx.fillText(`ZONA $${d.p2.toFixed(1)} - $${d.p1.toFixed(1)}`, b.minX + 6, b.minY + 13);
+          const labelX = Math.max(6, b.minX + 6);
+          const labelY = Math.max(14, b.minY + 13);
+          ctx.fillText(`ZONA $${d.p2.toFixed(1)} - $${d.p1.toFixed(1)}`, labelX, labelY);
 
-          // If selected: Render 8 white grab handles (TradingView parity)
+          // 8 White Interactive Grab Handles (Only in Edit mode)
           if (isSelected) {
             const handles = getZoneHandles(d);
             for (const handle of handles) {
@@ -575,7 +659,7 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
           }
         }
       } else if (d.type === 'line') {
-        const y = series.priceToCoordinate(d.price);
+        const y = priceToScreenY(d.price);
         if (y != null) {
           ctx.strokeStyle = isSelected ? '#ffffff' : (d.color || '#38bdf8');
           ctx.lineWidth = isSelected ? 2.5 : 1.5;
@@ -603,29 +687,18 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
           ctx.font = 'bold 10px monospace, sans-serif';
           ctx.fillStyle = '#070b14';
           ctx.fillText(`$${d.price.toFixed(2)}`, badgeX + 6, badgeY + 12);
-
-          if (isSelected) {
-            ctx.beginPath();
-            ctx.arc(w / 2, y, 6.5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
-          }
         }
       } else if (d.type === 'target100') {
-        const yEntry = series.priceToCoordinate(d.entry);
-        const yTp = series.priceToCoordinate(d.tp);
-        const ySl = series.priceToCoordinate(d.sl);
-        let x = d.time ? chart.timeScale().timeToCoordinate(d.time) : null;
+        const yEntry = priceToScreenY(d.entry);
+        const yTp = priceToScreenY(d.tp);
+        const ySl = priceToScreenY(d.sl);
+        let x = timeToScreenX(d.time);
         if (x == null || x < 0 || x > w) x = Math.max(20, w - 170);
 
         if (yEntry != null && yTp != null && ySl != null) {
           const boxWidth = 145;
           const left = Math.max(8, Math.min(w - boxWidth - 8, x));
 
-          // Profit Box
           const profitTop = Math.min(yEntry, yTp);
           const profitHeight = Math.abs(yTp - yEntry);
           ctx.fillStyle = 'rgba(34, 197, 94, 0.22)';
@@ -634,7 +707,6 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
           ctx.lineWidth = isSelected ? 2 : 1.5;
           ctx.strokeRect(left, profitTop, boxWidth, profitHeight);
 
-          // Risk Box
           const riskTop = Math.min(yEntry, ySl);
           const riskHeight = Math.abs(ySl - yEntry);
           ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
@@ -643,7 +715,6 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
           ctx.lineWidth = isSelected ? 2 : 1.5;
           ctx.strokeRect(left, riskTop, boxWidth, riskHeight);
 
-          // Text labels
           ctx.font = 'bold 10px sans-serif';
           ctx.fillStyle = '#22c55e';
           ctx.fillText(`TP +100P ($${d.tp.toFixed(1)})`, left + 6, profitTop + (d.isBuy ? 14 : profitHeight - 6));
@@ -676,9 +747,11 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
       ctx.fillStyle = '#F5C451';
       ctx.fillText(`DRAFT ZONA: $${pLow.toFixed(1)} - $${pHigh.toFixed(1)}`, left + 6, top + 14);
     }
+
+    ctx.restore();
   }
 
-  // 9. Subscribe to Chart Visible Range & Zoom Updates
+  // 8. Subscribe to Chart Pan & Pinch-Zoom Events
   let unsubTimeRange = null;
   try {
     if (typeof chart.timeScale().subscribeVisibleTimeRangeChange === 'function') {
@@ -687,12 +760,13 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     }
   } catch (_) {}
 
-  // 10. Public Controller API
+  // 9. Public Controller API
   return {
     setTf(newTf) {
       if (!newTf || newTf === currentTf) return;
       currentTf = newTf;
       selectedId = null;
+      activeTool = 'pan';
       drawings = loadDrawings(currentTf);
       renderToolbar();
       paint();
@@ -700,10 +774,8 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
     setFullscreen(enabled) {
       isFullscreenActive = enabled;
       toolbar.style.display = enabled ? 'flex' : 'none';
-      if (!enabled) {
-        selectedId = null;
-        setActiveTool('pan');
-      }
+      selectedId = null;
+      setActiveTool('pan');
       setTimeout(paint, 50);
     },
     repaint() {
@@ -713,13 +785,10 @@ export function createManualDrawingTool({ container, chart, series, getTf }) {
       if (unsubTimeRange) {
         try { chart.timeScale().unsubscribeVisibleTimeRangeChange(unsubTimeRange); } catch (_) {}
       }
-      if (unsubClick) {
-        try { chart.unsubscribeClick(unsubClick); } catch (_) {}
-      }
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerup', onPointerUp);
-      canvas.removeEventListener('pointercancel', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerCancel);
       canvas.remove();
       toolbar.remove();
     }
