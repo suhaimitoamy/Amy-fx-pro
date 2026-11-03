@@ -2,7 +2,7 @@ import {analyze} from './apps/mapping/js/ict-workspace/engine.js';
 import {loadCandles} from './apps/mapping/js/ict-workspace/data.js';
 import {createPriceChart} from './apps/mapping/js/ict-workspace/chart-view.js';
 import {updateDealingRangeBadge} from './apps/mapping/js/ict-workspace/dealing-range-badge.js';
-import {createManualDrawingTool} from './manual-drawing-tool.js';
+import {createManualDrawingTool} from './manual-drawing-tool.js?v=backtest-svg-2';
 
 function mountHomeFullscreen(panel, view, drawingTool) {
   const button = panel?.querySelector('#home-chart-fullscreen');
@@ -164,7 +164,8 @@ export function mountHomeChart(root) {
         container:$('home-price-chart'),
         chart:view.chart,
         series:view.series,
-        getTf:()=>$('home-chart-tf')?.value||'M15'
+        getTf:()=>$('home-chart-tf')?.value||'M15',
+        getCandles:()=>filterCandles(raw?.candles||[],!isGoldMarketOpen(Date.now()/1000))
       });
     }catch(_){}
   }
@@ -204,6 +205,7 @@ export function mountHomeChart(root) {
       result={candles,tf,plan:null,sourceTime:candles.at(-1)?.time||null,fresh:!raw?.degraded};
     }
     view.draw(result);
+    drawingTool?.setCandles(result.candles);
     drawingTool?.repaint();
     const last=result.candles.at(-1);
     const currentLive=Number(window.amyfxCurrentPrice);
