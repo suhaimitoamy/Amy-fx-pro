@@ -186,6 +186,9 @@ export function createPriceChart(element,{touchAxes=false}={}) {
       }
     },
     autoPrice(){chart.priceScale('right').applyOptions({autoScale:true});ict?.invalidate();},
+    chart,
+    series,
+    element,
     resize(){chart.applyOptions({autoSize:true});if(element?.clientWidth&&chart.resize)chart.resize(element.clientWidth,element.clientHeight||460);ict?.invalidate();},
     setFullscreen(enabled){
       chart.applyOptions({
