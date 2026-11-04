@@ -1,0 +1,507 @@
+/* ============================================================
+   ICT DASHBOARD V2 — Amy FX Pro Mapping Page
+   Glassmorphism & Unified Luxury Obsidian Styling
+   Menyatu 100% Simetris dengan Card Peta Harga (.gold-price-panel)
+   ============================================================ */
+
+/* ── Container scroll utama ── */
+.ict-dashboard-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+/* ── Reset dan Samakan Semua Card dengan .gold-price-panel ── */
+body.amyfx-module--ict main .ict-dashboard-scroll > article {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.065) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  overflow: hidden;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  position: relative;
+}
+
+/* ============================================================
+   1. HERO CONTEXT CARD
+   ============================================================ */
+body.amyfx-module--ict main .ict-dashboard-scroll > article.hero-context-card {
+  border-color: rgba(245, 196, 81, 0.35) !important;
+}
+body.amyfx-module--ict main .ict-dashboard-scroll > article.hero-context-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(245, 196, 81, 0.8), transparent);
+}
+
+/* Baris Harga & Jam Header */
+.hero-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.hero-live-price {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.hero-eq-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amy-accent, #F5C451);
+  background: rgba(245, 196, 81, 0.12);
+  border: 1px solid rgba(245, 196, 81, 0.25);
+  border-radius: 8px;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+.hero-clock {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted, #94A3B8);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+
+/* Banner Bias Dinamis */
+.hero-bias-banner {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-bias-banner.bias-bearish {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #FCA5A5;
+}
+.hero-bias-banner.bias-bullish {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86EFAC;
+}
+.hero-bias-banner.bias-neutral {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #CBD5E1;
+}
+.hero-bias-banner.bias-pullback {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #FDE68A;
+}
+
+/* Warning Counter-Trend */
+.hero-warning-box {
+  font-size: 11.5px;
+  color: #FDE68A;
+  background: rgba(245, 158, 11, 0.12);
+  border-left: 3px solid rgba(245, 158, 11, 0.7);
+  border-radius: 0 10px 10px 0;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.hero-warning-box[hidden] { display: none; }
+
+/* Tabel Matriks 3-TF */
+.hero-tf-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: 11.5px;
+}
+.hero-tf-table th {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, #94A3B8);
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.hero-tf-table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #CBD5E1;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+.hero-tf-table tr:last-child td { border-bottom: none; }
+.hero-tf-table td:first-child {
+  font-weight: 800;
+  font-size: 11px;
+  color: #fff;
+  white-space: nowrap;
+}
+.hero-tf-table td:nth-child(2) {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.hero-tf-table td.bias-bear { color: #FCA5A5; }
+.hero-tf-table td.bias-bull { color: #86EFAC; }
+.hero-tf-table td.bias-neutral { color: #94A3B8; }
+
+/* Kesimpulan Narasi */
+.hero-conclusion {
+  font-size: 12px;
+  color: #94A3B8;
+  line-height: 1.6;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.hero-conclusion strong { color: #F1F5F9; }
+
+/* ============================================================
+   2. DEALING RANGE CARD
+   ============================================================ */
+.dr-card h3 {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #F1F5F9;
+  margin: 0 0 14px;
+}
+.dr-visual-wrap {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+.dr-bar-track {
+  width: 10px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  position: relative;
+  min-height: 105px;
+}
+.dr-bar-fill {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  border-radius: 10px;
+  background: linear-gradient(to top, rgba(34, 197, 94, 0.6), rgba(245, 196, 81, 0.6));
+  transition: height 0.6s ease;
+}
+.dr-bar-dot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: #F5C451;
+  border: 2px solid #0C1320;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(245, 196, 81, 0.8);
+  transition: bottom 0.6s ease;
+}
+.dr-labels {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.dr-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.dr-label-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted, #94A3B8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.dr-label-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.dr-label-row.dr-bsl .dr-label-val { color: #FCA5A5; }
+.dr-label-row.dr-eq .dr-label-val { color: #F5C451; }
+.dr-label-row.dr-ssl .dr-label-val { color: #86EFAC; }
+
+.dr-status-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+.dr-status-badge.zone-premium {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #FCA5A5;
+}
+.dr-status-badge.zone-discount {
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86EFAC;
+}
+.dr-status-badge.zone-eq {
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #FDE68A;
+}
+
+/* ============================================================
+   3. POI CARDS (SELL & BUY)
+   ============================================================ */
+body.amyfx-module--ict main .ict-dashboard-scroll > article.poi-card--sell {
+  border-color: rgba(239, 68, 68, 0.28) !important;
+}
+body.amyfx-module--ict main .ict-dashboard-scroll > article.poi-card--buy {
+  border-color: rgba(34, 197, 94, 0.28) !important;
+}
+
+.poi-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.poi-card-header h3 {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  color: #F1F5F9;
+}
+.poi-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.poi-badge--sell {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #FCA5A5;
+}
+.poi-badge--buy {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86EFAC;
+}
+
+/* POI Table */
+.poi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  margin-bottom: 12px;
+}
+.poi-table th {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, #94A3B8);
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.poi-table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #CBD5E1;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+.poi-table tr:last-child td { border-bottom: none; }
+.poi-table td:first-child {
+  font-weight: 700;
+  color: #F1F5F9;
+  font-size: 11px;
+}
+.poi-table td:nth-child(2) {
+  font-weight: 800;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.poi-table--sell td:nth-child(2) { color: #FCA5A5; }
+.poi-table--buy td:nth-child(2) { color: #86EFAC; }
+
+/* Box SOP Entry */
+.sop-box {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.sop-box--sell {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid rgba(239, 68, 68, 0.6);
+}
+.sop-box--buy {
+  background: rgba(34, 197, 94, 0.1);
+  border-left: 3px solid rgba(34, 197, 94, 0.6);
+  border-radius: 0 12px 12px 0;
+}
+.sop-box strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sop-box--sell strong { color: #FCA5A5; }
+.sop-box--buy strong { color: #86EFAC; }
+.sop-box ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #CBD5E1;
+}
+.sop-box ul li { margin-bottom: 3px; }
+
+.poi-warning-box {
+  font-size: 11px;
+  color: #FDE68A;
+  background: rgba(245, 158, 11, 0.12);
+  border-left: 3px solid rgba(245, 158, 11, 0.6);
+  border-radius: 0 10px 10px 0;
+  padding: 9px 12px;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   4. SCENARIO PRIORITY CARD
+   ============================================================ */
+.scenario-card h3 {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #F1F5F9;
+  margin: 0 0 12px;
+}
+.scenario-price-anchor {
+  font-size: 12px;
+  color: var(--muted, #94A3B8);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.scenario-price-anchor strong {
+  color: #fff;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.scenario-zone-label {
+  color: #F5C451;
+  font-weight: 700;
+  font-size: 11px;
+}
+.scenario-arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.scenario-arrow {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 12px;
+  line-height: 1.5;
+}
+.scenario-arrow--up {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  color: #FCA5A5;
+}
+.scenario-arrow--down {
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  color: #86EFAC;
+}
+.no-trade-zone-badge {
+  background: rgba(100, 116, 139, 0.16);
+  border: 1px solid rgba(100, 116, 139, 0.32);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   5. REFRESH / LAST UPDATE BAR
+   ============================================================ */
+.dashboard-update-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  font-size: 11.5px;
+  color: var(--muted, #94A3B8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.dashboard-update-bar button {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amy-accent, #F5C451);
+  background: rgba(245, 196, 81, 0.12);
+  border: 1px solid rgba(245, 196, 81, 0.3);
+  border-radius: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Penyesuaian Posisi Tombol Floating FAB [✦ AMY] ── */
+#amy-local-fab {
+  bottom: 24px !important;
+  right: 18px !important;
+  z-index: 9999 !important;
+  opacity: 0.9 !important;
+}

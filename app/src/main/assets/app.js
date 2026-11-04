@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       contentHTML = `
         <div class="empty-state-card slide-up" style="text-align:center; padding:36px 20px; border-radius:20px; background:var(--surface-color); border:1px solid var(--border-color); margin-top:10px;">
           <div style="font-size:42px; margin-bottom:12px;">🎬</div>
-          <strong style="display:block; font-size:16px; margin-bottom:6px; color:var(--text-main);">Belum Ada Video di Kategori Ini</strong>
+          <strong style="display:block; font-size:16px; margin-bottom:6px; color:var(--text-main);">Belum ada item tersimpan di kategori ini</strong>
           <span style="display:block; font-size:13px; color:var(--text-muted); max-width:340px; margin:0 auto 18px;">Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda.</span>
           <button type="button" id="rootEmptyUploadMediaBtn" class="media-upload-btn" style="padding:10px 20px; font-size:13px;">+ Upload Video Pertama</button>
         </div>

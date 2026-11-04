@@ -247,7 +247,13 @@ function getTradingDayKey(timeSec) {
   let sslConsumed = false;
   let bslBroken = false;
   let sslBroken = false;
+  const tf = options.tf || options.timeframe || 'M15';
   let trend = 'NEUTRAL';
+  if (tf === 'M15') {
+    const ctxBias = context?.m15?.structure || context?.m15?.control || context?.amy?.dashboard?.biasDir;
+    if (String(ctxBias).toUpperCase().includes('BULL') || ctxBias === 1) trend = 'BULL';
+    else if (String(ctxBias).toUpperCase().includes('BEAR') || ctxBias === -1) trend = 'BEAR';
+  }
 
   // Calculate body moving average for displacement
   const bodies = safeCandles.map(c => Math.abs(c.close - c.open));
@@ -322,8 +328,12 @@ function getTradingDayKey(timeSec) {
     }
 
     // Market Structure Breaks: BOS and MSS
-    const rawBreakBull = !bslBroken && lastHigh != null && c.close > lastHigh && (prev ? prev.close <= lastHigh : true);
-    const rawBreakBear = !sslBroken && lastLow != null && c.close < lastLow && (prev ? prev.close >= lastLow : true);
+    // Break ke arah berlawanan adalah MSS pembalikan tren (tidak boleh terblokir oleh flag broken lama)
+    const canBreakBull = trend !== 'BULL' || !bslBroken;
+    const canBreakBear = trend !== 'BEAR' || !sslBroken;
+
+    const rawBreakBull = canBreakBull && lastHigh != null && c.close > lastHigh && (prev ? prev.close <= lastHigh : true);
+    const rawBreakBear = canBreakBear && lastLow != null && c.close < lastLow && (prev ? prev.close >= lastLow : true);
 
     const mssBull = rawBreakBull && trend !== 'BULL';
     const mssBear = rawBreakBear && trend !== 'BEAR';
@@ -333,6 +343,7 @@ function getTradingDayKey(timeSec) {
     if (rawBreakBull) {
       trend = 'BULL';
       bslBroken = true;
+      sslBroken = false;
       structureEvents.push({
         type: mssBull ? 'MSS' : 'BOS',
         side: 'BULL',
@@ -367,6 +378,7 @@ function getTradingDayKey(timeSec) {
     if (rawBreakBear) {
       trend = 'BEAR';
       sslBroken = true;
+      bslBroken = false;
       structureEvents.push({
         type: mssBear ? 'MSS' : 'BOS',
         side: 'BEAR',
@@ -477,16 +489,25 @@ function getTradingDayKey(timeSec) {
   let trendInvalidationColor = '#ef4444';
   let trendInvalidationTime = null;
 
-  if (trend === 'BULL' && Number.isFinite(lastLow)) {
-    trendInvalidation = lastLow;
-    trendInvalidationText = `BULL INVALID < ${lastLow.toFixed(2)}`;
-    trendInvalidationColor = '#ef4444';
-    trendInvalidationTime = lastLowTime;
-  } else if (trend === 'BEAR' && Number.isFinite(lastHigh)) {
-    trendInvalidation = lastHigh;
-    trendInvalidationText = `BEAR INVALID > ${lastHigh.toFixed(2)}`;
-    trendInvalidationColor = '#f97316';
-    trendInvalidationTime = lastHighTime;
+  // Kalibrasi Batas CHoCH / Trend Invalidation:
+  // Bullish: Batal Bull jika close menembus ke bawah Swing Low (SSL / lastLow)
+  // Bearish: Batal Bear jika close menembus ke atas Swing High (BSL / lastHigh)
+  if (trend === 'BULL') {
+    const invLevel = Number.isFinite(lastLow) ? lastLow : (Number(context?.m15?.invalidLevel) || Number(context?.amy?.dashboard?.invalidLevel));
+    if (Number.isFinite(invLevel)) {
+      trendInvalidation = invLevel;
+      trendInvalidationText = `BULL INVALID < ${invLevel.toFixed(2)}`;
+      trendInvalidationColor = '#ef4444';
+      trendInvalidationTime = lastLowTime || safeCandles.at(-1)?.time;
+    }
+  } else if (trend === 'BEAR') {
+    const invLevel = Number.isFinite(lastHigh) ? lastHigh : (Number(context?.h1?.swingHigh) || Number(context?.amy?.levels?.pdh));
+    if (Number.isFinite(invLevel)) {
+      trendInvalidation = invLevel;
+      trendInvalidationText = `BEAR INVALID > ${invLevel.toFixed(2)}`;
+      trendInvalidationColor = '#f97316';
+      trendInvalidationTime = lastHighTime || safeCandles.at(-1)?.time;
+    }
   }
 
   // Calculate ATR 14 for Batas Ekspansi V6.1
@@ -563,6 +584,18 @@ function getTradingDayKey(timeSec) {
     }
   }
 
+  // TradingView Parity: Tampilkan hanya POI aktif terdekat (1 Bullish di bawah, 1 Bearish di atas harga)
+  const curP = safeCandles.at(-1)?.close || 3940;
+  const unmitObs = obList.filter(z => !z.mitigated);
+  const nearestBullOb = unmitObs.filter(o => o.side === 'BUY' && o.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
+  const nearestBearOb = unmitObs.filter(o => o.side === 'SELL' && o.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
+  const activeObs = [nearestBullOb, nearestBearOb].filter(Boolean);
+
+  const unmitFvgs = fvgList.filter(z => !z.mitigated);
+  const nearestBullFvg = unmitFvgs.filter(f => f.side === 'BUY' && f.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
+  const nearestBearFvg = unmitFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
+  const activeFvgs = [nearestBullFvg, nearestBearFvg].filter(Boolean);
+
   return {
     keyLevels: {
       pdh,
@@ -588,9 +621,9 @@ function getTradingDayKey(timeSec) {
       trend
     },
     liquidity: {
-      bsl: bslLines.slice(-options.liquidityHistory || -3),
-      ssl: sslLines.slice(-options.liquidityHistory || -3),
-      sweeps: sweeps.slice(-20)
+      bsl: bslLines.filter(l => !l.consumed).slice(-2),
+      ssl: sslLines.filter(l => !l.consumed).slice(-2),
+      sweeps: sweeps.slice(-8)
     },
     structure: {
       events: structureEvents.slice(-options.structureHistory || -5),
@@ -603,8 +636,8 @@ function getTradingDayKey(timeSec) {
       } : null
     },
     poi: {
-      fvg: fvgList.filter(z => !z.mitigated).slice(-options.fvgVisible || -4),
-      ob: obList.filter(z => !z.mitigated).slice(-options.obVisible || -4)
+      fvg: activeFvgs.length ? activeFvgs : unmitFvgs.slice(-2),
+      ob: activeObs.length ? activeObs : unmitObs.slice(-2)
     },
     expansion,
     idm

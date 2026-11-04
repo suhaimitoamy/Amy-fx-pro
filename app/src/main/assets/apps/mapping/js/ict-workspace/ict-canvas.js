@@ -62,7 +62,8 @@ export function createIctCanvas(element, chart, series) {
     if (key !== visualKey || !indicators) {
       visualKey = key;
       indicators = state.indicators || calculateNextGenIndicators(candles, {
-        context: state.context || (amy ? {amy} : null)
+        context: state.context || (amy ? {amy} : null),
+        tf
       });
       if (typeof window !== 'undefined') {
         window.amyfxLastIndicators = indicators;
@@ -147,7 +148,10 @@ export function createIctCanvas(element, chart, series) {
         ctx.fillRect(aX1, aTop, Math.max(0, Math.min(plotRight, aX2 ?? plotRight) - aX1), Math.max(0, aBot - aTop));
       }
       line(kl.asiaHigh, `ASIA HIGH ${kl.asiaHigh.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
-      line(kl.asiaLow, `ASIA LOW ${kl.asiaLow.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
+      const invLvl = indicators?.structure?.invalidation?.level;
+      if (!Number.isFinite(invLvl) || Math.abs(kl.asiaLow - invLvl) >= 1.0) {
+        line(kl.asiaLow, `ASIA LOW ${kl.asiaLow.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
+      }
     }
 
     // 3. Time-bounded POI Boxes: FVG with 50% CE (dashed line)
@@ -252,41 +256,47 @@ export function createIctCanvas(element, chart, series) {
       label(`SSL ${ssl.level.toFixed(2)}`, Math.max(4, Math.min(xx + 4, plotRight - 90)), yy - 3, '#22c55e');
     }
 
-    // 7. Sweep Markers ('×' for BSL/SSL, '◆' for Asia) & Dynamic Sweep Line (Item 2.24)
-    for (const sw of indicators?.liquidity?.sweeps || []) {
+    // 7. Sweep Markers ('×' for BSL/SSL, '◆' for Asia) & Clean Sweep Line
+    const swList = indicators?.liquidity?.sweeps || [];
+    for (let i = 0; i < swList.length; i++) {
+      const sw = swList[i];
       const xx = x(sw.time), yy = y(sw.price);
       if (xx == null || yy == null || xx < 0 || xx > plotRight) continue;
-      ctx.font = 'bold ' + (fontSize + 3) + 'px sans-serif';
+      ctx.font = 'bold ' + (fontSize + 1) + 'px sans-serif';
       ctx.fillStyle = sw.color;
       ctx.textAlign = 'center';
-      const offset = sw.side === 'BUY' ? -4 : (fontSize + 4);
+      const offset = sw.side === 'BUY' ? -3 : (fontSize + 3);
       ctx.fillText(sw.symbol, xx, yy + offset);
       ctx.textAlign = 'left';
 
-      // Grafis Garis Sweep Dinamis: garis horizontal putus-putus berkedip halus pada level likuiditas yang tersapu
-      const sweepLevel = Number(sw.level ?? sw.price);
-      const syy = y(sweepLevel);
-      if (syy != null) {
-        ctx.setLineDash([5, 3]);
-        ctx.strokeStyle = sw.color || '#f59e0b';
-        ctx.lineWidth = s.lineWidth || 1;
-        ctx.beginPath();
-        ctx.moveTo(xx, syy);
-        ctx.lineTo(lineRight, syy);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        const tag = sw.reclaimed ? '🎯 Reclaimed Valid' : '⚖️ Menunggu Rejection Close';
-        label(`${sw.label || 'SWEEP'} ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 3, sw.color || '#f59e0b');
+      // Hanya tampilkan garis horizontal untuk sweep paling baru agar chart tidak sesak
+      if (i === swList.length - 1) {
+        const sweepLevel = Number(sw.level ?? sw.price);
+        const syy = y(sweepLevel);
+        if (syy != null) {
+          ctx.setLineDash([5, 3]);
+          ctx.strokeStyle = sw.color || '#f59e0b';
+          ctx.lineWidth = s.lineWidth || 1;
+          ctx.beginPath();
+          ctx.moveTo(xx, syy);
+          ctx.lineTo(lineRight, syy);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          const tag = sw.reclaimed ? '🎯 Reclaimed Valid' : '⚖️ Menunggu Rejection Close';
+          label(`${sw.label || 'SWEEP'} ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 3, sw.color || '#f59e0b');
+        }
       }
     }
 
     // 8. Infinite/Horizontal Key Levels on Canvas (renders clean labels directly on chart)
     if (kl) {
-      if (Number.isFinite(kl.pdh)) line(kl.pdh, `PDH ${kl.pdh.toFixed(2)}`, '#f97316', null, null, true);
-      if (Number.isFinite(kl.pdl)) line(kl.pdl, `PDL ${kl.pdl.toFixed(2)}`, '#3b82f6', null, null, true);
-      if (Number.isFinite(kl.pwh)) line(kl.pwh, `PWH ${kl.pwh.toFixed(2)}`, '#d946ef', null, null, true);
-      if (Number.isFinite(kl.pwl)) line(kl.pwl, `PWL ${kl.pwl.toFixed(2)}`, '#06b6d4', null, null, true);
-      if (Number.isFinite(kl.pdEq)) line(kl.pdEq, `PD EQ ${kl.pdEq.toFixed(2)}`, '#94a3b8', null, null, true);
+      const curPrice = Number(window.amyfxCurrentPrice) || candles[candles.length - 1]?.close || 3940;
+      const isNear = lvl => Number.isFinite(lvl) && Math.abs(lvl - curPrice) <= 32;
+      if (isNear(kl.pdh)) line(kl.pdh, `PDH ${kl.pdh.toFixed(2)}`, '#f97316', null, null, true);
+      if (isNear(kl.pdl)) line(kl.pdl, `PDL ${kl.pdl.toFixed(2)}`, '#3b82f6', null, null, true);
+      if (isNear(kl.pwh)) line(kl.pwh, `PWH ${kl.pwh.toFixed(2)}`, '#d946ef', null, null, true);
+      if (isNear(kl.pwl)) line(kl.pwl, `PWL ${kl.pwl.toFixed(2)}`, '#06b6d4', null, null, true);
+      if (isNear(kl.pdEq)) line(kl.pdEq, `PD EQ ${kl.pdEq.toFixed(2)}`, '#94a3b8', null, null, true);
     }
     if (indicators?.structure?.invalidation?.level) {
       const inv = indicators.structure.invalidation;
@@ -310,8 +320,8 @@ export function createIctCanvas(element, chart, series) {
       line(idm.level, `IDM ${idm.level.toFixed(2)}${idm.swept ? ' [SWEPT]' : ''}`, '#8b5cf6', idm.time, null, true);
     }
 
-    // 9. Compact Chart Narration
-    if (s.narration && amy?.entry) {
+    // 9. Compact Chart Narration (Hanya jika fullscreen dan diaktifkan)
+    if (s.narration && fullscreen && amy?.entry) {
       const lines = compactChartNarration(amy, state.news);
       ctx.font = (fullscreen ? 14 : 11) + 'px sans-serif';
       const lineHeight = fullscreen ? 20 : 15, bw = Math.min(plotRight - 16, fullscreen ? 440 : 300), bh = lines.length * lineHeight + 12;

@@ -3,9 +3,9 @@
  * Item 2.7 Blueprint: Mini-Badge Status Dealing Range di Header Chart Gold.
  *
  * Logika ICT murni:
- * - Harga < 50% Equilibrium: [ ZONA DISKON · BUY ONLY 🟢 ] (.dr-discount)
- * - Harga > 50% Equilibrium: [ ZONA PREMIUM · SELL ONLY 🔴 ] (.dr-premium)
- * - Kisaran 50% Equilibrium (CE): [ EQUILIBRIUM 50% · NETRAL ⚪ ] (.dr-neutral)
+ * - Harga < 50% Equilibrium: [ ZONA DISKON (<47.5%) 🟢 ] (.dr-discount)
+ * - Harga > 50% Equilibrium: [ ZONA PREMIUM (>52.5%) 🔴 ] (.dr-premium)
+ * - Kisaran 50% Equilibrium (CE): [ EQUILIBRIUM 50% · NO-TRADE ⚪ ] (.dr-neutral)
  */
 
 export function getDealingRangeStatus(price, dealingRange) {
@@ -13,7 +13,7 @@ export function getDealingRangeStatus(price, dealingRange) {
   if (!Number.isFinite(p) || p <= 0) {
     return {
       zone: 'EQUILIBRIUM',
-      text: 'EQUILIBRIUM 50% · NETRAL ⚪',
+      text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
       className: 'dr-badge dr-neutral'
     };
   }
@@ -28,14 +28,14 @@ export function getDealingRangeStatus(price, dealingRange) {
   if (loc.includes('DISCOUNT')) {
     return {
       zone: 'DISCOUNT',
-      text: 'ZONA DISKON · BUY ONLY 🟢',
+      text: 'ZONA DISKON (<47.5%) 🟢',
       className: 'dr-badge dr-discount'
     };
   }
   if (loc.includes('PREMIUM')) {
     return {
       zone: 'PREMIUM',
-      text: 'ZONA PREMIUM · SELL ONLY 🔴',
+      text: 'ZONA PREMIUM (>52.5%) 🔴',
       className: 'dr-badge dr-premium'
     };
   }
@@ -56,21 +56,21 @@ export function getDealingRangeStatus(price, dealingRange) {
     if (Math.abs(p - eq) <= threshold) {
       return {
         zone: 'EQUILIBRIUM',
-        text: 'EQUILIBRIUM 50% · NETRAL ⚪',
+        text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
         className: 'dr-badge dr-neutral',
         eq
       };
     } else if (p < eq) {
       return {
         zone: 'DISCOUNT',
-        text: 'ZONA DISKON · BUY ONLY 🟢',
+        text: 'ZONA DISKON (<47.5%) 🟢',
         className: 'dr-badge dr-discount',
         eq
       };
     } else {
       return {
         zone: 'PREMIUM',
-        text: 'ZONA PREMIUM · SELL ONLY 🔴',
+        text: 'ZONA PREMIUM (>52.5%) 🔴',
         className: 'dr-badge dr-premium',
         eq
       };
@@ -80,7 +80,7 @@ export function getDealingRangeStatus(price, dealingRange) {
   // Default fallback
   return {
     zone: 'EQUILIBRIUM',
-    text: 'EQUILIBRIUM 50% · NETRAL ⚪',
+    text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
     className: 'dr-badge dr-neutral'
   };
 }

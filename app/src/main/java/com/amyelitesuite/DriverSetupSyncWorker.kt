@@ -63,7 +63,7 @@ class DriverSetupSyncWorker(
                 }
 
                 if (contextObj != null) {
-                    processAssistantAlerts(contextObj)
+                    processAssistantAlerts(contextObj, payload)
                 }
 
                 Result.success()
@@ -96,7 +96,7 @@ class DriverSetupSyncWorker(
         }
     }
 
-    private fun processAssistantAlerts(contextObj: JSONObject) {
+    private fun processAssistantAlerts(contextObj: JSONObject, payload: JSONObject? = null) {
         val session = contextObj.optString("session", "").trim()
         if (session.equals("PASAR TUTUP", ignoreCase = true) || !AmyFxNotificationGate.isGoldMarketOpen(System.currentTimeMillis())) {
             android.util.Log.d("AmyFX-DriverWorker", "Market closed (session=$session), assistant alerts suppressed.")
@@ -125,6 +125,20 @@ class DriverSetupSyncWorker(
         val dashboard = amy.optJSONObject("dashboard")
         val entry = amy.optJSONObject("entry")
         val news = contextObj.optJSONObject("news")
+        val trigger = amy.optJSONObject("trigger")
+        val candle = trigger?.optJSONObject("candle") ?: dashboard?.optJSONObject("candle") ?: amy.optJSONObject("candle")
+        val currentPrice = contextObj.optDouble("price", 0.0).takeIf { it > 0.0 }
+            ?: (candle?.optDouble("close", 0.0) ?: 0.0)
+        val cHigh = candle?.optDouble("high", 0.0) ?: 0.0
+        val cLow = candle?.optDouble("low", 0.0) ?: 0.0
+        val curPriceStr = if (currentPrice > 0.0) String.format(java.util.Locale.US, "$%.2f", currentPrice) else ""
+
+        val event = payload?.optJSONObject("event") ?: contextObj.optJSONObject("event")
+        val assistant = amy.optJSONObject("assistant")
+        val plan = amy.optJSONObject("plan") ?: assistant?.optJSONObject("plan") ?: contextObj.optJSONObject("plan")
+        val execution = contextObj.optJSONObject("execution")
+        val isAPlus = execution?.optBoolean("aPlusReady", false) == true ||
+            event?.optString("key", "")?.contains("A_PLUS_READY") == true
 
         val entryText = entry?.optString("text").orEmpty()
         val lines = entryText.split("\n")
@@ -156,30 +170,85 @@ class DriverSetupSyncWorker(
             notifTitle = "🛡️ Asisten Amy: NEWS LOCK Aktif"
             notifBody = news?.optString("note", "Pasar sangat liar dan rawan slippage. Jangan entry sebelum volatilitas stabil.").orEmpty()
             notify = true
+        } else if (isAPlus) {
+            badge = "PELURU_UTAMA_A_PLUS"
+            val sideStr = if (biasDir == 1) "BUY" else if (biasDir == -1) "SELL" else "ENTRY"
+            val score = entry?.optInt("score", 85) ?: 85
+            val grade = entry?.optString("grade", "STRONG").orEmpty()
+            notifTitle = "👑 Asisten Amy: Peluru Utama Grade A+ Siap!"
+            val low = poi?.optDouble("low", 0.0) ?: 0.0
+            val high = poi?.optDouble("high", 0.0) ?: 0.0
+            val areaStr = if (high > 0.0 && low > 0.0) String.format(java.util.Locale.US, "$%.2f – $%.2f", low, high) else "Zona M15"
+            val dolTgt = dashboard?.optDouble("dolTarget", 0.0) ?: 0.0
+            val dolStr = if (dolTgt > 0.0) String.format(java.util.Locale.US, " · DOL $%.2f", dolTgt) else ""
+            notifBody = "👑 Grade A+ $sideStr Confluence $score/100 ($grade). Area $areaStr$dolStr. Target 100 Pips Sayang!"
+            notify = true
+        } else if ((assistant?.optString("status") == "READY" || execution?.optBoolean("entryReady", false) == true || event?.optString("key", "")?.contains("ENTRY_SIGNAL") == true) && plan != null) {
+            val sigType = assistant?.optInt("signalType", 0) ?: 0
+            val sigName = assistant?.optString("signalName", "ENTRY SIGNAL").orEmpty().ifBlank { "ENTRY SIGNAL" }
+            val isBuy = sigType == 1 || sigType == 2 || (plan.optString("direction").equals("BUY", ignoreCase = true))
+            val entryPrice = plan.optDouble("entry", 0.0)
+            val slPrice = plan.optDouble("sl", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("stopLoss", 0.0)
+            val tp1Price = plan.optDouble("tp1", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("target1", 0.0)
+            val mathZone = assistant?.optString("mathZone", "").orEmpty()
+            val zoneStr = if (mathZone.isNotBlank()) " · Zona $mathZone" else ""
+            if (entryPrice > 0.0 && slPrice > 0.0 && tp1Price > 0.0) {
+                badge = if (isBuy) "ENTRY_BUY_READY" else "ENTRY_SELL_READY"
+                val icon = if (isBuy) "🟢" else "🔴"
+                notifTitle = "$icon Asisten Amy: $sigName"
+                notifBody = String.format(
+                    java.util.Locale.US,
+                    "%s Entry: $%.2f | SL: $%.2f | TP1: $%.2f (+100 Pips Sayang)%s. Siapkan eksekusi!",
+                    icon, entryPrice, slPrice, tp1Price, zoneStr
+                )
+                notify = true
+            }
         } else if (invalidStatus == 2) {
             badge = "SETUP_BATAL"
-            notifTitle = "⚠ Asisten Amy: Setup Batal (Invalid)"
+            notifTitle = "⚠️ Asisten Amy: Setup Batal (Invalid)"
             val invalidLevel = dashboard?.optDouble("invalidLevel", 0.0) ?: 0.0
-            val levelStr = if (invalidLevel > 0.0) String.format(java.util.Locale.US, "%.2f", invalidLevel) else ""
-            notifBody = "Close M15 menembus batas pembatalan $levelStr. Tunggu pembentukan struktur baru."
+            val levelStr = if (invalidLevel > 0.0) String.format(java.util.Locale.US, " $%.2f", invalidLevel) else ""
+            notifBody = "Close M15 menembus batas pembatalan$levelStr. Jangan paksakan entry, tunggu struktur dealing range baru."
             notify = true
         } else if (rejectBuy || rejectSell) {
             val isBuy = rejectBuy
             badge = if (isBuy) "REJECTION_BUY" else "REJECTION_SELL"
             val badgeLabel = if (isBuy) "REJECTION BUY" else "REJECTION SELL"
+            val low = poi?.optDouble("low", 0.0) ?: 0.0
+            val high = poi?.optDouble("high", 0.0) ?: 0.0
+            val poiRange = if (high > 0.0 && low > 0.0) String.format(java.util.Locale.US, " ($%.2f – $%.2f)", low, high) else ""
+            val wickVal = if (isBuy) cLow else cHigh
+            val wickStr = if (wickVal > 0.0) String.format(java.util.Locale.US, " @ $%.2f", wickVal) else ""
             notifTitle = "🔥 Asisten Amy: $badgeLabel"
-            val primary = "🔥 Rejection Kuat di Area $poiKind"
-            val sub = "Candle menolak ${if (isBuy) "bawah" else "atas"} dengan wick panjang. Konfirmasi ${if (isBuy) "BUY" else "SELL"}."
+            val primary = "🔥 Rejection Kuat di Area $poiKind$poiRange"
+            val sub = "Candle menolak ${if (isBuy) "bawah" else "atas"} dengan wick panjang$wickStr. Konfirmasi ${if (isBuy) "BUY" else "SELL"} (Target 100 Pips Sayang)."
             notifBody = "$primary. $sub"
             notify = true
         } else if (importance == 4) {
             val isBull = biasDir == 1
+            val trgHigh = trigger?.optDouble("high", 0.0) ?: 0.0
+            val trgLow = trigger?.optDouble("low", 0.0) ?: 0.0
+            val m15Obj = contextObj.optJSONObject("m15")
+            val m15Break = m15Obj?.optJSONObject("lastBreak")
+            val m15Kind = m15Break?.optString("kind", "").orEmpty()
+            val m15BreakLvl = m15Break?.optDouble("level", 0.0) ?: 0.0
+
+            val brokenLevel = if (isBull) {
+                if (trgHigh > 0.0) trgHigh else if (m15BreakLvl > 0.0) m15BreakLvl else (dashboard?.optDouble("protectedHigh", 0.0) ?: 0.0)
+            } else {
+                if (trgLow > 0.0) trgLow else if (m15BreakLvl > 0.0) m15BreakLvl else (dashboard?.optDouble("protectedLow", 0.0) ?: 0.0)
+            }
+            val brokenLevelStr = if (brokenLevel > 0.0) String.format(java.util.Locale.US, "$%.2f", brokenLevel) else "Struktur"
+            val breakKind = if (m15Kind.isNotBlank()) m15Kind else if (isBull) "BOS Bullish" else "BOS Bearish"
+            val dolTgt = dashboard?.optDouble("dolTarget", 0.0) ?: 0.0
+            val dolStr = if (dolTgt > 0.0) String.format(java.util.Locale.US, " · Target DOL: $%.2f", dolTgt) else ""
+
             badge = if (isBull) "VALID_BREAK_UP" else "VALID_BREAK_DOWN"
-            val badgeLabel = if (isBull) "VALID BREAK UP" else "VALID BREAK DOWN"
+            val badgeLabel = if (isBull) "VALID BREAK BULLISH ($breakKind)" else "VALID BREAK BEARISH ($breakKind)"
             notifTitle = "✓ Asisten Amy: $badgeLabel"
-            val primary = "✓ Valid Break ${if (isBull) "Bullish" else "Bearish"} dengan Displacement"
-            val sub = "Struktur M5 terkonfirmasi searah tren. Siapkan observasi entry."
-            notifBody = "$primary. $sub"
+            val primary = "✓ Valid Break ${if (isBull) "Bullish" else "Bearish"} dengan Displacement: $breakKind @ $brokenLevelStr Ditembus!"
+            val sub = "Struktur M5 terkonfirmasi searah tren$dolStr. Siapkan observasi entry Sayang."
+            notifBody = "$primary $sub"
             notify = true
         } else if (sweepDetails != null) {
             val sweepAge = if (sweepDetails.sweepTime > 0L) (nowSec - sweepDetails.sweepTime) else 0L
@@ -187,28 +256,34 @@ class DriverSetupSyncWorker(
             if (isFresh) {
                 val levelStr = String.format(java.util.Locale.US, "%.2f", sweepDetails.level)
                 val extremeStr = String.format(java.util.Locale.US, "%.2f", sweepDetails.extreme)
+                val sweepPips = if (sweepDetails.extreme > 0.0 && sweepDetails.level > 0.0) Math.abs(sweepDetails.extreme - sweepDetails.level) * 10.0 else 0.0
+                val pipsStr = if (sweepPips > 0.0) String.format(java.util.Locale.US, " (+%.1f Pips)", sweepPips) else ""
                 val sweepBadge = sweepDetails.name.replace(" ", "_").uppercase(java.util.Locale.US)
                 badge = "${sweepBadge}_SWEPT"
-                notifTitle = "💧 Asisten Amy: ${sweepDetails.name} @ $levelStr Swept!"
+                notifTitle = "💧 Asisten Amy: ${sweepDetails.name} @ $levelStr Swept!$pipsStr"
                 val primary = "💧 ${sweepDetails.name} @ $levelStr Swept!"
-                val sub = "Tersapu hingga ekor $extremeStr. Pantau pembentukan rejection untuk potensi ${sweepDetails.side}."
+                val sub = "Tersapu hingga ekor $extremeStr$pipsStr. Pantau pembentukan rejection untuk potensi ${sweepDetails.side} (Target 100 Pips Sayang)."
                 notifBody = "$primary $sub"
                 notify = true
             }
         } else if (inPoi) {
             badge = "DI_AREA_POI"
-            notifTitle = "📍 Asisten Amy: Area POI Tersentuh"
-            val primary = "📍 ${if (poiSide.isNotBlank()) "$poiSide " else ""}$poiKind Tersentuh"
             val low = poi?.optDouble("low", 0.0) ?: 0.0
             val high = poi?.optDouble("high", 0.0) ?: 0.0
             val rangeStr = if (high > 0.0 && low > 0.0) String.format(java.util.Locale.US, "(%.2f – %.2f)", high, low) else ""
-            val sub = "Harga berada di zona kritis. Pantau pembentukan candle rejection atau break M5."
+            val curStr = if (curPriceStr.isNotBlank()) " @ $curPriceStr" else ""
+            notifTitle = "📍 Asisten Amy: Area POI Tersentuh"
+            val primary = "📍 ${if (poiSide.isNotBlank()) "$poiSide " else ""}$poiKind Tersentuh"
+            val sub = "Harga berada di zona kritis$curStr. Pantau pembentukan candle rejection atau break M5 (Target 100 Pips Sayang)."
             notifBody = "$primary $rangeStr. $sub"
             notify = true
         } else if (dolStatus == 2) {
+            val dolTarget = dashboard?.optDouble("dolTarget", 0.0) ?: 0.0
+            val dolStr = if (dolTarget > 0.0) String.format(java.util.Locale.US, " ($%.2f)", dolTarget) else ""
+            val curStr = if (curPriceStr.isNotBlank()) " @ $curPriceStr" else ""
             badge = "TARGET_DOL"
             notifTitle = "🎯 Asisten Amy: Target DOL Tercapai"
-            notifBody = "🎯 Target Likuiditas (DOL) Telah Tercapai. Hati-hati pembalikan arah, jangan kejar harga."
+            notifBody = "🎯 Target Likuiditas (DOL)$dolStr Telah Tercapai$curStr. Hati-hati pembalikan arah, jangan kejar harga (Anti-Chase)."
             notify = true
         }
 
@@ -435,7 +510,9 @@ class DriverSetupSyncWorker(
 
         val isAPlus = title.contains("A+", ignoreCase = true) ||
             body.contains("Grade A+", ignoreCase = true) ||
-            body.contains("A+ Setup", ignoreCase = true)
+            body.contains("A+ Setup", ignoreCase = true) ||
+            title.contains("Peluru Utama", ignoreCase = true) ||
+            title.contains("ENTRY", ignoreCase = true)
         val channelId = if (isAPlus) AmyFxApplication.GOLD_SIGNAL_CHANNEL_ID else AmyFxApplication.MARKET_CONTEXT_CHANNEL_ID
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)
