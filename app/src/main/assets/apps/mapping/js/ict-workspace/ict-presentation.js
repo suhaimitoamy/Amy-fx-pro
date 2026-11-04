@@ -909,15 +909,15 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
     notify=true;notifTitle='🔴 Asisten Amy: SELL ENTRY';notifBody=`${primary}. ${sub}`;
   }else if(ast&&(ast.signalType===-2||(ast.rawSignalType===-2&&ast.status==='READY'))){
-    badge='PULLBACK SELL';badgeClass='badge-bear';stateClass='assistant-state-bear';
-    primary='🟠 PULLBACK SELL (Pucuk Premium)';
-    sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Catatan: Sell ini pullback, bukan ubah bias utama`;
-    notify=true;notifTitle='🟠 Asisten Amy: PULLBACK SELL';notifBody=`${primary}. ${sub}`;
+    badge='PULLBACK SELL (CISD)';badgeClass='badge-bear';stateClass='assistant-state-bear';
+    primary='🟠 PULLBACK SELL (CISD Pucuk Premium)';
+    sub=`Anti-Chase: READY · CISD Terkonfirmasi · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
+    notify=true;notifTitle='🟠 Asisten Amy: PULLBACK SELL (CISD)';notifBody=`${primary}. ${sub}`;
   }else if(ast&&(ast.signalType===2||(ast.rawSignalType===2&&ast.status==='READY'))){
-    badge='PULLBACK BUY';badgeClass='badge-bull';stateClass='assistant-state-bull';
-    primary='🔵 PULLBACK BUY (Dasar Diskon)';
-    sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Catatan: Buy ini pullback, bukan ubah bias utama`;
-    notify=true;notifTitle='🔵 Asisten Amy: PULLBACK BUY';notifBody=`${primary}. ${sub}`;
+    badge='PULLBACK BUY (CISD)';badgeClass='badge-bull';stateClass='assistant-state-bull';
+    primary='🔵 PULLBACK BUY (CISD Dasar Diskon)';
+    sub=`Anti-Chase: READY · CISD Terkonfirmasi · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
+    notify=true;notifTitle='🔵 Asisten Amy: PULLBACK BUY (CISD)';notifBody=`${primary}. ${sub}`;
   }else if(ast&&ast.status==='MISSED'){
     badge='STANDBY';badgeClass='badge-warn';stateClass='assistant-state-sweep';
     primary=`⚠️ Sinyal ${ast.rawSignalType===1?'BUY':ast.rawSignalType===-1?'SELL':'PULLBACK'}: MISSED - JANGAN KEJAR`;

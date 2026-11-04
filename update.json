@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.433/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.434/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Restrukturisasi Visual Chart Gold Bersih & Lega: Mengeliminasi teks marker sinyal dan narasi yang menutupi chart, menyisakan 35 lilin fokus ala TradingView.",
-    "Kalibrasi Deteksi MSS & Invalidasi Tren Twelve Data: Sinkronisasi presisi level invalidasi pasar XAU/USD tanpa bias loncat.",
-    "Filter Likuiditas Sweep & POI Cerdas: Menampilkan garis sweep terbaru dan membatasi fokus pada 1 POI aktif terdekat di atas/bawah harga.",
-    "Peningkatan Presisi Notifikasi Native: Peringatan real-time Valid Break, Sweep Pips, dan POI Touch terhubung langsung ke target 100 Pips Sayang."
+    "Upgrade Engine Pullback Berbasis CISD (Change in State of Delivery): Menggantikan filter sumbu rawan floating dengan konfirmasi mutlak Body Close di bawah/atas Open candle ekspansi institusional.",
+    "Proteksi Anti-Sapu Stop Loss di Pucuk/Dasar Ekstrem: Meniadakan sinyal counter-trend prematur selama pengantaran order masih searah reli berita.",
+    "Label & Peringatan Asisten Entry V3 Presisi: Notifikasi instan PULLBACK SELL (CISD) dan PULLBACK BUY (CISD) dengan level risiko terukur menuju equilibrium."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.433/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.434/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950433,
-  "latest_version_name": "2.0.0-pro.433",
+  "latest_version_code": 950434,
+  "latest_version_name": "2.0.0-pro.434",
   "mandatory": false,
   "releaseDate": "2026-11-04",
   "release_notes": [
-    "Restrukturisasi Visual Chart Gold Bersih & Lega: Mengeliminasi teks marker sinyal dan narasi yang menutupi chart, menyisakan 35 lilin fokus ala TradingView.",
-    "Kalibrasi Deteksi MSS & Invalidasi Tren Twelve Data: Sinkronisasi presisi level invalidasi pasar XAU/USD tanpa bias loncat.",
-    "Filter Likuiditas Sweep & POI Cerdas: Menampilkan garis sweep terbaru dan membatasi fokus pada 1 POI aktif terdekat di atas/bawah harga.",
-    "Peningkatan Presisi Notifikasi Native: Peringatan real-time Valid Break, Sweep Pips, dan POI Touch terhubung langsung ke target 100 Pips Sayang."
+    "Upgrade Engine Pullback Berbasis CISD (Change in State of Delivery): Menggantikan filter sumbu rawan floating dengan konfirmasi mutlak Body Close di bawah/atas Open candle ekspansi institusional.",
+    "Proteksi Anti-Sapu Stop Loss di Pucuk/Dasar Ekstrem: Meniadakan sinyal counter-trend prematur selama pengantaran order masih searah reli berita.",
+    "Label & Peringatan Asisten Entry V3 Presisi: Notifikasi instan PULLBACK SELL (CISD) dan PULLBACK BUY (CISD) dengan level risiko terukur menuju equilibrium."
   ],
-  "version": "2.0.0-pro.433",
-  "versionCode": 950433,
+  "version": "2.0.0-pro.434",
+  "versionCode": 950434,
   "sha256": "7bbf563d4d7d01e1b078afcb1767cc2810ff678d99684bbcca1835c9d18d2110"
 }
