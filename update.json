@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.432/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.433/AmyFX-Pro-latest.apk",
   "changelog": [
     "Restrukturisasi Visual Chart Gold Bersih & Lega: Mengeliminasi teks marker sinyal dan narasi yang menutupi chart, menyisakan 35 lilin fokus ala TradingView.",
     "Kalibrasi Deteksi MSS & Invalidasi Tren Twelve Data: Sinkronisasi presisi level invalidasi pasar XAU/USD tanpa bias loncat.",
     "Filter Likuiditas Sweep & POI Cerdas: Menampilkan garis sweep terbaru dan membatasi fokus pada 1 POI aktif terdekat di atas/bawah harga.",
     "Peningkatan Presisi Notifikasi Native: Peringatan real-time Valid Break, Sweep Pips, dan POI Touch terhubung langsung ke target 100 Pips Sayang."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.432/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.433/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950432,
-  "latest_version_name": "2.0.0-pro.432",
+  "latest_version_code": 950433,
+  "latest_version_name": "2.0.0-pro.433",
   "mandatory": false,
-  "releaseDate": "2026-11-02",
+  "releaseDate": "2026-11-04",
   "release_notes": [
     "Restrukturisasi Visual Chart Gold Bersih & Lega: Mengeliminasi teks marker sinyal dan narasi yang menutupi chart, menyisakan 35 lilin fokus ala TradingView.",
     "Kalibrasi Deteksi MSS & Invalidasi Tren Twelve Data: Sinkronisasi presisi level invalidasi pasar XAU/USD tanpa bias loncat.",
     "Filter Likuiditas Sweep & POI Cerdas: Menampilkan garis sweep terbaru dan membatasi fokus pada 1 POI aktif terdekat di atas/bawah harga.",
     "Peningkatan Presisi Notifikasi Native: Peringatan real-time Valid Break, Sweep Pips, dan POI Touch terhubung langsung ke target 100 Pips Sayang."
   ],
-  "version": "2.0.0-pro.432",
-  "versionCode": 950432,
-  "sha256": "51ef3d603d9c08a8bc5eb9b90249fff26b1b8b4f2b3acb9a421ac1f1f281f988"
+  "version": "2.0.0-pro.433",
+  "versionCode": 950433,
+  "sha256": "7bbf563d4d7d01e1b078afcb1767cc2810ff678d99684bbcca1835c9d18d2110"
 }
