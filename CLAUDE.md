@@ -264,3 +264,42 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
    - Menghilangkan konflik guard pada `profile-system-settings-v1.js` agar kustomisasi warna kaca berjalan mulus.
 
 
+## Keputusan Teknis: Harness² Engine (4 Nov 2026)
+- **Diadopsi:** Framework Google Research "Harness²: Recursive Agent Harnessing for an Open World" (arXiv:2610.14224).
+- **Mesin:** `/root/.harness2/harness2_engine.py` — Siklus otonom Propose–Probe–Compose untuk evolusi mandiri 8 komponen harness AI.
+- **Skill:** `/root/.agents/skills/harness2-engine/SKILL.md`
+- **Pasal GEMINI.md:** Pasal 25 mengatur kebijakan resmi, safety rails, dan trigger otomatis.
+- **Pustaka Pengalaman:** `/root/.harness2/EXPERIENCE.md` (akumulasi lintas sesi).
+
+## Keputusan Teknis: Sistem Simulasi Real-Time Edukatif & Lab Scalper (5 Nov 2026)
+- **Diadopsi:** Permanen di Pasal 26 GEMINI.md atas persetujuan Sayang.
+- **Tujuan:** Dual-engine untuk menghasilkan setup XAU/USD real-time berprobabilitas tinggi (Target 100-120 pips, SL 60 pips) sekaligus media transfer ilmu pedagogis teknikal (penjelasan alasan entry ICT/SMC murni).
+- **Model Eksekusi:** Dua pilar lincah (Reversal Likuiditas dengan napas toleransi zona + Continuation FVG Tap) untuk mencegah hilangnya peluang momentum.
+- **Integritas:** Zero-manipulation Twelve Data feed + auto-learning Harness² saat terkena Stop Loss.
+
+## Keputusan Teknis: Protokol Active Scalper Pro & Format Baku (5 Nov 2026)
+- **Diadopsi:** Permanen di Pasal 27 GEMINI.md dan `/root/.harness2/active_scalper_config.json` atas perintah Sayang.
+- **Pencapaian Benchmark:** Hat-Trick Kemenangan Bersih (+145 pips, +150 pips, +140 pips) dengan total profit **+335.0 Pips**.
+- **Mentalitas Operasi:** Berani eksekusi setup M5 di ujung ekstrem Dealing Range tanpa ragu (*Zero-Hesitation*), anti-Yes-Man, larangan klik di zona cincang tengah (No-Trade Zone).
+- **Format Tampilan Baku (Opsi B):** Wajib Pinned Target Entry Radar Box di baris pertama setiap respons cron/chat.
+- **SOP Proteksi Bertingkat:** BEP Cepat (+50–70 pips) dan Trailing Lock (+100 pips) untuk menggaransi hasil trading uang riil bebas risiko.
+
+
+
+## Kalibrasi Mapping vs Twelve Data (5 Nov 2026)
+- Audit `apps/mapping/js/ict-workspace/dashboard-v2.js`: ditemukan level hardcode era $3,9xx (Demand $3,927–3,931, PDH $3,969, SSL $3,926, dll) yang tampil sebagai POI walau harga ~$4,105, plus SOP SELL terbalik (entry di bawah harga, TP di atas entry).
+- Fix: semua level POI/SOP/skenario wajib dari engine riil (ctx.m15.poi, amy.dashboard, amy.levels, amy.visuals). Supply/BSL hanya di atas harga, Demand/SSL hanya di bawah harga; level tertembus diberi label "tertembus" (flip S/R). TP Sell = SSL riil terdekat di bawah zona. DILARANG fallback angka hardcode.
+
+## Perbaikan Setup & Latensi Notifikasi HP (5 Nov 2026)
+- **Problem Setup Usang**: Sinyal entry asisten memunculkan entry usang ($4,125) padahal harga live sudah lari jauh ($4,105 lalu $4,085). Disebabkan oleh `lastSignalLevel` M5 yang tidak pernah dibersihkan setelah kadaluarsa dan `m15DirectConfirmed` yang membypass pengecekan anti-chase (`isChased`).
+- **Fix Setup**: Di `amy-ict.mjs`, pasang `lastSignalAge` dengan batas `validBars` (12 bar / 60m). Jika harga sudah melarikan diri melebihi `chaseTol` (0.75 ATR), sinyal wajib berstatus `MISSED (Anti chase)` dan dilarang berstatus `READY`.
+- **Problem Latensi Notifikasi 1-2 Candle M15 (30-60 Menit)**:
+  1. `DriverSetupSyncWorker` di Android mengandalkan `PeriodicWorkRequest(15, TimeUnit.MINUTES)` yang oleh Android Doze Mode sering ditunda hingga 30-45 menit.
+  2. Pengecekan `nowSec - candleTime > 900L` terlalu ketat; saat worker bangun telat 1 detik saja, candle dianggap stale dan di-suppress, memaksa menunggu siklus berikutnya.
+  3. `sweepAge <= 900L` menyebabkan sweep yang terjadi di candle lalu dibatalkan.
+  4. `importance == 4` tidak menangkap konfirmasi M15 yang ber-`importance == 5`.
+- **Fix Notifikasi Android**:
+  1. Pasang rantai `scheduleNextCandleSync()` via `OneTimeWorkRequestBuilder` dengan delay terhitung persis 15 detik pasca penutupan candle M15 terdekat (:00:15, :15:15, :30:15, :45:15).
+  2. Longgarkan stale threshold dan sweep age dari 900s menjadi 2700s (45 menit / 3 candle M15) agar tidak di-drop saat Doze mode.
+  3. Tambahkan penanganan `importance == 5` untuk M15 Displacement Break.
+  4. Pasang guard `priceDrift > 6.0` ($6 / 60 pips) agar tidak ada notifikasi eksekusi instan jika harga sudah lari jauh.

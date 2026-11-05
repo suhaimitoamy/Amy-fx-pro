@@ -31,12 +31,13 @@ class BootReceiver : BroadcastReceiver() {
 
         Log.d("AmyFX", "Legacy local Mapping scanner remains disabled")
 
-        // Re-arm daily learning reminder alarm
+        // Re-arm daily learning reminder alarm and next candle sync
         try {
             LearningReminderReceiver.schedule(context)
             LearningReminderWorker.schedule(context)
+            DriverSetupSyncWorker.scheduleNextCandleSync(context)
         } catch (e: Exception) {
-            Log.w("AmyFX", "Failed to re-arm learning reminder on boot", e)
+            Log.w("AmyFX", "Failed to re-arm learning reminder or candle sync on boot", e)
         }
     }
 

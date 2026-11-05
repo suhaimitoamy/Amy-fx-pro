@@ -137,6 +137,11 @@ class AmyFxApplication : android.app.Application() {
             ExistingPeriodicWorkPolicy.UPDATE,
             request
         )
+
+        // Rantai sinkronisasi persis di pergantian candle M15 (zero-delay)
+        try {
+            DriverSetupSyncWorker.scheduleNextCandleSync(this)
+        } catch (_: Exception) {}
     }
 
     companion object {

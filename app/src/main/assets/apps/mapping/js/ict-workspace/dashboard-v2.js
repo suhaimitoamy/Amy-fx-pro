@@ -68,12 +68,20 @@
     // H1:
     let h1Dir = 0, h1Desc = 'Struktur netral — menunggu konfirmasi';
     const h1BiasStr = String(ctx.h1?.bias || '').toUpperCase();
+    // Kalibrasi Twelve Data: deskripsi H1 mengikuti health + jenis break riil, bukan klaim "dominan" statis.
+    const h1Health = String(ctx.h1?.health || '').toUpperCase();
+    const h1BreakType = String(ctx.h1?.lastBreak?.type || '').toUpperCase() || 'Break';
+    const h1Pattern = (ctx.h1?.highPattern && ctx.h1?.lowPattern) ? ` (${ctx.h1.highPattern}/${ctx.h1.lowPattern})` : '';
     if (h1BiasStr.includes('BEAR') || ctx.h1?.trend?.dir === -1 || ctx.h1Dir === -1) {
       h1Dir = -1;
-      h1Desc = 'MSS Bearish terkonfirmasi, BOS turun dominan';
+      h1Desc = h1Health === 'WEAKENING'
+        ? `${h1BreakType} Bearish, namun struktur melemah${h1Pattern}`
+        : `${h1BreakType} Bearish terkonfirmasi${h1Pattern}`;
     } else if (h1BiasStr.includes('BULL') || ctx.h1?.trend?.dir === 1 || ctx.h1Dir === 1) {
       h1Dir = 1;
-      h1Desc = 'MSS Bullish terkonfirmasi, BOS naik dominan';
+      h1Desc = h1Health === 'WEAKENING'
+        ? `${h1BreakType} Bullish, namun struktur melemah${h1Pattern}`
+        : `${h1BreakType} Bullish terkonfirmasi${h1Pattern}`;
     }
 
     // M15:
@@ -185,11 +193,16 @@
       } else if (h1Dir === 1 && m15Dir === -1) {
         conclusionEl.innerHTML = 'Trend utama <strong>BULLISH</strong>. Harga saat ini sedang koreksi turun menuju zona Demand untuk mencari pijakan ekspansi berikutnya.';
       } else if (m15Dir === 1 && Number.isFinite(eqVal) && livePrice > (eqVal + 0.5)) {
-        conclusionEl.innerHTML = 'Momentum lokal dikuasai oleh <strong>BUYER (M15)</strong>, namun harga sudah berada di <strong>ZONA PREMIUM</strong>. Disiplin menanti jemputan di Demand ($3,927–$3,931) atau amati rejection di Supply atas ($3,965–$3,969).';
+        // Kalibrasi Twelve Data: tanpa angka hardcode — level riil ada di kartu POI.
+        conclusionEl.innerHTML = 'Momentum lokal dikuasai oleh <strong>BUYER (M15)</strong>, namun harga sudah berada di <strong>ZONA PREMIUM</strong>. Disiplin menanti jemputan di Demand M15 atau amati rejection di Supply atas (lihat kartu POI).';
       } else if (m15Dir === 1) {
         conclusionEl.innerHTML = 'Momentum pasar saat ini dikuasai oleh <strong>BUYER</strong>. Struktur lokal membentuk Higher High dan Higher Low di M15.';
+      } else if (m15Dir === -1 && Number.isFinite(rLow) && livePrice > 0 && livePrice < rLow) {
+        conclusionEl.innerHTML = 'Trend pasar didominasi oleh <strong>SELLER</strong>. Harga sudah breakdown di bawah Range Low M15.';
+      } else if (m15Dir === -1) {
+        conclusionEl.innerHTML = 'Trend pasar didominasi oleh <strong>SELLER</strong>. Harga masih di dalam Dealing Range M15 — tunggu reaksi di Supply atas atau SSL bawah.';
       } else {
-        conclusionEl.innerHTML = 'Trend pasar didominasi oleh <strong>SELLER</strong>. Struktur breakdown di bawah dealing range terus berlanjut.';
+        conclusionEl.innerHTML = 'Struktur belum searah — tunggu konfirmasi break sebelum mengambil posisi.';
       }
     }
   }
@@ -207,7 +220,7 @@
     const livePrice = Number(window.amyfxCurrentPrice) || Number(ctx.price) || Number(dashboard?.candle?.close) || 0;
 
     // Adaptasi Cerdas (Dynamic Expansion):
-    // Jika harga live melompat menembus rHigh atau rLow lama (misal breakout rally ke $3,952+),
+    // Jika harga live melompat menembus rHigh atau rLow lama (breakout di luar range),
     // dealing range otomatis ekspansi agar persentase bar tetap logis dan tidak overflow >100%
     if (livePrice > 0 && Number.isFinite(rHigh) && livePrice > rHigh) {
       rHigh = Math.max(rHigh, Math.ceil(livePrice + 2.0));
@@ -234,14 +247,18 @@
     if (fill) fill.style.height = pct + '%';
     if (dot)  dot.style.bottom  = `calc(${pct}% - 8px)`;
 
-    // Kalibrasi Range Mayor (PDH/PDL & H1 Swing)
-    const pdh = Number(amy?.levels?.pdh || ctx.h1?.swingHigh || 3969.20);
-    const pdl = Number(amy?.levels?.pdl || ctx.h1?.swingLow || 3896.21);
-    const majorEq = (pdh + pdl) / 2;
+    // Kalibrasi Range Mayor (PDH/PDL riil dari engine — tanpa fallback angka hardcode)
+    const pdh = Number(amy?.levels?.pdh || ctx.h1?.swingHigh);
+    const pdl = Number(amy?.levels?.pdl || ctx.h1?.swingLow);
     const majorRangeEl = $('dr-major-range');
     const majorEqEl = $('dr-major-eq');
-    if (majorRangeEl) majorRangeEl.textContent = `$${fmt(pdl)} – $${fmt(pdh)}`;
-    if (majorEqEl) majorEqEl.textContent = `$${fmt(majorEq)}`;
+    if (pdh > 0 && pdl > 0) {
+      if (majorRangeEl) majorRangeEl.textContent = `$${fmt(pdl)} – $${fmt(pdh)}`;
+      if (majorEqEl) majorEqEl.textContent = `$${fmt((pdh + pdl) / 2)}`;
+    } else {
+      if (majorRangeEl) majorRangeEl.textContent = 'Data belum tersedia';
+      if (majorEqEl) majorEqEl.textContent = '—';
+    }
 
     // Status badge dinamis
     const badge = $('dr-status-badge');
@@ -249,13 +266,13 @@
       let cls = 'zone-eq', text = '';
       if (pct > 75) {
         cls = 'zone-premium';
-        text = `🔴 M15 di ${pct}% (EXTREME PREMIUM). Harga mendekati Resistance / PDH ($3,969). Hati-hati jangan Buy di pucuk!`;
+        text = `🔴 M15 di ${pct}% (EXTREME PREMIUM). Harga mendekati Range High / BSL ($${fmt(rHigh)}). Hati-hati jangan Buy di pucuk!`;
       } else if (pct > 52.5) {
         cls = 'zone-premium';
         text = `🔴 M15 di ${pct}% (PREMIUM). Rentan rejection / false breakout. Hindari Buy di pucuk!`;
       } else if (pct < 25) {
         cls = 'zone-discount';
-        text = `🟢 M15 di ${pct}% (EXTREME DISCOUNT). Dekat SSL / PDL ($3,896). Siaga setup pembalikan Buy!`;
+        text = `🟢 M15 di ${pct}% (EXTREME DISCOUNT). Dekat Range Low / SSL ($${fmt(rLow)}). Siaga setup pembalikan Buy!`;
       } else if (pct < 47.5) {
         cls = 'zone-discount';
         text = `🟢 M15 di ${pct}% (DISCOUNT). Buy preferred, tunggu sweep / validasi demand.`;
@@ -315,163 +332,146 @@
       }
     }
 
-    // Ambil FVG & OB dari berbagai jalur
+    // ── KALIBRASI TWELVE DATA (5 Nov 2026) ──
+    // Seluruh level POI diambil dari engine riil (ctx.m15 / amy.dashboard / amy.levels / amy.visuals).
+    // DILARANG fallback angka hardcode. Supply/BSL wajib DI ATAS harga, Demand/SSL wajib DI BAWAH harga.
+    const num = v => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : NaN; };
     const fvgs = amy?.visuals?.fvg || amy?.levels?.fvgs || amy?.fvgs || [];
-    const obs = amy?.visuals?.ob || [];
-    const bsl = dashboard?.bsl || ctx.m15?.dealingRange?.rangeHigh || 3939.80;
-    const ssl = dashboard?.ssl || ctx.m15?.dealingRange?.rangeLow || 3919.72;
-
-    // Filter Bearish FVG & OB aktif
+    const isActiveZone = z => {
+      const lc = String(z?.lifecycle || '').toUpperCase();
+      return lc !== 'BROKEN' && lc !== 'MITIGATED' && lc !== 'INVALIDATED';
+    };
+    const zoneOf = f => {
+      const lo = num(f.low ?? f.gapLow ?? f.zoneLow);
+      const hi = num(f.high ?? f.gapHigh ?? f.zoneHigh);
+      const ce = num(f.ce ?? f.consequentEncroachment) || (lo + hi) / 2;
+      return { lo, hi, ce };
+    };
     const bearFVGs = fvgs.filter(f => {
       const s = String(f.side || f.direction || '').toUpperCase();
-      return (s === 'SELL' || s === 'BEARISH' || f.dir === -1) && (f.lifecycle !== 'BROKEN' || f.status === 1 || f.status === 2);
+      return (s === 'SELL' || s === 'BEARISH' || f.dir === -1) && isActiveZone(f);
     });
-
-    const bearOBs = obs.filter(o => {
-      const s = String(o.side || '').toUpperCase();
-      return (s === 'SELL' || o.dir === -1) && o.lifecycle !== 'BROKEN';
+    const bullFVGs = fvgs.filter(f => {
+      const s = String(f.side || f.direction || '').toUpperCase();
+      return (s === 'BUY' || s === 'BULLISH' || f.dir === 1) && isActiveZone(f);
     });
 
     // POI aktif M15 jika ada
     const m15Poi = ctx.m15?.poi;
-    const isM15SellPoi = m15Poi && String(m15Poi.side || '').toUpperCase() === 'SELL';
-    const isM15BuyPoi  = m15Poi && String(m15Poi.side || '').toUpperCase() === 'BUY';
+    const isM15SellPoi = m15Poi && String(m15Poi.side || '').toUpperCase() === 'SELL' && isActiveZone(m15Poi);
+    const isM15BuyPoi  = m15Poi && String(m15Poi.side || '').toUpperCase() === 'BUY' && isActiveZone(m15Poi);
 
-    // Filter Bullish FVG aktif
-    const bullFVGs = fvgs.filter(f => {
-      const s = String(f.side || f.direction || '').toUpperCase();
-      return (s === 'BUY' || s === 'BULLISH' || f.dir === 1) && (f.lifecycle !== 'BROKEN' || f.status === 1 || f.status === 2);
-    });
+    // Kandidat likuiditas riil
+    const drM15 = ctx.m15?.dealingRange || dashboard || {};
+    const liqCandidates = [
+      { name: 'BSL M15 (Protected High)', k: 'H', v: num(dashboard?.bsl) },
+      { name: 'Range High M15', k: 'H', v: num(drM15.rangeHigh ?? drM15.high) },
+      { name: 'BSL Swing', k: 'H', v: num(amy?.levels?.bsl) },
+      { name: 'PDH', k: 'H', v: num(amy?.levels?.pdh) },
+      { name: 'Asia High', k: 'H', v: num(amy?.levels?.asiaHigh) },
+      { name: 'SSL M15 (Protected Low)', k: 'L', v: num(dashboard?.ssl) },
+      { name: 'Range Low M15', k: 'L', v: num(drM15.rangeLow ?? drM15.low) },
+      { name: 'SSL Swing', k: 'L', v: num(amy?.levels?.ssl) },
+      { name: 'PDL', k: 'L', v: num(amy?.levels?.pdl) },
+      { name: 'Asia Low', k: 'L', v: num(amy?.levels?.asiaLow) }
+    ].filter(x => Number.isFinite(x.v));
+    const dedupe = arr => arr.filter((x, i) => arr.findIndex(y => Math.abs(y.v - x.v) < 0.05) === i);
+    const liqAbove = livePrice > 0 ? dedupe(liqCandidates.filter(x => x.v > livePrice).sort((a, b) => a.v - b.v)) : [];
+    const liqBelow = livePrice > 0 ? dedupe(liqCandidates.filter(x => x.v < livePrice).sort((a, b) => b.v - a.v)) : [];
 
-    // ── Table SELL POI (Urutkan dari yang terdekat ke harga atau di atas harga) ──
+    // ── Table SELL POI (hanya zona DI ATAS / menyentuh harga) ──
     const sellTbody = $('sell-poi-tbody');
     let primarySellZone = null;
     if (sellTbody) {
       const sellRows = [];
 
-      // 1. Prioritas PDH / Resistance Ekstrim Atas (Target Likuiditas Utama $3,969.20)
-      const pdhLevel = Number(amy?.levels?.pdh || ctx.h1?.swingHigh || 3969.20);
-      if (livePrice >= 3955) {
+      if (isM15SellPoi && num(m15Poi.high) >= livePrice) {
         sellRows.push({
-          poi: `PDH / Resistance Ekstrim ⭐`,
-          level: `$${fmt(pdhLevel)}`,
-          note: `Area BSL Raid Mayor & Reversal Zone ($3,965 – $3,969)`
-        });
-        primarySellZone = { low: pdhLevel - 2.0, high: pdhLevel, ce: pdhLevel - 1.0 };
-      }
-
-      // 2. Supply / Order Block aktif di atas harga
-      if (isM15SellPoi && m15Poi.high >= livePrice) {
-        sellRows.push({
-          poi: `Supply [${m15Poi.kind || 'OB'}] M15`,
+          poi: `Supply [${m15Poi.kind || 'OB'}] M15 ⭐`,
           level: fmtRange(m15Poi.low, m15Poi.high),
           note: `CE: $${fmt(m15Poi.ce)} — Mitigasi Supply terdekat`
         });
-        if (!primarySellZone) primarySellZone = { low: m15Poi.low, high: m15Poi.high, ce: m15Poi.ce };
+        primarySellZone = { low: num(m15Poi.low), high: num(m15Poi.high), ce: num(m15Poi.ce) };
       }
 
-      // 3. FVG Bearish Premium (Unmitigated di atas harga)
-      const validBearFVGs = bearFVGs.filter(f => (f.high ?? f.zoneHigh ?? 0) >= livePrice - 2.0);
-      validBearFVGs.slice(0, 2).forEach((f, i) => {
-        const lo = f.low ?? f.gapLow ?? f.zoneLow;
-        const hi = f.high ?? f.gapHigh ?? f.zoneHigh;
-        const ce = f.ce ?? f.consequentEncroachment ?? ((lo + hi) / 2);
-        sellRows.push({
-          poi: `Bearish FVG #${i + 1}`,
-          level: fmtRange(lo, hi),
-          note: `CE: $${fmt(ce)} — FVG unmitigated premium`
+      bearFVGs.map(zoneOf)
+        .filter(z => Number.isFinite(z.hi) && z.hi >= livePrice)
+        .sort((a, b) => a.lo - b.lo)
+        .slice(0, 2)
+        .forEach((z, i) => {
+          sellRows.push({ poi: `Bearish FVG #${i + 1}`, level: fmtRange(z.lo, z.hi), note: `CE: $${fmt(z.ce)} — FVG unmitigated premium` });
+          if (!primarySellZone) primarySellZone = { low: z.lo, high: z.hi, ce: z.ce };
         });
-        if (!primarySellZone) primarySellZone = { low: lo, high: hi, ce: ce };
+
+      liqAbove.slice(0, 2).forEach(x => {
+        sellRows.push(x.k === 'L'
+          ? { poi: `${x.name} — tertembus`, level: '$' + fmt(x.v), note: `+$${fmt(x.v - livePrice)} di atas harga — bekas Support, kini Resistance (retest)` }
+          : { poi: `${x.name}`, level: '$' + fmt(x.v), note: `+$${fmt(x.v - livePrice)} di atas harga — likuiditas BSL / area sweep` });
       });
-
-      // 4. Jika harga sudah menembus semua level lama, pasang target Supply Extreme PDH
-      if (!primarySellZone) {
-        primarySellZone = { low: 3965.00, high: 3969.20, ce: 3967.10 };
-        sellRows.push({
-          poi: `Supply Extreme (PDH)`,
-          level: `$3,965.00 – $3,969.20`,
-          note: `Zona BSL Sweep Mayor sebelum dump balik`
-        });
-      }
 
       sellTbody.innerHTML = sellRows.length ? sellRows.map(r =>
         `<tr><td>${esc(r.poi)}</td><td>${esc(r.level)}</td><td>${esc(r.note)}</td></tr>`
-      ).join('') : `<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:12px;">Menunggu zona POI Sell tervalidasi...</td></tr>`;
+      ).join('') : `<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:12px;">Belum ada Supply/BSL tervalidasi di atas harga.</td></tr>`;
     }
 
-    // SOP Sell Presisi (Twelve Data Calibrated)
+    // SOP Sell Presisi — TP wajib DI BAWAH entry (SSL riil terdekat di bawah zona)
     const sopSell = $('sell-sop-list');
     if (sopSell) {
-      const entryLo = primarySellZone?.low ?? 3965.00;
-      const entryHi = primarySellZone?.high ?? 3969.20;
-      const targetSSL = ssl ? fmt(ssl) : '3932.20';
-      const slLevel = fmt(entryHi + 0.60);
-
-      const zoneName = entryHi >= 3965 ? 'Resistance Ekstrem / PDH' : 'Supply / FVG Premium';
-      sopSell.innerHTML = [
-        `<li><strong>Entry area:</strong> tunggu retest/sweep ${zoneName} $${fmt(entryLo)} – $${fmt(entryHi)} + Rejection M5</li>`,
-        `<li><strong>TP target koreksi:</strong> $${targetSSL} (Demand M15 / EQ)</li>`,
-        `<li><strong>TP dengan napas spread:</strong> pasang TP di $${fmt(Number(targetSSL) + 0.50)} (terjemput Ask)</li>`,
-        `<li><strong>SL aman:</strong> di atas $${slLevel} (zona invalidasi + napas spread)</li>`
-      ].join('');
+      const entryLo = primarySellZone?.low;
+      const entryHi = primarySellZone?.high;
+      const tpCand = Number.isFinite(entryLo) ? liqBelow.find(x => x.v < entryLo && x.v < livePrice) : null;
+      if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi)) {
+        sopSell.innerHTML = '<li>Belum ada zona Supply tervalidasi di atas harga — <strong>jangan Sell</strong>, tunggu engine membentuk POI.</li>';
+      } else {
+        const tp = tpCand?.v;
+        sopSell.innerHTML = [
+          `<li><strong>Entry area:</strong> tunggu retest/sweep Supply $${fmt(entryLo)} – $${fmt(entryHi)} + Rejection M5</li>`,
+          Number.isFinite(tp)
+            ? `<li><strong>TP target:</strong> $${fmt(tp)} (${esc(tpCand.name)})</li><li><strong>TP dengan napas spread:</strong> pasang TP di $${fmt(tp + 0.50)} (terjemput Ask)</li>`
+            : '<li><strong>TP target:</strong> belum ada SSL riil di bawah zona — tentukan manual.</li>',
+          `<li><strong>SL aman:</strong> di atas $${fmt(entryHi + 0.60)} (zona invalidasi + napas spread)</li>`
+        ].join('');
+      }
     }
 
-    // ── Table BUY POI (Urutkan dari Demand M15 / SSL Terdekat) ──
+    // ── Table BUY POI (hanya zona DI BAWAH / menyentuh harga) ──
     const buyTbody = $('buy-poi-tbody');
     let primaryBuyZone = null;
     if (buyTbody) {
       const buyRows = [];
 
-      // 1. Demand M15 / FVG Terdekat ke harga saat ini ($3,927.59 – $3,934.22)
-      // Ini adalah area pantulan intraday terdekat dari Twelve Data
-      const m15DemandLo = 3927.59;
-      const m15DemandHi = 3931.28;
-      const m15DemandCe = (m15DemandLo + m15DemandHi) / 2;
-
-      if (isM15BuyPoi) {
+      if (isM15BuyPoi && num(m15Poi.low) <= livePrice) {
         buyRows.push({
           poi: `Demand [${m15Poi.kind || 'OB'}] M15 ⭐`,
           level: fmtRange(m15Poi.low, m15Poi.high),
           note: `CE: $${fmt(m15Poi.ce)} — Pijakan pantulan lokal terdekat`
         });
-        primaryBuyZone = { low: m15Poi.low, high: m15Poi.high, ce: m15Poi.ce };
-      } else {
-        buyRows.push({
-          poi: `Demand Retest [M15] ⭐`,
-          level: fmtRange(m15DemandLo, m15DemandHi),
-          note: `CE: $${fmt(m15DemandCe)} — Pijakan pantulan terdekat ($3,927 – $3,931)`
-        });
-        primaryBuyZone = { low: m15DemandLo, high: m15DemandHi, ce: m15DemandCe };
+        primaryBuyZone = { low: num(m15Poi.low), high: num(m15Poi.high), ce: num(m15Poi.ce) };
       }
 
-      // 2. SSL / Swing Low M15 (Level Sweep Kunci)
-      const sslVal = Number(ssl) || 3926.61;
-      buyRows.push({
-        poi: 'SSL / Swing Low M15',
-        level: '$' + fmt(sslVal),
-        note: 'Area sweep likuiditas M15 (Diskon lokal)'
-      });
+      bullFVGs.map(zoneOf)
+        .filter(z => Number.isFinite(z.lo) && z.lo <= livePrice)
+        .sort((a, b) => b.hi - a.hi)
+        .slice(0, 2)
+        .forEach(z => {
+          buyRows.push({ poi: 'Bullish FVG Diskon', level: fmtRange(z.lo, z.hi), note: `CE: $${fmt(z.ce)} — FVG unmitigated discount` });
+          if (!primaryBuyZone) primaryBuyZone = { low: z.lo, high: z.hi, ce: z.ce };
+        });
 
-      // 3. FVG Bullish Discount Dalam (Sebagai pertahanan terakhir jika dump)
-      bullFVGs.forEach(f => {
-        const lo = f.low ?? f.gapLow ?? f.zoneLow;
-        const hi = f.high ?? f.gapHigh ?? f.zoneHigh;
-        const ce = f.ce ?? f.consequentEncroachment ?? ((lo + hi) / 2);
-        // Tampilkan hanya jika di bawah harga saat ini
-        if (hi < livePrice || livePrice <= 0) {
-          buyRows.push({
-            poi: `Bullish FVG Diskon`,
-            level: fmtRange(lo, hi),
-            note: `CE: $${fmt(ce)} — Area Discount dalam jika terjadi flash dump`
-          });
-        }
+      liqBelow.slice(0, 2).forEach(x => {
+        buyRows.push(x.k === 'H'
+          ? { poi: `${x.name} — tertembus`, level: '$' + fmt(x.v), note: `-$${fmt(livePrice - x.v)} di bawah harga — bekas Resistance, kini Support (retest)` }
+          : { poi: `${x.name}`, level: '$' + fmt(x.v), note: `-$${fmt(livePrice - x.v)} di bawah harga — likuiditas SSL / area sweep` });
       });
 
       buyTbody.innerHTML = buyRows.length ? buyRows.map(r =>
         `<tr><td>${esc(r.poi)}</td><td>${esc(r.level)}</td><td>${esc(r.note)}</td></tr>`
-      ).join('') : `<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:12px;">Menunggu zona POI Buy tervalidasi...</td></tr>`;
+      ).join('') : `<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:12px;">Belum ada Demand/SSL tervalidasi di bawah harga.</td></tr>`;
     }
 
+    // Label skenario: zona Sell/Buy terdekat (POI atau likuiditas riil)
+    const sellLabelZone = primarySellZone || (liqAbove[0] ? { low: liqAbove[0].v, high: liqAbove[0].v } : null);
+    const buyLabelZone  = primaryBuyZone  || (liqBelow[0] ? { low: liqBelow[0].v, high: liqBelow[0].v } : null);
     // ── Skenario Prioritas ──
     if (livePrice > 0) {
       const priceEl = $('scenario-price');
@@ -503,23 +503,26 @@
 
     const sellZoneEl = $('sell-zone-label');
     if (sellZoneEl) {
-      const lo = primarySellZone?.low ?? 3965.00;
-      const hi = primarySellZone?.high ?? 3969.20;
-      sellZoneEl.textContent = `$${fmt(lo)}–$${fmt(hi)}`;
+      sellZoneEl.textContent = sellLabelZone
+        ? (Math.abs(sellLabelZone.high - sellLabelZone.low) < 0.01 ? `$${fmt(sellLabelZone.high)}` : `$${fmt(sellLabelZone.low)}–$${fmt(sellLabelZone.high)}`)
+        : 'zona supply (belum tervalidasi)';
     }
 
     const buyZoneEl = $('buy-zone-label');
     if (buyZoneEl) {
-      const lo = primaryBuyZone?.low ?? 3950.13;
-      const hi = primaryBuyZone?.high ?? 3952.85;
-      buyZoneEl.textContent = `$${fmt(lo)}–$${fmt(hi)}`;
+      buyZoneEl.textContent = buyLabelZone
+        ? (Math.abs(buyLabelZone.high - buyLabelZone.low) < 0.01 ? `$${fmt(buyLabelZone.low)}` : `$${fmt(buyLabelZone.low)}–$${fmt(buyLabelZone.high)}`)
+        : 'zona demand (belum tervalidasi)';
     }
 
     const noTradeEl = $('no-trade-label');
     if (noTradeEl && Number.isFinite(eqVal)) {
       const bLow  = (eqVal - 2.5).toFixed(2);
       const bHigh = (eqVal + 2.5).toFixed(2);
-      noTradeEl.textContent = `🚫 NO-TRADE ZONE sekarang: $${bLow} – $${bHigh} — Jangan pencet apapun di sini Sayang! Harga di tengah EQ.`;
+      const inside = livePrice >= eqVal - 2.5 && livePrice <= eqVal + 2.5;
+      noTradeEl.textContent = inside
+        ? `🚫 NO-TRADE ZONE sekarang: $${bLow} – $${bHigh} — Jangan pencet apapun di sini Sayang! Harga di tengah EQ.`
+        : `🚫 NO-TRADE ZONE (EQ M15): $${bLow} – $${bHigh} — Harga saat ini di luar zona ini; tetap jangan entry bila harga masuk ke tengah EQ.`;
     }
   }
 

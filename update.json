@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.434/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.435/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Upgrade Engine Pullback Berbasis CISD (Change in State of Delivery): Menggantikan filter sumbu rawan floating dengan konfirmasi mutlak Body Close di bawah/atas Open candle ekspansi institusional.",
-    "Proteksi Anti-Sapu Stop Loss di Pucuk/Dasar Ekstrem: Meniadakan sinyal counter-trend prematur selama pengantaran order masih searah reli berita.",
-    "Label & Peringatan Asisten Entry V3 Presisi: Notifikasi instan PULLBACK SELL (CISD) dan PULLBACK BUY (CISD) dengan level risiko terukur menuju equilibrium."
+    "Kalibrasi Presisi Mapping Cockpit vs Twelve Data: Mengeliminasi level hardcode era $3,9xx, sinkronisasi POI/Demand/Supply riil di atas/bawah harga running.",
+    "Perbaikan Setup Asisten & Anti-Chase Protection: Mencegah sinyal entry usang saat harga sudah melarikan diri > 0.75 ATR, anchoring dinamis ke POI aktif.",
+    "Zero-Delay Rantai Notifikasi HP: Menjadwalkan sinkronisasi persis 15 detik pasca penutupan candle M15 (:00, :15, :30, :45), mengeliminasi delay 30-45 menit Doze mode Android."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.434/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.435/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950434,
-  "latest_version_name": "2.0.0-pro.434",
+  "latest_version_code": 950435,
+  "latest_version_name": "2.0.0-pro.435",
   "mandatory": false,
-  "releaseDate": "2026-11-04",
+  "releaseDate": "2026-11-05",
   "release_notes": [
-    "Upgrade Engine Pullback Berbasis CISD (Change in State of Delivery): Menggantikan filter sumbu rawan floating dengan konfirmasi mutlak Body Close di bawah/atas Open candle ekspansi institusional.",
-    "Proteksi Anti-Sapu Stop Loss di Pucuk/Dasar Ekstrem: Meniadakan sinyal counter-trend prematur selama pengantaran order masih searah reli berita.",
-    "Label & Peringatan Asisten Entry V3 Presisi: Notifikasi instan PULLBACK SELL (CISD) dan PULLBACK BUY (CISD) dengan level risiko terukur menuju equilibrium."
+    "Kalibrasi Presisi Mapping Cockpit vs Twelve Data: Mengeliminasi level hardcode era $3,9xx, sinkronisasi POI/Demand/Supply riil di atas/bawah harga running.",
+    "Perbaikan Setup Asisten & Anti-Chase Protection: Mencegah sinyal entry usang saat harga sudah melarikan diri > 0.75 ATR, anchoring dinamis ke POI aktif.",
+    "Zero-Delay Rantai Notifikasi HP: Menjadwalkan sinkronisasi persis 15 detik pasca penutupan candle M15 (:00, :15, :30, :45), mengeliminasi delay 30-45 menit Doze mode Android."
   ],
-  "version": "2.0.0-pro.434",
-  "versionCode": 950434,
+  "version": "2.0.0-pro.435",
+  "versionCode": 950435,
   "sha256": "8e754b57b21fc1c34c614f8ec41f890e5eb612e43994431904f5c08aa6332c6a"
 }

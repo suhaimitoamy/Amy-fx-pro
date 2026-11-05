@@ -100,6 +100,10 @@ class MainActivity : Activity() {
             androidx.work.WorkManager.getInstance(this).enqueue(
                 androidx.work.OneTimeWorkRequestBuilder<NewsSyncWorker>().build()
             )
+            androidx.work.WorkManager.getInstance(this).enqueue(
+                androidx.work.OneTimeWorkRequestBuilder<DriverSetupSyncWorker>().build()
+            )
+            DriverSetupSyncWorker.scheduleNextCandleSync(this)
         } catch (_: Exception) {}
 
         rootLayout = FrameLayout(this)

@@ -13,6 +13,11 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -66,6 +71,10 @@ class DriverSetupSyncWorker(
                     processAssistantAlerts(contextObj, payload)
                 }
 
+                try {
+                    scheduleNextCandleSync(applicationContext)
+                } catch (_: Exception) {}
+
                 Result.success()
             }
         } catch (error: Exception) {
@@ -117,7 +126,8 @@ class DriverSetupSyncWorker(
         if (candleTime <= 0L) return
 
         val nowSec = System.currentTimeMillis() / 1000
-        if (nowSec - candleTime > 900L) {
+        // Freshness window diperlonggar menjadi 45 menit (2700s) agar tidak langsung di-drop jika Android WorkManager delay beberapa menit saat Doze Mode
+        if (nowSec - candleTime > 2700L) {
             android.util.Log.d("AmyFX-DriverWorker", "Candle is stale (${nowSec - candleTime}s old), assistant alerts suppressed.")
             return
         }
@@ -193,13 +203,21 @@ class DriverSetupSyncWorker(
             val mathZone = assistant?.optString("mathZone", "").orEmpty()
             val zoneStr = if (mathZone.isNotBlank()) " · Zona $mathZone" else ""
             if (entryPrice > 0.0 && slPrice > 0.0 && tp1Price > 0.0) {
+                // Anti-stale entry guard: cek jarak harga running saat ini ke level entry
+                val priceDrift = if (currentPrice > 0.0) Math.abs(currentPrice - entryPrice) else 0.0
+                if (priceDrift > 6.0) { // Lebih dari $6 (60 pips) -> harga sudah lari jauh, jangan broadcast sebagai entry ready!
+                    android.util.Log.d("AmyFX-DriverWorker", "Entry price drifted ($priceDrift points away from current $currentPrice), skipping stale execution alert.")
+                    return
+                }
+
                 badge = if (isBuy) "ENTRY_BUY_READY" else "ENTRY_SELL_READY"
                 val icon = if (isBuy) "🟢" else "🔴"
                 notifTitle = "$icon Asisten Amy: $sigName"
+                val spreadNote = if (!isBuy) " (TP Ask +5 Pips)" else ""
                 notifBody = String.format(
                     java.util.Locale.US,
-                    "%s Entry: $%.2f | SL: $%.2f | TP1: $%.2f (+100 Pips Sayang)%s. Siapkan eksekusi!",
-                    icon, entryPrice, slPrice, tp1Price, zoneStr
+                    "%s Entry: $%.2f | SL: $%.2f | TP1: $%.2f%s (+100 Pips Sayang)%s. Siapkan eksekusi!",
+                    icon, entryPrice, slPrice, tp1Price, spreadNote, zoneStr
                 )
                 notify = true
             }
@@ -224,7 +242,7 @@ class DriverSetupSyncWorker(
             val sub = "Candle menolak ${if (isBuy) "bawah" else "atas"} dengan wick panjang$wickStr. Konfirmasi ${if (isBuy) "BUY" else "SELL"} (Target 100 Pips Sayang)."
             notifBody = "$primary. $sub"
             notify = true
-        } else if (importance == 4) {
+        } else if (importance == 4 || (importance == 5 && lines.any { it.contains("break", ignoreCase = true) || it.contains("displacement", ignoreCase = true) })) {
             val isBull = biasDir == 1
             val trgHigh = trigger?.optDouble("high", 0.0) ?: 0.0
             val trgLow = trigger?.optDouble("low", 0.0) ?: 0.0
@@ -252,7 +270,7 @@ class DriverSetupSyncWorker(
             notify = true
         } else if (sweepDetails != null) {
             val sweepAge = if (sweepDetails.sweepTime > 0L) (nowSec - sweepDetails.sweepTime) else 0L
-            val isFresh = sweepDetails.sweepTime <= 0L || sweepAge <= 900L
+            val isFresh = sweepDetails.sweepTime <= 0L || sweepAge <= 2700L
             if (isFresh) {
                 val levelStr = String.format(java.util.Locale.US, "%.2f", sweepDetails.level)
                 val extremeStr = String.format(java.util.Locale.US, "%.2f", sweepDetails.extreme)
@@ -579,7 +597,36 @@ class DriverSetupSyncWorker(
 
     companion object {
         const val UNIQUE_WORK_NAME = "amy_fx_driver_setup_sync"
+        const val NEXT_CANDLE_WORK_NAME = "amy_fx_driver_next_candle"
         private const val SETUPS_URL = "https://amy-fx.vercel.app/api/scalper-setups?limit=10"
         private const val PREFS = "amy_driver_worker_prefs"
+
+        /**
+         * Menjadwalkan sinkronisasi persis 15 detik setelah setiap candle M15 selesai (:00, :15, :30, :45).
+         * Mencegah keterlambatan 15-45 menit yang biasa disebabkan oleh interval PeriodicWork / Doze mode Android.
+         */
+        fun scheduleNextCandleSync(context: Context) {
+            val nowMs = System.currentTimeMillis()
+            val nowSec = nowMs / 1000
+            // Boundary M15 terdekat (:00, :15, :30, :45) + 15 detik untuk memastikan feed Twelve Data sudah update
+            val nextM15Sec = ((nowSec / 900) + 1) * 900 + 15
+            val delayMs = Math.max(10_000L, (nextM15Sec * 1000) - nowMs)
+
+            val request = OneTimeWorkRequestBuilder<DriverSetupSyncWorker>()
+                .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                NEXT_CANDLE_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+            android.util.Log.d("AmyFX-DriverWorker", "Scheduled next candle sync in ${delayMs / 1000}s (at epoch $nextM15Sec)")
+        }
     }
 }
