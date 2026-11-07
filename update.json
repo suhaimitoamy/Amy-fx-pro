@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.435/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.436/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Kalibrasi Presisi Mapping Cockpit vs Twelve Data: Mengeliminasi level hardcode era $3,9xx, sinkronisasi POI/Demand/Supply riil di atas/bawah harga running.",
-    "Perbaikan Setup Asisten & Anti-Chase Protection: Mencegah sinyal entry usang saat harga sudah melarikan diri > 0.75 ATR, anchoring dinamis ke POI aktif.",
-    "Zero-Delay Rantai Notifikasi HP: Menjadwalkan sinkronisasi persis 15 detik pasca penutupan candle M15 (:00, :15, :30, :45), mengeliminasi delay 30-45 menit Doze mode Android."
+    "Perbaikan Riwayat Terakhir Dibaca Academy: Integrasi penuh micro-learning Level 0–6 ke reading history & Android native reminder.",
+    "Ekspansi Filter Reading History Engine: Mendukung path belajar/level-X dan namespace micro-learning.",
+    "Sinkronisasi Identitas & Update Checker Pro 436: Peningkatan keandalan notifikasi update in-app."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.435/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.436/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950435,
-  "latest_version_name": "2.0.0-pro.435",
+  "latest_version_code": 950436,
+  "latest_version_name": "2.0.0-pro.436",
   "mandatory": false,
-  "releaseDate": "2026-11-05",
+  "releaseDate": "2026-11-07",
   "release_notes": [
-    "Kalibrasi Presisi Mapping Cockpit vs Twelve Data: Mengeliminasi level hardcode era $3,9xx, sinkronisasi POI/Demand/Supply riil di atas/bawah harga running.",
-    "Perbaikan Setup Asisten & Anti-Chase Protection: Mencegah sinyal entry usang saat harga sudah melarikan diri > 0.75 ATR, anchoring dinamis ke POI aktif.",
-    "Zero-Delay Rantai Notifikasi HP: Menjadwalkan sinkronisasi persis 15 detik pasca penutupan candle M15 (:00, :15, :30, :45), mengeliminasi delay 30-45 menit Doze mode Android."
+    "Perbaikan Riwayat Terakhir Dibaca Academy: Integrasi penuh micro-learning Level 0–6 ke reading history & Android native reminder.",
+    "Ekspansi Filter Reading History Engine: Mendukung path belajar/level-X dan namespace micro-learning.",
+    "Sinkronisasi Identitas & Update Checker Pro 436: Peningkatan keandalan notifikasi update in-app."
   ],
-  "version": "2.0.0-pro.435",
-  "versionCode": 950435,
+  "version": "2.0.0-pro.436",
+  "versionCode": 950436,
   "sha256": "db106493b9832670fb8f0fa9fcfb5516e5255da097250c1d5cb8965390984930"
 }

@@ -303,3 +303,41 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   2. Longgarkan stale threshold dan sweep age dari 900s menjadi 2700s (45 menit / 3 candle M15) agar tidak di-drop saat Doze mode.
   3. Tambahkan penanganan `importance == 5` untuk M15 Displacement Break.
   4. Pasang guard `priceDrift > 6.0` ($6 / 60 pips) agar tidak ada notifikasi eksekusi instan jika harga sudah lari jauh.
+
+### [2026-11-06] Sandi Otonom: "aktifkan simulasi" & Integrasi Harness² + Pasal 28
+- Sandi resmi: "aktifkan simulasi"
+- Otomatis mengeksekusi /root/.harness2/activate_simulation.py
+- Memeriksa Circuit Breaker Pasal 28 (Mode Cooling-Off jika ada 1x SL hari ini atau kuota 2 setup tercapai).
+- Cron pemantau 15 menitan (0,15,30,45 * * * *), dilarang keras 5 menitan.
+- Format Baku Opsi B Ultra-Compact + Pinned Radar.
+- Disiplin maksimal 1-2 setup A+ MTF (M15/H1) per hari.
+
+### [2026-11-06] Kloning DNA Sesi Master & Pasal 29 GEMINI.md
+- **Mandat Global:** Seluruh sesi baru Akun 1 & Akun 2 wajib mengkloning 100% DNA Sesi Master (+335 Pips, anti-overtrading, pemahaman visual garis MT5 $4,138/$4,131).
+- **Anti-Amnesia Hook:** Sesi baru wajib otomatis membaca state `/root/.harness2/active_scalper_config.json` dan `/root/.harness2/live_simulation.json`.
+- **Sandi Re-Sinkronisasi:** "lanjut sesi master", "ingat sesi pro", "samakan dengan sesi kemarin".
+
+### [2026-11-07] Standar Arsitektur Gemini JARVIS Live Voice Agent v2.5.0 (Pasal 30)
+- **Status Lab:** Milestone Stabil Terverifikasi di `/root/gemini-live-lab` (Port 8088).
+- **Model:** Google Gemini 3.8 Live (`models/gemini-3.8-live`) via WebSocket streaming + suara Aoede.
+- **Pilar Utama:**
+  1. *Dual Chat Persistence:* `localStorage` + `chat_history.json` + `last_topic.json` (anti-amnesia saat layar dibersihkan).
+  2. *Edukasi Obsidian:* `obsidian_helper.py` membedah 36 Bagian Vault kurikulum trading 4 pilar lengkap + sinkronisasi progres belajar.
+  3. *Kalender & Berita:* `get_economic_calendar` (jam WITA + High Impact minggu depan CPI/PPI) & `search_internet_news` (Google News RSS bebas captcha).
+  4. *Analisa Gold & Candle Riil:* `gold_market_helper.py` (baca candle OHLC riil SQLite M15/H1 pergerakan masif Jumat ~955 pips) + `AMY CONTEXT V4.3.2` Peta Taktis 2-Sisi target 100 pips Sayang & peringatan No-Trade Zone.
+- **Roadmap:** Pengembangan kemampuan coding dan otonomi bertahap mirip Antigravity tanpa merusak stabilitas live voice v2.5.0.
+- **Sandi Aktivasi Instan:** "aktifkan jarvis", "nyalakan jarvis", "start jarvis", "gemini live" -> Otomatis jalankan `/root/gemini-live-lab/start.sh` (Port 8088).
+
+### [2026-11-07] Fix Riwayat Terakhir Dibaca Academy Ngestuck (Integrasi Micro-Learning Level 0–6)
+- **Problem:** Card "Terakhir Dibuka" di Beranda Academy (`index.html`) ngestuck terus di "Risk Reward Ratio", padahal Sayang sudah berpindah membaca kurikulum baru (Level 0 s.d. Level 6 di `apps/academy/belajar/`).
+- **Akar Masalah:**
+  1. Halaman pelajaran micro-learning di `belajar/level-X/` hanya memuat `micro-learning.js` dan tidak memuat `reading-history-v2.js` / `main.js`.
+  2. `micro-learning.js` sebelumnya hanya mencatat kuis (`amyfx.academy.micro_progress`) dan tidak mengupdate `amy_last_opened_title`, `amy_last_opened_url`, `amy_academy_last_read_v2`, maupun bridge Android.
+  3. Di `reading-history-v2.js`, fungsi `isLessonPage()` memakai regex lama `(?:bagian-\d+|modul-\d+)` yang mengabaikan path baru `belajar/level-\d+`.
+- **Solusi:**
+  1. Ditambahkan `recordReadingHistory()` di `micro-learning.js` yang otomatis menyimpan judul, path, section, fallback keys `amy_last_opened_*`, `amy_academy_last_read_v2`, serta sinkron ke Android bridge.
+  2. Diperluas regex `isLessonPage()` dan `sectionLabel()` di `reading-history-v2.js` untuk mengenali `belajar/level-\d+` dengan namespace `micro-learning`.
+
+
+
+
