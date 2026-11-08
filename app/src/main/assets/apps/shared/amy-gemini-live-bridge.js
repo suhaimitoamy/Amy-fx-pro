@@ -90,9 +90,20 @@
     try {
       const res = await fetch(getApiBaseUrl() + '/api/gemini-config');
       if (res.ok) {
-        geminiConfig = await res.json();
+        const d = await res.json();
+        if (d && d.apiKey) {
+          geminiConfig = d;
+          return geminiConfig;
+        }
       }
     } catch (_) {}
+    // Fallback bawaan aman agar selalu siap tanpa bergantung deploy cloud
+    geminiConfig = {
+      ok: true,
+      apiKey: 'AIzaSyAiB-yJ-wg6Pbd_dPiaO1Q7ZJ_DzLjqsTs',
+      liveModel: 'models/gemini-3.8-live',
+      voiceName: 'Aoede'
+    };
     return geminiConfig;
   }
 
@@ -1136,17 +1147,60 @@
       try {
         const hist = loadHistory();
         const appContext = await collectAmyAppContext(q);
-        const resp = await fetch(getApiBaseUrl() + '/api/gemini-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: q,
-            appContext,
-            imageBase64: imgToSend,
-            history: hist
-          })
-        });
-        const data = await resp.json();
+        let data = null;
+        try {
+          const resp = await fetch(getApiBaseUrl() + '/api/gemini-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: q,
+              appContext,
+              imageBase64: imgToSend,
+              history: hist
+            })
+          });
+          if (resp.ok) {
+            data = await resp.json();
+          }
+        } catch (_) {}
+
+        if (!data || !data.ok) {
+          try {
+            const cfg = await ensureGeminiConfig();
+            const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${cfg.apiKey}`;
+            const sysText =
+              `Kamu adalah AMY (✦ AMY), asisten pintar di dalam aplikasi Amy FX Pro.\n` +
+              `Panggil pengguna dengan sapaan "kamu". Nada ramah, profesional, dan to the point.\n` +
+              `Pengguna adalah Pure Gold Scalper M15/M5 target 100 pips WITA.\n` +
+              `Konteks data aplikasi saat ini:\n${appContext || 'Data tidak tersedia.'}\n` +
+              `DILARANG mengarang angka harga Gold. Jangan pakai simbol markdown bintang (*), pagar (#), atau garis (---). Jawab dalam teks bersih.`;
+            const gContents = [];
+            for (const h of hist.slice(-6)) {
+              if (h?.text) gContents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: String(h.text) }] });
+            }
+            const parts = [];
+            if (imgToSend) parts.push({ inlineData: { mimeType: 'image/jpeg', data: imgToSend } });
+            parts.push({ text: q || 'Analisa chart' });
+            gContents.push({ role: 'user', parts });
+
+            const gResp = await fetch(gUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: sysText }] },
+                generationConfig: { temperature: 0.2, maxOutputTokens: 500 },
+                contents: gContents
+              })
+            });
+            if (gResp.ok) {
+              const gJson = await gResp.json();
+              const reply = gJson?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
+              if (reply) {
+                data = { ok: true, reply: cleanPlainText(reply) };
+              }
+            }
+          } catch (_) {}
+        }
 
         let replyText = '';
         let links = [];
@@ -1154,10 +1208,10 @@
           try {
             const localRes = await root.AmyLocalAssistant.ask(q);
             if (Array.isArray(localRes?.links)) links = localRes.links;
-            if (!data.ok && localRes?.text) replyText = localRes.text;
+            if ((!data || !data.ok) && localRes?.text) replyText = localRes.text;
           } catch (_) {}
         }
-        if (data.ok && data.reply) {
+        if (data && data.ok && data.reply) {
           replyText = data.reply;
         }
         if (lastRequestedLesson && lastRequestedLesson.relPath) {
