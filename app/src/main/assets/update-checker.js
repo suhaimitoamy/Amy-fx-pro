@@ -1,6 +1,6 @@
 (function () {
-  const VERSION = window.AmyFXAppVersion || { name: '2.0.0-pro.437', code: 950437 };
-  const CURRENT_VERSION_CODE = Number(VERSION.code) || 950437;
+  const VERSION = window.AmyFXAppVersion || { name: '2.0.0-pro.438', code: 950438 };
+  const CURRENT_VERSION_CODE = Number(VERSION.code) || 950438;
   const CURRENT_VERSION_NAME = String(VERSION.name || '2.0.0-pro.437');
   const UPDATE_URL = window.AmyFXUpdateManifestUrl
     || 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
