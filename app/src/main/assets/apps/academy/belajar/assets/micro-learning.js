@@ -95,11 +95,17 @@
       localStorage.setItem('amy_last_opened_title', title);
       localStorage.setItem('amy_last_opened_url', window.location.href);
 
+      var nextBtn = document.querySelector('.ml-btn-next');
+      var nextTitle = nextBtn ? nextBtn.textContent.trim().replace(/\s+/g, ' ') : '';
+      var nextHref = nextBtn ? (nextBtn.getAttribute('href') || '') : '';
+
       var record = {
         version: 2,
         path: path,
         title: title,
         section: section,
+        nextTitle: nextTitle,
+        nextHref: nextHref,
         scrollY: Math.max(0, Math.round(window.scrollY || 0)),
         progress: 100,
         headingIndex: 0,
@@ -111,12 +117,22 @@
       };
       localStorage.setItem('amy_academy_last_read_v2', JSON.stringify(record));
 
+      var hist = [];
       try {
-        var hist = JSON.parse(localStorage.getItem('amy_academy_reading_history_v2') || '[]');
+        hist = JSON.parse(localStorage.getItem('amy_academy_reading_history_v2') || '[]');
         if (!Array.isArray(hist)) hist = [];
         hist = hist.filter(function (it) { return it && it.path !== path; });
         hist.unshift(record);
-        localStorage.setItem('amy_academy_reading_history_v2', JSON.stringify(hist.slice(0, 8)));
+        hist = hist.slice(0, 8);
+        localStorage.setItem('amy_academy_reading_history_v2', JSON.stringify(hist));
+      } catch (_) {}
+
+      try {
+        fetch('/api/academy-reading', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lastRead: record, history: hist, microProgress: getProgress() })
+        }).catch(function () {});
       } catch (_) {}
 
       try {
@@ -131,9 +147,20 @@
     }
   }
 
+  function injectAssistantIfMissing() {
+    try {
+      if (window.AmyLocalAssistant || document.getElementById('amy-local-root')) return;
+      var s = document.createElement('script');
+      s.src = '/apps/shared/amy-local-assistant.js';
+      s.defer = true;
+      document.head.appendChild(s);
+    } catch (_) {}
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     recordReadingHistory();
     initQuiz();
+    injectAssistantIfMissing();
   });
 
   window.AmyFXMicroLearning = {

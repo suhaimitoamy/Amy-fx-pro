@@ -71,11 +71,7 @@ function draw(degraded=false){
   }else if(context?.amy?.chartCandles?.[tf]?.length){
     const rawCandles=context.amy.chartCandles[tf].map(c=>({time:c.open_time,open:c.open,high:c.high,low:c.low,close:c.close}));
     const candles=filterCandles(rawCandles,closed);
-    const lastTime=candles.at(-1)?.time||0;
-    const ageSec=Math.floor(Date.now()/1000)-lastTime;
-    const maxFresh=tf==='M5'?1200:2700; // 20m untuk M5, 45m untuk M15
-    const isFresh=closed||(lastTime>0&&ageSec<=maxFresh);
-    result={candles,tf,plan:null,sourceTime:lastTime||null,fresh:isFresh};
+    result={candles,tf,plan:null,sourceTime:candles.at(-1)?.time||null,fresh:false};
   }
   if(!result||!result.candles?.length){
     if($('chart-price'))$('chart-price').textContent='—';
@@ -87,17 +83,17 @@ function draw(degraded=false){
   chart?.draw(result,activePlan,presentation);
   const last=result.candles.at(-1);
   const currentLive=Number(window.amyfxCurrentPrice);
-  const displayPrice=(Number.isFinite(currentLive)&&currentLive>0)?currentLive:(last?last.close:null);
+  const displayPrice=(!closed&&Number.isFinite(currentLive)&&currentLive>0)?currentLive:(last?last.close:null);
+  if(closed&&last&&Number.isFinite(last.close)){
+    window.amyfxCurrentPrice=last.close;
+  }
   if($('chart-price'))$('chart-price').textContent=displayPrice?displayPrice.toFixed(2):'—';
-  const dr = context?.m15?.dealingRange || context?.amy?.levels?.dealingRange || context?.dealingRange;
-  if(displayPrice&&$('chart-dealing-range-badge')){
-    updateDealingRangeBadge($('chart-dealing-range-badge'), displayPrice, dr);
+  if(displayPrice&&!closed)chart?.updateActiveCandle?.(displayPrice);
+  if(displayPrice&&Number.isFinite(displayPrice)&&typeof window.AmyPriceAlertManager?.setPreviousPrice==='function'&&window.AmyPriceAlertManager.previousPrice==null){
+    window.AmyPriceAlertManager.setPreviousPrice(displayPrice);
   }
-  if(displayPrice&&Number.isFinite(displayPrice)&&typeof window.AmyPriceAlertManager?.checkPrice==='function'){
-    window.AmyPriceAlertManager.checkPrice(displayPrice);
-  }
-  if(displayPrice)chart?.updateActiveCandle?.(displayPrice);
   renderAmy(context?.amy, display||loadDisplay(), context?.news, context);
+  const dr = window.amyfxLastDealingRange || context?.m15?.dealingRange || context?.amy?.levels?.dealingRange || context?.dealingRange;
   if(displayPrice&&$('chart-dealing-range-badge')){
     updateDealingRangeBadge($('chart-dealing-range-badge'), displayPrice, dr);
   }
@@ -116,40 +112,12 @@ function draw(degraded=false){
     const k=context?.amy?.levels,p=context?.amy?.pivots;
     coverage.textContent=k?`MO: ${k.midnightStatus} · Asia: ${k.asiaStatus} · Pivot ${display?.pivotTf||'D'}: ${p?.[display?.pivotTf||'D']?'tersedia':'data periode belum lengkap'} · Bias M15 / trigger M5 tertutup`:'Menunggu konteks server; visual keputusan belum tersedia.';
   }
-
-  // Sinkronisasi otomatis Snapshot Likuiditas ke Market Intel
-  try {
-    const k=context?.amy?.levels||context?.levels||{};
-    const lvlList=[];
-    if(Number.isFinite(k.bsl))lvlList.push({kind:'high',level:k.bsl,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
-    if(Number.isFinite(k.pdh))lvlList.push({kind:'high',level:k.pdh,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
-    if(Number.isFinite(k.ssl))lvlList.push({kind:'low',level:k.ssl,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
-    if(Number.isFinite(k.pdl))lvlList.push({kind:'low',level:k.pdl,used:false,sourceTime:last?.time||Date.now()/1000,confirmed:last?.time||Date.now()/1000});
-    if(lvlList.length>0&&displayPrice){
-      const snap={
-        model:'ICT-SWEEP-MSS-FVG-1',
-        tf,
-        signal:'WAIT',
-        fresh:true,
-        sourceTime:last?.time||Math.floor(Date.now()/1000),
-        capturedAt:Date.now(),
-        close:displayPrice,
-        levels:lvlList,
-        reason:'Peta likuiditas tersinkronisasi dari Cockpit Mapping.',
-        plan:null
-      };
-      localStorage.setItem('amyfx.ict.mapping.v1',JSON.stringify(snap));
-    }
-  }catch(_){}
 }
 function applyLivePrice(price, timestamp){
   if(!Number.isFinite(price)||price<=0)return;
+  if(!isGoldMarketOpen(Date.now()/1000))return;
   window.amyfxCurrentPrice=price;
   if($('chart-price'))$('chart-price').textContent=price.toFixed(2);
-  const dr=context?.m15?.dealingRange||context?.amy?.levels?.dealingRange||context?.dealingRange;
-  if($('chart-dealing-range-badge')){
-    updateDealingRangeBadge($('chart-dealing-range-badge'),price,dr);
-  }
   chart?.updateActiveCandle?.(price,timestamp);
   if(typeof window.AmyPriceAlertManager?.checkPrice==='function'){
     window.AmyPriceAlertManager.checkPrice(price);
@@ -157,9 +125,10 @@ function applyLivePrice(price, timestamp){
   if(!window.__lastV6TickRender||Date.now()-window.__lastV6TickRender>2000){
     window.__lastV6TickRender=Date.now();
     renderAmy(context?.amy,display||loadDisplay(),context?.news,context);
-    if($('chart-dealing-range-badge')){
-      updateDealingRangeBadge($('chart-dealing-range-badge'),price,dr);
-    }
+  }
+  const dr=window.amyfxLastDealingRange||context?.m15?.dealingRange||context?.amy?.levels?.dealingRange||context?.dealingRange;
+  if($('chart-dealing-range-badge')){
+    updateDealingRangeBadge($('chart-dealing-range-badge'),price,dr);
   }
 }
 window.addEventListener('amyfx:twelvedata-price',event=>{
@@ -175,10 +144,7 @@ function startBrowserLivePriceStream(){
   if(typeof EventSource!=='function')return;
   window.__amyFxSseStarted=true;
   try{
-    const host=typeof location!=='undefined'?String(location.hostname||''):'';
-    const isLocal=/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
-    const url=isLocal?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
-    const es=new EventSource(url);
+    const es=new EventSource('https://amy-fx.vercel.app/api/live-price');
     es.onmessage=(event)=>{
       try{
         const data=JSON.parse(event.data);
@@ -260,7 +226,7 @@ async function refresh(){
     const next={candles,context:contextCandles,tf,degraded:response.degraded||h1Context.degraded};
     const result=analyze({...next,now:Date.now()/1000});
     const previous=raw?analyze({...raw,now:Date.now()/1000}):null;
-    if(!result.candles.length||(previous&&raw?.tf===next.tf&&result.sourceTime<previous.sourceTime))throw Error('Candle tidak lengkap atau lebih lama');
+    if(!result.candles.length||(previous&&result.sourceTime<previous.sourceTime))throw Error('Candle tidak lengkap atau lebih lama');
     raw=next;window.amyfxLastCandles=candles;
     draw();
     if(response.outdated||response.isExpired){

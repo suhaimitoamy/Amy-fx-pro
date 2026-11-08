@@ -32,11 +32,7 @@
 </header>
 <main class="container hide-until-auth">
   <section class="article">
-    <div class="breadcrumb">
-      <a href="../index.html">Beranda</a> › 
-      <a href="../daftar-materi.html">Daftar Materi</a> ›
-      <a href="index.html">Bagian 04 Liquidity</a>
-    </div>
+    <div class="breadcrumb"><a href="../index.html">Beranda Academy</a> › <a href="../belajar/level-2/index.html#kurikulum-lengkap-level-2">Level 2 (Bab Lengkap)</a></div>
     
     <div class="glass-panel" style="margin-top: 20px;">
       <h1>Sweep vs Run</h1>
@@ -54,7 +50,7 @@
 <h2>Risiko Salah Identifikasi</h2>
 <p>Mengapa membedakan keduanya sangat krusial? Mari kita lihat skenario kesalahan yang umum terjadi pada pemula:</p>
 <p><strong>Kasus 1: Menganggap Run sebagai Sweep.</strong> Harga melesat naik dengan kuat menembus Previous Day High. Kamu melihatnya sekilas dan langsung berasumsi, "Wah ini pasti Sweep, mau turun nih, saya Sell sekarang ah!" Ternyata, candle ditutup full body di atas batas (<a href="liquidity-run.html">Liquidity Run</a>). Apa yang terjadi? Kamu baru saja melakukan <em>counter-trend</em> (melawan arus) di tengah momentum yang sangat besar. Posisi Sell kamu akan langsung tersapu bersih (terkena SL) karena harga lanjut naik.</p>
-<p><strong>Kasus 2: Menganggap Sweep sebagai Run.</strong> Harga menembus Resistance. Kamu mengira itu Breakout / Run. Kamu langsung entry Buy di pucuk. Beberapa detik kemudian harga ditarik turun drastis, candle ditutup meninggalkan ekor panjang ke atas (Sweep). Kamu pun terjebak membeli di harga paling mahal tepat sebelum market berbalik arah turun (reversal).</p>
+<p><strong>Kasus 2: Menganggap Sweep sebagai Run.</strong> Harga menembus <a href="resistance.html">Resistance</a>. Kamu mengira itu Breakout / Run. Kamu langsung entry Buy di pucuk. Beberapa detik kemudian harga ditarik turun drastis, candle ditutup meninggalkan ekor panjang ke atas (Sweep). Kamu pun terjebak membeli di harga paling mahal tepat sebelum market berbalik arah turun (reversal).</p>
 <h2>Aturan Emas (SOP): Tunggu Candle Close!</h2>
 <p>Satu-satunya cara agar kamu tidak terjebak dalam dua skenario kesalahan di atas adalah dengan mematuhi satu aturan emas: <strong>Jangan Pernah Menebak Sebelum Candle Ditutup (Wait for the Candle Close).</strong></p>
 <p>Saat sebuah candle sedang bergerak (live), ia bisa terlihat sangat besar dan meyakinkan seperti sebuah <a href="liquidity-run.html">Liquidity Run</a>. Namun, 1 menit sebelum waktu candle tersebut habis, algoritma bisa tiba-tiba menariknya kembali dan mengubahnya menjadi sebuah Sweep dengan ekor yang panjang. Kamu tidak akan tahu kebenaran dari pergerakan tersebut sampai jam pada candle tersebut berhenti berdetak.</p>

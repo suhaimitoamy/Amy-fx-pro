@@ -1,9 +1,9 @@
 {
   "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.436/AmyFX-Pro-latest.apk",
   "changelog": [
-    "Perbaikan Riwayat Terakhir Dibaca Academy: Integrasi penuh micro-learning Level 0–6 ke reading history & Android native reminder.",
-    "Ekspansi Filter Reading History Engine: Mendukung path belajar/level-X dan namespace micro-learning.",
-    "Sinkronisasi Identitas & Update Checker Pro 436: Peningkatan keandalan notifikasi update in-app."
+    "Paritas Harga & Analisa Mapping: Filter candle akhir pekan di backend & sinkronisasi penuh harga Beranda, Header Mapping, dan Tabel V6.1.",
+    "Anti-Notifikasi Basi (Web & Native Android): Kunci waktu sweep/break/setup batal presisi <= 15 menit tanpa bunyi ulang dari event berjam-jam lalu.",
+    "Peleburan Kurikulum Academy Level 0–6 (222 Bab Utuh) & Redesain Asisten Suara/Teks ✦ AMY."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.436/AmyFX-Pro-latest.apk",
   "enabled": true,
@@ -13,9 +13,9 @@
   "mandatory": false,
   "releaseDate": "2026-11-07",
   "release_notes": [
-    "Perbaikan Riwayat Terakhir Dibaca Academy: Integrasi penuh micro-learning Level 0–6 ke reading history & Android native reminder.",
-    "Ekspansi Filter Reading History Engine: Mendukung path belajar/level-X dan namespace micro-learning.",
-    "Sinkronisasi Identitas & Update Checker Pro 436: Peningkatan keandalan notifikasi update in-app."
+    "Paritas Harga & Analisa Mapping: Filter candle akhir pekan di backend & sinkronisasi penuh harga Beranda, Header Mapping, dan Tabel V6.1.",
+    "Anti-Notifikasi Basi (Web & Native Android): Kunci waktu sweep/break/setup batal presisi <= 15 menit tanpa bunyi ulang dari event berjam-jam lalu.",
+    "Peleburan Kurikulum Academy Level 0–6 (222 Bab Utuh) & Redesain Asisten Suara/Teks ✦ AMY."
   ],
   "version": "2.0.0-pro.436",
   "versionCode": 950436,

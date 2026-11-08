@@ -1,5 +1,5 @@
 // Presentation settings never change server-owned bias/scoring.
-export const DISPLAY_DEFAULTS=Object.freeze({mode:'Present',structure:true,mss:true,bos:true,displacement:false,ob:true,breaker:true,polarity:false,liquidity:true,fvg:true,gapType:'FVG',bpr:false,vi:true,nwog:true,ndog:false,pivots:true,pivotTf:'D',pivotMode:'Clean',nearAtr:2,keyLevels:true,mo:true,pdh:true,pdl:true,bsl:false,ssl:false,asia:true,killzones:false,ny:true,londonOpen:true,londonClose:true,asian:true,fib:'NONE',fibExtend:false,labels:true,signals:false,narration:false,dashboard:true,panel:false,assistantNotif:true,visible:2,bullOb:1,bearOb:1,nwogCount:3,ndogCount:1,backBars:80,rightBars:40,lineWidth:1});
+export const DISPLAY_DEFAULTS=Object.freeze({mode:'Present',structure:true,mss:true,bos:true,displacement:false,ob:true,breaker:true,polarity:false,liquidity:true,fvg:true,gapType:'FVG',bpr:false,vi:true,nwog:true,ndog:false,pivots:true,pivotTf:'D',pivotMode:'Clean',nearAtr:2,keyLevels:true,mo:true,pdh:true,pdl:true,bsl:false,ssl:false,asia:true,killzones:false,ny:true,londonOpen:true,londonClose:true,asian:true,fib:'NONE',fibExtend:false,labels:true,signals:true,narration:true,dashboard:true,panel:false,assistantNotif:true,visible:2,bullOb:1,bearOb:1,nwogCount:3,ndogCount:1,backBars:80,rightBars:40,lineWidth:1});
 export function loadDisplay(storage=globalThis.localStorage){try{return {...DISPLAY_DEFAULTS,...JSON.parse(storage.getItem('amyfx.ict.display.v2')||'{}')};}catch{return {...DISPLAY_DEFAULTS};}}
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=x=>Number.isFinite(x)?x.toFixed(2):'—';
@@ -102,6 +102,10 @@ export function detectLiquiditySweep(amy, context = null) {
 
   const num = x => (x != null && Number.isFinite(Number(x))) ? Number(x) : null;
 
+  const activeSweepTime = (d?.sweepStatus === 1 ? num(d?.sweep?.time) : null)
+    || ((num(trg?.sweepDir) === 1 || num(trg?.sweepDir) === -1) ? num(trg?.time) : null);
+  const candleCloseTime = num(c?.close_time ?? c?.time);
+
   // 1. Asia High / Asia Low sweep
   const asiaHigh = num(levels.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
   const asiaLow = num(levels.asiaLow ?? ctx?.keyLevels?.asiaLow);
@@ -113,13 +117,15 @@ export function detectLiquiditySweep(amy, context = null) {
   if (liqAsiaHighSwept || textAsiaHigh || (c && asiaHigh && c.high > asiaHigh && c.close < asiaHigh)) {
     const lvl = num(liqAsiaHighSwept?.level) || asiaHigh || (c ? c.high : 0);
     const ext = (c && c.high > lvl) ? c.high : (lvl ? lvl + 1.20 : 0);
-    const sweepTime = num(liqAsiaHighSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    const isCurrentBarSweep = Boolean(c && asiaHigh && c.high > asiaHigh && c.close < asiaHigh);
+    const sweepTime = activeSweepTime || (isCurrentBarSweep ? candleCloseTime : null) || num(liqAsiaHighSwept?.sweptAt) || (liqAsiaHighSwept && d?.sweepStatus !== 1 ? 1 : null);
     return { name: 'Asia High', level: lvl, extreme: ext, side: 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
   if (liqAsiaLowSwept || textAsiaLow || (c && asiaLow && c.low < asiaLow && c.close > asiaLow)) {
     const lvl = num(liqAsiaLowSwept?.level) || asiaLow || (c ? c.low : 0);
     const ext = (c && c.low < lvl) ? c.low : (lvl ? lvl - 1.20 : 0);
-    const sweepTime = num(liqAsiaLowSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    const isCurrentBarSweep = Boolean(c && asiaLow && c.low < asiaLow && c.close > asiaLow);
+    const sweepTime = activeSweepTime || (isCurrentBarSweep ? candleCloseTime : null) || num(liqAsiaLowSwept?.sweptAt) || (liqAsiaLowSwept && d?.sweepStatus !== 1 ? 1 : null);
     return { name: 'Asia Low', level: lvl, extreme: ext, side: 'BUY', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
@@ -134,13 +140,15 @@ export function detectLiquiditySweep(amy, context = null) {
   if (liqPdhSwept || textPdh || (c && pdh && c.high > pdh && c.close < pdh)) {
     const lvl = num(liqPdhSwept?.level) || pdh || (c ? c.high : 0);
     const ext = (c && c.high > lvl) ? c.high : (lvl ? lvl + 1.20 : 0);
-    const sweepTime = num(liqPdhSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    const isCurrentBarSweep = Boolean(c && pdh && c.high > pdh && c.close < pdh);
+    const sweepTime = activeSweepTime || (isCurrentBarSweep ? candleCloseTime : null) || num(liqPdhSwept?.sweptAt) || (liqPdhSwept && d?.sweepStatus !== 1 ? 1 : null);
     return { name: 'PDH', level: lvl, extreme: ext, side: 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
   if (liqPdlSwept || textPdl || (c && pdl && c.low < pdl && c.close > pdl)) {
     const lvl = num(liqPdlSwept?.level) || pdl || (c ? c.low : 0);
     const ext = (c && c.low < lvl) ? c.low : (lvl ? lvl - 1.20 : 0);
-    const sweepTime = num(liqPdlSwept?.sourceTime) || num(d?.sweep?.time) || num(trg?.time) || null;
+    const isCurrentBarSweep = Boolean(c && pdl && c.low < pdl && c.close > pdl);
+    const sweepTime = activeSweepTime || (isCurrentBarSweep ? candleCloseTime : null) || num(liqPdlSwept?.sweptAt) || (liqPdlSwept && d?.sweepStatus !== 1 ? 1 : null);
     return { name: 'PDL', level: lvl, extreme: ext, side: 'BUY', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
@@ -173,14 +181,14 @@ export function detectLiquiditySweep(amy, context = null) {
   if (hasSslSweep) {
     const lvl = (dSweepDir === 1 && dSweepPrice) || (trgSweepDir === 1 && trgSweptPrice) || sslLevel || defaultSsl;
     const ext = (dSweepDir === 1 && dSweepExtreme) || (trgSweepDir === 1 && trgSweepExtreme) || (c && c.low < lvl ? c.low : (lvl ? lvl - 1.70 : 0));
-    const sweepTime = num(d?.sweep?.time) || num(trg?.time) || num(liqList.find(l => l.label === 'SSL' && /swept/i.test(l.status))?.sourceTime) || null;
+    const sweepTime = activeSweepTime || num(liqList.find(l => l.label === 'SSL' && /swept/i.test(l.status))?.sweptAt) || null;
     return { name: 'SSL', level: lvl, extreme: ext, side: 'BUY', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
   if (hasBslSweep) {
     const lvl = (dSweepDir === -1 && dSweepPrice) || (trgSweepDir === -1 && trgSweptPrice) || bslLevel || defaultBsl;
     const ext = (dSweepDir === -1 && dSweepExtreme) || (trgSweepDir === -1 && trgSweepExtreme) || (c && c.high > lvl ? c.high : (lvl ? lvl + 1.70 : 0));
-    const sweepTime = num(d?.sweep?.time) || num(trg?.time) || num(liqList.find(l => l.label === 'BSL' && /swept/i.test(l.status))?.sourceTime) || null;
+    const sweepTime = activeSweepTime || num(liqList.find(l => l.label === 'BSL' && /swept/i.test(l.status))?.sweptAt) || null;
     return { name: 'BSL', level: lvl, extreme: ext, side: 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
@@ -190,7 +198,7 @@ export function detectLiquiditySweep(amy, context = null) {
     const name = isSsl ? 'SSL' : 'BSL';
     const lvl = isSsl ? (sslLevel || defaultSsl) : (bslLevel || defaultBsl);
     const ext = isSsl ? (c && c.low < lvl ? c.low : (lvl ? lvl - 1.70 : 0)) : (c && c.high > lvl ? c.high : (lvl ? lvl + 1.70 : 0));
-    const sweepTime = num(d?.sweep?.time) || num(trg?.time) || null;
+    const sweepTime = activeSweepTime || null;
     return { name, level: lvl, extreme: ext, side: isSsl ? 'BUY' : 'SELL', time: sweepTime, index: d?.sweep?.index ?? null };
   }
 
@@ -375,6 +383,8 @@ export function dashboardContextV4Rows(amy, context = null) {
     ? Number(ctx.price)
     : (Number.isFinite(Number(d?.candle?.close)) && Number(d.candle.close) > 0)
     ? Number(d.candle.close)
+    : (Number.isFinite(Number(lastCandle?.close)) && Number(lastCandle.close) > 0)
+    ? Number(lastCandle.close)
     : 0;
 
   // 1. Timeframe Matrix Directions
@@ -395,7 +405,7 @@ export function dashboardContextV4Rows(amy, context = null) {
   const rangePct = (hasRange && currentPrice > 0) ? Math.min(100, Math.max(0, Math.round(((currentPrice - rLow) / (rHigh - rLow)) * 100))) : 50;
   const isDiscount = rangePct < 47.5;
   const isPremium = rangePct > 52.5;
-  const zoneLabel = isDiscount ? `DISCOUNT (<47.5%) [${rangePct}%]` : isPremium ? `PREMIUM (>52.5%) [${rangePct}%]` : `EQUILIBRIUM (50%) [${rangePct}%] · NO-TRADE ZONE`;
+  const zoneLabel = isDiscount ? `DISCOUNT (<47.5%) [${rangePct}%]` : isPremium ? `PREMIUM (>52.5%) [${rangePct}%]` : `EQUILIBRIUM (50%) [${rangePct}%] · ZONA CINCANG`;
 
   // 3. Sweeps & Liquidity
   const sweep = detectLiquiditySweep(amy, ctx);
@@ -430,8 +440,8 @@ export function dashboardContextV4Rows(amy, context = null) {
       actionGuide = 'Penurunan Ini Koreksi Menuju Discount — Awas Jebakan Sell di Bawah!';
       phaseClass = 'bias-val-purple';
     } else if (rangePct >= 47.5 && rangePct <= 52.5) {
-      phaseStatus = 'NO-TRADE ZONE (Harga di Poros Equilibrium 50%)';
-      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep Support / SSL (<47.5%) atau Resistance / BSL (>52.5%).';
+      phaseStatus = 'ZONA CINCANG (Harga di Poros Equilibrium 50%)';
+      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep lantai SSL (<47.5%) atau plafon BSL (>52.5%).';
       phaseClass = 'bias-val-purple';
     } else if (isFullBullAlign && isPremium) {
       phaseStatus = `EKSPANSI BULLISH DI AREA PREMIUM (${rangePct}%)`;
@@ -456,8 +466,8 @@ export function dashboardContextV4Rows(amy, context = null) {
       actionGuide = 'Kenaikan Ini Koreksi Menuju Premium — Awas Jebakan Buy di Pucuk!';
       phaseClass = 'bias-val-purple';
     } else if (rangePct >= 47.5 && rangePct <= 52.5) {
-      phaseStatus = 'NO-TRADE ZONE (Harga di Poros Equilibrium 50%)';
-      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep Support / SSL (<47.5%) atau Resistance / BSL (>52.5%).';
+      phaseStatus = 'ZONA CINCANG (Harga di Poros Equilibrium 50%)';
+      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep lantai SSL (<47.5%) atau plafon BSL (>52.5%).';
       phaseClass = 'bias-val-purple';
     } else if (isFullBearAlign && isDiscount) {
       phaseStatus = `EKSPANSI BEARISH DI AREA DISCOUNT (${rangePct}%)`;
@@ -573,6 +583,8 @@ export function dashboardContextV6Rows(amy, context = null) {
     ? Number(ctx.price)
     : (Number.isFinite(Number(d?.candle?.close)) && Number(d.candle.close) > 0)
     ? Number(d.candle.close)
+    : (Number.isFinite(Number(lastCandle?.close)) && Number(lastCandle.close) > 0)
+    ? Number(lastCandle.close)
     : 0;
 
   // 1. 3-TF Order Flow
@@ -864,6 +876,11 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
   const sweepInfo=detectLiquiditySweep(amy,context);
   const sniperTrigger=detectM5SniperTrigger(amy,context);
 
+  const planFormedSec = plan?.formedAt ? Math.floor(new Date(plan.formedAt).getTime() / 1000) : null;
+  const isPlanFresh = !planFormedSec || (nowSec - planFormedSec >= 0 && nowSec - planFormedSec <= 900);
+  const lastBreakSec = Number(context?.m15?.lastBreak?.time || 0);
+  const isInvalidFresh = !lastBreakSec || (nowSec - lastBreakSec >= 0 && nowSec - lastBreakSec <= 900);
+
   if(news?.status==='NEWS_LOCK'){
     badge='NEWS LOCK';badgeClass='badge-news';stateClass='assistant-state-news';
     primary='🛡️ Tunda Eksekusi: Berita High-Impact Berlangsung';
@@ -873,51 +890,45 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     badge='SETUP BATAL';badgeClass='badge-invalid';stateClass='assistant-state-invalid';
     primary='⚠️ Setup Batal: Harga Melewati Level Invalidasi';
     sub=`Close M15 menembus batas pembatalan ${d.invalidLevel?n(d.invalidLevel):''}. Tunggu pembentukan struktur baru.`;
-    notify=true;notifTitle='⚠️ Asisten Amy: Setup Batal (Invalid)';notifBody=sub;
+    if(isInvalidFresh){
+      notify=true;notifTitle='⚠️ Asisten Amy: Setup Batal (Invalid)';notifBody=sub;
+    }
   }else if(sniperTrigger && (!ast || ast.status !== 'READY')){
     const isBuy=sniperTrigger.side==='BUY';
-    const isMtfBearish=d?.dirMTF?d.dirMTF<0:(ctx?.m15?.dir?ctx.m15.dir<0:false);
-    const isMtfBullish=d?.dirMTF?d.dirMTF>0:(ctx?.m15?.dir?ctx.m15.dir>0:false);
-    const isCounterTrend=(isBuy&&isMtfBearish)||(!isBuy&&isMtfBullish);
-    const confZone=amy?.confluence?.zone||ctx?.confluence?.zone||'';
-    const confScore=Number(amy?.confluence?.score??ctx?.confluence?.score??0);
-    const isNoEntry=confZone==='NO ENTRY'||(confScore>0&&confScore<60);
-
-    if(isCounterTrend||isNoEntry){
-      badge='PULLBACK WATCH';
-      badgeClass='badge-neutral';
-      stateClass='assistant-state-neutral';
-      primary=`⚠️ PULLBACK KOREKTIF (M5 Reversal vs M15 ${isMtfBearish?'Bearish':'Bullish'})`;
-      sub=`SOP Anti-Yes-Man: Pantulan M5 di area ${sniperTrigger.mathZone}. Dilarang FOMO ${isBuy?'Buy':'Sell'} — Tunggu konfirmasi struktur baru atau jemputan di zona ekstrem!`;
-      notify=false;
-    }else{
-      badge=isBuy?'SNIPER BUY':'SNIPER SELL';
-      badgeClass=isBuy?'badge-bull':'badge-bear';
-      stateClass=isBuy?'assistant-state-bull':'assistant-state-bear';
-      primary=`${isBuy?'🟢':'🔴'} SNIPER ${sniperTrigger.side} ENTRY · M5 Reversal`;
-      sub=`Detektor 3-Candle M5: Terkonfirmasi @ ${sniperTrigger.mathZone}. Entry ${n(sniperTrigger.entry)} · Target 100 Pips Sayang`;
-      notify=true;notifTitle=`⚡ Asisten Amy: ${badge}`;notifBody=`${primary}. ${sub}`;
-    }
+    badge=isBuy?'SNIPER BUY':'SNIPER SELL';
+    badgeClass=isBuy?'badge-bull':'badge-bear';
+    stateClass=isBuy?'assistant-state-bull':'assistant-state-bear';
+    primary=`${isBuy?'🟢':'🔴'} SNIPER ${sniperTrigger.side} ENTRY · M5 Reversal`;
+    sub=`Detektor 3-Candle M5: Terkonfirmasi @ ${sniperTrigger.mathZone}. Entry ${n(sniperTrigger.entry)} · Target 100 Pips Sayang`;
+    notify=true;notifTitle=`⚡ Asisten Amy: ${badge}`;notifBody=`${primary}. ${sub}`;
   }else if(ast&&(ast.signalType===1||(ast.rawSignalType===1&&ast.status==='READY'))){
     badge='BUY ENTRY';badgeClass='badge-bull';stateClass='assistant-state-bull';
     primary=`🟢 BUY ENTRY · ${ast.signalName||'Trend Buy'}`;
     sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
-    notify=true;notifTitle='🟢 Asisten Amy: BUY ENTRY';notifBody=`${primary}. ${sub}`;
+    if(isPlanFresh){
+      notify=true;notifTitle='🟢 Asisten Amy: BUY ENTRY';notifBody=`${primary}. ${sub}`;
+    }
   }else if(ast&&(ast.signalType===-1||(ast.rawSignalType===-1&&ast.status==='READY'))){
     badge='SELL ENTRY';badgeClass='badge-bear';stateClass='assistant-state-bear';
     primary=`🔴 SELL ENTRY · ${ast.signalName||'Trend Sell'}`;
     sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
-    notify=true;notifTitle='🔴 Asisten Amy: SELL ENTRY';notifBody=`${primary}. ${sub}`;
+    if(isPlanFresh){
+      notify=true;notifTitle='🔴 Asisten Amy: SELL ENTRY';notifBody=`${primary}. ${sub}`;
+    }
   }else if(ast&&(ast.signalType===-2||(ast.rawSignalType===-2&&ast.status==='READY'))){
-    badge='PULLBACK SELL (CISD)';badgeClass='badge-bear';stateClass='assistant-state-bear';
-    primary='🟠 PULLBACK SELL (CISD Pucuk Premium)';
-    sub=`Anti-Chase: READY · CISD Terkonfirmasi · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
-    notify=true;notifTitle='🟠 Asisten Amy: PULLBACK SELL (CISD)';notifBody=`${primary}. ${sub}`;
+    badge='PULLBACK SELL';badgeClass='badge-bear';stateClass='assistant-state-bear';
+    primary='🟠 PULLBACK SELL (Pucuk Premium)';
+    sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Catatan: Sell ini pullback, bukan ubah bias utama`;
+    if(isPlanFresh){
+      notify=true;notifTitle='🟠 Asisten Amy: PULLBACK SELL';notifBody=`${primary}. ${sub}`;
+    }
   }else if(ast&&(ast.signalType===2||(ast.rawSignalType===2&&ast.status==='READY'))){
-    badge='PULLBACK BUY (CISD)';badgeClass='badge-bull';stateClass='assistant-state-bull';
-    primary='🔵 PULLBACK BUY (CISD Dasar Diskon)';
-    sub=`Anti-Chase: READY · CISD Terkonfirmasi · Entry ${plan?.entry!=null?n(plan.entry):'—'}`;
-    notify=true;notifTitle='🔵 Asisten Amy: PULLBACK BUY (CISD)';notifBody=`${primary}. ${sub}`;
+    badge='PULLBACK BUY';badgeClass='badge-bull';stateClass='assistant-state-bull';
+    primary='🔵 PULLBACK BUY (Dasar Diskon)';
+    sub=`Anti-Chase: READY · Math Zone: ${mathZoneText} · Catatan: Buy ini pullback, bukan ubah bias utama`;
+    if(isPlanFresh){
+      notify=true;notifTitle='🔵 Asisten Amy: PULLBACK BUY';notifBody=`${primary}. ${sub}`;
+    }
   }else if(ast&&ast.status==='MISSED'){
     badge='STANDBY';badgeClass='badge-warn';stateClass='assistant-state-sweep';
     primary=`⚠️ Sinyal ${ast.rawSignalType===1?'BUY':ast.rawSignalType===-1?'SELL':'PULLBACK'}: MISSED - JANGAN KEJAR`;
@@ -936,33 +947,16 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     primary=`💧 ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
     sub=`Tersapu hingga ekor ${n(sweepInfo.extreme)}. Pantau pembentukan rejection untuk potensi ${sweepInfo.side}.`;
     const sweepAge = sweepInfo.time ? (nowSec - sweepInfo.time) : 0;
-    const isLatestBar = sweepInfo.index != null && Array.isArray(amy.chartCandles) && amy.chartCandles.length
+    const hasChartIndex = sweepInfo.index != null && Array.isArray(amy.chartCandles) && amy.chartCandles.length > 0;
+    const isLatestBar = hasChartIndex
       ? (sweepInfo.index === amy.chartCandles.length - 1)
       : true;
-    const isFresh = sweepInfo.time ? (sweepAge >= 0 && sweepAge <= 900) : isLatestBar;
+    const isFresh = (sweepInfo.time ? (sweepAge >= 0 && sweepAge <= 900) : isLatestBar) && (!hasChartIndex || isLatestBar);
     if(isFresh){
       notify=true;
       notifTitle=`💧 Asisten Amy: ${sweepInfo.name} @ ${n(sweepInfo.level)} Swept!`;
       notifBody=`${primary} ${sub}`;
     }
-  }else if(e?.importance === 4){
-    const isBull = d?.biasDir === 1;
-    const trg = amy?.trigger;
-    const trgHigh = trg?.high;
-    const trgLow = trg?.low;
-    const lastBreak = ctx?.m15?.lastBreak;
-    const breakKind = lastBreak?.kind || (isBull ? 'BOS Bullish' : 'BOS Bearish');
-    const brokenLvl = isBull ? (trgHigh || lastBreak?.level || d?.protectedHigh) : (trgLow || lastBreak?.level || d?.protectedLow);
-    const brokenStr = brokenLvl ? `@ ${n(brokenLvl)}` : '';
-    const dolTgt = d?.dolTarget ? ` · Target DOL: ${n(d.dolTarget)}` : '';
-    badge = isBull ? 'VALID BREAK BULL' : 'VALID BREAK BEAR';
-    badgeClass = isBull ? 'badge-bull' : 'badge-bear';
-    stateClass = isBull ? 'assistant-state-bull' : 'assistant-state-bear';
-    primary = `✓ Valid Break ${isBull ? 'Bullish' : 'Bearish'} dengan Displacement: ${breakKind} ${brokenStr} Ditembus!`;
-    sub = `Struktur M5 terkonfirmasi searah tren${dolTgt}. Siapkan observasi entry Sayang.`;
-    notify = true;
-    notifTitle = `✓ Asisten Amy: VALID BREAK ${isBull ? 'BULLISH' : 'BEARISH'} (${breakKind})`;
-    notifBody = `${primary} ${sub}`;
   }else{
     const v4Rows = dashboardContextV4Rows(amy, context);
     const phaseRow = v4Rows.find(r => r[0] === 'FASE NARASI MARKET');
@@ -970,8 +964,8 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
     if(phaseRow && guideRow && phaseRow[1]){
       primary = phaseRow[1];
       sub = guideRow[1];
-      if(primary.includes('NO-TRADE ZONE') || primary.includes('ZONA CINCANG')){
-        badge = 'NO-TRADE ZONE'; badgeClass = 'badge-warn'; stateClass = 'assistant-state-sweep';
+      if(primary.includes('ZONA CINCANG')){
+        badge = 'ZONA CINCANG'; badgeClass = 'badge-warn'; stateClass = 'assistant-state-sweep';
       } else if(primary.includes('SEARAH BULLISH') || primary.includes('EKSPANSI BULLISH')){
         badge = 'SEARAH BULLISH'; badgeClass = 'badge-bull'; stateClass = 'assistant-state-bull';
       } else if(primary.includes('SEARAH BEARISH') || primary.includes('EKSPANSI BEARISH')){
@@ -1018,7 +1012,13 @@ export function renderLiveAssistant(amy,news=null,settings={},context=null){
 
   if(notify && notifTitle && settings?.assistantNotif !== false && !isStale && candleTime){
     try{
-      const timeKey = (badge.includes('SWEPT') && sweepInfo?.time) ? sweepInfo.time : candleTime;
+      const timeKey = (badge.includes('SWEPT') && sweepInfo?.time)
+        ? sweepInfo.time
+        : (badge === 'SETUP BATAL' && d?.invalidLevel)
+        ? `inv_${n(d.invalidLevel)}_${lastBreakSec || candleTime}`
+        : (plan?.entry != null && (badge.includes('ENTRY') || badge.includes('PULLBACK')))
+        ? `plan_${n(plan.entry)}_${planFormedSec || candleTime}`
+        : candleTime;
       const eventKey = `${badge}|${timeKey}`;
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('amyfx_notified_assistant_events') : null;
       const notified = raw ? JSON.parse(raw) : {};
@@ -1101,10 +1101,10 @@ export function renderEntryAssistantPlan(amy,context=null){
     const isEquilibrium=(rangePct>=47.5&&rangePct<=52.5);
 
     if(isEquilibrium){
-      if(badgeEl){badgeEl.textContent='NO-TRADE ZONE';badgeEl.className='plan-badge badge-neutral';}
+      if(badgeEl){badgeEl.textContent='ZONA CINCANG · NO-TRADE';badgeEl.className='plan-badge badge-neutral';}
       if(antiChaseEl){antiChaseEl.textContent='DILARANG ENTRY';antiChaseEl.className='anti-chase-pill pill-warning';}
       if(rejectionEl)rejectionEl.style.display='none';
-      if(mathZoneEl)mathZoneEl.textContent='Math Zone: EQUILIBRIUM 50% (NO-TRADE ZONE)';
+      if(mathZoneEl)mathZoneEl.textContent='Math Zone: EQUILIBRIUM 50% (ZONA CINCANG)';
       if(pullbackEl)pullbackEl.style.display='none';
       if(entryVal)entryVal.textContent='—';
       if(slVal)slVal.textContent='—';if(slSub)slSub.textContent='Rem Disiplin';
@@ -1113,8 +1113,8 @@ export function renderEntryAssistantPlan(amy,context=null){
       if(reasonsEl){
         const items=[
           'Harga sedang berputar di poros tengah Dealing Range (Equilibrium 50%).',
-          'SOP Anti-Yes-Man: DIAM dan simpan peluru! Jangan menekan tombol order di area tengah (No-Trade Zone).',
-          'Tunggu penjemputan likuiditas di Support / Demand (<47.5%) atau Resistance / Supply (>52.5%).'
+          'SOP Anti-Yes-Man: DIAM dan simpan peluru! Jangan menekan tombol order di zona cincang.',
+          'Tunggu penjemputan likuiditas di Lantai SSL (<47.5%) atau Plafon BSL (>52.5%).'
         ];
         reasonsEl.innerHTML=items.map(r=>`<li>${esc(r)}</li>`).join('');
       }
@@ -1149,26 +1149,14 @@ export function renderEntryAssistantPlan(amy,context=null){
     return;
   }
 
-  const ctx=context||(typeof window!=='undefined'?window.AmyMarketContext:null);
-  const d=amy?.dashboard;
-  const isMtfBull=d?.dirMTF?d.dirMTF>0:(ctx?.m15?.dir?ctx.m15.dir>0:false);
-  const confZone=amy?.confluence?.zone||ctx?.confluence?.zone||'';
-  const confScore=Number(amy?.confluence?.score??ctx?.confluence?.score??0);
-  const isNoEntry=confZone==='NO ENTRY'||(confScore>0&&confScore<60);
+  const isPullback=Math.abs(plan.signalType)===2||Boolean(ast?.isPullback);
   const isBuy=plan.side==='BUY';
-  const isCounterTrend=(isBuy&&!isMtfBull)||(!isBuy&&isMtfBull);
-  const isPullback=Math.abs(plan.signalType)===2||Boolean(ast?.isPullback)||isCounterTrend;
-
-  const badgeText=isCounterTrend
-    ?`⚠️ PULLBACK (M15 ${isMtfBull?'BULL':'BEAR'})`
-    :(plan.signalName||(isPullback?(isBuy?'PULLBACK BUY':'PULLBACK SELL'):(isBuy?'BUY ENTRY':'SELL ENTRY')));
-  const badgeClass=isCounterTrend?'badge-neutral':(isBuy?'badge-bull':'badge-bear');
+  const badgeText=plan.signalName||(isPullback?(isBuy?'PULLBACK BUY':'PULLBACK SELL'):(isBuy?'BUY ENTRY':'SELL ENTRY'));
+  const badgeClass=isBuy?'badge-bull':'badge-bear';
 
   if(badgeEl){badgeEl.textContent=badgeText;badgeEl.className=`plan-badge ${badgeClass}`;}
   if(antiChaseEl){
-    if(isCounterTrend||isNoEntry){
-      antiChaseEl.textContent='DILARANG ENTRY (PULLBACK KOREKTIF)';antiChaseEl.className='anti-chase-pill pill-warning';
-    }else if(plan.signalName?.includes('SNIPER')){
+    if(plan.signalName?.includes('SNIPER')){
       antiChaseEl.textContent='READY DI ZONA EKSTREM';antiChaseEl.className='anti-chase-pill pill-ready';
     }else if(ast?.status==='READY'||plan.status==='READY'){
       antiChaseEl.textContent='READY DI ZONA';antiChaseEl.className='anti-chase-pill pill-ready';
@@ -1183,11 +1171,7 @@ export function renderEntryAssistantPlan(amy,context=null){
   const sweepInfo=ast?.sweep||plan?.sweep||amy?.sweep||null;
   const rejectionState=ast?.rejectionState||plan?.rejectionState||(ast?.reclaimed?'SWEEP_REJECTION':(ast?.waitingRejectionClose?'SWEEP_UNCONFIRMED':null));
   if(rejectionEl){
-    if(isCounterTrend||isNoEntry){
-      rejectionEl.style.display='inline-block';
-      rejectionEl.textContent='🛡️ Lawan Bias MTF';
-      rejectionEl.className='anti-chase-pill pill-warning';
-    }else if(rejectionState==='SWEEP_REJECTION'||ast?.reclaimed===true||plan?.reclaimed===true||plan?.signalName?.includes('SNIPER')){
+    if(rejectionState==='SWEEP_REJECTION'||ast?.reclaimed===true||plan?.reclaimed===true||plan?.signalName?.includes('SNIPER')){
       rejectionEl.style.display='inline-block';
       rejectionEl.textContent='🎯 Reclaimed Valid';
       rejectionEl.className='anti-chase-pill pill-ready';
@@ -1201,9 +1185,9 @@ export function renderEntryAssistantPlan(amy,context=null){
   }
   if(mathZoneEl)mathZoneEl.textContent=`Math Zone: ${plan.mathZone||ast?.mathZone||'Fibo OTE / SNR / POI'}`;
   if(pullbackEl){
-    if(isCounterTrend||isPullback){
+    if(isPullback){
       pullbackEl.style.display='block';
-      pullbackEl.innerHTML=`<span>🛡️ <strong>SOP ANTI-YES-MAN:</strong> Sinyal ${isBuy?'BUY':'SELL'} ini adalah koreksi/pullback yang berlawanan dengan arah Order Flow M15 (${isMtfBull?'BULLISH':'BEARISH'}). DILARANG FOMO ${isBuy?'BUY':'SELL'}! Disiplin tunggu setup searah.</span>`;
+      pullbackEl.innerHTML=`<span>⚠️ <strong>Catatan Khusus:</strong> ${isBuy?'Buy':'Sell'} ini pullback, bukan mengubah bias utama.</span>`;
     }else{
       pullbackEl.style.display='none';
     }
