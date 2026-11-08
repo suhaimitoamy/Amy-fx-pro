@@ -11,7 +11,7 @@
   "latest_version_code": 950438,
   "latest_version_name": "2.0.0-pro.438",
   "mandatory": false,
-  "releaseDate": "2026-11-09",
+  "releaseDate": "2026-11-08",
   "release_notes": [
     "Paritas Penuh Amy Live (Gemini Voice & Orb): Perbaikan akurasi harga live XAU/USD, anti-halusinasi angka harga, integrasi Vercel Serverless Function, izin rekaman suara native Android, dan URL resolver dinamis APK.",
     "Paritas Harga & Analisa Mapping: Filter candle akhir pekan di backend & sinkronisasi penuh harga Beranda, Header Mapping, dan Tabel V6.1.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.438",
   "versionCode": 950438,
-  "sha256": "9e71153abae60e49f81bfa0c2764b52183f57a084224a91891c9f10cc1c07824"
+  "sha256": "194acf229b84e575b82e042c7b51414f296c42a60c5b756d69d49d09e704e118"
 }
