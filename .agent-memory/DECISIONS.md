@@ -1448,13 +1448,8 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 - **Status Konektivitas:** 200 OK (Open Cloud v2 API terverifikasi aktif)
 - **Kapabilitas:** Antigravity dapat menulis skrip Luau, mengelola data DataStore, dan mem-publish assets / experiences ke akun Sayang tanpa membutuhkan desktop Roblox Studio.
 
-### 2026-11-02: Google Artemis Mobile Agent Integration
-- **Context:** User requested integration of Google Artemis (open-source autonomous mobile testing & automation agent by Google PTE Fusion).
-- **Environment:** Termux on Infinix Hot 30 (Android 14 XOS, aarch64).
-- **Setup:**
-  - Cloned `google/artemis` to `/root/artemis`.
-  - Installed ARM64 native `adb` package in Debian environment; paired and connected via Wireless Debugging at `127.0.0.1:42229`.
-  - Installed Python 3.13 virtual environment with `uv sync --link-mode=copy` (191 dependencies).
-  - Configured multimodal Gemini 2.5 Flash API key from `/root/.gemini_keys`.
-  - Installed and verified Artemis Accessibility Helper APK v1.2.0 on device.
-- **Outcome:** Full autonomous Android UI control operational directly from Antigravity.
+### 2026-11-10: Purge Expired Gemini API Keys from Vercel Endpoints
+- **Context:** User identified AMY AI assistant stuck on "Menganalisa..." in mobile WebView.
+- **Root Cause:** 2 out of 6 encoded fallback keys in `api/gemini-chat.js` and `api/gemini-config.js` returned HTTP 401 UNAUTHENTICATED.
+- **Fix:** Purged the two invalid keys (`AQ.Ab8RN6KriIdZ...` and `AQ.Ab8RN6IxRyBO...`), leaving 4 verified 200 OK keys. Updated `/root/.gemini_keys` and mirrored changes to `Amy-fx`.
+
