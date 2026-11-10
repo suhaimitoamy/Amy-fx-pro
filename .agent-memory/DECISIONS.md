@@ -1453,3 +1453,18 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 - **Root Cause:** 2 out of 6 encoded fallback keys in `api/gemini-chat.js` and `api/gemini-config.js` returned HTTP 401 UNAUTHENTICATED.
 - **Fix:** Purged the two invalid keys (`AQ.Ab8RN6KriIdZ...` and `AQ.Ab8RN6IxRyBO...`), leaving 4 verified 200 OK keys. Updated `/root/.gemini_keys` and mirrored changes to `Amy-fx`.
 
+### 2026-11-10: Permanent Checkpoint & Release v2.0.0-pro.443 (Full Academy Reader & Omnipresent Navigation)
+- **Safe Revert Checkpoint:** Commit `4621e655dd5a2f56c9037c35a98b363df5028dd6` (v2.0.0-pro.442). If anything breaks, revert back to this commit.
+- **Bug 1 Solved (Academy Material Pull & Summarization):**
+  - Created `/api/academy-reading.js` with instant access to all 530 Academy lessons from `amy-local-knowledge.js`.
+  - Added offline local knowledge fallback in `amy-gemini-live-bridge.js` so AMY pulls the exact full text and summary of the user's last-read lesson or any requested module even when offline.
+  - Enhanced system prompt in `api/gemini-chat.js` instructing AMY to summarize and explain the actual concepts of the last read material thoroughly.
+- **Bug 2 Solved (True App-wide Navigation):**
+  - Corrected `routes.news` in `amy-local-assistant.js` from broken `apps/news` to active `apps/market-intel/index.html`.
+  - Added full routes for Kalkulator Risiko, Glosarium ICT, Trading Practice, and Beranda.
+  - Implemented `resolveActionLinks()` in `amy-gemini-live-bridge.js` to automatically attach golden action buttons whenever a user or AMY mentions any app feature or academy lesson.
+  - Implemented environment-agnostic `resolveAppUrl()` for seamless navigation in Android WebView (`appassets.androidplatform.net`), local preview (`localhost:8080`), and Vercel.
+  - Added 9-second `AbortController` timeout on chat requests to permanently prevent "Menganalisa..." freezes.
+- **Version Bump:** Bumped to `v2.0.0-pro.443` (code `950443`).
+
+

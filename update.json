@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.442/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.443/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ AMY Paritas Orb 3D Emas & Live Voice: Penjaminan tampilan Orb 3D emas bersinar di APK Android WebView via anti-race condition loader & MutationObserver.",
-    "✦ AMY Integrasi Vercel Zero-Config: Pengelolaan kunci API Gemini otomatis di backend Vercel ala TwelveData tanpa perlu input manual atau pop-up prompt.",
-    "✦ AMY Proteksi Suara & Respon Cepat: Eliminasi ketergantungan konfigurasi manual, fallback key terdistribusi, dan respon obrolan instan."
+    "✦ AMY Full Reading & Material Summarizer: Integrasi penuh 530 materi Amy FX Academy, ekstraksi isi materi bacaan terakhir langsung ke konteks AMY untuk rangkuman akurat tanpa 404.",
+    "✦ AMY Omnipresent App Navigation: Tombol aksi langsung interaktif bergradien emas untuk membuka Chart Gold, Berita & Kalender, Jurnal, Glosarium ICT, Kalkulator Risiko, Trading Practice, dan Modul/Level Academy.",
+    "✦ AMY Anti-Hang Timeout & Resilient Fallback: Perlindungan timeout request 9 detik untuk mencegah pembekuan UI status 'Menganalisa...' di jaringan seluler lambat."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.442/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.443/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950442,
-  "latest_version_name": "2.0.0-pro.442",
+  "latest_version_code": 950443,
+  "latest_version_name": "2.0.0-pro.443",
   "mandatory": false,
   "releaseDate": "2026-11-10",
   "release_notes": [
-    "✦ AMY Paritas Orb 3D Emas & Live Voice: Penjaminan tampilan Orb 3D emas bersinar di APK Android WebView via anti-race condition loader & MutationObserver.",
-    "✦ AMY Integrasi Vercel Zero-Config: Pengelolaan kunci API Gemini otomatis di backend Vercel ala TwelveData tanpa perlu input manual atau pop-up prompt.",
-    "✦ AMY Proteksi Suara & Respon Cepat: Eliminasi ketergantungan konfigurasi manual, fallback key terdistribusi, dan respon obrolan instan."
+    "✦ AMY Full Reading & Material Summarizer: Integrasi penuh 530 materi Amy FX Academy, ekstraksi isi materi bacaan terakhir langsung ke konteks AMY untuk rangkuman akurat tanpa 404.",
+    "✦ AMY Omnipresent App Navigation: Tombol aksi langsung interaktif bergradien emas untuk membuka Chart Gold, Berita & Kalender, Jurnal, Glosarium ICT, Kalkulator Risiko, Trading Practice, dan Modul/Level Academy.",
+    "✦ AMY Anti-Hang Timeout & Resilient Fallback: Perlindungan timeout request 9 detik untuk mencegah pembekuan UI status 'Menganalisa...' di jaringan seluler lambat."
   ],
-  "version": "2.0.0-pro.442",
-  "versionCode": 950442,
+  "version": "2.0.0-pro.443",
+  "versionCode": 950443,
   "sha256": "9312d0ed30e95d253b5318d9f97bdbc96dc812b53290ccef48bf7109f7cf0dc1"
 }
