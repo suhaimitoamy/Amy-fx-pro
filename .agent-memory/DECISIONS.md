@@ -1,5 +1,21 @@
 # Technical Decisions
 
+## 2026-11-10 — Penonaktifan Sementara Notifikasi Struktural (SSL/BSL Swept, POI, DOL) di DriverSetupSyncWorker
+1. **Latar Belakang & Instruksi Sayang:**
+   - Sayang meminta agar notifikasi `💧 Asisten Amy: SSL Swept!` dan `BSL Swept` (beserta notifikasi pendamping/struktural sejenis) dinonaktifkan dulu untuk sementara agar tidak mengganggu fokus dan mengurangi noise notifikasi.
+2. **Implementasi Perubahan:**
+   - Di file `app/src/main/java/com/amyelitesuite/DriverSetupSyncWorker.kt`:
+     - Ditambahkan toggle konfigurasi permanen di `companion object`:
+       - `ENABLE_SWEEP_ALERTS = false` (menonaktifkan notifikasi SSL/BSL Swept).
+       - `ENABLE_POI_ALERTS = false` (menonaktifkan notifikasi Area POI Tersentuh).
+       - `ENABLE_DOL_ALERTS = false` (menonaktifkan notifikasi Target DOL Tercapai).
+     - Blok pemanggilan `else if (ENABLE_SWEEP_ALERTS && sweepDetails != null)` di `processAssistantAlerts()` kini ter-bypass.
+     - Ditambahkan pengaman ganda (*double-guard*) di `showDriverNotification()` untuk memastikan tidak ada pesan berlabel sweep/POI/DOL yang lolos ke bilah status Android.
+     - Sinyal eksekusi utama (`👑 Peluru Utama Grade A+`, `🟢/🔴 Entry Ready`, serta `🛡️ NEWS LOCK`) tetap aktif 100% tanpa terganggu.
+3. **Verifikasi:**
+   - Targeted unit test `tests/sweep-notification-precision.test.mjs`, `tests/market-closed-notification-suppression.test.mjs`, dan `tests/native-audio-haptic.test.mjs` seluruhnya lulus 100% (pass 17/17).
+
+
 ## 2026-11-03 — Perbaikan Tuntas Cacat Logika & Audit Cockpit Mapping Amy FX Pro (Sesuai 4 Screenshot Artemis)
 1. **Latar Belakang & Keluhan Sayang:**
    - Sayang mengecek langsung antarmuka Cockpit Mapping (`apps/mapping/index.html`) di browser HP dan menemukan sejumlah kejanggalan logika:

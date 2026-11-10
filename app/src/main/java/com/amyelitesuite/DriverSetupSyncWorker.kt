@@ -277,7 +277,7 @@ class DriverSetupSyncWorker(
             val sub = "Struktur M5 terkonfirmasi searah tren$dolStr. Siapkan observasi entry."
             notifBody = "$primary $sub"
             notify = true
-        } else if (sweepDetails != null) {
+        } else if (ENABLE_SWEEP_ALERTS && sweepDetails != null) {
             val sweepAge = if (sweepDetails.sweepTime > 0L) (nowSec - sweepDetails.sweepTime) else 999999L
             val isFresh = sweepDetails.sweepTime > 0L && (sweepAge in 0L..900L)
             if (isFresh) {
@@ -293,7 +293,7 @@ class DriverSetupSyncWorker(
                 notifBody = "$primary $sub"
                 notify = true
             }
-        } else if (inPoi) {
+        } else if (ENABLE_POI_ALERTS && inPoi) {
             badge = "DI_AREA_POI"
             val low = poi?.optDouble("low", 0.0) ?: 0.0
             val high = poi?.optDouble("high", 0.0) ?: 0.0
@@ -304,7 +304,7 @@ class DriverSetupSyncWorker(
             val sub = "Harga berada di zona kritis$curStr. Pantau pembentukan candle rejection atau break M5 (Target 100 Pips)."
             notifBody = "$primary $rangeStr. $sub"
             notify = true
-        } else if (dolStatus == 2) {
+        } else if (ENABLE_DOL_ALERTS && dolStatus == 2) {
             val dolTarget = dashboard?.optDouble("dolTarget", 0.0) ?: 0.0
             val dolStr = if (dolTarget > 0.0) String.format(java.util.Locale.US, " ($%.2f)", dolTarget) else ""
             val curStr = if (curPriceStr.isNotBlank()) " @ $curPriceStr" else ""
@@ -539,6 +539,15 @@ class DriverSetupSyncWorker(
         if (!canPostNotifications()) return
 
         val gateKey = "driver_worker|$targetId|$title"
+        if (!ENABLE_SWEEP_ALERTS && (title.contains("Swept", ignoreCase = true) || targetId.contains("SWEPT", ignoreCase = true))) {
+            return
+        }
+        if (!ENABLE_POI_ALERTS && (title.contains("Area POI", ignoreCase = true) || targetId.contains("DI_AREA_POI", ignoreCase = true))) {
+            return
+        }
+        if (!ENABLE_DOL_ALERTS && (title.contains("Target DOL", ignoreCase = true) || targetId.contains("TARGET_DOL", ignoreCase = true))) {
+            return
+        }
         if (!AmyFxNotificationGate.shouldNotify(applicationContext, gateKey, System.currentTimeMillis())) {
             return
         }
@@ -633,6 +642,11 @@ class DriverSetupSyncWorker(
         const val NEXT_CANDLE_WORK_NAME = "amy_fx_driver_next_candle"
         private const val SETUPS_URL = "https://amy-fx.vercel.app/api/scalper-setups?limit=10"
         private const val PREFS = "amy_driver_worker_prefs"
+
+        // Toggle notifikasi pembantu / struktural (dinonaktifkan sementara atas instruksi pengguna)
+        private const val ENABLE_SWEEP_ALERTS = false // Nonaktifkan notifikasi SSL & BSL Swept sementara
+        private const val ENABLE_POI_ALERTS = false   // Nonaktifkan notifikasi Area POI Tersentuh sementara
+        private const val ENABLE_DOL_ALERTS = false   // Nonaktifkan notifikasi Target DOL Tercapai sementara
 
         /**
          * Menjadwalkan sinkronisasi persis 15 detik setelah setiap candle M15 selesai (:00, :15, :30, :45).
