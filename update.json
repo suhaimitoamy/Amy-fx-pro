@@ -11,7 +11,7 @@
   "latest_version_code": 950447,
   "latest_version_name": "2.0.0-pro.447",
   "mandatory": false,
-  "releaseDate": "2026-11-12",
+  "releaseDate": "2026-11-11",
   "release_notes": [
     "✦ Auto-Next Video Reel: Saat sebuah video selesai, reel otomatis bergeser halus (smooth-scroll) dan memutar video berikutnya tanpa perlu swipe manual.",
     "✦ Saklar 🔁 Auto / 🔂 Loop: Memberikan kebebasan penuh memilih antara lanjut otomatis atau mengulang video yang sama berulang-ulang, tersimpan otomatis di preferensi.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.447",
   "versionCode": 950447,
-  "sha256": "e5ccb47f664e96c364baa16812ca2ddbf6f2c4c3476180ecace1f6566cc7f6d4"
+  "sha256": "b2d2ea98a0a4c08b922a8156b2be00ac1e3aed01faba8159eb7393f544e46821"
 }
