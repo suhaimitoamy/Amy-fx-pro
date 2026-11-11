@@ -212,15 +212,6 @@ class MainActivity : Activity() {
                         view?.loadUrl(HOME_URL)
                         return true
                     }
-                    val lessonRegex = Regex("^/assets/apps/academy/(bagian-[^/]+)/([^/]+)\\.html$")
-                    val match = lessonRegex.find(path)
-                    if (match != null && match.groupValues[2] != "index") {
-                        val folder = match.groupValues[1]
-                        val chapter = match.groupValues[2]
-                        val rewritten = "${APP_ASSET_PREFIX}apps/academy/$folder/index.html#$chapter"
-                        view?.loadUrl(rewritten)
-                        return true
-                    }
                     if (!path.startsWith("/assets/")) {
                         val correctedUrl = "$APP_ASSET_PREFIX${path.removePrefix("/")}"
                         view?.loadUrl(correctedUrl)

@@ -667,3 +667,25 @@ if (!window.amyHapticListenerAdded) {
     }
   });
 })();
+
+/* AMY_LEGACY_HASH_TO_CHAPTER_REDIRECT */
+(function setupLegacyHashRedirect() {
+  if (typeof window === 'undefined') return;
+  function checkAndRedirectHash() {
+    var hash = window.location.hash.replace(/^#/, '').trim();
+    if (!hash || hash === 'top') return;
+    if (window.location.pathname.endsWith('/index.html') || window.location.pathname.endsWith('/')) {
+      var targetLink = document.querySelector('a[href="' + hash + '.html"], a[href$="/' + hash + '.html"]');
+      if (targetLink && targetLink.getAttribute('href')) {
+        window.location.replace(targetLink.getAttribute('href'));
+      }
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkAndRedirectHash, { once: true });
+  } else {
+    checkAndRedirectHash();
+  }
+  window.addEventListener('hashchange', checkAndRedirectHash);
+})();
+

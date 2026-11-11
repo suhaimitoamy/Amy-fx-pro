@@ -272,7 +272,8 @@
         if (match) return match;
       }
 
-      const terms = q.split(/\s+/).filter(t => t.length > 2 && !['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'bab', 'buka', 'pelajari', 'jelaskan', 'ringkum'].includes(t));
+      const stopWords = ['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'materinya', 'bab', 'buka', 'pelajari', 'belajar', 'jelaskan', 'ringkum', 'tampilkan', 'baca', 'lihat', 'tolong', 'coba', 'dong', 'ya', 'tentang', 'kita', 'sedang'];
+      const terms = q.split(/\s+/).filter(t => t.length > 2 && !stopWords.includes(t));
       if (terms.length) {
         match = knowledge.find(k => {
           const t = (k.title || '').toLowerCase();
@@ -288,18 +289,56 @@
       return null;
     }
 
+    function findLessonFromChatHistory(knowledgeList) {
+      const knowledge = Array.isArray(knowledgeList) ? knowledgeList : (root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []));
+      if (!Array.isArray(knowledge) || !knowledge.length) return null;
+      const hist = loadHistory();
+      if (!Array.isArray(hist) || !hist.length) return null;
+
+      const sorted = [...knowledge].filter(k => k.title && k.title.length > 3).sort((a, b) => b.title.length - a.title.length);
+      for (let i = hist.length - 1; i >= Math.max(0, hist.length - 6); i--) {
+        const text = hist[i]?.text || '';
+        if (!text) continue;
+        for (const k of sorted) {
+          const esc = k.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          if (new RegExp('\\b' + esc + '\\b', 'i').test(text)) {
+            return k;
+          }
+        }
+      }
+      return null;
+    }
+
     function resolveLessonFromQuery(queryOrTitle) {
       const rawQ = String(queryOrTitle || '').trim();
       const q = rawQ.toLowerCase();
+      const knowledge = root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []);
 
-      const isGenericRef = !q || /\b(materi itu|materinya|buka materi itu|buka materinya|materi terakhir|terakhir|yang tadi|tadi|lanjutkan|materi ini|bab ini)\b/i.test(q);
+      const isGenericRef =
+        !q ||
+        /^(buka\s+)?(materi\s+)?(itu|nya|materinya|terakhir|tadi|lanjutkan|ini)$/i.test(q) ||
+        /\b(materi itu|materinya|buka materi itu|buka materinya|materi terakhir|yang tadi|materi tadi|lanjutkan materi|materi ini|bab ini)\b/i.test(q);
+
       if (isGenericRef) {
         if (lastRequestedLesson && lastRequestedLesson.title) return lastRequestedLesson;
         if (lastReadLessonDetails && lastReadLessonDetails.title) return lastReadLessonDetails;
+
+        const fromHist = findLessonFromChatHistory(knowledge);
+        if (fromHist) {
+          const path = resolveLessonHtmlPath(fromHist.path);
+          return {
+            title: fromHist.title,
+            relPath: path.replace(/^apps\/academy\//, ''),
+            fullPath: path,
+            summary: (fromHist.text || '').slice(0, 1800),
+            fullText: fromHist.text || ''
+          };
+        }
+
         try {
           const stored = JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null');
           if (stored && (stored.title || stored.path)) {
-            const lk = findInLocalKnowledge(stored.title || stored.path);
+            const lk = findInLocalKnowledge(stored.title || stored.path, knowledge);
             if (lk) {
               const path = resolveLessonHtmlPath(lk.path);
               return {
@@ -314,7 +353,6 @@
         } catch (_) {}
       }
 
-      const knowledge = root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []);
       const found = findInLocalKnowledge(rawQ, knowledge);
       if (found) {
         const path = resolveLessonHtmlPath(found.path);
@@ -326,26 +364,37 @@
           fullText: found.text || ''
         };
       }
+
+      const fallbackHist = findLessonFromChatHistory(knowledge);
+      if (fallbackHist) {
+        const path = resolveLessonHtmlPath(fallbackHist.path);
+        return {
+          title: fallbackHist.title,
+          relPath: path.replace(/^apps\/academy\//, ''),
+          fullPath: path,
+          summary: (fallbackHist.text || '').slice(0, 1800),
+          fullText: fallbackHist.text || ''
+        };
+      }
+
       return null;
     }
 
     async function collectAcademyReadingContext(userQuestion) {
       try {
-        lastRequestedLesson = null;
-        lastReadLessonDetails = null;
         let lastRead = null;
-      let history = [];
-      let microProgress = {};
-      try {
-        lastRead = JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null');
-      } catch (_) {}
-      try {
-        const h = JSON.parse(root.localStorage.getItem('amy_academy_reading_history_v2') || '[]');
-        if (Array.isArray(h)) history = h;
-      } catch (_) {}
-      try {
-        microProgress = JSON.parse(root.localStorage.getItem('amyfx.academy.micro_progress') || '{}') || {};
-      } catch (_) {}
+        let history = [];
+        let microProgress = {};
+        try {
+          lastRead = JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null');
+        } catch (_) {}
+        try {
+          const h = JSON.parse(root.localStorage.getItem('amy_academy_reading_history_v2') || '[]');
+          if (Array.isArray(h)) history = h;
+        } catch (_) {}
+        try {
+          microProgress = JSON.parse(root.localStorage.getItem('amyfx.academy.micro_progress') || '{}') || {};
+        } catch (_) {}
 
       const fallbackTitle = root.localStorage.getItem('amy_last_opened_title') || '';
       const fallbackUrl = root.localStorage.getItem('amy_last_opened_url') || '';
@@ -1524,9 +1573,24 @@
               renderBubble('model', `Membuka materi "${les.title}" di Academy untuk Sayang…`, {
                 links: [{ label: `👉 Buka ${les.title}`, path: les.fullPath }]
               });
+              const targetUrl = resolveAppUrl(les.fullPath);
               setTimeout(() => {
-                try { window.location.assign(resolveAppUrl(les.fullPath)); } catch (_) {}
-              }, 650);
+                try {
+                  window.location.href = targetUrl;
+                } catch (_) {
+                  try { window.location.assign(targetUrl); } catch (_) {}
+                }
+              }, 400);
+
+              setTimeout(() => {
+                if (isLiveConnected) {
+                  setOrbVisualState(isStreamingMic ? 'listening' : '', isStreamingMic ? 'Mendengarkan…' : 'Siap Menemani Sayang');
+                } else {
+                  setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
+                }
+                isSending = false;
+              }, 2200);
+
               isSending = false;
               return;
             }
@@ -1555,7 +1619,7 @@
       }
 
       // Cek apakah perintah membuka materi saat non-live chat biasa
-      const isExplicitOpenNonLive = /\b(buka|baca|tampilkan|ke materi|lihat materi)\b/i.test(q) && /\b(materi|modul|level|bab|bagian|breaker|fvg|order block|itu|terakhir)\b/i.test(q);
+      const isExplicitOpenNonLive = /\b(buka|baca|tampilkan|ke materi|lihat materi)\b/i.test(q) && /\b(materi|materinya|modul|level|bab|bagian|breaker|fvg|order block|itu|terakhir)\b/i.test(q);
       if (isExplicitOpenNonLive) {
         const les = resolveLessonFromQuery(q);
         if (les && les.title) {
@@ -1574,9 +1638,14 @@
           renderBubble('model', `Membuka materi "${les.title}" di Academy untuk Sayang…`, {
             links: [{ label: `👉 Buka ${les.title}`, path: les.fullPath }]
           });
+          const targetUrl = resolveAppUrl(les.fullPath);
           setTimeout(() => {
-            try { window.location.assign(resolveAppUrl(les.fullPath)); } catch (_) {}
-          }, 650);
+            try {
+              window.location.href = targetUrl;
+            } catch (_) {
+              try { window.location.assign(targetUrl); } catch (_) {}
+            }
+          }, 400);
           isSending = false;
           setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
           return;
@@ -2071,8 +2140,20 @@
                     isStreamingMic = false;
                     const targetUrl = resolveAppUrl(les.fullPath);
                     setTimeout(() => {
-                      try { window.location.assign(targetUrl); } catch (_) {}
-                    }, 650);
+                      try {
+                        window.location.href = targetUrl;
+                      } catch (_) {
+                        try { window.location.assign(targetUrl); } catch (_) {}
+                      }
+                    }, 400);
+
+                    setTimeout(() => {
+                      if (isLiveConnected) {
+                        setOrbVisualState(isStreamingMic ? 'listening' : '', isStreamingMic ? 'Mendengarkan…' : 'Siap Menemani Sayang');
+                      } else {
+                        setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
+                      }
+                    }, 2200);
 
                     toolResultText =
                       `Materi "${les.title}" berhasil dibuka di layar Academy Sayang (${les.fullPath}). ` +

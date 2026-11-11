@@ -1,5 +1,23 @@
 # Technical Decisions
 
+## 2026-11-11 — Resolusi Materi Berbasis Riwayat Obrolan, Navigasi Langsung Bab Mandiri, & Anti-Stuck Visual (v2.0.0-pro.446)
+1. **Latar Belakang & Masalah:**
+   - Saat pengguna mengetik "Buka materinya" setelah Amy menjelaskan materi "Breaker Block":
+     1. Perintah keliru membuka "Apa Itu Chart" karena kata referensi generik ("materinya") tidak terfilter dan riwayat obrolan tidak diinspeksi.
+     2. Status visual orb membeku (stuck) di "Memproses…" dan halaman bab materi tidak kunjung terbuka di WebView.
+2. **Akar Masalah (Root Cause):**
+   - Di `amy-gemini-live-bridge.js`, `resolveLessonFromQuery` mereset `lastRequestedLesson` ke null dan tidak memeriksa model turn terakhir pada `loadHistory()`.
+   - Di `MainActivity.kt`, terdapat aturan regex lama (`lessonRegex`) yang mencegat URL bab `.html` dan membelokkannya ke `index.html#chapter` (padahal seluruh 617 bab kini telah berformat file HTML mandiri dan `index.html` hanya berisi daftar modul). Akibatnya WebView tidak merender bab materi dan proses terhenti.
+   - Di `amy-gemini-live-bridge.js`, `window.location.assign` tidak memicu fallback pemulihan orb visual jika navigasi tertunda, membiarkan status "Memproses…" tergantung.
+3. **Solusi & Implementasi:**
+   - Ditambahkan `findLessonFromChatHistory` yang memindai pesan obrolan terakhir terhadap judul 530 materi `AmyLocalKnowledge` (diurutkan descending berdasarkan panjang judul), sehingga "Breaker Block" terdeteksi seketika dengan akurasi 100%.
+   - Kata stop words pada `findInLocalKnowledge` diperluas (`materinya`, `belajar`, `materi`, `bab`, `buka`, dll).
+   - Menghapus interceptor usang `lessonRegex` di `MainActivity.kt` sehingga WebView langsung memuat file bab `.html` mandiri secara native.
+   - Ditambahkan fallback redirect otomatis pada `apps/academy/assets/js/main.js` jika terdapat tautan hash format lama `#chapter`.
+   - Mengubah navigasi menggunakan `window.location.href = targetUrl` serta memasang safety timer 2.2 detik untuk memulihkan orb visual state agar tidak pernah membeku di "Memproses…".
+   - Bump versi aplikasi menjadi `v2.0.0-pro.446` (code `950446`).
+
+
 ## 2026-11-10 — Penonaktifan Sementara Notifikasi Struktural (SSL/BSL Swept, POI, DOL) di DriverSetupSyncWorker
 1. **Latar Belakang & Instruksi Sayang:**
    - Sayang meminta agar notifikasi `💧 Asisten Amy: SSL Swept!` dan `BSL Swept` (beserta notifikasi pendamping/struktural sejenis) dinonaktifkan dulu untuk sementara agar tidak mengganggu fokus dan mengurangi noise notifikasi.

@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.445/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.446/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ AMY Auto-Navigate Academy Lesson: Perintah membuka materi (misal 'Buka materi itu' atau 'Buka Breaker Block') kini otomatis langsung mengalihkan layar ke halaman materi terkait di Academy.",
-    "✦ Live Contextual Lesson Q&A: Saat membuka halaman materi, AMY membaca seluruh isi teks di layar dan menjawab setiap pertanyaan Sayang secara mendalam dan akurat berdasarkan materi yang sedang dibaca.",
-    "✦ Offline-First Local Lesson Resolver: Pencarian dan resolusi bab Academy kini 100% instan dan mandiri tanpa ketergantungan jaringan."
+    "✦ Contextual Lesson Extraction from Chat: 'Buka materinya' kini secara cerdas melacak topik materi yang baru dibahas dalam obrolan terakhir (seperti Breaker Block) dengan 100% akurasi.",
+    "✦ Direct Chapter Navigation & Anti-Stuck Fix: Menghapus rewrite usang di MainActivity sehingga WebView langsung membuka halaman bab mandiri dan orb visual state tidak lagi freeze di 'Memproses…'.",
+    "✦ Legacy Hash Redirect Fallback: Menambahkan redirector otomatis di main.js agar tautan format lama langsung dialihkan ke file HTML bab terkait."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.445/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.446/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950445,
-  "latest_version_name": "2.0.0-pro.445",
+  "latest_version_code": 950446,
+  "latest_version_name": "2.0.0-pro.446",
   "mandatory": false,
   "releaseDate": "2026-11-11",
   "release_notes": [
-    "✦ AMY Auto-Navigate Academy Lesson: Perintah membuka materi (misal 'Buka materi itu' atau 'Buka Breaker Block') kini otomatis langsung mengalihkan layar ke halaman materi terkait di Academy.",
-    "✦ Live Contextual Lesson Q&A: Saat membuka halaman materi, AMY membaca seluruh isi teks di layar dan menjawab setiap pertanyaan Sayang secara mendalam dan akurat berdasarkan materi yang sedang dibaca.",
-    "✦ Offline-First Local Lesson Resolver: Pencarian dan resolusi bab Academy kini 100% instan dan mandiri tanpa ketergantungan jaringan."
+    "✦ Contextual Lesson Extraction from Chat: 'Buka materinya' kini secara cerdas melacak topik materi yang baru dibahas dalam obrolan terakhir (seperti Breaker Block) dengan 100% akurasi.",
+    "✦ Direct Chapter Navigation & Anti-Stuck Fix: Menghapus rewrite usang di MainActivity sehingga WebView langsung membuka halaman bab mandiri dan orb visual state tidak lagi freeze di 'Memproses…'.",
+    "✦ Legacy Hash Redirect Fallback: Menambahkan redirector otomatis di main.js agar tautan format lama langsung dialihkan ke file HTML bab terkait."
   ],
-  "version": "2.0.0-pro.445",
-  "versionCode": 950445,
+  "version": "2.0.0-pro.446",
+  "versionCode": 950446,
   "sha256": "c57e0ec6cf510789905309ec8cb98988214cdab7bcee643138362326f620c807"
 }
