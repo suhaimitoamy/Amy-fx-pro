@@ -27,6 +27,21 @@ function loadKnowledge() {
   return [];
 }
 
+function resolveLessonHtmlPath(rawPath) {
+  if (!rawPath) return 'apps/academy/index.html';
+  let p = rawPath.replace(/^.*\/apps\/academy\//, 'apps/academy/');
+  if (!p.startsWith('apps/academy/')) p = 'apps/academy/' + p;
+  const hashIdx = p.indexOf('#');
+  if (hashIdx !== -1) {
+    const base = p.slice(0, hashIdx);
+    const anchor = p.slice(hashIdx + 1);
+    if (base.endsWith('/index.html') && anchor) {
+      return base.replace(/\/index\.html$/, '/' + anchor + '.html');
+    }
+  }
+  return p;
+}
+
 function findBestLesson(query, knowledge) {
   if (!query || !Array.isArray(knowledge) || !knowledge.length) return null;
   const q = String(query).toLowerCase().trim();
@@ -35,11 +50,11 @@ function findBestLesson(query, knowledge) {
   let match = knowledge.find(k => k.title && k.title.toLowerCase() === q);
   if (match) return match;
 
-  // 2. Modul match (e.g. "modul 2" or "modul 02")
-  const modulMatch = q.match(/modul\s*0?(\d+)/i);
+  // 2. Modul atau Bagian match (e.g. "modul 2" or "bagian 05")
+  const modulMatch = q.match(/(?:modul|bagian)\s*0?(\d+)/i);
   if (modulMatch) {
     const num = String(modulMatch[1]).padStart(2, '0');
-    match = knowledge.find(k => k.path && k.path.includes(`modul-${num}`));
+    match = knowledge.find(k => k.path && (k.path.includes(`bagian-${num}`) || k.path.includes(`modul-${num}`)));
     if (match) return match;
   }
 
@@ -51,16 +66,8 @@ function findBestLesson(query, knowledge) {
     if (match) return match;
   }
 
-  // 4. Bagian match (e.g. "bagian 1" or "bagian 16")
-  const bagianMatch = q.match(/bagian\s*0?(\d+)/i);
-  if (bagianMatch) {
-    const num = String(bagianMatch[1]).padStart(2, '0');
-    match = knowledge.find(k => k.path && k.path.includes(`bagian-${num}`));
-    if (match) return match;
-  }
-
-  // 5. Keyword match in title
-  const terms = q.split(/\s+/).filter(t => t.length > 2 && !['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'bab', 'buka', 'pelajari', 'jelaskan'].includes(t));
+  // 4. Keyword match in title
+  const terms = q.split(/\s+/).filter(t => t.length > 2 && !['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'bab', 'buka', 'pelajari', 'jelaskan', 'ringkum'].includes(t));
   if (terms.length) {
     match = knowledge.find(k => {
       const t = (k.title || '').toLowerCase();
@@ -75,7 +82,7 @@ function findBestLesson(query, knowledge) {
     if (match) return match;
   }
 
-  // 6. Search in text content
+  // 5. Search in text content
   if (terms.length > 1) {
     match = knowledge.find(k => {
       const txt = (k.text || '').toLowerCase();
@@ -117,11 +124,18 @@ export default async function handler(req, res) {
 
   // Process requested lesson if query exists
   if (query) {
-    const found = findBestLesson(query, knowledge);
+    let searchQ = query;
+    const isGenericRef = /\b(materi itu|materinya|buka materi itu|buka materinya|materi terakhir|terakhir|yang tadi|tadi|lanjutkan|materi ini)\b/i.test(query);
+    if (isGenericRef && lastRead && (lastRead.title || lastRead.path)) {
+      searchQ = lastRead.title || lastRead.path;
+    }
+    const found = findBestLesson(searchQ, knowledge);
     if (found) {
+      const realHtmlPath = resolveLessonHtmlPath(found.path);
       requestedLesson = {
         title: found.title,
-        relPath: found.path.replace(/^.*\/apps\/academy\//, ''),
+        relPath: realHtmlPath.replace(/^apps\/academy\//, ''),
+        fullPath: realHtmlPath,
         summary: (found.text || '').slice(0, 1500),
         fullText: found.text || '',
         nextLessonTitle: '',
@@ -134,9 +148,11 @@ export default async function handler(req, res) {
   if (lastRead && (lastRead.title || lastRead.path)) {
     const foundLast = findBestLesson(lastRead.title || lastRead.path, knowledge);
     if (foundLast) {
+      const realLastPath = resolveLessonHtmlPath(foundLast.path);
       lessonDetails = {
         title: foundLast.title,
-        relPath: foundLast.path.replace(/^.*\/apps\/academy\//, ''),
+        relPath: realLastPath.replace(/^apps\/academy\//, ''),
+        fullPath: realLastPath,
         summary: (foundLast.text || '').slice(0, 1500),
         fullText: foundLast.text || '',
         nextLessonTitle: '',

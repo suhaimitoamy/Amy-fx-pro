@@ -667,6 +667,50 @@ const requestHandler = async (req, res) => {
       }
     }
 
+    if (pathname === '/api/academy-reading') {
+      try {
+        const handler = (await import('../api/academy-reading.js')).default;
+        let statusCode = 200;
+        const outHeaders = {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json; charset=utf-8'
+        };
+        const fakeRes = {
+          setHeader: (k, v) => { outHeaders[k] = v; },
+          status: (c) => { statusCode = c; return fakeRes; },
+          json: (d) => {
+            res.writeHead(statusCode, outHeaders);
+            res.end(JSON.stringify(d));
+          },
+          send: (d) => {
+            res.writeHead(statusCode, outHeaders);
+            res.end(typeof d === 'string' ? d : JSON.stringify(d));
+          }
+        };
+        const parsedUrl = new URL(req.url, 'http://localhost');
+        const fakeReq = {
+          method: req.method,
+          headers: req.headers,
+          query: Object.fromEntries(parsedUrl.searchParams),
+          body: {}
+        };
+        if (req.method === 'POST') {
+          let bodyStr = '';
+          req.on('data', chunk => { bodyStr += chunk; });
+          req.on('end', async () => {
+            try { fakeReq.body = bodyStr ? JSON.parse(bodyStr) : {}; } catch (_) {}
+            await handler(fakeReq, fakeRes);
+          });
+          return;
+        }
+        return await handler(fakeReq, fakeRes);
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: err.message }));
+        return;
+      }
+    }
+
     // --- AMY FX PRO GEMINI AI BRIDGE (/api/gemini-config & /api/gemini-chat) ---
     if (pathname === '/api/gemini-config') {
       let apiKey = '';

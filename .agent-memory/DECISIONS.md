@@ -1480,5 +1480,19 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
   - Menambahkan pendeteksi batas kata dinamis (`needsSpace`) pada streaming chunk audio transkripsi Gemini Live agar kata-kata bahasa Indonesia tidak menempel tanpa spasi.
 - **Version Bump:** Bumped to `v2.0.0-pro.444` (code `950444`).
 
+### 2026-11-11: Permanent Checkpoint & Release v2.0.0-pro.445 (AMY Auto-Navigate Academy Lesson & Contextual Lesson Q&A)
+- **Safe Revert Checkpoint:** Commit `8f96282e` (v2.0.0-pro.444).
+- **Fitur 1 (Auto-Navigate Layar Materi Academy):**
+  - Perintah membuka materi (suara maupun teks, misal *"Buka materi itu"*, *"Buka materi Breaker Block"*, *"Pelajari modul 2"*) kini otomatis langsung mengalihkan layar browser/aplikasi ke halaman materi terkait di Academy (`apps/academy/[bagian]/[bab].html`).
+  - Auto-resume sesi live suara tetap berjalan mulus tanpa jeda (`amyfx.auto_resume_live`).
+- **Fitur 2 (Tanya-Jawab Kontekstual Sesuai Isi Materi):**
+  - Saat berada di halaman materi, AMY membaca teks materi aktif langsung dari layar (`document.querySelector('.article, .glass-panel')`) dan menginjeksinya ke konteks model.
+  - Jika pengguna bingung atau bertanya seputar materi tersebut, AMY menjawab secara mendalam dan akurat berdasarkan isi teks materi yang sedang dibaca.
+- **Fitur 3 (Offline-First Local Lesson Resolver):**
+  - Resolusi pencarian bab materi menggunakan `resolveLessonFromQuery` berbasis `window.AmyLocalKnowledge` (530 materi lengkap) sehingga 100% offline, instan (0 ms), dan bebas kegagalan jaringan.
+  - Mendukung referensi dinamis: *"materi itu"*, *"materi terakhir"*, *"yang tadi"*, maupun nama spesifik (*"Breaker Block"*, *"FVG"*, *"Order Block"*).
+- **Version Bump:** Bumped to `v2.0.0-pro.445` (code `950445`).
+
+
 
 
