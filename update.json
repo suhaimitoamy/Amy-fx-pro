@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.443/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.444/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ AMY Full Reading & Material Summarizer: Integrasi penuh 530 materi Amy FX Academy, ekstraksi isi materi bacaan terakhir langsung ke konteks AMY untuk rangkuman akurat tanpa 404.",
-    "✦ AMY Omnipresent App Navigation: Tombol aksi langsung interaktif bergradien emas untuk membuka Chart Gold, Berita & Kalender, Jurnal, Glosarium ICT, Kalkulator Risiko, Trading Practice, dan Modul/Level Academy.",
-    "✦ AMY Anti-Hang Timeout & Resilient Fallback: Perlindungan timeout request 9 detik untuk mencegah pembekuan UI status 'Menganalisa...' di jaringan seluler lambat."
+    "✦ AMY Omnipresent Central Brain: Akses penuh data ICT real-time (PDH, PDL, PWH, PWL, OB 50% CE, FVG, BOS, MSS, Dealing Range) & Berita Makro langsung dijawab di tempat dari halaman mana pun.",
+    "✦ AMY Seamless Voice Transition: Penghapusan sapaan ganda (double greeting) dan pengalihan halaman instan saat diperintah berpindah.",
+    "✦ Dynamic Speech Transcription: Spasi kata alami pada streaming transkripsi suara Gemini Live untuk kenyamanan membaca."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.443/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.444/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950443,
-  "latest_version_name": "2.0.0-pro.443",
+  "latest_version_code": 950444,
+  "latest_version_name": "2.0.0-pro.444",
   "mandatory": false,
-  "releaseDate": "2026-11-10",
+  "releaseDate": "2026-11-11",
   "release_notes": [
-    "✦ AMY Full Reading & Material Summarizer: Integrasi penuh 530 materi Amy FX Academy, ekstraksi isi materi bacaan terakhir langsung ke konteks AMY untuk rangkuman akurat tanpa 404.",
-    "✦ AMY Omnipresent App Navigation: Tombol aksi langsung interaktif bergradien emas untuk membuka Chart Gold, Berita & Kalender, Jurnal, Glosarium ICT, Kalkulator Risiko, Trading Practice, dan Modul/Level Academy.",
-    "✦ AMY Anti-Hang Timeout & Resilient Fallback: Perlindungan timeout request 9 detik untuk mencegah pembekuan UI status 'Menganalisa...' di jaringan seluler lambat."
+    "✦ AMY Omnipresent Central Brain: Akses penuh data ICT real-time (PDH, PDL, PWH, PWL, OB 50% CE, FVG, BOS, MSS, Dealing Range) & Berita Makro langsung dijawab di tempat dari halaman mana pun.",
+    "✦ AMY Seamless Voice Transition: Penghapusan sapaan ganda (double greeting) dan pengalihan halaman instan saat diperintah berpindah.",
+    "✦ Dynamic Speech Transcription: Spasi kata alami pada streaming transkripsi suara Gemini Live untuk kenyamanan membaca."
   ],
-  "version": "2.0.0-pro.443",
-  "versionCode": 950443,
+  "version": "2.0.0-pro.444",
+  "versionCode": 950444,
   "sha256": "48a7cfe9d879cff19eac19027c6dcd6b2edcc5443489a7a4692eeda41a20be76"
 }

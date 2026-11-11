@@ -1467,4 +1467,18 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
   - Added 9-second `AbortController` timeout on chat requests to permanently prevent "Menganalisa..." freezes.
 - **Version Bump:** Bumped to `v2.0.0-pro.443` (code `950443`).
 
+### 2026-11-11: Permanent Checkpoint & Release v2.0.0-pro.444 (AMY Omnipresent Brain, Zero Double Greeting & Natural Transcription Spacing)
+- **Safe Revert Checkpoint:** Commit `475deb33` (v2.0.0-pro.443).
+- **Fitur 1 (Omnipresent Central Brain):**
+  - Amy Live terhubung langsung ke mesin `/api/scalper-setups` (`fetchLiveMarketStructureSummary`) dan `/api/news` (`fetchLiveMarketNewsSummary`).
+  - Pengguna dapat bertanya tentang level harga kunci ICT (PDH, PDL, PWH, PWL, OB 50% CE, FVG Fresh, BOS, MSS, Dealing Range EQ 50%), Berita Makro, dan Jurnal Trading dari halaman mana pun (termasuk Beranda) tanpa berpindah layar. Amy menjawab langsung di tempat secara akurat.
+  - Tool `navigate_to_page` hanya dipanggil jika pengguna secara eksplisit memberi instruksi untuk berpindah/membuka layar.
+- **Fitur 2 (Zero Double Greeting):**
+  - Menghentikan pemutaran audio (`stopPlayback()`) seketika saat navigasi diperintahkan, mempercepat jeda pengalihan (650 ms), dan menginstruksikan respons tool untuk diam sebelum halaman baru termuat.
+  - Amy hanya menyapa satu kali secara ramah dan ringkas di halaman tujuan (`pendingAutoResumeGreeting`).
+- **Fitur 3 (Natural Speech Transcription Spacing):**
+  - Menambahkan pendeteksi batas kata dinamis (`needsSpace`) pada streaming chunk audio transkripsi Gemini Live agar kata-kata bahasa Indonesia tidak menempel tanpa spasi.
+- **Version Bump:** Bumped to `v2.0.0-pro.444` (code `950444`).
+
+
 

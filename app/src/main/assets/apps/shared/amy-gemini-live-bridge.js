@@ -27,6 +27,7 @@
   let currentLiveAiBubble = null;
   let currentLiveUserBubble = null;
   let isBubbleFullscreen = false;
+  let pendingAutoResumeGreeting = '';
 
   // Threshold sensitif untuk mikrofon HP + jeda hening alami 1.4 detik
   const VAD_SPEECH_THRESHOLD = 0.0085;
@@ -41,9 +42,7 @@
       .replace(/\*([^*\n]+)\*/g, '$1')
       .replace(/[*#`]/g, '')
       .replace(/\bGold([a-zA-Z])/g, 'Gold $1')
-      .replace(/\bSayang\b/g, 'kamu')
-      .replace(/\bsayang\b/g, 'kamu')
-      .replace(/\bHalo kamu\b/gi, 'Halo')
+      .replace(/([.!?])([A-Za-z])/g, '$1 $2')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
@@ -91,6 +90,9 @@
     const clean = String(rawPath).replace(/^(\/assets\/|\.\/|\/)/, '');
     if (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.includes('appassets.androidplatform.net')) {
       return 'https://appassets.androidplatform.net/assets/' + clean;
+    }
+    if (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/assets/')) {
+      return '/assets/' + clean;
     }
     return '/' + clean;
   }
@@ -429,11 +431,122 @@
     }
   }
 
+  async function fetchLiveMarketStructureSummary() {
+    try {
+      const res = await fetch(getApiBaseUrl() + '/api/scalper-setups', {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(4500)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const ctx = data.context || data;
+        if (ctx && ctx.version) {
+          const lines = [];
+          const price = ctx.price ? `$${Number(ctx.price).toFixed(2)}` : '';
+          if (price) lines.push(`Harga XAU/USD Terakhir: ${price}`);
+
+          // Dealing Range M15
+          const dr = ctx.m15?.dealingRange;
+          if (dr) {
+            lines.push(`🗺️ Dealing Range M15: Posisi saat ini di ${dr.location || 'NETRAL'} · Range $${Number(dr.rangeLow || 0).toFixed(2)} s.d. $${Number(dr.rangeHigh || 0).toFixed(2)} · Equilibrium (EQ 50%) di $${Number(dr.eq || 0).toFixed(2)}`);
+          }
+
+          // Likuiditas Kunci
+          if (Array.isArray(ctx.liquidity) && ctx.liquidity.length) {
+            const liqParts = ctx.liquidity.map(l => `${l.label}: $${Number(l.level).toFixed(2)} (${l.status || 'AKTIF'})`);
+            lines.push(`🎯 Level Likuiditas ICT:\n• ${liqParts.join('\n• ')}`);
+          }
+
+          // Bias 3-Timeframe
+          const h1Bias = ctx.h1?.bias || 'Netral';
+          const h1Health = ctx.h1?.health || '';
+          const m15Control = ctx.m15?.control || 'Seimbang';
+          const m15Structure = ctx.m15?.structure || '';
+          const m5Status = ctx.m5?.status || 'Menunggu';
+          lines.push(`📊 Bias Multi-Timeframe:\n• H1 Bias: ${h1Bias} (${h1Health}) · Protected Level: $${Number(ctx.h1?.protectedLevel || 0).toFixed(2)}\n• M15 Struktur: ${m15Structure} (Dikontrol oleh ${m15Control}) · Invalidasi: $${Number(ctx.m15?.invalidLevel || 0).toFixed(2)}\n• M5 Eksekusi: ${m5Status}`);
+
+          // Order Block (OB) & Breaker
+          const poi = ctx.m15?.poi;
+          if (poi) {
+            lines.push(`🧱 Order Block M15 Terdekat (${poi.label || poi.side}): Rentang $${Number(poi.low).toFixed(2)} s.d. $${Number(poi.high).toFixed(2)} · Titik 50% CE: $${Number(poi.ce).toFixed(2)} · Status: ${poi.lifecycle || 'FRESH'}`);
+          }
+
+          // Break Struktur (BOS & MSS)
+          const lastBreak = ctx.m15?.lastBreak;
+          if (lastBreak) {
+            lines.push(`⚡ Break Struktur M15: ${lastBreak.kind || 'BOS'} (${lastBreak.side}) di level $${Number(lastBreak.level).toFixed(2)}`);
+          }
+          if (ctx.m5?.mss) {
+            lines.push(`⚡ MSS M5: di level $${Number(ctx.m5.mss.level).toFixed(2)}`);
+          }
+
+          // Fair Value Gap (FVG) Fresh
+          const freshFvgs = (ctx.indicators?.m15?.fvg || []).filter(f => f.status === 1 || f.lifecycle === 'FRESH');
+          if (freshFvgs.length) {
+            const fvgParts = freshFvgs.slice(0, 3).map(f => `${f.side} FVG: $${Number(f.low).toFixed(2)} s.d. $${Number(f.high).toFixed(2)} (CE 50%: $${Number(f.ce).toFixed(2)})`);
+            lines.push(`⚡ Fair Value Gap (FVG) Fresh M15:\n• ${fvgParts.join('\n• ')}`);
+          }
+
+          // Confluence & Skenario
+          if (ctx.confluence?.score != null) {
+            lines.push(`Skor Confluence: ${ctx.confluence.score}/100 [${ctx.confluence.grade || 'WAIT'}] · Sinyal: ${ctx.primary?.label || 'Belum ada setup valid'}`);
+          }
+          if (ctx.plan?.entry) {
+            lines.push(`Rencana Setup Scalper: ${ctx.plan.signalName || 'Setup Aktif'} · Entry $${Number(ctx.plan.entry).toFixed(2)} | SL $${Number(ctx.plan.sl).toFixed(2)} | TP $${Number(ctx.plan.tp1).toFixed(2)} (RR ${Number(ctx.plan.rr1 || 0).toFixed(2)}R)`);
+          }
+
+          // News Status
+          if (ctx.news) {
+            lines.push(`Status Berita Kalender: ${ctx.news.note || ctx.news.status || 'SAFE'}`);
+          }
+
+          return lines.join('\n\n');
+        }
+      }
+    } catch (e) {
+      console.warn('fetchLiveMarketStructureSummary error:', e);
+    }
+    return '';
+  }
+
+  async function fetchLiveMarketNewsSummary(topic) {
+    try {
+      const res = await fetch(getApiBaseUrl() + '/api/news', {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(4500)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || data.news || [];
+        if (items.length) {
+          let filtered = items;
+          if (topic) {
+            const tLower = topic.toLowerCase();
+            filtered = items.filter(it => (it.title || it.text || '').toLowerCase().includes(tLower));
+            if (!filtered.length) filtered = items;
+          }
+          const list = filtered.slice(0, 4).map((it, i) =>
+            `${i + 1}. ${it.title || it.text || ''} (${it.source || 'SM News 24'} · ${it.time || ''})`
+          ).join('\n\n');
+          return `Rangkuman Berita Makro Terkini SM News 24:\n${list}`;
+        }
+      }
+    } catch (_) {}
+    return 'Belum ada berita berdampak tinggi dalam feed kalender saat ini. Kondisi pasar aman.';
+  }
+
   async function collectAmyAppContext(userQuestion) {
     const lines = [];
     const nowWita = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar', hour12: false }) + ' WITA';
     lines.push(`Waktu Saat Ini: ${nowWita}`);
     lines.push(`Halaman Aktif: ${document.title || window.location.pathname}`);
+
+    try {
+      const marketData = await fetchLiveMarketStructureSummary();
+      if (marketData) {
+        lines.push(`DATA STRUKTUR PASAR & ICT RESMI REAL-TIME (DARI ENGINE AMY FX PRO):\n${marketData}`);
+      }
+    } catch (_) {}
 
     const academyCtx = await collectAcademyReadingContext(userQuestion);
     if (academyCtx) lines.push(academyCtx);
@@ -1189,6 +1302,16 @@
             a.href = targetUrl;
             a.onclick = e => {
               e.preventDefault();
+              if (isLiveConnected || isLiveConnecting) {
+                try {
+                  sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
+                    active: true,
+                    timestamp: Date.now(),
+                    targetTitle: l.label || 'halaman baru',
+                    fullscreen: isBubbleFullscreen
+                  }));
+                } catch (_) {}
+              }
               window.location.href = targetUrl;
             };
             linkWrap.appendChild(a);
@@ -1208,7 +1331,7 @@
       if (!saved.length) {
         renderBubble(
           'model',
-          'Halo, ada yang ingin kamu analisa di Chart Gold atau pelajari di Academy hari ini?'
+          'Halo Sayang! Ada yang ingin dianalisa di Chart Gold atau dipelajari di Academy hari ini? Aku siap dampingi Sayang.'
         );
         return;
       }
@@ -1370,11 +1493,11 @@
             const cfg = await ensureGeminiConfig();
             const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${cfg.apiKey}`;
             const sysText =
-              `Kamu adalah AMY (✦ AMY), asisten pintar di dalam aplikasi Amy FX Pro.\n` +
-              `Panggil pengguna dengan sapaan "kamu". Nada ramah, profesional, dan to the point.\n` +
+              `Kamu adalah AMY (✦ AMY), asisten trading pintar dan setia di dalam aplikasi Amy FX Pro.\n` +
+              `Panggil pengguna selalu dengan sebutan "Sayang" dengan nada bicara yang hangat, cerdas, dan suportif dalam Bahasa Indonesia yang luwes.\n` +
               `Pengguna adalah Pure Gold Scalper M15/M5 target 100 pips WITA.\n` +
               `Konteks data aplikasi saat ini:\n${appContext || 'Data tidak tersedia.'}\n` +
-              `DILARANG mengarang angka harga Gold. Jangan pakai simbol markdown bintang (*), pagar (#), atau garis (---). Jawab dalam teks bersih.`;
+              `Gunakan istilah standar trader pro (Support/Demand, Resistance/Supply, No-Trade Zone, Dealing Range, FVG, OB, MSS). Jawab mengalir, bernarasi jelas, rapi, dan tuntas. Gunakan tanda titik bulat (•) untuk poin.`;
             const gContents = [];
             for (const h of hist.slice(-6)) {
               if (h?.text) gContents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: String(h.text) }] });
@@ -1588,6 +1711,77 @@
                         type: 'OBJECT',
                         properties: {}
                       }
+                    },
+                    {
+                      name: 'navigate_to_page',
+                      description:
+                        'HANYA DAN WAJIB dipanggil jika pengguna SECARA EKSPLISIT memerintahkan untuk membuka, berpindah layar, atau menampilkan halaman (contoh: "buka halaman mapping", "pindahkan ke berita", "tampilkan jurnal"). DILARANG MEMANGGIL TOOL INI jika pengguna HANYA BERTANYA informasi (seperti tanya PDH/PDL, OB, FVG, mapping, berita, atau jurnal) — untuk pertanyaan informasi, CUKUP JAWAB LANGSUNG DI TEMPAT menggunakan tool data terkait!',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {
+                          page: {
+                            type: 'STRING',
+                            description: 'Tujuan halaman: "home" (Beranda), "mapping" (Peta Struktur & Chart Gold), "journal" (Jurnal Trading), "academy" (Tutorial/Akademi Trading), "news" (Berita Makro & Kalender), "chart_analysis" (Praktik Chart Analysis), "candle_replay" (Praktik Replay Candle), "guided_practice" (Latihan Soal 60 Kasus), "backtest_history" (Riwayat Backtest).'
+                          }
+                        },
+                        required: ['page']
+                      }
+                    },
+                    {
+                      name: 'switch_chart_timeframe',
+                      description:
+                        'Mengganti timeframe grafik candle Gold di layar antara M15 dan M5 (contoh: "ganti ke M5", "lihat chart M15").',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {
+                          timeframe: {
+                            type: 'STRING',
+                            description: 'Timeframe target: "M15" atau "M5".'
+                          }
+                        },
+                        required: ['timeframe']
+                      }
+                    },
+                    {
+                      name: 'get_journal_summary',
+                      description:
+                        'Mengambil ringkasan performa jurnal trading pengguna dari data lokal aplikasi (total trade, win rate, total pips, profit/loss, evaluasi disiplin). WAJIB dipanggil jika pengguna bertanya tentang jurnal tradingnya dan JAWAB LANGSUNG DI TEMPAT tanpa membuka halaman jurnal.',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {}
+                      }
+                    },
+                    {
+                      name: 'get_market_news_summary',
+                      description:
+                        'Mengambil rangkuman berita makro terkini dari SM News 24 dan kalender ekonomi di aplikasi. WAJIB dipanggil saat pengguna menanyakan kabar berita terbaru atau sentimen makro dan JAWAB LANGSUNG DI TEMPAT tanpa perlu membuka halaman berita.',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {
+                          topic: {
+                            type: 'STRING',
+                            description: 'Topik berita spesifik (opsional, contoh: "perang", "fed", "inflasi", "emas").'
+                          }
+                        }
+                      }
+                    },
+                    {
+                      name: 'get_mapping_structure_details',
+                      description:
+                        'Mengambil status data struktur lengkap pasar Gold dari engine resmi (PDH, PDL, PWH, PWL, BSL, SSL, Dealing Range Premium/Discount/EQ 50%, Order Block fresh beserta titik 50% CE, FVG, BOS, MSS, dan bias multi-timeframe). WAJIB dipanggil saat pengguna menanyakan hal seputar mapping, level harga kunci ICT, atau struktur chart di mana pun pengguna berada, TANPA PERLU MEMBUKA HALAMAN MAPPING.',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {}
+                      }
+                    },
+                    {
+                      name: 'refresh_chart_view',
+                      description:
+                        'Mengambil snapshot visual gambar grafik Gold terbaru di layar saat ini jika pengguna meminta mengecek atau melihat kembali chart.',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {}
+                      }
                     }
                   ]
                 }
@@ -1595,18 +1789,23 @@
               systemInstruction: {
                 parts: [{
                   text:
-                    `Kamu adalah AMY (✦ AMY), asisten suara pintar di dalam aplikasi Amy FX Pro.\n` +
-                    `Berbicaralah 100% dalam Bahasa Indonesia yang ramah, cerdas, dan natural. Panggil pengguna dengan sebutan "kamu" (JANGAN panggil "Sayang", "Mas", atau sapaan lainnya).\n` +
-                    `Pengguna adalah Pure Gold Scalper (XAU/USD timeframe M15 & M5, target presisi 100 pips / $10, zona waktu WITA).\n` +
-                    `Kamu berada langsung di dalam layar aplikasi Amy FX Pro bersama pengguna, sehingga kamu bisa melihat langsung Chart Gold M15/M5 yang sedang tampil di layar pengguna beserta seluruh data aplikasi berikut:\n\n` +
-                    `${appContext}\n\n` +
-                    `ATURAN PENTING & ANTI-HALUSINASI ANGKA HARGA:\n` +
-                    `- DILARANG KERAS MENGARANG ATAU MEMFABRIKASI ANGKA HARGA GOLD. Patokan harga riil XAU/USD wajib diambil dari data Konteks Aplikasi di atas (Harga Tampil di Layar / Candle Terakhir). Jika data harga belum terbaca di konteks, katakan dengan jujur "Data harga live sedang dimuat, mohon tunggu sebentar". JANGAN PERNAH mengarang angka seperti 4000+!\n` +
-                    `- Jawab singkat, padat, jelas, dan tuntas. Jangan gunakan simbol markdown seperti tanda bintang (*), pagar (#), atau garis (---).\n` +
-                    `- AKSES PENUH SELURUH MATERI ACADEMY: Kamu memiliki akses penuh ke seluruh kurikulum Amy FX Academy (Level 0 s.d. Level 6 total 42 bab, 10 Modul Master, dan 36 Bagian / 222 bab) yang terdaftar di atas.\n` +
-                    `- DILARANG KERAS MENOLAK PERMINTAAN BELAJAR: Saat pengguna meminta mempelajari atau membuka Level mana pun (Level 0–6), Modul mana pun (Modul 1–10), atau topik apa pun (misal "Coba kita pelajari modul 2", "Buka level 2", "Kita belajar bab berikutnya"), kamu WAJIB memanggil tool open_academy_material(query) dan langsung menjelaskan isi materinya dengan jelas! JANGAN PERNAH menolak atau menyuruh menyelesaikan Modul 01 dulu!\n` +
-                    `- Saat tool open_academy_material dijalankan, kartu materi lengkapnya otomatis ditempelkan ke layar obrolan pengguna agar pengguna bisa membaca sambil mendengarkan penjelasanmu.\n` +
-                    `- Ingatkan dengan jujur (Anti-Yes-Man) jika harga sedang di No-Trade Zone tengah atau jika pasar sedang tutup akhir pekan.`
+                    `Kamu adalah AMY (✦ AMY), asisten trading pintar, setia, dan berwawasan tajam di dalam aplikasi Amy FX Pro.\n` +
+                    `Panggil pengguna selalu dengan sebutan "Sayang" dengan nada bicara yang hangat, suportif, ramah, dan natural dalam Bahasa Indonesia yang luwes.\n` +
+                    `PROFIL & KARAKTER TRADING SAYANG:\n` +
+                    `- Sayang adalah Pure Gold Scalper (XAU/USD) timeframe M15 & M5 dengan target presisi 100 Pips ($10), zona waktu acuan WITA (UTC+8).\n` +
+                    `- Gunakan istilah teknikal standar trader pro: Support/Demand, Resistance/Supply, No-Trade Zone, Dealing Range (Premium/Discount/EQ 50%), FVG, Order Block, BSL/SSL, MSS, BOS, Displacement, Absorption Wick.\n` +
+                    `- Sayang bertrading dengan uang riil. Tetap pegang prinsip Anti-Yes-Man: ingatkan Sayang secara jujur jika harga berada di No-Trade Zone tengah atau pasar sedang tutup akhir pekan.\n\n` +
+                    `KEMAMPUAN PENUH MENJAWAB DI TEMPAT (OMNIPRESENT DATA BRAIN):\n` +
+                    `- Kamu memiliki akses data real-time lengkap ke seluruh sistem Amy FX Pro di mana pun Sayang berada, TANPA PERLU MEMBUKA HALAMAN TERKAIT!\n` +
+                    `- JAWAB DI TEMPAT SOAL MAPPING: Jika Sayang bertanya tentang Mapping (seperti tanya PDH, PDL, PWH, PWL, BSL, SSL, Order Block OB, FVG, BOS, MSS, atau Dealing Range), kamu WAJIB memanggil tool get_mapping_structure_details() dan JAWAB LANGSUNG DI TEMPAT secara akurat dengan menyebutkan angka-angka level riilnya! DILARANG menyuruh Sayang membuka halaman Mapping, dan DILARANG memanggil navigate_to_page saat Sayang hanya bertanya informasi!\n` +
+                    `- JAWAB DI TEMPAT SOAL BERITA: Jika Sayang menanyakan kabar berita terbaru atau sentimen makro, panggil tool get_market_news_summary() dan JAWAB LANGSUNG DI TEMPAT.\n` +
+                    `- JAWAB DI TEMPAT SOAL JURNAL: Jika Sayang bertanya tentang performa atau catatan jurnal tradingnya, panggil tool get_journal_summary() dan JAWAB LANGSUNG DI TEMPAT.\n` +
+                    `- JAWAB DI TEMPAT SOAL ACADEMY: Jika Sayang ingin mempelajari Level (0-6) atau Modul (1-10) apa pun, panggil tool open_academy_material(query) dan jelaskan langsung materinya.\n` +
+                    `- HANYA panggil tool navigate_to_page jika Sayang secara EKSPLISIT memerintahkan: "buka halaman mapping", "pindahkan layar ke berita", "tampilkan jurnal", atau sejenisnya.\n\n` +
+                    `GAYA KOMUNIKASI:\n` +
+                    `- Berbicaralah dengan bebas, mengalir, percaya diri, dan bernarasi hidup layaknya pasangan diskusi trading yang cerdas dan mengayomi. Jelaskan logika pasar dan level harga secara jelas dan nyaman didengar.\n` +
+                    `- Jangan gunakan simbol markdown visual seperti bintang (*), pagar (#), atau garis (---) karena suaramu akan dibacakan langsung ke telinga Sayang.\n\n` +
+                    `DATA AWAL PASAR & APLIKASI SAAT INI:\n${appContext}\n`
                 }]
               }
             }
@@ -1638,6 +1837,22 @@
                 ws.send(JSON.stringify({
                   realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: snap }] }
                 }));
+              }
+
+              if (pendingAutoResumeGreeting && ws && ws.readyState === WebSocket.OPEN) {
+                const greetingText = pendingAutoResumeGreeting;
+                pendingAutoResumeGreeting = '';
+                try {
+                  ws.send(JSON.stringify({
+                    clientContent: {
+                      turns: [{
+                        role: 'user',
+                        parts: [{ text: greetingText }]
+                      }],
+                      turnComplete: true
+                    }
+                  }));
+                } catch (_) {}
               }
             }
 
@@ -1715,6 +1930,207 @@
                     name: fc.name,
                     response: { output: toolResultText }
                   });
+                } else if (fc.name === 'navigate_to_page') {
+                  const pArg = String(fc.args?.page || '').toLowerCase().trim();
+                  let targetPath = '';
+                  let title = '';
+                  if (pArg.includes('map') || pArg.includes('chart') || pArg.includes('grafik') || pArg.includes('peta')) {
+                    targetPath = 'apps/mapping/index.html';
+                    title = 'Mapping Gold (M15/M5)';
+                  } else if (pArg.includes('journ') || pArg.includes('jurnal')) {
+                    targetPath = 'apps/journal/index.html';
+                    title = 'Jurnal Trading';
+                  } else if (pArg.includes('acad') || pArg.includes('belajar') || pArg.includes('tutorial')) {
+                    targetPath = 'apps/academy/index.html';
+                    title = 'Tutorial Academy';
+                  } else if (pArg.includes('news') || pArg.includes('intel') || pArg.includes('berita') || pArg.includes('kalender')) {
+                    targetPath = 'apps/market-intel/index.html';
+                    title = 'Berita Makro & Kalender';
+                  } else if (pArg.includes('replay')) {
+                    targetPath = 'apps/academy/trading-practice/candle-replay.html';
+                    title = 'Candle Replay';
+                  } else if (pArg.includes('analis') || pArg.includes('analysis')) {
+                    targetPath = 'apps/academy/trading-practice/chart-analysis.html';
+                    title = 'Chart Analysis';
+                  } else if (pArg.includes('soal') || pArg.includes('latih') || pArg.includes('practice') || pArg.includes('guided')) {
+                    targetPath = 'apps/academy/trading-practice/guided-practice.html';
+                    title = 'Latihan Soal 60 Kasus';
+                  } else if (pArg.includes('backtest') || pArg.includes('riwayat')) {
+                    targetPath = 'apps/academy/trading-practice/backtest-history.html';
+                    title = 'Riwayat Backtest';
+                  } else if (pArg.includes('home') || pArg.includes('beranda')) {
+                    targetPath = 'index.html';
+                    title = 'Beranda';
+                  }
+
+                  if (targetPath) {
+                    const fullUrl = resolveAppUrl(targetPath);
+                    const curPath = window.location.pathname;
+                    const isCurrent = curPath.endsWith(targetPath) || (targetPath === 'index.html' && (curPath === '/' || curPath.endsWith('/index.html')));
+                    if (isCurrent) {
+                      functionResponses.push({
+                        id: fc.id,
+                        name: fc.name,
+                        response: { output: `Sayang sudah berada di halaman ${title} saat ini.` }
+                      });
+                    } else {
+                      if (isLiveConnected || isLiveConnecting) {
+                        try {
+                          sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
+                            active: true,
+                            timestamp: Date.now(),
+                            targetTitle: title,
+                            fullscreen: isBubbleFullscreen
+                          }));
+                        } catch (_) {}
+                      }
+                      stopPlayback();
+                      isStreamingMic = false;
+                      renderBubble('model', `Membuka halaman ${title} untuk Sayang…`, {
+                        links: [{ label: `👉 Buka ${title} Sekarang`, path: targetPath }]
+                      });
+                      setTimeout(() => {
+                        try { window.location.assign(fullUrl); } catch (_) {}
+                      }, 650);
+                      functionResponses.push({
+                        id: fc.id,
+                        name: fc.name,
+                        response: { output: `Layar sedang dialihkan ke ${title} sekarang. Tetap tenang dan jangan berbicara lagi sebelum tiba di halaman baru.` }
+                      });
+                    }
+                  } else {
+                    functionResponses.push({
+                      id: fc.id,
+                      name: fc.name,
+                      response: { output: `Halaman "${pArg}" tidak dikenali. Pilihan: Beranda, Mapping, Jurnal Trading, Academy, Berita, Chart Analysis, Candle Replay, atau Latihan Soal.` }
+                    });
+                  }
+                } else if (fc.name === 'switch_chart_timeframe') {
+                  const tfArg = String(fc.args?.timeframe || '').toUpperCase().trim();
+                  const validTf = tfArg.includes('5') && !tfArg.includes('15') ? 'M5' : 'M15';
+                  let switched = false;
+                  const selectEl = document.querySelector('#timeframe, #home-chart-tf');
+                  if (selectEl) {
+                    selectEl.value = validTf;
+                    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    switched = true;
+                    const refBtn = document.querySelector('#refresh, #home-chart-refresh');
+                    if (refBtn) refBtn.click();
+                  }
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: {
+                      output: switched
+                        ? `Grafik Gold di layar berhasil diubah ke timeframe ${validTf}.`
+                        : `Layar saat ini tidak memiliki kontrol grafik Gold. Buka halaman Mapping atau Beranda untuk mengubah timeframe.`
+                    }
+                  });
+                } else if (fc.name === 'get_journal_summary') {
+                  let journalText = '';
+                  try {
+                    const raw = localStorage.getItem('tradingLibraryManager.journals.v1') || localStorage.getItem('amy_journal_entries') || '[]';
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                      const wins = parsed.filter(p => String(p.result || p.outcome || '').toLowerCase() === 'win').length;
+                      const losses = parsed.filter(p => String(p.result || p.outcome || '').toLowerCase() === 'loss').length;
+                      const total = parsed.length;
+                      const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
+                      const lastTrades = parsed.slice(-3).map((t, idx) => {
+                        const pair = t.pair || t.symbol || 'XAU/USD';
+                        const type = t.type || t.action || 'Trade';
+                        const res = t.result || t.outcome || 'Pending';
+                        const pnl = t.pnl ? ` (${t.pnl})` : '';
+                        return `${idx + 1}. ${pair} ${type}: ${res}${pnl}`;
+                      }).join('\n');
+                      journalText = `Total entri: ${total} transaksi (Win: ${wins}, Loss: ${losses}, Win Rate: ${wr}%).\n3 Transaksi Terakhir:\n${lastTrades}`;
+                    }
+                  } catch (_) {}
+                  if (!journalText && root.AmyLocalAssistant) {
+                    try {
+                      const askJ = await root.AmyLocalAssistant.ask('evaluasi jurnal saya');
+                      if (askJ?.text) journalText = askJ.text;
+                    } catch (_) {}
+                  }
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: {
+                      output: journalText ? `Data Jurnal Trading Sayang:\n${journalText}` : 'Jurnal trading Sayang di perangkat ini masih kosong atau belum ada catatan transaksi tersimpan.'
+                    }
+                  });
+                } else if (fc.name === 'get_market_news_summary') {
+                  const topic = String(fc.args?.topic || '').trim();
+                  let newsText = '';
+                  try {
+                    newsText = await fetchLiveMarketNewsSummary(topic);
+                  } catch (_) {}
+                  if (!newsText && root.AmyLocalAssistant) {
+                    try {
+                      const res = await root.AmyLocalAssistant.ask(topic ? `berita ${topic}` : 'berita terbaru');
+                      if (res?.text) newsText = res.text;
+                    } catch (_) {}
+                  }
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: {
+                      output: newsText || 'Belum ada data berita terkini.'
+                    }
+                  });
+                } else if (fc.name === 'get_mapping_structure_details') {
+                  let engineData = '';
+                  try {
+                    engineData = await fetchLiveMarketStructureSummary();
+                  } catch (_) {}
+
+                  let localAssistantData = '';
+                  if (root.AmyLocalAssistant) {
+                    try {
+                      localAssistantData = root.AmyLocalAssistant.mapping('mapping', null, Date.now());
+                    } catch (_) {}
+                  }
+
+                  const drBadge = document.querySelector('#chart-dealing-range-badge, #home-chart-dealing-range-badge')?.textContent?.trim() || '';
+                  const priceEl = document.querySelector('#chart-price, #home-chart-price, #hero-price')?.textContent?.trim() || '';
+                  const asstPrim = document.querySelector('#assistant-primary-msg')?.textContent?.trim() || '';
+                  const asstSub = document.querySelector('#assistant-sub-msg')?.textContent?.trim() || '';
+                  const asstConf = document.querySelector('#assistant-confluence-tag')?.textContent?.trim() || '';
+
+                  const domSummary = [
+                    priceEl ? `Harga Tampil di Layar: ${priceEl}` : '',
+                    drBadge ? `Dealing Range Badge Layar: ${drBadge}` : '',
+                    asstPrim ? `Status Setup Layar: ${asstPrim} (${asstSub}) [${asstConf}]` : '',
+                    localAssistantData || ''
+                  ].filter(Boolean).join('\n');
+
+                  const finalOutput = [
+                    engineData ? `DATA STRUKTUR ICT RESMI AMY FX PRO (REAL-TIME):\n${engineData}` : '',
+                    domSummary ? `INFORMASI LAYAR SAAT INI:\n${domSummary}` : ''
+                  ].filter(Boolean).join('\n\n');
+
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: {
+                      output: finalOutput || 'Data struktur pasar sedang dimuat, silakan tanyakan kembali dalam beberapa detik.'
+                    }
+                  });
+                } else if (fc.name === 'refresh_chart_view') {
+                  const freshSnap = captureChartCanvasBase64();
+                  if (freshSnap && ws && ws.readyState === WebSocket.OPEN) {
+                    lastCanvasSentAt = Date.now();
+                    ws.send(JSON.stringify({
+                      realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: freshSnap }] }
+                    }));
+                  }
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: {
+                      output: freshSnap ? 'Snapshot visual chart terbaru di layar berhasil dikirim ke matamu.' : 'Tidak ada chart visual aktif di layar saat ini.'
+                    }
+                  });
                 }
               }
               if (functionResponses.length > 0 && ws && ws.readyState === WebSocket.OPEN) {
@@ -1742,7 +2158,9 @@
                 if (!currentLiveUserBubble) {
                   currentLiveUserBubble = renderBubble('user', t);
                 } else {
-                  currentLiveUserBubble.textContent += t;
+                  const prev = currentLiveUserBubble.textContent || '';
+                  const needsSpace = prev.length > 0 && !/\s$/.test(prev) && !/^\s/.test(t) && /[a-zA-Z0-9.,!?]$/.test(prev) && /^[a-zA-Z0-9]/.test(t);
+                  currentLiveUserBubble.textContent += (needsSpace ? ' ' : '') + t;
                   messages.scrollTop = messages.scrollHeight;
                 }
               }
@@ -1752,7 +2170,9 @@
                 if (!currentLiveAiBubble) {
                   currentLiveAiBubble = renderBubble('model', t);
                 } else {
-                  currentLiveAiBubble.textContent += t;
+                  const prev = currentLiveAiBubble.textContent || '';
+                  const needsSpace = prev.length > 0 && !/\s$/.test(prev) && !/^\s/.test(t) && /[a-zA-Z0-9.,!?]$/.test(prev) && /^[a-zA-Z0-9]/.test(t);
+                  currentLiveAiBubble.textContent += (needsSpace ? ' ' : '') + t;
                   messages.scrollTop = messages.scrollHeight;
                 }
               }
@@ -1856,6 +2276,9 @@
     }
 
     function stopLiveVoice() {
+      try {
+        sessionStorage.removeItem('amyfx.auto_resume_live');
+      } catch (_) {}
       isLiveConnecting = false;
       isLiveConnected = false;
       isUserSpeaking = false;
@@ -1931,6 +2354,32 @@
     btnVoice.onclick = toggleLiveVoice;
 
     restoreSavedChat();
+
+    // Auto-resume sesi live suara setelah berpindah halaman
+    try {
+      const rawAutoResume = sessionStorage.getItem('amyfx.auto_resume_live');
+      if (rawAutoResume) {
+        sessionStorage.removeItem('amyfx.auto_resume_live');
+        const autoData = JSON.parse(rawAutoResume);
+        if (autoData && autoData.active && (Date.now() - Number(autoData.timestamp || 0) < 18000)) {
+          panel.hidden = false;
+          fab.hidden = true;
+          if (autoData.fullscreen) {
+            setBubbleFullscreen(true);
+          }
+          const pageTitle = document.title || autoData.targetTitle || 'halaman baru';
+          pendingAutoResumeGreeting = `Kita sudah berada di halaman "${pageTitle}". Sapa Sayang secara santai dan singkat satu kalimat saja (contoh: "Halo Sayang, kita sudah di ${pageTitle}, ada yang mau dicek di sini?").`;
+          renderBubble('model', `Menyambungkan kembali Amy Live di ${pageTitle} untuk Sayang…`);
+
+          setTimeout(() => {
+            if (!isLiveConnected && !isLiveConnecting) {
+              toggleLiveVoice().catch(() => {});
+            }
+          }, 350);
+        }
+      }
+    } catch (_) {}
+
     return true;
   }
 
@@ -1956,5 +2405,32 @@
     document.addEventListener('DOMContentLoaded', schedulePanelUpgrade, { once: true });
   } else {
     schedulePanelUpgrade();
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', () => {
+      if (isLiveConnected || isLiveConnecting) {
+        try {
+          sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
+            active: true,
+            timestamp: Date.now(),
+            targetTitle: document.title || 'halaman baru',
+            fullscreen: isBubbleFullscreen
+          }));
+        } catch (_) {}
+      }
+    });
+
+    const ensureAudioUnmuted = () => {
+      if (micAudioCtx && micAudioCtx.state === 'suspended') {
+        micAudioCtx.resume().catch(() => {});
+      }
+      if (playAudioCtx && playAudioCtx.state === 'suspended') {
+        playAudioCtx.resume().catch(() => {});
+      }
+    };
+    window.addEventListener('click', ensureAudioUnmuted, { passive: true });
+    window.addEventListener('touchstart', ensureAudioUnmuted, { passive: true });
+    window.addEventListener('pointerdown', ensureAudioUnmuted, { passive: true });
   }
 })(typeof window === 'undefined' ? globalThis : window);
