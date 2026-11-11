@@ -377,6 +377,12 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   5. *Sandi Aktivasi Instan:*
      - Cukup ketik: `"eksekusi amy live"` atau `"pasang amy live"` -> AI otomatis langsung mengeksekusi seluruh 5 langkah di atas tanpa perlu penjelasan ulang.
 
+## Golden Recovery Baseline (Video Work)
+- **Safe Revert Commit:** `6cda575c8434045c14cf57153e79a3d0f7b3b915` (`6cda575c`)
+- **App Version:** `v2.0.0-pro.446` (versionCode `950446`)
+- **Status:** Baseline stabil sebelum pengerjaan modul Video. Jika terjadi kendala/error saat pengerjaan Video, rollback instan via `git reset --hard 6cda575c && git clean -fd`.
+
+
 
 
 

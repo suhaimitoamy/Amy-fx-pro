@@ -797,7 +797,64 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(processVideoThumbQueue, 200);
   }
 
-  const reelState = { open: false, dialog: null, observer: null, urls: new Set(), pushedHistory: false };
+  const reelState = {
+    open: false,
+    dialog: null,
+    observer: null,
+    urls: new Set(),
+    pushedHistory: false,
+    sleepTimerTarget: 0,
+    sleepTimerInterval: null,
+    sleepTimerMode: 'off',
+    sleepTimerMinutes: 0
+  };
+
+  const REEL_PLAY_MODE_KEY = 'amy_reel_play_mode';
+  function getReelPlayMode() {
+    try {
+      return localStorage.getItem(REEL_PLAY_MODE_KEY) || 'auto_next';
+    } catch (_) {
+      return 'auto_next';
+    }
+  }
+  function setReelPlayMode(mode) {
+    try {
+      localStorage.setItem(REEL_PLAY_MODE_KEY, mode);
+    } catch (_) {}
+  }
+
+  function clearReelSleepTimer() {
+    if (reelState.sleepTimerInterval) {
+      clearInterval(reelState.sleepTimerInterval);
+      reelState.sleepTimerInterval = null;
+    }
+    reelState.sleepTimerTarget = 0;
+    reelState.sleepTimerMode = 'off';
+    reelState.sleepTimerMinutes = 0;
+  }
+
+  function triggerSleepTimerExpiry() {
+    clearReelSleepTimer();
+    const dialog = reelState.dialog;
+    if (!dialog || !reelState.open) return;
+    const activeVideo = dialog.querySelector('.amy-reel-panel[data-is-active="1"] video');
+    if (activeVideo && !activeVideo.paused) {
+      let vol = activeVideo.volume;
+      const fadeStep = Math.max(0.05, vol / 8);
+      const fadeTimer = setInterval(() => {
+        vol = Math.max(0, vol - fadeStep);
+        try { activeVideo.volume = vol; } catch (_) {}
+        if (vol <= 0.05) {
+          clearInterval(fadeTimer);
+          closeVideoReel();
+          showToast('🌙 Waktu tidur tercapai. Video dihentikan otomatis.');
+        }
+      }, 120);
+    } else {
+      closeVideoReel();
+      showToast('🌙 Waktu tidur tercapai. Video dihentikan otomatis.');
+    }
+  }
 
   function shuffleMedia(list) {
     const arr = [...list];
@@ -811,6 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeVideoReel(fromPopState = false) {
     if (!reelState.open) return;
     reelState.open = false;
+    clearReelSleepTimer();
     reelState.observer?.disconnect();
     reelState.observer = null;
     const dialog = reelState.dialog;
@@ -852,14 +910,218 @@ document.addEventListener('DOMContentLoaded', () => {
           <small id="amyReelMeta"></small>
           <h3 id="amyReelTitle"></h3>
         </div>
-        <button type="button" class="amy-reel-close" id="amyReelClose" aria-label="Tutup">×</button>
+        <div class="amy-reel-actions">
+          <button type="button" class="amy-reel-btn" id="amyReelPlayModeBtn" title="Mode Putar: Auto-Next / Loop">
+            <span class="amy-reel-btn-icon" id="amyReelModeIcon">🔁</span>
+            <span class="amy-reel-btn-label" id="amyReelModeLabel">Auto</span>
+          </button>
+          <button type="button" class="amy-reel-btn" id="amyReelSleepTimerBtn" title="Timer Tidur">
+            <span class="amy-reel-btn-icon">🌙</span>
+            <span class="amy-reel-btn-label" id="amyReelTimerBadge">Timer</span>
+          </button>
+          <button type="button" class="amy-reel-close" id="amyReelClose" aria-label="Tutup">×</button>
+        </div>
       </div>
       <div class="amy-reel-feed"></div>
+      <div class="amy-reel-timer-sheet" id="amyReelTimerSheet" hidden>
+        <div class="amy-reel-sheet-backdrop" id="amyReelSheetBackdrop"></div>
+        <div class="amy-reel-sheet-card">
+          <div class="amy-reel-sheet-header">
+            <div class="amy-reel-sheet-title">
+              <span style="font-size:18px;">🌙</span>
+              <strong>Timer Tidur Otomatis</strong>
+            </div>
+            <button type="button" class="amy-reel-sheet-close" id="amyReelSheetCloseBtn" aria-label="Tutup Menu">×</button>
+          </div>
+          <div class="amy-reel-sheet-desc">Pilih kapan video berhenti otomatis agar Anda bisa istirahat dengan nyaman:</div>
+          <div class="amy-reel-sheet-grid" id="amyReelTimerGrid">
+            <button type="button" class="amy-timer-btn" data-timer-val="off">
+              <span class="timer-btn-icon">❌</span>
+              <span class="timer-btn-text">Nonaktif</span>
+            </button>
+            <button type="button" class="amy-timer-btn" data-timer-val="15">
+              <span class="timer-btn-icon">⏱️</span>
+              <span class="timer-btn-text">15 Menit</span>
+            </button>
+            <button type="button" class="amy-timer-btn" data-timer-val="30">
+              <span class="timer-btn-icon">⏱️</span>
+              <span class="timer-btn-text">30 Menit</span>
+            </button>
+            <button type="button" class="amy-timer-btn" data-timer-val="45">
+              <span class="timer-btn-icon">⏱️</span>
+              <span class="timer-btn-text">45 Menit</span>
+            </button>
+            <button type="button" class="amy-timer-btn" data-timer-val="60">
+              <span class="timer-btn-icon">⏱️</span>
+              <span class="timer-btn-text">1 Jam</span>
+            </button>
+            <button type="button" class="amy-timer-btn" data-timer-val="120">
+              <span class="timer-btn-icon">⏱️</span>
+              <span class="timer-btn-text">2 Jam</span>
+            </button>
+            <button type="button" class="amy-timer-btn col-span-2" data-timer-val="end_of_video">
+              <span class="timer-btn-icon">🎬</span>
+              <span class="timer-btn-text">Sampai Video Ini Selesai</span>
+            </button>
+          </div>
+          <div class="amy-reel-sheet-custom">
+            <label for="amyReelCustomMinInput">Atur Sendiri (Menit):</label>
+            <div class="amy-custom-input-group">
+              <input type="number" id="amyReelCustomMinInput" min="1" max="600" placeholder="Misal: 90" inputmode="numeric">
+              <button type="button" id="amyReelCustomApplyBtn">Setel</button>
+            </div>
+          </div>
+        </div>
+      </div>
     `;
     const feed = dialog.querySelector('.amy-reel-feed');
     const titleEl = dialog.querySelector('#amyReelTitle');
     const metaEl = dialog.querySelector('#amyReelMeta');
     dialog.querySelector('#amyReelClose').addEventListener('click', () => closeVideoReel());
+
+    // Setup Play Mode (Auto-Next vs Loop)
+    let currentPlayMode = getReelPlayMode();
+    const modeBtn = dialog.querySelector('#amyReelPlayModeBtn');
+    const modeIcon = dialog.querySelector('#amyReelModeIcon');
+    const modeLabel = dialog.querySelector('#amyReelModeLabel');
+
+    function updatePlayModeUI() {
+      if (currentPlayMode === 'loop') {
+        modeBtn.classList.add('is-active');
+        modeIcon.textContent = '🔂';
+        modeLabel.textContent = 'Loop';
+        modeBtn.setAttribute('title', 'Mode: Ulang Video Ini (Ketuk untuk beralih ke Auto-Next)');
+      } else {
+        modeBtn.classList.remove('is-active');
+        modeIcon.textContent = '🔁';
+        modeLabel.textContent = 'Auto';
+        modeBtn.setAttribute('title', 'Mode: Lanjut Otomatis (Ketuk untuk beralih ke Loop)');
+      }
+      dialog.querySelectorAll('.amy-reel-video').forEach(v => {
+        v.loop = (reelState.sleepTimerMode === 'end_of_video') ? false : (currentPlayMode === 'loop');
+      });
+    }
+    updatePlayModeUI();
+
+    modeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      currentPlayMode = (currentPlayMode === 'loop') ? 'auto_next' : 'loop';
+      setReelPlayMode(currentPlayMode);
+      updatePlayModeUI();
+      showToast(currentPlayMode === 'loop' ? '🔂 Mode: Ulang Video yang Sama' : '🔁 Mode: Lanjut Otomatis ke Video Berikutnya');
+    });
+
+    // Setup Sleep Timer
+    const timerBtn = dialog.querySelector('#amyReelSleepTimerBtn');
+    const timerBadge = dialog.querySelector('#amyReelTimerBadge');
+    const timerSheet = dialog.querySelector('#amyReelTimerSheet');
+    const sheetCloseBtn = dialog.querySelector('#amyReelSheetCloseBtn');
+    const sheetBackdrop = dialog.querySelector('#amyReelSheetBackdrop');
+    const timerGrid = dialog.querySelector('#amyReelTimerGrid');
+    const customMinInput = dialog.querySelector('#amyReelCustomMinInput');
+    const customApplyBtn = dialog.querySelector('#amyReelCustomApplyBtn');
+
+    function updateSheetActiveOption() {
+      timerGrid.querySelectorAll('.amy-timer-btn').forEach(btn => {
+        const val = btn.dataset.timerVal;
+        const isActive = (reelState.sleepTimerMode === 'off' && val === 'off') ||
+                         (reelState.sleepTimerMode === 'end_of_video' && val === 'end_of_video') ||
+                         (reelState.sleepTimerMode === 'time' && String(reelState.sleepTimerMinutes) === val);
+        btn.classList.toggle('is-selected', isActive);
+      });
+    }
+
+    function renderTimerBadge() {
+      if (reelState.sleepTimerMode === 'off') {
+        timerBtn.classList.remove('is-active');
+        timerBadge.textContent = 'Timer';
+      } else if (reelState.sleepTimerMode === 'end_of_video') {
+        timerBtn.classList.add('is-active');
+        timerBadge.textContent = '1 Video';
+      } else if (reelState.sleepTimerMode === 'time') {
+        timerBtn.classList.add('is-active');
+        const rem = Math.max(0, Math.ceil((reelState.sleepTimerTarget - Date.now()) / 1000));
+        if (rem <= 0) {
+          triggerSleepTimerExpiry();
+          return;
+        }
+        if (rem >= 3600) {
+          const h = Math.floor(rem / 3600);
+          const m = Math.floor((rem % 3600) / 60);
+          timerBadge.textContent = `${h}j ${m}m`;
+        } else if (rem >= 60) {
+          const m = Math.floor(rem / 60);
+          const s = rem % 60;
+          timerBadge.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        } else {
+          timerBadge.textContent = `${rem}s`;
+        }
+      }
+    }
+
+    function openTimerSheet() {
+      timerSheet.removeAttribute('hidden');
+      updateSheetActiveOption();
+    }
+    function closeTimerSheet() {
+      timerSheet.setAttribute('hidden', '');
+    }
+
+    timerBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      openTimerSheet();
+    });
+    sheetCloseBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      closeTimerSheet();
+    });
+    sheetBackdrop.addEventListener('click', e => {
+      e.stopPropagation();
+      closeTimerSheet();
+    });
+
+    function setSleepTimer(val) {
+      clearReelSleepTimer();
+      if (val === 'off' || val === 0) {
+        showToast('🌙 Timer tidur dinonaktifkan.');
+      } else if (val === 'end_of_video') {
+        reelState.sleepTimerMode = 'end_of_video';
+        dialog.querySelectorAll('.amy-reel-video').forEach(v => { v.loop = false; });
+        showToast('🌙 Timer aktif: Berhenti setelah video ini selesai.');
+      } else {
+        const mins = Number(val);
+        if (!mins || mins <= 0) return;
+        reelState.sleepTimerMode = 'time';
+        reelState.sleepTimerMinutes = mins;
+        reelState.sleepTimerTarget = Date.now() + mins * 60 * 1000;
+        reelState.sleepTimerInterval = setInterval(() => {
+          renderTimerBadge();
+        }, 1000);
+        showToast(`🌙 Timer tidur disetel: ${mins} menit.`);
+      }
+      renderTimerBadge();
+      closeTimerSheet();
+    }
+
+    timerGrid.querySelectorAll('.amy-timer-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        setSleepTimer(btn.dataset.timerVal);
+      });
+    });
+
+    customApplyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const val = parseInt(customMinInput.value, 10);
+      if (!val || val <= 0) {
+        showToast('Masukkan jumlah menit yang valid.');
+        return;
+      }
+      setSleepTimer(val);
+      customMinInput.value = '';
+    });
+
+    renderTimerBadge();
 
     // Cegah pull-to-refresh saat swipe ke bawah di video pertama
     let feedStartY = 0, feedStartX = 0;
@@ -945,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
       video.playsInline = true;
       video.setAttribute('playsinline', 'true');
       video.setAttribute('webkit-playsinline', 'true');
-      video.loop = true;
+      video.loop = (reelState.sleepTimerMode === 'end_of_video') ? false : (currentPlayMode === 'loop');
       video.preload = 'none';
       video.controls = false;
       const thumb = getCachedVideoThumb(item);
@@ -992,6 +1254,24 @@ document.addEventListener('DOMContentLoaded', () => {
       video.addEventListener('playing', () => { panel.classList.remove('is-buffering'); playIndicator.classList.remove('is-visible'); });
       video.addEventListener('timeupdate', () => {
         if (video.duration && Number.isFinite(video.duration)) progressFill.style.width = `${(video.currentTime / video.duration) * 100}%`;
+        if (reelState.sleepTimerMode === 'time' && reelState.sleepTimerTarget > 0 && Date.now() >= reelState.sleepTimerTarget) {
+          triggerSleepTimerExpiry();
+        }
+      });
+      video.addEventListener('ended', () => {
+        if (reelState.sleepTimerMode === 'end_of_video') {
+          triggerSleepTimerExpiry();
+          return;
+        }
+        if (currentPlayMode === 'auto_next') {
+          const currentIdx = Array.prototype.indexOf.call(feed.children, panel);
+          const nextIdx = currentIdx + 1;
+          if (nextIdx < feed.children.length) {
+            feed.children[nextIdx].scrollIntoView({ behavior: 'smooth' });
+          } else if (feed.children.length > 1) {
+            feed.children[0].scrollIntoView({ behavior: 'smooth' });
+          }
+        }
       });
 
       // Tap untuk play/pause, abaikan jika jari bergeser (swipe)
@@ -1061,6 +1341,9 @@ document.addEventListener('DOMContentLoaded', () => {
           panel.dataset.isActive = '1';
           activeIndex = idx;
           if (item) setHeader(item);
+          if (video) {
+            video.loop = (reelState.sleepTimerMode === 'end_of_video') ? false : (currentPlayMode === 'loop');
+          }
           loadAndPlay(panel, item);
         } else {
           panel.dataset.isActive = '0';

@@ -1511,6 +1511,31 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
   - Mendukung referensi dinamis: *"materi itu"*, *"materi terakhir"*, *"yang tadi"*, maupun nama spesifik (*"Breaker Block"*, *"FVG"*, *"Order Block"*).
 - **Version Bump:** Bumped to `v2.0.0-pro.445` (code `950445`).
 
+### 2026-11-12: Permanent Golden Recovery Checkpoint — v2.0.0-pro.446 (Safe Video Baseline)
+- **Status:** PERMANEN & TERKUNCI AMAN.
+- **Tujuan:** Titik pemulihan mutlak (Golden Recovery) sebelum pengerjaan modul Video. Jika terjadi error atau regresi selama pengembangan Video, sistem langsung di-revert utuh ke titik ini.
+- **Commit SHA:** `6cda575c8434045c14cf57153e79a3d0f7b3b915` (Short: `6cda575c`)
+- **Version:** `v2.0.0-pro.446` (versionCode `950446`)
+- **Tag:** `amyfx-pro-2.0.0-pro.446`
+- **Status Rilis APK:** Sukses terbit & terverifikasi di GitHub Actions run `43045631390` (HTTP 200, 33.28 MB).
+- **Perintah Revert Darurat:**
+  `git reset --hard 6cda575c && git clean -fd`
+
+### 2026-11-12: Release v2.0.0-pro.447 (Video Reel Auto-Next, Loop Toggle & Sleep Timer)
+- **Fitur 1 (Auto-Next Video Reel):**
+  - Saat durasi video selesai (`video.onended`), reel secara otomatis bergeser halus (*smooth-scroll*) ke panel video berikutnya dan memutarnya tanpa perlu swipe manual.
+  - Jika mencapai video terakhir, secara otomatis berputar kembali ke video pertama (*seamless infinite playlist*).
+- **Fitur 2 (Saklar 🔁 Auto / 🔂 Loop):**
+  - Menyediakan tombol saklar di bilah atas reel untuk memilih antara lanjut otomatis (*Auto-Next*) atau mengulang 1 video yang sama secara berulang (*Loop*).
+  - Pilihan tersimpan permanen di `localStorage` (`amy_reel_play_mode`).
+- **Fitur 3 (🌙 Sleep Timer / Timer Tidur Otomatis):**
+  - Menambahkan menu pilihan timer (Nonaktif, 15m, 30m, 45m, 1j, 2j, Sampai Video Ini Selesai, dan Kustom menit).
+  - Menampilkan countdown live di tombol atas (misal `🌙 58m` atau `🌙 1j 20m`).
+  - Dilengkapi fitur proteksi tidur: volume audio mengecil perlahan (*fade-out step*) sebelum video berhenti total dan menutup layar.
+- **Version Bump:** Bumped to `v2.0.0-pro.447` (versionCode `950447`).
+
+
+
 
 
 
