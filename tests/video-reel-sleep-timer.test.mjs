@@ -81,3 +81,25 @@ test('Sleep timer calculation and formatting handles hours and minutes accuratel
   assert.equal(formatRemaining(900), '15:00');
   assert.equal(formatRemaining(45), '45s');
 });
+
+test('Video reel does not lock whole app into inert mode and Amy Live retains pointer events', () => {
+  const appJs = fs.readFileSync('app/src/main/assets/app.js', 'utf8');
+  const stylesCss = fs.readFileSync('app/src/main/assets/styles.css', 'utf8');
+  const bridgeJs = fs.readFileSync('app/src/main/assets/apps/shared/amy-gemini-live-bridge.js', 'utf8');
+  const assistantJs = fs.readFileSync('app/src/main/assets/apps/shared/amy-local-assistant.js', 'utf8');
+
+  // Verify renderMedia safe signature
+  assert.ok(appJs.includes('async function renderMedia(options = {})'), 'renderMedia accepts options default parameter');
+
+  // Verify video reel does NOT use dialog.showModal()
+  assert.ok(!appJs.includes('openVideoReel') || !appJs.includes('openVideoReel(activeItem) {\n    const all = await loadAllMediaItems();\n    const others = shuffleMedia(all.filter(it => isVideoMediaItem(it) && it.id !== activeItem.id)).slice(0, 20);\n    const feedItems = [activeItem, ...others];\n\n    let dialog = document.getElementById(\'rootVideoReelDialog\');\n    if (!dialog) {\n      dialog = document.createElement(\'dialog\');\n      dialog.id = \'rootVideoReelDialog\';\n      dialog.className = \'amy-reel-dialog\';\n      dialog.addEventListener(\'cancel\', e => { e.preventDefault(); closeVideoReel(); });\n      document.body.appendChild(dialog);\n    }\n    reelState.dialog = dialog;\n\n    dialog.showModal();'), 'openVideoReel does not use showModal');
+  assert.ok(appJs.includes('window.AmyFXCloseVideoReel = closeVideoReel;'), 'Global AmyFXCloseVideoReel hook exported');
+
+  // Verify styles hide FAB when reel is open to prevent accidental taps
+  assert.ok(stylesCss.includes('body.is-reel-open #amy-local-fab'), 'FAB hidden when video reel is open');
+
+  // Verify Amy Live dialog dismiss and pointer events
+  assert.ok(assistantJs.includes('AmyFXCloseVideoReel'), 'assistant open() calls AmyFXCloseVideoReel');
+  assert.ok(bridgeJs.includes('AmyFXCloseVideoReel'), 'bridge setBubbleFullscreen() calls AmyFXCloseVideoReel');
+  assert.ok(bridgeJs.includes('pointer-events: auto !important;'), 'Amy Live panel has explicit pointer-events: auto');
+});

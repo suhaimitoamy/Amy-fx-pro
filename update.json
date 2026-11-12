@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.447/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.448/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Auto-Next Video Reel: Saat sebuah video selesai, reel otomatis bergeser halus (smooth-scroll) dan memutar video berikutnya tanpa perlu swipe manual.",
-    "✦ Saklar 🔁 Auto / 🔂 Loop: Memberikan kebebasan penuh memilih antara lanjut otomatis atau mengulang video yang sama berulang-ulang, tersimpan otomatis di preferensi.",
-    "✦ 🌙 Sleep Timer (Timer Tidur Otomatis): Menambahkan pengatur waktu otomatis (15m, 30m, 45m, 1j, 2j, akhir video, dan kustom menit) dengan countdown live dan fade-out audio lembut sebelum video berhenti."
+    "✦ Amy Live Click & Pointer Recovery: Memperbaiki kendala unclickable pada Amy Live dengan mengganti dialog modal inert-lock pada Video Reel ke non-modal overlay, sehingga semua tombol, mic, orb, dan prompt di Amy Live 100% responsif.",
+    "✦ Auto-Close Reel on Mentor Open: Membuka Amy Live kini otomatis menutup dan meredam video reel yang sedang aktif di latar belakang agar tidak terjadi tabrakan tampilan.",
+    "✦ Video Reel Function Safety: Memperbaiki penanganan argumen options pada renderMedia untuk stabilitas penuh."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.447/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.448/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950447,
-  "latest_version_name": "2.0.0-pro.447",
+  "latest_version_code": 950448,
+  "latest_version_name": "2.0.0-pro.448",
   "mandatory": false,
-  "releaseDate": "2026-11-11",
+  "releaseDate": "2026-11-12",
   "release_notes": [
-    "✦ Auto-Next Video Reel: Saat sebuah video selesai, reel otomatis bergeser halus (smooth-scroll) dan memutar video berikutnya tanpa perlu swipe manual.",
-    "✦ Saklar 🔁 Auto / 🔂 Loop: Memberikan kebebasan penuh memilih antara lanjut otomatis atau mengulang video yang sama berulang-ulang, tersimpan otomatis di preferensi.",
-    "✦ 🌙 Sleep Timer (Timer Tidur Otomatis): Menambahkan pengatur waktu otomatis (15m, 30m, 45m, 1j, 2j, akhir video, dan kustom menit) dengan countdown live dan fade-out audio lembut sebelum video berhenti."
+    "✦ Amy Live Click & Pointer Recovery: Memperbaiki kendala unclickable pada Amy Live dengan mengganti dialog modal inert-lock pada Video Reel ke non-modal overlay, sehingga semua tombol, mic, orb, dan prompt di Amy Live 100% responsif.",
+    "✦ Auto-Close Reel on Mentor Open: Membuka Amy Live kini otomatis menutup dan meredam video reel yang sedang aktif di latar belakang agar tidak terjadi tabrakan tampilan.",
+    "✦ Video Reel Function Safety: Memperbaiki penanganan argumen options pada renderMedia untuk stabilitas penuh."
   ],
-  "version": "2.0.0-pro.447",
-  "versionCode": 950447,
+  "version": "2.0.0-pro.448",
+  "versionCode": 950448,
   "sha256": "b2d2ea98a0a4c08b922a8156b2be00ac1e3aed01faba8159eb7393f544e46821"
 }

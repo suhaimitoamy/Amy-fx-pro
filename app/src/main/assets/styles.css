@@ -2108,7 +2108,8 @@ body.is-reel-open {
   overscroll-behavior: none !important;
 }
 html.is-reel-open .bottom-nav,
-body.is-reel-open .bottom-nav {
+body.is-reel-open .bottom-nav,
+body.is-reel-open #amy-local-fab {
   display: none !important;
 }
 .amy-reel-dialog {
@@ -2125,10 +2126,11 @@ body.is-reel-open .bottom-nav {
   background: #000;
   color: #fff;
   overflow: hidden;
-  z-index: 10000;
+  z-index: 1000;
 }
 .amy-reel-dialog::backdrop { background: #000; }
 .amy-reel-dialog:not([open]) { display: none !important; }
+.amy-reel-dialog[open] { display: block !important; }
 .amy-reel-bar {
   position: absolute;
   top: 0;

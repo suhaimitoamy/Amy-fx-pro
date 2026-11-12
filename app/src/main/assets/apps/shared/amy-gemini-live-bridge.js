@@ -837,6 +837,14 @@
       }
 
       /* FULLSCREEN BUBBLE ORB MODE — CLEAN PRO MINIMALIST */
+      #amy-local-root {
+        position: relative !important;
+        z-index: 2147483640 !important;
+        pointer-events: auto !important;
+      }
+      #amy-local-panel {
+        pointer-events: auto !important;
+      }
       #amy-local-panel.amy-bubble-fullscreen {
         position: fixed !important;
         inset: 0 !important;
@@ -848,7 +856,11 @@
         border-radius: 0 !important;
         border: none !important;
         background: radial-gradient(circle at 50% 18%, rgba(37, 35, 92, 0.88) 0%, rgba(10, 14, 26, 0.98) 54%, rgba(5, 8, 15, 1) 100%) !important;
-        z-index: 10005 !important;
+        z-index: 2147483645 !important;
+        pointer-events: auto !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen * {
+        pointer-events: auto;
       }
       #amy-orb-hero {
         display: none;
@@ -1287,6 +1299,14 @@
       isBubbleFullscreen = Boolean(enabled);
       panel.classList.remove('amy-minimized');
       if (isBubbleFullscreen) {
+        try { if (typeof window.AmyFXCloseVideoReel === 'function') window.AmyFXCloseVideoReel(); } catch (_) {}
+        document.querySelectorAll('dialog[open]').forEach(d => {
+          if (!d.closest('#amy-local-root')) {
+            try { d.close(); } catch (_) {}
+            d.removeAttribute('open');
+            if (d.classList.contains('amy-reel-dialog')) d.style.display = 'none';
+          }
+        });
         panel.classList.add('amy-bubble-fullscreen');
       } else {
         panel.classList.remove('amy-bubble-fullscreen');

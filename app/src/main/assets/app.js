@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentMediaFilter = 'Semua';
 
-  async function renderMedia() {
+  async function renderMedia(options = {}) {
     setActive('video');
     const allItems = await loadAllMediaItems();
     const hasSavedCode = Boolean(localStorage.getItem('amy_saved_code'));
@@ -866,12 +866,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeVideoReel(fromPopState = false) {
-    if (!reelState.open) return;
+    if (!reelState.open && !document.body.classList.contains('is-reel-open') && !document.getElementById('rootVideoReelDialog')?.hasAttribute('open')) return;
     reelState.open = false;
     clearReelSleepTimer();
     reelState.observer?.disconnect();
     reelState.observer = null;
-    const dialog = reelState.dialog;
+    const dialog = reelState.dialog || document.getElementById('rootVideoReelDialog');
     dialog?.querySelectorAll('video').forEach(v => {
       v.pause();
       v.removeAttribute('src');
@@ -879,13 +879,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     reelState.urls.forEach(u => URL.revokeObjectURL(u));
     reelState.urls.clear();
-    if (dialog?.open) dialog.close();
-    if (dialog) dialog.innerHTML = '';
+    if (dialog) {
+      if (typeof dialog.close === 'function' && dialog.open) {
+        try { dialog.close(); } catch (_) {}
+      }
+      dialog.removeAttribute('open');
+      dialog.style.display = 'none';
+      dialog.innerHTML = '';
+    }
     document.documentElement.classList.remove('is-reel-open');
     document.body.classList.remove('is-reel-open');
     if (reelState.pushedHistory && !fromPopState && history.state?.amyReel) history.back();
     reelState.pushedHistory = false;
   }
+  window.AmyFXCloseVideoReel = closeVideoReel;
 
   window.addEventListener('popstate', () => { if (reelState.open) closeVideoReel(true); });
 
@@ -899,6 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dialog = document.createElement('dialog');
       dialog.id = 'rootVideoReelDialog';
       dialog.className = 'amy-reel-dialog';
+      dialog.style.display = 'none';
       dialog.addEventListener('cancel', e => { e.preventDefault(); closeVideoReel(); });
       document.body.appendChild(dialog);
     }
@@ -1316,13 +1324,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     reelState.open = true;
     document.documentElement.classList.add('is-reel-open');
-    if (!dialog.open) {
-      if (typeof dialog.showModal === 'function') {
-        try { dialog.showModal(); } catch (_) { dialog.setAttribute('open', ''); }
-      } else {
-        dialog.setAttribute('open', '');
+    document.body.classList.add('is-reel-open');
+    if (!dialog.hasAttribute('open')) {
+      dialog.setAttribute('open', '');
+      if (typeof dialog.show === 'function' && !dialog.open) {
+        try { dialog.show(); } catch (_) {}
       }
     }
+    dialog.style.display = 'block';
     try {
       history.pushState({ ...(history.state || {}), amyReel: true }, '', location.href);
       reelState.pushedHistory = true;
@@ -1402,10 +1411,19 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="media-fullscreen-stage">${stageContent}</div>
     `;
 
-    dialog.showModal();
+    if (typeof dialog.show === 'function') {
+      try { dialog.show(); } catch (_) { dialog.setAttribute('open', ''); }
+    } else {
+      dialog.setAttribute('open', '');
+    }
+    dialog.style.display = 'flex';
     const closeBtn = dialog.querySelector('#closeMediaViewerBtn');
     const closeDialog = () => {
-      dialog.close();
+      if (typeof dialog.close === 'function' && dialog.open) {
+        try { dialog.close(); } catch (_) {}
+      }
+      dialog.removeAttribute('open');
+      dialog.style.display = 'none';
       const vid = dialog.querySelector('video');
       if (vid) { vid.pause(); vid.src = ''; }
     };

@@ -1521,18 +1521,18 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 - **Perintah Revert Darurat:**
   `git reset --hard 6cda575c && git clean -fd`
 
-### 2026-11-12: Release v2.0.0-pro.447 (Video Reel Auto-Next, Loop Toggle & Sleep Timer)
-- **Fitur 1 (Auto-Next Video Reel):**
-  - Saat durasi video selesai (`video.onended`), reel secara otomatis bergeser halus (*smooth-scroll*) ke panel video berikutnya dan memutarnya tanpa perlu swipe manual.
-  - Jika mencapai video terakhir, secara otomatis berputar kembali ke video pertama (*seamless infinite playlist*).
-- **Fitur 2 (Saklar 🔁 Auto / 🔂 Loop):**
-  - Menyediakan tombol saklar di bilah atas reel untuk memilih antara lanjut otomatis (*Auto-Next*) atau mengulang 1 video yang sama secara berulang (*Loop*).
-  - Pilihan tersimpan permanen di `localStorage` (`amy_reel_play_mode`).
-- **Fitur 3 (🌙 Sleep Timer / Timer Tidur Otomatis):**
-  - Menambahkan menu pilihan timer (Nonaktif, 15m, 30m, 45m, 1j, 2j, Sampai Video Ini Selesai, dan Kustom menit).
-  - Menampilkan countdown live di tombol atas (misal `🌙 58m` atau `🌙 1j 20m`).
-  - Dilengkapi fitur proteksi tidur: volume audio mengecil perlahan (*fade-out step*) sebelum video berhenti total dan menutup layar.
-- **Version Bump:** Bumped to `v2.0.0-pro.447` (versionCode `950447`).
+### 2026-11-12: Release v2.0.0-pro.448 (Amy Live Click & Pointer Event Recovery & Video Reel Non-Modal Isolation)
+- **Root Cause Recovery:**
+  - `rootVideoReelDialog.showModal()` sebelumnya mengunci seluruh pohon DOM di luar `<dialog>` ke status `inert` bawaan mesin Blink WebView, sehingga `#amy-local-panel` dan `#amy-local-root` tidak dapat menerima interaksi pointer/click sama sekali saat video dibuka atau aktif di DOM.
+  - Memperbaiki `renderMedia(options = {})` agar parameter `options` aman dari `ReferenceError: options is not defined`.
+- **Perbaikan Arsitektur & Event Isolation:**
+  - Mengubah pemanggilan `openVideoReel` dan `showMediaFullscreen` menjadi non-modal overlay (`dialog.show()` / `setAttribute('open', '')` + `style.display = 'block'/'flex'`) tanpa `showModal()` inert-lock.
+  - Menambahkan auto-close reel & dialog fallback saat Amy Live dibuka via `window.AmyFXCloseVideoReel` dan pembersihan `dialog[open]`.
+  - Mengisolasi z-index `#amy-local-panel.amy-bubble-fullscreen` ke level `2147483645` dengan `pointer-events: auto !important` di seluruh elemen gelembung, orb, mikrofon, header, dan form input.
+  - Menyembunyikan floating FAB `#amy-local-fab` saat video reel aktif (`body.is-reel-open #amy-local-fab { display: none !important; }`).
+- **Targeted Test:** `tests/video-reel-sleep-timer.test.mjs` (4/4 PASS), `tests/local-assistant.test.mjs` (17/17 PASS), `tests/mentor-universal-access.test.mjs` (6/6 PASS).
+- **Version Bump:** Bumped to `v2.0.0-pro.448` (versionCode `950448`).
+
 
 
 
