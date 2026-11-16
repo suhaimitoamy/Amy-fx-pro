@@ -211,6 +211,7 @@ class DriverSetupSyncWorker(
             val entryPrice = plan.optDouble("entry", 0.0)
             val slPrice = plan.optDouble("sl", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("stopLoss", 0.0)
             val tp1Price = plan.optDouble("tp1", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("target1", 0.0)
+            val tp2Price = plan.optDouble("tp2", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("target2", 0.0)
             val mathZone = assistant?.optString("mathZone", "").orEmpty()
             val zoneStr = if (mathZone.isNotBlank()) " · Zona $mathZone" else ""
             if (entryPrice > 0.0 && slPrice > 0.0 && tp1Price > 0.0) {
@@ -225,10 +226,25 @@ class DriverSetupSyncWorker(
                 val icon = if (isBuy) "🟢" else "🔴"
                 notifTitle = "$icon Asisten Amy: $sigName"
                 val spreadNote = if (!isBuy) " (TP Ask +5 Pips)" else ""
+                val tp1Pips = Math.abs(tp1Price - entryPrice) * 10.0
+                val tpTargetStr = if (tp2Price > 0.0) {
+                    val tp2Pips = Math.abs(tp2Price - entryPrice) * 10.0
+                    String.format(
+                        java.util.Locale.US,
+                        "TP1: $%.2f (+%.0f Pips) | TP2: $%.2f (+%.0f Pips)",
+                        tp1Price, tp1Pips, tp2Price, tp2Pips
+                    )
+                } else {
+                    String.format(
+                        java.util.Locale.US,
+                        "TP1: $%.2f (+%.0f Pips)",
+                        tp1Price, tp1Pips
+                    )
+                }
                 notifBody = String.format(
                     java.util.Locale.US,
-                    "%s Entry: $%.2f | SL: $%.2f | TP1: $%.2f%s (+100 Pips)%s. Siapkan eksekusi!",
-                    icon, entryPrice, slPrice, tp1Price, spreadNote, zoneStr
+                    "%s Entry: $%.2f | SL: $%.2f | %s%s%s. Siapkan eksekusi!",
+                    icon, entryPrice, slPrice, tpTargetStr, spreadNote, zoneStr
                 )
                 notify = true
             }

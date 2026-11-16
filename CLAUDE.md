@@ -382,6 +382,15 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
 - **App Version:** `v2.0.0-pro.446` (versionCode `950446`)
 - **Status:** Baseline stabil sebelum pengerjaan modul Video. Jika terjadi kendala/error saat pengerjaan Video, rollback instan via `git reset --hard 6cda575c && git clean -fd`.
 
+## Audit & Perbaikan Notifikasi Sinyal Entry Dinamis (Pro 449 / 13 Nov 2026)
+- **Konteks:** Screenshot layar kunci Sayang (13 Nov 2026 20:36 WITA) menunjukkan notifikasi sinyal `PULLBACK BUY (Pullback di Dasar Diskon)` dengan teks `TP1: $3899.55 (+100 Pips)` padahal jarak Entry $3893.17 ke TP1 $3899.55 adalah $6.38 (63.8 Pips).
+- **Akar Masalah:** String `(+100 Pips)` di-hardcode di `DriverSetupSyncWorker.kt` baris 230 tanpa memperhitungkan selisih numerik riil antara Entry dan TP1/TP2.
+- **Solusi:**
+  1. Menghitung jarak pips secara dinamis: `val tp1Pips = Math.abs(tp1Price - entryPrice) * 10.0`.
+  2. Mendukung pembacaan `tp2Price` jika tersedia: format `TP1: $%.2f (+%.0f Pips) | TP2: $%.2f (+%.0f Pips)`.
+  3. Mempertahankan catatan spread SELL `(TP Ask +5 Pips)` sesuai SOP Napas Spread Sayang.
+  4. Unit test `tests/sweep-notification-precision.test.mjs` diperbarui untuk mengunci agar string hardcode tidak pernah kembali.
+
 
 
 

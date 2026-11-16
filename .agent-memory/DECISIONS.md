@@ -1533,6 +1533,18 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 - **Targeted Test:** `tests/video-reel-sleep-timer.test.mjs` (4/4 PASS), `tests/local-assistant.test.mjs` (17/17 PASS), `tests/mentor-universal-access.test.mjs` (6/6 PASS).
 - **Version Bump:** Bumped to `v2.0.0-pro.448` (versionCode `950448`).
 
+### 2026-11-16: Release v2.0.0-pro.449 (Dynamic TP Pips Calculation in Entry Notifications)
+- **Konteks:** Screenshot layar kunci Sayang (13 Nov 2026 20:36 WITA) menunjukkan notifikasi sinyal `PULLBACK BUY (Pullback di Dasar Diskon)` dengan teks `TP1: $3899.55 (+100 Pips)` padahal jarak Entry $3893.17 ke TP1 $3899.55 adalah $6.38 (63.8 Pips).
+- **Akar Masalah:** String `(+100 Pips)` di-hardcode di `DriverSetupSyncWorker.kt` baris 230 tanpa memperhitungkan selisih numerik riil antara Entry dan TP1/TP2.
+- **Solusi & Implementasi:**
+  1. Menghitung jarak pips secara dinamis: `val tp1Pips = Math.abs(tp1Price - entryPrice) * 10.0`.
+  2. Mendukung pembacaan `tp2Price` jika tersedia: format `TP1: $%.2f (+%.0f Pips) | TP2: $%.2f (+%.0f Pips)`.
+  3. Mempertahankan catatan spread SELL `(TP Ask +5 Pips)` sesuai SOP Napas Spread Sayang.
+  4. Unit test `tests/sweep-notification-precision.test.mjs` diperbarui untuk mengunci agar string hardcode tidak pernah kembali.
+- **Targeted Test:** `tests/sweep-notification-precision.test.mjs` (8/8 PASS), `tests/pro348-ui-polish.test.mjs` (4/4 PASS).
+- **Version Bump:** Bumped to `v2.0.0-pro.449` (versionCode `950449`).
+
+
 
 
 

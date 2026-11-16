@@ -217,3 +217,14 @@ test('detectLiquiditySweep uses dynamic active candle/market price instead of ha
   assert.equal(sweep.level, 2748.00, 'Must fall back to active candle.low, not hardcoded 2642.50');
   assert.notEqual(sweep.level, 2642.50);
 });
+
+test('DriverSetupSyncWorker code audit verifies dynamic TP pips calculation without hardcoded (+100 Pips)', () => {
+  const workerCode = fs.readFileSync('app/src/main/java/com/amyelitesuite/DriverSetupSyncWorker.kt', 'utf8');
+
+  // Hardcoded (+100 Pips) string in entry notification format must be eliminated
+  assert.ok(!workerCode.includes('TP1: $%.2f%s (+100 Pips)%s. Siapkan eksekusi!'));
+
+  // Dynamic calculation must exist
+  assert.ok(workerCode.includes('tp1Pips = Math.abs(tp1Price - entryPrice) * 10.0'));
+  assert.ok(workerCode.includes('tpTargetStr'));
+});

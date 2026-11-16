@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.448/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.449/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Amy Live Click & Pointer Recovery: Memperbaiki kendala unclickable pada Amy Live dengan mengganti dialog modal inert-lock pada Video Reel ke non-modal overlay, sehingga semua tombol, mic, orb, dan prompt di Amy Live 100% responsif.",
-    "✦ Auto-Close Reel on Mentor Open: Membuka Amy Live kini otomatis menutup dan meredam video reel yang sedang aktif di latar belakang agar tidak terjadi tabrakan tampilan.",
-    "✦ Video Reel Function Safety: Memperbaiki penanganan argumen options pada renderMedia untuk stabilitas penuh."
+    "✦ Dynamic TP Pips Notification: Perhitungan pips TP1 & TP2 pada notifikasi sinyal entry kini dihitung secara dinamis dan presisi sesuai selisih jarak harga riil terhadap entry (menghilangkan teks hardcoded +100 Pips).",
+    "✦ Multi-Target TP2 Support: Notifikasi otomatis memformat target ganda (TP1 & TP2) jika tersedia dalam rencana setup.",
+    "✦ SOP Napas Spread Sell: Catatan napas spread (TP Ask +5 Pips) tetap terintegrasi otomatis untuk setup Sell."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.448/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.449/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950448,
-  "latest_version_name": "2.0.0-pro.448",
+  "latest_version_code": 950449,
+  "latest_version_name": "2.0.0-pro.449",
   "mandatory": false,
-  "releaseDate": "2026-11-12",
+  "releaseDate": "2026-11-16",
   "release_notes": [
-    "✦ Amy Live Click & Pointer Recovery: Memperbaiki kendala unclickable pada Amy Live dengan mengganti dialog modal inert-lock pada Video Reel ke non-modal overlay, sehingga semua tombol, mic, orb, dan prompt di Amy Live 100% responsif.",
-    "✦ Auto-Close Reel on Mentor Open: Membuka Amy Live kini otomatis menutup dan meredam video reel yang sedang aktif di latar belakang agar tidak terjadi tabrakan tampilan.",
-    "✦ Video Reel Function Safety: Memperbaiki penanganan argumen options pada renderMedia untuk stabilitas penuh."
+    "✦ Dynamic TP Pips Notification: Perhitungan pips TP1 & TP2 pada notifikasi sinyal entry kini dihitung secara dinamis dan presisi sesuai selisih jarak harga riil terhadap entry (menghilangkan teks hardcoded +100 Pips).",
+    "✦ Multi-Target TP2 Support: Notifikasi otomatis memformat target ganda (TP1 & TP2) jika tersedia dalam rencana setup.",
+    "✦ SOP Napas Spread Sell: Catatan napas spread (TP Ask +5 Pips) tetap terintegrasi otomatis untuk setup Sell."
   ],
-  "version": "2.0.0-pro.448",
-  "versionCode": 950448,
+  "version": "2.0.0-pro.449",
+  "versionCode": 950449,
   "sha256": "8651e889136aa32be0b7ddc0729e30428e449918ab0c648fade39956c8bb7ddf"
 }
