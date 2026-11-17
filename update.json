@@ -11,7 +11,7 @@
   "latest_version_code": 950453,
   "latest_version_name": "2.0.0-pro.453",
   "mandatory": false,
-  "releaseDate": "2026-11-18",
+  "releaseDate": "2026-11-17",
   "release_notes": [
     "✦ Fix Anti-Menguap POI Setup Buy & Sell: Implementasi Lifecycle 3-Fase (Waiting -> In-Play/Terjemput -> Terminal). Setup dan zona chart tetap terkunci dan dipantau saat harga menyentuh entry sampai TP/SL tercapai.",
     "✦ Mode Posisi Berjalan (In-Play): Status badge dan SOP Box memandu posisi aktif saat sedang menguji zona tanpa mereset atau menghilangkan kartu.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.453",
   "versionCode": 950453,
-  "sha256": "fecdc533f52c25388de3f7a849ca3358598a591234a78189ccc0296fad1d36ce"
+  "sha256": "019994fbd86f1ed523ff6e6687ffa94bc50c20113e36a4f22ebb67b123023461"
 }
