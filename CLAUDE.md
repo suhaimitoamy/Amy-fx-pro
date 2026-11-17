@@ -391,6 +391,14 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   3. Mempertahankan catatan spread SELL `(TP Ask +5 Pips)` sesuai SOP Napas Spread Sayang.
   4. Unit test `tests/sweep-notification-precision.test.mjs` diperbarui untuk mengunci agar string hardcode tidak pernah kembali.
 
+## Rilis Pro 451: Fix Jembatan Eksekusi Market Intel & Eliminasi Hardcode 4185 (17 Nov 2026)
+- **Konteks:** Bagian "Jembatan Eksekusi ke Chart Mapping" di Market Intel menampilkan data usang (harga $4,185.66, Range $4,196 / $4,134, EQ $4,165, BSL $4,195, SSL $4,177) akibat fallback data dummy lawas ketika `localStorage` kosong atau belum tersinkronisasi.
+- **Solusi & Implementasi:**
+  1. Mengintegrasikan fetch otomatis ke `/api/scalper-setups` jika cache kosong atau usang (> 15 menit).
+  2. Mengekstrak level secara dinamis: Harga live, Dealing Range (High/Low/EQ), BSL, dan SSL langsung dari array `liquidity` dan `m15.dealingRange`.
+  3. Membuang total seluruh angka hardcode 4185 dari `apps/market-intel/app.js`.
+  4. Versi aplikasi di-bump ke `v2.0.0-pro.451` (code `950451`).
+
 ## Rilis Pro 450: Integrasi POI Anatomi Lengkap ICT (OB, FVG & Liquidity) & Fix Kompas Fundamental (17 Nov 2026)
 - **Konteks:**
   1. Kompas Fundamental (Market Intel) mengalami bias silang arah di pagi hari akibat timezone filter kalender bocor dari event malam US kemarin.

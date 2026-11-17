@@ -1560,6 +1560,15 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 - **Targeted Test:** `tests/pro348-ui-polish.test.mjs` (4/4 PASS).
 - **Version Bump:** Bumped to `v2.0.0-pro.450` (versionCode `950450`).
 
+### 2026-11-17: Release v2.0.0-pro.451 (Fix Jembatan Eksekusi Market Intel & Zero-Hardcode 4185)
+- **Konteks:** "Jembatan Eksekusi ke Chart Mapping" di Market Intel menampilkan data usang dummy ($4,185.66) saat cache belum sinkron.
+- **Solusi & Implementasi:**
+  1. Auto-fetch `/api/scalper-setups` jika cache kosong atau usang (> 15 menit).
+  2. Ekstraksi dinamis Harga live, Range High/Low, EQ, BSL, SSL dari context riil.
+  3. Eliminasi seluruh hardcode 4185.
+- **Targeted Test:** `tests/pro348-ui-polish.test.mjs` (4/4 PASS).
+- **Version Bump:** Bumped to `v2.0.0-pro.451` (versionCode `950451`).
+
 
 
 

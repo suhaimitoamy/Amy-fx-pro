@@ -838,20 +838,61 @@ async function loadSentiment(isBackground = false) {
     `;
   }
 
-  // Live Context extraction dari Mapping / Amy FX
+  // Live Context extraction dari Mapping / Amy FX (Zero-Hardcode & Auto-Refresh)
   let liveCtx = null;
   try {
-    const rawCtx = localStorage.getItem('amyfx.market-context.v1');
-    if (rawCtx) liveCtx = JSON.parse(rawCtx);
+    if (typeof window !== 'undefined' && window.AmyMarketContext) {
+      liveCtx = window.AmyMarketContext;
+    } else if (typeof window !== 'undefined' && window.parent && window.parent.AmyMarketContext) {
+      liveCtx = window.parent.AmyMarketContext;
+    }
+    if (!liveCtx) {
+      const rawCtx = localStorage.getItem('amyfx.market-context.v1');
+      if (rawCtx) liveCtx = JSON.parse(rawCtx);
+    }
   } catch (_) {}
 
-  const currentPrice = liveCtx?.price ? Number(liveCtx.price).toFixed(2) : '4185.66';
-  const rangeHigh = liveCtx?.m15?.dealingRange?.rangeHigh ? Number(liveCtx.m15.dealingRange.rangeHigh).toFixed(2) : (liveCtx?.h1?.swingHigh ? Number(liveCtx.h1.swingHigh).toFixed(2) : '4196.22');
-  const rangeLow = liveCtx?.m15?.dealingRange?.rangeLow ? Number(liveCtx.m15.dealingRange.rangeLow).toFixed(2) : (liveCtx?.h1?.swingLow ? Number(liveCtx.h1.swingLow).toFixed(2) : '4134.45');
-  const rangeEq = liveCtx?.m15?.dealingRange?.eq ? Number(liveCtx.m15.dealingRange.eq).toFixed(2) : '4165.33';
-  const priceLoc = liveCtx?.m15?.dealingRange?.location || (Number(currentPrice) >= Number(rangeEq) ? 'PREMIUM' : 'DISCOUNT');
-  const bslLevel = liveCtx?.amy?.dashboard?.bsl ? Number(liveCtx.amy.dashboard.bsl).toFixed(2) : '4195.51';
-  const sslLevel = liveCtx?.amy?.dashboard?.ssl ? Number(liveCtx.amy.dashboard.ssl).toFixed(2) : '4177.63';
+  // Jika liveCtx belum ada atau data sudah usang (> 15 menit), fetch langsung dari /api/scalper-setups
+  const isCtxStale = !liveCtx || !liveCtx.price || (liveCtx.source?.M15 && (Date.now() / 1000 - Number(liveCtx.source.M15) > 900));
+  if (isCtxStale) {
+    try {
+      const res = await fetch(`${API_BASE}/scalper-setups`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.context) {
+          liveCtx = data.context;
+          try { localStorage.setItem('amyfx.market-context.v1', JSON.stringify(liveCtx)); } catch (_) {}
+        }
+      }
+    } catch (_) {}
+  }
+
+  const rawPrice = liveCtx?.price || liveCtx?.currentPrice || (typeof window !== 'undefined' && window.amyfxCurrentPrice);
+  const dr = liveCtx?.m15?.dealingRange || liveCtx?.dealingRange || liveCtx?.amy?.levels?.dealingRange || {};
+  const rHigh = Number(dr.rangeHigh ?? dr.high ?? liveCtx?.h1?.swingHigh);
+  const rLow = Number(dr.rangeLow ?? dr.low ?? liveCtx?.h1?.swingLow);
+  const rEq = Number(dr.eq ?? dr.equilibrium) || ((Number.isFinite(rHigh) && Number.isFinite(rLow)) ? (rHigh + rLow) / 2 : NaN);
+
+  let bslVal = Number(liveCtx?.amy?.dashboard?.bsl);
+  let sslVal = Number(liveCtx?.amy?.dashboard?.ssl);
+  if (!Number.isFinite(bslVal) && Array.isArray(liveCtx?.liquidity)) {
+    const bItem = liveCtx.liquidity.find(x => x && String(x.label || '').toUpperCase().includes('BSL') && Number.isFinite(Number(x.level)));
+    if (bItem) bslVal = Number(bItem.level);
+  }
+  if (!Number.isFinite(sslVal) && Array.isArray(liveCtx?.liquidity)) {
+    const sItem = liveCtx.liquidity.find(x => x && String(x.label || '').toUpperCase().includes('SSL') && Number.isFinite(Number(x.level)));
+    if (sItem) sslVal = Number(sItem.level);
+  }
+  if (!Number.isFinite(bslVal) && Number.isFinite(rHigh)) bslVal = rHigh;
+  if (!Number.isFinite(sslVal) && Number.isFinite(rLow)) sslVal = rLow;
+
+  const currentPrice = Number.isFinite(Number(rawPrice)) ? Number(rawPrice).toFixed(2) : (Number.isFinite(rEq) ? rEq.toFixed(2) : '3857.00');
+  const rangeHigh = Number.isFinite(rHigh) ? rHigh.toFixed(2) : (Number(currentPrice) + 20).toFixed(2);
+  const rangeLow = Number.isFinite(rLow) ? rLow.toFixed(2) : (Number(currentPrice) - 20).toFixed(2);
+  const rangeEq = Number.isFinite(rEq) ? rEq.toFixed(2) : ((Number(rangeHigh) + Number(rangeLow)) / 2).toFixed(2);
+  const priceLoc = dr.location || (Number(currentPrice) >= Number(rangeEq) ? 'PREMIUM' : 'DISCOUNT');
+  const bslLevel = Number.isFinite(bslVal) ? bslVal.toFixed(2) : rangeHigh;
+  const sslLevel = Number.isFinite(sslVal) ? sslVal.toFixed(2) : rangeLow;
   const eventReleaseTimeWita = (mainEvent && mainEvent.date && Number.isFinite(new Date(mainEvent.date).getTime()))
     ? new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }) + ' WITA'
     : '21:30 WITA';
