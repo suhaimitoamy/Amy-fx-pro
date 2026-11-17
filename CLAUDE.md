@@ -414,6 +414,24 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
      - 🛑 Batas Risiko (SL / Invalidasi): Protected High/Low + napas spread XAUUSDc.
   4. *Versi:* Bump ke `2.0.0-pro.450` (code `950450`).
 
+## Rilis Pro 452: SOP SL Aman Anti-Jebol & Status TP Hit Dinamis (18 Nov 2026)
+- **Konteks:** Evaluasi monitoring semalaman mendapati batas Stop Loss di SOP Sell sempat lebih rendah daripada Protected High BSL, dan target TP tetap menampilkan jarak negatif meskipun sudah dilewati harga.
+- **Solusi & Implementasi:**
+  1. *SOP SL Aman:* Mengadopsi rumus `Math.max(entryHi, invalidasiHi) + 0.40` untuk Sell dan `Math.min(entryLo, invalidasiLo) - 0.40` untuk Buy. SL selalu berada di atas puncak Order Block dan Protected High.
+  2. *Status TP Hit:* Target likuiditas yang sudah tersentuh otomatis dilabeli `✅ TP Hit: [name] (Sudah Tercapai di $...)`.
+  3. *Versi:* Bump ke `2.0.0-pro.452` (code `950452`).
+
+## Rilis Pro 453: Fix Anti-Menguap POI Setup Buy & Sell — Lifecycle 3-Fase (18 Nov 2026)
+- **Konteks:** Setup Buy dan Sell di Cockpit Mapping mendadak "menguap dan menghilang" begitu harga menyentuh zona entry, akibat filter `isActiveZone` yang membuang zona berstatus `MITIGATED` secara instan, dan canvas chart yang menghapus kotak FVG/OB saat diuji.
+- **Solusi & Implementasi:**
+  1. *Lifecycle 3-Fase POI:*
+     - Fase 1 (`WAITING_TRIGGER`): Menunggu harga menyentuh area entry.
+     - Fase 2 (`IN PLAY / POSISI BERJALAN`): Saat harga menyentuh area jemputan, setup TETAP TERKUNCI di layar. Status badge berubah menjadi `⚡ POSISI BERJALAN (Terjemput di $...)` dengan panduan live di SOP Box untuk memantau Rejection M5 dan mengawal posisi menuju TP.
+     - Fase 3 (`TERMINAL`): Setup HANYA diarsipkan jika TP tercapai (`✅ TP Hit`) atau SL ditembus (`🛑 SL Hit / Invalidasi`).
+  2. *Active Setup Session Memory:* Mencegah setup terhapus jika TwelveData atau candle aktif menandai zona sebagai `MITIGATED`.
+  3. *Chart Tested POI Preservation:* Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus (`tested: true`).
+  4. *Versi:* Bump ke `2.0.0-pro.453` (code `950453`).
+
 
 
 
