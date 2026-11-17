@@ -11,7 +11,7 @@
   "latest_version_code": 950452,
   "latest_version_name": "2.0.0-pro.452",
   "mandatory": false,
-  "releaseDate": "2026-11-18",
+  "releaseDate": "2026-11-17",
   "release_notes": [
     "✦ Fix SOP SL & Target Hit Mapping: Perbaikan rumus Stop Loss Aman agar selalu berada di atas puncak seluruh zona Supply & Protected High BSL (mencegah SL prematur terjilat saat retest).",
     "✦ Status TP Hit Dinamis: Penandaan otomatis ✅ TP Hit pada target likuiditas yang sudah berhasil ditembus oleh harga live, mengalihkan fokus ke target lanjutan.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.452",
   "versionCode": 950452,
-  "sha256": "ecf83f23061492757dc4aa8f0cd11eee435943080204b91c5220710259e86027"
+  "sha256": "fecdc533f52c25388de3f7a849ca3358598a591234a78189ccc0296fad1d36ce"
 }
