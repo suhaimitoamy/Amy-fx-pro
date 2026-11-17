@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.452/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.453/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Fix SOP SL & Target Hit Mapping: Perbaikan rumus Stop Loss Aman agar selalu berada di atas puncak seluruh zona Supply & Protected High BSL (mencegah SL prematur terjilat saat retest).",
-    "✦ Status TP Hit Dinamis: Penandaan otomatis ✅ TP Hit pada target likuiditas yang sudah berhasil ditembus oleh harga live, mengalihkan fokus ke target lanjutan.",
-    "✦ Paritas ICT Anatomi Murni: Penyelarasan napas spread XAUUSDc pada seluruh formula POI Cockpit Mapping."
+    "✦ Fix Anti-Menguap POI Setup Buy & Sell: Implementasi Lifecycle 3-Fase (Waiting -> In-Play/Terjemput -> Terminal). Setup dan zona chart tetap terkunci dan dipantau saat harga menyentuh entry sampai TP/SL tercapai.",
+    "✦ Mode Posisi Berjalan (In-Play): Status badge dan SOP Box memandu posisi aktif saat sedang menguji zona tanpa mereset atau menghilangkan kartu.",
+    "✦ Preservasi POI Tested Chart: Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus dan tidak langsung terhapus mendadak."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.452/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.453/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950452,
-  "latest_version_name": "2.0.0-pro.452",
+  "latest_version_code": 950453,
+  "latest_version_name": "2.0.0-pro.453",
   "mandatory": false,
-  "releaseDate": "2026-11-17",
+  "releaseDate": "2026-11-18",
   "release_notes": [
-    "✦ Fix SOP SL & Target Hit Mapping: Perbaikan rumus Stop Loss Aman agar selalu berada di atas puncak seluruh zona Supply & Protected High BSL (mencegah SL prematur terjilat saat retest).",
-    "✦ Status TP Hit Dinamis: Penandaan otomatis ✅ TP Hit pada target likuiditas yang sudah berhasil ditembus oleh harga live, mengalihkan fokus ke target lanjutan.",
-    "✦ Paritas ICT Anatomi Murni: Penyelarasan napas spread XAUUSDc pada seluruh formula POI Cockpit Mapping."
+    "✦ Fix Anti-Menguap POI Setup Buy & Sell: Implementasi Lifecycle 3-Fase (Waiting -> In-Play/Terjemput -> Terminal). Setup dan zona chart tetap terkunci dan dipantau saat harga menyentuh entry sampai TP/SL tercapai.",
+    "✦ Mode Posisi Berjalan (In-Play): Status badge dan SOP Box memandu posisi aktif saat sedang menguji zona tanpa mereset atau menghilangkan kartu.",
+    "✦ Preservasi POI Tested Chart: Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus dan tidak langsung terhapus mendadak."
   ],
-  "version": "2.0.0-pro.452",
-  "versionCode": 950452,
+  "version": "2.0.0-pro.453",
+  "versionCode": 950453,
   "sha256": "fecdc533f52c25388de3f7a849ca3358598a591234a78189ccc0296fad1d36ce"
 }

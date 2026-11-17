@@ -320,6 +320,21 @@ body.amyfx-module--ict main .ict-dashboard-scroll > article.poi-card--buy {
   border: 1px solid rgba(34, 197, 94, 0.35);
   color: #86EFAC;
 }
+.poi-badge--active {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border: 1px solid rgba(245, 158, 11, 0.6) !important;
+  color: #FDE68A !important;
+  animation: poi-badge-pulse 2s infinite ease-in-out;
+}
+@keyframes poi-badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+.poi-badge--hit {
+  background: rgba(34, 197, 94, 0.22) !important;
+  border: 1px solid rgba(34, 197, 94, 0.6) !important;
+  color: #86EFAC !important;
+}
 
 /* POI Table */
 .poi-table {

@@ -373,3 +373,19 @@
 - **Watchdog Mapping:** `[HEALTHY - 0 ANOMALIES]`
   - Cockpit Mapping berjalan stabil tanpa anomali.
 - **Tindakan Kode:** Tidak ada tindakan kode yang diperlukan.
+
+### [06:30 WITA] - Pos Pantau 15 Menit (Iterasi #25) — RANGE BOUND PAGI HARI MENJELANG SESI ASIA
+- **Live Price:** $3,851.70
+- **3-TF Bias:** H1: BEAR | M15: BEAR | M5: BEAR (Sinkron Sempurna: Kompresi Dasar Menjelang Sesi Asia)
+- **Dealing Range M15:** Low $3,833.62 — High $3,891.96 (EQ 50%: $3,862.79, Posisi: Discount 27%–31%)
+- **Kondisi Pasar Terkini:**
+  - Tiga candle M5 terakhir bergerak sangat teratur dan tenang di area $3,850.50 – $3,852.50.
+  - Koridor pergerakan masih terkunci di antara batas bawah $3,848.05 dan atap rejection lokal di $3,854.85.
+  - Likuiditas sesi Asia mulai terkumpul perlahan menjelang pembukaan Tokyo pukul 08:00 WITA.
+- **Validasi ICT Kritis:**
+  - Area $3,850.00 – $3,854.00 adalah **No-Trade Zone** (zona tengah kompresi pagi).
+  - Setup Sell terukur hanya dipertimbangkan jika terjadi retest Supply / EQ $3,862.80 atau penolakan di $3,857.00.
+  - Setup Buy hanya dipertimbangkan bila ada sapuan likuiditas (SSL Sweep) di bawah $3,848.00 dengan konfirmasi displacement pantulan cepat.
+- **Watchdog Mapping:** `[HEALTHY - 0 ANOMALIES]`
+  - Cockpit Mapping Amy FX Pro berjalan presisi dan sinkron dengan live market.
+- **Tindakan Kode:** Tidak ada tindakan kode yang diperlukan. Build v2.0.0-pro.452 (Run 44190505988) sedang diproses oleh GitHub Actions.

@@ -159,7 +159,7 @@ export function createIctCanvas(element, chart, series) {
       const xx = leftAt(fvg.startTime);
       const top = y(fvg.top), bottom = y(fvg.bot);
       if (xx == null || top == null || bottom == null || xx > plotRight) continue;
-      const end = fvg.endTime ? leftAt(fvg.endTime) : lineRight;
+      const end = (fvg.mitigated && !fvg.tested) ? leftAt(fvg.endTime) : lineRight;
       const right = Math.min(plotRight, end ?? lineRight);
       const color = fvg.side === 'BUY' ? '#10b981' : '#ef4444';
 
@@ -190,7 +190,7 @@ export function createIctCanvas(element, chart, series) {
       const xx = leftAt(ob.startTime);
       const top = y(ob.top), bottom = y(ob.bot);
       if (xx == null || top == null || bottom == null || xx > plotRight) continue;
-      const end = ob.endTime ? leftAt(ob.endTime) : lineRight;
+      const end = (ob.mitigated && !ob.tested) ? leftAt(ob.endTime) : lineRight;
       const right = Math.min(plotRight, end ?? lineRight);
       const color = ob.color || (ob.side === 'BUY' ? '#3b82f6' : '#ef4444');
 
@@ -198,7 +198,9 @@ export function createIctCanvas(element, chart, series) {
       ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
       ctx.strokeStyle = color;
       ctx.lineWidth = s.lineWidth || 1;
+      if (ob.tested) ctx.setLineDash([3, 3]);
       ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+      ctx.setLineDash([]);
 
       // 50% CE dashed line
       const ceY = y(ob.ce);

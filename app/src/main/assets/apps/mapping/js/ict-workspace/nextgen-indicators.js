@@ -584,16 +584,18 @@ function getTradingDayKey(timeSec) {
     }
   }
 
-  // TradingView Parity: Tampilkan hanya POI aktif terdekat (1 Bullish di bawah, 1 Bearish di atas harga)
+  // TradingView Parity: Tampilkan POI aktif terdekat (termasuk yang sedang diuji/tested agar tidak mendadak hilang saat disentuh)
   const curP = safeCandles.at(-1)?.close || 3940;
-  const unmitObs = obList.filter(z => !z.mitigated);
-  const nearestBullOb = unmitObs.filter(o => o.side === 'BUY' && o.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
-  const nearestBearOb = unmitObs.filter(o => o.side === 'SELL' && o.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
+  const lastBarTime = safeCandles.at(-1)?.time || 0;
+  const isViablePoi = z => !z.mitigated || (z.tested && (!z.endTime || z.endTime >= lastBarTime - 3600));
+  const viableObs = obList.filter(isViablePoi);
+  const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
+  const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
   const activeObs = [nearestBullOb, nearestBearOb].filter(Boolean);
 
-  const unmitFvgs = fvgList.filter(z => !z.mitigated);
-  const nearestBullFvg = unmitFvgs.filter(f => f.side === 'BUY' && f.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
-  const nearestBearFvg = unmitFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
+  const viableFvgs = fvgList.filter(isViablePoi);
+  const nearestBullFvg = viableFvgs.filter(f => f.side === 'BUY' && f.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
+  const nearestBearFvg = viableFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
   const activeFvgs = [nearestBullFvg, nearestBearFvg].filter(Boolean);
 
   return {
