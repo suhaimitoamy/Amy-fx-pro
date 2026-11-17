@@ -268,6 +268,70 @@ function analyzeMacroEvent(ev) {
       bias = (fVal !== null && pVal !== null && fVal > 50) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
       scenarioDesc = 'Indeks manufaktur & jasa mengukur ekspansi ekonomi AS yang memicu penguatan Dolar jika berada di atas 50.';
     }
+  } else if (titleLower.includes('retail sales')) {
+    category = 'retail';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `Data Retail Sales aktual (${aVal}%) ${aVal > refVal ? 'lebih kuat dari perkiraan, menopang USD dan menekan Gold' : 'lebih lemah dari perkiraan, melemahkan USD dan mendukung reli Gold'}.`;
+    } else {
+      bias = (fVal !== null && pVal !== null && fVal > pVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = 'Data belanja konsumen AS (Retail Sales) mencerminkan kekuatan permintaan domestik. Data kuat menopang USD, data lemah membuka peluang reli Gold.';
+    }
+  } else if (titleLower.includes('gdp')) {
+    category = 'gdp';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `GDP AS aktual (${aVal}%) ${aVal > refVal ? 'tumbuh di atas ekspektasi, memperkuat USD' : 'melambat di bawah ekspektasi, mendukung Gold'}.`;
+    } else {
+      bias = (fVal !== null && pVal !== null && fVal > pVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = 'Pertumbuhan ekonomi AS (GDP) menentukan ekspektasi kebijakan moneter The Fed.';
+    }
+  } else if (titleLower.includes('ppi') || titleLower.includes('producer price')) {
+    category = 'inflation';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `PPI aktual (${aVal}%) ${aVal > refVal ? 'lebih panas dari perkiraan, memperkuat ekspektasi inflasi dan menekan Gold' : 'lebih dingin, meredakan tekanan inflasi dan mendukung Gold'}.`;
+    } else {
+      bias = (fVal !== null && pVal !== null && fVal > pVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = 'Indeks Harga Produsen (PPI) mengukur tekanan inflasi dari sisi produksi yang mempengaruhi keputusan The Fed.';
+    }
+  } else if (titleLower.includes('consumer sentiment') || titleLower.includes('uom') || titleLower.includes('michigan')) {
+    category = 'sentiment';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `Sentimen Konsumen aktual (${aVal}) ${aVal > refVal ? 'lebih optimis, menopang USD' : 'melemah, membuka ruang reli Gold'}.`;
+    } else {
+      bias = 'NEUTRAL';
+      scenarioDesc = 'Indeks Sentimen Konsumen mencerminkan kepercayaan rumah tangga AS terhadap ekonomi.';
+    }
+  } else if (titleLower.includes('housing starts') || titleLower.includes('building permits') || titleLower.includes('existing home') || titleLower.includes('new home sales') || titleLower.includes('pending home')) {
+    category = 'housing';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `Data perumahan AS aktual (${aVal}) ${aVal > refVal ? 'lebih kuat, menandakan ketahanan ekonomi dan mendukung USD' : 'melemah, mengindikasikan perlambatan dan mendukung Gold'}.`;
+    } else {
+      bias = 'NEUTRAL';
+      scenarioDesc = 'Data sektor perumahan AS menjadi indikator sekunder kesehatan ekonomi.';
+    }
+  } else if (titleLower.includes('fed chairman') || titleLower.includes('fed chair') || titleLower.includes('fed governor') || titleLower.includes('fed vice')) {
+    category = 'fomc';
+    bias = 'FED_POLICY';
+    scenarioDesc = 'Pidato pejabat senior The Fed dapat memberikan sinyal arah kebijakan moneter dan menggerakkan ekspektasi suku bunga.';
+  } else if (titleLower.includes('durable goods')) {
+    category = 'manufacturing';
+    if (isReleased) {
+      const refVal = fVal !== null ? fVal : pVal;
+      bias = (refVal !== null && aVal > refVal) ? 'BEARISH_PRESSURE' : 'BULLISH_BOUNCE';
+      scenarioDesc = `Durable Goods Orders aktual (${aVal}%) ${aVal > refVal ? 'lebih kuat dari ekspektasi, menopang USD' : 'melemah, mendukung Gold'}.`;
+    } else {
+      bias = 'NEUTRAL';
+      scenarioDesc = 'Pesanan Barang Tahan Lama mencerminkan investasi dan kepercayaan bisnis AS.';
+    }
   }
 
   return { title, category, bias, scenarioDesc, fVal, pVal, aVal, isReleased };
@@ -406,11 +470,15 @@ async function loadSentiment(isBackground = false) {
   // Ambil berita lokal untuk bukti geopolitik & energi, dan enrich actual
   const newsItems = getCachedNewsItems();
 
-  // Filter event USD hari ini (WITA)
+  // Filter event USD hari ini berdasarkan tanggal KALENDER New York (bukan WITA)
+  // Kalender ekonomi internasional mengikuti zona waktu US Eastern
+  const nyTimeZone = 'America/New_York';
+  const todayNY = now.toLocaleDateString('en-CA', { timeZone: nyTimeZone });
   const todayUsd = usdEvents.filter(e => {
     const d = new Date(e.date);
     if (!Number.isFinite(d.getTime())) return false;
-    return d.toLocaleDateString('en-CA', { timeZone }) === todayYMD;
+    // Bandingkan tanggal berdasarkan zona waktu New York, bukan WITA
+    return d.toLocaleDateString('en-CA', { timeZone: nyTimeZone }) === todayNY;
   });
 
   // Urutkan event berdasarkan jam
@@ -428,7 +496,11 @@ async function loadSentiment(isBackground = false) {
   // Ambil event utama hari ini (prioritaskan NFP / CPI / FOMC Tier-1)
   const headlineEvent = importantToday.find(e => {
     const t = String(e.title || '').toLowerCase();
-    return t.includes('non-farm') || t.includes('payrolls') || t.includes('cpi') || t.includes('pce') || t.includes('rate decision') || t.includes('fomc');
+    return t.includes('non-farm') || t.includes('payrolls') || t.includes('cpi') || 
+           t.includes('pce') || t.includes('rate decision') || t.includes('fomc') ||
+           t.includes('retail sales') || t.includes('gdp') || t.includes('ppi') ||
+           t.includes('fed chairman') || t.includes('fed chair') || t.includes('fed governor') ||
+           t.includes('consumer sentiment') || t.includes('durable goods');
   });
   const mainEvent = headlineEvent || importantToday[0] || todayUsd[0] || usdEvents.find(e => {
     const t = new Date(e.date).getTime();
@@ -523,12 +595,12 @@ async function loadSentiment(isBackground = false) {
   }
 
   // Sintesis Status Scorecard & Kompas
-  let usdScore = '🟢 Cenderung Kuat';
-  let yieldScore = '🟢 Menjadi Tekanan untuk Emas';
+  let usdScore = '⚖️ Menanti Data';
+  let yieldScore = '⚖️ Menanti Sinyal';
   let riskScore = '⚖️ Campuran — Pasar Menanti Data';
-  let goldBias = '↘️ Netral Cenderung Bearish (Jangka Pendek)';
-  let goldBiasClass = 'bearish';
-  let conclusionBias = '⚠️ WAIT / SELL ON RALLY';
+  let goldBias = '⚖️ Netral — Menunggu Konfirmasi Data';
+  let goldBiasClass = 'mixed';
+  let conclusionBias = '⚖️ WAIT / NETRAL';
   let horizonStr = 'Sesi Berjalan';
   let conclusionGuide = '';
   let dom1Title = '';
@@ -780,6 +852,9 @@ async function loadSentiment(isBackground = false) {
   const priceLoc = liveCtx?.m15?.dealingRange?.location || (Number(currentPrice) >= Number(rangeEq) ? 'PREMIUM' : 'DISCOUNT');
   const bslLevel = liveCtx?.amy?.dashboard?.bsl ? Number(liveCtx.amy.dashboard.bsl).toFixed(2) : '4195.51';
   const sslLevel = liveCtx?.amy?.dashboard?.ssl ? Number(liveCtx.amy.dashboard.ssl).toFixed(2) : '4177.63';
+  const eventReleaseTimeWita = (mainEvent && mainEvent.date && Number.isFinite(new Date(mainEvent.date).getTime()))
+    ? new Date(mainEvent.date).toLocaleTimeString('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }) + ' WITA'
+    : '21:30 WITA';
 
   // Skenario reaksi dinamis untuk event utama
   let scenarioReactionHtml = '';
@@ -1160,7 +1235,7 @@ async function loadSentiment(isBackground = false) {
               <span>⚠️ Protokol Risiko: Waspada Judas Swing (Manipulasi Likuiditas)</span>
             </div>
             <p class="judas-swing-body">
-              Menjelang rilis berita pukul 20:30 WITA, volatilitas biasanya melonjak tajam dengan tipuan arah awal (*Judas Swing*) yang menyapu BSL ($${escapeHtml(bslLevel)}) atau SSL ($${escapeHtml(sslLevel)}) sebelum pergerakan asli terjadi. Disiplin <strong>tahan posisi (NEWS LOCK)</strong> 15 menit sebelum hingga 15 menit sesudah rilis. Tunggu pembentukan Market Structure Shift (MSS) yang valid di chart Mapping sebelum mencari entri.
+              Menjelang rilis berita pukul ${escapeHtml(eventReleaseTimeWita)}, volatilitas biasanya melonjak tajam dengan tipuan arah awal (*Judas Swing*) yang menyapu BSL ($${escapeHtml(bslLevel)}) atau SSL ($${escapeHtml(sslLevel)}) sebelum pergerakan asli terjadi. Disiplin <strong>tahan posisi (NEWS LOCK)</strong> 15 menit sebelum hingga 15 menit sesudah rilis. Tunggu pembentukan Market Structure Shift (MSS) yang valid di chart Mapping sebelum mencari entri.
             </p>
           </div>
           `}

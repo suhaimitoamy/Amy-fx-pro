@@ -1544,6 +1544,22 @@ Pro382 release verification completed: source 11239e1de1b42d6677cbd074619c636507
 - **Targeted Test:** `tests/sweep-notification-precision.test.mjs` (8/8 PASS), `tests/pro348-ui-polish.test.mjs` (4/4 PASS).
 - **Version Bump:** Bumped to `v2.0.0-pro.449` (versionCode `950449`).
 
+### 2026-11-17: Release v2.0.0-pro.450 (Unified Full ICT POI Anatomy & Fundamental Compass Fix)
+- **Konteks:**
+  1. Kompas Fundamental (Market Intel) mengalami bias silang arah di pagi hari akibat timezone filter kalender bocor dari event malam US kemarin.
+  2. Cockpit Mapping di kartu BUY SETUP & SELL SETUP hanya menampilkan BSL dan SSL karena parser Order Block (OB) belum di-loop ke tabel, dan FVG terdekat tertembus harga.
+- **Solusi & Implementasi:**
+  1. *Kompas Fundamental:* Mengubah filtering kalender di `apps/market-intel/app.js` menggunakan timezone `America/New_York` dan memperluas cakupan event ekonomi makro Tier 1/2.
+  2. *Mapping Card Unified POI:* Di `dashboard-v2.js`, mengintegrasikan pembacaan Order Block (OB) dari `poi.ob`, `visuals.ob`, dan Twelve Data `Supply [RBD/DBD]` / `Demand [DBR/RBR]`.
+  3. *Anatomi Lengkap ICT:* Kartu SELL SETUP dan BUY SETUP kini menampilkan hierarki utuh:
+     - 🎯 Entry Utama: Order Block (OB) + 50% Mean Threshold (MT).
+     - 🎯 Entry Cadangan: Fair Value Gap (FVG) + 50% Consequent Encroachment (CE).
+     - Status jika belum terbentuk zona: Peringatan tegas dilarang entry.
+     - 🏁 Target Likuiditas (TP): SSL untuk Sell, BSL untuk Buy.
+     - 🛑 Batas Risiko (SL / Invalidasi): Protected High/Low + napas spread XAUUSDc.
+- **Targeted Test:** `tests/pro348-ui-polish.test.mjs` (4/4 PASS).
+- **Version Bump:** Bumped to `v2.0.0-pro.450` (versionCode `950450`).
+
 
 
 
