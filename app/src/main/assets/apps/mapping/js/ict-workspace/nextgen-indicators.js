@@ -638,8 +638,8 @@ function getTradingDayKey(timeSec) {
       } : null
     },
     poi: {
-      fvg: activeFvgs.length ? activeFvgs : unmitFvgs.slice(-2),
-      ob: activeObs.length ? activeObs : unmitObs.slice(-2)
+      fvg: activeFvgs.length ? activeFvgs : viableFvgs.slice(-2),
+      ob: activeObs.length ? activeObs : viableObs.slice(-2)
     },
     expansion,
     idm
