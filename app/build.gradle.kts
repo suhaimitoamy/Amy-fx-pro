@@ -32,8 +32,8 @@ android {
         applicationId = configuredApplicationId
         minSdk = 26
         targetSdk = 35
-        versionCode = (System.getenv("AMYFX_VERSION_CODE")?.toIntOrNull() ?: 950451)
-        versionName = System.getenv("AMYFX_VERSION_NAME") ?: "2.0.0-pro.451"
+        versionCode = (System.getenv("AMYFX_VERSION_CODE")?.toIntOrNull() ?: 950452)
+        versionName = System.getenv("AMYFX_VERSION_NAME") ?: "2.0.0-pro.452"
         manifestPlaceholders["appLabel"] = configuredAppLabel
         manifestPlaceholders["amyFxScheme"] = configuredUriScheme
         buildConfigField("String", "UPDATE_MANIFEST_URL", buildConfigString(configuredUpdateManifestUrl))

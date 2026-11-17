@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.451/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.452/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Fix Jembatan Eksekusi Market Intel: Sinkronisasi live data kontekstual Dealing Range (Harga, Range High/Low, EQ, BSL/SSL) langsung dari engine /api/scalper-setups.",
-    "✦ Eliminasi Hardcode 4185: Membuang total angka lama 4185.66 pada Market Intel, digantikan perhitungan dinamis live real-time.",
-    "✦ Integrasi POI Anatomi Lengkap ICT (OB, FVG & Liquidity): Card SELL SETUP & BUY SETUP kini menampilkan Order Block (OB), Fair Value Gap (FVG), 50% Mean Threshold (MT)/CE, Target Likuiditas (SSL/BSL), dan Batas Invalidasi secara utuh dan transparan."
+    "✦ Fix SOP SL & Target Hit Mapping: Perbaikan rumus Stop Loss Aman agar selalu berada di atas puncak seluruh zona Supply & Protected High BSL (mencegah SL prematur terjilat saat retest).",
+    "✦ Status TP Hit Dinamis: Penandaan otomatis ✅ TP Hit pada target likuiditas yang sudah berhasil ditembus oleh harga live, mengalihkan fokus ke target lanjutan.",
+    "✦ Paritas ICT Anatomi Murni: Penyelarasan napas spread XAUUSDc pada seluruh formula POI Cockpit Mapping."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.451/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.452/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950451,
-  "latest_version_name": "2.0.0-pro.451",
+  "latest_version_code": 950452,
+  "latest_version_name": "2.0.0-pro.452",
   "mandatory": false,
-  "releaseDate": "2026-11-17",
+  "releaseDate": "2026-11-18",
   "release_notes": [
-    "✦ Fix Jembatan Eksekusi Market Intel: Sinkronisasi live data kontekstual Dealing Range (Harga, Range High/Low, EQ, BSL/SSL) langsung dari engine /api/scalper-setups.",
-    "✦ Eliminasi Hardcode 4185: Membuang total angka lama 4185.66 pada Market Intel, digantikan perhitungan dinamis live real-time.",
-    "✦ Integrasi POI Anatomi Lengkap ICT (OB, FVG & Liquidity): Card SELL SETUP & BUY SETUP kini menampilkan Order Block (OB), Fair Value Gap (FVG), 50% Mean Threshold (MT)/CE, Target Likuiditas (SSL/BSL), dan Batas Invalidasi secara utuh dan transparan."
+    "✦ Fix SOP SL & Target Hit Mapping: Perbaikan rumus Stop Loss Aman agar selalu berada di atas puncak seluruh zona Supply & Protected High BSL (mencegah SL prematur terjilat saat retest).",
+    "✦ Status TP Hit Dinamis: Penandaan otomatis ✅ TP Hit pada target likuiditas yang sudah berhasil ditembus oleh harga live, mengalihkan fokus ke target lanjutan.",
+    "✦ Paritas ICT Anatomi Murni: Penyelarasan napas spread XAUUSDc pada seluruh formula POI Cockpit Mapping."
   ],
-  "version": "2.0.0-pro.451",
-  "versionCode": 950451,
+  "version": "2.0.0-pro.452",
+  "versionCode": 950452,
   "sha256": "ecf83f23061492757dc4aa8f0cd11eee435943080204b91c5220710259e86027"
 }

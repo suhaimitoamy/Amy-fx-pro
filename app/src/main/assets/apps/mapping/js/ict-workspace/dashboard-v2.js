@@ -540,21 +540,26 @@
 
       // 4. TARGET LIKUIDITAS (Take Profit): SSL di bawah harga
       liqBelow.slice(0, 2).forEach(x => {
+        const dist = livePrice - x.v;
+        const noteText = dist > 0
+          ? `-$${fmt(dist)} di bawah harga — Likuiditas SSL (Target TP)`
+          : `✅ SUDAH TERCAPAI (Hit di $${fmt(x.v)}) — Level likuiditas terpanen!`;
         sellRows.push({
-          poi: `🏁 Target TP: ${x.name}`,
+          poi: dist > 0 ? `🏁 Target TP: ${x.name}` : `✅ TP Hit: ${x.name}`,
           level: '$' + fmt(x.v),
-          note: `-$${fmt(livePrice - x.v)} di bawah harga — Likuiditas SSL (Target TP)`
+          note: noteText
         });
       });
 
       // 5. BATAS RISIKO (Invalidasi / SL): BSL di atas harga
-      liqAbove.slice(0, 1).forEach(x => {
+      const primaryInvalidasiSell = liqAbove.length ? liqAbove[0] : null;
+      if (primaryInvalidasiSell) {
         sellRows.push({
-          poi: `🛑 Invalidasi: ${x.name}`,
-          level: '$' + fmt(x.v),
-          note: `+$${fmt(x.v - livePrice)} di atas harga — Batas SL (Protected High)`
+          poi: `🛑 Invalidasi: ${primaryInvalidasiSell.name}`,
+          level: '$' + fmt(primaryInvalidasiSell.v),
+          note: `+$${fmt(primaryInvalidasiSell.v - livePrice)} di atas harga — Batas SL (Protected High)`
         });
-      });
+      }
 
       sellTbody.innerHTML = sellRows.length ? sellRows.map(r =>
         `<tr><td>${esc(r.poi)}</td><td>${esc(r.level)}</td><td>${esc(r.note)}</td></tr>`
@@ -572,13 +577,17 @@
         sopSell.innerHTML = '<li>Belum ada Order Block (OB) atau FVG di atas harga — <strong>JANGAN ENTRY SELL</strong>, tunggu engine membentuk zona jemputan.</li>';
       } else {
         const tp = tpCand?.v;
-        const slLevel = (entryHi + 0.60).toFixed(2);
+        const primaryInvalidasiSell = liqAbove.length ? liqAbove[0] : null;
+        const invalidasiHi = primaryInvalidasiSell ? primaryInvalidasiSell.v : entryHi;
+        // SL Aman wajib di atas Protected High / Invalidasi DAN di atas puncak zona Supply
+        const trueSlBoundary = Math.max(entryHi, invalidasiHi);
+        const slLevel = (trueSlBoundary + 0.40).toFixed(2); // Napas spread XAUUSDc +$0.40
         sopSell.innerHTML = [
           `<li><strong>Area Entry:</strong> tunggu retest/sweep Supply/OB $${fmt(entryLo)} – $${fmt(entryHi)} (50% MT/CE: $${fmt(entryCe)}) + Rejection M5</li>`,
           Number.isFinite(tp)
             ? `<li><strong>Target TP:</strong> $${fmt(tp)} (${esc(tpCand.name)})</li><li><strong>TP dengan napas spread XAUUSDc:</strong> pasang di <strong>$${fmt(tp + 0.50)}</strong> (agar terjemput Ask)</li>`
             : '<li><strong>Target TP:</strong> Range Low / SSL M15.</li>',
-          `<li><strong>SL Aman:</strong> di atas <strong>$${slLevel}</strong> (zona invalidasi + napas spread)</li>`
+          `<li><strong>SL Aman:</strong> di atas <strong>$${slLevel}</strong> (Protected High $${fmt(trueSlBoundary)} + $0.40 napas spread)</li>`
         ].join('');
       }
     }
@@ -628,21 +637,26 @@
 
       // 4. TARGET LIKUIDITAS (Take Profit): BSL di atas harga
       liqAbove.slice(0, 2).forEach(x => {
+        const dist = x.v - livePrice;
+        const noteText = dist > 0
+          ? `+$${fmt(dist)} di atas harga — Likuiditas BSL (Target TP)`
+          : `✅ SUDAH TERCAPAI (Hit di $${fmt(x.v)}) — Level likuiditas terpanen!`;
         buyRows.push({
-          poi: `🏁 Target TP: ${x.name}`,
+          poi: dist > 0 ? `🏁 Target TP: ${x.name}` : `✅ TP Hit: ${x.name}`,
           level: '$' + fmt(x.v),
-          note: `+$${fmt(x.v - livePrice)} di atas harga — Likuiditas BSL (Target TP)`
+          note: noteText
         });
       });
 
       // 5. BATAS RISIKO (Invalidasi / SL): SSL di bawah harga
-      liqBelow.slice(0, 1).forEach(x => {
+      const primaryInvalidasiBuy = liqBelow.length ? liqBelow[0] : null;
+      if (primaryInvalidasiBuy) {
         buyRows.push({
-          poi: `🛑 Invalidasi: ${x.name}`,
-          level: '$' + fmt(x.v),
-          note: `-$${fmt(livePrice - x.v)} di bawah harga — Batas SL (Protected Low)`
+          poi: `🛑 Invalidasi: ${primaryInvalidasiBuy.name}`,
+          level: '$' + fmt(primaryInvalidasiBuy.v),
+          note: `-$${fmt(livePrice - primaryInvalidasiBuy.v)} di bawah harga — Batas SL (Protected Low)`
         });
-      });
+      }
 
       buyTbody.innerHTML = buyRows.length ? buyRows.map(r =>
         `<tr><td>${esc(r.poi)}</td><td>${esc(r.level)}</td><td>${esc(r.note)}</td></tr>`
@@ -659,15 +673,19 @@
           sopBuy.innerHTML = '<li>Belum ada Order Block (OB) atau FVG di bawah harga — <strong>JANGAN ENTRY BUY</strong>, tunggu engine membentuk zona jemputan diskon.</li>';
         } else {
           const tp = tpCand?.v || (rHigh ? (rHigh + (entryLo || 0)) / 2 : (entryHi + 10.0));
+          const primaryInvalidasiBuy = liqBelow.length ? liqBelow[0] : null;
+          const invalidasiLo = primaryInvalidasiBuy ? primaryInvalidasiBuy.v : entryLo;
+          // SL Aman wajib di bawah Protected Low / Invalidasi DAN di bawah dasar zona Demand
+          const trueBuySlBoundary = Math.min(entryLo, invalidasiLo);
           const limitOrder = (entryLo + 0.40).toFixed(2); // Napas spread XAUUSDc (+0.40)
-          const slLevel = (entryLo - 0.40).toFixed(2);    // Napas spread SL (-0.40)
+          const slLevel = (trueBuySlBoundary - 0.40).toFixed(2);    // Napas spread SL (-0.40)
           sopBuy.innerHTML = [
             `<li><strong>Area Entry:</strong> tunggu sweep Demand/OB $${fmt(entryLo)} – $${fmt(entryHi)} (50% MT/CE: $${fmt(entryCe)}) + Rejection M5</li>`,
             `<li><strong>Pending Order (Napas Spread XAUUSDc):</strong> pasang Buy Limit di <strong>$${limitOrder}</strong> (+$0.40 agar tersamber Ask)</li>`,
             Number.isFinite(tp)
               ? `<li><strong>Target TP:</strong> $${fmt(tp)} (${esc(tpCand?.name || 'Range EQ')})</li>`
               : '<li><strong>Target TP:</strong> Range EQ M15.</li>',
-            `<li><strong>SL Aman:</strong> di bawah <strong>$${slLevel}</strong> (zona invalidasi -$0.40 napas spread)</li>`
+            `<li><strong>SL Aman:</strong> di bawah <strong>$${slLevel}</strong> (Protected Low $${fmt(trueBuySlBoundary)} - $0.40 napas spread)</li>`
           ].join('');
         }
       }
