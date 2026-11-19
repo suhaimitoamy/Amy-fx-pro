@@ -473,6 +473,23 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   4. *Memory Bersih & UI/UX Polish:* Pesan error tidak disimpan ke riwayat chat `localStorage` agar tidak meracuni obrolan berikutnya. Memperbaiki kontras judul AMY di Light/Dark Mode, Fullscreen Bubble Orb full-bleed, dan bar input mobile yang lega.
   5. *Integritas & Versi:* Seluruh 80 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.456` (code `950456`).
 
+## Rilis Pro 457: Integrasi Komprehensif Seluruh Fitur AI Studio (20 Nov 2026)
+- **Konteks:** Menuntaskan seluruh migrasi fitur dari Google AI Studio (`suhaimitoamy/Amy-fx-ai-studio`) ke `Amy-fx-pro` secara komprehensif tanpa merusak test suites atau melanggar invariant proteksi.
+- **Solusi & Implementasi:**
+  1. *Market Intel V2:*
+     - Header topbar modern `.intel-topbar` dengan kicker `AMY FX PRO · XAU/USD` dan judul rapi.
+     - Filter chip tiga mode pada Berita: `Fokus Gold (XAU)`, `High Impact`, dan `Semua Berita`.
+     - Tombol manual refresh (`#btn-refresh-sentiment`, `#btn-refresh-news`, `#btn-refresh-calendar`) dengan feedback visual "Memuat…".
+     - Badge kategori berita institusional (`The Fed & Yield`, `Data Makro AS`, `Geopolitik`, `Energi`, `Gold & USD`, `Pasar Global`) dan filter noise saham (`isStockNoise`).
+     - Pemetaan bridge Dealing Range & POI presisi (`computeMappingBridgeState`).
+  2. *Natural UI & Personalisation Polish:*
+     - Mengadopsi Section 11 CSS Natural UI Pro355 (+1,025 baris) untuk tema tampilan Light/Dark Mode, kontrol saturasi, dan obsidian glassmorphism.
+     - Memperbarui styling Market Intel V2 (+502 baris) untuk topbar, badge berita, dan tata letak status feed.
+  3. *Local Assistant Supercharged:*
+     - Menambahkan fungsi kalkulator lot & risiko instan (`riskCalc`), tracking habits & streak disiplin harian (`habits`), kalender ekonomi USD (`calendar`), dan evaluasi performa latihan (`practice`).
+     - Tetap mempertahankan 100% kontrak pengujian offline tanpa panggilan remote API eksternal.
+  4. *Integritas & Versi:* Seluruh 126 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.457` (code `950457`).
+
 
 
 

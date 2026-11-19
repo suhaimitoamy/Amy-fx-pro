@@ -10,7 +10,18 @@
     return '';
   })();
   const base=script?new URL('../../',script).href:'';
-  const routes={mapping:['Mapping','apps/mapping/index.html'],news:['Berita','apps/market-intel/index.html'],journal:['Jurnal Trading','apps/journal/index.html'],academy:['Tutorial Trading','apps/academy/index.html'],kalkulator:['Kalkulator Risiko','apps/academy/tools/kalkulator-resiko.html'],glosarium:['Glosarium ICT','apps/academy/glosarium/index.html'],practice:['Trading Practice','apps/practice/index.html'],home:['Beranda','index.html']};
+  const routes={
+    mapping:['Mapping','apps/mapping/index.html'],
+    news:['Berita','apps/market-intel/index.html'],
+    calendar:['Kalender Ekonomi','apps/market-intel/index.html'],
+    journal:['Jurnal Trading','apps/journal/index.html'],
+    habits:['Disiplin & Habits','apps/journal/index.html'],
+    academy:['Tutorial Trading','apps/academy/index.html'],
+    kalkulator:['Kalkulator Risiko','apps/academy/tools/kalkulator-resiko.html'],
+    glosarium:['Glosarium ICT','apps/academy/glosarium/index.html'],
+    practice:['Trading Practice','apps/practice/index.html'],
+    home:['Beranda','index.html']
+  };
   const norm=s=>String(s??'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9/\s]/g,' ').replace(/\s+/g,' ').trim();
   const list=v=>Array.isArray(v)?v:[];
   const read=(key,fallback=null)=>{try{return JSON.parse(root.localStorage.getItem(key))??fallback;}catch{return fallback;}};
@@ -56,10 +67,13 @@
     const found=[];
     if(/\b(harga|price|mapping|market|xau|gold|emas|sinyal|signal|bias|arah|entry|setup|stop loss|target|sl|tp)\b/.test(q))found.push('mapping');
     if(/\b(news|berita|kabar|headline|ekonomi)\b/.test(q))found.push('news');
+    if(/\b(kalender|jadwal rilis|rilis news|agenda ekonomi)\b/.test(q))found.push('calendar');
     if(/\b(jurnal|journal|transaksi|profit|rugi|winrate|win rate|performa|evaluasi|kesalahan|emosi|disiplin|psikologi|fomo|overtrade|revenge)\b/.test(q))found.push('journal');
-    if(/\b(kalkulator|hitung lot|lot|resiko|risk calculator)\b/.test(q))found.push('kalkulator');
+    if(/\b(habit|kebiasaan|streak|rutinitas|disiplin harian)\b/.test(q))found.push('habits');
+    if(/\b(kalkulator|hitung lot|lot|resiko|risk calculator|hitung risiko)\b/.test(q))found.push('kalkulator');
     if(/\b(glosarium|kamus|istilah|singkatan)\b/.test(q))found.push('glosarium');
-    if(/\b(practice|simulasi|latihan|replay)\b/.test(q))found.push('practice');
+    if(/\b(practice|simulasi|replay)\b/.test(q))found.push('practice');
+    if(/\b(latihan)\b/.test(q)&&!/progres|progress|belajar/.test(q))found.push('practice');
     if(/\b(belajar|baca|bacaan|membaca|pelajari|academy|akademi|tutorial|progres|progress|soal|skor|nilai|materi|pelajaran)\b/.test(q))found.push('academy');
     // Personal trade questions use Journal, unless Mapping is explicitly named.
     if(found.includes('journal')&&!/mapping|harga|market|xau|gold|emas|sinyal|signal|bias|arah/.test(q))return found.filter(id=>id!=='mapping');
@@ -180,6 +194,185 @@
     }else text+='\nBelum ada sesi latihan selesai tersimpan.';
     return text;
   }
+  function habits() {
+    const habitList = list(read('amy_habits_v2', []));
+    const completedDates = read('amy_completed_dates_v2', {}) || {};
+    const defaultBal = Number(raw('amy_default_balance') || 0);
+    const defaultRisk = Number(raw('amy_default_risk') || 0);
+
+    const todayWita = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Makassar' });
+    const todayDone = list(completedDates[todayWita]);
+    const activeDates = Object.keys(completedDates)
+      .filter(d => Array.isArray(completedDates[d]) && completedDates[d].length > 0)
+      .sort()
+      .reverse();
+
+    let streak = 0;
+    if (activeDates.length) {
+      let cursor = new Date(todayWita + 'T00:00:00Z');
+      for (let i = 0; i < 60; i++) {
+        const iso = cursor.toISOString().slice(0, 10);
+        if (Array.isArray(completedDates[iso]) && completedDates[iso].length > 0) {
+          streak++;
+        } else if (i > 0) {
+          break;
+        }
+        cursor.setUTCDate(cursor.getUTCDate() - 1);
+      }
+    }
+
+    if (!habitList.length && !defaultBal) {
+      return 'Belum ada data habits tersimpan. Buka menu Jurnal & Habits untuk mencatat target disiplin harian.';
+    }
+
+    return (
+      (habitList.length > 0
+        ? `• Disiplin & Habits: ${todayDone.length}/${habitList.length} habit selesai hari ini · Streak disiplin: ${streak} hari` +
+          (defaultBal > 0 ? ` · Profil Risiko Tersimpan: Modal $${defaultBal.toFixed(0)}, Risiko ${defaultRisk || 1}%` : '')
+        : defaultBal > 0
+        ? `• Profil Risiko Tersimpan: Modal $${defaultBal.toFixed(0)}, Risiko ${defaultRisk || 1}%`
+        : '')
+    );
+  }
+  function riskCalc(rawQuery) {
+    const text = String(rawQuery || '').replace(/,/g, '.');
+    const lower = text.toLowerCase();
+    const savedBal = Number(raw('amy_default_balance') || 0);
+    const savedRisk = Number(raw('amy_default_risk') || 0);
+
+    const balMatch =
+      lower.match(/(?:modal|saldo|balance|ekuitas|equity|akun)\s*(?:rp|usd|\$)?\s*(\d+(?:\.\d+)?)/i) ||
+      lower.match(/\$\s*(\d+(?:\.\d+)?)\b/);
+    const riskPctMatch =
+      lower.match(/(?:risiko|risk|resiko)\s*(\d+(?:\.\d+)?)\s*%/i) ||
+      lower.match(/(\d+(?:\.\d+)?)\s*%\s*(?:risiko|risk|resiko)?/i);
+    const riskUsdMatch = lower.match(/(?:risiko|risk|resiko)\s*\$\s*(\d+(?:\.\d+)?)/i);
+    const entryMatch = lower.match(/(?:entry|masuk|buy|sell|harga)\s*(?:di|at|@)?\s*\$?\s*(\d{3,4}(?:\.\d+)?)/i);
+    const slPriceMatch = lower.match(/(?:sl|stop\s*loss)\s*(?:di|at|@)?\s*\$?\s*(\d{3,4}(?:\.\d+)?)/i);
+    const slPipsMatch = lower.match(/(?:sl|stop\s*loss|jarak)\s*(\d+(?:\.\d+)?)\s*(?:pips?|pip)/i);
+    const slPtsMatch = lower.match(/(?:sl|stop\s*loss|jarak)\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:poin|pts?|point|dollar|dolar)/i);
+
+    const balance = balMatch ? Number(balMatch[1]) : savedBal > 0 ? savedBal : 1000;
+    const riskPct = riskPctMatch ? Number(riskPctMatch[1]) : savedRisk > 0 ? savedRisk : 1.0;
+    const entry = entryMatch ? Number(entryMatch[1]) : null;
+    const slPrice = slPriceMatch ? Number(slPriceMatch[1]) : null;
+
+    let slPoints = null;
+    if (entry && slPrice && Math.abs(entry - slPrice) > 0.05) {
+      slPoints = Math.abs(entry - slPrice);
+    } else if (slPipsMatch) {
+      slPoints = Number(slPipsMatch[1]) / 10;
+    } else if (slPtsMatch) {
+      slPoints = Number(slPtsMatch[1]);
+    }
+
+    if (!Number.isFinite(balance) || balance <= 0 || !Number.isFinite(slPoints) || slPoints <= 0) {
+      return (
+        `Kalkulator Lot XAU/USD\n` +
+        `Sebutkan jarak SL (atau harga Entry & SL) agar saya bisa hitung lot presisinya, Sayang.\n` +
+        `• Akun saat ini: Modal $${balance.toFixed(0)} · Risiko ${riskPct.toFixed(1)}%\n` +
+        `• Contoh: "Modal $1000 risiko 1% entry 2650 SL 2645" atau "Saldo $500 risk 1% SL 50 pips".`
+      );
+    }
+
+    const riskUsd = riskUsdMatch ? Number(riskUsdMatch[1]) : balance * (riskPct / 100);
+    const slPips = Math.round(slPoints * 10);
+    const rawLot = riskUsd / (slPoints * 100);
+    const safeLot = Math.max(0.01, Math.floor(rawLot * 100) / 100);
+    const actualRiskUsd = safeLot * slPoints * 100;
+    const actualRiskPct = (actualRiskUsd / balance) * 100;
+
+    let direction = null;
+    let tp1 = null;
+    let tp2 = null;
+    if (entry && slPrice) {
+      direction = entry > slPrice ? 'BUY' : 'SELL';
+      tp1 = direction === 'BUY' ? entry + slPoints * 1.5 : entry - slPoints * 1.5;
+      tp2 = direction === 'BUY' ? entry + slPoints * 3.0 : entry - slPoints * 3.0;
+    }
+
+    const lines = [
+      `Kalkulator Lot & Risiko XAU/USD`,
+      `• Modal Akun: $${balance.toFixed(2)} | Target Risiko: ${riskPct.toFixed(1)}% ($${riskUsd.toFixed(2)})`,
+      entry && slPrice
+        ? `• Setup ${direction}: Entry $${entry.toFixed(2)} | SL $${slPrice.toFixed(2)} (Jarak $${slPoints.toFixed(2)} / ${slPips} pips)`
+        : `• Jarak Stop Loss: $${slPoints.toFixed(2)} (${slPips} pips)`,
+      `• Ukuran Lot Rekomendasi: ${safeLot.toFixed(2)} LOT (Risiko aktual: -$${actualRiskUsd.toFixed(2)} / ${actualRiskPct.toFixed(2)}%)`
+    ];
+
+    if (tp1 && tp2) {
+      lines.push(
+        `• Proyeksi TP1 (1:1.5R): $${tp1.toFixed(2)} (+$${(actualRiskUsd * 1.5).toFixed(2)}) | TP2 Runner (1:3R): $${tp2.toFixed(2)} (+$${(actualRiskUsd * 3).toFixed(2)})`
+      );
+    }
+    if (rawLot < 0.01) {
+      lines.push(
+        `• Peringatan: Lot ideal (${rawLot.toFixed(3)}) di bawah batas minimum 0.01 lot standar. Pertimbangkan akun Cent (XAUUSDc) atau perketat jarak SL di struktur M5.`
+      );
+    }
+    return lines.join('\n');
+  }
+  function calendar(calData) {
+    const data = calData || read('amyfx.market.calendar.v1') || read('amyfx.market.intel.v1', {})?.calendar;
+    const events = list(data?.events || data?.items || data);
+    if (!events.length) {
+      return '• Kalender Ekonomi: Belum ada cache jadwal kalender tersimpan. Buka menu Berita & Kalender untuk sinkronisasi jadwal USD High-Impact.';
+    }
+    const nowMs = Date.now();
+    const upcoming = events
+      .filter(e => e.timestampMs && Number(e.timestampMs) > nowMs)
+      .sort((a, b) => Number(a.timestampMs) - Number(b.timestampMs));
+    const released = events
+      .filter(e => e.actual && String(e.actual).trim() !== '' && String(e.actual).trim() !== '—')
+      .slice(-3)
+      .reverse();
+
+    const lines = ['Kalender Ekonomi USD (Fokus XAU/USD)'];
+    if (upcoming.length) {
+      upcoming.slice(0, 3).forEach(ev => {
+        const diffMin = Math.max(0, Math.round((Number(ev.timestampMs) - nowMs) / 60000));
+        const hours = Math.floor(diffMin / 60);
+        const mins = diffMin % 60;
+        const cd = hours > 24 ? `${Math.floor(hours / 24)}h ${hours % 24}j lagi` : hours > 0 ? `${hours}j ${mins}m lagi` : `${mins}m lagi`;
+        lines.push(
+          `• ${ev.title || ev.event} (${ev.impact || 'HIGH'}) — ${ev.timeWita || stamp(ev.timestampMs)} (${cd}) | Forecast: ${ev.forecast || '—'} · Prev: ${ev.previous || '—'}`
+        );
+      });
+    } else {
+      lines.push('• Tidak ada jadwal USD High-Impact tersisa dalam waktu dekat.');
+    }
+
+    if (released.length) {
+      lines.push('• Rilis Terakhir (Aktual vs Forecast):');
+      released.forEach(ev => {
+        const bias = ev.goldBias ? ` → ${ev.goldBias}` : '';
+        lines.push(`  - ${ev.title || ev.event}: Aktual ${ev.actual} vs Forecast ${ev.forecast || '—'}${bias}`);
+      });
+    }
+    return lines.join('\n');
+  }
+  function practice() {
+    const report = read('amy-guided-v2-summary', {}) || {};
+    const results = list(report.results);
+    const review = list(report.review);
+    if (!results.length) {
+      return 'Trading Practice: Belum ada skor sesi latihan tersimpan. Mulai latihan analisa struktur & eksekusi di menu Trading Practice.';
+    }
+    const correct = results.filter(r => r.correct === true).length;
+    const pct = number((correct / results.length) * 100);
+    const lines = [
+      `Ringkasan Trading Practice`,
+      `• Skor Sesi Terakhir: ${correct}/${results.length} benar (${pct}%)`
+    ];
+    if (review.length) {
+      lines.push(`• Topik Perlu Diulang: ${review.map(t => t.title || t).slice(0, 5).join(', ')}`);
+    } else if (correct < results.length) {
+      lines.push(`• Ada ${results.length - correct} soal perlu dievaluasi ulang pada sesi terakhir.`);
+    } else {
+      lines.push(`• Semua soal pada sesi terakhir dijawab benar. Mantap, Sayang!`);
+    }
+    return lines.join('\n');
+  }
   const stop=new Set('apa itu adalah jelaskan jelasin tolong saya aku dong nih yang dengan dan di ke dari tentang bagaimana kenapa mengapa cara materi belajar tutorial arti maksud pengertian contoh nya'.split(' '));
   function knowledge(q){
     const tokens=q.split(' ').filter(t=>t.length>1&&!stop.has(t));if(!tokens.length)return null;
@@ -202,11 +395,15 @@
       for(const id of intents){
         if(id==='mapping')parts.push(mapping(q,root.AmyICTMapping||read('amyfx.ict.mapping.v1'),Date.now()));
         if(id==='news')parts.push(news(q,read('amyfx.assistant.news.v1')||read('amyfx.market.intel.v1',{})?.news));
+        if(id==='calendar')parts.push(calendar());
         if(id==='journal')parts.push(journal(q,await journals()));
+        if(id==='habits')parts.push(habits());
+        if(id==='kalkulator')parts.push(riskCalc(question));
+        if(id==='practice')parts.push(practice());
         if(id==='academy')parts.push(academy());
-        links.push({label:'Buka '+routes[id][0],path:routes[id][1]});
+        if(routes[id])links.push({label:'Buka '+routes[id][0],path:routes[id][1]});
       }
-      text=parts.join('\n\n');lastIntent=intents.join(',');lastQuery=q;
+      text=parts.filter(Boolean).join('\n\n');lastIntent=intents.join(',');lastQuery=q;
     }
     if(!text){await knowledgeReady;const k=knowledge(q);if(k){text=k.text;links.push(...k.links);}}
     if(!text)text='Saya belum bisa menentukan maksud pertanyaan ini. Sebutkan data atau topiknya, misalnya “harga di Mapping”, “berita terbaru”, “evaluasi jurnal saya”, “progres belajar”, atau “apa itu FVG”. Jawaban saya berasal dari data dan materi aplikasi; pertanyaan bebas di luar cakupan itu belum didukung.';
@@ -225,6 +422,6 @@
     // Knowledge is packaged JavaScript, loaded locally; no network AI call.
     if(script){knowledgeReady=new Promise(resolve=>{const s=document.createElement('script');const timer=setTimeout(resolve,5000);const done=()=>{clearTimeout(timer);resolve();};s.onload=done;s.onerror=done;s.src=new URL('amy-local-knowledge.js',script).href;document.head.appendChild(s);});const g=document.createElement('script');g.src=new URL('amy-gemini-live-bridge.js',script).href;g.async=true;document.head.appendChild(g);}
   }
-  root.AmyLocalAssistant=Object.freeze({ask,intent,mapping,news,journal,academy,knowledge});
+  root.AmyLocalAssistant=Object.freeze({ask,intent,mapping,news,journal,academy,knowledge,habits,riskCalc,calendar,practice});
   if(root.document){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();}
 })(typeof window==='undefined'?globalThis:window);

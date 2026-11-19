@@ -15,12 +15,221 @@ const REFRESH_INTERVAL = 60 * 1000; // Auto-refresh setiap 1 menit
 
 // ─── State ───────────────────────────────────────────────
 let currentTab = 'sentiment';
+let currentNewsFilter = 'gold';
+let latestNewsItems = [];
 let pendingNewsId = '';
 let newsRouteRetries = 0;
 let newsFetchSequence = 0;
 let isCalendarLive = false;
 const requestControllers = {};
 const panelLoadedAt = {};
+
+function isStockNoise(textLower) {
+  return (
+    textLower.includes('earnings report') ||
+    textLower.includes('laporan laba') ||
+    textLower.includes('eps |') ||
+    textLower.includes('market cap:') ||
+    textLower.includes('min left for the new york session') ||
+    textLower.includes('menit lagi menjelang sesi new york') ||
+    textLower.includes('us30 companies') ||
+    textLower.includes('perusahaan us30') ||
+    textLower.includes('usnas100') ||
+    /\bipo\b/i.test(textLower)
+  );
+}
+
+function decodeHtmlEntities(str) {
+  return String(str || '')
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+      const code = Number.parseInt(hex, 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
+    })
+    .replace(/&#(\d+);/g, (_, dec) => {
+      const code = Number.parseInt(dec, 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
+    })
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function classifyNewsCategory(item) {
+  const t = `${item?.text || ''} ${item?.textOriginal || ''}`.toLowerCase();
+  if (/\b(fed|fomc|powell|warsh|suku bunga|interest rate|rate cut|rate hike|bank sentral|central bank|sofr|yield|treasury|obligasi)\b/i.test(t)) {
+    return { label: 'The Fed & Yield', cls: 'cat-fed' };
+  }
+  if (/\b(cpi|pce|ppi|inflasi|inflation|nfp|payroll|jobless|unemployment|klaim|gdp|pdb|retail sales|pmi|philly fed)\b/i.test(t)) {
+    return { label: 'Data Makro AS', cls: 'cat-macro' };
+  }
+  if (/\b(iran|israel|hormuz|russia|rusia|ukraine|ukraina|putin|war|perang|nuklir|nuclear|rudal|missile|ceasefire|gencatan|geopolit|serangan|attack|retaliat|pentagon|crimea|krimea|tariff|tarif|sanksi|sanctions)\b/i.test(t)) {
+    return { label: 'Geopolitik', cls: 'cat-geo' };
+  }
+  if (/\b(oil|minyak|brent|wti|opec|energi|energy)\b/i.test(t)) {
+    return { label: 'Energi', cls: 'cat-energy' };
+  }
+  if (/\b(gold|xau|emas|bullion|dxy|dollar|dolar|safe haven)\b/i.test(t)) {
+    return { label: 'Gold & USD', cls: 'cat-gold' };
+  }
+  return { label: 'Pasar Global', cls: 'cat-global' };
+}
+
+function getNewsImpactLevel(item) {
+  if (String(item?.impact || '').toLowerCase() === 'high') return 'high';
+  const t = `${item?.text || ''} ${item?.textOriginal || ''}`.toLowerCase();
+  if (/\b(fomc|powell|cpi|nfp|payroll|pce|ppi|rate cut|rate hike|war|perang|nuklir|nuclear|rudal|missile|hormuz|retaliat|ceasefire|gencatan|recession|resesi|tariff|tarif|sanctions|sanksi)\b/i.test(t)) {
+    return 'high';
+  }
+  return 'medium';
+}
+
+function scoreEventImportance(ev, nowMs) {
+  const t = String(ev?.title || '').toLowerCase();
+  const imp = String(ev?.impact || '').toLowerCase();
+  const hasActual = Boolean(ev?.actual && ev.actual !== '—' && ev.actual !== '--');
+  let score = imp === 'high' ? 50 : (imp === 'medium' ? 30 : 10);
+
+  if (/non-farm|nonfarm|payrolls|cpi|pce|fomc|rate decision/i.test(t)) score += 60;
+  else if (/retail sales|gdp|ppi|powell|fed chair|fomc meeting minutes|unemployment rate/i.test(t)) score += 45;
+  else if (/unemployment claims|jobless claims|ism|pmi|adp|jolts|hourly earnings/i.test(t)) score += 35;
+  else if (/philly fed|empire state|consumer sentiment|consumer confidence|durable goods/i.test(t)) score += 25;
+
+  if (hasActual) score += 80;
+
+  const evMs = new Date(ev?.date).getTime();
+  if (Number.isFinite(evMs)) {
+    const diffHours = Math.abs(evMs - nowMs) / 3600000;
+    if (diffHours <= 3) score += 12;
+    else if (diffHours <= 8) score += 6;
+  }
+  return score;
+}
+
+function setupNewsFilters() {
+  document.querySelectorAll('.news-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setNewsFilter(btn.dataset.newsFilter || 'gold');
+    });
+  });
+}
+
+function setNewsFilter(filter) {
+  currentNewsFilter = filter;
+  document.querySelectorAll('.news-filter').forEach(b => {
+    b.classList.toggle('active', (b.dataset.newsFilter || 'gold') === filter);
+  });
+  const expanded = new Set(
+    [...document.querySelectorAll('.news-item.expanded')].map(el => el.dataset.newsId).filter(Boolean)
+  );
+  renderNews(latestNewsItems, expanded);
+}
+
+function setupRefreshButtons() {
+  const bindRefresh = (id, fn) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = 'Memuat…';
+      try {
+        await fn();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Perbarui';
+      }
+    });
+  };
+  bindRefresh('btn-refresh-sentiment', async () => {
+    await Promise.allSettled([loadCalendar(true), loadNews(true)]);
+    await loadSentiment(false);
+  });
+  bindRefresh('btn-refresh-news', () => loadNews(false));
+  bindRefresh('btn-refresh-calendar', () => loadCalendar(false));
+}
+
+function computeMappingBridgeState(liveCtx) {
+  const num = v => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  };
+  const livePrice = num(liveCtx?.price ?? liveCtx?.currentPrice ?? (typeof window !== 'undefined' ? window.amyfxCurrentPrice : NaN));
+  const dr = liveCtx?.m15?.dealingRange || liveCtx?.dealingRange || liveCtx?.amy?.levels?.dealingRange || {};
+  const rHigh = num(dr.rangeHigh ?? dr.high ?? liveCtx?.h1?.swingHigh);
+  const rLow = num(dr.rangeLow ?? dr.low ?? liveCtx?.h1?.swingLow);
+  const validRange = Number.isFinite(rHigh) && Number.isFinite(rLow) && rHigh > rLow;
+  const span = validRange ? (rHigh - rLow) : NaN;
+  const rEq = validRange ? (rHigh + rLow) / 2 : num(dr.eq ?? dr.equilibrium);
+
+  let rawPct = 50;
+  let pct = 50;
+  if (validRange && Number.isFinite(livePrice) && livePrice > 0) {
+    rawPct = ((livePrice - rLow) / span) * 100;
+    pct = Math.min(100, Math.max(0, Math.round(rawPct)));
+  }
+
+  let m15Dir = 0;
+  const m15Struct = String(liveCtx?.m15?.structure || '').toUpperCase();
+  const m15Control = String(liveCtx?.m15?.control || '').toUpperCase();
+  const biasDir = liveCtx?.amy?.dashboard?.biasDir;
+  if (m15Struct.includes('BEAR') || m15Control.includes('SELLER') || biasDir === -1) m15Dir = -1;
+  else if (m15Struct.includes('BULL') || m15Control.includes('BUYER') || biasDir === 1) m15Dir = 1;
+
+  const isSslSwept = validRange && Number.isFinite(livePrice) && livePrice < rLow;
+  const isBslSwept = validRange && Number.isFinite(livePrice) && livePrice > rHigh;
+  const isBearBreakdown = isSslSwept && m15Dir === -1 && (rLow - livePrice) > 3.0;
+  const isBullBreakout = isBslSwept && m15Dir === 1 && (livePrice - rHigh) > 3.0;
+
+  let zoneText = 'EQUILIBRIUM · 50%';
+  let zoneTone = 'neutral';
+  if (validRange && Number.isFinite(livePrice)) {
+    if (isBearBreakdown) { zoneText = `BREAKDOWN · ${pct}%`; zoneTone = 'breakdown'; }
+    else if (isBullBreakout) { zoneText = `BREAKOUT · ${pct}%`; zoneTone = 'breakout'; }
+    else if (rawPct < 47.5) { zoneText = `DISKON · ${pct}%`; zoneTone = 'discount'; }
+    else if (rawPct > 52.5) { zoneText = `PREMIUM · ${pct}%`; zoneTone = 'premium'; }
+    else { zoneText = `EQ · ${pct}%`; zoneTone = 'neutral'; }
+  }
+
+  const liqList = Array.isArray(liveCtx?.liquidity) ? liveCtx.liquidity : [];
+  const rawBslCandidates = [
+    num(liveCtx?.amy?.dashboard?.bsl),
+    ...liqList.filter(x => String(x?.label || x?.side || '').toUpperCase().includes('BSL') || String(x?.side || '').toUpperCase() === 'BUY').map(x => num(x.level)),
+    rHigh
+  ].filter(v => Number.isFinite(v) && (!Number.isFinite(livePrice) || v > livePrice + 0.5));
+  const rawSslCandidates = [
+    num(liveCtx?.amy?.dashboard?.ssl),
+    ...liqList.filter(x => String(x?.label || x?.side || '').toUpperCase().includes('SSL') || String(x?.side || '').toUpperCase() === 'SELL').map(x => num(x.level)),
+    rLow
+  ].filter(v => Number.isFinite(v) && (!Number.isFinite(livePrice) || v < livePrice - 0.5));
+
+  const bslVal = rawBslCandidates.length ? Math.min(...rawBslCandidates) : NaN;
+  const sslVal = rawSslCandidates.length ? Math.max(...rawSslCandidates) : NaN;
+
+  const fmtP = v => Number.isFinite(v) ? `$${v.toFixed(2)}` : '—';
+
+  return {
+    livePrice,
+    rHigh,
+    rLow,
+    rEq,
+    span,
+    pct,
+    zoneText,
+    zoneTone,
+    isBearBreakdown,
+    isBullBreakout,
+    isSslSwept,
+    isBslSwept,
+    priceStr: fmtP(livePrice),
+    rangeHighStr: fmtP(rHigh),
+    rangeLowStr: validRange ? (isSslSwept ? `${fmtP(rLow)} (Break)` : fmtP(rLow)) : '—',
+    rangeEqStr: fmtP(rEq),
+    bslStr: fmtP(bslVal),
+    sslStr: Number.isFinite(sslVal) ? fmtP(sslVal) : (isBearBreakdown ? 'Area Low Baru' : '—')
+  };
+}
 
 function newsId(item) {
   return String(item?.id || `${item?.time || ''}:${item?.textOriginal || item?.text || ''}`);
@@ -115,6 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   setupNewsInteractions();
   setupCalendarFilters();
+  setupNewsFilters();
+  setupRefreshButtons();
 
   if (pendingNewsId) {
     activateTab('news');
@@ -1578,7 +1789,8 @@ async function loadNews(silent = false) {
       if (cachedRaw) {
         const cached = JSON.parse(cachedRaw);
         if (cached && Array.isArray(cached.items) && cached.items.length > 0) {
-          renderNews(cached.items, currentExpandedIds);
+          latestNewsItems = cached.items;
+          renderNews(cached.items, currentExpandedIds, cached.updated);
           if (status) status.textContent = `${cached.items.length} berita (tersimpan) • Sinkronisasi latar belakang…`;
         }
       }
@@ -1665,9 +1877,10 @@ async function loadNews(silent = false) {
     panelLoadedAt.news = Date.now();
     window.AmyFXIntel?.write('news', { updated: data.updated, capturedAt: data.updated, source: 'VERCEL_NEWS', items: sortedNews.slice(0, 10) });
 
+    latestNewsItems = sortedNews;
     if (currentSequence === newsFetchSequence) {
       try { localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify({ updated: data.updated, items: sortedNews.slice(0, 20) })); } catch {}
-      renderNews(sortedNews, currentExpandedIds);
+      renderNews(sortedNews, currentExpandedIds, data.updated);
       if (calendarEvents.length > 0) {
         enrichCalendarEventsWithNews(calendarEvents, sortedNews);
         renderCalendar();
@@ -1711,15 +1924,54 @@ async function loadNews(silent = false) {
   }
 }
 
-function renderNews(sortedNews, expandedIds = new Set()) {
+function renderNews(sortedNews, expandedIds = new Set(), updatedIso = null) {
   const list = document.getElementById('news-list');
+  const status = document.getElementById('news-status');
   if (!list) return;
-  list.innerHTML = sortedNews.map((item, i) => {
+
+  const allNews = Array.isArray(sortedNews) ? sortedNews : [];
+  const goldOnly = allNews.filter(isNewsRelevantForGold);
+  const filtered = currentNewsFilter === 'gold'
+    ? goldOnly
+    : (currentNewsFilter === 'high'
+      ? allNews.filter(item => getNewsImpactLevel(item) === 'high' && isNewsRelevantForGold(item))
+      : allNews);
+
+  if (status && !status.textContent.includes('Sinkronisasi')) {
+    const timeSuffix = updatedIso ? ` • ${formatTime(updatedIso)}` : '';
+    if (currentNewsFilter === 'gold') {
+      status.textContent = `${filtered.length} berita Fokus Gold (dari ${allNews.length} feed)${timeSuffix}`;
+    } else if (currentNewsFilter === 'high') {
+      status.textContent = `${filtered.length} berita High Impact Gold${timeSuffix}`;
+    } else {
+      status.textContent = `${filtered.length} total berita global${timeSuffix}`;
+    }
+  }
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        Belum ada berita untuk filter ini.
+        <small>Coba beralih ke tab "Semua Berita" untuk melihat feed global.</small>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map((item, i) => {
     const id = newsId(item);
     const isExpanded = expandedIds.has(String(id));
+    const impact = getNewsImpactLevel(item);
+    const cat = classifyNewsCategory(item);
     return `
-      <article class="news-item ${isExpanded ? 'expanded' : ''}" data-news-id="${escapeHtml(id)}" style="animation-delay:${i * 0.05}s" tabindex="0">
-        <div class="news-time">${formatTime(item.time)}</div>
+      <article class="news-item impact-${impact} ${isExpanded ? 'expanded' : ''}" data-news-id="${escapeHtml(id)}" style="animation-delay:${Math.min(i, 10) * 0.03}s" tabindex="0">
+        <div class="news-item-head">
+          <div class="news-meta-tags">
+            <span class="news-impact-badge ${impact}">${impact === 'high' ? 'HIGH' : 'MED'}</span>
+            <span class="news-cat-badge ${cat.cls}">${escapeHtml(cat.label)}</span>
+          </div>
+          <span class="news-time">${escapeHtml(formatTime(item.time))}</span>
+        </div>
         <div class="news-text">${escapeHtml(item.text)}</div>
       </article>
     `;

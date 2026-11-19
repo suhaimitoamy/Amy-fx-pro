@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.456/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.457/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Amy Live 2.0 (Direct WS Live Voice & Client Bridge): Mempertahankan arsitektur client bridge + WebSocket streaming suara Aoede ke Gemini Live API.",
-    "✦ Smart Context Router: Hanya memuat modul konteks relevan per pertanyaan (Chart/News/Journal/Risk) untuk respon instan & hemat token.",
-    "✦ Safe Chat Memory & UI Polish: Pesan error tidak disimpan ke riwayat chat, perbaikan kontras Light/Dark mode judul AMY, dan bar input mobile lega."
+    "✦ Market Intel V2: Topbar modern, filter feed Gold/High Impact/All, dan tombol perbarui manual.",
+    "✦ Natural UI & Personalisation: Section 11 CSS polish & tema Light/Dark.",
+    "✦ Enhanced Local Assistant: Kalkulator Lot/Risiko XAU, Tracking Habits/Streak Disiplin, Jadwal Kalender Ekonomi, dan Ringkasan Practice."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.456/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.457/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950456,
-  "latest_version_name": "2.0.0-pro.456",
+  "latest_version_code": 950457,
+  "latest_version_name": "2.0.0-pro.457",
   "mandatory": false,
-  "releaseDate": "2026-11-19",
+  "releaseDate": "2026-11-20",
   "release_notes": [
-    "✦ Amy Live 2.0 (Direct WS Live Voice & Client Bridge): Mempertahankan arsitektur client bridge + WebSocket streaming suara Aoede ke Gemini Live API.",
-    "✦ Smart Context Router: Hanya memuat modul konteks relevan per pertanyaan (Chart/News/Journal/Risk) untuk respon instan & hemat token.",
-    "✦ Safe Chat Memory & UI Polish: Pesan error tidak disimpan ke riwayat chat, perbaikan kontras Light/Dark mode judul AMY, dan bar input mobile lega."
+    "✦ Market Intel V2: Topbar modern, filter feed Gold/High Impact/All, dan tombol perbarui manual.",
+    "✦ Natural UI & Personalisation: Section 11 CSS polish & tema Light/Dark.",
+    "✦ Enhanced Local Assistant: Kalkulator Lot/Risiko XAU, Tracking Habits/Streak Disiplin, Jadwal Kalender Ekonomi, dan Ringkasan Practice."
   ],
-  "version": "2.0.0-pro.456",
-  "versionCode": 950456,
-  "sha256": "a072c3bcb8bdbb08f13e29d11785f89e037c06b4c844de43f41339f2e2304b7e"
+  "version": "2.0.0-pro.457",
+  "versionCode": 950457,
+  "sha256": ""
 }

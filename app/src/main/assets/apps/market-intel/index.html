@@ -19,16 +19,16 @@
 </head>
 <body class="amyfx-module amyfx-module--intel">
   <div class="intel-container">
-    <header class="intel-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <header class="intel-header intel-topbar">
       <button type="button" class="nav-arrow-btn nav-arrow-left" id="amyfxNavBack" data-amyfx-nav="back" aria-label="Kembali ke Menu Utama">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
       </button>
-      <div class="intel-header__copy" style="flex:1; text-align:center;">
-        <small style="display:block; letter-spacing:0.14em; color:var(--muted); font-size:10px; font-weight:700;">AMY FX PRO · REAL-TIME</small>
-        <h1 style="margin:2px 0 0; font-size:1.15rem; line-height:1.2; font-weight:800; color:#fff; letter-spacing:0.02em;">Market Intelligence Feed</h1>
+      <div class="intel-header__copy">
+        <small class="intel-header__kicker">AMY FX PRO · XAU/USD</small>
+        <h1 class="intel-header__title">Market Intelligence</h1>
       </div>
       <button type="button" class="nav-arrow-btn nav-arrow-right" id="amyfxNavForward" data-amyfx-nav="forward" aria-label="Maju">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
@@ -44,21 +44,35 @@
     </nav>
     <section id="intel-briefing" class="amy-briefing" aria-live="polite"></section>
     <section id="panel-sentiment" class="intel-panel active">
-      <div class="status-bar" id="sentiment-status">Memuat kompas fundamental &amp; sentimen makro...</div>
+      <div class="intel-status-row">
+        <div class="status-bar" id="sentiment-status">Memuat kompas fundamental &amp; sentimen makro...</div>
+        <button type="button" class="intel-refresh-btn" id="btn-refresh-sentiment" aria-label="Perbarui Kompas">Perbarui</button>
+      </div>
       <div id="sentiment-content" class="sentiment-wrap"></div>
     </section>
-    <section id="panel-news" class="intel-panel">
-      <div class="status-bar" id="news-status">Memuat berita...</div>
+    <section id="panel-news" class="intel-panel" role="tabpanel">
+      <div class="calendar-filters news-filters" role="group" aria-label="Filter Berita">
+        <button type="button" class="news-filter active" data-news-filter="gold">Fokus Gold (XAU)</button>
+        <button type="button" class="news-filter" data-news-filter="high">High Impact</button>
+        <button type="button" class="news-filter" data-news-filter="all">Semua Berita</button>
+      </div>
+      <div class="intel-status-row">
+        <div class="status-bar" id="news-status">Memuat berita...</div>
+        <button type="button" class="intel-refresh-btn" id="btn-refresh-news" aria-label="Perbarui Berita">Perbarui</button>
+      </div>
       <div id="news-list" class="news-list"></div>
     </section>
-    <section id="panel-calendar" class="intel-panel">
-      <div class="calendar-filters">
-        <button class="cal-filter active" data-filter="gold">Fokus Gold (USD) 🇺🇸</button>
-        <button class="cal-filter" data-filter="high">High Impact 🔴</button>
-        <button class="cal-filter" data-filter="medium">Medium 🟠</button>
-        <button class="cal-filter" data-filter="all">Semua Rilis 🌐</button>
+    <section id="panel-calendar" class="intel-panel" role="tabpanel">
+      <div class="calendar-filters" role="group" aria-label="Filter Kalender Ekonomi">
+        <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold (USD) 🇺🇸</button>
+        <button type="button" class="cal-filter" data-filter="high">High Impact 🔴</button>
+        <button type="button" class="cal-filter" data-filter="medium">Medium 🟠</button>
+        <button type="button" class="cal-filter" data-filter="all">Semua Rilis 🌐</button>
       </div>
-      <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>
+      <div class="intel-status-row">
+        <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>
+        <button type="button" class="intel-refresh-btn" id="btn-refresh-calendar" aria-label="Perbarui Kalender">Perbarui</button>
+      </div>
       <div id="calendar-list" class="calendar-list"></div>
     </section>
     <div id="loading-overlay" class="loading-overlay" hidden>
