@@ -13,6 +13,8 @@ on:
       - 'app/src/main/assets/apps/academy/**'
       - 'app/src/main/assets/apps/mapping/**'
       - 'app/src/main/assets/apps/market-intel/**'
+      - 'app/src/main/assets/apps/shared/**'
+      - 'lib/**'
       - 'supabase/functions/scalper-engine/**'
       - 'supabase/functions/smt-dxy-candles/**'
       - 'tests/**'
