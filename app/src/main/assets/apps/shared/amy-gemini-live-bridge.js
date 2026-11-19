@@ -410,9 +410,53 @@
     return null;
   }
 
+  function findLessonFromChatHistory(knowledgeList) {
+    const knowledge = Array.isArray(knowledgeList) ? knowledgeList : (root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []));
+    if (!Array.isArray(knowledge) || !knowledge.length) return null;
+    const hist = loadHistory();
+    if (!Array.isArray(hist) || !hist.length) return null;
+
+    const sorted = [...knowledge].filter(k => k.title && k.title.length > 3).sort((a, b) => b.title.length - a.title.length);
+    for (let i = hist.length - 1; i >= Math.max(0, hist.length - 6); i--) {
+      const text = hist[i]?.text || '';
+      if (!text) continue;
+      for (const k of sorted) {
+        const esc = k.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (new RegExp('\\b' + esc + '\\b', 'i').test(text)) {
+          return k;
+        }
+      }
+    }
+    return null;
+  }
+
   function resolveLessonFromQuery(queryOrTitle) {
     const rawQ = String(queryOrTitle || '').trim();
-    const knowledge = root.AmyLocalKnowledge || [];
+    const q = rawQ.toLowerCase();
+    const knowledge = root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []);
+
+    const isGenericRef =
+      !q ||
+      /^(buka\s+)?(materi\s+)?(itu|nya|materinya|terakhir|tadi|lanjutkan|ini)$/i.test(q) ||
+      /\b(materi itu|materinya|buka materi itu|buka materinya|materi terakhir|yang tadi|materi tadi|lanjutkan materi|materi ini|bab ini)\b/i.test(q);
+
+    if (isGenericRef) {
+      if (lastRequestedLesson && lastRequestedLesson.title) return lastRequestedLesson;
+      if (lastReadLessonDetails && lastReadLessonDetails.title) return lastReadLessonDetails;
+
+      const fromHist = findLessonFromChatHistory(knowledge);
+      if (fromHist) {
+        const path = resolveLessonHtmlPath(fromHist.path);
+        return {
+          title: fromHist.title,
+          relPath: path.replace(/^apps\/academy\//, ''),
+          fullPath: path,
+          summary: (fromHist.text || '').slice(0, 1800),
+          fullText: fromHist.text || ''
+        };
+      }
+    }
+
     const found = findInLocalKnowledge(rawQ, knowledge);
     if (found) {
       const path = resolveLessonHtmlPath(found.path);
@@ -424,6 +468,19 @@
         fullText: found.text || ''
       };
     }
+
+    const fallbackHist = findLessonFromChatHistory(knowledge);
+    if (fallbackHist) {
+      const path = resolveLessonHtmlPath(fallbackHist.path);
+      return {
+        title: fallbackHist.title,
+        relPath: path.replace(/^apps\/academy\//, ''),
+        fullPath: path,
+        summary: (fallbackHist.text || '').slice(0, 1800),
+        fullText: fallbackHist.text || ''
+      };
+    }
+
     return null;
   }
 
@@ -2203,6 +2260,14 @@
                       setTimeout(() => {
                         try { window.location.assign(resolveAppUrl(les.fullPath)); } catch (_) {}
                       }, 500);
+                      setTimeout(() => {
+                        if (isLiveConnected) {
+                          setOrbVisualState(isStreamingMic ? 'listening' : '', isStreamingMic ? 'Mendengarkan…' : 'Siap Menemani Sayang');
+                        } else {
+                          setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
+                        }
+                        isSending = false;
+                      }, 2200);
                     }
                   }
                   functionResponses.push({ id: fc.id, name: fc.name, response: { output } });
