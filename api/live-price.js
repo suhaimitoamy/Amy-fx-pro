@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).end();
-  const key = process.env.TWELVEDATA_API_KEY?.trim();
+  const key = (process.env.TWELVEDATA_API_KEY || (process.env.TWELVEDATA_API_KEYS ? process.env.TWELVEDATA_API_KEYS.split(/[,;\s]+/)[0] : ''))?.trim();
   if (!key || typeof WebSocket !== 'function') {
     return res.status(503).json({ status: 'error', message: 'Sumber harga server belum dikonfigurasi.' });
   }

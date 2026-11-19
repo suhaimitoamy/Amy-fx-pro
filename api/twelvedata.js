@@ -190,7 +190,7 @@ export default async function handler(req, res) {
       symbol,
       interval,
       outputsize: requestedOutputSize,
-      apiKey: process.env.TWELVEDATA_API_KEY
+      apiKey: process.env.TWELVEDATA_API_KEYS || process.env.TWELVEDATA_API_KEY
     });
     inFlight.set(key, request);
   }
