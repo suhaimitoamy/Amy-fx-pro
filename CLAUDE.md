@@ -451,6 +451,20 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   3. *Isolasi Modul Terproteksi:* Modul Academy (`apps/academy`), sistem build Android (`gradle/`, `build.gradle.kts`, `MainActivity.kt`), dan test suite lokal tidak boleh diotak-atik atau tertimpa.
   4. *Audit 3 Lapis Sebelum Implementasi:* Validasi sintaks `node --check <file>`, targeted test suite relevan, dan verifikasi visual lokal.
 
+## Rilis Pro 455: Scalper Pro Verdict & 5-Point Confluence Gate (19 Nov 2026)
+- **Konteks:** Adopsi fitur evaluasi kesiapan eksekusi Scalper Pro dari commit `29a88e3` Google AI Studio ke `Amy-fx-pro`.
+- **Solusi & Implementasi:**
+  1. *Kartu Evaluasi Scalper Pro (`poi-verdict-card`):* Hadir di tab BUY & SELL Cockpit Mapping, menampilkan Grade kelayakan (`GRADE A / SIAP EKSEKUSI`, `GRADE B / PROBABILITY SEDANG`, `WAIT / TUNGGU KONFIRMASI`), Skor 0-5, Session Guard, dan 5 checkmark konfluensi murni:
+     - Dealing Range / OTE Alignment (Discount untuk BUY, Premium untuk SELL).
+     - Structural Shift / MSS / BOS searah bias.
+     - Liquidity Sweep / Exhaustion Wick.
+     - Fresh Unmitigated POI (FVG / OB).
+     - Session Timing Guard (London / NY Killzone aktif, News Lock aman).
+  2. *Validasi Broken Sweep & Deteksi OTE 61.8% – 78.6%:* Menggugurkan sweep lama jika sudah ditembus BOS berlawanan (>0.15 break), serta menghitung level OTE Deep Discount/Premium pada leg BOS aktif secara presisi.
+  3. *TP1 Cepat (BEP) + Runner:* Panduan SOP eksekusi untuk mengamankan 60% posisi di TP1 dan segera menggeser SL ke BEP (+spread) demi proteksi modal nyata Sayang.
+  4. *Integritas & Versi:* Seluruh 58 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.455` (code `950455`).
+
+
 
 
 

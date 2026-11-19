@@ -250,7 +250,7 @@
       breakTone = isBull ? 'is-bull' : 'is-bear';
     }
 
-    // 2. Liquidity Sweep
+    // 2. Liquidity Sweep (gugurkan reaksi sweep yang sudah ditembus BOS)
     let sweepText = 'Belum ada sweep';
     let sweepTone = '';
     const latestNgSweep = ng?.liquidity?.latestSweep || (Array.isArray(ng?.liquidity?.sweeps) && ng.liquidity.sweeps.length ? ng.liquidity.sweeps[ng.liquidity.sweeps.length - 1] : null);
@@ -259,12 +259,17 @@
     if (activeSweep) {
       const poolName = activeSweep.pool || String(activeSweep.type || '').replace(/_SWEEP$/i, '').replace(/_/g, ' ') || 'Likuiditas';
       const lvl = num(activeSweep.level ?? activeSweep.price);
-      const rSide = String(activeSweep.reactionSide || activeSweep.side || '').toUpperCase();
-      const isBuyReact = rSide === 'BUY' || rSide === 'BULLISH' || activeSweep.type === 'SSL_SWEEP' || activeSweep.type === 'PDL_SWEEP' || activeSweep.type === 'ASIA_LOW_SWEEP';
-      const isSellReact = rSide === 'SELL' || rSide === 'BEARISH' || activeSweep.type === 'BSL_SWEEP' || activeSweep.type === 'PDH_SWEEP' || activeSweep.type === 'ASIA_HIGH_SWEEP';
-      const reactLabel = isBuyReact ? 'Reaksi Buy' : (isSellReact ? 'Reaksi Sell' : '');
-      sweepText = `${poolName}${Number.isFinite(lvl) ? ` $${fmt(lvl)}` : ''}${reactLabel ? ` · ${reactLabel}` : ''}`;
-      sweepTone = isBuyReact ? 'is-bull' : (isSellReact ? 'is-bear' : 'is-gold');
+      if (activeSweep.broken) {
+        sweepText = `${poolName}${Number.isFinite(lvl) ? ` $${fmt(lvl)}` : ''} · Tembus BOS`;
+        sweepTone = '';
+      } else {
+        const rSide = String(activeSweep.reactionSide || activeSweep.side || '').toUpperCase();
+        const isBuyReact = rSide === 'BUY' || rSide === 'BULLISH' || activeSweep.type === 'SSL_SWEEP' || activeSweep.type === 'PDL_SWEEP' || activeSweep.type === 'ASIA_LOW_SWEEP';
+        const isSellReact = rSide === 'SELL' || rSide === 'BEARISH' || activeSweep.type === 'BSL_SWEEP' || activeSweep.type === 'PDH_SWEEP' || activeSweep.type === 'ASIA_HIGH_SWEEP';
+        const reactLabel = isBuyReact ? 'Reaksi Buy' : (isSellReact ? 'Reaksi Sell' : '');
+        sweepText = `${poolName}${Number.isFinite(lvl) ? ` $${fmt(lvl)}` : ''}${reactLabel ? ` · ${reactLabel}` : ''}`;
+        sweepTone = isBuyReact ? 'is-bull' : (isSellReact ? 'is-bear' : 'is-gold');
+      }
     }
 
     // 3. Draw on Liquidity (DOL)
@@ -725,23 +730,76 @@
     const uniqueBearOBs = dedupeZones(rawObs.filter(isBearOb).map(obZoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
     const uniqueBullOBs = dedupeZones(rawObs.filter(isBullOb).map(obZoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
 
+    // Evaluasi M5 independen (selaras 100% dengan Hero Card)
+    let m5Dir = 0;
+    const m5Status = String(ctx.m5?.status || '').toUpperCase();
+    const m5DirStr = String(ctx.m5?.direction || ctx.m5?.side || '').toUpperCase();
+    const trig = amy?.trigger || {};
+    const trigBull = Boolean(trig.bullBreak || trig.bullDisp || trig.bullMss || m5DirStr.includes('BULL') || m5DirStr === 'BUY');
+    const trigBear = Boolean(trig.bearBreak || trig.bearDisp || trig.bearMss || m5DirStr.includes('BEAR') || m5DirStr === 'SELL');
+    const m5Mss = ctx.m5?.mss;
+    if (m5Status === 'CONFIRMED' || m5Mss || trigBull || trigBear) {
+      if (trigBull && !trigBear) m5Dir = 1;
+      else if (trigBear && !trigBull) m5Dir = -1;
+      else if (m5Status === 'CONFIRMED' && ctx.primary?.side) {
+        const pSide = String(ctx.primary.side).toUpperCase();
+        if (pSide === 'BUY') m5Dir = 1;
+        else if (pSide === 'SELL') m5Dir = -1;
+      }
+    }
+
+    // Filter Sesi Killzone & Berita High-Impact USD untuk Scalper
+    const sessionLabel = resolveSessionLabel();
+    const newsStatus = String(ctx.news?.status || '').toUpperCase();
+    let sessionGuard = { label: 'Sesi Aktif · Selektif M5', tone: 'is-caution', ok: true, halfLot: false, blocked: false };
+    if (sessionLabel.includes('Pasar Tutup')) {
+      sessionGuard = { label: 'Pasar Tutup · Akhir Pekan', tone: 'is-danger', ok: false, halfLot: false, blocked: true };
+    } else if (newsStatus === 'NEWS_LOCK') {
+      sessionGuard = { label: 'News USD Aktif · Tahan Entry', tone: 'is-danger', ok: false, halfLot: true, blocked: true };
+    } else if (newsStatus === 'UPCOMING') {
+      sessionGuard = { label: 'News USD <30m · Kurangi Lot 50%', tone: 'is-caution', ok: true, halfLot: true, blocked: false };
+    } else if (sessionLabel.includes('Killzone')) {
+      sessionGuard = { label: `${sessionLabel.split('·')[0].trim()} · Ideal Scalping`, tone: 'is-killzone', ok: true, halfLot: false, blocked: false };
+    } else if (sessionLabel.includes('Pre-Open') || sessionLabel.includes('Siang')) {
+      sessionGuard = { label: `${sessionLabel} · Selektif M5`, tone: 'is-caution', ok: true, halfLot: false, blocked: false };
+    } else {
+      sessionGuard = { label: `${sessionLabel} · Luar Killzone (Lot 50%)`, tone: 'is-caution', ok: false, halfLot: true, blocked: false };
+    }
+
     // Kandidat Likuiditas Riil (Single Source: NextGen DOL + keyLevels + Protected Swings + Dashboard)
     const drState = resolveUnifiedDealingRange(ctx, livePrice);
     const { rHigh, rLow, eq: eqVal, pct, rawPct, isDiscount, isPremium, noTradeLow, noTradeHigh } = drState;
     const ngKey = ng?.keyLevels || {};
+    const chartTrend = String(ng?.structure?.trend || '').toUpperCase();
+    const protectedHigh = num(ng?.structure?.protectedHigh);
+    const protectedLow = num(ng?.structure?.protectedLow);
     const ngPoolsAbove = Array.isArray(ng?.dol?.poolsAbove) ? ng.dol.poolsAbove.map(p => ({ name: p.name, k: 'H', v: num(p.level ?? p.price) })) : [];
     const ngPoolsBelow = Array.isArray(ng?.dol?.poolsBelow) ? ng.dol.poolsBelow.map(p => ({ name: p.name, k: 'L', v: num(p.level ?? p.price) })) : [];
+
+    // Active BOS Leg & OTE (61.8% – 78.6%) yang mengikuti ekspansi harga live
+    let activeLeg = null;
+    if (ng?.activeLeg && Number.isFinite(num(ng.activeLeg.high)) && Number.isFinite(num(ng.activeLeg.low))) {
+      const aHigh = chartTrend === 'BULL' && livePrice > 0 ? Math.max(ng.activeLeg.high, livePrice) : ng.activeLeg.high;
+      const aLow = chartTrend === 'BEAR' && livePrice > 0 ? Math.min(ng.activeLeg.low, livePrice) : ng.activeLeg.low;
+      if (aHigh > aLow) {
+        const span = aHigh - aLow;
+        const aEq = (aHigh + aLow) / 2;
+        const o1 = chartTrend === 'BEAR' ? aLow + span * 0.618 : aHigh - span * 0.786;
+        const o2 = chartTrend === 'BEAR' ? aLow + span * 0.786 : aHigh - span * 0.618;
+        activeLeg = { high: aHigh, low: aLow, eq: aEq, oteLow: Math.min(o1, o2), oteHigh: Math.max(o1, o2) };
+      }
+    }
 
     const liqCandidates = [
       ...ngPoolsAbove,
       ...ngPoolsBelow,
-      { name: 'Protected High M15', k: 'H', v: num(ng?.structure?.protectedHigh ?? dashboard?.protectedHigh) },
+      { name: 'Protected High M15', k: 'H', v: protectedHigh },
       { name: 'BSL M15', k: 'H', v: num(dashboard?.bsl) },
       { name: 'Range High M15', k: 'H', v: num(rHigh) },
       { name: 'BSL Swing', k: 'H', v: num(amy?.levels?.bsl) },
       { name: 'PDH', k: 'H', v: num(amy?.levels?.pdh ?? ngKey.pdh) },
       { name: 'Asia High', k: 'H', v: num(amy?.levels?.asiaHigh ?? ngKey.asiaHigh) },
-      { name: 'Protected Low M15', k: 'L', v: num(ng?.structure?.protectedLow ?? dashboard?.protectedLow) },
+      { name: 'Protected Low M15', k: 'L', v: protectedLow },
       { name: 'SSL M15', k: 'L', v: num(dashboard?.ssl) },
       { name: 'Range Low M15', k: 'L', v: num(rLow) },
       { name: 'SSL Swing', k: 'L', v: num(amy?.levels?.ssl) },
@@ -755,37 +813,82 @@
     const liqAbove  = livePrice > 0 ? highPools.filter(x => x.v > livePrice).sort((a, b) => a.v - b.v) : [];
     const liqBelow  = livePrice > 0 ? lowPools.filter(x => x.v < livePrice).sort((a, b) => b.v - a.v) : [];
 
-    const MAX_STRUCTURAL_SL_BUFFER = 12.0;
+    const MAX_STRUCTURAL_SL_BUFFER = 9.0;
 
-    // Helper pilih POI lokasi-aware (OB + FVG terpadu: utamakan Premium untuk SELL, Diskon untuk BUY)
+    // Helper pilih POI Scalper Pro: Leg Aktif + OTE (61.8%–78.6%) + Anti-Kontradiksi Invalidasi
     function selectBestPOI(obs, fvgList, side) {
       const isSell = side === 'SELL';
       const combined = [
-        ...obs.map(z => ({ low: z.lo, high: z.hi, ce: z.ce, label: z.label, kind: 'OB' })),
-        ...fvgList.map((z, i) => ({ low: z.lo, high: z.hi, ce: z.ce, label: `${isSell ? 'Bearish' : 'Bullish'} FVG #${i + 1}`, kind: 'FVG' }))
-      ].filter(z => isSell ? z.high >= livePrice - 1.5 : z.low <= livePrice + 1.5);
+        ...obs.map(z => ({
+          low: z.lo,
+          high: z.hi,
+          ce: z.ce,
+          label: z.label,
+          kind: 'OB',
+          fresh: z.raw?.lifecycle === 'FRESH' || z.raw?.tested === false
+        })),
+        ...fvgList.map((z, i) => ({
+          low: z.lo,
+          high: z.hi,
+          ce: z.ce,
+          label: `${isSell ? 'Bearish' : 'Bullish'} FVG #${i + 1}`,
+          kind: 'FVG',
+          fresh: !z.tested
+        }))
+      ]
+        .filter(z => isSell ? z.high >= livePrice - 1.0 : z.low <= livePrice + 1.0)
+        .map(z => {
+          const breached = livePrice > 0 && (isSell ? livePrice > z.high + 0.25 : livePrice < z.low - 0.25);
+          const outsideInvalidation = isSell
+            ? (Number.isFinite(protectedHigh) && (chartTrend === 'BEAR' || m15Dir === -1) && z.low > protectedHigh + 0.25)
+            : (Number.isFinite(protectedLow) && (chartTrend === 'BULL' || m15Dir === 1) && z.high < protectedLow - 0.25);
+          const inOte = Boolean(activeLeg && z.high >= activeLeg.oteLow - 0.5 && z.low <= activeLeg.oteHigh + 0.5);
+          const refEq = activeLeg ? activeLeg.eq : eqVal;
+          const inRightHalf = Number.isFinite(refEq) ? (isSell ? z.ce >= refEq - 1.0 : z.ce <= refEq + 1.0) : true;
+          return { ...z, breached, outsideInvalidation, inOte, inRightHalf };
+        });
 
       if (!combined.length) return null;
 
+      // Utamakan zona yang belum jebol DAN berada di dalam batas Protected High/Low leg aktif
+      const unbrokenInside = combined.filter(z => !z.breached && !z.outsideInvalidation);
+      const insideAny = combined.filter(z => !z.outsideInvalidation);
+      const unbrokenAny = combined.filter(z => !z.breached);
+      const basePool = unbrokenInside.length
+        ? unbrokenInside
+        : (unbrokenAny.length ? unbrokenAny : (insideAny.length ? insideAny : combined));
+
+      // Jika di basePool ada zona di paruh leg aktif yang tepat (Premium/OTE untuk SELL, Diskon/OTE untuk BUY) dalam jarak scalping (<$18), prioritaskan
+      const legMatched = basePool.filter(z => {
+        const dist = isSell ? Math.max(0, z.low - livePrice) : Math.max(0, livePrice - z.high);
+        return z.inRightHalf && dist <= 18.0;
+      });
+      const pool = legMatched.length ? legMatched : basePool;
+
       const scoreZone = z => {
         const dist = isSell ? Math.max(0, z.low - livePrice) : Math.max(0, livePrice - z.high);
-        const obBonus = z.kind === 'OB' ? 1.5 : 0;
-        return dist - obBonus;
+        let score = dist;
+        if (z.fresh) score -= 3.5;
+        if (z.inOte) score -= 4.0;
+        if (z.kind === 'OB') score -= 1.2;
+        if (z.outsideInvalidation) score += 25.0;
+        if (z.breached) score += 30.0;
+        return score;
       };
 
-      const locationMatched = Number.isFinite(eqVal)
-        ? combined.filter(z => isSell ? z.ce >= eqVal : z.ce <= eqVal)
-        : [];
-      const pool = locationMatched.length ? locationMatched : combined;
       pool.sort((a, b) => scoreZone(a) - scoreZone(b));
       return pool[0] || null;
     }
 
-    // Helper pilih Invalidasi & SL yang WAJIB berada di LUAR batas zona entry (anti-terbalik)
+    // Helper pilih Invalidasi & SL yang WAJIB berada di LUAR batas zona entry (anti-terbalik) + Guardrail SL Scalper
     function resolveStructuralInvalidation(zone, side) {
       const isSell = side === 'SELL';
       if (zone) {
         if (isSell) {
+          // Jika Protected High M15 di atas zona dan dalam jarak scalper yang wajar, prioritaskan
+          if (Number.isFinite(protectedHigh) && protectedHigh >= zone.high && (protectedHigh - zone.high) <= MAX_STRUCTURAL_SL_BUFFER) {
+            return { name: 'Protected High M15', k: 'H', v: protectedHigh };
+          }
           const validHighs = highPools
             .filter(x => x.v >= zone.high)
             .sort((a, b) => a.v - b.v);
@@ -793,6 +896,9 @@
           if (nearHigh) return nearHigh;
           return { name: `Batas Atas ${zone.kind || 'OB'}`, k: 'H', v: zone.high };
         } else {
+          if (Number.isFinite(protectedLow) && protectedLow <= zone.low && (zone.low - protectedLow) <= MAX_STRUCTURAL_SL_BUFFER) {
+            return { name: 'Protected Low M15', k: 'L', v: protectedLow };
+          }
           const validLows = lowPools
             .filter(x => x.v <= zone.low)
             .sort((a, b) => b.v - a.v);
@@ -804,47 +910,216 @@
       return isSell ? (liqAbove[0] || null) : (liqBelow[0] || null);
     }
 
-    // Helper pilih Target DOL / TP yang searah, bersih dari pool tersapu, dan memenuhi R:R sehat
-    function resolveDolTargets(zone, slPrice, side) {
+    function evaluateSlGuard(entryCe, slPrice) {
+      if (!Number.isFinite(entryCe) || !Number.isFinite(slPrice)) {
+        return { dist: NaN, status: 'unknown', label: 'Menunggu SL' };
+      }
+      const dist = Math.abs(entryCe - slPrice);
+      if (dist < 2.0) return { dist, status: 'tight', label: `SL $${dist.toFixed(2)} · Ketat (<$2 Rawan Wick)` };
+      if (dist > 7.5) return { dist, status: 'wide', label: `SL $${dist.toFixed(2)} · Lebar (Refine M5)` };
+      return { dist, status: 'ideal', label: `SL $${dist.toFixed(2)} · Ideal Scalper` };
+    }
+
+    // Helper Target 2-Tahap Scalper: TP1 Cepat (Close 60% & Geser BEP) + TP2 Runner (DOL Utama)
+    function resolveScalperTargets(zone, slPrice, side) {
       const isSell = side === 'SELL';
       const entryCe = zone ? zone.ce : livePrice;
       const risk = (Number.isFinite(entryCe) && Number.isFinite(slPrice))
-        ? Math.max(1.0, isSell ? (slPrice - entryCe) : (entryCe - slPrice))
-        : 5.0;
+        ? Math.max(1.2, isSell ? (slPrice - entryCe) : (entryCe - slPrice))
+        : 4.0;
 
       const basePools = isSell ? [...lowPools] : [...highPools];
       if (Number.isFinite(eqVal)) {
-        if (isSell && zone && eqVal < zone.low - 2.0) {
-          basePools.push({ name: 'EQ 50%', k: 'L', v: eqVal });
-        } else if (!isSell && zone && eqVal > zone.high + 2.0) {
-          basePools.push({ name: 'EQ 50%', k: 'H', v: eqVal });
-        }
+        if (isSell && zone && eqVal < zone.low - 2.0) basePools.push({ name: 'EQ 50%', k: 'L', v: eqVal });
+        else if (!isSell && zone && eqVal > zone.high + 2.0) basePools.push({ name: 'EQ 50%', k: 'H', v: eqVal });
+      }
+      if (activeLeg && Number.isFinite(activeLeg.eq)) {
+        if (isSell && zone && activeLeg.eq < zone.low - 2.0) basePools.push({ name: 'EQ Leg Aktif', k: 'L', v: activeLeg.eq });
+        else if (!isSell && zone && activeLeg.eq > zone.high + 2.0) basePools.push({ name: 'EQ Leg Aktif', k: 'H', v: activeLeg.eq });
       }
 
       const validPools = dedupeLiq(basePools)
         .filter(x => {
-          if (isSell) {
-            const boundary = zone ? zone.low - 1.5 : livePrice - 1.5;
-            return x.v < boundary;
-          } else {
-            const boundary = zone ? zone.high + 1.5 : livePrice + 1.5;
-            return x.v > boundary;
-          }
+          const boundary = isSell ? (zone ? zone.low - 1.5 : livePrice - 1.5) : (zone ? zone.high + 1.5 : livePrice + 1.5);
+          return isSell ? x.v < boundary : x.v > boundary;
         })
         .sort((a, b) => isSell ? (b.v - a.v) : (a.v - b.v));
 
-      if (!validPools.length) return { tp1: null, tp2: null, risk, rr1: NaN };
+      if (!validPools.length) {
+        if (!Number.isFinite(entryCe)) return { tp1: null, tp2: null, risk, rr1: NaN, rr2: NaN };
+        const synth1 = isSell ? entryCe - Math.max(risk * 1.8, 5.5) : entryCe + Math.max(risk * 1.8, 5.5);
+        const synth2 = isSell ? entryCe - Math.max(risk * 3.0, 10.0) : entryCe + Math.max(risk * 3.0, 10.0);
+        return {
+          tp1: { name: 'Partial BEP (1:1.8)', k: isSell ? 'L' : 'H', v: Number(synth1.toFixed(2)), synthetic: true },
+          tp2: { name: 'Ekspansi 3R', k: isSell ? 'L' : 'H', v: Number(synth2.toFixed(2)), synthetic: true },
+          risk,
+          rr1: Math.abs(synth1 - entryCe) / risk,
+          rr2: Math.abs(synth2 - entryCe) / risk
+        };
+      }
 
-      // Prioritaskan pool pertama dengan R:R >= 1.5; bila belum ada, ambil pool terjauh dari 3 terdekat agar R:R paling masuk akal
-      const healthy = validPools.find(x => (Math.abs(x.v - entryCe) / risk) >= 1.5);
-      const tp1 = healthy || validPools[Math.min(validPools.length - 1, 2)];
-      const tp2 = validPools.find(x => isSell ? (x.v < tp1.v - 1.5) : (x.v > tp1.v + 1.5)) || null;
-      const rr1 = Number.isFinite(entryCe) ? (Math.abs(tp1.v - entryCe) / risk) : NaN;
-      return { tp1, tp2, risk, rr1 };
+      // Cari pool struktural yang cocok sebagai TP1 Cepat Scalper (1.4R – 2.6R dan jarak <= $18)
+      const scalperPool = validPools.find(x => {
+        const dist = Math.abs(x.v - entryCe);
+        const rr = dist / risk;
+        return rr >= 1.4 && rr <= 2.6 && dist <= 18.0;
+      });
+      const healthyPool = validPools.find(x => (Math.abs(x.v - entryCe) / risk) >= 1.4);
+
+      let tp1 = null;
+      let tp2 = null;
+
+      if (scalperPool) {
+        tp1 = scalperPool;
+        tp2 = validPools.find(x => isSell ? (x.v < tp1.v - 2.0) : (x.v > tp1.v + 2.0)) || null;
+      } else if (healthyPool && Number.isFinite(entryCe) && ((Math.abs(healthyPool.v - entryCe) / risk) > 2.6 || Math.abs(healthyPool.v - entryCe) > 18.0)) {
+        // Pool terdekat jauh (>2.6R atau >$18): buat TP1 Cepat (BEP) lebih dekat, lalu DOL struktural asli jadi TP2 Runner!
+        const targetMult = risk > 7.5 ? 1.6 : 1.8;
+        const fastDist = Math.max(risk * targetMult, 5.5);
+        const fastVal = isSell ? (entryCe - fastDist) : (entryCe + fastDist);
+        const stillBeforeDol = isSell ? (fastVal > healthyPool.v + 2.5) : (fastVal < healthyPool.v - 2.5);
+        if (stillBeforeDol) {
+          tp1 = { name: `Partial BEP (1:${targetMult.toFixed(1)})`, k: isSell ? 'L' : 'H', v: Number(fastVal.toFixed(2)), synthetic: true };
+          tp2 = healthyPool;
+        } else {
+          tp1 = healthyPool;
+          tp2 = validPools.find(x => isSell ? (x.v < tp1.v - 2.0) : (x.v > tp1.v + 2.0)) || null;
+        }
+      } else {
+        tp1 = healthyPool || validPools[Math.min(validPools.length - 1, 1)];
+        tp2 = validPools.find(x => isSell ? (x.v < tp1.v - 2.0) : (x.v > tp1.v + 2.0)) || null;
+      }
+
+      const rr1 = tp1 && Number.isFinite(entryCe) ? (Math.abs(tp1.v - entryCe) / risk) : NaN;
+      const rr2 = tp2 && Number.isFinite(entryCe) ? (Math.abs(tp2.v - entryCe) / risk) : NaN;
+      return { tp1, tp2, risk, rr1, rr2 };
+    }
+
+    // Helper Evaluasi & Render 5-Poin Scalper Verdict Gate
+    function evaluateAndRenderVerdict(side, cfg) {
+      const isSell = side === 'SELL';
+      const sideDir = isSell ? -1 : 1;
+      const prefix = isSell ? 'sell' : 'buy';
+      const barEl = $(`${prefix}-verdict-bar`);
+      const gradeEl = $(`${prefix}-verdict-grade`);
+      const scoreEl = $(`${prefix}-verdict-score`);
+      const guardEl = $(`${prefix}-session-guard`);
+      const checksEl = $(`${prefix}-verdict-checks`);
+      if (!barEl) return { grade: 'WAIT', skip: false, score: 0 };
+
+      const isWithM15 = m15Dir === sideDir;
+      const isWithH1 = h1Dir === sideDir;
+      const isCounterFull = (h1Dir === -sideDir && m15Dir === -sideDir);
+      const isM5Aligned = m5Dir === sideDir;
+
+      // 5 Cek Konfluensi Scalper
+      const trendPass = isWithM15 || (m15Dir === 0 && isWithH1);
+      const trendLabel = isWithH1 && isWithM15
+        ? 'Tren H1+M15'
+        : isWithM15
+          ? 'Searah M15'
+          : isCounterFull
+            ? (isM5Aligned ? 'Counter H1+M15' : 'Counter 3-TF')
+            : 'Counter M15';
+
+      const zone = cfg.zone;
+      const locPass = Boolean(zone && zone.inRightHalf && !zone.outsideInvalidation);
+      const locLabel = zone?.inOte
+        ? 'Zona OTE'
+        : locPass
+          ? (isSell ? 'Premium Leg' : 'Diskon Leg')
+          : 'Lokasi Lemah';
+
+      const poiPass = Boolean(zone && !zone.breached && !zone.outsideInvalidation && !cfg.isSlHit);
+      const poiLabel = !zone
+        ? 'Belum Ada POI'
+        : zone.breached || cfg.isSlHit
+          ? 'Zona Jebol'
+          : zone.outsideInvalidation
+            ? 'Di Luar Invalid'
+            : (zone.fresh ? `Fresh ${zone.kind}` : `${zone.kind} Aktif`);
+
+      const m5Pass = isM5Aligned;
+      const m5Label = isM5Aligned ? 'M5 Konfirm' : 'Tunggu M5';
+
+      const slOk = cfg.slGuard.status !== 'tight' && Number.isFinite(cfg.slGuard.dist) && cfg.slGuard.dist <= 9.0;
+      const rrOk = Number.isFinite(cfg.rr1) && cfg.rr1 >= 1.4;
+      const rrSlPass = Boolean(zone) && slOk && rrOk && !sessionGuard.blocked;
+      const rrSlLabel = sessionGuard.blocked
+        ? 'Sesi/News Lock'
+        : !zone
+          ? 'Menunggu R:R'
+          : !slOk
+            ? (cfg.slGuard.status === 'tight' ? 'SL Terlalu Ketat' : 'SL Lebar')
+            : rrOk
+              ? `R:R 1:${cfg.rr1.toFixed(1)}`
+              : 'R:R Kecil';
+
+      const checks = [
+        { ok: trendPass, warn: !trendPass && isM5Aligned, label: trendLabel },
+        { ok: locPass, warn: false, label: locLabel },
+        { ok: poiPass, warn: false, label: poiLabel },
+        { ok: m5Pass, warn: !m5Pass && trendPass, label: m5Label },
+        { ok: rrSlPass, warn: slOk && rrOk && sessionGuard.halfLot, label: rrSlLabel }
+      ];
+
+      const score = checks.reduce((n, c) => n + (c.ok ? 1 : 0), 0);
+
+      let cls = 'is-wait';
+      let gradeText = 'GRADE B · TUNGGU KONFIRMASI';
+      let isSkip = false;
+
+      if (sessionGuard.blocked) {
+        cls = 'is-skip';
+        gradeText = newsStatus === 'NEWS_LOCK' ? 'SKIP · NEWS USD AKTIF' : 'SKIP · PASAR TUTUP';
+        isSkip = true;
+      } else if (!zone || zone.breached || cfg.isSlHit) {
+        cls = 'is-skip';
+        gradeText = zone?.breached || cfg.isSlHit ? 'SKIP · ZONA SUDAH JEBOL' : 'SKIP · BELUM ADA ZONA';
+        isSkip = true;
+      } else if (zone.outsideInvalidation) {
+        cls = 'is-skip';
+        gradeText = 'SKIP · ZONA DI LUAR INVALIDASI';
+        isSkip = true;
+      } else if (isCounterFull && !isM5Aligned) {
+        cls = 'is-skip';
+        gradeText = 'SKIP · COUNTER-TREND (WAJIB MSS M5)';
+        isSkip = true;
+      } else if (score === 5) {
+        cls = isSell ? 'is-ready-sell' : 'is-ready';
+        gradeText = 'GRADE A+ · SIAP EKSEKUSI SCALPER';
+      } else if (score === 4 && trendPass && poiPass) {
+        cls = 'is-wait';
+        gradeText = isM5Aligned ? 'GRADE A · SIAP EKSEKUSI' : 'GRADE A · SIAP PANTAU M5';
+      } else if (score >= 3 && poiPass) {
+        cls = 'is-wait';
+        gradeText = isCounterFull ? 'GRADE B · SCALP REVERSAL M5' : 'GRADE B · TUNGGU PULLBACK & M5';
+      } else {
+        cls = 'is-skip';
+        gradeText = 'SKIP · PROBABILITAS RENDAH';
+        isSkip = true;
+      }
+
+      barEl.className = `poi-verdict-card ${cls}`;
+      if (gradeEl) gradeEl.textContent = gradeText;
+      if (scoreEl) scoreEl.textContent = `${score}/5`;
+      if (guardEl) {
+        guardEl.textContent = sessionGuard.label;
+        guardEl.className = `poi-session-guard ${sessionGuard.tone}`;
+      }
+      if (checksEl) {
+        checksEl.innerHTML = checks.map(c => {
+          const itemCls = c.ok ? 'is-pass' : (c.warn ? 'is-warn' : 'is-fail');
+          const mark = c.ok ? '✓' : (c.warn ? '•' : '✕');
+          return `<span class="poi-check-item ${itemCls}"><span class="poi-check-mark">${mark}</span><span>${esc(c.label)}</span></span>`;
+        }).join('');
+      }
+
+      return { grade: gradeText, skip: isSkip, score };
     }
 
     // ══════════════════════════════════════════════
-    // SELL SETUP COMPUTATION & RENDER
+    // SELL SETUP COMPUTATION & RENDER (SCALPER PRO)
     // ══════════════════════════════════════════════
     const sellTbody = $('sell-poi-tbody');
     let primarySellZone = selectBestPOI(uniqueBearOBs, bearFVGs, 'SELL');
@@ -853,7 +1128,6 @@
     let isSellTpHit = false;
     let isSellSlHit = false;
 
-    // Validasi apakah sesi SELL sebelumnya sudah kena SL sebelum refresh
     if (activeSellSession && Number.isFinite(activeSellSession.sl) && livePrice > activeSellSession.sl + 0.40) {
       isSellSlHit = true;
       activeSellSession = null;
@@ -862,16 +1136,19 @@
     const invSell = resolveStructuralInvalidation(primarySellZone, 'SELL');
     const trueSlBoundary = invSell ? invSell.v : (primarySellZone ? primarySellZone.high : NaN);
     const slLevelSellNum = Number.isFinite(trueSlBoundary) ? Number((trueSlBoundary + 0.40).toFixed(2)) : NaN;
-    const sellTargets = resolveDolTargets(primarySellZone, slLevelSellNum, 'SELL');
+    const sellSlGuard = evaluateSlGuard(primarySellZone?.ce, slLevelSellNum);
+    const sellTargets = resolveScalperTargets(primarySellZone, slLevelSellNum, 'SELL');
     const tpCandSell = sellTargets.tp1;
     const tpCandSell2 = sellTargets.tp2;
     const sellRr = sellTargets.rr1;
 
-    if (primarySellZone && Number.isFinite(trueSlBoundary)) {
+    if (primarySellZone && primarySellZone.breached) {
+      isSellSlHit = true;
+    } else if (primarySellZone && Number.isFinite(trueSlBoundary)) {
       const sameZone = activeSellSession?.zone
         && Math.abs(activeSellSession.zone.low - primarySellZone.low) < 0.25
         && Math.abs(activeSellSession.zone.high - primarySellZone.high) < 0.25;
-      const inZoneNow = livePrice >= primarySellZone.low - 0.20 && livePrice <= trueSlBoundary + 0.40;
+      const inZoneNow = livePrice >= primarySellZone.low - 0.20 && livePrice <= primarySellZone.high + 0.25;
       const prevTriggered = sameZone ? Boolean(activeSellSession.triggered) : false;
       const prevTrigPrice = sameZone ? activeSellSession.triggeredPrice : null;
 
@@ -895,8 +1172,8 @@
       }
     }
 
-    if (primarySellZone && activeSellSession) {
-      if (livePrice >= primarySellZone.low - 0.20 && livePrice <= activeSellSession.sl + 0.40) {
+    if (primarySellZone && !primarySellZone.breached && activeSellSession) {
+      if (livePrice >= primarySellZone.low - 0.20 && livePrice <= primarySellZone.high + 0.25) {
         isSellTesting = true;
         activeSellSession.triggered = true;
         if (!activeSellSession.triggeredPrice) activeSellSession.triggeredPrice = livePrice;
@@ -906,7 +1183,7 @@
     }
     const isSellInPlay = isSellTesting || isSellReacting;
 
-    // Cache plan for Lot Calculator (SELL)
+    // Cache plan for Lot Calculator (SELL — include TP1 BEP & TP2 Runner)
     const sellTpVal = tpCandSell?.v ?? activeSellSession?.tp;
     const sellSlVal = Number.isFinite(slLevelSellNum) ? slLevelSellNum : (Number.isFinite(activeSellSession?.sl) ? Number((activeSellSession.sl + 0.40).toFixed(2)) : NaN);
     latestSellPlan = primarySellZone && Number.isFinite(sellSlVal)
@@ -918,24 +1195,36 @@
         }
       : null;
 
+    // Render 5-Poin Scalper Verdict (SELL)
+    const sellVerdict = evaluateAndRenderVerdict('SELL', {
+      zone: primarySellZone,
+      slGuard: sellSlGuard,
+      rr1: sellRr,
+      isSlHit: isSellSlHit
+    });
+
     // Update 3 Structured Level Tiles (SELL)
     const sellEntryValEl = $('sell-entry-val');
     const sellEntrySubEl = $('sell-entry-sub');
     if (sellEntryValEl) sellEntryValEl.textContent = primarySellZone ? fmtRange(primarySellZone.low, primarySellZone.high) : 'Belum Ada';
     if (sellEntrySubEl) {
+      const oteTag = primarySellZone?.inOte ? ' · OTE' : '';
+      const freshTag = primarySellZone?.fresh ? 'Fresh ' : '';
       sellEntrySubEl.textContent = primarySellZone
-        ? `${primarySellZone.kind || 'OB'} · 50% CE $${fmt(primarySellZone.ce)}`
+        ? `${freshTag}${primarySellZone.kind || 'OB'}${oteTag} · CE $${fmt(primarySellZone.ce)}`
         : 'Tunggu Supply/OB di atas harga';
     }
     const sellTpValEl = $('sell-tp-val');
     const sellTpSubEl = $('sell-tp-sub');
     if (sellTpValEl) sellTpValEl.textContent = Number.isFinite(sellTpVal) ? `$${fmt(sellTpVal)}` : '—';
     if (sellTpSubEl) {
-      const refEntrySell = primarySellZone ? primarySellZone.ce : livePrice;
-      const distSell = Number.isFinite(sellTpVal) && Number.isFinite(refEntrySell) ? (refEntrySell - sellTpVal) : NaN;
-      const rrTag = Number.isFinite(sellRr) && sellRr > 0 ? ` · R:R 1:${sellRr.toFixed(1)}` : '';
+      const rrTag = Number.isFinite(sellRr) && sellRr > 0 ? `1:${sellRr.toFixed(1)}` : '';
+      const runnerTag = tpCandSell2 ? ` · Runner $${fmt(tpCandSell2.v)}` : '';
+      const tp1Desc = tpCandSell?.synthetic
+        ? `Partial BEP (${rrTag || '1:1.8'})`
+        : `BEP ${tpCandSell?.name || 'TP1'}${rrTag ? ` (${rrTag})` : ''}`;
       sellTpSubEl.textContent = Number.isFinite(sellTpVal)
-        ? `${tpCandSell?.name || activeSellSession?.tpName || 'SSL M15'}${Number.isFinite(distSell) && distSell > 0 ? ` · -$${fmt(distSell)}` : ''}${rrTag}`
+        ? `${tp1Desc}${runnerTag}`
         : 'Likuiditas SSL bawah';
     }
     const sellSlValEl = $('sell-sl-val');
@@ -943,14 +1232,16 @@
     if (sellSlValEl) sellSlValEl.textContent = Number.isFinite(sellSlVal) ? `$${fmt(sellSlVal)}` : '—';
     if (sellSlSubEl) {
       const slBase = Number.isFinite(trueSlBoundary) ? trueSlBoundary : activeSellSession?.sl;
-      const slName = invSell?.name || activeSellSession?.slName || 'Batas Atas POI';
       sellSlSubEl.textContent = Number.isFinite(slBase)
-        ? `${slName} $${fmt(slBase)} + $0.40`
+        ? `${sellSlGuard.label} · ${invSell?.name || 'POI'}`
         : 'Batas invalidasi BSL';
     }
 
     if (sellBadgeEl) {
-      if (isSellTesting) {
+      if (primarySellZone?.breached || isSellSlHit) {
+        sellBadgeEl.className = 'poi-badge poi-badge--sell';
+        sellBadgeEl.textContent = 'Zona Tembus / Invalid · Tunggu Struktur Baru';
+      } else if (isSellTesting) {
         sellBadgeEl.className = 'poi-badge poi-badge--sell poi-badge--active';
         sellBadgeEl.textContent = `Menguji Zona · Pantau Rejection M5 ($${fmt(livePrice)})`;
       } else if (isSellReacting) {
@@ -958,21 +1249,20 @@
         sellBadgeEl.textContent = `Zona Teruji · Reaksi Aktif dari $${fmt(activeSellSession?.triggeredPrice || primarySellZone.low)}`;
       } else if (isSellTpHit) {
         sellBadgeEl.className = 'poi-badge poi-badge--sell poi-badge--hit';
-        sellBadgeEl.textContent = 'Target TP Tercapai · Likuiditas SSL Terpanen';
-      } else if (isSellSlHit) {
-        sellBadgeEl.className = 'poi-badge poi-badge--sell';
-        sellBadgeEl.textContent = 'Invalidasi Ditembus · Batas SL Terlewati';
+        sellBadgeEl.textContent = 'Target TP1 Tercapai · Amankan BEP / Runner';
       }
     }
 
     if (sellTbody) {
       const sellRows = [];
       if (primarySellZone) {
-        const trigNote = isSellTesting
-          ? `Sedang diuji ($${fmt(livePrice)}) — tunggu konfirmasi rejection M5`
-          : isSellReacting
-            ? `Reaksi dari $${fmt(activeSellSession?.triggeredPrice || primarySellZone.low)} · Bergerak -$${fmt(Math.max(0, (activeSellSession?.triggeredPrice || primarySellZone.low) - livePrice))}`
-            : `50% MT/CE: $${fmt(primarySellZone.ce)} — area jemputan Sell`;
+        const trigNote = primarySellZone.breached
+          ? `Harga ($${fmt(livePrice)}) menembus atas zona — jangan paksa entry`
+          : isSellTesting
+            ? `Sedang diuji ($${fmt(livePrice)}) — tunggu candle rejection/MSS M5`
+            : isSellReacting
+              ? `Reaksi dari $${fmt(activeSellSession?.triggeredPrice || primarySellZone.low)} · Bergerak -$${fmt(Math.max(0, (activeSellSession?.triggeredPrice || primarySellZone.low) - livePrice))}`
+              : `50% CE: $${fmt(primarySellZone.ce)}${primarySellZone.inOte ? ' · Area OTE 62%–79%' : ''} — jemputan Sell`;
         sellRows.push({
           poi: `${isSellInPlay ? '[Aktif] ' : ''}Entry [${primarySellZone.kind || 'OB'}] · ${primarySellZone.label}`,
           level: fmtRange(primarySellZone.low, primarySellZone.high),
@@ -986,17 +1276,26 @@
         });
       }
 
-      [tpCandSell, tpCandSell2].filter(Boolean).forEach((x, idx) => {
+      if (tpCandSell) {
         const refEntry = primarySellZone ? primarySellZone.ce : livePrice;
-        const distFromEntry = Math.max(0, refEntry - x.v);
-        const rr = Number.isFinite(sellTargets.risk) && sellTargets.risk > 0 ? (distFromEntry / sellTargets.risk) : NaN;
-        const rrStr = Number.isFinite(rr) ? ` · R:R 1:${rr.toFixed(1)}` : '';
+        const dist1 = Math.max(0, refEntry - tpCandSell.v);
+        const rr1Str = Number.isFinite(sellRr) ? ` · R:R 1:${sellRr.toFixed(1)}` : '';
         sellRows.push({
-          poi: `Target DOL ${idx === 0 ? 'TP1' : 'TP2'} · ${x.name}`,
-          level: '$' + fmt(x.v),
-          note: `-$${fmt(distFromEntry)} dari Entry CE${rrStr}`
+          poi: `TP1 Cepat (BEP 60%) · ${tpCandSell.name}`,
+          level: '$' + fmt(tpCandSell.v),
+          note: `-$${fmt(dist1)} dari CE${rr1Str} — Close 60% & geser SL ke BEP`
         });
-      });
+      }
+      if (tpCandSell2) {
+        const refEntry = primarySellZone ? primarySellZone.ce : livePrice;
+        const dist2 = Math.max(0, refEntry - tpCandSell2.v);
+        const rr2Str = Number.isFinite(sellTargets.rr2) ? ` · R:R 1:${sellTargets.rr2.toFixed(1)}` : '';
+        sellRows.push({
+          poi: `TP2 Runner (40%) · ${tpCandSell2.name}`,
+          level: '$' + fmt(tpCandSell2.v),
+          note: `-$${fmt(dist2)} dari CE${rr2Str} — Magnet DOL utama`
+        });
+      }
 
       const invLevelSell = Number.isFinite(trueSlBoundary) ? trueSlBoundary : activeSellSession?.sl;
       const invNameSell = invSell?.name || activeSellSession?.slName || 'Batas Atas POI';
@@ -1006,7 +1305,7 @@
         sellRows.push({
           poi: `Invalidasi · ${invNameSell}`,
           level: '$' + fmt(invLevelSell),
-          note: `+$${fmt(riskDist)} di atas Entry CE · SL $${fmt(sellSlVal)}`
+          note: `+$${fmt(riskDist)} dari CE · SL $${fmt(sellSlVal)} (${sellSlGuard.label})`
         });
       }
 
@@ -1022,39 +1321,26 @@
       const entryCe = primarySellZone?.ce;
       const slStr = Number.isFinite(sellSlVal) ? sellSlVal.toFixed(2) : (entryHi ? (entryHi + 0.40).toFixed(2) : null);
       const slAnchorLabel = invSell?.name || activeSellSession?.slName || 'Batas Atas POI';
+      const lotRule = sessionGuard.halfLot ? ' · <strong>Kurangi lot 50%</strong> (filter sesi/news).' : '';
 
-      if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi)) {
-        sopSell.innerHTML = '<li>Belum ada Order Block (OB) atau FVG di atas harga — <strong>jangan entry Sell</strong> sampai zona jemputan terbentuk.</li>';
-      } else if (isSellTesting) {
-        sopSell.innerHTML = [
-          `<li><strong>Status Zona:</strong> Harga sedang menguji Supply $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}). Tunggu candle rejection/MSS M5 sebelum eksekusi.</li>`,
-          Number.isFinite(sellTpVal)
-            ? `<li><strong>Target TP:</strong> $${fmt(sellTpVal)} (${esc(tpCandSell?.name || activeSellSession?.tpName || 'SSL M15')}) · Pasang di <strong>$${fmt(sellTpVal + 0.50)}</strong> (napas spread Ask).</li>`
-            : '<li><strong>Target TP:</strong> Range Low / SSL M15.</li>',
-          `<li><strong>Batas SL Aman:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $0.40 napas spread).</li>`
-        ].join('');
-      } else if (isSellReacting) {
-        sopSell.innerHTML = [
-          `<li><strong>Status Zona:</strong> Zona Supply $${fmt(entryLo)}–$${fmt(entryHi)} teruji dan reaksi turun aktif.</li>`,
-          Number.isFinite(sellTpVal)
-            ? `<li><strong>Target TP:</strong> $${fmt(sellTpVal)} (${esc(tpCandSell?.name || activeSellSession?.tpName || 'SSL M15')}) · Pasang di <strong>$${fmt(sellTpVal + 0.50)}</strong> (napas spread Ask).</li>`
-            : '<li><strong>Target TP:</strong> Range Low / SSL M15.</li>',
-          `<li><strong>Batas SL Aman:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $0.40 napas spread).</li>`,
-          '<li><strong>Panduan:</strong> Pertahankan disiplin SL dan hindari menambah posisi saat harga sudah masuk zona diskon.</li>'
-        ].join('');
+      if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi) || primarySellZone?.breached) {
+        sopSell.innerHTML = '<li>Zona Supply tidak tersedia atau sudah tembus — <strong>jangan paksa entry Sell</strong> sampai struktur baru terbentuk.</li>';
       } else {
         sopSell.innerHTML = [
-          `<li><strong>Area Entry:</strong> tunggu retest/sweep Supply $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE: $${fmt(entryCe)}) + Rejection M5.</li>`,
+          `<li><strong>Konfirmasi Masuk:</strong> Tunggu pullback ke Supply $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}) + Rejection / MSS Bearish M5${lotRule}</li>`,
           Number.isFinite(sellTpVal)
-            ? `<li><strong>Target TP:</strong> $${fmt(sellTpVal)} (${esc(tpCandSell?.name || 'SSL M15')}) · Napas spread XAUUSDc di <strong>$${fmt(sellTpVal + 0.50)}</strong>.</li>`
-            : '<li><strong>Target TP:</strong> Range Low / SSL M15.</li>',
-          `<li><strong>SL Aman:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $0.40 napas spread).</li>`
-        ].join('');
+            ? `<li><strong>TP1 Cepat (BEP):</strong> $${fmt(sellTpVal)} (${esc(tpCandSell?.name || 'TP1')}) · Pasang di <strong>$${fmt(sellTpVal + 0.50)}</strong> (spread Ask). Close 60% lalu geser SL ke BEP!</li>`
+            : '<li><strong>TP1 Cepat:</strong> Likuiditas internal / 1:1.8 lalu geser SL ke BEP.</li>',
+          tpCandSell2
+            ? `<li><strong>TP2 Runner (40%):</strong> $${fmt(tpCandSell2.v)} (${esc(tpCandSell2.name)}) · Biarkan berjalan bebas risiko.</li>`
+            : '',
+          `<li><strong>SL Scalper:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $0.40 spread · ${esc(sellSlGuard.label)}).</li>`
+        ].filter(Boolean).join('');
       }
     }
 
     // ══════════════════════════════════════════════
-    // BUY SETUP COMPUTATION & RENDER
+    // BUY SETUP COMPUTATION & RENDER (SCALPER PRO)
     // ══════════════════════════════════════════════
     const buyTbody = $('buy-poi-tbody');
     let primaryBuyZone = selectBestPOI(uniqueBullOBs, bullFVGs, 'BUY');
@@ -1063,7 +1349,6 @@
     let isBuyTpHit = false;
     let isBuySlHit = false;
 
-    // Validasi apakah sesi BUY sebelumnya sudah kena SL sebelum refresh
     if (activeBuySession && Number.isFinite(activeBuySession.sl) && livePrice < activeBuySession.sl - 0.40) {
       isBuySlHit = true;
       activeBuySession = null;
@@ -1072,16 +1357,19 @@
     const invBuy = resolveStructuralInvalidation(primaryBuyZone, 'BUY');
     const trueBuySlBoundary = invBuy ? invBuy.v : (primaryBuyZone ? primaryBuyZone.low : NaN);
     const slLevelBuyNum = Number.isFinite(trueBuySlBoundary) ? Number((trueBuySlBoundary - 0.40).toFixed(2)) : NaN;
-    const buyTargets = resolveDolTargets(primaryBuyZone, slLevelBuyNum, 'BUY');
+    const buySlGuard = evaluateSlGuard(primaryBuyZone?.ce, slLevelBuyNum);
+    const buyTargets = resolveScalperTargets(primaryBuyZone, slLevelBuyNum, 'BUY');
     const tpCandBuy = buyTargets.tp1;
     const tpCandBuy2 = buyTargets.tp2;
     const buyRr = buyTargets.rr1;
 
-    if (primaryBuyZone && Number.isFinite(trueBuySlBoundary)) {
+    if (primaryBuyZone && primaryBuyZone.breached) {
+      isBuySlHit = true;
+    } else if (primaryBuyZone && Number.isFinite(trueBuySlBoundary)) {
       const sameZone = activeBuySession?.zone
         && Math.abs(activeBuySession.zone.low - primaryBuyZone.low) < 0.25
         && Math.abs(activeBuySession.zone.high - primaryBuyZone.high) < 0.25;
-      const inZoneNow = livePrice <= primaryBuyZone.high + 0.20 && livePrice >= trueBuySlBoundary - 0.40;
+      const inZoneNow = livePrice <= primaryBuyZone.high + 0.20 && livePrice >= primaryBuyZone.low - 0.25;
       const prevTriggered = sameZone ? Boolean(activeBuySession.triggered) : false;
       const prevTrigPrice = sameZone ? activeBuySession.triggeredPrice : null;
 
@@ -1105,8 +1393,8 @@
       }
     }
 
-    if (primaryBuyZone && activeBuySession) {
-      if (livePrice <= primaryBuyZone.high + 0.20 && livePrice >= activeBuySession.sl - 0.40) {
+    if (primaryBuyZone && !primaryBuyZone.breached && activeBuySession) {
+      if (livePrice <= primaryBuyZone.high + 0.20 && livePrice >= primaryBuyZone.low - 0.25) {
         isBuyTesting = true;
         activeBuySession.triggered = true;
         if (!activeBuySession.triggeredPrice) activeBuySession.triggeredPrice = livePrice;
@@ -1116,7 +1404,7 @@
     }
     const isBuyInPlay = isBuyTesting || isBuyReacting;
 
-    // Cache plan for Lot Calculator (BUY)
+    // Cache plan for Lot Calculator (BUY — include TP1 BEP & TP2 Runner)
     const buyTpVal = tpCandBuy?.v ?? activeBuySession?.tp;
     const buySlVal = Number.isFinite(slLevelBuyNum) ? slLevelBuyNum : (Number.isFinite(activeBuySession?.sl) ? Number((activeBuySession.sl - 0.40).toFixed(2)) : NaN);
     latestBuyPlan = primaryBuyZone && Number.isFinite(buySlVal)
@@ -1128,24 +1416,36 @@
         }
       : null;
 
+    // Render 5-Poin Scalper Verdict (BUY)
+    const buyVerdict = evaluateAndRenderVerdict('BUY', {
+      zone: primaryBuyZone,
+      slGuard: buySlGuard,
+      rr1: buyRr,
+      isSlHit: isBuySlHit
+    });
+
     // Update 3 Structured Level Tiles (BUY)
     const buyEntryValEl = $('buy-entry-val');
     const buyEntrySubEl = $('buy-entry-sub');
     if (buyEntryValEl) buyEntryValEl.textContent = primaryBuyZone ? fmtRange(primaryBuyZone.low, primaryBuyZone.high) : 'Belum Ada';
     if (buyEntrySubEl) {
+      const oteTag = primaryBuyZone?.inOte ? ' · OTE' : '';
+      const freshTag = primaryBuyZone?.fresh ? 'Fresh ' : '';
       buyEntrySubEl.textContent = primaryBuyZone
-        ? `${primaryBuyZone.kind || 'OB'} · 50% CE $${fmt(primaryBuyZone.ce)}`
+        ? `${freshTag}${primaryBuyZone.kind || 'OB'}${oteTag} · CE $${fmt(primaryBuyZone.ce)}`
         : 'Tunggu Demand/OB di bawah harga';
     }
     const buyTpValEl = $('buy-tp-val');
     const buyTpSubEl = $('buy-tp-sub');
     if (buyTpValEl) buyTpValEl.textContent = Number.isFinite(buyTpVal) ? `$${fmt(buyTpVal)}` : '—';
     if (buyTpSubEl) {
-      const refEntryBuy = primaryBuyZone ? primaryBuyZone.ce : livePrice;
-      const distBuy = Number.isFinite(buyTpVal) && Number.isFinite(refEntryBuy) ? (buyTpVal - refEntryBuy) : NaN;
-      const rrTag = Number.isFinite(buyRr) && buyRr > 0 ? ` · R:R 1:${buyRr.toFixed(1)}` : '';
+      const rrTag = Number.isFinite(buyRr) && buyRr > 0 ? `1:${buyRr.toFixed(1)}` : '';
+      const runnerTag = tpCandBuy2 ? ` · Runner $${fmt(tpCandBuy2.v)}` : '';
+      const tp1Desc = tpCandBuy?.synthetic
+        ? `Partial BEP (${rrTag || '1:1.8'})`
+        : `BEP ${tpCandBuy?.name || 'TP1'}${rrTag ? ` (${rrTag})` : ''}`;
       buyTpSubEl.textContent = Number.isFinite(buyTpVal)
-        ? `${tpCandBuy?.name || activeBuySession?.tpName || 'BSL M15'}${Number.isFinite(distBuy) && distBuy > 0 ? ` · +$${fmt(distBuy)}` : ''}${rrTag}`
+        ? `${tp1Desc}${runnerTag}`
         : 'Likuiditas BSL atas';
     }
     const buySlValEl = $('buy-sl-val');
@@ -1153,36 +1453,37 @@
     if (buySlValEl) buySlValEl.textContent = Number.isFinite(buySlVal) ? `$${fmt(buySlVal)}` : '—';
     if (buySlSubEl) {
       const slBase = Number.isFinite(trueBuySlBoundary) ? trueBuySlBoundary : activeBuySession?.sl;
-      const slName = invBuy?.name || activeBuySession?.slName || 'Batas Bawah POI';
       buySlSubEl.textContent = Number.isFinite(slBase)
-        ? `${slName} $${fmt(slBase)} - $0.40`
+        ? `${buySlGuard.label} · ${invBuy?.name || 'POI'}`
         : 'Batas invalidasi SSL';
     }
 
     if (buyBadgeEl) {
-      if (isBuyTesting) {
+      if (primaryBuyZone?.breached || isBuySlHit) {
+        buyBadgeEl.className = 'poi-badge poi-badge--buy';
+        buyBadgeEl.textContent = 'Zona Tembus / Invalid · Jangan Tangkap Pisau Jatuh';
+      } else if (isBuyTesting) {
         buyBadgeEl.className = 'poi-badge poi-badge--buy poi-badge--active';
-        buyBadgeEl.textContent = `Menguji Zona · Pantau Rejection M5 ($${fmt(livePrice)})`;
+        buyBadgeEl.textContent = `Menguji Zona · Wajib Tunggu MSS M5 ($${fmt(livePrice)})`;
       } else if (isBuyReacting) {
         buyBadgeEl.className = 'poi-badge poi-badge--buy poi-badge--active';
         buyBadgeEl.textContent = `Zona Teruji · Reaksi Aktif dari $${fmt(activeBuySession?.triggeredPrice || primaryBuyZone.high)}`;
       } else if (isBuyTpHit) {
         buyBadgeEl.className = 'poi-badge poi-badge--buy poi-badge--hit';
-        buyBadgeEl.textContent = 'Target TP Tercapai · Likuiditas BSL Terpanen';
-      } else if (isBuySlHit) {
-        buyBadgeEl.className = 'poi-badge poi-badge--buy';
-        buyBadgeEl.textContent = 'Invalidasi Ditembus · Batas SL Terlewati';
+        buyBadgeEl.textContent = 'Target TP1 Tercapai · Amankan BEP / Runner';
       }
     }
 
     if (buyTbody) {
       const buyRows = [];
       if (primaryBuyZone) {
-        const trigNote = isBuyTesting
-          ? `Sedang diuji ($${fmt(livePrice)}) — tunggu konfirmasi rejection M5`
-          : isBuyReacting
-            ? `Reaksi dari $${fmt(activeBuySession?.triggeredPrice || primaryBuyZone.high)} · Bergerak +$${fmt(Math.max(0, livePrice - (activeBuySession?.triggeredPrice || primaryBuyZone.high)))}`
-            : `50% MT/CE: $${fmt(primaryBuyZone.ce)} — area jemputan Buy`;
+        const trigNote = primaryBuyZone.breached
+          ? `Harga ($${fmt(livePrice)}) menembus bawah zona — dilarang Buy`
+          : isBuyTesting
+            ? `Sedang diuji ($${fmt(livePrice)}) — wajib tunggu candle rejection/MSS M5`
+            : isBuyReacting
+              ? `Reaksi dari $${fmt(activeBuySession?.triggeredPrice || primaryBuyZone.high)} · Bergerak +$${fmt(Math.max(0, livePrice - (activeBuySession?.triggeredPrice || primaryBuyZone.high)))}`
+              : `50% CE: $${fmt(primaryBuyZone.ce)}${primaryBuyZone.inOte ? ' · Area OTE 62%–79%' : ''} — jemputan Buy`;
         buyRows.push({
           poi: `${isBuyInPlay ? '[Aktif] ' : ''}Entry [${primaryBuyZone.kind || 'OB'}] · ${primaryBuyZone.label}`,
           level: fmtRange(primaryBuyZone.low, primaryBuyZone.high),
@@ -1196,17 +1497,26 @@
         });
       }
 
-      [tpCandBuy, tpCandBuy2].filter(Boolean).forEach((x, idx) => {
+      if (tpCandBuy) {
         const refEntry = primaryBuyZone ? primaryBuyZone.ce : livePrice;
-        const distFromEntry = Math.max(0, x.v - refEntry);
-        const rr = Number.isFinite(buyTargets.risk) && buyTargets.risk > 0 ? (distFromEntry / buyTargets.risk) : NaN;
-        const rrStr = Number.isFinite(rr) ? ` · R:R 1:${rr.toFixed(1)}` : '';
+        const dist1 = Math.max(0, tpCandBuy.v - refEntry);
+        const rr1Str = Number.isFinite(buyRr) ? ` · R:R 1:${buyRr.toFixed(1)}` : '';
         buyRows.push({
-          poi: `Target DOL ${idx === 0 ? 'TP1' : 'TP2'} · ${x.name}`,
-          level: '$' + fmt(x.v),
-          note: `+$${fmt(distFromEntry)} dari Entry CE${rrStr}`
+          poi: `TP1 Cepat (BEP 60%) · ${tpCandBuy.name}`,
+          level: '$' + fmt(tpCandBuy.v),
+          note: `+$${fmt(dist1)} dari CE${rr1Str} — Close 60% & geser SL ke BEP`
         });
-      });
+      }
+      if (tpCandBuy2) {
+        const refEntry = primaryBuyZone ? primaryBuyZone.ce : livePrice;
+        const dist2 = Math.max(0, tpCandBuy2.v - refEntry);
+        const rr2Str = Number.isFinite(buyTargets.rr2) ? ` · R:R 1:${buyTargets.rr2.toFixed(1)}` : '';
+        buyRows.push({
+          poi: `TP2 Runner (40%) · ${tpCandBuy2.name}`,
+          level: '$' + fmt(tpCandBuy2.v),
+          note: `+$${fmt(dist2)} dari CE${rr2Str} — Magnet DOL utama`
+        });
+      }
 
       const invLevelBuy = Number.isFinite(trueBuySlBoundary) ? trueBuySlBoundary : activeBuySession?.sl;
       const invNameBuy = invBuy?.name || activeBuySession?.slName || 'Batas Bawah POI';
@@ -1216,7 +1526,7 @@
         buyRows.push({
           poi: `Invalidasi · ${invNameBuy}`,
           level: '$' + fmt(invLevelBuy),
-          note: `-$${fmt(riskDist)} di bawah Entry CE · SL $${fmt(buySlVal)}`
+          note: `-$${fmt(riskDist)} dari CE · SL $${fmt(buySlVal)} (${buySlGuard.label})`
         });
       }
 
@@ -1233,41 +1543,27 @@
       const limitOrder = Number.isFinite(entryLo) ? (entryLo + 0.40).toFixed(2) : null;
       const slStr = Number.isFinite(buySlVal) ? buySlVal.toFixed(2) : (Number.isFinite(entryLo) ? (entryLo - 0.40).toFixed(2) : null);
       const slAnchorLabel = invBuy?.name || activeBuySession?.slName || 'Batas Bawah POI';
+      const lotRule = sessionGuard.halfLot ? ' · <strong>Kurangi lot 50%</strong> (filter sesi/news).' : '';
 
-      if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi)) {
-        sopBuy.innerHTML = '<li>Belum ada Order Block (OB) atau FVG di bawah harga — <strong>jangan entry Buy</strong> sampai zona jemputan diskon terbentuk.</li>';
-      } else if (isBuyTesting) {
-        sopBuy.innerHTML = [
-          `<li><strong>Status Zona:</strong> Harga sedang menguji Demand $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}). Tunggu candle rejection/MSS M5 sebelum eksekusi.</li>`,
-          `<li><strong>Buy Limit Referensi:</strong> $${limitOrder} (+$0.40 napas spread Ask).</li>`,
-          Number.isFinite(buyTpVal)
-            ? `<li><strong>Target TP:</strong> $${fmt(buyTpVal)} (${esc(tpCandBuy?.name || activeBuySession?.tpName || 'BSL M15')}).</li>`
-            : '<li><strong>Target TP:</strong> Range EQ / BSL M15.</li>',
-          `<li><strong>Batas SL Aman:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $0.40 napas spread).</li>`
-        ].join('');
-      } else if (isBuyReacting) {
-        sopBuy.innerHTML = [
-          `<li><strong>Status Zona:</strong> Zona Demand $${fmt(entryLo)}–$${fmt(entryHi)} teruji dan reaksi naik aktif.</li>`,
-          Number.isFinite(buyTpVal)
-            ? `<li><strong>Target TP:</strong> $${fmt(buyTpVal)} (${esc(tpCandBuy?.name || activeBuySession?.tpName || 'BSL M15')}).</li>`
-            : '<li><strong>Target TP:</strong> Range EQ / BSL M15.</li>',
-          `<li><strong>Batas SL Aman:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $0.40 napas spread).</li>`,
-          '<li><strong>Panduan:</strong> Jaga disiplin SL dan hindari FOMO menambah posisi saat harga sudah memasuki zona premium.</li>'
-        ].join('');
+      if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi) || primaryBuyZone?.breached) {
+        sopBuy.innerHTML = '<li>Zona Demand tidak tersedia atau sudah jebol — <strong>jangan menangkap pisau jatuh</strong>, tunggu MSS Bullish M5 atau zona baru.</li>';
       } else {
         sopBuy.innerHTML = [
-          `<li><strong>Area Entry:</strong> tunggu sweep Demand $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE: $${fmt(entryCe)}) + Rejection M5.</li>`,
-          `<li><strong>Pending Order (Napas Spread XAUUSDc):</strong> Buy Limit di <strong>$${limitOrder}</strong> (+$0.40 agar tersamber Ask).</li>`,
+          `<li><strong>Konfirmasi Masuk:</strong> Tunggu retest Demand $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}) + Rejection / MSS Bullish M5${lotRule}</li>`,
+          `<li><strong>Pending Referensi (Ask):</strong> Buy Limit di <strong>$${limitOrder}</strong> (+$0.40 spread), hanya jika searah tren.</li>`,
           Number.isFinite(buyTpVal)
-            ? `<li><strong>Target TP:</strong> $${fmt(buyTpVal)} (${esc(tpCandBuy?.name || 'BSL M15')}).</li>`
-            : '<li><strong>Target TP:</strong> Range EQ / BSL M15.</li>',
-          `<li><strong>SL Aman:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $0.40 napas spread).</li>`
-        ].join('');
+            ? `<li><strong>TP1 Cepat (BEP):</strong> $${fmt(buyTpVal)} (${esc(tpCandBuy?.name || 'TP1')}) · Close 60% lalu geser SL ke BEP!</li>`
+            : '<li><strong>TP1 Cepat:</strong> Likuiditas internal / 1:1.8 lalu geser SL ke BEP.</li>',
+          tpCandBuy2
+            ? `<li><strong>TP2 Runner (40%):</strong> $${fmt(tpCandBuy2.v)} (${esc(tpCandBuy2.name)}) · Biarkan berjalan bebas risiko.</li>`
+            : '',
+          `<li><strong>SL Scalper:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $0.40 spread · ${esc(buySlGuard.label)}).</li>`
+        ].filter(Boolean).join('');
       }
     }
 
     // ══════════════════════════════════════════════
-    // ZONE-GATED TAB PRIORITY & SCENARIO LABELS
+    // TREND-FIRST TAB PRIORITY & SCENARIO LABELS (ANTI-FALLING KNIFE)
     // ══════════════════════════════════════════════
     const sellLabelZone = primarySellZone || (liqAbove[0] ? { low: liqAbove[0].v, high: liqAbove[0].v } : null);
     const buyLabelZone  = primaryBuyZone  || (liqBelow[0] ? { low: liqBelow[0].v, high: liqBelow[0].v } : null);
@@ -1285,7 +1581,7 @@
       }
     }
 
-    // Update Segmented Tab Dots & Priority Tags
+    // Update Segmented Tab Dots & Trend-First Priority Tags
     const buyDot = $('tab-buy-dot');
     const sellDot = $('tab-sell-dot');
     if (buyDot) buyDot.classList.toggle('is-in-play', isBuyInPlay);
@@ -1293,8 +1589,20 @@
 
     const buyTag = $('tab-buy-tag');
     const sellTag = $('tab-sell-tag');
-    const buyPriority = isDiscount || (!isPremium && m15Dir === 1);
-    const sellPriority = isPremium || (!isDiscount && m15Dir === -1);
+    // Trend-First: Saat M15 (atau H1+M15) BEAR, SELL selalu Prioritas kecuali BUY punya MSS M5 terkonfirmasi & tidak SKIP
+    let sellPriority = false;
+    let buyPriority = false;
+    if (m15Dir === -1) {
+      if (isDiscount && m5Dir === 1 && !buyVerdict.skip) buyPriority = true;
+      else sellPriority = true;
+    } else if (m15Dir === 1) {
+      if (isPremium && m5Dir === -1 && !sellVerdict.skip) sellPriority = true;
+      else buyPriority = true;
+    } else {
+      buyPriority = isDiscount || (!isPremium && h1Dir === 1);
+      sellPriority = isPremium || (!isDiscount && h1Dir === -1);
+    }
+
     if (buyTag) buyTag.hidden = !buyPriority;
     if (sellTag) sellTag.hidden = !sellPriority;
 
@@ -1304,7 +1612,7 @@
       else if (buyPriority && !sellPriority) setActivePoiTab('BUY', false);
     }
 
-    // Zone-ban warnings inside each tab panel
+    // Zone-ban & Counter-trend warnings inside each tab panel
     const sellWarn = $('poi-sell-zone-ban');
     if (sellWarn) {
       if (isDiscount) {
@@ -1314,7 +1622,7 @@
           sellWarn.hidden = false;
         } else {
           sellWarn.className = 'poi-warning-box is-danger';
-          sellWarn.innerHTML = `<strong>Dilarang Entry Sell di Harga Sekarang:</strong> Posisi berada di Zona Diskon (${pct}%). Sell valid hanya setelah pullback ke Supply Premium (${sellLabelZone ? fmtRange(sellLabelZone.low, sellLabelZone.high) : 'Supply atas'}).`;
+          sellWarn.innerHTML = `<strong>Tunggu Pullback — Jangan Kejar Sell di Dasar (${pct}%):</strong> Tren memang Bearish, tetapi entry Sell yang sehat hanya setelah pullback ke Supply (${sellLabelZone ? fmtRange(sellLabelZone.low, sellLabelZone.high) : 'Supply atas'}) + Rejection M5.`;
           sellWarn.hidden = false;
         }
       } else {
@@ -1324,7 +1632,11 @@
 
     const buyWarn = $('poi-buy-zone-ban');
     if (buyWarn) {
-      if (isPremium) {
+      if (h1Dir === -1 && m15Dir === -1 && m5Dir !== 1) {
+        buyWarn.className = 'poi-warning-box is-danger';
+        buyWarn.innerHTML = `<strong>Peringatan Counter-Trend (H1 + M15 Bearish):</strong> Jangan menangkap pisau jatuh hanya karena harga di zona Diskon (${pct}%). Buy scalping hanya layak setelah muncul <strong>Sweep + MSS Bullish M5</strong>.`;
+        buyWarn.hidden = false;
+      } else if (isPremium) {
         if (isBuyReacting) {
           buyWarn.className = 'poi-warning-box is-active-buy';
           buyWarn.innerHTML = `<strong>Reaksi Buy Aktif:</strong> Harga telah masuk area Premium (${pct}%) menuju target BSL. Hindari tambah posisi Buy di pucuk; kunci profit secara bertahap.`;

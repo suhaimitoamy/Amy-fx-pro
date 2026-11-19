@@ -892,6 +892,115 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 }
 .poi-warning-box[hidden] { display: none; }
 
+/* Scalper Pro Verdict & 5-Point Confluence Strip */
+.poi-verdict-card {
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 11px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.poi-verdict-card.is-ready {
+  border-color: var(--ck-buy-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-buy);
+}
+.poi-verdict-card.is-ready-sell {
+  border-color: var(--ck-sell-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-sell);
+}
+.poi-verdict-card.is-wait {
+  border-color: var(--ck-gold-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-gold);
+}
+.poi-verdict-card.is-skip {
+  border-color: var(--ck-sell-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-sell);
+  background: var(--ck-sell-bg);
+}
+
+.poi-verdict-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.poi-verdict-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.poi-verdict-grade {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ck-text);
+}
+.poi-verdict-card.is-ready .poi-verdict-grade { color: var(--ck-buy-text); }
+.poi-verdict-card.is-ready-sell .poi-verdict-grade { color: var(--ck-sell-text); }
+.poi-verdict-card.is-wait .poi-verdict-grade { color: var(--ck-gold); }
+.poi-verdict-card.is-skip .poi-verdict-grade { color: var(--ck-sell-text); }
+
+.poi-verdict-score {
+  font-family: var(--ck-mono);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(148, 163, 184, 0.14);
+  color: var(--ck-text-secondary);
+}
+
+.poi-session-guard {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ck-muted);
+  letter-spacing: 0.01em;
+}
+.poi-session-guard.is-killzone { color: var(--ck-buy-text); }
+.poi-session-guard.is-caution { color: var(--ck-warn-text); }
+.poi-session-guard.is-danger { color: var(--ck-sell-text); }
+
+.poi-checks-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  padding-top: 7px;
+  border-top: 1px solid var(--ck-border-subtle);
+}
+.poi-check-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ck-muted);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.poi-check-item.is-pass { color: var(--ck-buy-text); }
+.poi-check-item.is-warn { color: var(--ck-warn-text); }
+.poi-check-item.is-fail { color: var(--ck-sell-text); opacity: 0.9; }
+.poi-check-mark {
+  font-weight: 800;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+@media (max-width: 560px) {
+  .poi-checks-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px 8px;
+  }
+}
+
 /* 3 Execution Level Tiles (Entry · Target DOL/TP · Batas SL) */
 .poi-levels-grid {
   display: grid;

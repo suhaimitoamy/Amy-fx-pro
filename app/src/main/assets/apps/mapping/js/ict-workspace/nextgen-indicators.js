@@ -829,11 +829,40 @@ function getTradingDayKey(timeSec) {
     ...(Number.isFinite(pdLow) && pdLow < curP ? [{ name: 'Range Low', level: pdLow }] : [])
   ]).sort((a, b) => b.level - a.level);
 
-  const sortedSweeps = [...sweeps].sort((a, b) => (a.time || 0) - (b.time || 0));
-  const latestSweep = sortedSweeps.at(-1) || null;
-  const sweepIsFresh = Boolean(latestSweep && lastBarTime - latestSweep.time <= expectedInterval * 8);
-  const sweepReactionDir = latestSweep
-    ? (latestSweep.reactionSide === 'BUY' || latestSweep.type?.includes('SSL') || latestSweep.type?.includes('LOW') || latestSweep.type?.includes('PDL') || latestSweep.type?.includes('PWL') ? 1 : -1)
+  // Validate sweeps: if any subsequent candle closes beyond the swept level (or opposite BOS occurs), mark sweep as broken
+  const sortedSweeps = [...sweeps]
+    .sort((a, b) => (a.time || 0) - (b.time || 0))
+    .map(sw => {
+      const isBuySw = sw.reactionSide === 'BUY' || sw.type?.includes('SSL') || sw.type?.includes('LOW') || sw.type?.includes('PDL') || sw.type?.includes('PWL');
+      let broken = false;
+      for (let idx = safeCandles.length - 1; idx >= 0; idx--) {
+        const bar = safeCandles[idx];
+        if (bar.time <= (sw.time || 0)) break;
+        if (isBuySw && Number.isFinite(sw.level) && bar.close < sw.level - 0.15) {
+          broken = true;
+          break;
+        }
+        if (!isBuySw && Number.isFinite(sw.level) && bar.close > sw.level + 0.15) {
+          broken = true;
+          break;
+        }
+      }
+      if (!broken && structureEvents.length) {
+        const laterOppositeBreak = structureEvents.some(ev =>
+          (ev.endTime || 0) > (sw.time || 0) &&
+          ((isBuySw && ev.side === 'BEAR') || (!isBuySw && ev.side === 'BULL'))
+        );
+        if (laterOppositeBreak) broken = true;
+      }
+      return { ...sw, broken };
+    });
+
+  const latestSweepRaw = sortedSweeps.at(-1) || null;
+  const latestValidSweep = [...sortedSweeps].reverse().find(sw => !sw.broken) || null;
+  const latestSweep = latestValidSweep || latestSweepRaw;
+  const sweepIsFresh = Boolean(latestValidSweep && lastBarTime - latestValidSweep.time <= expectedInterval * 8);
+  const sweepReactionDir = latestValidSweep
+    ? (latestValidSweep.reactionSide === 'BUY' || latestValidSweep.type?.includes('SSL') || latestValidSweep.type?.includes('LOW') || latestValidSweep.type?.includes('PDL') || latestValidSweep.type?.includes('PWL') ? 1 : -1)
     : 0;
   const dolDir = sweepIsFresh ? sweepReactionDir : (trend === 'BULL' ? 1 : trend === 'BEAR' ? -1 : 0);
   const dolCandidate = dolDir === 1 ? poolsAbove[0] : dolDir === -1 ? poolsBelow[0] : null;
@@ -844,8 +873,8 @@ function getTradingDayKey(timeSec) {
     name: dolCandidate.name,
     distance: Math.abs(dolCandidate.level - curP),
     status: 'ACTIVE',
-    poolsAbove: poolsAbove.slice(0, 3),
-    poolsBelow: poolsBelow.slice(0, 3)
+    poolsAbove: poolsAbove.slice(0, 4),
+    poolsBelow: poolsBelow.slice(0, 4)
   } : {
     dir: dolDir,
     side: dolDir === 1 ? 'BUY' : dolDir === -1 ? 'SELL' : null,
@@ -853,9 +882,32 @@ function getTradingDayKey(timeSec) {
     name: null,
     distance: null,
     status: 'NONE',
-    poolsAbove: poolsAbove.slice(0, 3),
-    poolsBelow: poolsBelow.slice(0, 3)
+    poolsAbove: poolsAbove.slice(0, 4),
+    poolsBelow: poolsBelow.slice(0, 4)
   };
+
+  // Active BOS Leg & OTE (61.8% – 78.6% retracement) for precision scalper POI scoring
+  const activeLegHigh = trend === 'BEAR' && Number.isFinite(protectedHigh)
+    ? protectedHigh
+    : (Number.isFinite(legHigh) ? legHigh : structuralRangeHigh);
+  const activeLegLow = trend === 'BULL' && Number.isFinite(protectedLow)
+    ? protectedLow
+    : (Number.isFinite(legLow) ? legLow : structuralRangeLow);
+  let activeLeg = null;
+  if (Number.isFinite(activeLegHigh) && Number.isFinite(activeLegLow) && activeLegHigh > activeLegLow) {
+    const legSpan = activeLegHigh - activeLegLow;
+    const eq = (activeLegHigh + activeLegLow) / 2;
+    const oteLow = trend === 'BEAR' ? activeLegLow + legSpan * 0.618 : activeLegHigh - legSpan * 0.786;
+    const oteHigh = trend === 'BEAR' ? activeLegLow + legSpan * 0.786 : activeLegHigh - legSpan * 0.618;
+    activeLeg = {
+      trend,
+      high: activeLegHigh,
+      low: activeLegLow,
+      eq,
+      oteLow: Math.min(oteLow, oteHigh),
+      oteHigh: Math.max(oteLow, oteHigh)
+    };
+  }
 
   return {
     keyLevels: {
@@ -890,11 +942,12 @@ function getTradingDayKey(timeSec) {
       rangeLow: structuralRangeLow,
       eq: structuralEq
     } : null,
+    activeLeg,
     liquidity: {
       bsl: bslLines.filter(l => !l.consumed).slice(-2),
       ssl: sslLines.filter(l => !l.consumed).slice(-2),
       sweeps: sortedSweeps.slice(-8),
-      latestSweep: latestSweep ? { ...latestSweep, fresh: sweepIsFresh, reactionDir: sweepReactionDir } : null
+      latestSweep: latestSweep ? { ...latestSweep, fresh: sweepIsFresh && !latestSweep.broken, reactionDir: latestSweep.broken ? 0 : sweepReactionDir } : null
     },
     dol,
     structure: {

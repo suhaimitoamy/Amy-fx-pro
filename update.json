@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.454/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.455/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Cockpit Mapping V3 Glassmorphism: Tab switcher interaktif BUY/SELL terpadu, layout glassmorphism simetris dengan Peta Harga.",
-    "✦ Penanda Waktu WITA & Deteksi DOL: Crosshair chart resmi WITA (UTC+8) dan deteksi terarah Draw on Liquidity ke pool likuiditas aktif.",
-    "✦ Price Alert Manager V3: Sinkronisasi badge alarm aktif di Beranda & Mapping, tab daftar alarm, dan validasi inline modern.",
-    "✦ Profil Trader Dinamis: Identitas nama trader lokal dan kalkulasi nominal risiko USD otomatis."
+    "✦ Scalper Pro Verdict & 5-Point Confluence Gate: Kartu evaluasi kelayakan trading (Grade, Score 0-5, Session Guard, dan 5 checkmarks konfluensi murni) di tab BUY & SELL.",
+    "✦ Validasi Broken Sweep & Deteksi OTE 61.8% - 78.6%: Menggugurkan sweep yang sudah ditembus BOS dan memetakan zona diskon OTE presisi pada leg aktif.",
+    "✦ TP1 Cepat (BEP) + Runner: Panduan eksekusi TP1 untuk close 60% dan geser SL ke BEP demi proteksi modal nyata Sayang."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.454/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.455/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950454,
-  "latest_version_name": "2.0.0-pro.454",
+  "latest_version_code": 950455,
+  "latest_version_name": "2.0.0-pro.455",
   "mandatory": false,
   "releaseDate": "2026-11-19",
   "release_notes": [
-    "✦ Cockpit Mapping V3 Glassmorphism: Tab switcher interaktif BUY/SELL terpadu, layout glassmorphism simetris dengan Peta Harga.",
-    "✦ Penanda Waktu WITA & Deteksi DOL: Crosshair chart resmi WITA (UTC+8) dan deteksi terarah Draw on Liquidity ke pool likuiditas aktif.",
-    "✦ Price Alert Manager V3: Sinkronisasi badge alarm aktif di Beranda & Mapping, tab daftar alarm, dan validasi inline modern.",
-    "✦ Profil Trader Dinamis: Identitas nama trader lokal dan kalkulasi nominal risiko USD otomatis."
+    "✦ Scalper Pro Verdict & 5-Point Confluence Gate: Kartu evaluasi kelayakan trading (Grade, Score 0-5, Session Guard, dan 5 checkmarks konfluensi murni) di tab BUY & SELL.",
+    "✦ Validasi Broken Sweep & Deteksi OTE 61.8% - 78.6%: Menggugurkan sweep yang sudah ditembus BOS dan memetakan zona diskon OTE presisi pada leg aktif.",
+    "✦ TP1 Cepat (BEP) + Runner: Panduan eksekusi TP1 untuk close 60% dan geser SL ke BEP demi proteksi modal nyata Sayang."
   ],
-  "version": "2.0.0-pro.454",
-  "versionCode": 950454,
+  "version": "2.0.0-pro.455",
+  "versionCode": 950455,
   "sha256": "019994fbd86f1ed523ff6e6687ffa94bc50c20113e36a4f22ebb67b123023461"
 }
