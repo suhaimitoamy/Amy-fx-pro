@@ -1359,7 +1359,7 @@
     // SELL SETUP COMPUTATION & RENDER (SCALPER PRO)
     // ══════════════════════════════════════════════
     const sellTbody = $('sell-poi-tbody');
-    let primarySellZone = selectBestPOI(uniqueBearOBs, bearFVGs, 'SELL');
+    let primarySellZone = selectBestPOI(uniqueBearOBs.filter(z => z.hi >= livePrice - 1.5), bearFVGs, 'SELL');
     let isSellTesting = false;
     let isSellReacting = false;
     let isSellTpHit = false;
@@ -1597,7 +1597,7 @@
     // BUY SETUP COMPUTATION & RENDER (SCALPER PRO)
     // ══════════════════════════════════════════════
     const buyTbody = $('buy-poi-tbody');
-    let primaryBuyZone = selectBestPOI(uniqueBullOBs, bullFVGs, 'BUY');
+    let primaryBuyZone = selectBestPOI(uniqueBullOBs.filter(z => z.lo <= livePrice + 1.5), bullFVGs, 'BUY');
     let isBuyTesting = false;
     let isBuyReacting = false;
     let isBuyTpHit = false;

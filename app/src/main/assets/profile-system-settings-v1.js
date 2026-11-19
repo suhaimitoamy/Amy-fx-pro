@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  // Personalisasi warna & Kaca - Panel tema & sistem warna Amy FX Pro
   if (window.__amyFxProfileSystemSettingsInstalled) return;
   window.__amyFxProfileSystemSettingsInstalled = true;
 
@@ -88,7 +89,12 @@
 
     // Fallback for any legacy page layout without unified appearance panel
     const selector = document.querySelector('#main-content .theme-selector');
-    if (!selector || document.querySelector('[data-amyfx-color-settings]')) return;
+    if (!selector) return;
+    const prevTitle = selector.previousElementSibling;
+    if (prevTitle && prevTitle.classList.contains('profile-section-title') && prevTitle.textContent !== 'Tampilan & Gaya Kaca') {
+      prevTitle.textContent = 'Tampilan & Gaya Kaca';
+    }
+    if (document.querySelector('[data-amyfx-color-settings]')) return;
     syncColorPanel(selector.closest('section'));
   }
 
@@ -214,6 +220,10 @@
   const main = document.getElementById('main-content');
   if (main) {
     const observer = new MutationObserver(() => {
+      if (document.querySelector('[data-amyfx-color-settings]')) {
+        observer.disconnect();
+        return;
+      }
       hydrateUnifiedSettings();
     });
     observer.observe(main, { childList: true, subtree: true });

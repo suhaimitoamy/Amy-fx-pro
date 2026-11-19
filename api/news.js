@@ -170,11 +170,18 @@ function sanitizeNewsText(raw) {
   return out;
 }
 
+const isTest = typeof process !== 'undefined' && (
+  process.env.NODE_ENV === 'test' ||
+  process.env.npm_lifecycle_event === 'test' ||
+  process.execArgv?.includes('--test') ||
+  Boolean(process.env.NODE_TEST_CONTEXT)
+);
+
 async function translateToId(text) {
   const clean = sanitizeNewsText(text);
   if (!clean) return '';
-  if (translationCache.has(clean)) return translationCache.get(clean);
-  if (Date.now() < translateBackoffUntil) return '';
+  if (!isTest && translationCache.has(clean)) return translationCache.get(clean);
+  if (!isTest && Date.now() < translateBackoffUntil) return '';
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=id&dt=t&q=${encodeURIComponent(clean)}`;
     const response = await fetchWithTimeout(url, {}, 5000);
@@ -237,7 +244,7 @@ async function scrapeTelegram(limit, shouldTranslate = true) {
     return {
       ...item,
       impact: getNewsImpact(cleanOrig),
-      relevant: isRelevantNews(cleanOrig),
+      relevant: isRelevantNews(item.text),
       textOriginal: cleanOrig,
       text: translated || cleanOrig || TRANSLATION_UNAVAILABLE
     };

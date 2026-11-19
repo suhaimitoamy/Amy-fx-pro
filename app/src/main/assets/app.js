@@ -1750,9 +1750,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </section>
 
-        <!-- Pengingat Belajar Academy -->
+        <!-- Pengingat Belajar & Skill -->
         <div class="profile-section-heading">
-          <h3>Pengingat Belajar Academy</h3>
+          <h3>Pengingat Belajar &amp; Skill</h3>
         </div>
         <section class="profile-panel slide-up">
           <div class="profile-switch-row">
@@ -1768,6 +1768,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
             <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
+            <div class="profile-sublabel">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</div>
 
             <div class="profile-reminder-list">
               <div class="profile-reminder-row">

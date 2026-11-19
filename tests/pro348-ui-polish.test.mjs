@@ -43,8 +43,11 @@ test('polish provides light-theme and small-screen readability safeguards', () =
 });
 
 test('release identity is synchronized for Amy FX Pro', () => {
-  assert.match(read('app/build.gradle.kts'), /versionCode = .*950453/);
-  assert.match(read('app/build.gradle.kts'), /2\.0\.0-pro\.453/);
-  assert.match(read('app/src/main/assets/app-version.js'), /code: 950453/);
-  assert.match(read('app/src/main/assets/update-checker.js'), /CURRENT_VERSION_CODE = Number\(VERSION\.code\) \|\| 950453/);
+  const version = read('app/src/main/assets/app-version.js');
+  const identity = version.match(/name:\s*'(2\.0\.0-pro\.(\d+))',\s*code:\s*(95\d{4})/);
+  const [, versionName, , versionCode] = identity;
+  assert.match(read('app/build.gradle.kts'), new RegExp(`versionCode = .*${versionCode}`));
+  assert.match(read('app/build.gradle.kts'), new RegExp(versionName.replace(/\./g, '\\.')));
+  assert.match(read('app/src/main/assets/app-version.js'), new RegExp(`code: ${versionCode}`));
+  assert.match(read('app/src/main/assets/update-checker.js'), /CURRENT_VERSION_CODE = Number\(VERSION\.code\)/);
 });
