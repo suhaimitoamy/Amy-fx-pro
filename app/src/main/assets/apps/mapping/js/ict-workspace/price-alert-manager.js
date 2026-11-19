@@ -1378,7 +1378,8 @@ export function getAvailableIctLevels() {
     if (!bslVal && Number.isFinite(Number(ctx.amy?.dashboard?.bsl))) bslVal = Number(ctx.amy.dashboard.bsl);
     if (bslVal) pushLevel({ id: 'bsl', label: 'BSL Sweep', price: bslVal, direction: 'CROSS_ABOVE', note: 'BSL Sweep (Likuiditas Atas)' });
 
-    const poi = ctx.m15?.poi || ctx.amy?.dashboard?.poi;
+    const sp = typeof window !== 'undefined' ? window.amyfxScalperPlan : null;
+    const poi = sp?.area ? { high: sp.area.high, low: sp.area.low, ce: sp.area.ce, kind: sp.kind || 'OB', label: `${sp.side} ${sp.label || 'POI'}` } : (ctx.m15?.poi || ctx.amy?.dashboard?.poi);
     if (poi) {
       const ce = Number(poi.ce);
       const poiPrice = Number.isFinite(ce) && ce > 0 ? ce : (Number(poi.high) + Number(poi.low)) / 2;

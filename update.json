@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.455/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.456/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Scalper Pro Verdict & 5-Point Confluence Gate: Kartu evaluasi kelayakan trading (Grade, Score 0-5, Session Guard, dan 5 checkmarks konfluensi murni) di tab BUY & SELL.",
-    "✦ Validasi Broken Sweep & Deteksi OTE 61.8% - 78.6%: Menggugurkan sweep yang sudah ditembus BOS dan memetakan zona diskon OTE presisi pada leg aktif.",
-    "✦ TP1 Cepat (BEP) + Runner: Panduan eksekusi TP1 untuk close 60% dan geser SL ke BEP demi proteksi modal nyata Sayang."
+    "✦ Amy Live 2.0 (Direct WS Live Voice & Client Bridge): Mempertahankan arsitektur client bridge + WebSocket streaming suara Aoede ke Gemini Live API.",
+    "✦ Smart Context Router: Hanya memuat modul konteks relevan per pertanyaan (Chart/News/Journal/Risk) untuk respon instan & hemat token.",
+    "✦ Safe Chat Memory & UI Polish: Pesan error tidak disimpan ke riwayat chat, perbaikan kontras Light/Dark mode judul AMY, dan bar input mobile lega."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.455/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.456/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950455,
-  "latest_version_name": "2.0.0-pro.455",
+  "latest_version_code": 950456,
+  "latest_version_name": "2.0.0-pro.456",
   "mandatory": false,
-  "releaseDate": "2026-11-19",
+  "releaseDate": "2026-11-20",
   "release_notes": [
-    "✦ Scalper Pro Verdict & 5-Point Confluence Gate: Kartu evaluasi kelayakan trading (Grade, Score 0-5, Session Guard, dan 5 checkmarks konfluensi murni) di tab BUY & SELL.",
-    "✦ Validasi Broken Sweep & Deteksi OTE 61.8% - 78.6%: Menggugurkan sweep yang sudah ditembus BOS dan memetakan zona diskon OTE presisi pada leg aktif.",
-    "✦ TP1 Cepat (BEP) + Runner: Panduan eksekusi TP1 untuk close 60% dan geser SL ke BEP demi proteksi modal nyata Sayang."
+    "✦ Amy Live 2.0 (Direct WS Live Voice & Client Bridge): Mempertahankan arsitektur client bridge + WebSocket streaming suara Aoede ke Gemini Live API.",
+    "✦ Smart Context Router: Hanya memuat modul konteks relevan per pertanyaan (Chart/News/Journal/Risk) untuk respon instan & hemat token.",
+    "✦ Safe Chat Memory & UI Polish: Pesan error tidak disimpan ke riwayat chat, perbaikan kontras Light/Dark mode judul AMY, dan bar input mobile lega."
   ],
-  "version": "2.0.0-pro.455",
-  "versionCode": 950455,
+  "version": "2.0.0-pro.456",
+  "versionCode": 950456,
   "sha256": "019994fbd86f1ed523ff6e6687ffa94bc50c20113e36a4f22ebb67b123023461"
 }

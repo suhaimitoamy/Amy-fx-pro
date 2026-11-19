@@ -464,6 +464,16 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   3. *TP1 Cepat (BEP) + Runner:* Panduan SOP eksekusi untuk mengamankan 60% posisi di TP1 dan segera menggeser SL ke BEP (+spread) demi proteksi modal nyata Sayang.
   4. *Integritas & Versi:* Seluruh 58 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.455` (code `950455`).
 
+## Rilis Pro 456: Amy Live 2.0 & Smart Context Router dari AI Studio (20 Nov 2026)
+- **Konteks:** Adopsi fitur Amy Live 2.0 dari commit `ddd382a` dan `b1d2703` Google AI Studio (`suhaimitoamy/Amy-fx-ai-studio`) ke `Amy-fx-pro`.
+- **Solusi & Implementasi:**
+  1. *Arsitektur Client-Bridge & WebSocket Live Voice Dipertahankan 100%:* Sesuai instruksi Sayang, mekanisme direct WebSocket browser ke Google (`models/gemini-3.8-live`, suara Aoede) dan endpoint `/api/gemini-config` tetap aktif dan tidak dirusak agar fitur suara real-time Amy Live Voice tetap berfungsi normal di HP Sayang.
+  2. *Smart Context Router:* Hanya memuat modul konteks aplikasi yang relevan dengan pertanyaan Sayang (Chart Mapping -> snapshot M15 & live price; News -> sanitasi telegram feed; Jurnal -> riwayat & habits; Risk -> kalkulator lot instan), menurunkan beban token dan membuat respons instan tanpa lag.
+  3. *Validasi Kunci & Anti-Hallucination:* Menambahkan `lib/amy-assistant-engine.mjs` dengan fungsi `isValidGeminiApiKey` untuk menolak placeholder key, serta rantai model free-tier (`gemini-3.1-flash-lite`, `gemini-4-hydrogen`).
+  4. *Memory Bersih & UI/UX Polish:* Pesan error tidak disimpan ke riwayat chat `localStorage` agar tidak meracuni obrolan berikutnya. Memperbaiki kontras judul AMY di Light/Dark Mode, Fullscreen Bubble Orb full-bleed, dan bar input mobile yang lega.
+  5. *Integritas & Versi:* Seluruh 80 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.456` (code `950456`).
+
+
 
 
 

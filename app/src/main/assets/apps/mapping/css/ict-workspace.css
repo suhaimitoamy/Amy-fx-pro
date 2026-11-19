@@ -90,7 +90,14 @@ body.amyfx-module--ict main article.gold-price-panel{min-width:0;margin:0 0 22px
 .dr-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:0.03em;text-transform:uppercase;white-space:nowrap;line-height:1.2;transition:all 0.3s ease}
 .dr-badge.dr-discount{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.4);box-shadow:0 0 10px rgba(34,197,94,0.2)}
 .dr-badge.dr-premium{background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 10px rgba(239,68,68,0.2)}
+.dr-badge.dr-breakdown{background:rgba(249,115,22,0.16);color:#fb923c;border:1px solid rgba(249,115,22,0.45);box-shadow:0 0 10px rgba(249,115,22,0.2)}
+.dr-badge.dr-breakout{background:rgba(16,185,129,0.16);color:#34d399;border:1px solid rgba(16,185,129,0.45);box-shadow:0 0 10px rgba(16,185,129,0.2)}
 .dr-badge.dr-neutral{background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.18);box-shadow:0 0 8px rgba(255,255,255,0.1)}
+html[data-theme="light"] .dr-badge.dr-discount{background:rgba(22,163,74,0.12);color:#15803d;border-color:rgba(22,163,74,0.35);box-shadow:none}
+html[data-theme="light"] .dr-badge.dr-premium{background:rgba(220,38,38,0.1);color:#b91c1c;border-color:rgba(220,38,38,0.32);box-shadow:none}
+html[data-theme="light"] .dr-badge.dr-breakdown{background:rgba(234,88,12,0.12);color:#c2410c;border-color:rgba(234,88,12,0.38);box-shadow:none}
+html[data-theme="light"] .dr-badge.dr-breakout{background:rgba(5,150,105,0.12);color:#047857;border-color:rgba(5,150,105,0.38);box-shadow:none}
+html[data-theme="light"] .dr-badge.dr-neutral{background:rgba(15,23,42,0.06);color:#334155;border-color:rgba(15,23,42,0.16);box-shadow:none}
 #gold-chart-workspace .gold-chart-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #gold-chart-workspace .gold-chart-controls label{display:inline;margin:0;color:var(--amy-text,#fff);font-size:1rem;min-width:0}
 #gold-chart-workspace .gold-chart-controls :is(button,select){display:inline-block;width:auto;min-height:42px!important;padding:8px 14px!important;color:var(--amy-text,#fff)!important;background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:12px!important;backdrop-filter:blur(10px);font-weight:700;cursor:pointer}

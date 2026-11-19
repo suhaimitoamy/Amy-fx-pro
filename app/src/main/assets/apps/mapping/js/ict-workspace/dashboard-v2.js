@@ -21,11 +21,14 @@
   let activeSellSession = null;
   let activeBuySession = null;
 
-  /* ── Tab Switch BUY / SELL & Latest Plan Cache (untuk Tombol Hitung Lot) ── */
+  /* ── Tab Switch BUY / SELL & Latest Plan Cache (untuk Hitung Lot, Alarm Entry, Chart Sync) ── */
   let activePoiTab = 'BUY';
   let userLockedTab = false;
   let latestBuyPlan = null;
   let latestSellPlan = null;
+  let latestBuyOverlay = null;
+  let latestSellOverlay = null;
+  let lastPublishedPlanSig = '';
 
   /* ── Jam WITA & Deteksi Sesi Trading Gold ── */
   function getWITA() {
@@ -76,6 +79,119 @@
     setInterval(updateSessionPill, 60000);
   }
 
+  /* ── Single Source of Truth Sync: POI Scalper Pro -> Chart Gold & Hero Entry Distance ── */
+  function publishActiveScalperPlan() {
+    const preferred = activePoiTab === 'SELL'
+      ? (latestSellOverlay || latestBuyOverlay)
+      : (latestBuyOverlay || latestSellOverlay);
+    window.amyfxScalperPlan = preferred || null;
+    const sig = preferred
+      ? `${preferred.side}:${preferred.area?.low}:${preferred.area?.high}:${preferred.tp1}:${preferred.tp2}:${preferred.sl}`
+      : 'NONE';
+    if (sig !== lastPublishedPlanSig) {
+      lastPublishedPlanSig = sig;
+      window.dispatchEvent(new CustomEvent('amyfx:scalper-plan-updated', { detail: preferred || null }));
+    }
+    updateEntryDistanceTelemetry(Number(window.amyfxCurrentPrice) || 0);
+  }
+
+  function updateEntryDistanceTelemetry(livePrice) {
+    const el = $('hero-entry-dist-val');
+    if (!el) return;
+    const plan = window.amyfxScalperPlan;
+    if (!plan || !plan.area || !Number.isFinite(plan.area.low) || !Number.isFinite(plan.area.high)) {
+      el.textContent = 'Menunggu POI Valid';
+      el.className = 'hero-ict-val';
+      return;
+    }
+    const p = Number(livePrice) || Number(window.amyfxCurrentPrice) || 0;
+    const isSell = plan.side === 'SELL';
+    const sideLabel = isSell ? 'Supply Sell' : 'Demand Buy';
+    const kindLabel = plan.kind || 'OB';
+    if (p <= 0) {
+      el.textContent = `${kindLabel} ${sideLabel} $${fmt(plan.area.low)}–$${fmt(plan.area.high)}`;
+      el.className = 'hero-ict-val is-gold';
+      return;
+    }
+    if (p >= plan.area.low - 0.15 && p <= plan.area.high + 0.15) {
+      el.textContent = `Di Dalam Zona ${kindLabel} ${plan.side}!`;
+      el.className = 'hero-ict-val is-gold';
+      return;
+    }
+    const edge = isSell ? plan.area.low : plan.area.high;
+    const diff = edge - p;
+    const sign = diff >= 0 ? '+' : '-';
+    const absD = Math.abs(diff);
+    el.textContent = `${sign}$${absD.toFixed(2)} ke ${kindLabel} ${plan.side} ($${fmt(edge)})`;
+    el.className = `hero-ict-val ${absD <= 3.5 ? 'is-gold' : (isSell ? 'is-bear' : 'is-bull')}`;
+  }
+
+  /* ── 1-Klik Alarm Entry Helpers ── */
+  function findActiveAlarmNear(targetPrice) {
+    if (!Number.isFinite(targetPrice) || typeof window.AmyPriceAlertManager?.getAlerts !== 'function') return null;
+    const alerts = window.AmyPriceAlertManager.getAlerts();
+    return alerts.find(a => a.status === 'ACTIVE' && Math.abs(Number(a.targetPrice) - targetPrice) <= 0.25) || null;
+  }
+
+  function syncEntryAlarmButtons() {
+    const configs = [
+      { btnId: 'btn-alarm-buy', lblId: 'btn-alarm-buy-label', plan: latestBuyPlan, overlay: latestBuyOverlay, side: 'BUY' },
+      { btnId: 'btn-alarm-sell', lblId: 'btn-alarm-sell-label', plan: latestSellPlan, overlay: latestSellOverlay, side: 'SELL' }
+    ];
+    for (const c of configs) {
+      const btn = $(c.btnId);
+      const lbl = $(c.lblId);
+      if (!btn || !lbl) continue;
+      const target = c.overlay?.alarmPrice ?? c.plan?.entry;
+      const existing = Number.isFinite(target) ? findActiveAlarmNear(target) : null;
+      if (existing) {
+        btn.classList.add('is-armed');
+        lbl.textContent = `Alarm $${Number(existing.targetPrice).toFixed(2)}`;
+        btn.title = 'Alarm sudah aktif — klik untuk kelola daftar alarm';
+      } else {
+        btn.classList.remove('is-armed');
+        lbl.textContent = 'Alarm Entry';
+        btn.title = Number.isFinite(target)
+          ? `Pasang alarm 1-klik di $${target.toFixed(2)} (batas Entry ${c.side})`
+          : `Buka pengaturan alarm harga ${c.side}`;
+      }
+    }
+  }
+
+  function triggerQuickEntryAlarm(side) {
+    const mgr = window.AmyPriceAlertManager;
+    if (!mgr) return;
+    const isSell = side === 'SELL';
+    const ov = isSell ? latestSellOverlay : latestBuyOverlay;
+    const plan = isSell ? latestSellPlan : latestBuyPlan;
+    const target = ov?.alarmPrice ?? plan?.entry;
+
+    if (!Number.isFinite(target) || target <= 0) {
+      mgr.openAddAlertDialog?.(undefined, { note: `Entry ${side} XAU/USD` });
+      return;
+    }
+
+    const existing = findActiveAlarmNear(target);
+    if (existing) {
+      mgr.openAddAlertDialog?.(target, { tab: 'list' });
+      return;
+    }
+
+    try {
+      mgr.unlockAlertAudio?.();
+      const note = `Entry ${ov?.kind || 'POI'} ${side} · CE $${fmt(ov?.area?.ce || target)}`;
+      const created = mgr.addAlert(target, { direction: 'AUTO', note });
+      syncEntryAlarmButtons();
+      mgr.showInAppBanner?.({
+        targetPrice: created.targetPrice,
+        direction: created.direction,
+        note: `Alarm 1-Klik Terpasang · ${note}`
+      }, Number(window.amyfxCurrentPrice) || created.targetPrice);
+    } catch (_) {
+      mgr.openAddAlertDialog?.(target, { note: `Entry ${side} XAU/USD` });
+    }
+  }
+
   /* ── Tab Switcher BUY / SELL ── */
   function setActivePoiTab(side, isManual) {
     const target = String(side).toUpperCase() === 'SELL' ? 'SELL' : 'BUY';
@@ -98,6 +214,8 @@
     }
     if (buyPanel) buyPanel.hidden = !isBuy;
     if (sellPanel) sellPanel.hidden = isBuy;
+
+    if (isManual) publishActiveScalperPlan();
   }
 
   function bindCockpitInteractions() {
@@ -121,6 +239,12 @@
 
     const btnLotSell = $('btn-lot-sell');
     if (btnLotSell) btnLotSell.addEventListener('click', () => openLotFor(latestSellPlan));
+
+    const btnAlarmBuy = $('btn-alarm-buy');
+    if (btnAlarmBuy) btnAlarmBuy.addEventListener('click', () => triggerQuickEntryAlarm('BUY'));
+
+    const btnAlarmSell = $('btn-alarm-sell');
+    if (btnAlarmSell) btnAlarmSell.addEventListener('click', () => triggerQuickEntryAlarm('SELL'));
   }
 
   /* ── Live price sync ── */
@@ -130,6 +254,88 @@
     if (el) el.textContent = '$' + price.toFixed(2);
     const sp = $('scenario-price');
     if (sp) sp.textContent = '$' + price.toFixed(2);
+    updateEntryDistanceTelemetry(price);
+  }
+
+  /* ── Range Harian vs ADR (Real Calculation from H1/M15 Candles & PDH/PDL) ── */
+  function computeDailyAdrTelemetry(ctx, livePrice) {
+    const amy = ctx?.amy || ctx;
+    const ng = window.amyfxLastIndicators || null;
+    const h1Candles = Array.isArray(amy?.chartCandles?.H1) ? amy.chartCandles.H1 : [];
+    const m15Candles = Array.isArray(amy?.chartCandles?.M15) ? amy.chartCandles.M15 : [];
+    const sourceCandles = h1Candles.length >= 24 ? h1Candles : m15Candles;
+
+    // Gold trading day key: rollover 17:00 America/New_York (add +7h to NY time so 17:00 rolls into next date)
+    const dayKeyOf = sec => {
+      const shiftedMs = (sec * 1000) + (7 * 3600 * 1000);
+      try {
+        return new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'America/New_York',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).format(new Date(shiftedMs));
+      } catch (_) {
+        return new Date(shiftedMs).toISOString().slice(0, 10);
+      }
+    };
+
+    const buckets = new Map();
+    for (const c of sourceCandles) {
+      const t = Number(c.open_time ?? c.time);
+      const hi = Number(c.high);
+      const lo = Number(c.low);
+      if (!Number.isFinite(t) || !Number.isFinite(hi) || !Number.isFinite(lo) || hi <= 0 || lo <= 0) continue;
+      const key = dayKeyOf(t);
+      const prev = buckets.get(key);
+      if (!prev) buckets.set(key, { key, high: hi, low: lo, count: 1 });
+      else {
+        if (hi > prev.high) prev.high = hi;
+        if (lo < prev.low) prev.low = lo;
+        prev.count += 1;
+      }
+    }
+
+    const days = [...buckets.values()].sort((a, b) => a.key.localeCompare(b.key));
+    const today = days.length ? days[days.length - 1] : null;
+    if (today && Number.isFinite(livePrice) && livePrice > 0) {
+      if (livePrice > today.high) today.high = livePrice;
+      if (livePrice < today.low) today.low = livePrice;
+    }
+
+    const todayRange = today ? (today.high - today.low) : NaN;
+    const priorComplete = days.slice(0, -1).filter(d => (d.high - d.low) > 2);
+    let refAdr = NaN;
+    let refLabel = '';
+
+    if (priorComplete.length >= 2) {
+      const recent = priorComplete.slice(-5);
+      refAdr = recent.reduce((s, d) => s + (d.high - d.low), 0) / recent.length;
+      refLabel = `ADR ${recent.length}h`;
+    } else {
+      const pdh = num(amy?.levels?.pdh || ng?.keyLevels?.pdh);
+      const pdl = num(amy?.levels?.pdl || ng?.keyLevels?.pdl);
+      if (Number.isFinite(pdh) && Number.isFinite(pdl) && pdh > pdl) {
+        refAdr = pdh - pdl;
+        refLabel = 'PD';
+      }
+    }
+
+    if (!Number.isFinite(todayRange) || todayRange <= 0) {
+      return { text: 'Data harian belum lengkap', tone: '' };
+    }
+    if (!Number.isFinite(refAdr) || refAdr <= 0) {
+      return { text: `Range $${todayRange.toFixed(1)}`, tone: '' };
+    }
+
+    const pct = Math.round((todayRange / refAdr) * 100);
+    if (pct >= 120) {
+      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Ekstrem Jenuh)`, tone: 'is-bear' };
+    }
+    if (pct >= 90) {
+      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Waspada Jenuh)`, tone: 'is-gold' };
+    }
+    return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Napas Sehat)`, tone: 'is-bull' };
   }
 
   /* ── Single Source of Truth: Dealing Range & EQ (Hero · Gauge · POI · Chart Badge) ── */
@@ -180,8 +386,21 @@
     const noTradeLow = Number.isFinite(span) ? rLow + span * 0.475 : (Number.isFinite(eq) ? eq - 2.0 : NaN);
     const noTradeHigh = Number.isFinite(span) ? rLow + span * 0.525 : (Number.isFinite(eq) ? eq + 2.0 : NaN);
 
+    let m15Dir = 0;
+    const m15Struct = String(ctx?.m15?.structure || '').toUpperCase();
+    const m15Control = String(ctx?.m15?.control || '').toUpperCase();
+    if (m15Struct.includes('BEAR') || m15Control.includes('SELLER') || dashboard?.biasDir === -1) m15Dir = -1;
+    else if (m15Struct.includes('BULL') || m15Control.includes('BUYER') || dashboard?.biasDir === 1) m15Dir = 1;
+    const lastEv = ng?.structure?.lastEvent || null;
+    const lastEvBear = Boolean(lastEv && (String(lastEv.direction || lastEv.side || '').toUpperCase().includes('BEAR') || lastEv.dir === -1));
+    const lastEvBull = Boolean(lastEv && (String(lastEv.direction || lastEv.side || '').toUpperCase().includes('BULL') || lastEv.dir === 1));
+    const sslDiff = isSslSwept ? (rLow - livePrice) : 0;
+    const bslDiff = isBslSwept ? (livePrice - rHigh) : 0;
+    const isBearBreakdown = isSslSwept && (m15Dir === -1 && (sslDiff > 3.0 || lastEvBear));
+    const isBullBreakout = isBslSwept && (m15Dir === 1 && (bslDiff > 3.0 || lastEvBull));
+
     if (Number.isFinite(rHigh) && Number.isFinite(rLow) && rHigh > rLow) {
-      const location = isDiscount ? 'DISCOUNT' : (isPremium ? 'PREMIUM' : 'EQUILIBRIUM');
+      const location = isBearBreakdown ? 'BREAKDOWN' : (isBullBreakout ? 'BREAKOUT' : (isDiscount ? 'DISCOUNT' : (isPremium ? 'PREMIUM' : 'EQUILIBRIUM')));
       window.amyfxLastDealingRange = {
         rangeHigh: rHigh,
         rangeLow: rLow,
@@ -189,19 +408,32 @@
         low: rLow,
         eq,
         equilibrium: eq,
-        location
+        location,
+        pct,
+        rawPct,
+        m15Dir,
+        lastEvBear,
+        lastEvBull,
+        isBearBreakdown,
+        isBullBreakout
       };
 
       const badgeEl = $('chart-dealing-range-badge');
       if (badgeEl && livePrice > 0) {
-        if (isDiscount) {
-          badgeEl.textContent = 'ZONA DISKON (<47.5%) 🟢';
+        if (isBearBreakdown) {
+          badgeEl.textContent = `BREAKDOWN · ${pct}%`;
+          badgeEl.className = 'dr-badge dr-breakdown';
+        } else if (isBullBreakout) {
+          badgeEl.textContent = `BREAKOUT · ${pct}%`;
+          badgeEl.className = 'dr-badge dr-breakout';
+        } else if (isDiscount) {
+          badgeEl.textContent = `ZONA DISKON · ${pct}%`;
           badgeEl.className = 'dr-badge dr-discount';
         } else if (isPremium) {
-          badgeEl.textContent = 'ZONA PREMIUM (>52.5%) 🔴';
+          badgeEl.textContent = `ZONA PREMIUM · ${pct}%`;
           badgeEl.className = 'dr-badge dr-premium';
         } else {
-          badgeEl.textContent = 'EQUILIBRIUM 50% · NO-TRADE ⚪';
+          badgeEl.textContent = `EQUILIBRIUM · ${pct}%`;
           badgeEl.className = 'dr-badge dr-neutral';
         }
       }
@@ -214,8 +446,13 @@
       span,
       rawPct,
       pct,
+      m15Dir,
+      sslDiff,
+      bslDiff,
       isSslSwept,
       isBslSwept,
+      isBearBreakdown,
+      isBullBreakout,
       isDiscount,
       isPremium,
       isEq,
@@ -474,72 +711,52 @@
       dolEl.className = `hero-ict-val ${telemetry.dolTone}`.trim();
     }
 
-    // Warning Kontekstual Tunggal
-    const warnEl = $('hero-warning');
-    if (warnEl) {
-      const isPremiumBuy = m15Dir === 1 && isPremiumZone;
-      const isDiscountSell = m15Dir === -1 && isDiscountZone;
-
-      if (h1Dir === 1 && m15Dir === -1) {
-        const dStr = pipsToDemand ? ` (${pipsToDemand} pips lagi)` : '';
-        warnEl.textContent = `Waspada: Koreksi turun M15 mendekati Demand ${demandLabel}${dStr}. Hindari mengejar Sell di zona diskon; tunggu konfirmasi pantulan Buy.`;
-        warnEl.hidden = false;
-      } else if (h1Dir === -1 && m15Dir === 1) {
-        const sStr = pipsToSupply ? ` (${pipsToSupply} pips lagi)` : '';
-        warnEl.textContent = `Waspada: Pullback naik sementara di tren Bear HTF mendekati Supply ${supplyLabel}${sStr}. Amati potensi rejection Sell.`;
-        warnEl.hidden = false;
-      } else if (isPremiumBuy) {
-        warnEl.textContent = `Waspada: Harga berada di Zona Premium (>50% EQ). Hindari FOMO Buy di pucuk; tunggu retest Demand ${demandLabel} atau rejection Supply ${supplyLabel}.`;
-        warnEl.hidden = false;
-      } else if (isDiscountSell) {
-        warnEl.textContent = `Waspada: Harga berada di Zona Diskon (<50% EQ). Hindari FOMO Sell di dasar; tunggu retest Supply ${supplyLabel} atau pantulan Demand ${demandLabel}.`;
-        warnEl.hidden = false;
-      } else {
-        warnEl.hidden = true;
-      }
+    // Telemetri ADR / Range Harian (Real-time dari Candle H1/M15 & PDH/PDL)
+    const adr = computeDailyAdrTelemetry(ctx, livePrice);
+    const adrEl = $('hero-adr-val');
+    if (adrEl) {
+      adrEl.textContent = adr.text;
+      adrEl.className = `hero-ict-val ${adr.tone}`.trim();
     }
-
-    // Narasi 1 Baris Objektif
-    const conclusionEl = $('hero-conclusion');
-    if (conclusionEl) {
-      if (h1Dir === -1 && m15Dir === 1) {
-        conclusionEl.innerHTML = `Tren HTF <strong>Bearish</strong> dengan pullback lokal <strong>M15 naik</strong> ke Supply <strong>${supplyLabel}</strong>${pipsToSupply ? ` (${pipsToSupply} pips di atas harga)` : ''}. Pantau reaksi premium sebelum lanjut turun.`;
-      } else if (h1Dir === 1 && m15Dir === -1) {
-        conclusionEl.innerHTML = `Tren HTF <strong>Bullish</strong> dengan koreksi lokal <strong>M15 turun</strong> menuju Demand/SSL <strong>${demandLabel}</strong>${pipsToDemand ? ` (${pipsToDemand} pips di bawah harga)` : ''}. Tunggu konfirmasi M5 sebelum Buy.`;
-      } else if (m15Dir === 1 && isPremiumZone) {
-        conclusionEl.innerHTML = `Momentum M15 dikuasai <strong>Buyer</strong>, namun posisi sudah di <strong>Zona Premium</strong>. Tunggu retracement ke Demand <strong>${demandLabel}</strong> atau amati rejection di Supply <strong>${supplyLabel}</strong>.`;
-      } else if (m15Dir === 1) {
-        conclusionEl.innerHTML = `Momentum M15 dikuasai <strong>Buyer</strong>. Struktur menjaga Higher Low mengarah ke likuiditas BSL <strong>${supplyLabel}</strong>.`;
-      } else if (m15Dir === -1 && Number.isFinite(rLow) && livePrice > 0 && livePrice < rLow) {
-        conclusionEl.innerHTML = `Struktur M15 didominasi <strong>Seller</strong> dan harga baru menyapu Range Low ($${fmt(rLow)}). Waspadai potensi rebound cepat (Judas Swing) di sekitar SSL <strong>${demandLabel}</strong>.`;
-      } else if (m15Dir === -1) {
-        conclusionEl.innerHTML = `Struktur M15 didominasi <strong>Seller</strong> menuju SSL <strong>${demandLabel}</strong>. Prioritaskan setup Sell on Rally di Supply Premium <strong>${supplyLabel}</strong>.`;
-      } else {
-        conclusionEl.innerHTML = 'Struktur belum searah — tunggu konfirmasi BOS/MSS dan validasi zona POI sebelum eksekusi.';
-      }
-    }
+    updateEntryDistanceTelemetry(livePrice);
   }
 
-  /* ── 2. Dealing Range Horizontal Gauge (Single Source of Truth) ── */
+  /* ── 2. Dealing Range Horizontal Gauge (Single Source of Truth + Anti-Falling Knife) ── */
   function updateDealingRange(ctx) {
     if (!ctx) return;
     const amy = ctx.amy || ctx;
     const dashboard = amy?.dashboard;
+    const ng = window.amyfxLastIndicators || null;
     const livePrice = Number(window.amyfxCurrentPrice) || Number(ctx.price) || Number(dashboard?.candle?.close) || 0;
     const drState = resolveUnifiedDealingRange(ctx, livePrice);
 
-    const { rHigh, rLow, eq: eqVal, pct, rawPct, isSslSwept, isBslSwept } = drState;
+    const {
+      rHigh,
+      rLow,
+      eq: eqVal,
+      pct,
+      rawPct,
+      m15Dir,
+      sslDiff,
+      bslDiff,
+      isSslSwept,
+      isBslSwept,
+      isBearBreakdown,
+      isBullBreakout,
+      noTradeLow,
+      noTradeHigh
+    } = drState;
     if (!Number.isFinite(rHigh) || !Number.isFinite(rLow) || rHigh <= rLow) return;
 
     const pctTag = $('dr-pct-tag');
     if (pctTag) pctTag.textContent = `${pct}%`;
 
     const bslEl = $('dr-bsl-val');
-    if (bslEl) bslEl.textContent = isBslSwept ? `$${fmt(rHigh)} · Swept` : '$' + fmt(rHigh);
+    if (bslEl) bslEl.textContent = isBslSwept ? `$${fmt(rHigh)} · ${isBullBreakout ? 'Break' : 'Swept'}` : '$' + fmt(rHigh);
     const eqEl = $('dr-eq-val');
     if (eqEl) eqEl.textContent = Number.isFinite(eqVal) ? `$${fmt(eqVal)}` : '—';
     const sslEl = $('dr-ssl-val');
-    if (sslEl) sslEl.textContent = isSslSwept ? `$${fmt(rLow)} · Swept` : '$' + fmt(rLow);
+    if (sslEl) sslEl.textContent = isSslSwept ? `$${fmt(rLow)} · ${isBearBreakdown ? 'Break' : 'Swept'}` : '$' + fmt(rLow);
 
     // Horizontal gauge fill & dot
     const fill = $('dr-bar-fill');
@@ -548,8 +765,8 @@
     if (dot)  dot.style.left = `${pct}%`;
 
     // Range Mayor (PDH / PDL — baca keyLevels NextGen yang akurat)
-    const pdh = Number(amy?.levels?.pdh || window.amyfxLastIndicators?.keyLevels?.pdh || ctx.h1?.swingHigh);
-    const pdl = Number(amy?.levels?.pdl || window.amyfxLastIndicators?.keyLevels?.pdl || ctx.h1?.swingLow);
+    const pdh = Number(amy?.levels?.pdh || ng?.keyLevels?.pdh || ctx.h1?.swingHigh);
+    const pdl = Number(amy?.levels?.pdl || ng?.keyLevels?.pdl || ctx.h1?.swingLow);
     const majorRangeEl = $('dr-major-range');
     const majorEqEl = $('dr-major-eq');
     if (pdh > 0 && pdl > 0) {
@@ -560,18 +777,22 @@
       if (majorEqEl) majorEqEl.textContent = '—';
     }
 
-    // Status badge ringkas (batas eksak 47.5% – 52.5% selaras dengan Chart Badge)
+    // Status badge ringkas (bedakan Sweep dangkal vs Breakdown/Breakout valid!)
     const badge = $('dr-status-badge');
     if (badge) {
       let cls = 'zone-eq', text = '';
-      if (isSslSwept) {
+      if (isBearBreakdown) {
+        cls = 'zone-breakdown';
+        text = `Breakdown Bearish (${pct}%) · Range Low $${fmt(rLow)} ditembus (-$${sslDiff.toFixed(2)}). Tunggu pullback Supply — hindari Buy tanpa MSS M5.`;
+      } else if (isBullBreakout) {
+        cls = 'zone-breakout';
+        text = `Breakout Bullish (${pct}%) · Range High $${fmt(rHigh)} ditembus (+$${bslDiff.toFixed(2)}). Tunggu koreksi Demand — hindari Sell tanpa MSS M5.`;
+      } else if (isSslSwept) {
         cls = 'zone-discount';
-        const sweepDiff = (rLow - livePrice).toFixed(2);
-        text = `Extreme Discount (${pct}%) · SSL $${fmt(rLow)} tersapu (-$${sweepDiff}). Siaga konfirmasi pembalikan Buy.`;
+        text = `Extreme Discount (${pct}%) · SSL $${fmt(rLow)} tersapu (-$${sslDiff.toFixed(2)}). Amati reaksi rejection M5.`;
       } else if (isBslSwept) {
         cls = 'zone-premium';
-        const sweepDiff = (livePrice - rHigh).toFixed(2);
-        text = `Extreme Premium (${pct}%) · BSL $${fmt(rHigh)} tersapu (+$${sweepDiff}). Waspadai rejection Sell.`;
+        text = `Extreme Premium (${pct}%) · BSL $${fmt(rHigh)} tersapu (+$${bslDiff.toFixed(2)}). Amati reaksi rejection M5.`;
       } else if (rawPct > 75) {
         cls = 'zone-premium';
         text = `Extreme Premium (${pct}%) · Mendekati Range High $${fmt(rHigh)}. Prioritaskan konfirmasi Sell.`;
@@ -579,17 +800,33 @@
         cls = 'zone-premium';
         text = `Zona Premium (${pct}%) · Area ideal pencarian Supply / Sell, hindari FOMO Buy di pucuk.`;
       } else if (rawPct < 25) {
-        cls = 'zone-discount';
-        text = `Extreme Discount (${pct}%) · Mendekati Range Low $${fmt(rLow)}. Siaga konfirmasi pantulan Buy.`;
+        cls = m15Dir === -1 ? 'zone-breakdown' : 'zone-discount';
+        text = m15Dir === -1
+          ? `Extreme Discount (${pct}%) · Tren masih Bearish — tunggu pullback Supply, jangan kejar Sell di dasar.`
+          : `Extreme Discount (${pct}%) · Mendekati Range Low $${fmt(rLow)}. Siaga konfirmasi pantulan Buy.`;
       } else if (rawPct < 47.5) {
         cls = 'zone-discount';
-        text = `Zona Diskon (${pct}%) · Area ideal pencarian Demand / Buy, tunggu sweep atau validasi M5.`;
+        text = m15Dir === -1
+          ? `Zona Diskon (${pct}%) · Tren M15 Bearish — tunggu pullback ke area Supply/OTE sebelum Sell.`
+          : `Zona Diskon (${pct}%) · Area ideal pencarian Demand / Buy, tunggu sweep atau validasi M5.`;
       } else {
         cls = 'zone-eq';
         text = `Equilibrium (${pct}%) · Area tengah 50% adalah No-Trade Zone, tunggu harga keluar ke Premium/Diskon.`;
       }
       badge.className = `dr-status-badge ${cls}`;
       badge.textContent = text;
+    }
+
+    // No-Trade Zone EQ (dipindah dari Peta Skenario ke dalam Dealing Range)
+    const noTradeEl = $('no-trade-label');
+    if (noTradeEl && Number.isFinite(noTradeLow) && Number.isFinite(noTradeHigh)) {
+      const bLow  = noTradeLow.toFixed(2);
+      const bHigh = noTradeHigh.toFixed(2);
+      const inside = livePrice >= noTradeLow && livePrice <= noTradeHigh;
+      noTradeEl.classList.toggle('is-inside-eq', inside);
+      noTradeEl.textContent = inside
+        ? `No-Trade Zone Aktif ($${bLow} – $${bHigh} · EQ) · Hindari eksekusi impulsif di tengah range.`
+        : `No-Trade Zone EQ: $${bLow} – $${bHigh} (47.5%–52.5%) · Hindari entry di area tengah.`;
     }
   }
 
@@ -1183,7 +1420,7 @@
     }
     const isSellInPlay = isSellTesting || isSellReacting;
 
-    // Cache plan for Lot Calculator (SELL — include TP1 BEP & TP2 Runner)
+    // Cache plan for Lot Calculator, 1-Click Alarm & Chart Sync (SELL)
     const sellTpVal = tpCandSell?.v ?? activeSellSession?.tp;
     const sellSlVal = Number.isFinite(slLevelSellNum) ? slLevelSellNum : (Number.isFinite(activeSellSession?.sl) ? Number((activeSellSession.sl + 0.40).toFixed(2)) : NaN);
     latestSellPlan = primarySellZone && Number.isFinite(sellSlVal)
@@ -1192,6 +1429,23 @@
           sl: sellSlVal,
           tp1: Number.isFinite(sellTpVal) ? Number(sellTpVal.toFixed(2)) : Number((primarySellZone.ce - 8).toFixed(2)),
           tp2: tpCandSell2 ? Number(tpCandSell2.v.toFixed(2)) : undefined
+        }
+      : null;
+    latestSellOverlay = primarySellZone && !primarySellZone.breached
+      ? {
+          scalper: true,
+          side: 'SELL',
+          kind: primarySellZone.kind || 'OB',
+          label: primarySellZone.label || '-OB',
+          alarmPrice: Number(primarySellZone.low.toFixed(2)),
+          area: {
+            low: Number(primarySellZone.low.toFixed(2)),
+            high: Number(primarySellZone.high.toFixed(2)),
+            ce: Number(primarySellZone.ce.toFixed(2))
+          },
+          tp1: Number.isFinite(sellTpVal) ? Number(sellTpVal.toFixed(2)) : NaN,
+          tp2: tpCandSell2 ? Number(tpCandSell2.v.toFixed(2)) : NaN,
+          sl: sellSlVal
         }
       : null;
 
@@ -1404,7 +1658,7 @@
     }
     const isBuyInPlay = isBuyTesting || isBuyReacting;
 
-    // Cache plan for Lot Calculator (BUY — include TP1 BEP & TP2 Runner)
+    // Cache plan for Lot Calculator, 1-Click Alarm & Chart Sync (BUY)
     const buyTpVal = tpCandBuy?.v ?? activeBuySession?.tp;
     const buySlVal = Number.isFinite(slLevelBuyNum) ? slLevelBuyNum : (Number.isFinite(activeBuySession?.sl) ? Number((activeBuySession.sl - 0.40).toFixed(2)) : NaN);
     latestBuyPlan = primaryBuyZone && Number.isFinite(buySlVal)
@@ -1413,6 +1667,23 @@
           sl: buySlVal,
           tp1: Number.isFinite(buyTpVal) ? Number(buyTpVal.toFixed(2)) : Number((primaryBuyZone.ce + 8).toFixed(2)),
           tp2: tpCandBuy2 ? Number(tpCandBuy2.v.toFixed(2)) : undefined
+        }
+      : null;
+    latestBuyOverlay = primaryBuyZone && !primaryBuyZone.breached
+      ? {
+          scalper: true,
+          side: 'BUY',
+          kind: primaryBuyZone.kind || 'OB',
+          label: primaryBuyZone.label || '+OB',
+          alarmPrice: Number(primaryBuyZone.high.toFixed(2)),
+          area: {
+            low: Number(primaryBuyZone.low.toFixed(2)),
+            high: Number(primaryBuyZone.high.toFixed(2)),
+            ce: Number(primaryBuyZone.ce.toFixed(2))
+          },
+          tp1: Number.isFinite(buyTpVal) ? Number(buyTpVal.toFixed(2)) : NaN,
+          tp2: tpCandBuy2 ? Number(tpCandBuy2.v.toFixed(2)) : NaN,
+          sl: buySlVal
         }
       : null;
 
@@ -1668,15 +1939,9 @@
         : 'zona demand (menunggu validasi)';
     }
 
-    const noTradeEl = $('no-trade-label');
-    if (noTradeEl && Number.isFinite(noTradeLow) && Number.isFinite(noTradeHigh)) {
-      const bLow  = noTradeLow.toFixed(2);
-      const bHigh = noTradeHigh.toFixed(2);
-      const inside = livePrice >= noTradeLow && livePrice <= noTradeHigh;
-      noTradeEl.textContent = inside
-        ? `NO-TRADE ZONE AKTIF ($${bLow} – $${bHigh} · 47.5%–52.5% EQ) · Harga berada tepat di tengah EQ — hindari eksekusi impulsif.`
-        : `NO-TRADE ZONE EQ M15: $${bLow} – $${bHigh} (47.5%–52.5%) · Hindari entry bila harga kembali masuk area tengah ini.`;
-    }
+    // Sinkronkan Single Source of Truth POI ke Chart Gold, Hero Distance, dan Tombol Alarm 1-Klik
+    publishActiveScalperPlan();
+    syncEntryAlarmButtons();
   }
 
   /* ── Master Update ── */
@@ -1701,6 +1966,10 @@
     if (window.amyfxLastContext) updateAll(window.amyfxLastContext);
   });
 
+  window.addEventListener('amyfx:price-alerts-updated', () => {
+    syncEntryAlarmButtons();
+  });
+
   window.addEventListener('amyfx:twelvedata-price', event => {
     const p = Number(event?.detail?.price);
     if (Number.isFinite(p) && p > 0) {
@@ -1719,6 +1988,7 @@
     bindCockpitInteractions();
     setActivePoiTab(activePoiTab, false);
     startClock();
+    syncEntryAlarmButtons();
     if (window.amyfxLastContext) {
       updateAll(window.amyfxLastContext);
     }

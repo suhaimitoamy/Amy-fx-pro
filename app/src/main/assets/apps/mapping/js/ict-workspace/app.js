@@ -35,7 +35,7 @@ function saveChartLayers(next){
   }catch(_){}
 }
 
-let context=null,display=null,driverPlan=null;
+let context=null,display=null,driverPlan=null,scalperPlan=null;
 let chart=null,drawingTool=null,controller=null,generation=0,timer=null,countdownTimer=null,overlay=null,raw=null;
 let lastDrawnCandles=[];
 let chartLayers=loadChartLayers();
@@ -286,7 +286,7 @@ function draw(degraded=false){
     return;
   }
   lastDrawnCandles=result.candles;
-  const activePlan=driverPlan||context?.amy?.plan||overlay||result.plan;
+  const activePlan=driverPlan||scalperPlan||context?.amy?.plan||overlay||result.plan;
   const presentation={settings:display||loadDisplay(),amy:context?.amy,context,candles:result.candles,tf,layers:chartLayers};
   chart?.draw(result,activePlan,presentation);
   drawingTool?.setCandles?.(result.candles);
@@ -316,7 +316,7 @@ function draw(degraded=false){
       $('source').textContent=`${tf} · Candle ${timeStr} WITA · ${result.fresh?'Candle terkini':'Referensi lama / data terlambat'}`;
     }
   }
-  if($('chart-note'))$('chart-note').textContent=(driverPlan||context?.amy?.plan)?'Level terpasang: Entry, SL, TP1, TP2 (Entry Assistant V3)':overlay?'Level terpasang: batas area, 50% CE, dan target likuiditas.':result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
+  if($('chart-note'))$('chart-note').textContent=driverPlan?'Level terpasang: Entry, SL, TP1, TP2 (Entry Assistant V3)':scalperPlan?`Level tersinkron (${scalperPlan.side}): POI Entry, 50% CE, TP1 BEP & Runner`:overlay?'Level terpasang: batas area, 50% CE, dan target likuiditas.':result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
   const coverage=$('ict-coverage');
   if(coverage){
     const k=context?.amy?.levels,p=context?.amy?.pivots;
@@ -396,11 +396,12 @@ function startBrowserLivePriceStream(){
 startBrowserLivePriceStream();
 window.addEventListener('amyfx:driver-plan',event=>{driverPlan=event.detail||null;draw();});
 window.addEventListener('amyfx:assistant-plan',event=>{driverPlan=event.detail||null;draw();});
+window.addEventListener('amyfx:scalper-plan-updated',event=>{scalperPlan=event.detail||null;if(lastDrawnCandles.length)draw();});
 window.addEventListener('amyfx:driver-setups',event=>{if(driverPlan){const s=(event.detail||[]).find(s=>s.id===driverPlan.id);driverPlan=s?{id:s.id,entry:s.entry,sl:s.stopLoss,tp:s.target,label:s.driverName}:null;draw();}});
 window.addEventListener('amyfx:market-context',event=>{context=event.detail;window.amyfxLastContext=context;if(!context)driverPlan=null;renderAmy(context?.amy,display,context?.news,context);const scenario=context?.primary;
   overlay=scenario?.area?{area:scenario.area,invalidation:scenario.invalidation,target:scenario.target}:null;
-  const currentDr = context?.m15?.dealingRange || context?.amy?.levels?.dealingRange || context?.dealingRange;
-  const currentPrice = parseFloat($('chart-price')?.textContent) || 0;
+  const currentDr = window.amyfxLastDealingRange || context?.m15?.dealingRange || context?.amy?.levels?.dealingRange || context?.dealingRange;
+  const currentPrice = Number(window.amyfxCurrentPrice) || parseFloat($('chart-price')?.textContent) || 0;
   if($('chart-dealing-range-badge') && currentPrice > 0){
     updateDealingRangeBadge($('chart-dealing-range-badge'), currentPrice, currentDr);
   }

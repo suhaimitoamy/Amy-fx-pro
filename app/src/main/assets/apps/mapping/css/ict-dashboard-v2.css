@@ -434,7 +434,19 @@ body.amyfx-module--ict main article.hero-context-card::before {
   border: 1px solid var(--ck-border-subtle);
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+/* Scalper Telemetry Strip (Jarak ke Entry · Range Harian ADR) */
+.hero-scalper-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--ck-border-subtle);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: auto;
 }
 
 .hero-ict-metric {
@@ -466,42 +478,49 @@ body.amyfx-module--ict main article.hero-context-card::before {
 .hero-ict-val.is-bear { color: var(--ck-sell-text); }
 .hero-ict-val.is-gold { color: var(--ck-gold); }
 
-/* Warning Kontekstual Tunggal */
-.hero-warning-box {
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--ck-warn-text);
-  background: var(--ck-warn-bg);
-  border: 1px solid var(--ck-warn-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-warn);
-  border-radius: 10px;
-  padding: 9px 12px 9px 14px;
-  margin-bottom: 10px;
-}
-.hero-warning-box[hidden] { display: none; }
-
-/* Narasi 1 Baris */
-.hero-conclusion {
-  font-size: 12px;
-  color: var(--ck-muted);
-  line-height: 1.55;
-  margin: 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--ck-border-subtle);
-}
-.hero-conclusion strong {
-  color: var(--ck-text);
-  font-weight: 700;
-}
-
 /* ============================================================
-   CARD 3: SPLIT ROW (DEALING RANGE + PETA SKENARIO)
+   ROW 2: HERO + DEALING RANGE BALANCED SPLIT
    ============================================================ */
-.cockpit-split-row {
+.cockpit-hero-split {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   gap: 14px;
   width: 100%;
+  align-items: stretch;
+}
+.cockpit-hero-split > article.cockpit-card {
+  display: flex;
+  flex-direction: column;
+}
+.dr-card .dr-notrade-row {
+  margin-top: 8px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ck-muted);
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.dr-card .dr-notrade-row.is-inside-eq {
+  color: var(--ck-warn-text);
+  background: var(--ck-warn-bg);
+  border-color: var(--ck-warn-border);
+}
+.dr-card .dr-major-row {
+  margin-top: auto;
+}
+.dr-status-badge.zone-breakdown {
+  background: var(--ck-sell-bg);
+  border-color: var(--ck-sell-border);
+  color: var(--ck-sell-text);
+}
+.dr-status-badge.zone-breakout {
+  background: var(--ck-buy-bg);
+  border-color: var(--ck-buy-border);
+  color: var(--ck-buy-text);
 }
 
 /* Dealing Range Horizontal Gauge */
@@ -846,6 +865,41 @@ body.amyfx-module--ict .poi-tab-btn--sell.is-active {
   color: var(--ck-buy-text) !important;
 }
 
+.poi-panel-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+body.amyfx-module--ict .cockpit-alarm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 11px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ck-text-secondary);
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border);
+  cursor: pointer;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+body.amyfx-module--ict .cockpit-alarm-btn:hover {
+  border-color: var(--ck-gold-border);
+  color: var(--ck-gold);
+  background: var(--ck-gold-bg);
+}
+body.amyfx-module--ict .cockpit-alarm-btn.is-armed {
+  color: var(--ck-buy-text);
+  background: var(--ck-buy-bg);
+  border-color: var(--ck-buy-border);
+}
+
 body.amyfx-module--ict .cockpit-lot-btn {
   display: inline-flex;
   align-items: center;
@@ -1172,39 +1226,34 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
   color: var(--ck-text);
 }
 
-/* ============================================================
-   LAST UPDATE FOOTER BAR
-   ============================================================ */
-.dashboard-update-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
-  background: var(--ck-surface);
-  border: 1px solid var(--ck-border);
-  border-radius: 14px;
-  font-size: 11.5px;
-  color: var(--ck-muted);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  font-variant-numeric: tabular-nums;
+/* Collapsible Detail Table & SOP Accordions */
+.poi-details-accordion {
+  margin-bottom: 8px;
+}
+.poi-details-summary {
+  color: var(--ck-text-secondary) !important;
+  font-weight: 700;
+}
+.poi-table-wrap--nested {
+  margin-bottom: 0;
+  border: none;
+  border-top: 1px solid var(--ck-border-subtle);
+  border-radius: 0;
+  background: transparent;
 }
 
-body.amyfx-module--ict .dashboard-update-bar button {
-  display: inline-flex;
+/* ============================================================
+   MINIMAL SYNC TIMESTAMP FOOTER
+   ============================================================ */
+.dashboard-footer-meta {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 5px 12px;
-  border-radius: 9px;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--ck-gold);
-  background: var(--ck-gold-bg);
-  border: 1px solid var(--ck-gold-border);
-  cursor: pointer;
-  white-space: nowrap;
+  justify-content: center;
+  padding: 4px 8px 8px;
+  font-size: 11px;
+  color: var(--ck-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 /* Floating FAB Clearance */
@@ -1218,8 +1267,8 @@ body.amyfx-module--ict .dashboard-update-bar button {
 /* ============================================================
    RESPONSIVE BREAKPOINTS (MOBILE & TABLET)
    ============================================================ */
-@media (max-width: 820px) {
-  .cockpit-split-row {
+@media (max-width: 900px) {
+  .cockpit-hero-split {
     grid-template-columns: 1fr;
   }
 }
@@ -1271,8 +1320,9 @@ body.amyfx-module--ict .dashboard-update-bar button {
     font-size: 10.5px;
     line-height: 1.32;
   }
-  /* Telemetry strip: stack cleanly on narrow phones if needed, keep 3-col compact */
-  .hero-ict-strip {
+  /* Telemetry strip: stack cleanly on narrow phones */
+  .hero-ict-strip,
+  .hero-scalper-strip {
     grid-template-columns: 1fr;
   }
   .hero-ict-metric {

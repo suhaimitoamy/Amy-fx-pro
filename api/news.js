@@ -120,15 +120,81 @@ async function fetchTelegramHtml(retries = 2) {
   throw lastError || new Error('Telegram fetch failed');
 }
 
+const translationCache = new Map();
+let translateBackoffUntil = 0;
+
+function decodeHtmlEntities(str) {
+  return String(str || '')
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+      const code = Number.parseInt(hex, 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
+    })
+    .replace(/&#(\d+);/g, (_, dec) => {
+      const code = Number.parseInt(dec, 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
+    })
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
+    .replace(/&nbsp;/gi, ' ');
+}
+
+function sanitizeNewsText(raw) {
+  let out = decodeHtmlEntities(raw)
+    .replace(/\r\n?/g, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\u200b|\u200c|\u200d|\ufeff/g, '');
+
+  // Strip Telegram scrape footers, handles, promo lines, divider rules, and reaction counts
+  out = out
+    .replace(/https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/\S+/gi, '')
+    .replace(/Please open Telegram to view this post/gi, '')
+    .replace(/VIEW IN TELEGRAM/gi, '')
+    .replace(/Buka Telegram untuk melihat postingan ini/gi, '')
+    .replace(/LIHAT DI TELEGRAM/gi, '')
+    .replace(/@?SM[\s_-]*News[\s_-]*(?:24h?|24[\s_-]*jam)?/gi, '')
+    .replace(/Follow\s+For\s+Real-Time\s+Company\s+Profit\s+Reports!?/gi, '')
+    .replace(/Ikuti\s+Untuk\s+Laporan\s+Laba\s+Perusahaan\s+Real-Time!?/gi, '')
+    .replace(/^\s*(?:Updates\s+From|Explore\s+Results\s+On|Info\s+Terbaru\s+dari|Telusuri\s+Hasil\s+Pada)\b.*$/gim, '')
+    .replace(/^\s*(?:sumber|source)\s*:\s*$/gim, '')
+    .replace(/[_\u2014\u2013\-]{5,}/g, '')
+    // Trailing reaction counters like 🔥1👏1👌1 or 👍2⚡1
+    .replace(/(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*\d+\s*)+$/gmu, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return out;
+}
+
 async function translateToId(text) {
+  const clean = sanitizeNewsText(text);
+  if (!clean) return '';
+  if (translationCache.has(clean)) return translationCache.get(clean);
+  if (Date.now() < translateBackoffUntil) return '';
   try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=id&dt=t&q=${encodeURIComponent(text)}`;
-    const response = await fetchWithTimeout(url, {}, 8000);
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=id&dt=t&q=${encodeURIComponent(clean)}`;
+    const response = await fetchWithTimeout(url, {}, 5000);
+    if (response.status === 429 || response.status === 403) {
+      translateBackoffUntil = Date.now() + 5 * 60 * 1000;
+      return '';
+    }
     if (!response.ok) return '';
     const data = await response.json();
     if (!Array.isArray(data?.[0])) return '';
-    const translated = data[0].map(chunk => chunk?.[0] || '').join('').trim();
-    return translated === text.trim() && data[2] !== 'id' ? '' : translated;
+    const translated = sanitizeNewsText(data[0].map(chunk => chunk?.[0] || '').join(''));
+    const result = translated === clean && data[2] !== 'id' ? '' : translated;
+    if (result) {
+      if (translationCache.size > 400) {
+        const firstKey = translationCache.keys().next().value;
+        translationCache.delete(firstKey);
+      }
+      translationCache.set(clean, result);
+    }
+    return result;
   } catch (_) {
     return '';
   }
@@ -138,18 +204,25 @@ const TRANSLATION_UNAVAILABLE = 'Terjemahan Bahasa Indonesia belum tersedia. Buk
 
 async function normalizeNewsTranslation(item) {
   if (!item || typeof item !== 'object') return item;
-  const text = typeof item.text === 'string' ? item.text : '';
-  const original = typeof item.textOriginal === 'string' && item.textOriginal.trim()
-    ? item.textOriginal : text;
-  if (!original.trim()) return { ...item, text: TRANSLATION_UNAVAILABLE };
+  const { getNewsImpact, isRelevantNews } = await loadNewsRelevance();
+  const rawText = sanitizeNewsText(typeof item.text === 'string' ? item.text : '');
+  const original = sanitizeNewsText(
+    typeof item.textOriginal === 'string' && item.textOriginal.trim()
+      ? item.textOriginal
+      : rawText
+  );
+  if (!original) return { ...item, text: TRANSLATION_UNAVAILABLE, relevant: false, impact: 'medium' };
 
-  const needsTranslation = !text.trim() || text.trim() === original.trim()
-    || text.trim() === TRANSLATION_UNAVAILABLE;
-  const translated = needsTranslation ? await translateToId(original) : text;
+  const needsTranslation = !rawText || rawText === original
+    || rawText === TRANSLATION_UNAVAILABLE;
+  const translated = needsTranslation ? await translateToId(original) : rawText;
+  const cleanTranslated = sanitizeNewsText(translated);
   return {
     ...item,
+    impact: item.impact || getNewsImpact(original),
+    relevant: typeof item.relevant === 'boolean' ? item.relevant : isRelevantNews(original),
     textOriginal: original,
-    text: translated || original || TRANSLATION_UNAVAILABLE
+    text: cleanTranslated || original || TRANSLATION_UNAVAILABLE
   };
 }
 
@@ -159,13 +232,14 @@ async function scrapeTelegram(limit, shouldTranslate = true) {
   const latest = sortNewestFirst(extractPosts(html)).slice(0, limit);
 
   return Promise.all(latest.map(async item => {
-    const translated = shouldTranslate ? await translateToId(item.text) : '';
+    const cleanOrig = sanitizeNewsText(item.text);
+    const translated = shouldTranslate ? await translateToId(cleanOrig) : '';
     return {
       ...item,
-      impact: getNewsImpact(item.text),
-      relevant: isRelevantNews(item.text),
-      textOriginal: item.text,
-      text: translated || item.text || TRANSLATION_UNAVAILABLE
+      impact: getNewsImpact(cleanOrig),
+      relevant: isRelevantNews(cleanOrig),
+      textOriginal: cleanOrig,
+      text: translated || cleanOrig || TRANSLATION_UNAVAILABLE
     };
   }));
 }
@@ -187,18 +261,7 @@ function extractPosts(html) {
     const textMatch = postChunk.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
     if (!textMatch) continue;
 
-    const rawText = textMatch[1]
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;|&#x27;/g, "'")
-      .replace(/&nbsp;/g, ' ')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-
+    const rawText = sanitizeNewsText(textMatch[1]);
     if (rawText.length < 20) continue;
 
     const timeMatch = postChunk.match(/datetime="([^"]+)"/i);
@@ -222,4 +285,4 @@ function sortNewestFirst(posts) {
   return [...posts].sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 }
 
-export { extractPosts, filterGold, sortNewestFirst };
+export { extractPosts, filterGold, sanitizeNewsText, sortNewestFirst };

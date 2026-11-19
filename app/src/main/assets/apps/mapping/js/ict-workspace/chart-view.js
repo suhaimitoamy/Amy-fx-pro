@@ -398,13 +398,38 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
       }
       series.setMarkers?.(signalMarkers.sort((a, b) => a.time - b.time));
 
-      // Plan / scenario price lines
+      // Plan / scenario price lines (Single Source of Truth: Scalper Pro POI / Driver / Overlay)
       lines.forEach(line => { try { series.removePriceLine(line); } catch (_) {} });
       lines = [];
-      const proximityLimit = result.tf === 'H1' ? 75 : 35;
+      const placedPlanPrices = [];
+      const proximityLimit = result.tf === 'H1' ? 75 : 42;
+      const klRef = indicators?.keyLevels || null;
       if (plan && activeLayers.poi !== false) {
-        const lastPrice = result.candles?.at(-1)?.close;
-        if (plan.area) {
+        const lastPrice = Number(window.amyfxCurrentPrice) || result.candles?.at(-1)?.close;
+        const structInvLevel = Number(indicators?.structure?.invalidation?.level);
+        const nearStructInv = v => activeLayers.structure && Number.isFinite(structInvLevel) && Math.abs(v - structInvLevel) <= 1.0;
+
+        if (plan.scalper && plan.area) {
+          const tp1NearPdl = activeLayers.pdhl && Number.isFinite(klRef?.pdl) && Number.isFinite(plan.tp1) && Math.abs(plan.tp1 - klRef.pdl) <= 0.35;
+          const tp1NearPdh = activeLayers.pdhl && Number.isFinite(klRef?.pdh) && Number.isFinite(plan.tp1) && Math.abs(plan.tp1 - klRef.pdh) <= 0.35;
+          const tp1Title = tp1NearPdl ? 'TP1 · PDL' : (tp1NearPdh ? 'TP1 · PDH' : 'TP1 BEP');
+          const tp1TooCloseToTp2 = Number.isFinite(plan.tp1) && Number.isFinite(plan.tp2) && Math.abs(plan.tp1 - plan.tp2) <= 0.5;
+          // Shaded OB/FVG box already renders POI top/bottom bounds on canvas;
+          // plot only the 4 clean execution lines so right-axis labels never collide with SL.
+          const items = [
+            { value: plan.area.ce, title: '50% CE', color: '#f5c451', lineStyle: 0 },
+            ...(tp1TooCloseToTp2 ? [] : [{ value: plan.tp1, title: tp1Title, color: '#eab308', lineStyle: 2 }]),
+            { value: plan.tp2, title: 'TP2 DOL', color: '#22c55e', lineStyle: 2 },
+            { value: plan.sl, title: 'SL', color: '#ef4444', lineStyle: 1 }
+          ];
+          for (const it of items) {
+            if (!Number.isFinite(it.value)) continue;
+            if (it.title === 'SL' && nearStructInv(it.value)) continue;
+            if (lastPrice && Math.abs(it.value - lastPrice) > proximityLimit) continue;
+            lines.push(series.createPriceLine({ price: it.value, title: it.title, color: it.color, lineWidth: 1, lineStyle: it.lineStyle, axisLabelVisible: true }));
+            placedPlanPrices.push(it.value);
+          }
+        } else if (plan.area) {
           const markers = [
             ['area.low', 'AREA BAWAH', '#8bb9ff', 0],
             ['area.high', 'AREA ATAS', '#8bb9ff', 0],
@@ -415,8 +440,10 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
           for (const [field, title, color, lineStyle] of markers) {
             const value = field === 'area.low' ? plan.area.low : field === 'area.high' ? plan.area.high : field === 'area.ce' ? plan.area?.ce : plan[field];
             if (Number.isFinite(value)) {
+              if (title === 'INVALIDASI' && nearStructInv(value)) continue;
               if (lastPrice && Math.abs(value - lastPrice) > proximityLimit) continue;
               lines.push(series.createPriceLine({ price: value, title, color, lineWidth: 1, lineStyle, axisLabelVisible: true }));
+              placedPlanPrices.push(value);
             }
           }
         } else {
@@ -434,6 +461,7 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
             if (Number.isFinite(it.value)) {
               if (lastPrice && Math.abs(it.value - lastPrice) > proximityLimit) continue;
               lines.push(series.createPriceLine({ price: it.value, title: it.title, color: it.color, lineWidth: 1, lineStyle: it.lineStyle, axisLabelVisible: true }));
+              placedPlanPrices.push(it.value);
             }
           }
         }
@@ -445,16 +473,17 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
       if (presentation && typeof series.createPriceLine === 'function' && indicators?.keyLevels) {
         const kl = indicators.keyLevels;
         const lastPrice = Number(window.amyfxCurrentPrice) || result.candles?.at(-1)?.close;
+        const nearPlanLine = v => placedPlanPrices.some(p => Math.abs(p - v) <= 0.35);
         const valid = v => Number.isFinite(v) && (!lastPrice || Math.abs(v - lastPrice) <= proximityLimit);
 
         if (activeLayers.pdhl) {
-          if (valid(kl.pdh)) indicatorLines.push(series.createPriceLine({ price: kl.pdh, title: 'PDH', color: '#f97316', lineWidth: 1, lineStyle: 2, axisLabelVisible: true }));
-          if (valid(kl.pdl)) indicatorLines.push(series.createPriceLine({ price: kl.pdl, title: 'PDL', color: '#3b82f6', lineWidth: 1, lineStyle: 2, axisLabelVisible: true }));
+          if (valid(kl.pdh) && !nearPlanLine(kl.pdh)) indicatorLines.push(series.createPriceLine({ price: kl.pdh, title: 'PDH', color: '#f97316', lineWidth: 1, lineStyle: 2, axisLabelVisible: true }));
+          if (valid(kl.pdl) && !nearPlanLine(kl.pdl)) indicatorLines.push(series.createPriceLine({ price: kl.pdl, title: 'PDL', color: '#3b82f6', lineWidth: 1, lineStyle: 2, axisLabelVisible: true }));
         }
         if (activeLayers.pwhl) {
-          if (valid(kl.pwh)) indicatorLines.push(series.createPriceLine({ price: kl.pwh, title: 'PWH', color: '#d946ef', lineWidth: 1, lineStyle: 1, axisLabelVisible: true }));
-          if (valid(kl.pwl)) indicatorLines.push(series.createPriceLine({ price: kl.pwl, title: 'PWL', color: '#06b6d4', lineWidth: 1, lineStyle: 1, axisLabelVisible: true }));
-          if (valid(kl.pdEq)) indicatorLines.push(series.createPriceLine({ price: kl.pdEq, title: 'PD EQ', color: '#94a3b8', lineWidth: 1, lineStyle: 2, axisLabelVisible: true }));
+          if (valid(kl.pwh) && !nearPlanLine(kl.pwh)) indicatorLines.push(series.createPriceLine({ price: kl.pwh, title: 'PWH', color: '#d946ef', lineWidth: 1, lineStyle: 1, axisLabelVisible: true }));
+          if (valid(kl.pwl) && !nearPlanLine(kl.pwl)) indicatorLines.push(series.createPriceLine({ price: kl.pwl, title: 'PWL', color: '#06b6d4', lineWidth: 1, lineStyle: 1, axisLabelVisible: true }));
+          if (valid(kl.pdEq) && !nearPlanLine(kl.pdEq)) indicatorLines.push(series.createPriceLine({ price: kl.pdEq, title: 'PD EQ', color: '#94a3b8', lineWidth: 1, lineStyle: 2, axisLabelVisible: true }));
         }
         if (activeLayers.structure && indicators.structure?.invalidation && valid(indicators.structure.invalidation.level)) {
           const inv = indicators.structure.invalidation;
@@ -560,9 +589,6 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
         handleScale: { pinch: true, mouseWheel: true, axisPressedMouseMove: { time: true, price: true }, axisDoubleClickReset: { time: true, price: true } }
       });
       ict?.invalidate();
-    },
-    setOnCrosshairOHLC(fn) {
-      onCrosshairOHLC = fn;
     },
     destroy() {
       window.removeEventListener('amyfx:theme-change', theme);

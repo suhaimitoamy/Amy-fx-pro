@@ -1,15 +1,19 @@
-/* Amy FX Pro — Gemini AI & Live Voice Bridge (✦ AMY Upgrade + Fullscreen Bubble Orb) */
+/* Amy FX Pro — Amy Live 2.0 (Client Bridge + Direct WS Live Voice + All-App Trading Brain + Dark/Light Mode) */
 (function (root) {
   'use strict';
   if (root.__AmyGeminiLiveBridgeLoaded) return;
   root.__AmyGeminiLiveBridgeLoaded = true;
 
   const CHAT_STORAGE_KEY = 'amyfx.gemini.chat.v1';
+  const DEFAULT_LIVE_MODEL = 'models/gemini-3.8-live';
+  const DEFAULT_CHAT_MODELS = ['gemini-3.1-flash-lite', 'gemini-4-hydrogen'];
+  const DEFAULT_VOICE_NAME = 'Aoede';
+
   let geminiConfig = null;
   let pendingImageBase64 = '';
   let pendingImageLabel = '';
 
-  // Live Voice State
+  // Live Voice State (Client-Side Direct WebSocket to Gemini BidiGenerateContent)
   let ws = null;
   let isLiveConnected = false;
   let isLiveConnecting = false;
@@ -29,9 +33,15 @@
   let isBubbleFullscreen = false;
   let pendingAutoResumeGreeting = '';
 
-  // Threshold sensitif untuk mikrofon HP + jeda hening alami 1.4 detik
   const VAD_SPEECH_THRESHOLD = 0.0085;
   const VAD_SILENCE_MS = 1400;
+
+  function isValidGeminiKey(rawKey) {
+    const k = String(rawKey || '').trim();
+    if (!k || k.length < 20) return false;
+    if (/MY_GEMINI|YOUR_API|PLACEHOLDER|REPLACE_ME|EXAMPLE/i.test(k)) return false;
+    return k.startsWith('AIza') || k.startsWith('AQ.');
+  }
 
   function cleanPlainText(text) {
     return String(text || '')
@@ -47,26 +57,146 @@
       .trim();
   }
 
+  function formatMarkdownSafeHtml(rawText) {
+    const escaped = String(rawText || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+    const codeBlocks = [];
+    let out = escaped.replace(/```(?:[a-z0-9_-]+)?\n?([\s\S]*?)```/gi, (_, code) => {
+      const idx = codeBlocks.length;
+      codeBlocks.push(`<pre class="amy-code-block"><code>${code.trim()}</code></pre>`);
+      return `@@CODEBLOCK_${idx}@@`;
+    });
+
+    out = out.replace(/^[ \t]*#{1,6}[ \t]+(.+)$/gm, '<strong>$1</strong>');
+    out = out.replace(/^[ \t]*---+[ \t]*$/gm, '');
+    out = out.replace(/^[ \t]*[*-][ \t]+/gm, '• ');
+    out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    out = out.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?:;]|$)/g, '$1<em>$2</em>');
+    out = out.replace(/`([^`\n]+)`/g, '<code class="amy-inline-code">$1</code>');
+    out = out.replace(/\n{3,}/g, '\n\n').trim().replace(/\n/g, '<br>');
+    out = out.replace(/@@CODEBLOCK_(\d+)@@/g, (_, idx) => codeBlocks[Number(idx)] || '');
+    return out;
+  }
+
+  function normQuery(str) {
+    return String(str ?? '')
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[^a-z0-9/$.%\s-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function detectIntents(rawQuery) {
+    const q = normQuery(rawQuery);
+    const modules = [];
+
+    const wantsLotCalc =
+      /\b(hitung lot|kalkulator|ukuran lot|lot berapa|pakai lot|berapa lot|risk calculator|risiko \d|risk \d|modal \$?\d|saldo \$?\d)\b/i.test(q) ||
+      (/\b(entry|sl)\b/i.test(q) && /\b(modal|saldo|risiko|risk|lot)\b/i.test(q));
+
+    const wantsMapping =
+      /\b(harga|price|mapping|xau|gold|emas|chart|grafik|candle|sinyal|signal|bias|arah|entry|setup|poi|ob|order block|fvg|bsl|ssl|pdh|pdl|pwh|pwl|asia high|asia low|dealing range|diskon|discount|premium|equilibrium|eq|bos|mss|sweep|likuiditas|liquidity|adr|no-trade|breakdown|breakout|scalp|buy|sell|sl|tp|timeframe|m15|m5|h1)\b/i.test(q);
+
+    const wantsMarketIntel =
+      /\b(news|berita|kabar|headline|kalender|calendar|ekonomi|kompas|fundamental|makro|fomc|nfp|cpi|ppi|pce|gdp|fed|powell|yield|dxy|dollar|dolar|inflasi|pengangguran|unemployment|philly|ism|geopolitik|iran|israel|hormuz|perang|news lock|high impact)\b/i.test(q);
+
+    const wantsJournal =
+      /\b(jurnal|journal|transaksi|trade saya|riwayat trade|profit|rugi|loss|winrate|win rate|profit factor|pips|performa|evaluasi|kesalahan|emosi|disiplin|psikologi|fomo|overtrade|revenge|habit|kebiasaan|streak|catatan trading)\b/i.test(q);
+
+    const wantsPractice =
+      /\b(practice|praktik|simulasi|latihan|replay|candle replay|chart analysis|guided|60 kasus|backtest|riwayat backtest|skor latihan|soal)\b/i.test(q);
+
+    const wantsAcademy =
+      /\b(academy|akademi|belajar|materi|modul|level \d|bab|bagian \d|tutorial|bacaan|progres belajar|kurikulum|glosarium|kamus|istilah|apa itu|jelaskan konsep|pengertian|definisi|cara kerja|bedanya|perbedaan)\b/i.test(q);
+
+    const wantsAll = /\b(semua menu|semua modul|ringkasan aplikasi|status lengkap|cek semua|briefing lengkap|kondisi hari ini)\b/i.test(q);
+
+    if (wantsAll) {
+      modules.push('mapping', 'market_intel', 'journal', 'academy', 'practice');
+    } else {
+      if (wantsLotCalc) modules.push('risk_calc');
+      if (wantsMapping) modules.push('mapping');
+      if (wantsMarketIntel) modules.push('market_intel');
+      if (wantsJournal) modules.push('journal');
+      if (wantsPractice) modules.push('practice');
+      if (wantsAcademy) modules.push('academy');
+    }
+
+    const filteredModules =
+      modules.includes('journal') &&
+      !wantsAll &&
+      !/\b(mapping|harga|xau|gold|emas|chart|grafik|sinyal|bias|ob|fvg|dealing range|bsl|ssl)\b/i.test(q)
+        ? modules.filter(m => m !== 'mapping')
+        : modules;
+
+    const explicitNav =
+      /\b(buka halaman|buka menu|buka tab|pindah ke|pindahkan ke|arahkan ke|tampilkan halaman|masuk ke|pergi ke)\b/i.test(q) ||
+      /^(buka|lihat|ke)\s+(halaman\s+)?(beranda|home|mapping|chart gold|berita|kalender|market intel|jurnal|academy|akademi|kalkulator|glosarium|practice|latihan|replay|indikator)\b/i.test(q);
+
+    let navTarget = null;
+    if (explicitNav) {
+      if (/\b(mapping|chart gold|peta harga)\b/i.test(q)) navTarget = 'mapping';
+      else if (/\b(berita|kalender|market intel|kompas)\b/i.test(q)) navTarget = 'market_intel';
+      else if (/\b(jurnal|journal|habit)\b/i.test(q)) navTarget = 'journal';
+      else if (/\b(practice|latihan|replay|backtest|simulasi)\b/i.test(q)) navTarget = 'practice';
+      else if (/\b(indikator|pine)\b/i.test(q)) navTarget = 'indikator';
+      else if (/\b(beranda|home)\b/i.test(q)) navTarget = 'home';
+    }
+
+    const wantsChartVision =
+      /\b(chart di layar|grafik di layar|analisa chart|analisis chart|baca chart|lihat chart|candle di layar|chart gold|pola candle|struktur candle|screenshot chart)\b/i.test(q) ||
+      (/\b(chart|grafik|candle)\b/i.test(q) && /\b(gold|xau|emas|m15|m5|h1|layar|sekarang|ini)\b/i.test(q));
+
+    let switchTimeframe = null;
+    if (/\b(ganti|ubah|pindah|switch)\b/i.test(q) && /\b(m5|m15|h1|5 menit|15 menit)\b/i.test(q)) {
+      if (/\b(m5|5 menit)\b/i.test(q)) switchTimeframe = 'M5';
+      else if (/\b(m15|15 menit)\b/i.test(q)) switchTimeframe = 'M15';
+      else if (/\b(h1|1 jam)\b/i.test(q)) switchTimeframe = 'H1';
+    }
+
+    return {
+      modules: [...new Set(filteredModules)],
+      explicitNav,
+      navTarget,
+      wantsChartVision,
+      wantsLotCalc,
+      switchTimeframe
+    };
+  }
+
+  function isTransientErrorReply(text) {
+    const t = String(text || '').toLowerCase();
+    return (
+      !t ||
+      t.includes('koneksi sedang sibuk') ||
+      t.includes('gagal mengaktifkan mikrofon') ||
+      t.includes('sedang disiapkan oleh server') ||
+      t.includes('data belum dapat dibaca')
+    );
+  }
+
   function loadHistory() {
     try {
       const raw = root.localStorage.getItem(CHAT_STORAGE_KEY);
       const arr = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(arr)) return [];
-      const cleaned = arr
+      return arr
         .filter(
           it =>
             it &&
             typeof it.text === 'string' &&
+            !isTransientErrorReply(it.text) &&
             !it.text.includes('Mekanisme Algoritmik IPDA') &&
-            !it.text.includes('total keseluruhan modulnya') &&
-            !it.text.includes('masih fokus pada Modul 01') &&
             !it.text.includes('MOC: Trauma & Recovery') &&
-            !it.text.includes('Kronologi Kehancuran') &&
-            !it.text.includes('2026-06-08') &&
-            !it.text.includes('jam 8 junam')
+            !it.text.includes('Kronologi Kehancuran')
         )
-        .map(it => ({ role: it.role, text: cleanPlainText(it.text) }));
-      return cleaned.slice(-30);
+        .map(it => ({ role: it.role, text: String(it.text).trim() }))
+        .slice(-30);
     } catch (_) {
       return [];
     }
@@ -74,12 +204,13 @@
 
   function saveHistory(arr) {
     try {
-      root.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(arr.slice(-30)));
+      const safe = (arr || []).filter(it => it && typeof it.text === 'string' && !isTransientErrorReply(it.text));
+      root.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(safe.slice(-30)));
     } catch (_) {}
   }
 
   function getApiBaseUrl() {
-    if (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.includes('appassets.androidplatform.net')) {
+    if (typeof window !== 'undefined' && window.location?.origin?.includes('appassets.androidplatform.net')) {
       return 'https://amy-fx.vercel.app';
     }
     return '';
@@ -88,25 +219,28 @@
   function resolveAppUrl(rawPath) {
     if (!rawPath) return '#';
     const clean = String(rawPath).replace(/^(\/assets\/|\.\/|\/)/, '');
-    if (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.includes('appassets.androidplatform.net')) {
+    if (typeof window !== 'undefined' && window.location?.origin?.includes('appassets.androidplatform.net')) {
       return 'https://appassets.androidplatform.net/assets/' + clean;
     }
-    if (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/assets/')) {
+    if (typeof window !== 'undefined' && window.location?.pathname?.startsWith('/assets/')) {
       return '/assets/' + clean;
     }
     return '/' + clean;
   }
 
+  // Preserved Client Bridge config loader (/api/gemini-config + optional user key) with strict key validation
   async function ensureGeminiConfig() {
-    if (geminiConfig && geminiConfig.apiKey) return geminiConfig;
+    if (geminiConfig && isValidGeminiKey(geminiConfig.apiKey)) return geminiConfig;
     try {
       const userKey = root.localStorage?.getItem('amy_user_gemini_api_key')?.trim();
-      if (userKey && userKey.startsWith('AIza')) {
+      if (isValidGeminiKey(userKey)) {
         geminiConfig = {
           ok: true,
           apiKey: userKey,
-          liveModel: 'models/gemini-2.0-flash-exp',
-          voiceName: 'Aoede'
+          liveModel: DEFAULT_LIVE_MODEL,
+          chatModel: DEFAULT_CHAT_MODELS[0],
+          fallbackChatModel: DEFAULT_CHAT_MODELS[1],
+          voiceName: DEFAULT_VOICE_NAME
         };
         return geminiConfig;
       }
@@ -115,8 +249,14 @@
       const res = await fetch(getApiBaseUrl() + '/api/gemini-config');
       if (res.ok) {
         const d = await res.json();
-        if (d && d.apiKey) {
-          geminiConfig = d;
+        if (d && isValidGeminiKey(d.apiKey)) {
+          geminiConfig = {
+            ...d,
+            liveModel: d.liveModel || DEFAULT_LIVE_MODEL,
+            chatModel: d.chatModel || DEFAULT_CHAT_MODELS[0],
+            fallbackChatModel: d.fallbackChatModel || DEFAULT_CHAT_MODELS[1],
+            voiceName: d.voiceName || DEFAULT_VOICE_NAME
+          };
           return geminiConfig;
         }
       }
@@ -155,11 +295,21 @@
           ctx.drawImage(c, x, y, w, h);
         } catch (_) {}
       }
-      const dataUrl = out.toDataURL('image/jpeg', 0.8);
-      return dataUrl.replace(/^data:image\/\w+;base64,/, '');
+      return out.toDataURL('image/jpeg', 0.8).replace(/^data:image\/\w+;base64,/, '');
     } catch (_) {
       return '';
     }
+  }
+
+  function getLivePriceNumber() {
+    if (root.AmyLocalAssistant?.getLivePrice) {
+      const p = root.AmyLocalAssistant.getLivePrice();
+      if (Number.isFinite(p) && p > 0) return p;
+    }
+    if (Number.isFinite(Number(root.amyfxCurrentPrice)) && Number(root.amyfxCurrentPrice) > 0) {
+      return Number(root.amyfxCurrentPrice);
+    }
+    return null;
   }
 
   function summarizeCandles(tf) {
@@ -179,538 +329,358 @@
         : [];
       if (!list.length) return '';
 
-      // Cek arah urutan candle (TwelveData biasanya newest-first values[0])
-      function getCandleTime(c) {
+      const getTime = c => {
         if (!c) return 0;
         if (typeof c.time === 'number') return c.time;
         if (typeof c.timestamp === 'number') return c.timestamp;
-        if (typeof c.t === 'number') return c.t;
-        if (c.datetime) {
-          const t = new Date(String(c.datetime).replace(' ', 'T')).getTime();
-          if (!isNaN(t)) return t;
-        }
-        if (typeof c.time === 'string') {
-          const t = new Date(String(c.time).replace(' ', 'T')).getTime();
-          if (!isNaN(t)) return t;
-        }
+        if (c.datetime) return new Date(String(c.datetime).replace(' ', 'T')).getTime() || 0;
         return 0;
-      }
-
+      };
       let chronological = list;
-      if (list.length > 1) {
-        const tFirst = getCandleTime(list[0]);
-        const tLast = getCandleTime(list[list.length - 1]);
-        if (tFirst && tLast && tFirst > tLast) {
-          chronological = [...list].reverse();
-        } else if (Array.isArray(parsed?.values) && (!tFirst || !tLast)) {
-          chronological = [...list].reverse();
-        }
+      if (list.length > 1 && getTime(list[0]) > getTime(list[list.length - 1])) {
+        chronological = [...list].reverse();
       }
-
       const recent = chronological.slice(-5);
-      if (!recent.length) return '';
       const last = recent[recent.length - 1];
-      const hi = Math.max(...chronological.slice(-32).map(c => Number(c.high || c.h || 0)).filter(Boolean));
-      const lo = Math.min(...chronological.slice(-32).map(c => Number(c.low || c.l || 0)).filter(Boolean));
-      const eq = hi && lo ? ((hi + lo) / 2).toFixed(2) : '';
-      const closeVal = Number(last.close || last.c || 0).toFixed(2);
-      if (isNaN(Number(closeVal)) || Number(closeVal) <= 0) return '';
-
+      const closeVal = Number(last?.close || last?.c || 0);
+      if (!Number.isFinite(closeVal) || closeVal <= 0) return '';
       const candlesText = recent
         .map(c => {
           const o = Number(c.open || c.o || 0).toFixed(2);
           const h = Number(c.high || c.h || 0).toFixed(2);
           const l = Number(c.low || c.l || 0).toFixed(2);
           const cl = Number(c.close || c.c || 0).toFixed(2);
-          const dir = Number(cl) >= Number(o) ? 'BULL' : 'BEAR';
-          return `[${dir} O:${o} H:${h} L:${l} C:${cl}]`;
+          return `[${Number(cl) >= Number(o) ? 'BULL' : 'BEAR'} O:${o} H:${h} L:${l} C:${cl}]`;
         })
         .join(' → ');
-      return `• Candle ${tf}: Close Terakhir $${closeVal} | Range 32-Bar: Low $${lo.toFixed(2)} – High $${hi.toFixed(2)} (EQ 50%: $${eq})\n  5 Candle ${tf} Terakhir: ${candlesText}`;
+      return `• Candle ${tf}: Close $${closeVal.toFixed(2)} | 5 Candle Terakhir: ${candlesText}`;
     } catch (_) {
       return '';
     }
   }
 
-    let lastRequestedLesson = null;
-    let lastReadLessonDetails = null;
+  let lastRequestedLesson = null;
+  let lastReadLessonDetails = null;
 
-    function resolveLessonHtmlPath(rawPath) {
-      if (!rawPath) return 'apps/academy/index.html';
-      let p = rawPath.replace(/^.*\/apps\/academy\//, 'apps/academy/');
-      if (!p.startsWith('apps/academy/')) p = 'apps/academy/' + p;
-      const hashIdx = p.indexOf('#');
-      if (hashIdx !== -1) {
-        const base = p.slice(0, hashIdx);
-        const anchor = p.slice(hashIdx + 1);
-        if (base.endsWith('/index.html') && anchor) {
-          return base.replace(/\/index\.html$/, '/' + anchor + '.html');
-        }
+  function resolveLessonHtmlPath(rawPath) {
+    if (!rawPath) return 'apps/academy/index.html';
+    let p = rawPath.replace(/^.*\/apps\/academy\//, 'apps/academy/');
+    if (!p.startsWith('apps/academy/')) p = 'apps/academy/' + p;
+    const hashIdx = p.indexOf('#');
+    if (hashIdx !== -1) {
+      const base = p.slice(0, hashIdx);
+      const anchor = p.slice(hashIdx + 1);
+      if (base.endsWith('/index.html') && anchor) {
+        return base.replace(/\/index\.html$/, '/' + anchor + '.html');
       }
-      return p;
     }
+    return p;
+  }
 
-    function findInLocalKnowledge(queryOrTitle, knowledgeList) {
-      if (!queryOrTitle) return null;
-      const knowledge = Array.isArray(knowledgeList) ? knowledgeList : (root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []));
-      if (!Array.isArray(knowledge) || !knowledge.length) return null;
-      const q = String(queryOrTitle).toLowerCase().trim();
+  function findInLocalKnowledge(queryOrTitle, knowledgeList) {
+    if (!queryOrTitle) return null;
+    const knowledge = Array.isArray(knowledgeList) ? knowledgeList : root.AmyLocalKnowledge || [];
+    if (!Array.isArray(knowledge) || !knowledge.length) return null;
+    const q = String(queryOrTitle).toLowerCase().trim();
 
-      let match = knowledge.find(k => k.title && k.title.toLowerCase() === q);
+    let match = knowledge.find(k => k.title && k.title.toLowerCase() === q);
+    if (match) return match;
+
+    const modMatch = q.match(/(?:modul|bagian)\s*0?(\d+)/i);
+    if (modMatch) {
+      const num = String(modMatch[1]).padStart(2, '0');
+      match = knowledge.find(k => k.path && (k.path.includes(`bagian-${num}`) || k.path.includes(`modul-${num}`)));
       if (match) return match;
-
-      const modMatch = q.match(/(?:modul|bagian)\s*0?(\d+)/i);
-      if (modMatch) {
-        const num = String(modMatch[1]).padStart(2, '0');
-        match = knowledge.find(k => k.path && (k.path.includes(`bagian-${num}`) || k.path.includes(`modul-${num}`)));
-        if (match) return match;
-      }
-
-      const lvlMatch = q.match(/level\s*(\d+)/i);
-      if (lvlMatch) {
-        match = knowledge.find(k => k.path && k.path.includes(`level-${lvlMatch[1]}`));
-        if (match) return match;
-      }
-
-      const stopWords = ['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'materinya', 'bab', 'buka', 'pelajari', 'belajar', 'jelaskan', 'ringkum', 'tampilkan', 'baca', 'lihat', 'tolong', 'coba', 'dong', 'ya', 'tentang', 'kita', 'sedang'];
-      const terms = q.split(/\s+/).filter(t => t.length > 2 && !stopWords.includes(t));
-      if (terms.length) {
-        match = knowledge.find(k => {
-          const t = (k.title || '').toLowerCase();
-          return terms.every(term => t.includes(term));
-        });
-        if (match) return match;
-        match = knowledge.find(k => {
-          const t = (k.title || '').toLowerCase();
-          return terms.some(term => t.includes(term));
-        });
-        if (match) return match;
-      }
-      return null;
     }
 
-    function findLessonFromChatHistory(knowledgeList) {
-      const knowledge = Array.isArray(knowledgeList) ? knowledgeList : (root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []));
-      if (!Array.isArray(knowledge) || !knowledge.length) return null;
-      const hist = loadHistory();
-      if (!Array.isArray(hist) || !hist.length) return null;
-
-      const sorted = [...knowledge].filter(k => k.title && k.title.length > 3).sort((a, b) => b.title.length - a.title.length);
-      for (let i = hist.length - 1; i >= Math.max(0, hist.length - 6); i--) {
-        const text = hist[i]?.text || '';
-        if (!text) continue;
-        for (const k of sorted) {
-          const esc = k.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          if (new RegExp('\\b' + esc + '\\b', 'i').test(text)) {
-            return k;
-          }
-        }
-      }
-      return null;
+    const lvlMatch = q.match(/level\s*(\d+)/i);
+    if (lvlMatch) {
+      match = knowledge.find(k => k.path && k.path.includes(`level-${lvlMatch[1]}`));
+      if (match) return match;
     }
 
-    function resolveLessonFromQuery(queryOrTitle) {
-      const rawQ = String(queryOrTitle || '').trim();
-      const q = rawQ.toLowerCase();
-      const knowledge = root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []);
-
-      const isGenericRef =
-        !q ||
-        /^(buka\s+)?(materi\s+)?(itu|nya|materinya|terakhir|tadi|lanjutkan|ini)$/i.test(q) ||
-        /\b(materi itu|materinya|buka materi itu|buka materinya|materi terakhir|yang tadi|materi tadi|lanjutkan materi|materi ini|bab ini)\b/i.test(q);
-
-      if (isGenericRef) {
-        if (lastRequestedLesson && lastRequestedLesson.title) return lastRequestedLesson;
-        if (lastReadLessonDetails && lastReadLessonDetails.title) return lastReadLessonDetails;
-
-        const fromHist = findLessonFromChatHistory(knowledge);
-        if (fromHist) {
-          const path = resolveLessonHtmlPath(fromHist.path);
-          return {
-            title: fromHist.title,
-            relPath: path.replace(/^apps\/academy\//, ''),
-            fullPath: path,
-            summary: (fromHist.text || '').slice(0, 1800),
-            fullText: fromHist.text || ''
-          };
-        }
-
-        try {
-          const stored = JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null');
-          if (stored && (stored.title || stored.path)) {
-            const lk = findInLocalKnowledge(stored.title || stored.path, knowledge);
-            if (lk) {
-              const path = resolveLessonHtmlPath(lk.path);
-              return {
-                title: lk.title,
-                relPath: path.replace(/^apps\/academy\//, ''),
-                fullPath: path,
-                summary: (lk.text || '').slice(0, 1800),
-                fullText: lk.text || ''
-              };
-            }
-          }
-        } catch (_) {}
-      }
-
-      const found = findInLocalKnowledge(rawQ, knowledge);
-      if (found) {
-        const path = resolveLessonHtmlPath(found.path);
-        return {
-          title: found.title,
-          relPath: path.replace(/^apps\/academy\//, ''),
-          fullPath: path,
-          summary: (found.text || '').slice(0, 1800),
-          fullText: found.text || ''
-        };
-      }
-
-      const fallbackHist = findLessonFromChatHistory(knowledge);
-      if (fallbackHist) {
-        const path = resolveLessonHtmlPath(fallbackHist.path);
-        return {
-          title: fallbackHist.title,
-          relPath: path.replace(/^apps\/academy\//, ''),
-          fullPath: path,
-          summary: (fallbackHist.text || '').slice(0, 1800),
-          fullText: fallbackHist.text || ''
-        };
-      }
-
-      return null;
+    const stopWords = ['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'materinya', 'bab', 'buka', 'pelajari', 'belajar', 'jelaskan', 'ringkum', 'tampilkan', 'baca', 'lihat', 'tolong', 'coba', 'dong', 'ya', 'tentang', 'kita', 'sedang'];
+    const terms = q.split(/\s+/).filter(t => t.length > 2 && !stopWords.includes(t));
+    if (terms.length) {
+      match = knowledge.find(k => terms.every(term => (k.title || '').toLowerCase().includes(term)));
+      if (match) return match;
+      match = knowledge.find(k => terms.some(term => (k.title || '').toLowerCase().includes(term)));
+      if (match) return match;
     }
+    return null;
+  }
 
-    async function collectAcademyReadingContext(userQuestion) {
-      try {
-        let lastRead = null;
-        let history = [];
-        let microProgress = {};
-        try {
-          lastRead = JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null');
-        } catch (_) {}
-        try {
-          const h = JSON.parse(root.localStorage.getItem('amy_academy_reading_history_v2') || '[]');
-          if (Array.isArray(h)) history = h;
-        } catch (_) {}
-        try {
-          microProgress = JSON.parse(root.localStorage.getItem('amyfx.academy.micro_progress') || '{}') || {};
-        } catch (_) {}
+  function resolveLessonFromQuery(queryOrTitle) {
+    const rawQ = String(queryOrTitle || '').trim();
+    const knowledge = root.AmyLocalKnowledge || [];
+    const found = findInLocalKnowledge(rawQ, knowledge);
+    if (found) {
+      const path = resolveLessonHtmlPath(found.path);
+      return {
+        title: found.title,
+        relPath: path.replace(/^apps\/academy\//, ''),
+        fullPath: path,
+        summary: (found.text || '').slice(0, 1800),
+        fullText: found.text || ''
+      };
+    }
+    return null;
+  }
 
-      const fallbackTitle = root.localStorage.getItem('amy_last_opened_title') || '';
-      const fallbackUrl = root.localStorage.getItem('amy_last_opened_url') || '';
-      if (!lastRead && fallbackTitle) {
-        lastRead = {
-          title: fallbackTitle,
-          path: fallbackUrl.replace(/^.*\/apps\/academy\//i, ''),
-          section: 'Amy FX Academy',
-          progress: 100,
-          updatedAt: Date.now()
-        };
-      }
-
-      let apiData = null;
-      const isJournalOrMarketQuery = /\b(evaluasi performa jurnal|winrate|refleksi emosi saya|berita terbaru|kalender ekonomi|analisa chart gold)\b/i.test(userQuestion || '');
-      const isAcademyLessonQuery =
-        !isJournalOrMarketQuery &&
-        /\b(modul|level|bab|bagian|materi|pelajari|belajar|buka|ringkum|rangkum|isi|fvg|order block|liquidity|bos|mss|ote|killzone|turtle soup|inducement|amd|po3)\b/i.test(userQuestion || '');
-      const effectiveLessonQuery = isAcademyLessonQuery ? (userQuestion || '') : '';
-      try {
-        const hasState = Boolean(lastRead && lastRead.title);
-        const qParam = effectiveLessonQuery ? `?q=${encodeURIComponent(effectiveLessonQuery)}` : '';
-        const resp = await fetch(getApiBaseUrl() + `/api/academy-reading${qParam}`, {
-          method: hasState || effectiveLessonQuery ? 'POST' : 'GET',
-          headers: hasState || effectiveLessonQuery ? { 'Content-Type': 'application/json' } : undefined,
-          body: hasState || effectiveLessonQuery ? JSON.stringify({ lastRead, history, microProgress, query: effectiveLessonQuery }) : undefined
-        });
-        if (resp.ok) apiData = await resp.json();
-      } catch (_) {}
-
-      const effectiveState = apiData?.state || { lastRead, history };
-      const finalLast = lastRead?.title ? lastRead : (effectiveState.lastRead || null);
-      const finalHistory = history.length ? history : (Array.isArray(effectiveState.history) ? effectiveState.history : []);
-      let details = apiData?.lessonDetails || null;
-      let requestedLesson = apiData?.requestedLesson || null;
-
-      // Local offline knowledge fallback if apiData didn't provide lesson content
-      const localKnowledge = root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []);
-      if (Array.isArray(localKnowledge) && localKnowledge.length) {
-        if (!details && finalLast && (finalLast.title || finalLast.path)) {
-          const lk = findInLocalKnowledge(finalLast.title || finalLast.path, localKnowledge);
-          if (lk) {
-            details = {
-              title: lk.title,
-              relPath: lk.path.replace(/^.*\/apps\/academy\//, ''),
-              summary: (lk.text || '').slice(0, 1800),
-              fullText: lk.text || ''
-            };
-          }
-        }
-        if (!requestedLesson && effectiveLessonQuery) {
-          const lk = findInLocalKnowledge(effectiveLessonQuery, localKnowledge);
-          if (lk) {
-            requestedLesson = {
-              title: lk.title,
-              relPath: lk.path.replace(/^.*\/apps\/academy\//, ''),
-              summary: (lk.text || '').slice(0, 1800),
-              fullText: lk.text || ''
-            };
-          }
-        }
-      }
-
-      if (requestedLesson && requestedLesson.title) {
-        lastRequestedLesson = requestedLesson;
-      }
-      if (details && details.title) {
-        lastReadLessonDetails = details;
-      }
-      const catalogText = apiData?.catalogText || '';
-
-      if (finalLast && finalLast.title && !root.localStorage.getItem('amy_academy_last_read_v2')) {
-        try {
-          root.localStorage.setItem('amy_academy_last_read_v2', JSON.stringify(finalLast));
-          root.localStorage.setItem('amy_last_opened_title', finalLast.title);
-          if (finalHistory.length) {
-            root.localStorage.setItem('amy_academy_reading_history_v2', JSON.stringify(finalHistory));
-          }
-        } catch (_) {}
-      }
+  async function collectAcademyReadingContext(userQuestion) {
+    try {
+      const lastRead = (() => {
+        try { return JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null'); } catch { return null; }
+      })();
+      const requestedLesson = resolveLessonFromQuery(userQuestion);
+      if (requestedLesson?.title) lastRequestedLesson = requestedLesson;
 
       const out = [];
-      if (catalogText) {
-        out.push(catalogText);
+      if (requestedLesson?.title) {
+        out.push(`=== MATERI ICT / ACADEMY TERKAIT ===\n• Judul: ${requestedLesson.title}\n• Isi:\n${(requestedLesson.fullText || requestedLesson.summary).slice(0, 2200)}`);
       }
-
-      // Jika saat ini pengguna sedang membuka halaman materi Academy
-      const curPath = window.location.pathname;
-      if (curPath.includes('/apps/academy/') && !curPath.endsWith('/apps/academy/index.html') && !curPath.endsWith('/apps/academy/daftar-materi.html')) {
-        const curArticleText = document.querySelector('.article, .glass-panel, article, main')?.textContent?.trim() || '';
-        const curArticleTitle = document.querySelector('h1')?.textContent?.trim() || document.title.replace(/—.*$/, '').trim();
-        if (curArticleTitle && curArticleText) {
-          out.push(`\n=== MATERI YANG SEDANG DIBUKA DI LAYAR SAAT INI (SAYANG SEDANG MEMBACA INI!) ===`);
-          out.push(`• Judul Materi: "${curArticleTitle}" (${curPath})`);
-          out.push(`• Isi Lengkap Materi di Layar:\n${curArticleText.slice(0, 3600)}`);
-          out.push(`• PANDUAN MENJAWAB: Sayang sedang membaca materi ini di layar. Jika Sayang bertanya atau bingung mengenai materi ini, jelaskan secara mendalam, santai, ramah, dan tuntas berdasarkan isi materi di atas!`);
-        }
+      if (lastRead?.title) {
+        out.push(`• Terakhir Dibaca: ${lastRead.title}${lastRead.headingText ? ' (' + lastRead.headingText + ')' : ''}`);
       }
-
-      if (requestedLesson && requestedLesson.title) {
-        out.push(`\n=== ISI LENGKAP MATERI YANG DIMINTA PENGGUNA SAAT INI (WAJIB DIBUKA & DIJELASKAN!) ===`);
-        out.push(`• Judul Materi: "${requestedLesson.title}" (apps/academy/${requestedLesson.relPath})`);
-        out.push(`• Isi Materi Lengkap:\n${requestedLesson.fullText || requestedLesson.summary}`);
-        if (requestedLesson.nextLessonTitle) {
-          out.push(`• Materi Selanjutnya Setelah Ini: "${requestedLesson.nextLessonTitle}" (apps/academy/${requestedLesson.nextLessonPath})`);
-        }
-      }
-
-      out.push('\n=== RIWAYAT BACAAN ACADEMY TERAKHIR PENGGUNA ===');
-      if (finalLast && finalLast.title) {
-        out.push(`• Materi Terakhir Dibaca Pengguna: "${details?.title || finalLast.title}"`);
-        if (finalLast.section) out.push(`• Bagian / Level: ${finalLast.section}`);
-        if (finalLast.path || details?.relPath) out.push(`• Lokasi File Materi: apps/academy/${details?.relPath || finalLast.path}`);
-        if (finalLast.headingText && finalLast.headingText !== finalLast.title) {
-          out.push(`• Posisi Sub-bab Terakhir: ${finalLast.headingText} (${Number(finalLast.progress || 0)}% halaman tergulir)`);
-        }
-      } else {
-        out.push(`• Materi Terakhir Dibaca Pengguna: Level 0 — 01. Apa Itu Trading Sebenarnya?`);
-      }
-
-      if (finalHistory.length > 0) {
-        const histList = finalHistory
-          .slice(0, 6)
-          .map((item, idx) => `${idx + 1}. ${item.title}${item.section ? ` (${item.section})` : ''}`)
-          .join(' | ');
-        out.push(`• Daftar Urutan Riwayat Bacaan Terakhir: ${histList}`);
-      }
-
-      if (details && (details.fullText || details.summary)) {
-        out.push(`\n=== ISI LENGKAP MATERI TERAKHIR YANG DIBACA PENGGUNA (GUNAKAN INI UNTUK MERANGKUM/MENJELASKAN ISI MATERI!) ===`);
-        out.push(`• Judul Materi: "${details.title}"`);
-        out.push(`• Teks Lengkap / Rangkuman Inti:\n${(details.fullText || details.summary).slice(0, 3500)}`);
-      }
-
-      if (details?.nextLessonTitle || finalLast?.nextTitle) {
-        out.push(`• Materi Urutan Selanjutnya: "${details?.nextLessonTitle || finalLast?.nextTitle}" (${details?.nextLessonPath || finalLast?.nextHref || ''})`);
-        if (details?.nextLessonSummary) {
-          out.push(`• Cuplikan Materi Selanjutnya:\n${details.nextLessonSummary}`);
-        }
-      }
-
       return out.join('\n');
     } catch (_) {
       return '';
     }
   }
 
+  // Synchronized Mapping Structure Summary (100% aligned with Mapping Cockpit Dealing Range & Valid BSL/SSL)
   async function fetchLiveMarketStructureSummary() {
     try {
       const res = await fetch(getApiBaseUrl() + '/api/scalper-setups', {
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(4500)
       });
       if (res.ok) {
         const data = await res.json();
         const ctx = data.context || data;
-        if (ctx && ctx.version) {
+        if (ctx && (ctx.version || ctx.m15)) {
+          try {
+            root.AmyMarketContext = ctx;
+            root.localStorage.setItem('amyfx.market-context.v1', JSON.stringify(ctx));
+          } catch (_) {}
+
+          const livePrice = getLivePriceNumber() || Number(ctx.price || 0);
+          const snap = root.AmyLocalAssistant?.buildMappingSnapshot
+            ? root.AmyLocalAssistant.buildMappingSnapshot(ctx, livePrice)
+            : null;
+
           const lines = [];
-          const price = ctx.price ? `$${Number(ctx.price).toFixed(2)}` : '';
-          if (price) lines.push(`Harga XAU/USD Terakhir: ${price}`);
-
-          // Dealing Range M15
-          const dr = ctx.m15?.dealingRange;
-          if (dr) {
-            lines.push(`🗺️ Dealing Range M15: Posisi saat ini di ${dr.location || 'NETRAL'} · Range $${Number(dr.rangeLow || 0).toFixed(2)} s.d. $${Number(dr.rangeHigh || 0).toFixed(2)} · Equilibrium (EQ 50%) di $${Number(dr.eq || 0).toFixed(2)}`);
+          if (livePrice > 0) lines.push(`• Harga Live XAU/USD: $${livePrice.toFixed(2)}`);
+          if (snap) {
+            lines.push(
+              `• Dealing Range M15 (SINKRON COCKPIT): **${snap.zoneLabel}** | Low $${Number(snap.rangeLow || 0).toFixed(2)} — High $${Number(snap.rangeHigh || 0).toFixed(2)} | EQ 50%: $${Number(snap.eq || 0).toFixed(2)}`
+            );
+            const liqArr = [];
+            if (snap.bslAbove) liqArr.push(`BSL Valid di Atas: ${snap.bslAbove.label} $${snap.bslAbove.level.toFixed(2)}`);
+            if (snap.sslBelow) liqArr.push(`SSL Valid di Bawah: ${snap.sslBelow.label} $${snap.sslBelow.level.toFixed(2)}`);
+            if (liqArr.length) lines.push(`• Likuiditas Valid (Belum Tertembus): ${liqArr.join(' | ')}`);
           }
 
-          // Likuiditas Kunci
-          if (Array.isArray(ctx.liquidity) && ctx.liquidity.length) {
-            const liqParts = ctx.liquidity.map(l => `${l.label}: $${Number(l.level).toFixed(2)} (${l.status || 'AKTIF'})`);
-            lines.push(`🎯 Level Likuiditas ICT:\n• ${liqParts.join('\n• ')}`);
-          }
+          lines.push(
+            `• Bias Multi-TF: H1 ${ctx.h1?.bias || 'NEUTRAL'} (${ctx.h1?.health || ''}, Protected $${Number(ctx.h1?.protectedLevel || 0).toFixed(2)}) | M15 ${ctx.m15?.structure || ''} (Kontrol ${ctx.m15?.control || 'SEIMBANG'}, Invalidasi $${Number(ctx.m15?.invalidLevel || 0).toFixed(2)}) | M5 ${ctx.m5?.status || 'WAIT'}`
+          );
 
-          // Bias 3-Timeframe
-          const h1Bias = ctx.h1?.bias || 'Netral';
-          const h1Health = ctx.h1?.health || '';
-          const m15Control = ctx.m15?.control || 'Seimbang';
-          const m15Structure = ctx.m15?.structure || '';
-          const m5Status = ctx.m5?.status || 'Menunggu';
-          lines.push(`📊 Bias Multi-Timeframe:\n• H1 Bias: ${h1Bias} (${h1Health}) · Protected Level: $${Number(ctx.h1?.protectedLevel || 0).toFixed(2)}\n• M15 Struktur: ${m15Structure} (Dikontrol oleh ${m15Control}) · Invalidasi: $${Number(ctx.m15?.invalidLevel || 0).toFixed(2)}\n• M5 Eksekusi: ${m5Status}`);
-
-          // Order Block (OB) & Breaker
           const poi = ctx.m15?.poi;
-          if (poi) {
-            lines.push(`🧱 Order Block M15 Terdekat (${poi.label || poi.side}): Rentang $${Number(poi.low).toFixed(2)} s.d. $${Number(poi.high).toFixed(2)} · Titik 50% CE: $${Number(poi.ce).toFixed(2)} · Status: ${poi.lifecycle || 'FRESH'}`);
+          if (poi?.low && poi?.high) {
+            lines.push(
+              `• Order Block M15 (${poi.label || poi.side}): $${Number(poi.low).toFixed(2)}–$${Number(poi.high).toFixed(2)} | 50% CE: $${Number(poi.ce).toFixed(2)} (${poi.lifecycle || 'FRESH'})`
+            );
           }
 
-          // Break Struktur (BOS & MSS)
-          const lastBreak = ctx.m15?.lastBreak;
-          if (lastBreak) {
-            lines.push(`⚡ Break Struktur M15: ${lastBreak.kind || 'BOS'} (${lastBreak.side}) di level $${Number(lastBreak.level).toFixed(2)}`);
-          }
-          if (ctx.m5?.mss) {
-            lines.push(`⚡ MSS M5: di level $${Number(ctx.m5.mss.level).toFixed(2)}`);
-          }
-
-          // Fair Value Gap (FVG) Fresh
           const freshFvgs = (ctx.indicators?.m15?.fvg || []).filter(f => f.status === 1 || f.lifecycle === 'FRESH');
           if (freshFvgs.length) {
-            const fvgParts = freshFvgs.slice(0, 3).map(f => `${f.side} FVG: $${Number(f.low).toFixed(2)} s.d. $${Number(f.high).toFixed(2)} (CE 50%: $${Number(f.ce).toFixed(2)})`);
-            lines.push(`⚡ Fair Value Gap (FVG) Fresh M15:\n• ${fvgParts.join('\n• ')}`);
+            lines.push(
+              `• FVG Fresh M15: ` +
+                freshFvgs
+                  .slice(0, 2)
+                  .map(f => `${f.side} $${Number(f.low).toFixed(2)}–$${Number(f.high).toFixed(2)} (CE $${Number(f.ce).toFixed(2)})`)
+                  .join(' | ')
+            );
           }
 
-          // Confluence & Skenario
           if (ctx.confluence?.score != null) {
-            lines.push(`Skor Confluence: ${ctx.confluence.score}/100 [${ctx.confluence.grade || 'WAIT'}] · Sinyal: ${ctx.primary?.label || 'Belum ada setup valid'}`);
+            lines.push(`• Confluence: ${ctx.confluence.score}/100 [${ctx.confluence.grade || 'WAIT'}] | Skenario Utama: ${ctx.primary?.label || 'WAIT'}`);
           }
           if (ctx.plan?.entry) {
-            lines.push(`Rencana Setup Scalper: ${ctx.plan.signalName || 'Setup Aktif'} · Entry $${Number(ctx.plan.entry).toFixed(2)} | SL $${Number(ctx.plan.sl).toFixed(2)} | TP $${Number(ctx.plan.tp1).toFixed(2)} (RR ${Number(ctx.plan.rr1 || 0).toFixed(2)}R)`);
+            lines.push(
+              `• Plan Pantauan: ${ctx.plan.signalName || 'Setup'} · Entry $${Number(ctx.plan.entry).toFixed(2)} | SL $${Number(ctx.plan.sl).toFixed(2)} | TP $${Number(ctx.plan.tp1).toFixed(2)} (RR ${Number(ctx.plan.rr1 || 0).toFixed(2)}R) | Status Eksekusi: ${ctx.execution?.status || 'WAIT'}`
+            );
           }
-
-          // News Status
-          if (ctx.news) {
-            lines.push(`Status Berita Kalender: ${ctx.news.note || ctx.news.status || 'SAFE'}`);
+          if (ctx.news?.note) {
+            lines.push(`• Status Kalender Mapping: ${ctx.news.note}`);
           }
-
-          return lines.join('\n\n');
+          return lines.join('\n');
         }
       }
-    } catch (e) {
-      console.warn('fetchLiveMarketStructureSummary error:', e);
-    }
+    } catch (_) {}
     return '';
   }
 
-  async function fetchLiveMarketNewsSummary(topic) {
+  // Synchronized Market Intel (Live Calendar USD Aktual vs Forecast + WITA Countdown + Gold-focused News)
+  async function fetchLiveMarketIntelSummary(topic) {
+    const sections = [];
+
+    // 1. Live Calendar USD High-Impact
     try {
-      const res = await fetch(getApiBaseUrl() + '/api/news', {
-        headers: { 'Accept': 'application/json' },
+      const calRes = await fetch(getApiBaseUrl() + '/api/calendar', {
+        headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(4500)
       });
-      if (res.ok) {
-        const data = await res.json();
+      if (calRes.ok) {
+        const calData = await calRes.json();
+        try {
+          root.localStorage.setItem('amyfx.market.calendar.v1', JSON.stringify(calData));
+        } catch (_) {}
+        const events = Array.isArray(calData?.events) ? calData.events : Array.isArray(calData?.items) ? calData.items : [];
+        if (events.length) {
+          const nowMs = Date.now();
+          const upcoming = events
+            .filter(e => e.timestampMs && Number(e.timestampMs) > nowMs)
+            .sort((a, b) => Number(a.timestampMs) - Number(b.timestampMs));
+          const released = events.filter(e => e.actual && String(e.actual).trim() && String(e.actual).trim() !== '—').slice(-3).reverse();
+
+          const calLines = ['KALENDER EKONOMI USD (REAL-TIME):'];
+          if (upcoming.length) {
+            upcoming.slice(0, 3).forEach(ev => {
+              const diffMin = Math.max(0, Math.round((Number(ev.timestampMs) - nowMs) / 60000));
+              const h = Math.floor(diffMin / 60);
+              const m = diffMin % 60;
+              const cd = h > 24 ? `${Math.floor(h / 24)}h ${h % 24}j lagi` : h > 0 ? `${h}j ${m}m lagi` : `${m}m lagi`;
+              calLines.push(`• Upcoming: ${ev.title || ev.event} (${ev.impact || 'HIGH'}) — ${ev.timeWita || ''} (${cd}) | Forecast: ${ev.forecast || '—'}, Prev: ${ev.previous || '—'}`);
+            });
+          } else {
+            calLines.push('• Tidak ada jadwal USD High-Impact dalam waktu dekat.');
+          }
+          if (released.length) {
+            released.forEach(ev => {
+              calLines.push(`• Rilis Aktual: ${ev.title || ev.event} → Aktual ${ev.actual} vs Forecast ${ev.forecast || '—'}${ev.goldBias ? ' [' + ev.goldBias + ']' : ''}`);
+            });
+          }
+          sections.push(calLines.join('\n'));
+        }
+      }
+    } catch (_) {}
+
+    // 2. Live News Fokus Gold & Kompas
+    try {
+      const newsRes = await fetch(getApiBaseUrl() + '/api/news', {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4500)
+      });
+      if (newsRes.ok) {
+        const data = await newsRes.json();
+        try {
+          root.localStorage.setItem('amyfx.assistant.news.v1', JSON.stringify(data));
+        } catch (_) {}
         const items = data.items || data.news || [];
         if (items.length) {
           let filtered = items;
           if (topic) {
             const tLower = topic.toLowerCase();
-            filtered = items.filter(it => (it.title || it.text || '').toLowerCase().includes(tLower));
-            if (!filtered.length) filtered = items;
+            const matched = items.filter(it => `${it.title || ''} ${it.text || ''}`.toLowerCase().includes(tLower));
+            if (matched.length) filtered = matched;
           }
-          const list = filtered.slice(0, 4).map((it, i) =>
-            `${i + 1}. ${it.title || it.text || ''} (${it.source || 'SM News 24'} · ${it.time || ''})`
-          ).join('\n\n');
-          return `Rangkuman Berita Makro Terkini SM News 24:\n${list}`;
+          const listText = filtered
+            .slice(0, 5)
+            .map((it, i) => `${i + 1}. ${String(it.title || it.text || '').trim().slice(0, 240)} (${it.source || 'Market Intel'}${it.goldImpact ? ' · ' + it.goldImpact : ''})`)
+            .join('\n');
+          sections.push(`BERITA FOKUS GOLD & MAKRO TERKINI:\n${listText}`);
         }
       }
     } catch (_) {}
-    return 'Belum ada berita berdampak tinggi dalam feed kalender saat ini. Kondisi pasar aman.';
+
+    return sections.join('\n\n') || 'Belum ada jadwal berita berdampak tinggi saat ini. Kondisi makro stabil.';
   }
 
-  async function collectAmyAppContext(userQuestion) {
+  // Smart Context Router — fetches ONLY modules relevant to the user's question (fast + free-tier quota friendly)
+  async function collectAmyAppContext(userQuestion, forcedIntents = null) {
+    const intents = forcedIntents || detectIntents(userQuestion || '');
+    const mods = intents.modules.length ? intents.modules : ['mapping'];
     const lines = [];
     const nowWita = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar', hour12: false }) + ' WITA';
-    lines.push(`Waktu Saat Ini: ${nowWita}`);
-    lines.push(`Halaman Aktif: ${document.title || window.location.pathname}`);
+    lines.push(`Waktu Sekarang: ${nowWita} | Halaman Aktif: ${document.title || window.location.pathname}`);
 
-    try {
-      const marketData = await fetchLiveMarketStructureSummary();
-      if (marketData) {
-        lines.push(`DATA STRUKTUR PASAR & ICT RESMI REAL-TIME (DARI ENGINE AMY FX PRO):\n${marketData}`);
-      }
-    } catch (_) {}
+    const livePrice = getLivePriceNumber();
+    if (livePrice) lines.push(`Harga Live Layar XAU/USD: $${livePrice.toFixed(2)}`);
 
-    const academyCtx = await collectAcademyReadingContext(userQuestion);
-    if (academyCtx) lines.push(academyCtx);
+    const tasks = [];
 
-    let domPrice = '';
-    if (typeof root !== 'undefined' && Number.isFinite(Number(root.amyfxCurrentPrice)) && Number(root.amyfxCurrentPrice) > 0) {
-      domPrice = '$' + Number(root.amyfxCurrentPrice).toFixed(2);
-    }
-    if (!domPrice) {
-      const priceEl = document.querySelector(
-        '#hero-price, #chart-price, #scenario-price, .hero-live-price, #home-chart-price, #home-price, #live-price-value, #mapping-live-price, .gold-live-price, [data-price], [data-live-price]'
+    if (mods.includes('mapping')) {
+      tasks.push(
+        fetchLiveMarketStructureSummary().then(txt => {
+          if (txt) lines.push(`DATA MAPPING & CHART GOLD (REAL-TIME):\n${txt}`);
+          const m15Sum = summarizeCandles('M15') || summarizeCandles('15min');
+          const m5Sum = summarizeCandles('M5') || summarizeCandles('5min');
+          if (m15Sum) lines.push(m15Sum);
+          if (m5Sum) lines.push(m5Sum);
+        })
       );
-      if (priceEl) {
-        const text = (priceEl.textContent || priceEl.getAttribute('data-price') || '').trim();
-        if (text && text !== '—' && /\d/.test(text)) {
-          domPrice = text.startsWith('$') ? text : '$' + text;
-        }
-      }
-    }
-    if (domPrice) lines.push(`Harga Tampil di Layar: ${domPrice}`);
-
-    const domAssistantPrimary = document.querySelector('#assistant-primary-msg')?.textContent?.trim() || '';
-    const domAssistantSub = document.querySelector('#assistant-sub-msg')?.textContent?.trim() || '';
-    const domConfluence = document.querySelector('#assistant-confluence-tag')?.textContent?.trim() || '';
-    if (domAssistantPrimary) {
-      lines.push(`Status Kartu Asisten Mapping: ${domAssistantPrimary} (${domAssistantSub}) [${domConfluence}]`);
     }
 
-    const m15Sum = summarizeCandles('M15') || summarizeCandles('15min');
-    const m5Sum = summarizeCandles('M5') || summarizeCandles('5min');
-    if (m15Sum) lines.push(m15Sum);
-    if (m5Sum) lines.push(m5Sum);
+    if (mods.includes('market_intel')) {
+      tasks.push(
+        fetchLiveMarketIntelSummary('').then(txt => {
+          if (txt) lines.push(txt);
+        })
+      );
+    }
 
-    if (root.AmyLocalAssistant) {
-      try {
-        const mapText = root.AmyLocalAssistant.mapping('mapping', null, Date.now());
-        if (mapText) lines.push(`Konteks Struktur Mapping:\n${mapText}`);
-      } catch (_) {}
-      try {
-        const askAll = await root.AmyLocalAssistant.ask('semua modul');
-        if (askAll?.text) lines.push(`Ringkasan Modul Aplikasi (Mapping, News, Jurnal, Academy):\n${askAll.text}`);
-      } catch (_) {}
-      if (userQuestion) {
-        try {
-          const specific = await root.AmyLocalAssistant.ask(userQuestion);
-          if (specific?.text && !specific.text.includes('belum bisa menentukan')) {
-            lines.push(`Referensi Spesifik Aplikasi:\n${specific.text}`);
+    if (mods.includes('journal')) {
+      tasks.push(
+        (async () => {
+          if (root.AmyLocalAssistant?.readJournals) {
+            const jData = await root.AmyLocalAssistant.readJournals();
+            const jSummary = root.AmyLocalAssistant.journal(userQuestion || '', jData);
+            if (jSummary) lines.push(`DATA JURNAL & HABITS PENGGUNA:\n${jSummary}`);
           }
-        } catch (_) {}
-      }
+        })()
+      );
     }
 
+    if (mods.includes('risk_calc') && root.AmyLocalAssistant?.riskCalc) {
+      const calc = root.AmyLocalAssistant.riskCalc(userQuestion || '');
+      if (calc?.text) lines.push(`HASIL HITUNGAN LOT PRESISI:\n${calc.text}`);
+    }
+
+    if (mods.includes('practice') && root.AmyLocalAssistant?.practice) {
+      lines.push(root.AmyLocalAssistant.practice());
+    }
+
+    if (mods.includes('academy')) {
+      tasks.push(
+        collectAcademyReadingContext(userQuestion).then(txt => {
+          if (txt) lines.push(txt);
+        })
+      );
+    }
+
+    await Promise.allSettled(tasks);
     return lines.join('\n\n');
+  }
+
+  function switchChartTimeframeOnPage(validTf) {
+    const buttons = Array.from(document.querySelectorAll('[data-tf], .tf-btn, button'));
+    for (const btn of buttons) {
+      const ds = String(btn.getAttribute('data-tf') || btn.textContent || '').trim().toUpperCase();
+      if (ds === validTf && (btn.closest('#gold-chart-workspace, .gold-price-panel, .tf-switch, .chart-controls') || btn.hasAttribute('data-tf'))) {
+        btn.click();
+        return true;
+      }
+    }
+    const selectEl = document.querySelector('#timeframe, #home-chart-tf');
+    if (selectEl) {
+      selectEl.value = validTf;
+      selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+      const refBtn = document.querySelector('#refresh, #home-chart-refresh');
+      if (refBtn) refBtn.click();
+      return true;
+    }
+    return false;
   }
 
   function downsampleTo16k(inputBuffer, inputSampleRate) {
@@ -718,7 +688,7 @@
       const pcm16 = new Int16Array(inputBuffer.length);
       for (let i = 0; i < inputBuffer.length; i++) {
         const s = Math.max(-1, Math.min(1, inputBuffer[i]));
-        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
       }
       return pcm16;
     }
@@ -737,7 +707,7 @@
       }
       const sample = count > 0 ? accum / count : 0;
       const clamped = Math.max(-1, Math.min(1, sample));
-      pcm16[offsetResult] = clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF;
+      pcm16[offsetResult] = clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff;
       offsetResult++;
       offsetInput = nextOffsetInput;
     }
@@ -764,7 +734,6 @@
     src.connect(playAudioCtx.destination);
 
     const now = playAudioCtx.currentTime;
-    // Buffer pengaman 60ms agar aliran suara Aoede mulus & tidak patah-patah
     if (nextPlayTime < now) nextPlayTime = now + 0.06;
     src.start(nextPlayTime);
     nextPlayTime += buf.duration;
@@ -777,7 +746,6 @@
       const idx = activeSources.indexOf(src);
       if (idx !== -1) activeSources.splice(idx, 1);
       if (activeSources.length === 0) {
-        // Beri jeda 220ms setelah audio selesai agar gema speaker HP tidak memotong ulang
         setTimeout(() => {
           if (activeSources.length === 0) {
             isStreamingMic = true;
@@ -814,14 +782,22 @@
 
     const extraStyle = document.createElement('style');
     extraStyle.textContent = `
-      #amy-local-panel small {
-        display: none !important;
-      }
+      #amy-local-panel small { display: none !important; }
       #amy-local-panel header {
         padding: 12px 14px !important;
-        background: rgba(12, 18, 34, 0.88) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        background: rgba(12, 18, 34, 0.92) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         align-items: center;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        box-sizing: border-box;
+      }
+      #amy-local-panel .amy-brand-title {
+        color: #f8fafc;
+        font-weight: 800;
+        font-size: 14.5px;
+        letter-spacing: 0.02em;
       }
       #amy-local-panel.amy-minimized {
         height: auto !important;
@@ -836,15 +812,13 @@
         display: none !important;
       }
 
-      /* FULLSCREEN BUBBLE ORB MODE — CLEAN PRO MINIMALIST */
+      /* FULLSCREEN BUBBLE ORB MODE */
       #amy-local-root {
         position: relative !important;
         z-index: 2147483640 !important;
         pointer-events: auto !important;
       }
-      #amy-local-panel {
-        pointer-events: auto !important;
-      }
+      #amy-local-panel { pointer-events: auto !important; }
       #amy-local-panel.amy-bubble-fullscreen {
         position: fixed !important;
         inset: 0 !important;
@@ -859,8 +833,25 @@
         z-index: 2147483645 !important;
         pointer-events: auto !important;
       }
-      #amy-local-panel.amy-bubble-fullscreen * {
-        pointer-events: auto;
+      #amy-local-panel.amy-bubble-fullscreen * { pointer-events: auto; }
+      #amy-local-panel.amy-bubble-fullscreen header {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 14px 20px !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen .prompts,
+      #amy-local-panel.amy-bubble-fullscreen #amy-local-messages,
+      #amy-local-panel.amy-bubble-fullscreen form,
+      #amy-local-panel.amy-bubble-fullscreen #amy-attach-preview {
+        width: 100%;
+        max-width: 780px;
+        margin-inline: auto;
+        box-sizing: border-box;
+      }
+      #amy-local-panel.amy-bubble-fullscreen form {
+        border-radius: 16px 16px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
       }
       #amy-orb-hero {
         display: none;
@@ -872,10 +863,10 @@
         position: relative;
         flex-shrink: 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        width: 100%;
+        box-sizing: border-box;
       }
-      #amy-local-panel.amy-bubble-fullscreen #amy-orb-hero {
-        display: flex;
-      }
+      #amy-local-panel.amy-bubble-fullscreen #amy-orb-hero { display: flex; }
       .amy-bubble-stage {
         position: relative;
         width: 122px;
@@ -910,11 +901,7 @@
         height: 92px;
         border-radius: 50%;
         background: radial-gradient(circle at 32% 28%, #fde68a 0%, #f59e0b 26%, #6366f1 68%, #0f172a 100%);
-        box-shadow:
-          0 0 32px rgba(245, 196, 81, 0.4),
-          0 0 54px rgba(99, 102, 241, 0.3),
-          inset 0 3px 14px rgba(255, 255, 255, 0.65),
-          inset 0 -8px 20px rgba(15, 23, 42, 0.7);
+        box-shadow: 0 0 32px rgba(245, 196, 81, 0.4), 0 0 54px rgba(99, 102, 241, 0.3), inset 0 3px 14px rgba(255, 255, 255, 0.65), inset 0 -8px 20px rgba(15, 23, 42, 0.7);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -926,8 +913,6 @@
         color: #fff;
         filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
       }
-
-      /* State: Listening */
       .amy-bubble-stage.listening .amy-bubble-halo {
         opacity: 0.95;
         background: radial-gradient(circle, rgba(16, 185, 129, 0.65) 0%, rgba(6, 182, 212, 0.42) 52%, transparent 74%);
@@ -936,8 +921,6 @@
         background: radial-gradient(circle at 32% 28%, #a7f3d0 0%, #10b981 30%, #0284c7 72%, #0f172a 100%);
         box-shadow: 0 0 38px rgba(16, 185, 129, 0.6), inset 0 3px 14px rgba(255, 255, 255, 0.75);
       }
-
-      /* State: Speaking */
       .amy-bubble-stage.speaking .amy-bubble-halo {
         opacity: 1;
         background: radial-gradient(circle, rgba(236, 72, 153, 0.68) 0%, rgba(245, 196, 81, 0.48) 52%, transparent 75%);
@@ -948,55 +931,19 @@
         box-shadow: 0 0 44px rgba(236, 72, 153, 0.7), inset 0 3px 16px rgba(255, 255, 255, 0.8);
         animation: amyCoreSpeak 0.65s infinite alternate ease-in-out;
       }
-
-      /* State: Thinking */
       .amy-bubble-stage.thinking .amy-bubble-halo {
         opacity: 0.95;
         background: radial-gradient(circle, rgba(245, 158, 11, 0.7) 0%, rgba(99, 102, 241, 0.5) 55%, transparent 75%);
       }
+      @keyframes amyBubblePulse { 0%, 100% { transform: scale(0.98); opacity: 0.7; } 50% { transform: scale(1.05); opacity: 1; } }
+      @keyframes amyBubbleSpeak { 0% { transform: scale(1.02); } 100% { transform: scale(1.24); } }
+      @keyframes amyCoreSpeak { 0% { transform: scale(0.98); } 100% { transform: scale(1.08); } }
+      @keyframes amyDotBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.45; } 40% { transform: translateY(-4px); opacity: 1; } }
 
-      @keyframes amyBubblePulse {
-        0%, 100% { transform: scale(0.98); opacity: 0.7; }
-        50% { transform: scale(1.05); opacity: 1; }
-      }
-      @keyframes amyBubbleSpeak {
-        0% { transform: scale(1.02); }
-        100% { transform: scale(1.24); }
-      }
-      @keyframes amyCoreSpeak {
-        0% { transform: scale(0.98); }
-        100% { transform: scale(1.08); }
-      }
-
-      .amy-orb-title {
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: #e2e8f0;
-        margin-top: 2px;
-      }
-      .amy-vu-wrap {
-        width: 140px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 999px;
-        overflow: hidden;
-        margin-top: 7px;
-      }
-      .amy-vu-fill {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #10b981, #38bdf8, #f5c451);
-        border-radius: 999px;
-        transition: width 0.08s ease;
-      }
-      .amy-orb-controls {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 10px;
-      }
+      .amy-orb-title { font-size: 13px; font-weight: 700; letter-spacing: 0.02em; color: #e2e8f0; margin-top: 2px; }
+      .amy-vu-wrap { width: 140px; height: 4px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; margin-top: 7px; }
+      .amy-vu-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #38bdf8, #f5c451); border-radius: 999px; transition: width 0.08s ease; }
+      .amy-orb-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
       .amy-orb-btn {
         border-radius: 999px !important;
         padding: 8px 16px !important;
@@ -1013,7 +960,6 @@
         background: linear-gradient(135deg, #ef4444, #dc2626) !important;
         color: #fff !important;
         border-color: rgba(239, 68, 68, 0.75) !important;
-        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
       }
       .amy-orb-btn.muted-btn {
         background: rgba(239, 68, 68, 0.18) !important;
@@ -1021,7 +967,7 @@
         border-color: rgba(239, 68, 68, 0.45) !important;
       }
 
-      /* Horizontal Compact Quick Chips */
+      /* Quick Chips */
       #amy-local-panel .prompts {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -1029,39 +975,33 @@
         gap: 6px !important;
         padding: 8px 12px !important;
         scrollbar-width: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         flex-shrink: 0;
       }
-      #amy-local-panel .prompts::-webkit-scrollbar {
-        display: none;
-      }
+      #amy-local-panel .prompts::-webkit-scrollbar { display: none; }
       #amy-local-panel .prompts button {
         white-space: nowrap !important;
         flex-shrink: 0 !important;
         border-radius: 999px !important;
-        padding: 5px 11px !important;
-        font-size: 11px !important;
+        padding: 6px 12px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        font-size: 11.5px !important;
         font-weight: 600 !important;
-        background: rgba(255, 255, 255, 0.05) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
         color: #cbd5e1 !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      }
+      #amy-local-panel .prompts button:hover {
+        border-color: rgba(245, 196, 81, 0.55) !important;
+        color: #fef08a !important;
       }
 
-      .amy-status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #10b981;
-        box-shadow: 0 0 8px #10b981;
-        display: inline-block;
-      }
-      .amy-status-dot.live {
-        background: #ef4444;
-        box-shadow: 0 0 10px #ef4444;
-        animation: aiSparkBreathe 1.4s infinite ease-in-out;
-      }
+      .amy-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; display: inline-block; flex-shrink: 0; }
+      .amy-status-dot.live { background: #ef4444; box-shadow: 0 0 10px #ef4444; animation: aiSparkBreathe 1.4s infinite ease-in-out; }
 
-      /* Clean Modern Chat Bubbles */
+      /* Messages */
       #amy-local-messages {
         padding: 12px 14px !important;
         display: flex;
@@ -1075,6 +1015,7 @@
         font-size: 13.5px !important;
         line-height: 1.55 !important;
         max-width: 92%;
+        position: relative;
       }
       .amy-msg-user {
         align-self: flex-end;
@@ -1086,10 +1027,76 @@
       .amy-msg-ai {
         align-self: flex-start;
         background: rgba(255, 255, 255, 0.055) !important;
-        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-bottom-left-radius: 4px !important;
         color: #f1f5f9 !important;
       }
+      .amy-msg-ai strong { color: #fde68a; font-weight: 700; }
+      .amy-inline-code {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 5px;
+        padding: 1px 5px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+      }
+      .amy-code-block {
+        background: rgba(5, 9, 18, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        padding: 9px 11px;
+        margin: 8px 0;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #e2e8f0;
+      }
+      .amy-msg-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin-top: 6px;
+        gap: 6px;
+      }
+      .amy-copy-btn {
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        color: #94a3b8 !important;
+        border-radius: 7px !important;
+        padding: 4px 10px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .amy-copy-btn:hover {
+        color: #f5c451 !important;
+        border-color: rgba(245, 196, 81, 0.45) !important;
+        background: rgba(245, 196, 81, 0.1) !important;
+      }
+      .amy-typing-bubble {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #cbd5e1 !important;
+        font-size: 12.5px !important;
+      }
+      .amy-typing-dots { display: inline-flex; gap: 4px; align-items: center; }
+      .amy-typing-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #f5c451;
+        display: inline-block;
+        animation: amyDotBounce 1.2s infinite ease-in-out;
+      }
+      .amy-typing-dots span:nth-child(2) { animation-delay: 0.16s; }
+      .amy-typing-dots span:nth-child(3) { animation-delay: 0.32s; }
+
       .amy-msg-img {
         display: block;
         max-width: 100%;
@@ -1103,20 +1110,19 @@
         align-items: center;
         gap: 6px;
         margin-top: 6px;
-        padding: 7px 13px;
-        background: linear-gradient(135deg, rgba(245, 196, 81, 0.22), rgba(245, 196, 81, 0.08)) !important;
-        border: 1px solid rgba(245, 196, 81, 0.45) !important;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, rgba(245, 196, 81, 0.2), rgba(245, 196, 81, 0.08)) !important;
+        border: 1px solid rgba(245, 196, 81, 0.42) !important;
         border-radius: 10px !important;
         color: #fef08a !important;
         font-weight: 700 !important;
-        font-size: 12.5px !important;
+        font-size: 12px !important;
         text-decoration: none !important;
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-        transition: all 0.2s ease;
+        transition: all 0.18s ease;
       }
-      .amy-action-link:hover, .amy-action-link:active {
-        background: linear-gradient(135deg, rgba(245, 196, 81, 0.38), rgba(245, 196, 81, 0.16)) !important;
+      .amy-action-link:hover {
+        background: linear-gradient(135deg, rgba(245, 196, 81, 0.34), rgba(245, 196, 81, 0.16)) !important;
         border-color: #f5c451 !important;
         transform: translateY(-1px);
       }
@@ -1130,13 +1136,7 @@
         font-size: 11px;
         color: #fde68a;
       }
-      #amy-attach-preview img {
-        width: 34px;
-        height: 34px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid rgba(245, 196, 81, 0.5);
-      }
+      #amy-attach-preview img { width: 34px; height: 34px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(245, 196, 81, 0.5); }
       .amy-hdr-btn {
         width: 32px !important;
         height: 32px !important;
@@ -1155,11 +1155,20 @@
         color: #f5c451 !important;
         border-color: rgba(245, 196, 81, 0.4) !important;
       }
+      #amy-local-panel form {
+        gap: 6px !important;
+        padding: 10px 10px !important;
+        align-items: center;
+      }
+      #amy-local-panel form input {
+        font-size: 13.5px !important;
+        padding: 8px 11px !important;
+      }
       .amy-bar-btn {
-        width: 38px !important;
-        height: 38px !important;
+        width: 34px !important;
+        height: 34px !important;
         padding: 0 !important;
-        border-radius: 11px !important;
+        border-radius: 10px !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -1174,10 +1183,10 @@
         border-color: rgba(239, 68, 68, 0.7) !important;
       }
       .amy-send-btn {
-        width: 38px !important;
-        height: 38px !important;
+        width: 36px !important;
+        height: 34px !important;
         padding: 0 !important;
-        border-radius: 11px !important;
+        border-radius: 10px !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -1186,13 +1195,135 @@
         color: #090d16 !important;
         border: none !important;
       }
+
+      /* FULL LIGHT MODE OVERRIDES (data-amyfx-theme="light" & data-theme="light") */
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-fab {
+        background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+        color: #0f172a !important;
+        border: 1px solid rgba(180, 122, 14, 0.45) !important;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16), 0 0 14px rgba(217, 119, 6, 0.16) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-fab .ai-spark {
+        color: #d97706 !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%) !important;
+        border: 1px solid rgba(15, 23, 42, 0.14) !important;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(217, 119, 6, 0.12) !important;
+        color: #0f172a !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel.amy-bubble-fullscreen {
+        background: radial-gradient(circle at 50% 14%, rgba(254, 243, 199, 0.55) 0%, #f8fafc 48%, #f1f5f9 100%) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel header {
+        background: rgba(255, 255, 255, 0.94) !important;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel .amy-brand-title {
+        color: #0f172a !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-hdr-btn {
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid rgba(15, 23, 42, 0.12) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-hdr-btn:hover {
+        background: #fef3c7 !important;
+        color: #b45309 !important;
+        border-color: rgba(217, 119, 6, 0.4) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-orb-hero {
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-orb-title {
+        color: #1e293b !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-vu-wrap {
+        background: rgba(15, 23, 42, 0.1) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-orb-btn {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid rgba(15, 23, 42, 0.16) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel .prompts {
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+        background: rgba(248, 250, 252, 0.9) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel .prompts button {
+        background: #ffffff !important;
+        color: #334155 !important;
+        border: 1px solid rgba(15, 23, 42, 0.14) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel .prompts button:hover {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+        border-color: rgba(217, 119, 6, 0.5) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-msg-user {
+        background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+        border: 1px solid rgba(180, 122, 14, 0.35) !important;
+        color: #0f172a !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-msg-ai {
+        background: #ffffff !important;
+        border: 1px solid rgba(15, 23, 42, 0.1) !important;
+        color: #1e293b !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-msg-ai strong {
+        color: #92400e !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-inline-code {
+        background: #f1f5f9 !important;
+        border-color: rgba(15, 23, 42, 0.14) !important;
+        color: #0f172a !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-code-block {
+        background: #0f172a !important;
+        color: #f8fafc !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-copy-btn {
+        color: #64748b !important;
+        border-color: rgba(15, 23, 42, 0.14) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-copy-btn:hover {
+        color: #b45309 !important;
+        border-color: rgba(217, 119, 6, 0.45) !important;
+        background: #fef3c7 !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-action-link {
+        background: #fef3c7 !important;
+        border: 1px solid rgba(180, 122, 14, 0.4) !important;
+        color: #92400e !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-typing-bubble {
+        color: #475569 !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel form {
+        background: rgba(255, 255, 255, 0.96) !important;
+        border-top: 1px solid rgba(15, 23, 42, 0.1) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel form input {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        border: 1px solid rgba(15, 23, 42, 0.16) !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-panel form input::placeholder {
+        color: #64748b !important;
+      }
+      :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-bar-btn {
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid rgba(15, 23, 42, 0.12) !important;
+      }
     `;
     document.head.appendChild(extraStyle);
 
     header.innerHTML = `
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px">
         <span id="amy-gemini-dot" class="amy-status-dot"></span>
-        <strong style="color:#f8fafc;font-weight:800;font-size:14.5px;letter-spacing:0.02em">✦ AMY</strong>
+        <strong class="amy-brand-title">✦ AMY</strong>
       </div>
       <button type="button" id="amy-btn-fullbubble" class="amy-hdr-btn" title="Layar Penuh / Normal">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -1210,7 +1341,6 @@
 
     small.textContent = '';
 
-    // Area Gelembung Fullscreen Interaktif (Minimalis & Fokus Tanpa Teks Berlebihan)
     const orbHero = document.createElement('div');
     orbHero.id = 'amy-orb-hero';
     orbHero.innerHTML = `
@@ -1245,26 +1375,26 @@
     btnChartSnap.type = 'button';
     btnChartSnap.className = 'amy-bar-btn';
     btnChartSnap.title = 'Analisa Chart Gold di layar';
-    btnChartSnap.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f5c451" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
+    btnChartSnap.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5c451" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
 
     const btnAttach = document.createElement('button');
     btnAttach.type = 'button';
     btnAttach.className = 'amy-bar-btn';
-    btnAttach.title = 'Lampirkan gambar';
-    btnAttach.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
+    btnAttach.title = 'Lampirkan gambar chart';
+    btnAttach.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
 
     const btnVoice = document.createElement('button');
     btnVoice.type = 'button';
     btnVoice.id = 'amy-btn-voice';
     btnVoice.className = 'amy-bar-btn';
-    btnVoice.title = 'Suara Live';
-    btnVoice.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+    btnVoice.title = 'Suara Live (Aoede)';
+    btnVoice.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
 
     const submitBtnEl = form.querySelector('button[type="submit"]');
     submitBtnEl.className = 'amy-send-btn';
-    submitBtnEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`;
+    submitBtnEl.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`;
 
-    input.placeholder = 'Ketik pesan untuk AMY…';
+    input.placeholder = 'Tanya Gold, Jurnal, Lot…';
     form.insertBefore(btnChartSnap, input);
     form.insertBefore(btnAttach, input);
     form.insertBefore(btnVoice, submitBtnEl);
@@ -1281,11 +1411,6 @@
     const vuFill = orbHero.querySelector('#amy-vu-fill');
     const orbCallBtn = orbHero.querySelector('#amy-orb-call-btn');
     const orbMuteBtn = orbHero.querySelector('#amy-orb-mute-btn');
-
-    const statusBadge = {
-      set textContent(_) {},
-      set className(_) {}
-    };
 
     function setOrbVisualState(mode, titleText) {
       bubbleStage.className = 'amy-bubble-stage' + (mode ? ' ' + mode : '');
@@ -1311,87 +1436,38 @@
       } else {
         panel.classList.remove('amy-bubble-fullscreen');
       }
-      setTimeout(() => {
-        messages.scrollTop = messages.scrollHeight;
-      }, 60);
+      setTimeout(() => { messages.scrollTop = messages.scrollHeight; }, 60);
     }
 
-    fullBubbleBtn.onclick = () => {
-      setBubbleFullscreen(!isBubbleFullscreen);
-    };
-
+    fullBubbleBtn.onclick = () => setBubbleFullscreen(!isBubbleFullscreen);
     closeBtn.onclick = () => {
       setBubbleFullscreen(false);
       panel.hidden = true;
       fab.hidden = false;
     };
-
     minBtn.onclick = () => {
-      if (isBubbleFullscreen) {
-        setBubbleFullscreen(false);
-      }
+      if (isBubbleFullscreen) setBubbleFullscreen(false);
       panel.classList.toggle('amy-minimized');
     };
 
-    function resolveActionLinks(userQuery, replyText, reqLesson, det) {
+    // Clean, non-spammy action links strictly aligned with user intent & existing routes
+    function resolveActionLinks(intents, replyText) {
+      if (!intents || !intents.modules.length || isTransientErrorReply(replyText)) return [];
+      const curPath = window.location.pathname || '';
       const links = [];
-      const text = `${userQuery || ''} ${replyText || ''}`.toLowerCase();
 
-      // 1. If a specific lesson was requested or discussed
-      const activeLesson = reqLesson || det;
-      if (activeLesson && activeLesson.title && activeLesson.relPath) {
-        links.push({
-          label: `📖 Buka Materi: ${activeLesson.title}`,
-          path: `apps/academy/${activeLesson.relPath}`
-        });
-      }
+      const addIfNotCurrent = (label, path) => {
+        if (curPath.endsWith('/' + path) || curPath.endsWith(path)) return;
+        links.push({ label, path });
+      };
 
-      // 2. Modul matching (e.g. "modul 2", "modul 02")
-      const modMatch = text.match(/modul\s*0?(\d+)/i);
-      if (modMatch) {
-        const num = String(modMatch[1]).padStart(2, '0');
-        links.push({
-          label: `📚 Buka Modul ${num}`,
-          path: `apps/academy/modul-${num}/index.html`
-        });
+      for (const mod of intents.modules) {
+        if (mod === 'mapping') addIfNotCurrent('📈 Buka Chart Gold & Mapping', 'apps/mapping/index.html');
+        if (mod === 'market_intel') addIfNotCurrent('📰 Buka Berita & Kalender', 'apps/market-intel/index.html');
+        if (mod === 'journal' || mod === 'risk_calc') addIfNotCurrent('📓 Buka Jurnal & Habits', 'apps/journal/index.html');
+        if (mod === 'practice') addIfNotCurrent('🎯 Buka Trading Practice', 'apps/practice/index.html');
       }
 
-      // 3. Level matching (e.g. "level 0", "level 1")
-      const lvlMatch = text.match(/level\s*(\d+)/i);
-      if (lvlMatch) {
-        links.push({
-          label: `🎓 Buka Level ${lvlMatch[1]}`,
-          path: `apps/academy/belajar/level-${lvlMatch[1]}/index.html`
-        });
-      }
-
-      // 4. Feature modules matching
-      if (/\b(chart|gold|emas|mapping|sinyal|xau|peta harga)\b/i.test(text)) {
-        links.push({ label: '📈 Buka Chart Gold & Mapping', path: 'apps/mapping/index.html' });
-      }
-      if (/\b(berita|news|kalender|ekonomi|fomc|nfp|cpi|makro)\b/i.test(text)) {
-        links.push({ label: '📰 Buka Berita & Kalender', path: 'apps/market-intel/index.html' });
-      }
-      if (/\b(jurnal|journal|evaluasi|winrate|catatan|psikologi)\b/i.test(text)) {
-        links.push({ label: '📓 Buka Jurnal Trading', path: 'apps/journal/index.html' });
-      }
-      if (/\b(kalkulator|lot|resiko|risk calculator)\b/i.test(text)) {
-        links.push({ label: '🧮 Buka Kalkulator Risiko', path: 'apps/academy/tools/kalkulator-resiko.html' });
-      }
-      if (/\b(glosarium|kamus|istilah)\b/i.test(text)) {
-        links.push({ label: '📖 Buka Glosarium ICT', path: 'apps/academy/glosarium/index.html' });
-      }
-      if (/\b(practice|latihan|simulasi|replay)\b/i.test(text)) {
-        links.push({ label: '🎯 Buka Trading Practice', path: 'apps/practice/index.html' });
-      }
-      if (/\b(beranda|home|cockpit)\b/i.test(text)) {
-        links.push({ label: '🏠 Buka Beranda', path: 'index.html' });
-      }
-      if (links.length === 0 && /\b(academy|tutorial|belajar|materi)\b/i.test(text)) {
-        links.push({ label: '🎓 Buka Amy FX Academy', path: 'apps/academy/index.html' });
-      }
-
-      // Deduplicate by path
       const unique = [];
       const seen = new Set();
       for (const l of links) {
@@ -1400,12 +1476,30 @@
           unique.push(l);
         }
       }
-      return unique;
+      return unique.slice(0, 2);
+    }
+
+    let typingBubbleEl = null;
+    function showTypingIndicator() {
+      removeTypingIndicator();
+      const p = document.createElement('p');
+      p.className = 'amy-msg-ai amy-typing-bubble';
+      p.innerHTML = `<span class="amy-typing-dots"><span></span><span></span><span></span></span><span>AMY sedang menganalisa…</span>`;
+      messages.appendChild(p);
+      messages.scrollTop = messages.scrollHeight;
+      typingBubbleEl = p;
+    }
+    function removeTypingIndicator() {
+      if (typingBubbleEl) {
+        typingBubbleEl.remove();
+        typingBubbleEl = null;
+      }
     }
 
     function renderBubble(role, text, opts = {}) {
       const p = document.createElement('p');
       p.className = role === 'user' ? 'amy-msg-user' : 'amy-msg-ai';
+
       if (opts.imageBase64) {
         const img = document.createElement('img');
         img.className = 'amy-msg-img';
@@ -1413,14 +1507,23 @@
         img.alt = 'Chart';
         p.appendChild(img);
       }
-      const span = document.createElement('span');
-      const cleaned = role === 'user' ? String(text || '').replace(/^Sayang:\s*/i, '').trim() : cleanPlainText(String(text || '').replace(/^✦\s*AMY:\s*/i, ''));
-      span.textContent = cleaned;
-      p.appendChild(span);
+
+      const body = document.createElement('span');
+      const rawClean =
+        role === 'user'
+          ? String(text || '').replace(/^Sayang:\s*/i, '').trim()
+          : String(text || '').replace(/^✦\s*AMY:\s*/i, '').trim();
+
+      if (role === 'user' || opts.plainText) {
+        body.textContent = opts.plainText ? cleanPlainText(rawClean) : rawClean;
+      } else {
+        body.innerHTML = formatMarkdownSafeHtml(rawClean);
+      }
+      p.appendChild(body);
 
       if (Array.isArray(opts.links) && opts.links.length) {
         const linkWrap = document.createElement('div');
-        linkWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;';
+        linkWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;';
         const seenPaths = new Set();
         opts.links.forEach(l => {
           if (!l || !l.path || seenPaths.has(l.path)) return;
@@ -1435,12 +1538,15 @@
               e.preventDefault();
               if (isLiveConnected || isLiveConnecting) {
                 try {
-                  sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
-                    active: true,
-                    timestamp: Date.now(),
-                    targetTitle: l.label || 'halaman baru',
-                    fullscreen: isBubbleFullscreen
-                  }));
+                  sessionStorage.setItem(
+                    'amyfx.auto_resume_live',
+                    JSON.stringify({
+                      active: true,
+                      timestamp: Date.now(),
+                      targetTitle: l.label || 'halaman baru',
+                      fullscreen: isBubbleFullscreen
+                    })
+                  );
                 } catch (_) {}
               }
               window.location.href = targetUrl;
@@ -1450,10 +1556,33 @@
         });
         if (linkWrap.children.length) p.appendChild(linkWrap);
       }
+
+      if (role !== 'user' && !opts.hideCopy && rawClean.length > 12) {
+        const footer = document.createElement('div');
+        footer.className = 'amy-msg-footer';
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'amy-copy-btn';
+        copyBtn.textContent = 'Salin';
+        copyBtn.onclick = async () => {
+          const toCopy = cleanPlainText(rawClean);
+          try {
+            await navigator.clipboard.writeText(toCopy);
+            copyBtn.textContent = 'Tersalin ✓';
+            setTimeout(() => { copyBtn.textContent = 'Salin'; }, 1600);
+          } catch (_) {
+            copyBtn.textContent = 'Gagal';
+            setTimeout(() => { copyBtn.textContent = 'Salin'; }, 1200);
+          }
+        };
+        footer.appendChild(copyBtn);
+        p.appendChild(footer);
+      }
+
       messages.appendChild(p);
       while (messages.children.length > 40) messages.firstChild.remove();
       messages.scrollTop = messages.scrollHeight;
-      return span;
+      return body;
     }
 
     function restoreSavedChat() {
@@ -1462,7 +1591,8 @@
       if (!saved.length) {
         renderBubble(
           'model',
-          'Halo Sayang! Ada yang ingin dianalisa di Chart Gold atau dipelajari di Academy hari ini? Aku siap dampingi Sayang.'
+          'Halo Sayang! Saya **✦ AMY**, asisten khusus trading **XAU/USD** yang terhubung langsung ke **Chart Gold**, **Berita & Kalender**, **Jurnal & Habits**, **Hitung Lot**, dan **Practice**.\nMau cek apa hari ini?',
+          { hideCopy: true }
         );
         return;
       }
@@ -1511,8 +1641,7 @@
           }
           canvas.width = w;
           canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
           const b64 = canvas.toDataURL('image/jpeg', 0.82).replace(/^data:image\/\w+;base64,/, '');
           setPendingAttachment(b64, file.name);
         };
@@ -1526,7 +1655,7 @@
       const snap = captureChartCanvasBase64();
       if (snap) {
         setPendingAttachment(snap, 'Kanvas Chart Gold Live');
-        sendChatMessage('Tolong analisa Chart Gold di layar saya sekarang (struktur candle M15/M5, Dealing Range, dan area pantau Buy/Sell 100 pips).');
+        sendChatMessage('Tolong analisa Chart Gold di layar saya sekarang (struktur M15/M5, Dealing Range, BSL/SSL, dan area pantau).');
       } else {
         sendChatMessage('Bagaimana analisa struktur dan harga Gold di Mapping sekarang?');
       }
@@ -1539,150 +1668,106 @@
       isSending = true;
       input.value = '';
 
+      const intents = detectIntents(q);
       let imgToSend = pendingImageBase64;
-      if (!imgToSend && /\b(chart|grafik|candle|analisa|mapping|setup|entry|fvg|sbr|rbs|pdl|pdh|harga|xau|gold)\b/i.test(q)) {
+      // Strict chart screenshot trigger — zero false positives on journal/lot/news queries
+      if (!imgToSend && intents.wantsChartVision) {
         imgToSend = captureChartCanvasBase64();
       }
       setPendingAttachment('', '');
 
       renderBubble('user', q || 'Analisa gambar chart ini', { imageBase64: imgToSend });
 
+      // 1. Live Voice active session path
       if (isLiveConnected && ws && ws.readyState === WebSocket.OPEN) {
         stopPlayback();
         isStreamingMic = false;
         setOrbVisualState('thinking', 'Memproses…');
         if (imgToSend) {
-          ws.send(JSON.stringify({
-            realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: imgToSend }] }
-          }));
+          ws.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: imgToSend }] } }));
         }
-
-        // Jika pertanyaan menanyakan modul/level/materi tertentu, ambil isi materinya dan tempelkan kartunya ke chat
-        let turnText = q || 'Tolong analisa gambar chart ini.';
-        const isMateriQuery = /\b(modul|level|bab|bagian|materi|pelajari|belajar|buka|fvg|order block|breaker|liquidity|bos|mss|ote|killzone|candle)\b/i.test(q);
-        if (isMateriQuery) {
-          const les = resolveLessonFromQuery(q);
-          if (les && les.title) {
-            lastRequestedLesson = les;
-            lastReadLessonDetails = les;
-            try {
-              root.localStorage.setItem('amy_academy_last_read_v2', JSON.stringify({
-                title: les.title,
-                path: les.relPath,
-                section: 'Amy FX Academy',
-                updatedAt: Date.now()
-              }));
-              root.localStorage.setItem('amy_last_opened_title', les.title);
-              root.localStorage.setItem('amy_last_opened_url', les.fullPath);
-            } catch (_) {}
-
-            const isExplicitOpen = /\b(buka|baca|tampilkan|ke materi|lihat materi|buka materi)\b/i.test(q);
-            if (isExplicitOpen) {
-              if (isLiveConnected || isLiveConnecting) {
-                try {
-                  sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
-                    active: true,
-                    timestamp: Date.now(),
-                    targetTitle: les.title,
-                    lessonTitle: les.title,
-                    lessonPath: les.fullPath,
-                    fullscreen: isBubbleFullscreen
-                  }));
-                } catch (_) {}
-              }
-              renderBubble('model', `Membuka materi "${les.title}" di Academy untuk Sayang…`, {
-                links: [{ label: `👉 Buka ${les.title}`, path: les.fullPath }]
-              });
-              const targetUrl = resolveAppUrl(les.fullPath);
-              setTimeout(() => {
-                try {
-                  window.location.href = targetUrl;
-                } catch (_) {
-                  try { window.location.assign(targetUrl); } catch (_) {}
-                }
-              }, 400);
-
-              setTimeout(() => {
-                if (isLiveConnected) {
-                  setOrbVisualState(isStreamingMic ? 'listening' : '', isStreamingMic ? 'Mendengarkan…' : 'Siap Menemani Sayang');
-                } else {
-                  setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
-                }
-                isSending = false;
-              }, 2200);
-
-              isSending = false;
-              return;
+        ws.send(
+          JSON.stringify({
+            clientContent: {
+              turns: [{ role: 'user', parts: [{ text: q || 'Tolong analisa gambar chart ini.' }] }],
+              turnComplete: true
             }
-
-            renderBubble(
-              'model',
-              `${les.title}\n\n${(les.fullText || les.summary || '').slice(0, 1800)}`,
-              { links: [{ label: `Buka Materi: ${les.title}`, path: les.fullPath }] }
-            );
-            turnText =
-              `${q}\n\n[FAKTA MATERI ACADEMY DARI APLIKASI]:\n` +
-              `Judul: ${les.title} (${les.fullPath})\n` +
-              `Isi Lengkap Materi:\n${(les.fullText || les.summary || '').slice(0, 3500)}\n\n` +
-              `Jawab pertanyaan Sayang dengan sapaan "Sayang" secara mendalam, santai, dan jelas berdasarkan isi materi di atas!`;
-          }
-        }
-
-        ws.send(JSON.stringify({
-          clientContent: {
-            turns: [{ role: 'user', parts: [{ text: turnText }] }],
-            turnComplete: true
-          }
-        }));
+          })
+        );
         isSending = false;
         return;
       }
 
-      // Cek apakah perintah membuka materi saat non-live chat biasa
-      const isExplicitOpenNonLive = /\b(buka|baca|tampilkan|ke materi|lihat materi)\b/i.test(q) && /\b(materi|materinya|modul|level|bab|bagian|breaker|fvg|order block|itu|terakhir)\b/i.test(q);
-      if (isExplicitOpenNonLive) {
-        const les = resolveLessonFromQuery(q);
-        if (les && les.title) {
-          lastRequestedLesson = les;
-          lastReadLessonDetails = les;
-          try {
-            root.localStorage.setItem('amy_academy_last_read_v2', JSON.stringify({
-              title: les.title,
-              path: les.relPath,
-              section: 'Amy FX Academy',
-              updatedAt: Date.now()
-            }));
-            root.localStorage.setItem('amy_last_opened_title', les.title);
-            root.localStorage.setItem('amy_last_opened_url', les.fullPath);
-          } catch (_) {}
-          renderBubble('model', `Membuka materi "${les.title}" di Academy untuk Sayang…`, {
-            links: [{ label: `👉 Buka ${les.title}`, path: les.fullPath }]
+      // 2. Explicit chart timeframe switch in text chat
+      if (intents.switchTimeframe) {
+        const switched = switchChartTimeframeOnPage(intents.switchTimeframe);
+        const msg = switched
+          ? `Siap Sayang! Grafik Chart Gold sudah saya alihkan ke timeframe **${intents.switchTimeframe}**.`
+          : `Halaman ini belum menampilkan kontrol grafik Chart Gold. Buka **Chart Gold & Mapping** untuk memilih timeframe **${intents.switchTimeframe}**.`;
+        renderBubble('model', msg, {
+          links: switched ? [] : [{ label: '📈 Buka Chart Gold & Mapping', path: 'apps/mapping/index.html' }]
+        });
+        isSending = false;
+        return;
+      }
+
+      // 3. Explicit page navigation command
+      if (intents.explicitNav && intents.navTarget) {
+        const navMap = {
+          mapping: ['Chart Gold & Mapping', 'apps/mapping/index.html'],
+          market_intel: ['Berita & Kalender', 'apps/market-intel/index.html'],
+          journal: ['Jurnal & Habits', 'apps/journal/index.html'],
+          practice: ['Trading Practice', 'apps/practice/index.html'],
+          indikator: ['Indikator ICT', 'apps/indikator/index.html'],
+          home: ['Beranda', 'index.html']
+        };
+        const target = navMap[intents.navTarget];
+        if (target) {
+          renderBubble('model', `Membuka **${target[0]}** untuk Sayang…`, {
+            links: [{ label: `👉 Buka ${target[0]}`, path: target[1] }],
+            hideCopy: true
           });
-          const targetUrl = resolveAppUrl(les.fullPath);
           setTimeout(() => {
-            try {
-              window.location.href = targetUrl;
-            } catch (_) {
-              try { window.location.assign(targetUrl); } catch (_) {}
-            }
-          }, 400);
+            try { window.location.assign(resolveAppUrl(target[1])); } catch (_) {}
+          }, 420);
           isSending = false;
-          setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
+          return;
+        }
+      }
+
+      // 4. Instant pure XAU/USD Lot Calculation (exact deterministic math, zero quota burn)
+      if (
+        intents.wantsLotCalc &&
+        !imgToSend &&
+        !intents.modules.includes('market_intel') &&
+        !intents.modules.includes('journal') &&
+        root.AmyLocalAssistant?.riskCalc
+      ) {
+        const calc = root.AmyLocalAssistant.riskCalc(q);
+        if (calc?.ok) {
+          renderBubble('model', calc.text, { links: resolveActionLinks(intents, calc.text) });
+          const hist = loadHistory();
+          hist.push({ role: 'user', text: q }, { role: 'model', text: calc.text });
+          saveHistory(hist);
+          isSending = false;
           return;
         }
       }
 
       setOrbVisualState('thinking', 'Menganalisa…');
+      showTypingIndicator();
       const submitBtn = form.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
 
       try {
         const hist = loadHistory();
-        const appContext = await collectAmyAppContext(q);
+        const appContext = await collectAmyAppContext(q, intents);
         let data = null;
+
+        // Primary chat path: /api/gemini-chat
         try {
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 9000);
+          const timer = setTimeout(() => controller.abort(), 11000);
           const resp = await fetch(getApiBaseUrl() + '/api/gemini-chat', {
             method: 'POST',
             signal: controller.signal,
@@ -1695,92 +1780,88 @@
             })
           });
           clearTimeout(timer);
-          if (resp.ok) {
-            data = await resp.json();
-          }
+          if (resp.ok) data = await resp.json();
         } catch (_) {}
 
-        if (!data || !data.ok) {
+        // Direct client-bridge fallback (ONLY if a valid real Gemini API key exists — never triggers 400 on placeholder keys!)
+        if ((!data || !data.ok) && data?.code !== 'NO_VALID_KEY') {
           try {
             const cfg = await ensureGeminiConfig();
-            const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${cfg.apiKey}`;
-            const sysText =
-              `Kamu adalah AMY (✦ AMY), asisten trading pintar dan setia di dalam aplikasi Amy FX Pro.\n` +
-              `Panggil pengguna selalu dengan sebutan "Sayang" dengan nada bicara yang hangat, cerdas, dan suportif dalam Bahasa Indonesia yang luwes.\n` +
-              `Pengguna adalah Pure Gold Scalper M15/M5 target 100 pips WITA.\n` +
-              `Konteks data aplikasi saat ini:\n${appContext || 'Data tidak tersedia.'}\n` +
-              `Gunakan istilah standar trader pro (Support/Demand, Resistance/Supply, No-Trade Zone, Dealing Range, FVG, OB, MSS). Jawab mengalir, bernarasi jelas, rapi, dan tuntas. Gunakan tanda titik bulat (•) untuk poin.`;
-            const gContents = [];
-            for (const h of hist.slice(-6)) {
-              if (h?.text) gContents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: String(h.text) }] });
-            }
-            const parts = [];
-            if (imgToSend) parts.push({ inlineData: { mimeType: 'image/jpeg', data: imgToSend } });
-            parts.push({ text: q || 'Analisa chart' });
-            gContents.push({ role: 'user', parts });
+            if (cfg && isValidGeminiKey(cfg.apiKey)) {
+              const directModels = [cfg.chatModel || DEFAULT_CHAT_MODELS[0], cfg.fallbackChatModel || DEFAULT_CHAT_MODELS[1]];
+              const sysText =
+                `Kamu adalah ✦ AMY, asisten khusus trading XAU/USD di Amy FX Pro (Pure Gold Scalper M15/M5 WITA).\n` +
+                `Sapa pengguna dengan "Sayang", jawab tegas, jujur (Anti-Yes-Man), dan 100% berdasar data live aplikasi.\n` +
+                `KONTEKS LIVE APLIKASI:\n${appContext}`;
+              const gContents = [];
+              for (const h of hist.slice(-6)) {
+                if (h?.text) gContents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: String(h.text) }] });
+              }
+              const parts = [];
+              if (imgToSend) parts.push({ inlineData: { mimeType: 'image/jpeg', data: imgToSend } });
+              parts.push({ text: q || 'Analisa chart' });
+              gContents.push({ role: 'user', parts });
 
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 7000);
-            const gResp = await fetch(gUrl, {
-              method: 'POST',
-              signal: controller.signal,
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: sysText }] },
-                generationConfig: { temperature: 0.2, maxOutputTokens: 500 },
-                contents: gContents
-              })
-            });
-            clearTimeout(timer);
-            if (gResp.ok) {
-              const gJson = await gResp.json();
-              const gParts = gJson?.candidates?.[0]?.content?.parts || [];
-              const reply = gParts.filter(p => !p.thought && p.text).map(p => p.text).join('').trim() || gParts[0]?.text || '';
-              if (reply) {
-                data = { ok: true, reply: cleanPlainText(reply) };
+              for (const modelName of directModels) {
+                const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(cfg.apiKey)}`;
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 8000);
+                const genCfg = { maxOutputTokens: 950 };
+                if (!modelName.startsWith('gemini-4')) genCfg.temperature = 0.25;
+                const gResp = await fetch(gUrl, {
+                  method: 'POST',
+                  signal: controller.signal,
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: sysText }] },
+                    generationConfig: genCfg,
+                    contents: gContents
+                  })
+                });
+                clearTimeout(timer);
+                if (gResp.ok) {
+                  const gJson = await gResp.json();
+                  const gParts = gJson?.candidates?.[0]?.content?.parts || [];
+                  const reply = gParts.filter(p => !p.thought && p.text).map(p => p.text).join('').trim();
+                  if (reply) {
+                    data = { ok: true, reply, model: modelName };
+                    break;
+                  }
+                }
               }
             }
           } catch (_) {}
         }
 
-        let replyText = '';
-        let links = [];
-        if (root.AmyLocalAssistant) {
+        // Local Pro Trading Engine fallback (100% synced offline/free-tier mode)
+        let replyText = data && data.ok && data.reply ? data.reply : '';
+        if (!replyText && root.AmyLocalAssistant) {
           try {
             const localRes = await root.AmyLocalAssistant.ask(q);
-            if (Array.isArray(localRes?.links) && localRes.links.length) {
-              links.push(...localRes.links);
-            }
-            if ((!data || !data.ok) && localRes?.text) replyText = localRes.text;
+            if (localRes?.text) replyText = localRes.text;
           } catch (_) {}
         }
-        if (data && data.ok && data.reply) {
-          replyText = data.reply;
-        }
-
-        const actionLinks = resolveActionLinks(q, replyText, lastRequestedLesson, lastReadLessonDetails);
-        links = [...actionLinks, ...links];
-        const seenL = new Set();
-        links = links.filter(l => {
-          if (!l || !l.path || seenL.has(l.path)) return false;
-          seenL.add(l.path);
-          return true;
-        });
-
         if (!replyText) {
-          replyText = 'Maaf, koneksi sedang sibuk. Coba ketuk sekali lagi ya.';
+          replyText = 'Maaf Sayang, data sementara belum terbaca. Coba ketuk kirim sekali lagi ya.';
         }
 
+        const links = resolveActionLinks(intents, replyText);
+        removeTypingIndicator();
         renderBubble('model', replyText, { links });
-        hist.push({ role: 'user', text: q });
-        hist.push({ role: 'model', text: replyText });
-        saveHistory(hist);
+
+        if (!isTransientErrorReply(replyText)) {
+          hist.push({ role: 'user', text: q });
+          hist.push({ role: 'model', text: replyText });
+          saveHistory(hist);
+        }
       } catch (_) {
+        removeTypingIndicator();
         if (root.AmyLocalAssistant) {
           const fallback = await root.AmyLocalAssistant.ask(q);
-          renderBubble('model', fallback.text, { links: fallback.links });
+          renderBubble('model', fallback.text, { links: resolveActionLinks(intents, fallback.text) });
         }
       } finally {
+        removeTypingIndicator();
         setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
         submitBtn.disabled = false;
         isSending = false;
@@ -1796,10 +1877,11 @@
 
     promptsWrap.innerHTML = '';
     [
-      { label: 'Chart Gold', q: 'Analisa Chart Gold M15 & M5 di layar sekarang beserta zona Support/Demand dan Resistance/Supply untuk target 100 pips' },
-      { label: 'Berita', q: 'Apa berita terbaru dan jadwal kalender ekonomi High Impact terdekat?' },
-      { label: 'Jurnal', q: 'Evaluasi performa jurnal trading, winrate, dan refleksi emosi saya' },
-      { label: 'Academy', q: 'Bagaimana progres belajar saya di Academy dan materi apa yang perlu saya pelajari selanjutnya?' }
+      { label: 'Chart Gold', q: 'Harga Gold sekarang berapa, di zona Dealing Range apa, dan mana level BSL/SSL serta OB terdekat?' },
+      { label: 'Berita & Kalender', q: 'Apa berita fokus Gold terbaru dan jadwal kalender ekonomi USD terdekat?' },
+      { label: 'Jurnal & Habits', q: 'Evaluasi performa jurnal trading, win rate, habit disiplin, dan emosi saya' },
+      { label: 'Hitung Lot', q: 'Hitung lot XAU/USD untuk modal $1000 risiko 1% SL 50 pips' },
+      { label: 'Practice', q: 'Bagaimana skor latihan Trading Practice saya dan apa yang perlu diulang?' }
     ].forEach(item => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -1808,7 +1890,6 @@
       promptsWrap.appendChild(b);
     });
 
-    // Fungsi penutup giliran bicara pengguna (mengirim sinyal audioStreamEnd: true agar Gemini langsung merespon tanpa menggantung!)
     function commitUserSpeechTurn() {
       if (!isLiveConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
       if (silenceTimer) {
@@ -1820,38 +1901,33 @@
       vuFill.style.width = '0%';
       bubbleCore.style.transform = 'scale(1)';
       setOrbVisualState('thinking', 'Memproses…');
-
       try {
-        ws.send(JSON.stringify({
-          realtimeInput: { audioStreamEnd: true }
-        }));
+        ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
       } catch (_) {}
-
-      // Pengaman: jika dalam 6 detik belum ada suara balasan, buka kembali mic secara otomatis
       setTimeout(() => {
         if (isLiveConnected && !isStreamingMic && activeSources.length === 0) {
           isStreamingMic = true;
-          if (!isMicMuted) {
-            setOrbVisualState('listening', 'Mendengarkan…');
-          }
+          if (!isMicMuted) setOrbVisualState('listening', 'Mendengarkan…');
         }
       }, 6000);
     }
 
-    // --- FITUR SUARA LIVE GEMINI 3.8 LIVE (AOEDE) + FULLSCREEN BUBBLE ---
+    // --- AMY LIVE VOICE (DIRECT CLIENT WEBSOCKET TO GEMINI 3.8 LIVE · AOEDE) ---
     async function toggleLiveVoice() {
       if (isLiveConnected || isLiveConnecting) {
         stopLiveVoice();
         return;
       }
 
-      if (!isBubbleFullscreen) {
-        setBubbleFullscreen(true);
-      }
+      if (!isBubbleFullscreen) setBubbleFullscreen(true);
 
-      let cfg = await ensureGeminiConfig();
-      if (!cfg || !cfg.apiKey) {
-        renderBubble('model', 'Koneksi suara Gemini sedang disiapkan oleh server Vercel… Mohon tunggu sebentar.');
+      const cfg = await ensureGeminiConfig();
+      if (!cfg || !isValidGeminiKey(cfg.apiKey)) {
+        renderBubble(
+          'model',
+          'Mode **Suara Live (Aoede)** membutuhkan kunci Gemini aktif di server (`/api/gemini-config`). Sementara itu, Sayang tetap bisa menggunakan **Chat Teks & Hitung Lot** yang aktif penuh dengan data live aplikasi!',
+          { hideCopy: true }
+        );
         return;
       }
 
@@ -1863,12 +1939,7 @@
 
       try {
         micStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            channelCount: 1,
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
+          audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
         });
 
         micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1879,20 +1950,28 @@
         await playAudioCtx.resume();
         nextPlayTime = 0;
 
-        const appContext = await collectAmyAppContext('Analisa chart dan semua modul');
+        const appContext = await collectAmyAppContext('briefing lengkap', {
+          modules: ['mapping', 'market_intel', 'journal', 'practice'],
+          explicitNav: false,
+          navTarget: null,
+          wantsChartVision: false,
+          wantsLotCalc: false,
+          switchTimeframe: null
+        });
+
         const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(cfg.apiKey)}`;
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
           const setupMsg = {
             setup: {
-              model: cfg.liveModel || 'models/gemini-2.0-flash-exp',
+              model: cfg.liveModel || DEFAULT_LIVE_MODEL,
               generationConfig: {
                 responseModalities: ['AUDIO'],
                 speechConfig: {
                   voiceConfig: {
                     prebuiltVoiceConfig: {
-                      voiceName: cfg.voiceName || 'Aoede'
+                      voiceName: cfg.voiceName || DEFAULT_VOICE_NAME
                     }
                   }
                 }
@@ -1901,124 +1980,114 @@
                 {
                   functionDeclarations: [
                     {
-                      name: 'open_academy_material',
+                      name: 'get_mapping_structure_details',
                       description:
-                        'Membuka dan mengambil isi lengkap materi belajar trading dari Amy FX Academy (Level 0 s.d. Level 6, Modul 01 s.d. Modul 10, atau Bagian 01 s.d. Bagian 36). WAJIB dipanggil setiap kali pengguna meminta membuka, mempelajari, atau menjelaskan Level, Modul, atau Bab tertentu (contoh: "pelajari modul 2", "buka level 1", "materi FVG", "tampilkan full materi").',
+                        'Mengambil data live struktur XAU/USD (Harga Live, Dealing Range %/BREAKDOWN/DISKON/PREMIUM, BSL & SSL valid, Order Block + 50% CE, FVG fresh, H1/M15/M5 bias, dan Plan). WAJIB dipanggil saat Sayang bertanya kondisi pasar/mapping dan JAWAB LANGSUNG DI TEMPAT.',
+                      parameters: { type: 'OBJECT', properties: {} }
+                    },
+                    {
+                      name: 'get_live_gold_price',
+                      description: 'Mengambil harga live XAU/USD terbaru di layar.',
+                      parameters: { type: 'OBJECT', properties: {} }
+                    },
+                    {
+                      name: 'get_market_news_summary',
+                      description:
+                        'Mengambil rangkuman Kalender Ekonomi USD (Aktual vs Forecast, Countdown WITA) dan berita fokus Gold terbaru. JAWAB LANGSUNG DI TEMPAT.',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {
+                          topic: { type: 'STRING', description: 'Topik berita opsional (contoh: "fed", "inflasi", "cpi", "nfp").' }
+                        }
+                      }
+                    },
+                    {
+                      name: 'get_journal_summary',
+                      description:
+                        'Mengambil evaluasi Jurnal Trading lengkap (IndexedDB + localStorage: Win rate, Profit Factor, Net Pips, jam profit WITA, emosi) serta Habit & Discipline Streak.',
+                      parameters: { type: 'OBJECT', properties: {} }
+                    },
+                    {
+                      name: 'calculate_gold_lot',
+                      description:
+                        'Menghitung ukuran LOT XAU/USD presisi beserta risiko USD, TP1 (1:1.5R), dan TP2 (1:3R) berdasarkan modal, persen risiko, entry & SL atau jarak SL pips.',
                       parameters: {
                         type: 'OBJECT',
                         properties: {
                           query: {
                             type: 'STRING',
-                            description: 'Nama level, modul, bab, atau topik yang diminta pengguna (contoh: "modul 2", "level 1 bab 2", "level 0", "order block", "fvg").'
+                            description: 'Rincian hitungan lot, misalnya "modal 1000 risiko 1% entry 3708 SL 3718" atau "saldo 500 risk 1% SL 50 pips".'
                           }
                         },
                         required: ['query']
                       }
                     },
                     {
-                      name: 'get_live_gold_price',
+                      name: 'get_practice_summary',
+                      description: 'Mengambil skor latihan Trading Practice dan topik yang perlu diulang.',
+                      parameters: { type: 'OBJECT', properties: {} }
+                    },
+                    {
+                      name: 'open_academy_material',
                       description:
-                        'Mengambil harga live pasar XAU/USD (Gold) saat ini dari layar dan candle aplikasi. WAJIB dipanggil jika ingin memverifikasi harga riil Gold.',
+                        'Mengambil isi materi ICT/Academy untuk dijelaskan langsung di tempat. Set navigate=true HANYA jika Sayang secara eksplisit menyuruh membuka halaman materinya.',
                       parameters: {
                         type: 'OBJECT',
-                        properties: {}
+                        properties: {
+                          query: { type: 'STRING', description: 'Topik atau nama materi ICT (contoh: "FVG", "Order Block", "Liquidity Sweep").' },
+                          navigate: { type: 'BOOLEAN', description: 'Default false (jawab di tempat). Set true hanya jika diminta berpindah halaman.' }
+                        },
+                        required: ['query']
+                      }
+                    },
+                    {
+                      name: 'switch_chart_timeframe',
+                      description: 'Mengganti timeframe Chart Gold di layar antara M15, M5, atau H1.',
+                      parameters: {
+                        type: 'OBJECT',
+                        properties: {
+                          timeframe: { type: 'STRING', description: 'Target timeframe: "M15", "M5", atau "H1".' }
+                        },
+                        required: ['timeframe']
                       }
                     },
                     {
                       name: 'navigate_to_page',
                       description:
-                        'HANYA DAN WAJIB dipanggil jika pengguna SECARA EKSPLISIT memerintahkan untuk membuka, berpindah layar, atau menampilkan halaman (contoh: "buka halaman mapping", "pindahkan ke berita", "tampilkan jurnal"). DILARANG MEMANGGIL TOOL INI jika pengguna HANYA BERTANYA informasi (seperti tanya PDH/PDL, OB, FVG, mapping, berita, atau jurnal) — untuk pertanyaan informasi, CUKUP JAWAB LANGSUNG DI TEMPAT menggunakan tool data terkait!',
+                        'HANYA dipanggil jika Sayang SECARA EKSPLISIT memerintahkan pindah halaman (contoh: "buka halaman mapping", "pindah ke berita", "buka jurnal"). JANGAN dipanggil jika hanya bertanya informasi.',
                       parameters: {
                         type: 'OBJECT',
                         properties: {
                           page: {
                             type: 'STRING',
-                            description: 'Tujuan halaman: "home" (Beranda), "mapping" (Peta Struktur & Chart Gold), "journal" (Jurnal Trading), "academy" (Tutorial/Akademi Trading), "news" (Berita Makro & Kalender), "chart_analysis" (Praktik Chart Analysis), "candle_replay" (Praktik Replay Candle), "guided_practice" (Latihan Soal 60 Kasus), "backtest_history" (Riwayat Backtest).'
+                            description: 'Pilihan: "home", "mapping", "news", "journal", "practice", "indikator".'
                           }
                         },
                         required: ['page']
                       }
                     },
                     {
-                      name: 'switch_chart_timeframe',
-                      description:
-                        'Mengganti timeframe grafik candle Gold di layar antara M15 dan M5 (contoh: "ganti ke M5", "lihat chart M15").',
-                      parameters: {
-                        type: 'OBJECT',
-                        properties: {
-                          timeframe: {
-                            type: 'STRING',
-                            description: 'Timeframe target: "M15" atau "M5".'
-                          }
-                        },
-                        required: ['timeframe']
-                      }
-                    },
-                    {
-                      name: 'get_journal_summary',
-                      description:
-                        'Mengambil ringkasan performa jurnal trading pengguna dari data lokal aplikasi (total trade, win rate, total pips, profit/loss, evaluasi disiplin). WAJIB dipanggil jika pengguna bertanya tentang jurnal tradingnya dan JAWAB LANGSUNG DI TEMPAT tanpa membuka halaman jurnal.',
-                      parameters: {
-                        type: 'OBJECT',
-                        properties: {}
-                      }
-                    },
-                    {
-                      name: 'get_market_news_summary',
-                      description:
-                        'Mengambil rangkuman berita makro terkini dari SM News 24 dan kalender ekonomi di aplikasi. WAJIB dipanggil saat pengguna menanyakan kabar berita terbaru atau sentimen makro dan JAWAB LANGSUNG DI TEMPAT tanpa perlu membuka halaman berita.',
-                      parameters: {
-                        type: 'OBJECT',
-                        properties: {
-                          topic: {
-                            type: 'STRING',
-                            description: 'Topik berita spesifik (opsional, contoh: "perang", "fed", "inflasi", "emas").'
-                          }
-                        }
-                      }
-                    },
-                    {
-                      name: 'get_mapping_structure_details',
-                      description:
-                        'Mengambil status data struktur lengkap pasar Gold dari engine resmi (PDH, PDL, PWH, PWL, BSL, SSL, Dealing Range Premium/Discount/EQ 50%, Order Block fresh beserta titik 50% CE, FVG, BOS, MSS, dan bias multi-timeframe). WAJIB dipanggil saat pengguna menanyakan hal seputar mapping, level harga kunci ICT, atau struktur chart di mana pun pengguna berada, TANPA PERLU MEMBUKA HALAMAN MAPPING.',
-                      parameters: {
-                        type: 'OBJECT',
-                        properties: {}
-                      }
-                    },
-                    {
                       name: 'refresh_chart_view',
-                      description:
-                        'Mengambil snapshot visual gambar grafik Gold terbaru di layar saat ini jika pengguna meminta mengecek atau melihat kembali chart.',
-                      parameters: {
-                        type: 'OBJECT',
-                        properties: {}
-                      }
+                      description: 'Mengambil snapshot visual Chart Gold terbaru di layar.',
+                      parameters: { type: 'OBJECT', properties: {} }
                     }
                   ]
                 }
               ],
               systemInstruction: {
-                parts: [{
-                  text:
-                    `Kamu adalah AMY (✦ AMY), asisten trading pintar, setia, dan berwawasan tajam di dalam aplikasi Amy FX Pro.\n` +
-                    `Panggil pengguna selalu dengan sebutan "Sayang" dengan nada bicara yang hangat, suportif, ramah, dan natural dalam Bahasa Indonesia yang luwes.\n` +
-                    `PROFIL & KARAKTER TRADING SAYANG:\n` +
-                    `- Sayang adalah Pure Gold Scalper (XAU/USD) timeframe M15 & M5 dengan target presisi 100 Pips ($10), zona waktu acuan WITA (UTC+8).\n` +
-                    `- Gunakan istilah teknikal standar trader pro: Support/Demand, Resistance/Supply, No-Trade Zone, Dealing Range (Premium/Discount/EQ 50%), FVG, Order Block, BSL/SSL, MSS, BOS, Displacement, Absorption Wick.\n` +
-                    `- Sayang bertrading dengan uang riil. Tetap pegang prinsip Anti-Yes-Man: ingatkan Sayang secara jujur jika harga berada di No-Trade Zone tengah atau pasar sedang tutup akhir pekan.\n\n` +
-                    `KEMAMPUAN PENUH MENJAWAB DI TEMPAT (OMNIPRESENT DATA BRAIN):\n` +
-                    `- Kamu memiliki akses data real-time lengkap ke seluruh sistem Amy FX Pro di mana pun Sayang berada, TANPA PERLU MEMBUKA HALAMAN TERKAIT!\n` +
-                    `- JAWAB DI TEMPAT SOAL MAPPING: Jika Sayang bertanya tentang Mapping (seperti tanya PDH, PDL, PWH, PWL, BSL, SSL, Order Block OB, FVG, BOS, MSS, atau Dealing Range), kamu WAJIB memanggil tool get_mapping_structure_details() dan JAWAB LANGSUNG DI TEMPAT secara akurat dengan menyebutkan angka-angka level riilnya! DILARANG menyuruh Sayang membuka halaman Mapping, dan DILARANG memanggil navigate_to_page saat Sayang hanya bertanya informasi!\n` +
-                    `- JAWAB DI TEMPAT SOAL BERITA: Jika Sayang menanyakan kabar berita terbaru atau sentimen makro, panggil tool get_market_news_summary() dan JAWAB LANGSUNG DI TEMPAT.\n` +
-                    `- JAWAB DI TEMPAT SOAL JURNAL: Jika Sayang bertanya tentang performa atau catatan jurnal tradingnya, panggil tool get_journal_summary() dan JAWAB LANGSUNG DI TEMPAT.\n` +
-                    `- JAWAB DI TEMPAT SOAL ACADEMY: Jika Sayang ingin mempelajari Level (0-6) atau Modul (1-10) apa pun, panggil tool open_academy_material(query) dan jelaskan langsung materinya.\n` +
-                    `- HANYA panggil tool navigate_to_page jika Sayang secara EKSPLISIT memerintahkan: "buka halaman mapping", "pindahkan layar ke berita", "tampilkan jurnal", atau sejenisnya.\n\n` +
-                    `GAYA KOMUNIKASI:\n` +
-                    `- Berbicaralah dengan bebas, mengalir, percaya diri, dan bernarasi hidup layaknya pasangan diskusi trading yang cerdas dan mengayomi. Jelaskan logika pasar dan level harga secara jelas dan nyaman didengar.\n` +
-                    `- Jangan gunakan simbol markdown visual seperti bintang (*), pagar (#), atau garis (---) karena suaramu akan dibacakan langsung ke telinga Sayang.\n\n` +
-                    `DATA AWAL PASAR & APLIKASI SAAT INI:\n${appContext}\n`
-                }]
+                parts: [
+                  {
+                    text:
+                      `Kamu adalah ✦ AMY, asisten trading suara khusus XAU/USD (Gold) di Amy FX Pro.\n` +
+                      `FOKUS 100% TRADING XAU/USD & FITUR AMY FX PRO: Tolak halus topik non-trading dan arahkan kembali ke trading Gold atau fitur aplikasi.\n` +
+                      `PROFIL: Sayang adalah Pure Gold Scalper M15/M5 target 100 Pips ($10), zona waktu WITA (UTC+8). Panggil selalu "Sayang" dengan hangat, tajam, dan jujur (Anti-Yes-Man).\n` +
+                      `ATURAN TOOL:\n` +
+                      `- Selalu panggil tool data (get_mapping_structure_details, get_market_news_summary, get_journal_summary, calculate_gold_lot, get_practice_summary) dan JAWAB LANGSUNG DI TEMPAT.\n` +
+                      `- Jangan panggil navigate_to_page kecuali Sayang eksplisit menyuruh pindah halaman.\n` +
+                      `- Jangan gunakan simbol markdown (*, #, ---) karena suaramu langsung dibacakan.\n\n` +
+                      `DATA AWAL APLIKASI:\n${appContext}\n`
+                  }
+                ]
               }
             }
           };
@@ -2046,24 +2115,18 @@
               const snap = captureChartCanvasBase64();
               if (snap && ws && ws.readyState === WebSocket.OPEN) {
                 lastCanvasSentAt = Date.now();
-                ws.send(JSON.stringify({
-                  realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: snap }] }
-                }));
+                ws.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: snap }] } }));
               }
 
               if (pendingAutoResumeGreeting && ws && ws.readyState === WebSocket.OPEN) {
                 const greetingText = pendingAutoResumeGreeting;
                 pendingAutoResumeGreeting = '';
                 try {
-                  ws.send(JSON.stringify({
-                    clientContent: {
-                      turns: [{
-                        role: 'user',
-                        parts: [{ text: greetingText }]
-                      }],
-                      turnComplete: true
-                    }
-                  }));
+                  ws.send(
+                    JSON.stringify({
+                      clientContent: { turns: [{ role: 'user', parts: [{ text: greetingText }] }], turnComplete: true }
+                    })
+                  );
                 } catch (_) {}
               }
             }
@@ -2071,326 +2134,163 @@
             if (data.toolCall && Array.isArray(data.toolCall.functionCalls)) {
               setOrbVisualState('thinking', 'Memproses…');
               const functionResponses = [];
+
               for (const fc of data.toolCall.functionCalls) {
                 if (fc.name === 'get_live_gold_price') {
-                  let priceResult = '';
-                  if (typeof root !== 'undefined' && Number.isFinite(Number(root.amyfxCurrentPrice)) && Number(root.amyfxCurrentPrice) > 0) {
-                    priceResult = '$' + Number(root.amyfxCurrentPrice).toFixed(2);
-                  }
-                  if (!priceResult) {
-                    const priceEl = document.querySelector(
-                      '#hero-price, #chart-price, #scenario-price, .hero-live-price, #home-chart-price, #home-price, #live-price-value, #mapping-live-price, .gold-live-price, [data-price], [data-live-price]'
-                    );
-                    if (priceEl) {
-                      const text = (priceEl.textContent || priceEl.getAttribute('data-price') || '').trim();
-                      if (text && text !== '—' && /\d/.test(text)) {
-                        priceResult = text.startsWith('$') ? text : '$' + text;
-                      }
-                    }
-                  }
-                  if (!priceResult) {
-                    const m5 = summarizeCandles('M5');
-                    const mMatch = m5.match(/Close Terakhir \$([0-9.]+)/);
-                    if (mMatch) priceResult = '$' + mMatch[1];
-                  }
+                  const p = getLivePriceNumber();
                   functionResponses.push({
                     id: fc.id,
                     name: fc.name,
                     response: {
-                      output: priceResult
-                        ? `Harga Live Gold saat ini adalah ${priceResult}. Gunakan angka ini dan DILARANG mengarang angka lain.`
-                        : 'Data harga live sedang dimuat, mohon tunggu sebentar.'
+                      output: p
+                        ? `Harga Live XAU/USD saat ini adalah $${p.toFixed(2)}. Gunakan angka persis ini.`
+                        : 'Harga live sedang dimuat, tunggu sebentar.'
                     }
                   });
-                } else if (fc.name === 'open_academy_material') {
-                  const q = String(fc.args?.query || '').trim();
-                  let les = resolveLessonFromQuery(q);
-                  if (!les) {
-                    try {
-                      const r = await fetch(getApiBaseUrl() + `/api/academy-reading?q=${encodeURIComponent(q)}`);
-                      if (r.ok) {
-                        const d = await r.json();
-                        const found = d.requestedLesson || d.lessonDetails;
-                        if (found && found.title) {
-                          les = {
-                            title: found.title,
-                            relPath: found.relPath,
-                            fullPath: found.fullPath || resolveLessonHtmlPath(found.relPath),
-                            summary: found.summary || '',
-                            fullText: found.fullText || ''
-                          };
-                        }
-                      }
-                    } catch (_) {}
-                  }
-
-                  let toolResultText = 'Materi tidak ditemukan.';
-                  if (les && les.title) {
-                    lastRequestedLesson = les;
-                    lastReadLessonDetails = les;
-                    try {
-                      root.localStorage.setItem('amy_academy_last_read_v2', JSON.stringify({
-                        title: les.title,
-                        path: les.relPath,
-                        section: 'Amy FX Academy',
-                        updatedAt: Date.now()
-                      }));
-                      root.localStorage.setItem('amy_last_opened_title', les.title);
-                      root.localStorage.setItem('amy_last_opened_url', les.fullPath);
-                    } catch (_) {}
-
-                    if (isLiveConnected || isLiveConnecting) {
-                      try {
-                        sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
-                          active: true,
-                          timestamp: Date.now(),
-                          targetTitle: les.title,
-                          lessonTitle: les.title,
-                          lessonPath: les.fullPath,
-                          fullscreen: isBubbleFullscreen
-                        }));
-                      } catch (_) {}
-                    }
-
-                    renderBubble('model', `Membuka materi "${les.title}" di Academy untuk Sayang…`, {
-                      links: [{ label: `👉 Buka ${les.title}`, path: les.fullPath }]
-                    });
-
-                    stopPlayback();
-                    isStreamingMic = false;
-                    const targetUrl = resolveAppUrl(les.fullPath);
-                    setTimeout(() => {
-                      try {
-                        window.location.href = targetUrl;
-                      } catch (_) {
-                        try { window.location.assign(targetUrl); } catch (_) {}
-                      }
-                    }, 400);
-
-                    setTimeout(() => {
-                      if (isLiveConnected) {
-                        setOrbVisualState(isStreamingMic ? 'listening' : '', isStreamingMic ? 'Mendengarkan…' : 'Siap Menemani Sayang');
-                      } else {
-                        setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
-                      }
-                    }, 2200);
-
-                    toolResultText =
-                      `Materi "${les.title}" berhasil dibuka di layar Academy Sayang (${les.fullPath}). ` +
-                      `Layar otomatis berpindah sekarang agar Sayang bisa membaca langsung di layarnya. ` +
-                      `Tetap tenang dan jangan berbicara lagi sebelum tiba di materi baru.`;
-                  } else {
-                    toolResultText = `Materi "${q}" belum ditemukan di katalog Academy. Tanyakan topik seperti Order Block, FVG, atau Breaker Block.`;
-                  }
-
+                } else if (fc.name === 'get_mapping_structure_details') {
+                  const engineData = await fetchLiveMarketStructureSummary();
+                  const localMap = root.AmyLocalAssistant ? root.AmyLocalAssistant.mapping('mapping', null, Date.now()) : '';
+                  const finalOut = [engineData, localMap].filter(Boolean).join('\n\n');
                   functionResponses.push({
                     id: fc.id,
                     name: fc.name,
-                    response: { output: toolResultText }
+                    response: { output: finalOut || 'Data Mapping sedang dimuat.' }
+                  });
+                } else if (fc.name === 'get_market_news_summary') {
+                  const topic = String(fc.args?.topic || '').trim();
+                  const intelText = await fetchLiveMarketIntelSummary(topic);
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: { output: intelText }
+                  });
+                } else if (fc.name === 'get_journal_summary') {
+                  let journalText = '';
+                  if (root.AmyLocalAssistant?.readJournals) {
+                    const jData = await root.AmyLocalAssistant.readJournals();
+                    journalText = root.AmyLocalAssistant.journal('evaluasi jurnal emosi habit', jData);
+                  }
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: { output: journalText || 'Belum ada catatan jurnal trading tersimpan.' }
+                  });
+                } else if (fc.name === 'calculate_gold_lot') {
+                  const qArg = String(fc.args?.query || '').trim();
+                  const calc = root.AmyLocalAssistant?.riskCalc ? root.AmyLocalAssistant.riskCalc(qArg) : null;
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: { output: calc?.text || 'Sebutkan modal, persen risiko, dan jarak SL dalam pips atau harga.' }
+                  });
+                } else if (fc.name === 'get_practice_summary') {
+                  const prac = root.AmyLocalAssistant?.practice ? root.AmyLocalAssistant.practice() : 'Belum ada data Trading Practice.';
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: { output: prac }
+                  });
+                } else if (fc.name === 'open_academy_material') {
+                  const qArg = String(fc.args?.query || '').trim();
+                  const shouldNavigate = Boolean(fc.args?.navigate);
+                  const les = resolveLessonFromQuery(qArg);
+                  let output = `Materi "${qArg}" belum ada di indeks lokal. Jelaskan konsep ICT ini secara ringkas berdasarkan keahlian trading XAU/USD.`;
+                  if (les?.title) {
+                    lastRequestedLesson = les;
+                    output = `Materi "${les.title}":\n${(les.fullText || les.summary || '').slice(0, 2200)}`;
+                    if (shouldNavigate && les.fullPath) {
+                      renderBubble('model', `Membuka materi **${les.title}**…`, { hideCopy: true });
+                      setTimeout(() => {
+                        try { window.location.assign(resolveAppUrl(les.fullPath)); } catch (_) {}
+                      }, 500);
+                    }
+                  }
+                  functionResponses.push({ id: fc.id, name: fc.name, response: { output } });
+                } else if (fc.name === 'switch_chart_timeframe') {
+                  const tfArg = String(fc.args?.timeframe || '').toUpperCase().trim();
+                  const validTf = tfArg.includes('H1') ? 'H1' : tfArg.includes('5') && !tfArg.includes('15') ? 'M5' : 'M15';
+                  const switched = switchChartTimeframeOnPage(validTf);
+                  functionResponses.push({
+                    id: fc.id,
+                    name: fc.name,
+                    response: {
+                      output: switched
+                        ? `Grafik Chart Gold di layar berhasil diubah ke ${validTf}.`
+                        : `Layar ini tidak memiliki kontrol Chart Gold. Buka Mapping untuk mengubah timeframe ke ${validTf}.`
+                    }
                   });
                 } else if (fc.name === 'navigate_to_page') {
                   const pArg = String(fc.args?.page || '').toLowerCase().trim();
                   let targetPath = '';
                   let title = '';
-                  if (pArg.includes('map') || pArg.includes('chart') || pArg.includes('grafik') || pArg.includes('peta')) {
+                  if (pArg.includes('map') || pArg.includes('chart')) {
                     targetPath = 'apps/mapping/index.html';
-                    title = 'Mapping Gold (M15/M5)';
-                  } else if (pArg.includes('journ') || pArg.includes('jurnal')) {
+                    title = 'Chart Gold & Mapping';
+                  } else if (pArg.includes('journ') || pArg.includes('jurnal') || pArg.includes('habit')) {
                     targetPath = 'apps/journal/index.html';
-                    title = 'Jurnal Trading';
-                  } else if (pArg.includes('acad') || pArg.includes('belajar') || pArg.includes('tutorial')) {
-                    targetPath = 'apps/academy/index.html';
-                    title = 'Tutorial Academy';
+                    title = 'Jurnal & Habits';
                   } else if (pArg.includes('news') || pArg.includes('intel') || pArg.includes('berita') || pArg.includes('kalender')) {
                     targetPath = 'apps/market-intel/index.html';
-                    title = 'Berita Makro & Kalender';
-                  } else if (pArg.includes('replay')) {
-                    targetPath = 'apps/academy/trading-practice/candle-replay.html';
-                    title = 'Candle Replay';
-                  } else if (pArg.includes('analis') || pArg.includes('analysis')) {
-                    targetPath = 'apps/academy/trading-practice/chart-analysis.html';
-                    title = 'Chart Analysis';
-                  } else if (pArg.includes('soal') || pArg.includes('latih') || pArg.includes('practice') || pArg.includes('guided')) {
-                    targetPath = 'apps/academy/trading-practice/guided-practice.html';
-                    title = 'Latihan Soal 60 Kasus';
-                  } else if (pArg.includes('backtest') || pArg.includes('riwayat')) {
-                    targetPath = 'apps/academy/trading-practice/backtest-history.html';
-                    title = 'Riwayat Backtest';
+                    title = 'Berita & Kalender';
+                  } else if (pArg.includes('practice') || pArg.includes('latih') || pArg.includes('replay') || pArg.includes('backtest')) {
+                    targetPath = 'apps/practice/index.html';
+                    title = 'Trading Practice';
+                  } else if (pArg.includes('indik')) {
+                    targetPath = 'apps/indikator/index.html';
+                    title = 'Indikator ICT';
                   } else if (pArg.includes('home') || pArg.includes('beranda')) {
                     targetPath = 'index.html';
                     title = 'Beranda';
                   }
 
                   if (targetPath) {
-                    const fullUrl = resolveAppUrl(targetPath);
                     const curPath = window.location.pathname;
                     const isCurrent = curPath.endsWith(targetPath) || (targetPath === 'index.html' && (curPath === '/' || curPath.endsWith('/index.html')));
                     if (isCurrent) {
-                      functionResponses.push({
-                        id: fc.id,
-                        name: fc.name,
-                        response: { output: `Sayang sudah berada di halaman ${title} saat ini.` }
-                      });
+                      functionResponses.push({ id: fc.id, name: fc.name, response: { output: `Sayang sudah berada di halaman ${title}.` } });
                     } else {
-                      if (isLiveConnected || isLiveConnecting) {
-                        try {
-                          sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
-                            active: true,
-                            timestamp: Date.now(),
-                            targetTitle: title,
-                            fullscreen: isBubbleFullscreen
-                          }));
-                        } catch (_) {}
-                      }
+                      try {
+                        sessionStorage.setItem(
+                          'amyfx.auto_resume_live',
+                          JSON.stringify({ active: true, timestamp: Date.now(), targetTitle: title, fullscreen: isBubbleFullscreen })
+                        );
+                      } catch (_) {}
                       stopPlayback();
                       isStreamingMic = false;
-                      renderBubble('model', `Membuka halaman ${title} untuk Sayang…`, {
-                        links: [{ label: `👉 Buka ${title} Sekarang`, path: targetPath }]
+                      renderBubble('model', `Membuka **${title}** untuk Sayang…`, {
+                        links: [{ label: `👉 Buka ${title}`, path: targetPath }],
+                        hideCopy: true
                       });
                       setTimeout(() => {
-                        try { window.location.assign(fullUrl); } catch (_) {}
-                      }, 650);
+                        try { window.location.assign(resolveAppUrl(targetPath)); } catch (_) {}
+                      }, 600);
                       functionResponses.push({
                         id: fc.id,
                         name: fc.name,
-                        response: { output: `Layar sedang dialihkan ke ${title} sekarang. Tetap tenang dan jangan berbicara lagi sebelum tiba di halaman baru.` }
+                        response: { output: `Layar sedang dialihkan ke ${title}.` }
                       });
                     }
                   } else {
                     functionResponses.push({
                       id: fc.id,
                       name: fc.name,
-                      response: { output: `Halaman "${pArg}" tidak dikenali. Pilihan: Beranda, Mapping, Jurnal Trading, Academy, Berita, Chart Analysis, Candle Replay, atau Latihan Soal.` }
+                      response: { output: `Halaman "${pArg}" tidak dikenali. Pilihan: Beranda, Mapping, Berita & Kalender, Jurnal, Practice, Indikator.` }
                     });
                   }
-                } else if (fc.name === 'switch_chart_timeframe') {
-                  const tfArg = String(fc.args?.timeframe || '').toUpperCase().trim();
-                  const validTf = tfArg.includes('5') && !tfArg.includes('15') ? 'M5' : 'M15';
-                  let switched = false;
-                  const selectEl = document.querySelector('#timeframe, #home-chart-tf');
-                  if (selectEl) {
-                    selectEl.value = validTf;
-                    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-                    switched = true;
-                    const refBtn = document.querySelector('#refresh, #home-chart-refresh');
-                    if (refBtn) refBtn.click();
-                  }
-                  functionResponses.push({
-                    id: fc.id,
-                    name: fc.name,
-                    response: {
-                      output: switched
-                        ? `Grafik Gold di layar berhasil diubah ke timeframe ${validTf}.`
-                        : `Layar saat ini tidak memiliki kontrol grafik Gold. Buka halaman Mapping atau Beranda untuk mengubah timeframe.`
-                    }
-                  });
-                } else if (fc.name === 'get_journal_summary') {
-                  let journalText = '';
-                  try {
-                    const raw = localStorage.getItem('tradingLibraryManager.journals.v1') || localStorage.getItem('amy_journal_entries') || '[]';
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                      const wins = parsed.filter(p => String(p.result || p.outcome || '').toLowerCase() === 'win').length;
-                      const losses = parsed.filter(p => String(p.result || p.outcome || '').toLowerCase() === 'loss').length;
-                      const total = parsed.length;
-                      const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
-                      const lastTrades = parsed.slice(-3).map((t, idx) => {
-                        const pair = t.pair || t.symbol || 'XAU/USD';
-                        const type = t.type || t.action || 'Trade';
-                        const res = t.result || t.outcome || 'Pending';
-                        const pnl = t.pnl ? ` (${t.pnl})` : '';
-                        return `${idx + 1}. ${pair} ${type}: ${res}${pnl}`;
-                      }).join('\n');
-                      journalText = `Total entri: ${total} transaksi (Win: ${wins}, Loss: ${losses}, Win Rate: ${wr}%).\n3 Transaksi Terakhir:\n${lastTrades}`;
-                    }
-                  } catch (_) {}
-                  if (!journalText && root.AmyLocalAssistant) {
-                    try {
-                      const askJ = await root.AmyLocalAssistant.ask('evaluasi jurnal saya');
-                      if (askJ?.text) journalText = askJ.text;
-                    } catch (_) {}
-                  }
-                  functionResponses.push({
-                    id: fc.id,
-                    name: fc.name,
-                    response: {
-                      output: journalText ? `Data Jurnal Trading Sayang:\n${journalText}` : 'Jurnal trading Sayang di perangkat ini masih kosong atau belum ada catatan transaksi tersimpan.'
-                    }
-                  });
-                } else if (fc.name === 'get_market_news_summary') {
-                  const topic = String(fc.args?.topic || '').trim();
-                  let newsText = '';
-                  try {
-                    newsText = await fetchLiveMarketNewsSummary(topic);
-                  } catch (_) {}
-                  if (!newsText && root.AmyLocalAssistant) {
-                    try {
-                      const res = await root.AmyLocalAssistant.ask(topic ? `berita ${topic}` : 'berita terbaru');
-                      if (res?.text) newsText = res.text;
-                    } catch (_) {}
-                  }
-                  functionResponses.push({
-                    id: fc.id,
-                    name: fc.name,
-                    response: {
-                      output: newsText || 'Belum ada data berita terkini.'
-                    }
-                  });
-                } else if (fc.name === 'get_mapping_structure_details') {
-                  let engineData = '';
-                  try {
-                    engineData = await fetchLiveMarketStructureSummary();
-                  } catch (_) {}
-
-                  let localAssistantData = '';
-                  if (root.AmyLocalAssistant) {
-                    try {
-                      localAssistantData = root.AmyLocalAssistant.mapping('mapping', null, Date.now());
-                    } catch (_) {}
-                  }
-
-                  const drBadge = document.querySelector('#chart-dealing-range-badge, #home-chart-dealing-range-badge')?.textContent?.trim() || '';
-                  const priceEl = document.querySelector('#chart-price, #home-chart-price, #hero-price')?.textContent?.trim() || '';
-                  const asstPrim = document.querySelector('#assistant-primary-msg')?.textContent?.trim() || '';
-                  const asstSub = document.querySelector('#assistant-sub-msg')?.textContent?.trim() || '';
-                  const asstConf = document.querySelector('#assistant-confluence-tag')?.textContent?.trim() || '';
-
-                  const domSummary = [
-                    priceEl ? `Harga Tampil di Layar: ${priceEl}` : '',
-                    drBadge ? `Dealing Range Badge Layar: ${drBadge}` : '',
-                    asstPrim ? `Status Setup Layar: ${asstPrim} (${asstSub}) [${asstConf}]` : '',
-                    localAssistantData || ''
-                  ].filter(Boolean).join('\n');
-
-                  const finalOutput = [
-                    engineData ? `DATA STRUKTUR ICT RESMI AMY FX PRO (REAL-TIME):\n${engineData}` : '',
-                    domSummary ? `INFORMASI LAYAR SAAT INI:\n${domSummary}` : ''
-                  ].filter(Boolean).join('\n\n');
-
-                  functionResponses.push({
-                    id: fc.id,
-                    name: fc.name,
-                    response: {
-                      output: finalOutput || 'Data struktur pasar sedang dimuat, silakan tanyakan kembali dalam beberapa detik.'
-                    }
-                  });
                 } else if (fc.name === 'refresh_chart_view') {
                   const freshSnap = captureChartCanvasBase64();
                   if (freshSnap && ws && ws.readyState === WebSocket.OPEN) {
                     lastCanvasSentAt = Date.now();
-                    ws.send(JSON.stringify({
-                      realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: freshSnap }] }
-                    }));
+                    ws.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: freshSnap }] } }));
                   }
                   functionResponses.push({
                     id: fc.id,
                     name: fc.name,
-                    response: {
-                      output: freshSnap ? 'Snapshot visual chart terbaru di layar berhasil dikirim ke matamu.' : 'Tidak ada chart visual aktif di layar saat ini.'
-                    }
+                    response: { output: freshSnap ? 'Snapshot Chart Gold terbaru sudah terkirim.' : 'Tidak ada kanvas chart di halaman ini.' }
                   });
                 }
               }
+
               if (functionResponses.length > 0 && ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ toolResponse: { functionResponses } }));
               }
@@ -2402,11 +2302,8 @@
                 if (part.inlineData?.data) {
                   playPcm24k(part.inlineData.data, speaking => {
                     if (!isLiveConnected) return;
-                    if (speaking) {
-                      setOrbVisualState('speaking', 'AMY Berbicara…');
-                    } else {
-                      setOrbVisualState(isMicMuted ? '' : 'listening', isMicMuted ? 'Mic Nonaktif' : 'Mendengarkan…');
-                    }
+                    if (speaking) setOrbVisualState('speaking', 'AMY Berbicara…');
+                    else setOrbVisualState(isMicMuted ? '' : 'listening', isMicMuted ? 'Mic Nonaktif' : 'Mendengarkan…');
                   });
                 }
               }
@@ -2414,7 +2311,7 @@
               if (data.serverContent.inputTranscription?.text) {
                 const t = data.serverContent.inputTranscription.text;
                 if (!currentLiveUserBubble) {
-                  currentLiveUserBubble = renderBubble('user', t);
+                  currentLiveUserBubble = renderBubble('user', t, { plainText: true });
                 } else {
                   const prev = currentLiveUserBubble.textContent || '';
                   const needsSpace = prev.length > 0 && !/\s$/.test(prev) && !/^\s/.test(t) && /[a-zA-Z0-9.,!?]$/.test(prev) && /^[a-zA-Z0-9]/.test(t);
@@ -2426,7 +2323,7 @@
               if (data.serverContent.outputTranscription?.text) {
                 const t = data.serverContent.outputTranscription.text.replace(/[*#`]/g, '');
                 if (!currentLiveAiBubble) {
-                  currentLiveAiBubble = renderBubble('model', t);
+                  currentLiveAiBubble = renderBubble('model', t, { plainText: true });
                 } else {
                   const prev = currentLiveAiBubble.textContent || '';
                   const needsSpace = prev.length > 0 && !/\s$/.test(prev) && !/^\s/.test(t) && /[a-zA-Z0-9.,!?]$/.test(prev) && /^[a-zA-Z0-9]/.test(t);
@@ -2448,13 +2345,10 @@
                   currentLiveAiBubble = null;
                 }
                 saveHistory(hist);
-
                 setTimeout(() => {
                   if (isLiveConnected && activeSources.length === 0) {
                     isStreamingMic = true;
-                    if (!isMicMuted) {
-                      setOrbVisualState('listening', 'Mendengarkan…');
-                    }
+                    if (!isMicMuted) setOrbVisualState('listening', 'Mendengarkan…');
                   }
                 }, 280);
               }
@@ -2469,11 +2363,7 @@
         micProcessor = micAudioCtx.createScriptProcessor(4096, 1, 1);
         micProcessor.onaudioprocess = e => {
           if (!isLiveConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
-
-          if (micAudioCtx && micAudioCtx.state === 'suspended') {
-            micAudioCtx.resume().catch(() => {});
-          }
-
+          if (micAudioCtx && micAudioCtx.state === 'suspended') micAudioCtx.resume().catch(() => {});
           if (isMicMuted || !isStreamingMic || activeSources.length > 0) {
             vuFill.style.width = '0%';
             return;
@@ -2484,20 +2374,14 @@
           for (let i = 0; i < inputData.length; i++) sum += Math.abs(inputData[i]);
           const vol = sum / inputData.length;
 
-          const vuPercent = Math.min(100, Math.round(vol * 650));
-          vuFill.style.width = vuPercent + '%';
-          const scale = 1 + Math.min(0.22, vol * 2.4);
-          bubbleCore.style.transform = `scale(${scale.toFixed(2)})`;
+          vuFill.style.width = Math.min(100, Math.round(vol * 650)) + '%';
+          bubbleCore.style.transform = `scale(${(1 + Math.min(0.22, vol * 2.4)).toFixed(2)})`;
 
           const pcm16 = downsampleTo16k(inputData, nativeRate);
           const bytes = new Uint8Array(pcm16.buffer);
           let bin = '';
           for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
-          ws.send(JSON.stringify({
-            realtimeInput: {
-              audio: { mimeType: 'audio/pcm;rate=16000', data: btoa(bin) }
-            }
-          }));
+          ws.send(JSON.stringify({ realtimeInput: { audio: { mimeType: 'audio/pcm;rate=16000', data: btoa(bin) } } }));
 
           if (vol > VAD_SPEECH_THRESHOLD) {
             if (!isUserSpeaking) {
@@ -2507,9 +2391,7 @@
                 const snap = captureChartCanvasBase64();
                 if (snap) {
                   lastCanvasSentAt = Date.now();
-                  ws.send(JSON.stringify({
-                    realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: snap }] }
-                  }));
+                  ws.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: snap }] } }));
                 }
               }
             }
@@ -2517,26 +2399,20 @@
               clearTimeout(silenceTimer);
               silenceTimer = null;
             }
-          } else if (isUserSpeaking) {
-            if (!silenceTimer) {
-              silenceTimer = setTimeout(() => {
-                commitUserSpeechTurn();
-              }, VAD_SILENCE_MS);
-            }
+          } else if (isUserSpeaking && !silenceTimer) {
+            silenceTimer = setTimeout(() => commitUserSpeechTurn(), VAD_SILENCE_MS);
           }
         };
         source.connect(micProcessor);
         micProcessor.connect(micAudioCtx.destination);
       } catch (err) {
-        renderBubble('model', 'Gagal mengaktifkan mikrofon: ' + err.message);
+        renderBubble('model', 'Gagal mengaktifkan mikrofon: ' + err.message, { hideCopy: true });
         stopLiveVoice();
       }
     }
 
     function stopLiveVoice() {
-      try {
-        sessionStorage.removeItem('amyfx.auto_resume_live');
-      } catch (_) {}
+      try { sessionStorage.removeItem('amyfx.auto_resume_live'); } catch (_) {}
       isLiveConnecting = false;
       isLiveConnected = false;
       isUserSpeaking = false;
@@ -2598,9 +2474,7 @@
         orbMuteBtn.className = 'amy-orb-btn muted-btn';
         orbMuteBtn.textContent = 'Mic Nonaktif';
         setOrbVisualState('', 'Mic Nonaktif');
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
-        }
+        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
       } else {
         orbMuteBtn.className = 'amy-orb-btn';
         orbMuteBtn.textContent = 'Mic Aktif';
@@ -2610,33 +2484,23 @@
     };
 
     btnVoice.onclick = toggleLiveVoice;
-
     restoreSavedChat();
 
-    // Auto-resume sesi live suara setelah berpindah halaman
+    // Auto-resume Live Voice across pages
     try {
       const rawAutoResume = sessionStorage.getItem('amyfx.auto_resume_live');
       if (rawAutoResume) {
         sessionStorage.removeItem('amyfx.auto_resume_live');
         const autoData = JSON.parse(rawAutoResume);
-        if (autoData && autoData.active && (Date.now() - Number(autoData.timestamp || 0) < 18000)) {
+        if (autoData?.active && Date.now() - Number(autoData.timestamp || 0) < 18000) {
           panel.hidden = false;
           fab.hidden = true;
-          if (autoData.fullscreen) {
-            setBubbleFullscreen(true);
-          }
+          if (autoData.fullscreen) setBubbleFullscreen(true);
           const pageTitle = document.title || autoData.targetTitle || 'halaman baru';
-          if (autoData.lessonTitle) {
-            pendingAutoResumeGreeting = `Kita sudah membuka materi "${autoData.lessonTitle}" di Academy, Sayang. Sapa Sayang satu kalimat santai dan ramah (contoh: "Halo Sayang, materi ${autoData.lessonTitle} sudah terbuka di layarmu. Silakan dibaca santai, kalau ada bagian yang bingung tanyakan ke aku ya!").`;
-          } else {
-            pendingAutoResumeGreeting = `Kita sudah berada di halaman "${pageTitle}". Sapa Sayang secara santai dan singkat satu kalimat saja (contoh: "Halo Sayang, kita sudah di ${pageTitle}, ada yang mau dicek di sini?").`;
-          }
-          renderBubble('model', `Menyambungkan kembali Amy Live di ${autoData.lessonTitle ? `materi ${autoData.lessonTitle}` : pageTitle} untuk Sayang…`);
-
+          pendingAutoResumeGreeting = `Kita sudah berada di halaman "${pageTitle}". Sapa Sayang satu kalimat singkat dan santai.`;
+          renderBubble('model', `Menyambungkan kembali Amy Live di **${pageTitle}**…`, { hideCopy: true });
           setTimeout(() => {
-            if (!isLiveConnected && !isLiveConnecting) {
-              toggleLiveVoice().catch(() => {});
-            }
+            if (!isLiveConnected && !isLiveConnecting) toggleLiveVoice().catch(() => {});
           }, 350);
         }
       }
@@ -2650,9 +2514,7 @@
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      if (upgradeAssistantPanel() || attempts > 30) {
-        clearInterval(interval);
-      }
+      if (upgradeAssistantPanel() || attempts > 30) clearInterval(interval);
     }, 80);
 
     if (typeof MutationObserver !== 'undefined' && document.body) {
@@ -2673,23 +2535,22 @@
     window.addEventListener('beforeunload', () => {
       if (isLiveConnected || isLiveConnecting) {
         try {
-          sessionStorage.setItem('amyfx.auto_resume_live', JSON.stringify({
-            active: true,
-            timestamp: Date.now(),
-            targetTitle: document.title || 'halaman baru',
-            fullscreen: isBubbleFullscreen
-          }));
+          sessionStorage.setItem(
+            'amyfx.auto_resume_live',
+            JSON.stringify({
+              active: true,
+              timestamp: Date.now(),
+              targetTitle: document.title || 'halaman baru',
+              fullscreen: isBubbleFullscreen
+            })
+          );
         } catch (_) {}
       }
     });
 
     const ensureAudioUnmuted = () => {
-      if (micAudioCtx && micAudioCtx.state === 'suspended') {
-        micAudioCtx.resume().catch(() => {});
-      }
-      if (playAudioCtx && playAudioCtx.state === 'suspended') {
-        playAudioCtx.resume().catch(() => {});
-      }
+      if (micAudioCtx && micAudioCtx.state === 'suspended') micAudioCtx.resume().catch(() => {});
+      if (playAudioCtx && playAudioCtx.state === 'suspended') playAudioCtx.resume().catch(() => {});
     };
     window.addEventListener('click', ensureAudioUnmuted, { passive: true });
     window.addEventListener('touchstart', ensureAudioUnmuted, { passive: true });
