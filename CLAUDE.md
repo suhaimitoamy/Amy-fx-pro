@@ -432,6 +432,16 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   3. *Chart Tested POI Preservation:* Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus (`tested: true`).
   4. *Versi:* Bump ke `2.0.0-pro.453` (code `950453`).
 
+## Protokol Integrasi Google AI Studio & Precision Cherry-Pick (19 Nov 2026)
+- **Konteks:** Sayang menggunakan Google AI Studio App Builder sebagai laboratorium eksperimen UI/UX & fitur baru tanpa risiko merusak aplikasi utama di HP.
+- **Sandbox Repo:** `suhaimitoamy/Amy-fx-ai-studio` (versi murni web ~460 file, bebas limit 1.000 file, `index.html` di root, dev server standalone `server.js`).
+- **Aturan Baku Ingest / Merge ke `Amy-fx-pro` (Wajib Dipatuhi Kedua Akun):**
+  1. *Dilarang Timpa Buta (No Blind Overwrite):* Dilarang keras menimpa seluruh folder. Hanya file yang spesifik diubah yang boleh diadopsi (*targeted cherry-pick*).
+  2. *Path Mapping Bridge:* File web dari root AI Studio dipetakan kembali dengan presisi ke jalur native Android `app/src/main/assets/`.
+  3. *Isolasi Modul Terproteksi:* Modul Academy (`apps/academy`), sistem build Android (`gradle/`, `build.gradle.kts`, `MainActivity.kt`), dan test suite lokal tidak boleh diotak-atik atau tertimpa.
+  4. *Audit 3 Lapis Sebelum Implementasi:* Validasi sintaks `node --check <file>`, targeted test suite relevan, dan verifikasi visual lokal.
+
+
 
 
 
