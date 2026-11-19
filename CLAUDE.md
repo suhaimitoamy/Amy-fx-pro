@@ -490,6 +490,10 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
      - Tetap mempertahankan 100% kontrak pengujian offline tanpa panggilan remote API eksternal.
   4. *Integritas & Versi:* Seluruh 126 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.457` (code `950457`).
 
+## Standar Integrasi Otonom Google AI Studio (Skill: amy-fx-google-ai-studio)
+- Di sesi baru, asisten mengenali repositori prototyping Google AI Studio (`/root/Amy-fx-ai-studio`) dan langsung memetakan berkas baru ke direktori produksi `Amy-fx-pro` (`app/src/main/assets/` & root serverless) secara borongan/lengkap tanpa tertinggal.
+
+
 
 
 
