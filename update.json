@@ -11,7 +11,7 @@
   "latest_version_code": 950456,
   "latest_version_name": "2.0.0-pro.456",
   "mandatory": false,
-  "releaseDate": "2026-11-20",
+  "releaseDate": "2026-11-19",
   "release_notes": [
     "✦ Amy Live 2.0 (Direct WS Live Voice & Client Bridge): Mempertahankan arsitektur client bridge + WebSocket streaming suara Aoede ke Gemini Live API.",
     "✦ Smart Context Router: Hanya memuat modul konteks relevan per pertanyaan (Chart/News/Journal/Risk) untuk respon instan & hemat token.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.456",
   "versionCode": 950456,
-  "sha256": "019994fbd86f1ed523ff6e6687ffa94bc50c20113e36a4f22ebb67b123023461"
+  "sha256": "a072c3bcb8bdbb08f13e29d11785f89e037c06b4c844de43f41339f2e2304b7e"
 }
