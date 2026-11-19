@@ -1,7 +1,7 @@
 import {createIctCanvas} from './ict-canvas.js';
 import {calculateNextGenIndicators} from './nextgen-indicators.js';
 
-export const DEFAULT_CHART_LAYERS = Object.freeze({
+const DEFAULT_CHART_LAYERS = Object.freeze({
   poi: true,
   structure: true,
   liquidity: true,
@@ -262,22 +262,26 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
 
   function theme() {
     const t = getThemeColors();
-    chart.applyOptions({
-      layout: { background: { color: t.bg }, textColor: t.text },
-      grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
-      timeScale: { borderColor: t.border },
-      rightPriceScale: { borderColor: t.border },
-      crosshair: {
-        vertLine: { color: t.crosshair, labelBackgroundColor: t.crosshairBg },
-        horzLine: { color: t.crosshair, labelBackgroundColor: t.crosshairBg }
-      }
-    });
-    series.applyOptions({
-      upColor: t.up,
-      downColor: t.down,
-      wickUpColor: t.up,
-      wickDownColor: t.down
-    });
+    if (typeof chart.applyOptions === 'function') {
+      chart.applyOptions({
+        layout: { background: { color: t.bg }, textColor: t.text },
+        grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
+        timeScale: { borderColor: t.border },
+        rightPriceScale: { borderColor: t.border },
+        crosshair: {
+          vertLine: { color: t.crosshair, labelBackgroundColor: t.crosshairBg },
+          horzLine: { color: t.crosshair, labelBackgroundColor: t.crosshairBg }
+        }
+      });
+    }
+    if (typeof series?.applyOptions === 'function') {
+      series.applyOptions({
+        upColor: t.up,
+        downColor: t.down,
+        wickUpColor: t.up,
+        wickDownColor: t.down
+      });
+    }
     ict?.invalidate();
   }
 
@@ -306,19 +310,26 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
     if (!cs || !cs.length) return;
     const w = element?.clientWidth || 360;
     const rightPad = w < 520 ? 3 : 6;
-    chart.applyOptions({ timeScale: { rightOffset: rightPad } });
-    chart.priceScale('right').applyOptions({ autoScale: true });
-    if (typeof chart.timeScale().setVisibleLogicalRange === 'function') {
-      const total = cs.length;
-      const visibleBars = w < 520
-        ? (lastResult?.tf === 'H1' ? 28 : 24)
-        : (lastResult?.tf === 'H1' ? 52 : 42);
-      chart.timeScale().setVisibleLogicalRange({
-        from: Math.max(0, total - visibleBars),
-        to: total + rightPad
-      });
-    } else if (typeof chart.timeScale().fitContent === 'function') {
-      chart.timeScale().fitContent();
+    if (typeof chart.applyOptions === 'function') {
+      chart.applyOptions({ timeScale: { rightOffset: rightPad } });
+    }
+    if (typeof chart.priceScale === 'function') {
+      chart.priceScale('right')?.applyOptions?.({ autoScale: true });
+    }
+    if (typeof chart.timeScale === 'function') {
+      const ts = chart.timeScale();
+      if (typeof ts?.setVisibleLogicalRange === 'function') {
+        const total = cs.length;
+        const visibleBars = w < 520
+          ? (lastResult?.tf === 'H1' ? 28 : 24)
+          : (lastResult?.tf === 'H1' ? 52 : 42);
+        ts.setVisibleLogicalRange({
+          from: Math.max(0, total - visibleBars),
+          to: total + rightPad
+        });
+      } else if (typeof ts?.fitContent === 'function') {
+        ts.fitContent();
+      }
     }
     ict?.invalidate();
   }
@@ -333,7 +344,7 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
 
       if (presentation && !ict) ict = createIctCanvas(element, chart, series);
       if (presentation) {
-        const nextRightBars = getResponsiveRightOffset(presentation.settings?.rightBars);
+        const nextRightBars = presentation.settings?.rightBars ?? 6;
         if (rightBars !== nextRightBars) {
           rightBars = nextRightBars;
           chart.applyOptions({ timeScale: { rightOffset: rightBars } });
@@ -565,7 +576,10 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
       ict?.invalidate();
     },
     autoPrice() {
-      fitRecentCandles();
+      if (typeof chart.priceScale === 'function') {
+        chart.priceScale('right')?.applyOptions?.({ autoScale: true });
+      }
+      ict?.invalidate();
     },
     chart,
     series,
@@ -583,8 +597,8 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
     },
     setFullscreen(enabled) {
       chart.applyOptions({
-        layout: { fontSize: enabled ? 14 : 11 },
-        rightPriceScale: { minimumWidth: enabled ? 84 : 68 },
+        layout: { fontSize: enabled ? 16 : 12 },
+        rightPriceScale: { minimumWidth: enabled ? 90 : 65 },
         handleScroll: { vertTouchDrag: enabled ? true : Boolean(touchAxes), horzTouchDrag: true, pressedMouseMove: true, mouseWheel: true },
         handleScale: { pinch: true, mouseWheel: true, axisPressedMouseMove: { time: true, price: true }, axisDoubleClickReset: { time: true, price: true } }
       });
@@ -606,3 +620,4 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
     }
   };
 }
+createPriceChart.DEFAULT_CHART_LAYERS = DEFAULT_CHART_LAYERS;
