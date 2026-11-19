@@ -1,5 +1,5 @@
 // Move the existing chart, preserving its candles, viewport and touch listeners.
-export function mountChartFullscreen(view){
+export function mountChartFullscreen(view,drawingTool=null){
   const workspace=document.getElementById('gold-chart-workspace');
   const button=document.getElementById('chart-fullscreen');
   if(!workspace||!button)return null;
@@ -7,7 +7,7 @@ export function mountChartFullscreen(view){
   const token='gold-'+Date.now();
   let active=false,scrollY=0,baseState=null,pendingBack=false,nativeActive=false;
   const ownsHistory=()=>history.state?.amyfxGoldFullscreen===token;
-  const resize=()=>requestAnimationFrame(()=>{view?.resize();});
+  const resize=()=>requestAnimationFrame(()=>{view?.resize();drawingTool?.repaint?.();});
   function layout(enabled,restore=true){
     if(active===enabled)return;
     active=enabled;
@@ -26,8 +26,16 @@ export function mountChartFullscreen(view){
     button.setAttribute('aria-label',enabled?'Keluar fullscreen Chart Gold':'Buka fullscreen Chart Gold');
     button.setAttribute('aria-pressed',String(enabled));
     view?.setFullscreen(enabled);
+    drawingTool?.setFullscreen?.(enabled);
+    const drawBtn=document.getElementById('btn-chart-draw');
+    if(drawBtn&&typeof drawingTool?.isToolbarVisible==='function'){
+      const vis=drawingTool.isToolbarVisible();
+      drawBtn.classList.toggle('is-active',vis);
+      drawBtn.setAttribute('aria-pressed',String(vis));
+    }
     requestAnimationFrame(()=>{
       view?.resize();
+      drawingTool?.repaint?.();
       if(restore&&!enabled)window.scrollTo(0,scrollY);
       if(restore)button.focus({preventScroll:true});
     });

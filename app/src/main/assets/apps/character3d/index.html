@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Studio Karakter 3D Animasi - Anime Sorcerer</title>
+    <style>
+        :root {
+            --bg-dark: #0d0e12;
+            --panel-bg: rgba(22, 24, 32, 0.92);
+            --gold: #d4a359;
+            --gold-light: #f3cf8a;
+            --cyan-glow: #00f0ff;
+            --blue-magic: #4a90e2;
+            --purple-magic: #9b51e0;
+            --text-main: #f0f2f5;
+            --text-dim: #9aa0a6;
+            --border: rgba(0, 240, 255, 0.25);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            padding: 10px 14px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            backdrop-filter: blur(10px);
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar-thumb {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid var(--cyan-glow);
+            object-fit: cover;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        .header-title h1 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .header-title span {
+            font-size: 10px;
+            color: var(--cyan-glow);
+        }
+        .badge {
+            font-size: 10px;
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--cyan-glow);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        #canvas-container {
+            width: 100%;
+            height: 420px;
+            background: radial-gradient(circle at center, #1b2030 0%, #08090d 100%);
+            position: relative;
+            touch-action: none;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        #character-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .control-panel {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .action-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+        .act-btn {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-main);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        .act-btn.active, .act-btn:active {
+            background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
+            color: #000;
+            border-color: #00f0ff;
+            box-shadow: 0 0 14px rgba(0, 240, 255, 0.5);
+            font-weight: 700;
+        }
+        .status-badge {
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-dim);
+            padding: 0 4px;
+        }
+        .status-text {
+            color: var(--cyan-glow);
+            font-weight: 600;
+        }
+        .content-section {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cyan-glow);
+        }
+        .step-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 12px;
+            color: #d1d5db;
+        }
+        .step-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .step-num {
+            background: var(--cyan-glow);
+            color: #000;
+            font-weight: 800;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            margin-top: 1px;
+        }
+        .upload-box {
+            border: 2px dashed rgba(0, 240, 255, 0.4);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(0, 240, 255, 0.04);
+            transition: all 0.2s;
+        }
+        .upload-box:hover, .upload-box:active {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--cyan-glow);
+        }
+        .upload-box label {
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--cyan-glow);
+            display: block;
+        }
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <img src="karakter_boy.png" alt="Anime Boy" class="avatar-thumb">
+            <div>
+                <h1>Karakter 3D Anime</h1>
+                <span>Isekai Sorcerer Boy</span>
+            </div>
+        </div>
+        <span class="badge">Three.js 3D Engine</span>
+    </header>
+
+    <div id="canvas-container">
+        <canvas id="character-canvas"></canvas>
+        <div class="control-panel">
+            <div class="status-badge">
+                <span>Status Aksi: <strong id="actionStatus" class="status-text">🔮 Mengeluarkan Sihir</strong></span>
+                <span style="font-size:10px;">Sentuh & Putar 360°</span>
+            </div>
+            <div class="action-row">
+                <button class="act-btn active" id="btnMagic">🔮 Keluarkan Sihir</button>
+                <button class="act-btn" id="btnBattle">⚔️ Siaga Tempur</button>
+                <button class="act-btn" id="btnRun">🏃 Lari Cepat</button>
+                <button class="act-btn" id="btnVictory">💃 Victory Dance</button>
+                <button class="act-btn" id="btnIdle">🛑 Diam Santai</button>
+                <button class="act-btn" id="btnResetCam">📷 Reset Kamera</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <!-- UPLOAD CUSTOM GLB -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📂 Masukkan Karakter 3D Kustom (.GLB / .GLTF)</h2>
+                <span class="badge" style="color:#68d391; border-color:rgba(104,211,145,0.3);">Tripo3D / Mixamo</span>
+            </div>
+            <div class="upload-box" onclick="document.getElementById('glbFileInput').click()">
+                <label>✨ Klik di Sini untuk Memilih File 3D (.glb) dari HP</label>
+                <span style="font-size:10px; color:var(--text-dim); display:block; margin-top:4px;">File 3D hasil generator AI akan langsung dimuat ke panggung sihir di atas!</span>
+                <input type="file" id="glbFileInput" accept=".glb,.gltf">
+            </div>
+        </div>
+
+        <!-- PANDUAN MENGUBAH FOTO JADI 3D -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🪄 Cara Mudah Ubah Foto Karakter Jadi 3D</h2>
+            </div>
+            <ul class="step-list">
+                <li class="step-item">
+                    <span class="step-num">1</span>
+                    <div><strong>Gunakan Foto yang Sudah Dipotong:</strong> Aku sudah menyimpankan foto karakter cowok anime yang bersih di folder HP kamu: <code style="color:var(--cyan-glow);">/sdcard/Download/Images/karakter_boy.png</code></div>
+                </li>
+                <li class="step-item">
+                    <span class="step-num">2</span>
+                    <div><strong>Buka Situs AI Generator 3D Gratis:</strong> Buka <strong>tripo3d.ai</strong> atau <strong>meshy.ai</strong> di browser HP kamu. Klik tombol <em>"Image to 3D"</em> lalu upload file foto tadi. Dalam 20 detik model 3D utuh akan tercipta!</div>
+                </li>
+                <li class="step-item">
+                    <span class="step-num">3</span>
+                    <div><strong>Download File (.GLB):</strong> Klik tombol <em>Download GLB</em>. Lalu buka kembali web ini dan klik kotak hijau di atas untuk melihat karakter buatanmu beraksi di panggung!</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- LOCAL THREE.JS & PLUGINS -->
+    <script src="three.min.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="GLTFLoader.js"></script>
+
+    <script>
+        const container = document.getElementById('canvas-container');
+        const canvas = document.getElementById('character-canvas');
+
+        // Scene Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 1.4, 4.2);
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.target.set(0, 1.1, 0);
+
+        // Lights
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambLight);
+
+        const dirLight = new THREE.DirectionalLight(0xfffaed, 1.0);
+        dirLight.position.set(3, 5, 4);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        const magicLight = new THREE.PointLight(0x00f0ff, 2.5, 8);
+        magicLight.position.set(0, 1.2, 0.8);
+        scene.add(magicLight);
+
+        // Magic Summoning Circle (Ground)
+        const circleGeo = new THREE.RingGeometry(0.3, 1.5, 48);
+        const circleMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+        const magicCircle = new THREE.Mesh(circleGeo, circleMat);
+        magicCircle.rotation.x = -Math.PI / 2;
+        magicCircle.position.y = 0.02;
+        scene.add(magicCircle);
+
+        // Inner Magic Ring
+        const innerGeo = new THREE.RingGeometry(0.05, 0.8, 32);
+        const innerMat = new THREE.MeshBasicMaterial({ color: 0x9b51e0, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+        const innerCircle = new THREE.Mesh(innerGeo, innerMat);
+        innerCircle.rotation.x = -Math.PI / 2;
+        innerCircle.position.y = 0.03;
+        scene.add(innerCircle);
+
+        // Grid Floor
+        const grid = new THREE.GridHelper(10, 20, 0x00f0ff, 0x1f2438);
+        scene.add(grid);
+
+        // ==============================================================
+        // BUILD 3D PROCEDURAL ANIME SORCERER BOY (Sesuai Karakter Sayang)
+        // ==============================================================
+        const characterGroup = new THREE.Group();
+        scene.add(characterGroup);
+
+        // Materials
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdfc4, roughness: 0.6 });
+        const hairMat = new THREE.MeshStandardMaterial({ color: 0x1b283d, roughness: 0.4 }); // Rambut biru gelap anime
+        const vestMat = new THREE.MeshStandardMaterial({ color: 0x1c1a17, roughness: 0.7 }); // Rompi hitam
+        const shirtMat = new THREE.MeshStandardMaterial({ color: 0x8a5422, roughness: 0.7 }); // Kemeja cokelat
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x2b82ff }); // Mata biru anime tajam
+        const eyeWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const pantsMat = new THREE.MeshStandardMaterial({ color: 0x242833, roughness: 0.6 });
+        const bootsMat = new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.5 });
+        const auraMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.4, wireframe: true });
+
+        // Root Hips
+        const hips = new THREE.Group();
+        hips.position.set(0, 0.85, 0);
+        characterGroup.add(hips);
+
+        // Torso & Vest
+        const torsoGeo = new THREE.BoxGeometry(0.42, 0.45, 0.24);
+        const torso = new THREE.Mesh(torsoGeo, vestMat);
+        torso.position.set(0, 0.22, 0);
+        hips.add(torso);
+
+        // Shirt Collar (Cokelat)
+        const collarGeo = new THREE.BoxGeometry(0.3, 0.15, 0.25);
+        const collar = new THREE.Mesh(collarGeo, shirtMat);
+        collar.position.set(0, 0.42, 0);
+        hips.add(collar);
+
+        // Head Group
+        const headGroup = new THREE.Group();
+        headGroup.position.set(0, 0.58, 0);
+        hips.add(headGroup);
+
+        // Head Base
+        const headGeo = new THREE.BoxGeometry(0.32, 0.34, 0.32);
+        const head = new THREE.Mesh(headGeo, skinMat);
+        headGroup.add(head);
+
+        // Anime Eyes (Kanan & Kiri)
+        function createAnimeEye(isRight) {
+            const grp = new THREE.Group();
+            const w = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.08), eyeWhite);
+            grp.add(w);
+            const pupil = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.06), eyeMat);
+            pupil.position.set(0, 0, 0.01);
+            grp.add(pupil);
+            grp.position.set(isRight ? 0.08 : -0.08, 0.02, 0.165);
+            return grp;
+        }
+        headGroup.add(createAnimeEye(false));
+        headGroup.add(createAnimeEye(true));
+
+        // Anime Hair (Spiky Bangs & Top)
+        const hairTopGeo = new THREE.BoxGeometry(0.36, 0.18, 0.36);
+        const hairTop = new THREE.Mesh(hairTopGeo, hairMat);
+        hairTop.position.set(0, 0.16, 0);
+        headGroup.add(hairTop);
+
+        // Bangs (Poni depan anime)
+        for (let i = -2; i <= 2; i++) {
+            const bang = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.16, 4), hairMat);
+            bang.rotation.x = Math.PI;
+            bang.position.set(i * 0.07, 0.09, 0.18);
+            headGroup.add(bang);
+        }
+
+        // Arms (Shoulders & Elbows)
+        function createArm(isRight) {
+            const shoulder = new THREE.Group();
+            shoulder.position.set(isRight ? 0.28 : -0.28, 0.38, 0);
+
+            // Upper Arm
+            const upGeo = new THREE.BoxGeometry(0.12, 0.26, 0.14);
+            const upArm = new THREE.Mesh(upGeo, shirtMat);
+            upArm.position.set(0, -0.13, 0);
+            shoulder.add(upArm);
+
+            // Forearm
+            const foreArm = new THREE.Group();
+            foreArm.position.set(0, -0.26, 0);
+            shoulder.add(foreArm);
+
+            const lowGeo = new THREE.BoxGeometry(0.1, 0.24, 0.12);
+            const lowArm = new THREE.Mesh(lowGeo, vestMat); // Sarung tangan/lengan hitam
+            lowArm.position.set(0, -0.12, 0);
+            foreArm.add(lowArm);
+
+            // Open Palm Hand (Telapak tangan terbuka siap sihir)
+            const handGeo = new THREE.BoxGeometry(0.14, 0.16, 0.04);
+            const hand = new THREE.Mesh(handGeo, skinMat);
+            hand.position.set(0, -0.26, 0);
+            foreArm.add(hand);
+
+            // Glowing Magic Sphere at palm
+            const magicSph = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), auraMat);
+            magicSph.position.set(0, -0.26, 0.08);
+            foreArm.add(magicSph);
+
+            return { shoulder, foreArm, magicSph };
+        }
+
+        const leftArm = createArm(false);
+        const rightArm = createArm(true);
+        hips.add(leftArm.shoulder);
+        hips.add(rightArm.shoulder);
+
+        // Legs
+        function createLeg(isRight) {
+            const hipJoint = new THREE.Group();
+            hipJoint.position.set(isRight ? 0.12 : -0.12, 0, 0);
+
+            const thighGeo = new THREE.BoxGeometry(0.15, 0.38, 0.16);
+            const thigh = new THREE.Mesh(thighGeo, pantsMat);
+            thigh.position.set(0, -0.19, 0);
+            hipJoint.add(thigh);
+
+            const calf = new THREE.Group();
+            calf.position.set(0, -0.38, 0);
+            hipJoint.add(calf);
+
+            const calfGeo = new THREE.BoxGeometry(0.14, 0.42, 0.15);
+            const calfMesh = new THREE.Mesh(calfGeo, bootsMat);
+            calfMesh.position.set(0, -0.21, 0);
+            calf.add(calfMesh);
+
+            return { hipJoint, calf };
+        }
+
+        const leftLeg = createLeg(false);
+        const rightLeg = createLeg(true);
+        hips.add(leftLeg.hipJoint);
+        hips.add(rightLeg.hipJoint);
+
+        // Magic Aura Particles
+        const particleCount = 60;
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            particlePositions[i] = (Math.random() - 0.5) * 1.5;
+            particlePositions[i + 1] = Math.random() * 2.0;
+            particlePositions[i + 2] = (Math.random() - 0.5) * 1.5;
+        }
+
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        const particlesMat = new THREE.PointsMaterial({ color: 0x00f0ff, size: 0.05, transparent: true, opacity: 0.8 });
+        const magicParticles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(magicParticles);
+
+        // ==============================================================
+        // ANIMATION SYSTEM & CONTROLS
+        // ==============================================================
+        let currentAnim = 'magic'; // 'magic', 'battle', 'run', 'victory', 'idle'
+        let animClock = 0;
+        let loadedCustomModel = null;
+        let mixer = null;
+
+        function setAction(name, label) {
+            currentAnim = name;
+            document.getElementById('actionStatus').innerText = label;
+            document.querySelectorAll('.act-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        document.getElementById('btnMagic').addEventListener('click', (e) => {
+            setAction('magic', '🔮 Mengeluarkan Sihir');
+            e.target.classList.add('active');
+        });
+        document.getElementById('btnBattle').addEventListener('click', (e) => {
+            setAction('battle', '⚔️ Siaga Tempur');
+            e.target.classList.add('active');
+        });
+        document.getElementById('btnRun').addEventListener('click', (e) => {
+            setAction('run', '🏃 Lari Cepat');
+            e.target.classList.add('active');
+        });
+        document.getElementById('btnVictory').addEventListener('click', (e) => {
+            setAction('victory', '💃 Victory Dance');
+            e.target.classList.add('active');
+        });
+        document.getElementById('btnIdle').addEventListener('click', (e) => {
+            setAction('idle', '🛑 Diam Santai');
+            e.target.classList.add('active');
+        });
+        document.getElementById('btnResetCam').addEventListener('click', () => {
+            camera.position.set(0, 1.4, 4.2);
+            controls.target.set(0, 1.1, 0);
+            controls.reset();
+        });
+
+        // GLTF / GLB Custom File Loader
+        const glbInput = document.getElementById('glbFileInput');
+        glbInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onload = function(evt) {
+                const loader = new THREE.GLTFLoader();
+                loader.parse(evt.target.result, '', (gltf) => {
+                    // Hide procedural character
+                    characterGroup.visible = false;
+
+                    if (loadedCustomModel) scene.remove(loadedCustomModel);
+                    loadedCustomModel = gltf.scene;
+
+                    // Auto scale & position
+                    const box = new THREE.Box3().setFromObject(loadedCustomModel);
+                    const size = box.getSize(new THREE.Vector3());
+                    const scaleFactor = 1.8 / Math.max(size.y, 0.1);
+                    loadedCustomModel.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                    loadedCustomModel.position.set(0, 0, 0);
+                    scene.add(loadedCustomModel);
+
+                    // Check animations
+                    if (gltf.animations && gltf.animations.length > 0) {
+                        mixer = new THREE.AnimationMixer(loadedCustomModel);
+                        const action = mixer.clipAction(gltf.animations[0]);
+                        action.play();
+                    }
+
+                    document.getElementById('actionStatus').innerText = '✨ Model Kustom Berhasil Dimuat!';
+                });
+            };
+        });
+
+        // ==============================================================
+        // ANIMATION LOOP & KINEMATICS
+        // ==============================================================
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            animClock += delta;
+
+            // Magic circle rotation
+            magicCircle.rotation.z += 0.008;
+            innerCircle.rotation.z -= 0.012;
+
+            // Particles float upward
+            const posAttr = magicParticles.geometry.attributes.position;
+            for (let i = 1; i < particleCount * 3; i += 3) {
+                posAttr.array[i] += 0.015;
+                if (posAttr.array[i] > 2.2) posAttr.array[i] = 0.05;
+            }
+            posAttr.needsUpdate = true;
+
+            // Animate Custom Model if loaded
+            if (mixer) {
+                mixer.update(delta);
+            }
+
+            // Animate Procedural Character if active
+            if (characterGroup.visible) {
+                if (currentAnim === 'magic') {
+                    // POSE MERENTANGKAN TANGAN KE DEPAN MENGELUARKAN SIHIR!
+                    const wave = Math.sin(animClock * 5) * 0.05;
+                    leftArm.shoulder.rotation.x = -Math.PI / 2 + 0.1 + wave;
+                    rightArm.shoulder.rotation.x = -Math.PI / 2 + 0.1 + wave;
+                    leftArm.shoulder.rotation.z = -0.25;
+                    rightArm.shoulder.rotation.z = 0.25;
+                    leftArm.foreArm.rotation.x = -0.15;
+                    rightArm.foreArm.rotation.x = -0.15;
+
+                    leftLeg.hipJoint.rotation.x = -0.1;
+                    rightLeg.hipJoint.rotation.x = 0.1;
+
+                    // Pulsing magic light
+                    magicLight.intensity = 2.5 + Math.sin(animClock * 8) * 1.5;
+                    leftArm.magicSph.scale.setScalar(1.0 + Math.sin(animClock * 6) * 0.3);
+                    rightArm.magicSph.scale.setScalar(1.0 + Math.sin(animClock * 6) * 0.3);
+
+                } else if (currentAnim === 'run') {
+                    // SIKLUS LARI (RUN CYCLE)
+                    const runSpeed = 10;
+                    const legAngle = Math.sin(animClock * runSpeed) * 0.7;
+
+                    leftLeg.hipJoint.rotation.x = legAngle;
+                    rightLeg.hipJoint.rotation.x = -legAngle;
+
+                    leftArm.shoulder.rotation.x = -legAngle;
+                    rightArm.shoulder.rotation.x = legAngle;
+                    leftArm.shoulder.rotation.z = -0.1;
+                    rightArm.shoulder.rotation.z = 0.1;
+
+                    hips.position.y = 0.85 + Math.abs(Math.sin(animClock * runSpeed)) * 0.08;
+                    magicLight.intensity = 1.0;
+
+                } else if (currentAnim === 'battle') {
+                    // SIAGA TEMPUR
+                    leftArm.shoulder.rotation.x = -Math.PI / 3;
+                    rightArm.shoulder.rotation.x = -Math.PI / 4;
+                    leftArm.shoulder.rotation.z = -0.3;
+                    rightArm.shoulder.rotation.z = 0.2;
+                    leftLeg.hipJoint.rotation.x = -0.3;
+                    rightLeg.hipJoint.rotation.x = 0.3;
+                    hips.position.y = 0.8;
+                    magicLight.intensity = 2.0;
+
+                } else if (currentAnim === 'victory') {
+                    // JOGET / SELEBRASI KEMENANGAN
+                    const jump = Math.abs(Math.sin(animClock * 6)) * 0.2;
+                    hips.position.y = 0.85 + jump;
+                    leftArm.shoulder.rotation.z = -Math.PI + Math.sin(animClock * 8) * 0.3;
+                    rightArm.shoulder.rotation.z = Math.PI - Math.sin(animClock * 8) * 0.3;
+                    headGroup.rotation.y = Math.sin(animClock * 4) * 0.3;
+
+                } else if (currentAnim === 'idle') {
+                    // DIAM SANTAI
+                    const breath = Math.sin(animClock * 2) * 0.02;
+                    hips.position.y = 0.85 + breath;
+                    leftArm.shoulder.rotation.x = 0.05 + breath;
+                    rightArm.shoulder.rotation.x = 0.05 + breath;
+                    leftArm.shoulder.rotation.z = -0.1;
+                    rightArm.shoulder.rotation.z = 0.1;
+                    leftLeg.hipJoint.rotation.x = 0;
+                    rightLeg.hipJoint.rotation.x = 0;
+                    magicLight.intensity = 1.0;
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Responsive Resize
+        window.addEventListener('resize', () => {
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        });
+    </script>
+</body>
+</html>

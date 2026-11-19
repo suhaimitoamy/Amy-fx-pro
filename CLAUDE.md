@@ -432,6 +432,16 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
   3. *Chart Tested POI Preservation:* Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus (`tested: true`).
   4. *Versi:* Bump ke `2.0.0-pro.453` (code `950453`).
 
+## Rilis Pro 454: Adopsi Cockpit V3 Glassmorphism dari Lab Google AI Studio (19 Nov 2026)
+- **Konteks:** Hasil riset & desain UI/UX di laboratorium Google AI Studio (`suhaimitoamy/Amy-fx-ai-studio`) diadopsi secara presisi ke `Amy-fx-pro` tanpa merusak logika pasar.
+- **Solusi & Implementasi:**
+  1. *Tab Switcher POI BUY / SELL:* Memudahkan Sayang berganti melihat rencana eksekusi BUY atau SELL via tab interaktif tanpa harus scroll panjang.
+  2. *Penanda Waktu WITA & Deteksi DOL:* Skala dan crosshair chart resmi mengadopsi format WITA (`Asia/Makassar`), dengan deteksi terarah DOL (Draw on Liquidity) ke unconsumed pool terdekat.
+  3. *Custom Price Alert Manager V3:* Modal alarm dilengkapi tab "Pasang Baru" & "Daftar Alarm", sinkronisasi badge counter aktif di Beranda & Mapping, serta Web Audio 2-tone chime.
+  4. *Profil Trader Dinamis:* Menampilkan nama trader kustom, avatar inisial, dan kalkulator nominal risiko USD.
+  5. *Integritas Baku Terjaga:* Zero-touch Supabase, paritas Card Chart Gold (#1 di atas), dan formula SL Aman (+0.40 spread buffer) tetap patuh 100%.
+  6. *Versi:* Bump ke `2.0.0-pro.454` (code `950454`).
+
 ## Protokol Integrasi Google AI Studio & Precision Cherry-Pick (19 Nov 2026)
 - **Konteks:** Sayang menggunakan Google AI Studio App Builder sebagai laboratorium eksperimen UI/UX & fitur baru tanpa risiko merusak aplikasi utama di HP.
 - **Sandbox Repo:** `suhaimitoamy/Amy-fx-ai-studio` (versi murni web ~460 file, bebas limit 1.000 file, `index.html` di root, dev server standalone `server.js`).

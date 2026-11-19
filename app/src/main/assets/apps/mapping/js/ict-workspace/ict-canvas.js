@@ -1,17 +1,6 @@
 import {compactChartNarration} from './ict-presentation.js';
-import {fibonacci, sessions} from './amy-ict.js';
+import {sessions} from './amy-ict.js';
 import {calculateNextGenIndicators} from './nextgen-indicators.js';
-
-const COLORS = {
-  BUY: '#00cfa0',
-  SELL: '#ff606f',
-  pivot: '#82a7ff',
-  VI: '#37cde8',
-  NWOG: '#e88eab',
-  NDOG: '#ffc578',
-  LIQ: '#d694ff',
-  BPR: '#d9e68a'
-};
 
 export function getCandlesFingerprint(tf, candles) {
   if (!candles || !candles.length) return '';
@@ -51,10 +40,17 @@ export function createIctCanvas(element, chart, series) {
     ctx.clearRect(0, 0, w, h);
     if (!state?.candles?.length) return;
 
-    const {candles, amy, settings: s = {}, tf} = state;
-    const seconds = {M1: 60, M5: 300, M15: 900, H1: 3600}[tf] || 900;
+    const {candles, amy, settings: s = {}, layers = {}, tf} = state;
+    const showPoi = layers.poi !== false;
+    const showStructure = layers.structure !== false;
+    const showLiquidity = layers.liquidity !== false;
+    const showAsia = layers.asia === true;
+    const showIdm = layers.idm === true;
+    const showExpansion = layers.expansion === true;
+    const showKillzones = layers.killzones === true;
+
     const fullscreen = Boolean(element.closest('#gold-chart-workspace.is-fullscreen'));
-    const fontSize = fullscreen ? 14 : 10;
+    const fontSize = fullscreen ? 13 : 10;
     const plotRight = Math.max(0, w - chart.priceScale('right').width());
     const plotBottom = Math.max(0, h - chart.timeScale().height());
 
@@ -67,6 +63,7 @@ export function createIctCanvas(element, chart, series) {
       });
       if (typeof window !== 'undefined') {
         window.amyfxLastIndicators = indicators;
+        window.dispatchEvent(new CustomEvent('amyfx:indicators-updated', { detail: indicators }));
       }
     }
 
@@ -83,21 +80,31 @@ export function createIctCanvas(element, chart, series) {
       return v == null ? (index < first ? 0 : null) : v;
     };
 
-    const light = document.documentElement.dataset.amyfxTheme === 'light';
+    const light = document.documentElement.dataset.amyfxTheme === 'light' || document.documentElement.dataset.theme === 'light';
     const labelBounds = [];
+    // Reserve top-left safe area for OHLC HUD so labels never collide with OHLC strip
+    labelBounds.push({ left: 0, right: Math.min(plotRight, 250), top: 0, bottom: 26 });
 
     const label = (text, xx, yy, color) => {
-      if (!text || yy < fontSize || yy > plotBottom - 6) return;
-      ctx.font = fontSize + 'px sans-serif';
+      if (!text || yy < fontSize + 4 || yy > plotBottom - 6) return;
+      ctx.font = `600 ${fontSize}px ui-monospace, SFMono-Regular, Menlo, monospace`;
       const textWidth = ctx.measureText(text).width;
-      const width = Math.min(textWidth + 6, Math.max(0, plotRight - xx));
-      const bounds = {left: xx - 2, right: xx + width, top: yy - fontSize - 1, bottom: yy + 3};
-      if (labelBounds.some(b => bounds.left < b.right && bounds.right > b.left && bounds.top < b.bottom && bounds.bottom > b.top)) return;
+      const padX = 5;
+      const boxW = Math.min(textWidth + padX * 2, Math.max(0, plotRight - xx - 2));
+      const boxH = fontSize + 5;
+      const bx = Math.max(4, Math.min(xx - 2, plotRight - boxW - 4));
+      const by = yy - fontSize - 2;
+      const bounds = { left: bx, right: bx + boxW, top: by, bottom: by + boxH };
+      if (labelBounds.some(b => bounds.left < b.right + 2 && bounds.right > b.left - 2 && bounds.top < b.bottom + 2 && bounds.bottom > b.top - 2)) return;
       labelBounds.push(bounds);
-      ctx.fillStyle = light ? '#eff4ffeb' : '#07111deb';
-      ctx.fillRect(xx - 2, yy - fontSize - 1, width, fontSize + 4);
+
+      ctx.fillStyle = light ? 'rgba(255, 255, 255, 0.92)' : 'rgba(6, 9, 15, 0.88)';
+      ctx.fillRect(bx, by, boxW, boxH);
+      ctx.strokeStyle = color + (light ? '55' : '66');
+      ctx.lineWidth = 0.75;
+      ctx.strokeRect(bx, by, boxW, boxH);
       ctx.fillStyle = color;
-      ctx.fillText(text, xx, yy, Math.max(0, plotRight - xx));
+      ctx.fillText(text, bx + padX, yy, Math.max(0, boxW - padX * 2));
     };
 
     ctx.save();
@@ -105,24 +112,29 @@ export function createIctCanvas(element, chart, series) {
     ctx.rect(0, 0, plotRight, plotBottom);
     ctx.clip();
 
-    // 1. Killzones / Session background shading
-    if (s.killzones) {
+    // 1. Killzones / Session background shading (Layer: killzones)
+    if (showKillzones) {
       for (let i = first; i <= last; i++) {
         const c = candles[i], names = sessions(c.time);
-        const active = names.find(n => ({NY: s.ny, LONDON_OPEN: s.londonOpen, LONDON_CLOSE: s.londonClose, ASIA: s.asian})[n]);
+        const active = names.find(n => ({NY: s.ny !== false, LONDON_OPEN: s.londonOpen !== false, LONDON_CLOSE: s.londonClose !== false, ASIA: s.asian !== false})[n]);
         if (!active) continue;
         const xx = x(c.time), next = x(candles[i + 1]?.time);
         if (xx == null) continue;
-        ctx.fillStyle = {NY: '#ff8c001a', LONDON_OPEN: '#00bcd41a', LONDON_CLOSE: '#2157f322', ASIA: '#e91e631a'}[active];
-        ctx.fillRect(xx, 0, (next ?? xx + 8) - xx, plotBottom);
+        ctx.fillStyle = {
+          NY: light ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 140, 0, 0.10)',
+          LONDON_OPEN: light ? 'rgba(6, 182, 212, 0.08)' : 'rgba(0, 188, 212, 0.10)',
+          LONDON_CLOSE: light ? 'rgba(37, 99, 235, 0.08)' : 'rgba(59, 130, 246, 0.11)',
+          ASIA: light ? 'rgba(168, 85, 247, 0.07)' : 'rgba(168, 85, 247, 0.10)'
+        }[active];
+        ctx.fillRect(xx, 0, Math.max(2, (next ?? xx + 8) - xx), plotBottom);
       }
     }
 
-    const lineRight = Math.min(plotRight, chart.timeScale().logicalToCoordinate(candles.length - 1 + (s.rightBars || 40)) ?? plotRight);
+    const lineRight = Math.min(plotRight, chart.timeScale().logicalToCoordinate(candles.length - 1 + (s.rightBars || 10)) ?? plotRight);
 
     const line = (price, title, color, time = null, end = null, dashed = false) => {
       const yy = y(price);
-      if (yy == null) return;
+      if (yy == null || yy < 0 || yy > plotBottom) return;
       const origin = time != null ? leftAt(time) : x(candles[Math.max(0, candles.length - (s.backBars || 80))]?.time);
       const xx = origin ?? 0, right = end != null ? leftAt(end) ?? plotRight : lineRight;
       ctx.strokeStyle = color;
@@ -133,206 +145,192 @@ export function createIctCanvas(element, chart, series) {
       ctx.lineTo(right, yy);
       ctx.stroke();
       if (dashed) ctx.setLineDash([]);
-      label(title, Math.max(4, Math.min(xx + 3, plotRight - 90)), yy - 3, color);
+      label(title, Math.max(4, Math.min(xx + 4, plotRight - 96)), yy - 4, color);
     };
 
-    // 2. Asia Session High / Low (06:00 - 14:00 WITA)
+    // 2. Asia Session High / Low (Layer: asia)
     const kl = indicators?.keyLevels;
-    if (kl?.asiaStart && kl.asiaHigh != null && kl.asiaLow != null) {
+    if (showAsia && kl?.asiaStart && kl.asiaHigh != null && kl.asiaLow != null) {
       const aX1 = leftAt(kl.asiaStart);
       const aX2 = kl.asiaEnd ? leftAt(kl.asiaEnd) : lineRight;
       const aTop = y(kl.asiaHigh);
       const aBot = y(kl.asiaLow);
       if (aX1 != null && aTop != null && aBot != null) {
-        ctx.fillStyle = light ? 'rgba(168, 85, 247, 0.05)' : 'rgba(168, 85, 247, 0.08)';
+        ctx.fillStyle = light ? 'rgba(168, 85, 247, 0.06)' : 'rgba(168, 85, 247, 0.10)';
         ctx.fillRect(aX1, aTop, Math.max(0, Math.min(plotRight, aX2 ?? plotRight) - aX1), Math.max(0, aBot - aTop));
       }
-      line(kl.asiaHigh, `ASIA HIGH ${kl.asiaHigh.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
-      const invLvl = indicators?.structure?.invalidation?.level;
-      if (!Number.isFinite(invLvl) || Math.abs(kl.asiaLow - invLvl) >= 1.0) {
-        line(kl.asiaLow, `ASIA LOW ${kl.asiaLow.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
-      }
+      line(kl.asiaHigh, `ASIA H ${kl.asiaHigh.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
+      line(kl.asiaLow, `ASIA L ${kl.asiaLow.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
     }
 
-    // 3. Time-bounded POI Boxes: FVG with 50% CE (dashed line)
-    for (const fvg of indicators?.poi?.fvg || []) {
-      const xx = leftAt(fvg.startTime);
-      const top = y(fvg.top), bottom = y(fvg.bot);
-      if (xx == null || top == null || bottom == null || xx > plotRight) continue;
-      const end = (fvg.mitigated && !fvg.tested) ? leftAt(fvg.endTime) : lineRight;
-      const right = Math.min(plotRight, end ?? lineRight);
-      const color = fvg.side === 'BUY' ? '#10b981' : '#ef4444';
+    // 3. Time-bounded POI Boxes: FVG & Order Blocks with 50% CE (Layer: poi)
+    if (showPoi) {
+      for (const fvg of indicators?.poi?.fvg || []) {
+        const xx = leftAt(fvg.startTime);
+        const top = y(fvg.top), bottom = y(fvg.bot);
+        if (xx == null || top == null || bottom == null || xx > plotRight) continue;
+        const end = (fvg.mitigated && !fvg.tested) ? leftAt(fvg.endTime) : lineRight;
+        const right = Math.min(plotRight, end ?? lineRight);
+        const color = fvg.side === 'BUY' ? (light ? '#059669' : '#00C896') : (light ? '#E11D48' : '#FF4D6A');
 
-      ctx.fillStyle = color + (light ? '15' : '20');
-      ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
-      ctx.strokeStyle = color;
-      ctx.lineWidth = s.lineWidth || 1;
-      if (fvg.tested) ctx.setLineDash([3, 3]);
-      ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
-      ctx.setLineDash([]);
-
-      // 50% CE dashed line
-      const ceY = y(fvg.ce);
-      if (ceY != null) {
-        ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = '#ffd166'; // gold dashed line for CE
-        ctx.beginPath();
-        ctx.moveTo(xx, ceY);
-        ctx.lineTo(right, ceY);
-        ctx.stroke();
+        ctx.fillStyle = color + (light ? '16' : '1E');
+        ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+        ctx.strokeStyle = color + 'AA';
+        ctx.lineWidth = s.lineWidth || 1;
+        if (fvg.tested) ctx.setLineDash([3, 3]);
+        ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
         ctx.setLineDash([]);
-      }
-      label(`${fvg.side === 'BUY' ? 'Bull' : 'Bear'} FVG · 50% CE`, Math.max(3, xx + 4), top + 12, color);
-    }
 
-    // 4. Time-bounded POI Boxes: Order Blocks (+OB, -OB) with 50% CE
-    for (const ob of indicators?.poi?.ob || []) {
-      const xx = leftAt(ob.startTime);
-      const top = y(ob.top), bottom = y(ob.bot);
-      if (xx == null || top == null || bottom == null || xx > plotRight) continue;
-      const end = (ob.mitigated && !ob.tested) ? leftAt(ob.endTime) : lineRight;
-      const right = Math.min(plotRight, end ?? lineRight);
-      const color = ob.color || (ob.side === 'BUY' ? '#3b82f6' : '#ef4444');
-
-      ctx.fillStyle = color + (light ? '18' : '24');
-      ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
-      ctx.strokeStyle = color;
-      ctx.lineWidth = s.lineWidth || 1;
-      if (ob.tested) ctx.setLineDash([3, 3]);
-      ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
-      ctx.setLineDash([]);
-
-      // 50% CE dashed line
-      const ceY = y(ob.ce);
-      if (ceY != null) {
-        ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = '#ffd166';
-        ctx.beginPath();
-        ctx.moveTo(xx, ceY);
-        ctx.lineTo(right, ceY);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-      label(`${ob.label} · 50% CE`, Math.max(3, xx + 4), top + 12, color);
-    }
-
-    // 5. Market Structure: BOS and MSS lines with labels
-    for (const ev of indicators?.structure?.events || []) {
-      const x1 = leftAt(ev.startTime), x2 = leftAt(ev.endTime), yy = y(ev.level);
-      if (x1 == null || x2 == null || yy == null) continue;
-      ctx.strokeStyle = ev.color;
-      ctx.lineWidth = Math.max(1, s.lineWidth || 1);
-      ctx.beginPath();
-      ctx.moveTo(x1, yy);
-      ctx.lineTo(x2, yy);
-      ctx.stroke();
-      const xMid = Math.round((x1 + x2) / 2);
-      label(`${ev.type} · ICT`, Math.max(4, xMid - 16), yy - 3, ev.color);
-    }
-
-    // 6. Internal Liquidity: BSL (Swing High 4-bar) and SSL (Swing Low 4-bar)
-    for (const bsl of indicators?.liquidity?.bsl || []) {
-      const xx = leftAt(bsl.time), yy = y(bsl.level);
-      if (xx == null || yy == null) continue;
-      ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = s.lineWidth || 1;
-      ctx.beginPath();
-      ctx.moveTo(xx, yy);
-      ctx.lineTo(lineRight, yy);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      label(`BSL ${bsl.level.toFixed(2)}`, Math.max(4, Math.min(xx + 4, plotRight - 90)), yy - 3, '#ef4444');
-    }
-    for (const ssl of indicators?.liquidity?.ssl || []) {
-      const xx = leftAt(ssl.time), yy = y(ssl.level);
-      if (xx == null || yy == null) continue;
-      ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = s.lineWidth || 1;
-      ctx.beginPath();
-      ctx.moveTo(xx, yy);
-      ctx.lineTo(lineRight, yy);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      label(`SSL ${ssl.level.toFixed(2)}`, Math.max(4, Math.min(xx + 4, plotRight - 90)), yy - 3, '#22c55e');
-    }
-
-    // 7. Sweep Markers ('×' for BSL/SSL, '◆' for Asia) & Clean Sweep Line
-    const swList = indicators?.liquidity?.sweeps || [];
-    for (let i = 0; i < swList.length; i++) {
-      const sw = swList[i];
-      const xx = x(sw.time), yy = y(sw.price);
-      if (xx == null || yy == null || xx < 0 || xx > plotRight) continue;
-      ctx.font = 'bold ' + (fontSize + 1) + 'px sans-serif';
-      ctx.fillStyle = sw.color;
-      ctx.textAlign = 'center';
-      const offset = sw.side === 'BUY' ? -3 : (fontSize + 3);
-      ctx.fillText(sw.symbol, xx, yy + offset);
-      ctx.textAlign = 'left';
-
-      // Hanya tampilkan garis horizontal untuk sweep paling baru agar chart tidak sesak
-      if (i === swList.length - 1) {
-        const sweepLevel = Number(sw.level ?? sw.price);
-        const syy = y(sweepLevel);
-        if (syy != null) {
-          ctx.setLineDash([5, 3]);
-          ctx.strokeStyle = sw.color || '#f59e0b';
-          ctx.lineWidth = s.lineWidth || 1;
+        const ceY = y(fvg.ce);
+        if (ceY != null) {
+          ctx.setLineDash([3, 3]);
+          ctx.strokeStyle = light ? '#D97706' : '#F5C451';
           ctx.beginPath();
-          ctx.moveTo(xx, syy);
-          ctx.lineTo(lineRight, syy);
+          ctx.moveTo(xx, ceY);
+          ctx.lineTo(right, ceY);
           ctx.stroke();
           ctx.setLineDash([]);
-          const tag = sw.reclaimed ? '🎯 Reclaimed Valid' : '⚖️ Menunggu Rejection Close';
-          label(`${sw.label || 'SWEEP'} ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 3, sw.color || '#f59e0b');
+        }
+        label(`${fvg.side === 'BUY' ? 'Bull' : 'Bear'} FVG · CE`, Math.max(4, xx + 4), top + fontSize + 3, color);
+      }
+
+      for (const ob of indicators?.poi?.ob || []) {
+        const xx = leftAt(ob.startTime);
+        const top = y(ob.top), bottom = y(ob.bot);
+        if (xx == null || top == null || bottom == null || xx > plotRight) continue;
+        const end = (ob.mitigated && !ob.tested) ? leftAt(ob.endTime) : lineRight;
+        const right = Math.min(plotRight, end ?? lineRight);
+        const color = ob.side === 'BUY' ? (light ? '#2563EB' : '#38BDF8') : (light ? '#DC2626' : '#F87171');
+
+        ctx.fillStyle = color + (light ? '18' : '22');
+        ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+        ctx.strokeStyle = color + 'BB';
+        ctx.lineWidth = s.lineWidth || 1;
+        if (ob.tested) ctx.setLineDash([3, 3]);
+        ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+        ctx.setLineDash([]);
+
+        const ceY = y(ob.ce);
+        if (ceY != null) {
+          ctx.setLineDash([3, 3]);
+          ctx.strokeStyle = light ? '#D97706' : '#F5C451';
+          ctx.beginPath();
+          ctx.moveTo(xx, ceY);
+          ctx.lineTo(right, ceY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        label(`${ob.label} · CE`, Math.max(4, xx + 4), top + fontSize + 3, color);
+      }
+    }
+
+    // 4. Market Structure: BOS & MSS lines (Layer: structure)
+    if (showStructure) {
+      for (const ev of indicators?.structure?.events || []) {
+        const x1 = leftAt(ev.startTime), x2 = leftAt(ev.endTime), yy = y(ev.level);
+        if (x1 == null || x2 == null || yy == null) continue;
+        const evColor = ev.side === 'BULL' ? (light ? '#059669' : '#00C896') : (light ? '#E11D48' : '#FF4D6A');
+        ctx.strokeStyle = evColor;
+        ctx.lineWidth = Math.max(1.25, s.lineWidth || 1);
+        ctx.beginPath();
+        ctx.moveTo(x1, yy);
+        ctx.lineTo(x2, yy);
+        ctx.stroke();
+        const xMid = Math.round((x1 + x2) / 2);
+        label(`${ev.type}`, Math.max(4, xMid - 14), yy - 4, evColor);
+      }
+    }
+
+    // 5. Internal Liquidity (BSL / SSL) & Sweep Markers (Layer: liquidity)
+    if (showLiquidity) {
+      for (const bsl of indicators?.liquidity?.bsl || []) {
+        const xx = leftAt(bsl.time), yy = y(bsl.level);
+        if (xx == null || yy == null) continue;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = light ? '#E11D48' : '#FF4D6A';
+        ctx.lineWidth = s.lineWidth || 1;
+        ctx.beginPath();
+        ctx.moveTo(xx, yy);
+        ctx.lineTo(lineRight, yy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        label(`BSL ${bsl.level.toFixed(2)}`, Math.max(4, Math.min(xx + 4, plotRight - 96)), yy - 4, light ? '#E11D48' : '#FF4D6A');
+      }
+      for (const ssl of indicators?.liquidity?.ssl || []) {
+        const xx = leftAt(ssl.time), yy = y(ssl.level);
+        if (xx == null || yy == null) continue;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = light ? '#059669' : '#00C896';
+        ctx.lineWidth = s.lineWidth || 1;
+        ctx.beginPath();
+        ctx.moveTo(xx, yy);
+        ctx.lineTo(lineRight, yy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        label(`SSL ${ssl.level.toFixed(2)}`, Math.max(4, Math.min(xx + 4, plotRight - 96)), yy - 4, light ? '#059669' : '#00C896');
+      }
+
+      const swList = indicators?.liquidity?.sweeps || [];
+      for (let i = 0; i < swList.length; i++) {
+        const sw = swList[i];
+        const xx = x(sw.time), yy = y(sw.price);
+        if (xx == null || yy == null || xx < 0 || xx > plotRight) continue;
+        ctx.font = 'bold ' + (fontSize + 2) + 'px sans-serif';
+        ctx.fillStyle = sw.color;
+        ctx.textAlign = 'center';
+        const offset = sw.side === 'BUY' ? -4 : (fontSize + 4);
+        ctx.fillText(sw.symbol, xx, yy + offset);
+        ctx.textAlign = 'left';
+
+        if (i === swList.length - 1) {
+          const sweepLevel = Number(sw.level ?? sw.price);
+          const syy = y(sweepLevel);
+          if (syy != null) {
+            ctx.setLineDash([5, 3]);
+            ctx.strokeStyle = sw.color || '#f59e0b';
+            ctx.lineWidth = s.lineWidth || 1;
+            ctx.beginPath();
+            ctx.moveTo(xx, syy);
+            ctx.lineTo(lineRight, syy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            const tag = sw.reclaimed ? 'Valid' : 'Sweep';
+            label(`${sw.pool || 'SWEEP'} · ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 4, sw.color || '#f59e0b');
+          }
         }
       }
     }
 
-    // 8. Infinite/Horizontal Key Levels on Canvas (renders clean labels directly on chart)
-    if (kl) {
-      const curPrice = Number(window.amyfxCurrentPrice) || candles[candles.length - 1]?.close || 3940;
-      const isNear = lvl => Number.isFinite(lvl) && Math.abs(lvl - curPrice) <= 32;
-      if (isNear(kl.pdh)) line(kl.pdh, `PDH ${kl.pdh.toFixed(2)}`, '#f97316', null, null, true);
-      if (isNear(kl.pdl)) line(kl.pdl, `PDL ${kl.pdl.toFixed(2)}`, '#3b82f6', null, null, true);
-      if (isNear(kl.pwh)) line(kl.pwh, `PWH ${kl.pwh.toFixed(2)}`, '#d946ef', null, null, true);
-      if (isNear(kl.pwl)) line(kl.pwl, `PWL ${kl.pwl.toFixed(2)}`, '#06b6d4', null, null, true);
-      if (isNear(kl.pdEq)) line(kl.pdEq, `PD EQ ${kl.pdEq.toFixed(2)}`, '#94a3b8', null, null, true);
-    }
-    if (indicators?.structure?.invalidation?.level) {
-      const inv = indicators.structure.invalidation;
-      line(inv.level, inv.text, inv.color, inv.time, null, true);
-    }
-
-    // 8b. Batas Ekspansi V6.1 (Target Normal & Batas Habis Std Dev -2.0 & -4.0)
-    if (indicators?.expansion) {
+    // 6. Batas Ekspansi (Layer: expansion — off by default)
+    if (showExpansion && indicators?.expansion) {
       const exp = indicators.expansion;
       if (Number.isFinite(exp.expNorm)) {
-        line(exp.expNorm, `${exp.normLabel || 'TARGET NORMAL'} ${exp.expNorm.toFixed(2)}`, exp.trend === 'BULL' ? '#10b981' : '#ef4444', exp.startTime, null, true);
+        line(exp.expNorm, `TARGET ${exp.expNorm.toFixed(2)}`, exp.trend === 'BULL' ? '#00C896' : '#FF4D6A', exp.startTime, null, true);
       }
       if (Number.isFinite(exp.expMax)) {
-        line(exp.expMax, `${exp.maxLabel || 'BATAS HABIS (KLIMAKS)'} ${exp.expMax.toFixed(2)}`, '#f59e0b', exp.startTime, null, false);
+        line(exp.expMax, `KLIMAKS ${exp.expMax.toFixed(2)}`, '#F5C451', exp.startTime, null, false);
       }
     }
 
-    // 8c. Inducement (IDM V6.1)
-    if (indicators?.idm && Number.isFinite(indicators.idm.level)) {
+    // 7. Inducement IDM (Layer: idm — off by default)
+    if (showIdm && indicators?.idm && Number.isFinite(indicators.idm.level)) {
       const idm = indicators.idm;
-      line(idm.level, `IDM ${idm.level.toFixed(2)}${idm.swept ? ' [SWEPT]' : ''}`, '#8b5cf6', idm.time, null, true);
+      line(idm.level, `IDM ${idm.level.toFixed(2)}${idm.swept ? ' [SWEPT]' : ''}`, '#a78bfa', idm.time, null, true);
     }
 
-    // 9. Compact Chart Narration (Hanya jika fullscreen dan diaktifkan)
+    // 8. Compact Chart Narration (Hanya jika fullscreen & diaktifkan)
     if (s.narration && fullscreen && amy?.entry) {
       const lines = compactChartNarration(amy, state.news);
-      ctx.font = (fullscreen ? 14 : 11) + 'px sans-serif';
-      const lineHeight = fullscreen ? 20 : 15, bw = Math.min(plotRight - 16, fullscreen ? 440 : 300), bh = lines.length * lineHeight + 12;
-      ctx.fillStyle = light ? '#f3f7fff0' : '#07111def';
-      ctx.fillRect(8, 8, bw, bh);
-      ctx.strokeStyle = '#739bd2';
-      ctx.strokeRect(8, 8, bw, bh);
-      ctx.fillStyle = light ? '#263c60' : '#e4eeff';
-      lines.forEach((text, i) => ctx.fillText(text, 14, 8 + lineHeight + i * lineHeight, bw - 12));
+      ctx.font = (fullscreen ? 13 : 11) + 'px sans-serif';
+      const lineHeight = fullscreen ? 19 : 15;
+      const bw = Math.min(plotRight - 16, fullscreen ? 420 : 280);
+      const bh = lines.length * lineHeight + 12;
+      ctx.fillStyle = light ? 'rgba(255,255,255,0.92)' : 'rgba(6,9,15,0.90)';
+      ctx.fillRect(8, 30, bw, bh);
+      ctx.strokeStyle = light ? '#cbd5e1' : '#334155';
+      ctx.strokeRect(8, 30, bw, bh);
+      ctx.fillStyle = light ? '#0f172a' : '#e2e8f0';
+      lines.forEach((text, i) => ctx.fillText(text, 14, 30 + lineHeight + i * lineHeight, bw - 12));
     }
 
     ctx.restore();

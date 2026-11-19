@@ -1,522 +1,1734 @@
 /* ============================================================
-   ICT DASHBOARD V2 — Amy FX Pro Mapping Page
-   Glassmorphism & Unified Luxury Obsidian Styling
-   Menyatu 100% Simetris dengan Card Peta Harga (.gold-price-panel)
+   AMY FX PRO — MAPPING MODERN GLASS COCKPIT (V3)
+   Selaras dengan Bahasa Desain Profil & Peta Harga Glassmorphism
+   Mendukung Penuh Dark Mode & Light Mode (data-amyfx-theme="light")
+   Catatan: .gold-price-panel sengaja dibiarkan 100% paritas Peta Harga
    ============================================================ */
 
-/* ── Container scroll utama ── */
+/* ── Semantic Cockpit Tokens (Dark Default) ── */
+body.amyfx-module--ict {
+  --ck-surface: rgba(255, 255, 255, 0.055);
+  --ck-surface-elevated: rgba(255, 255, 255, 0.04);
+  --ck-surface-inset: rgba(8, 13, 24, 0.42);
+  --ck-border: rgba(255, 255, 255, 0.12);
+  --ck-border-subtle: rgba(255, 255, 255, 0.07);
+  --ck-text: #F1F5F9;
+  --ck-text-secondary: #CBD5E1;
+  --ck-muted: #94A3B8;
+  --ck-gold: #F5C451;
+  --ck-gold-bg: rgba(245, 196, 81, 0.12);
+  --ck-gold-border: rgba(245, 196, 81, 0.30);
+  --ck-buy: #34D399;
+  --ck-buy-text: #86EFAC;
+  --ck-buy-bg: rgba(16, 185, 129, 0.13);
+  --ck-buy-border: rgba(16, 185, 129, 0.32);
+  --ck-sell: #F87171;
+  --ck-sell-text: #FCA5A5;
+  --ck-sell-bg: rgba(239, 68, 68, 0.13);
+  --ck-sell-border: rgba(239, 68, 68, 0.32);
+  --ck-warn: #FBBF24;
+  --ck-warn-text: #FDE68A;
+  --ck-warn-bg: rgba(245, 158, 11, 0.12);
+  --ck-warn-border: rgba(245, 158, 11, 0.32);
+  --ck-shadow: 0 12px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --ck-mono: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+}
+
+/* ── Semantic Cockpit Tokens (Light Mode) ── */
+html[data-amyfx-theme="light"] body.amyfx-module--ict,
+html[data-theme="light"] body.amyfx-module--ict {
+  --ck-surface: rgba(255, 255, 255, 0.86);
+  --ck-surface-elevated: rgba(241, 245, 249, 0.85);
+  --ck-surface-inset: rgba(241, 245, 249, 0.92);
+  --ck-border: rgba(15, 23, 42, 0.11);
+  --ck-border-subtle: rgba(15, 23, 42, 0.07);
+  --ck-text: #0F172A;
+  --ck-text-secondary: #334155;
+  --ck-muted: #64748B;
+  --ck-gold: #B45309;
+  --ck-gold-bg: rgba(217, 119, 6, 0.10);
+  --ck-gold-border: rgba(217, 119, 6, 0.30);
+  --ck-buy: #059669;
+  --ck-buy-text: #065F46;
+  --ck-buy-bg: rgba(16, 185, 129, 0.11);
+  --ck-buy-border: rgba(5, 150, 105, 0.32);
+  --ck-sell: #DC2626;
+  --ck-sell-text: #991B1B;
+  --ck-sell-bg: rgba(239, 68, 68, 0.10);
+  --ck-sell-border: rgba(220, 38, 38, 0.30);
+  --ck-warn: #B45309;
+  --ck-warn-text: #92400E;
+  --ck-warn-bg: rgba(245, 158, 11, 0.12);
+  --ck-warn-border: rgba(217, 119, 6, 0.34);
+  --ck-shadow: 0 10px 28px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* ── Main Layout Container ── */
+body.amyfx-module--ict main#app {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 4px 16px 36px;
+}
+
 .ict-dashboard-scroll {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   width: 100%;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
-/* ── Reset dan Samakan Semua Card dengan .gold-price-panel ── */
-body.amyfx-module--ict main .ict-dashboard-scroll > article {
-  min-width: 0 !important;
+/* Chart Gold tetap 100% paritas Peta Harga, rapikan margin bawahnya agar konsisten dengan gap 14px */
+body.amyfx-module--ict main .ict-dashboard-scroll > article.gold-price-panel {
   margin: 0 !important;
-  padding: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  border-radius: 22px !important;
-  background: rgba(255, 255, 255, 0.065) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-  overflow: hidden;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  position: relative;
 }
 
 /* ============================================================
-   1. HERO CONTEXT CARD
+   HEADER — MODERN GLASS COCKPIT BAR
    ============================================================ */
-body.amyfx-module--ict main .ict-dashboard-scroll > article.hero-context-card {
-  border-color: rgba(245, 196, 81, 0.35) !important;
-}
-body.amyfx-module--ict main .ict-dashboard-scroll > article.hero-context-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(245, 196, 81, 0.8), transparent);
-}
-
-/* Baris Harga & Jam Header */
-.hero-price-row {
+body.amyfx-module--ict header.cockpit-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 14px 16px 10px;
+}
+
+.cockpit-header-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cockpit-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ck-gold);
+  line-height: 1.2;
+}
+
+.cockpit-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+body.amyfx-module--ict header.cockpit-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ck-text);
+  line-height: 1.2;
+}
+
+.cockpit-session-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ck-text-secondary);
+  background: var(--ck-surface-elevated);
+  border: 1px solid var(--ck-border);
+  white-space: nowrap;
+}
+
+.cockpit-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+body.amyfx-module--ict #connection.cockpit-conn-status {
+  margin-left: 0;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ck-muted);
+  background: var(--ck-surface-elevated);
+  border: 1px solid var(--ck-border-subtle);
+  white-space: nowrap;
+}
+
+body.amyfx-module--ict header.cockpit-header .nav-arrow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 11px;
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  color: var(--ck-text);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+body.amyfx-module--ict header.cockpit-header .nav-arrow-btn:hover {
+  border-color: var(--ck-gold-border);
+  color: var(--ck-gold);
+}
+
+/* ============================================================
+   SHARED GLASS COCKPIT CARD SHELL
+   ============================================================ */
+body.amyfx-module--ict main article.cockpit-card {
+  min-width: 0;
+  width: 100%;
+  margin: 0 !important;
+  padding: 16px !important;
+  border: 1px solid var(--ck-border) !important;
+  border-radius: 20px !important;
+  background: var(--ck-surface) !important;
+  backdrop-filter: blur(22px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(165%) !important;
+  box-shadow: var(--ck-shadow) !important;
+  box-sizing: border-box !important;
+  position: relative;
+  overflow: hidden;
+  color: var(--ck-text);
+}
+
+.cockpit-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cockpit-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ck-gold);
+}
+
+.cockpit-card-title h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ck-text);
+}
+
+.cockpit-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ck-text-secondary);
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   CARD 2: HERO RINGKAS — LIVE BIAS + 3-TF + BREAK/SWEEP/DOL
+   ============================================================ */
+body.amyfx-module--ict main article.hero-context-card {
+  border-color: var(--ck-gold-border) !important;
+}
+body.amyfx-module--ict main article.hero-context-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--ck-gold), transparent);
+  opacity: 0.75;
+}
+
+.hero-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hero-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ck-muted);
+}
+
+.hero-price-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hero-live-price {
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--ck-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-eq-meta {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ck-gold);
+  background: var(--ck-gold-bg);
+  border: 1px solid var(--ck-gold-border);
+  border-radius: 7px;
+  padding: 3px 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hero-top-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.hero-bias-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  text-align: right;
+}
+.hero-bias-pill.bias-bullish {
+  background: var(--ck-buy-bg);
+  border: 1px solid var(--ck-buy-border);
+  color: var(--ck-buy-text);
+}
+.hero-bias-pill.bias-bearish {
+  background: var(--ck-sell-bg);
+  border: 1px solid var(--ck-sell-border);
+  color: var(--ck-sell-text);
+}
+.hero-bias-pill.bias-pullback {
+  background: var(--ck-warn-bg);
+  border: 1px solid var(--ck-warn-border);
+  color: var(--ck-warn-text);
+}
+.hero-bias-pill.bias-neutral {
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border);
+  color: var(--ck-text-secondary);
+}
+
+.hero-clock {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ck-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Matriks 3-TF Horizontal Sejajar */
+.hero-tf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.hero-tf-cell {
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 12px;
+  padding: 10px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hero-tf-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.hero-tf-name {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--ck-muted);
+  white-space: nowrap;
+}
+
+.hero-tf-dir {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.hero-tf-dir::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.hero-tf-dir.bias-bull { color: var(--ck-buy); }
+.hero-tf-dir.bias-bear { color: var(--ck-sell); }
+.hero-tf-dir.bias-neutral { color: var(--ck-muted); }
+
+.hero-tf-desc {
+  font-size: 11px;
+  line-height: 1.38;
+  color: var(--ck-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* Live ICT Engine Telemetry Strip (Break · Sweep · DOL) */
+.hero-ict-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--ck-border-subtle);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.hero-ict-metric {
+  background: var(--ck-surface-inset);
+  padding: 9px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.hero-ict-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ck-muted);
+}
+
+.hero-ict-val {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ck-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.hero-ict-val.is-bull { color: var(--ck-buy-text); }
+.hero-ict-val.is-bear { color: var(--ck-sell-text); }
+.hero-ict-val.is-gold { color: var(--ck-gold); }
+
+/* Warning Kontekstual Tunggal */
+.hero-warning-box {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ck-warn-text);
+  background: var(--ck-warn-bg);
+  border: 1px solid var(--ck-warn-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-warn);
+  border-radius: 10px;
+  padding: 9px 12px 9px 14px;
+  margin-bottom: 10px;
+}
+.hero-warning-box[hidden] { display: none; }
+
+/* Narasi 1 Baris */
+.hero-conclusion {
+  font-size: 12px;
+  color: var(--ck-muted);
+  line-height: 1.55;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ck-border-subtle);
+}
+.hero-conclusion strong {
+  color: var(--ck-text);
+  font-weight: 700;
+}
+
+/* ============================================================
+   CARD 3: SPLIT ROW (DEALING RANGE + PETA SKENARIO)
+   ============================================================ */
+.cockpit-split-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+/* Dealing Range Horizontal Gauge */
+.dr-gauge-wrap {
+  margin-bottom: 14px;
+}
+
+.dr-gauge-zones {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ck-muted);
+  margin-bottom: 6px;
+}
+
+.dr-gauge-track {
+  position: relative;
+  height: 10px;
+  border-radius: 99px;
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  overflow: visible;
+}
+
+.dr-gauge-eq-mark {
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--ck-gold);
+  opacity: 0.65;
+  z-index: 1;
+}
+
+.dr-gauge-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.72) 0%, rgba(245, 196, 81, 0.72) 50%, rgba(239, 68, 68, 0.72) 100%);
+  transition: width 0.45s ease;
+}
+
+.dr-gauge-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--ck-gold);
+  border: 2.5px solid #0C1320;
+  box-shadow: 0 0 0 3px rgba(245, 196, 81, 0.25);
+  transition: left 0.45s ease;
+  z-index: 2;
+}
+html[data-amyfx-theme="light"] .dr-gauge-dot,
+html[data-theme="light"] .dr-gauge-dot {
+  border-color: #FFFFFF;
+}
+
+.dr-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dr-metric {
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 10px;
+  padding: 8px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dr-label-name {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ck-muted);
+}
+
+.dr-label-val {
+  font-size: 12.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ck-text);
+  overflow-wrap: anywhere;
+}
+.dr-metric.dr-ssl .dr-label-val { color: var(--ck-buy-text); }
+.dr-metric.dr-eq .dr-label-val { color: var(--ck-gold); }
+.dr-metric.dr-bsl .dr-label-val { color: var(--ck-sell-text); }
+
+.dr-status-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 9px 11px;
+  border-radius: 10px;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.dr-status-badge.zone-premium {
+  background: var(--ck-sell-bg);
+  border: 1px solid var(--ck-sell-border);
+  color: var(--ck-sell-text);
+}
+.dr-status-badge.zone-discount {
+  background: var(--ck-buy-bg);
+  border: 1px solid var(--ck-buy-border);
+  color: var(--ck-buy-text);
+}
+.dr-status-badge.zone-eq {
+  background: var(--ck-warn-bg);
+  border: 1px solid var(--ck-warn-border);
+  color: var(--ck-warn-text);
+}
+
+.dr-major-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid var(--ck-border-subtle);
+  font-size: 11px;
+  color: var(--ck-muted);
+  font-variant-numeric: tabular-nums;
+}
+.dr-major-row strong {
+  color: var(--ck-text-secondary);
+  font-weight: 700;
+}
+
+/* Peta Skenario */
+.scenario-paths {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.scenario-path {
+  border-radius: 12px;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid var(--ck-border-subtle);
+  background: var(--ck-surface-inset);
+}
+.scenario-path--sell {
+  box-shadow: inset 3px 0 0 0 var(--ck-sell);
+}
+.scenario-path--buy {
+  box-shadow: inset 3px 0 0 0 var(--ck-buy);
+}
+
+.scenario-path-dir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.scenario-path--sell .scenario-path-dir { color: var(--ck-sell-text); }
+.scenario-path--buy .scenario-path-dir { color: var(--ck-buy-text); }
+
+.scenario-path-body {
+  font-size: 12px;
+  line-height: 1.48;
+  color: var(--ck-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.scenario-path-body strong {
+  color: var(--ck-text);
+  font-weight: 700;
+}
+
+.no-trade-zone-badge {
+  background: var(--ck-surface-inset);
+  border: 1px dashed var(--ck-border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ck-muted);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   CARD 4: PANEL EKSEKUSI POI TERPADU · TAB SWITCH BUY / SELL
+   ============================================================ */
+.poi-cockpit-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/* Segmented Control BUY / SELL */
+.poi-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border-radius: 13px;
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border);
+  min-width: 248px;
+}
+
+body.amyfx-module--ict .poi-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ck-muted);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+body.amyfx-module--ict .poi-tab-btn:hover {
+  color: var(--ck-text);
+}
+
+body.amyfx-module--ict .poi-tab-btn--buy.is-active {
+  background: var(--ck-buy-bg);
+  border-color: var(--ck-buy-border);
+  color: var(--ck-buy-text);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.14);
+}
+
+body.amyfx-module--ict .poi-tab-btn--sell.is-active {
+  background: var(--ck-sell-bg);
+  border-color: var(--ck-sell-border);
+  color: var(--ck-sell-text);
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.14);
+}
+
+.poi-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ck-muted);
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+.poi-tab-btn--buy.is-active .poi-tab-dot {
+  background: var(--ck-buy);
+  opacity: 1;
+}
+.poi-tab-btn--sell.is-active .poi-tab-dot {
+  background: var(--ck-sell);
+  opacity: 1;
+}
+.poi-tab-dot.is-in-play {
+  background: var(--ck-warn) !important;
+  opacity: 1 !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
+  animation: cockpit-dot-pulse 1.8s infinite ease-in-out;
+}
+@keyframes cockpit-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.22); opacity: 0.72; }
+}
+
+.poi-tab-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--ck-gold-bg);
+  border: 1px solid var(--ck-gold-border);
+  color: var(--ck-gold);
+}
+.poi-tab-tag[hidden] { display: none; }
+
+/* Panel Status Row + Lot Calculator Button */
+.poi-panel-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
-.hero-live-price {
-  font-size: 1.65rem;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-.hero-eq-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--amy-accent, #F5C451);
-  background: rgba(245, 196, 81, 0.12);
-  border: 1px solid rgba(245, 196, 81, 0.25);
-  border-radius: 8px;
-  padding: 4px 9px;
-  white-space: nowrap;
-}
-.hero-clock {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted, #94A3B8);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  padding: 4px 9px;
-  white-space: nowrap;
-}
 
-/* Banner Bias Dinamis */
-.hero-bias-banner {
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  padding: 10px 14px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.hero-bias-banner.bias-bearish {
-  background: rgba(239, 68, 68, 0.16);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #FCA5A5;
-}
-.hero-bias-banner.bias-bullish {
-  background: rgba(34, 197, 94, 0.16);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #86EFAC;
-}
-.hero-bias-banner.bias-neutral {
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  color: #CBD5E1;
-}
-.hero-bias-banner.bias-pullback {
-  background: rgba(245, 158, 11, 0.16);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #FDE68A;
-}
-
-/* Warning Counter-Trend */
-.hero-warning-box {
-  font-size: 11.5px;
-  color: #FDE68A;
-  background: rgba(245, 158, 11, 0.12);
-  border-left: 3px solid rgba(245, 158, 11, 0.7);
-  border-radius: 0 10px 10px 0;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-.hero-warning-box[hidden] { display: none; }
-
-/* Tabel Matriks 3-TF */
-.hero-tf-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 12px;
-  font-size: 11.5px;
-}
-.hero-tf-table th {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted, #94A3B8);
-  padding: 6px 8px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.hero-tf-table td {
-  padding: 8px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  color: #CBD5E1;
-  line-height: 1.4;
-  vertical-align: middle;
-}
-.hero-tf-table tr:last-child td { border-bottom: none; }
-.hero-tf-table td:first-child {
-  font-weight: 800;
-  font-size: 11px;
-  color: #fff;
-  white-space: nowrap;
-}
-.hero-tf-table td:nth-child(2) {
-  font-weight: 800;
-  white-space: nowrap;
-}
-.hero-tf-table td.bias-bear { color: #FCA5A5; }
-.hero-tf-table td.bias-bull { color: #86EFAC; }
-.hero-tf-table td.bias-neutral { color: #94A3B8; }
-
-/* Kesimpulan Narasi */
-.hero-conclusion {
-  font-size: 12px;
-  color: #94A3B8;
-  line-height: 1.6;
-  margin: 0;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-.hero-conclusion strong { color: #F1F5F9; }
-
-/* ============================================================
-   2. DEALING RANGE CARD
-   ============================================================ */
-.dr-card h3 {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #F1F5F9;
-  margin: 0 0 14px;
-}
-.dr-visual-wrap {
-  display: flex;
-  gap: 16px;
-  align-items: stretch;
-  margin-bottom: 14px;
-}
-.dr-bar-track {
-  width: 10px;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  position: relative;
-  min-height: 105px;
-}
-.dr-bar-fill {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  border-radius: 10px;
-  background: linear-gradient(to top, rgba(34, 197, 94, 0.6), rgba(245, 196, 81, 0.6));
-  transition: height 0.6s ease;
-}
-.dr-bar-dot {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16px;
-  height: 16px;
-  background: #F5C451;
-  border: 2px solid #0C1320;
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(245, 196, 81, 0.8);
-  transition: bottom 0.6s ease;
-}
-.dr-labels {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.dr-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.dr-label-name {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted, #94A3B8);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.dr-label-val {
-  font-size: 13px;
-  font-weight: 800;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-}
-.dr-label-row.dr-bsl .dr-label-val { color: #FCA5A5; }
-.dr-label-row.dr-eq .dr-label-val { color: #F5C451; }
-.dr-label-row.dr-ssl .dr-label-val { color: #86EFAC; }
-
-.dr-status-badge {
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 10px 14px;
-  border-radius: 10px;
-  line-height: 1.4;
-}
-.dr-status-badge.zone-premium {
-  background: rgba(239, 68, 68, 0.14);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #FCA5A5;
-}
-.dr-status-badge.zone-discount {
-  background: rgba(34, 197, 94, 0.14);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #86EFAC;
-}
-.dr-status-badge.zone-eq {
-  background: rgba(245, 158, 11, 0.14);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #FDE68A;
-}
-
-/* ============================================================
-   3. POI CARDS (SELL & BUY)
-   ============================================================ */
-body.amyfx-module--ict main .ict-dashboard-scroll > article.poi-card--sell {
-  border-color: rgba(239, 68, 68, 0.28) !important;
-}
-body.amyfx-module--ict main .ict-dashboard-scroll > article.poi-card--buy {
-  border-color: rgba(34, 197, 94, 0.28) !important;
-}
-
-.poi-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.poi-card-header h3 {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin: 0;
-  color: #F1F5F9;
-}
 .poi-badge {
-  font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-.poi-badge--sell {
-  background: rgba(239, 68, 68, 0.16);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #FCA5A5;
+  padding: 5px 10px;
+  border-radius: 8px;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
 }
 .poi-badge--buy {
-  background: rgba(34, 197, 94, 0.16);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #86EFAC;
+  background: var(--ck-buy-bg);
+  border: 1px solid var(--ck-buy-border);
+  color: var(--ck-buy-text);
+}
+.poi-badge--sell {
+  background: var(--ck-sell-bg);
+  border: 1px solid var(--ck-sell-border);
+  color: var(--ck-sell-text);
 }
 .poi-badge--active {
-  background: rgba(245, 158, 11, 0.22) !important;
-  border: 1px solid rgba(245, 158, 11, 0.6) !important;
-  color: #FDE68A !important;
-  animation: poi-badge-pulse 2s infinite ease-in-out;
-}
-@keyframes poi-badge-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.75; }
+  background: var(--ck-warn-bg) !important;
+  border: 1px solid var(--ck-warn-border) !important;
+  color: var(--ck-warn-text) !important;
 }
 .poi-badge--hit {
-  background: rgba(34, 197, 94, 0.22) !important;
-  border: 1px solid rgba(34, 197, 94, 0.6) !important;
-  color: #86EFAC !important;
+  background: var(--ck-buy-bg) !important;
+  border: 1px solid var(--ck-buy-border) !important;
+  color: var(--ck-buy-text) !important;
 }
 
-/* POI Table */
+body.amyfx-module--ict .cockpit-lot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ck-gold);
+  background: var(--ck-gold-bg);
+  border: 1px solid var(--ck-gold-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+body.amyfx-module--ict .cockpit-lot-btn:hover {
+  background: rgba(245, 196, 81, 0.22);
+}
+
+/* Zone Ban Warning inside POI Panel */
+.poi-warning-box {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ck-warn-text);
+  background: var(--ck-warn-bg);
+  border: 1px solid var(--ck-warn-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-warn);
+  border-radius: 10px;
+  padding: 9px 12px 9px 14px;
+  margin-bottom: 12px;
+}
+.poi-warning-box.is-danger {
+  color: var(--ck-sell-text);
+  background: var(--ck-sell-bg);
+  border-color: var(--ck-sell-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-sell);
+}
+.poi-warning-box.is-active-buy {
+  color: var(--ck-buy-text);
+  background: var(--ck-buy-bg);
+  border-color: var(--ck-buy-border);
+  box-shadow: inset 3px 0 0 0 var(--ck-buy);
+}
+.poi-warning-box[hidden] { display: none; }
+
+/* 3 Execution Level Tiles (Entry · Target DOL/TP · Batas SL) */
+.poi-levels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.poi-level-tile {
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 12px;
+  padding: 12px 12px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+.poi-level-tile--entry-buy { box-shadow: inset 0 2px 0 0 var(--ck-buy); }
+.poi-level-tile--entry-sell { box-shadow: inset 0 2px 0 0 var(--ck-sell); }
+.poi-level-tile--tp { box-shadow: inset 0 2px 0 0 var(--ck-gold); }
+.poi-level-tile--sl { box-shadow: inset 0 2px 0 0 var(--ck-muted); }
+
+.poi-level-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ck-muted);
+}
+
+.poi-level-val {
+  font-family: var(--ck-mono);
+  font-size: 0.96rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ck-text);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.poi-level-tile--entry-buy .poi-level-val { color: var(--ck-buy-text); }
+.poi-level-tile--entry-sell .poi-level-val { color: var(--ck-sell-text); }
+.poi-level-tile--tp .poi-level-val { color: var(--ck-gold); }
+
+.poi-level-sub {
+  font-size: 11px;
+  color: var(--ck-muted);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* Supporting Detail Table */
+.poi-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--ck-border-subtle);
+  border-radius: 12px;
+  background: var(--ck-surface-inset);
+  margin-bottom: 12px;
+}
+
 .poi-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 11.5px;
-  margin-bottom: 12px;
+  margin: 0;
 }
+
 .poi-table th {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--muted, #94A3B8);
-  padding: 6px 8px;
+  color: var(--ck-muted);
+  padding: 8px 10px;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--ck-border);
 }
+
 .poi-table td {
-  padding: 8px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  color: #CBD5E1;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--ck-border-subtle);
+  color: var(--ck-text-secondary);
   line-height: 1.4;
   vertical-align: middle;
 }
 .poi-table tr:last-child td { border-bottom: none; }
+
 .poi-table td:first-child {
   font-weight: 700;
-  color: #F1F5F9;
-  font-size: 11px;
+  color: var(--ck-text);
+  font-size: 11.5px;
 }
 .poi-table td:nth-child(2) {
+  font-family: var(--ck-mono);
   font-weight: 800;
-  font-size: 12px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.poi-table--sell td:nth-child(2) { color: #FCA5A5; }
-.poi-table--buy td:nth-child(2) { color: #86EFAC; }
+.poi-table--buy td:nth-child(2) { color: var(--ck-buy-text); }
+.poi-table--sell td:nth-child(2) { color: var(--ck-sell-text); }
 
-/* Box SOP Entry */
-.sop-box {
+/* Collapsible SOP Accordion */
+.cockpit-sop-accordion {
   border-radius: 12px;
-  padding: 10px 14px;
-  font-size: 11.5px;
-  line-height: 1.6;
+  border: 1px solid var(--ck-border-subtle);
+  background: var(--ck-surface-inset);
+  overflow: hidden;
 }
-.sop-box--sell {
-  background: rgba(239, 68, 68, 0.1);
-  border-left: 3px solid rgba(239, 68, 68, 0.6);
+.cockpit-sop-accordion.sop-box--buy {
+  box-shadow: inset 3px 0 0 0 var(--ck-buy);
 }
-.sop-box--buy {
-  background: rgba(34, 197, 94, 0.1);
-  border-left: 3px solid rgba(34, 197, 94, 0.6);
-  border-radius: 0 12px 12px 0;
-}
-.sop-box strong {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.sop-box--sell strong { color: #FCA5A5; }
-.sop-box--buy strong { color: #86EFAC; }
-.sop-box ul {
-  margin: 0;
-  padding-left: 18px;
-  color: #CBD5E1;
-}
-.sop-box ul li { margin-bottom: 3px; }
-
-.poi-warning-box {
-  font-size: 11px;
-  color: #FDE68A;
-  background: rgba(245, 158, 11, 0.12);
-  border-left: 3px solid rgba(245, 158, 11, 0.6);
-  border-radius: 0 10px 10px 0;
-  padding: 9px 12px;
-  margin-top: 10px;
-  line-height: 1.5;
+.cockpit-sop-accordion.sop-box--sell {
+  box-shadow: inset 3px 0 0 0 var(--ck-sell);
 }
 
-/* ============================================================
-   4. SCENARIO PRIORITY CARD
-   ============================================================ */
-.scenario-card h3 {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #F1F5F9;
-  margin: 0 0 12px;
-}
-.scenario-price-anchor {
-  font-size: 12px;
-  color: var(--muted, #94A3B8);
-  margin-bottom: 14px;
+.cockpit-sop-summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.scenario-price-anchor strong {
-  color: #fff;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-.scenario-zone-label {
-  color: #F5C451;
-  font-weight: 700;
-  font-size: 11px;
-}
-.scenario-arrows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.scenario-arrow {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 10px 14px;
-  border-radius: 12px;
-  line-height: 1.5;
-}
-.scenario-arrow--up {
-  background: rgba(239, 68, 68, 0.14);
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  color: #FCA5A5;
-}
-.scenario-arrow--down {
-  background: rgba(34, 197, 94, 0.14);
-  border: 1px solid rgba(34, 197, 94, 0.28);
-  color: #86EFAC;
-}
-.no-trade-zone-badge {
-  background: rgba(100, 116, 139, 0.16);
-  border: 1px solid rgba(100, 116, 139, 0.32);
-  border-radius: 12px;
-  padding: 11px 14px;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 13px;
+  min-height: 42px;
   font-size: 11.5px;
-  font-weight: 700;
-  color: #94A3B8;
-  text-align: center;
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ck-text);
+  cursor: pointer;
+  list-style: none;
+}
+.cockpit-sop-summary::-webkit-details-marker { display: none; }
+.cockpit-sop-accordion.sop-box--buy .cockpit-sop-summary { color: var(--ck-buy-text); }
+.cockpit-sop-accordion.sop-box--sell .cockpit-sop-summary { color: var(--ck-sell-text); }
+
+.cockpit-sop-chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.cockpit-sop-accordion[open] .cockpit-sop-chevron {
+  transform: rotate(180deg);
+}
+
+.cockpit-sop-body {
+  padding: 0 13px 12px;
+  border-top: 1px solid var(--ck-border-subtle);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ck-text-secondary);
+}
+
+.poi-confirm-rule {
+  margin: 9px 0 6px;
+  font-size: 11.5px;
+  color: var(--ck-text-secondary);
+}
+
+.cockpit-sop-body ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.cockpit-sop-body ul li {
+  padding: 3px 0;
+}
+.cockpit-sop-body strong {
+  color: var(--ck-text);
 }
 
 /* ============================================================
-   5. REFRESH / LAST UPDATE BAR
+   LAST UPDATE FOOTER BAR
    ============================================================ */
 .dashboard-update-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
   border-radius: 14px;
   font-size: 11.5px;
-  color: var(--muted, #94A3B8);
+  color: var(--ck-muted);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  font-variant-numeric: tabular-nums;
 }
-.dashboard-update-bar button {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--amy-accent, #F5C451);
-  background: rgba(245, 196, 81, 0.12);
-  border: 1px solid rgba(245, 196, 81, 0.3);
-  border-radius: 8px;
+
+body.amyfx-module--ict .dashboard-update-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
   padding: 5px 12px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ck-gold);
+  background: var(--ck-gold-bg);
+  border: 1px solid var(--ck-gold-border);
   cursor: pointer;
   white-space: nowrap;
 }
 
-/* ── Penyesuaian Posisi Tombol Floating FAB [✦ AMY] ── */
+/* Floating FAB Clearance */
 #amy-local-fab {
-  bottom: 24px !important;
-  right: 18px !important;
+  bottom: 22px !important;
+  right: 16px !important;
   z-index: 9999 !important;
-  opacity: 0.9 !important;
+  opacity: 0.92 !important;
 }
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS (MOBILE & TABLET)
+   ============================================================ */
+@media (max-width: 820px) {
+  .cockpit-split-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  body.amyfx-module--ict header.cockpit-header {
+    padding: 12px 12px 8px;
+    gap: 10px;
+  }
+  body.amyfx-module--ict header.cockpit-header h1 {
+    font-size: 1.08rem;
+  }
+  body.amyfx-module--ict #connection.cockpit-conn-status {
+    display: none;
+  }
+  .cockpit-session-tag {
+    white-space: normal;
+    line-height: 1.3;
+  }
+  body.amyfx-module--ict main#app {
+    padding: 2px 12px 28px;
+  }
+  body.amyfx-module--ict main article.cockpit-card {
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+  .hero-top-right {
+    align-items: flex-start;
+  }
+  .hero-bias-pill {
+    text-align: left;
+  }
+  .hero-live-price {
+    font-size: 1.55rem;
+  }
+  /* 3-TF tetap sejajar 3 kolom ringkas, hemat scroll di mobile */
+  .hero-tf-grid {
+    gap: 6px;
+  }
+  .hero-tf-cell {
+    padding: 8px 8px;
+  }
+  .hero-tf-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .hero-tf-desc {
+    font-size: 10.5px;
+    line-height: 1.32;
+  }
+  /* Telemetry strip: stack cleanly on narrow phones if needed, keep 3-col compact */
+  .hero-ict-strip {
+    grid-template-columns: 1fr;
+  }
+  .hero-ict-metric {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 11px;
+  }
+  .hero-ict-val {
+    text-align: right;
+  }
+  .poi-cockpit-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .poi-segmented {
+    width: 100%;
+    min-width: 0;
+  }
+  .poi-levels-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .poi-level-tile {
+    padding: 10px 11px;
+  }
+  .dr-metrics-row {
+    gap: 6px;
+  }
+  .dr-metric {
+    padding: 7px 7px;
+  }
+  .dr-label-val {
+    font-size: 11.5px;
+  }
+}
+
+/* ============================================================
+   CHART GOLD PRO UPGRADE — UTILITY STRIP, LAYER POPOVER,
+   TRADINGVIEW PRO STAGE, OHLC HUD & MANUAL DRAWING TOOLBAR
+   ============================================================ */
+#gold-chart-workspace .gold-chart-utility-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ck-border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+#gold-chart-workspace .gold-chart-utility-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#gold-chart-workspace .chart-util-btn,
+#gold-chart-workspace #chart-auto-price {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 34px !important;
+  padding: 5px 10px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--ck-text-secondary, #cbd5e1) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+#gold-chart-workspace .chart-util-btn:hover,
+#gold-chart-workspace #chart-auto-price:hover {
+  border-color: rgba(245, 196, 81, 0.55) !important;
+  color: #F5C451 !important;
+  background: rgba(245, 196, 81, 0.10) !important;
+}
+
+#gold-chart-workspace .chart-util-btn.is-active {
+  border-color: rgba(245, 196, 81, 0.65) !important;
+  background: rgba(245, 196, 81, 0.16) !important;
+  color: #F5C451 !important;
+}
+
+#gold-chart-workspace .chart-util-chevron {
+  transition: transform 0.18s ease;
+}
+
+#gold-chart-workspace #btn-chart-layers[aria-expanded="true"] .chart-util-chevron {
+  transform: rotate(180deg);
+}
+
+#gold-chart-workspace .chart-countdown-text {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--ck-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ck-muted, #94a3b8);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(6, 9, 15, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+#gold-chart-workspace .chart-countdown-text.is-urgent {
+  color: #F5C451;
+  border-color: rgba(245, 196, 81, 0.42);
+  background: rgba(245, 196, 81, 0.10);
+}
+
+#gold-chart-workspace .chart-countdown-text.is-closed {
+  color: #94a3b8;
+  opacity: 0.85;
+}
+
+/* ICT Layer Popover Panel */
+#gold-chart-workspace .chart-layer-popover {
+  margin-top: 8px;
+  padding: 12px 13px;
+  border-radius: 13px;
+  background: rgba(9, 14, 24, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+#gold-chart-workspace .chart-layer-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#gold-chart-workspace .chart-layer-popover-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e2e8f0;
+}
+
+#gold-chart-workspace .chart-layer-presets {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+#gold-chart-workspace .chart-preset-btn {
+  min-height: 28px !important;
+  padding: 3px 9px !important;
+  border-radius: 7px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #cbd5e1 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#gold-chart-workspace .chart-preset-btn:hover,
+#gold-chart-workspace .chart-preset-btn.is-active {
+  border-color: rgba(245, 196, 81, 0.65) !important;
+  background: rgba(245, 196, 81, 0.16) !important;
+  color: #F5C451 !important;
+}
+
+#gold-chart-workspace .chart-layer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+
+#gold-chart-workspace .chart-layer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+#gold-chart-workspace .chart-layer-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+#gold-chart-workspace .chart-layer-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #F5C451;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* TradingView Pro Chart Stage & OHLC Crosshair HUD */
+#gold-chart-workspace .gold-chart-stage {
+  position: relative;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #06090F;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#gold-chart-workspace .chart-ohlc-hud {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 4;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  max-width: calc(100% - 78px);
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: rgba(6, 9, 15, 0.80);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--ck-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 10.5px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: #cbd5e1;
+}
+
+#gold-chart-workspace .chart-ohlc-hud:empty {
+  display: none;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-time {
+  color: #F5C451;
+  font-weight: 700;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-pair em {
+  font-style: normal;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 9.5px;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-pair b {
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-up,
+#gold-chart-workspace .chart-ohlc-hud .ohlc-up b {
+  color: #00C896;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-down,
+#gold-chart-workspace .chart-ohlc-hud .ohlc-down b {
+  color: #FF4D6A;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-diff {
+  font-weight: 800;
+}
+
+#gold-chart-workspace .chart-ohlc-hud .ohlc-range {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Manual Drawing Toolbar inside Chart Gold */
+#gold-chart-workspace .manual-drawing-toolbar {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 16px);
+  padding: 4px 6px;
+  border-radius: 11px;
+  background: rgba(9, 14, 24, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+#gold-chart-workspace .manual-drawing-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+#gold-chart-workspace .manual-drawing-toolbar .draw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 30px !important;
+  padding: 4px 8px !important;
+  border-radius: 7px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #e2e8f0 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#gold-chart-workspace .manual-drawing-toolbar .draw-btn:hover {
+  border-color: rgba(245, 196, 81, 0.5) !important;
+  color: #F5C451 !important;
+}
+
+#gold-chart-workspace .manual-drawing-toolbar .draw-btn.is-active {
+  background: rgba(245, 196, 81, 0.20) !important;
+  border-color: rgba(245, 196, 81, 0.72) !important;
+  color: #F5C451 !important;
+}
+
+/* Fullscreen Mode Support for Stage & Utility Strip */
+#gold-chart-workspace.is-fullscreen .gold-chart-stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+}
+
+#gold-chart-workspace.is-fullscreen .gold-chart-stage #chart {
+  flex: 1;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+#gold-chart-workspace.is-fullscreen .gold-chart-utility-strip {
+  flex: none;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+
+#gold-chart-workspace.is-fullscreen .chart-layer-popover {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Light Mode Parity for Chart Gold Pro Upgrade */
+html[data-amyfx-theme="light"] #gold-chart-workspace .gold-chart-utility-strip,
+html[data-theme="light"] #gold-chart-workspace .gold-chart-utility-strip {
+  border-top-color: rgba(15, 23, 42, 0.10);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-util-btn,
+html[data-amyfx-theme="light"] #gold-chart-workspace #chart-auto-price,
+html[data-theme="light"] #gold-chart-workspace .chart-util-btn,
+html[data-theme="light"] #gold-chart-workspace #chart-auto-price {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #334155 !important;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-util-btn:hover,
+html[data-amyfx-theme="light"] #gold-chart-workspace #chart-auto-price:hover,
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-util-btn.is-active,
+html[data-theme="light"] #gold-chart-workspace .chart-util-btn:hover,
+html[data-theme="light"] #gold-chart-workspace #chart-auto-price:hover,
+html[data-theme="light"] #gold-chart-workspace .chart-util-btn.is-active {
+  background: rgba(180, 118, 8, 0.11) !important;
+  border-color: rgba(180, 118, 8, 0.45) !important;
+  color: #9A6700 !important;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-countdown-text,
+html[data-theme="light"] #gold-chart-workspace .chart-countdown-text {
+  background: rgba(241, 245, 249, 0.92);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #475569;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-countdown-text.is-urgent,
+html[data-theme="light"] #gold-chart-workspace .chart-countdown-text.is-urgent {
+  color: #9A6700;
+  border-color: rgba(180, 118, 8, 0.42);
+  background: rgba(245, 196, 81, 0.16);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-layer-popover,
+html[data-theme="light"] #gold-chart-workspace .chart-layer-popover {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(15, 23, 42, 0.14);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-layer-popover-head,
+html[data-theme="light"] #gold-chart-workspace .chart-layer-popover-head {
+  border-bottom-color: rgba(15, 23, 42, 0.10);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-layer-popover-title,
+html[data-theme="light"] #gold-chart-workspace .chart-layer-popover-title {
+  color: #0f172a;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-preset-btn,
+html[data-theme="light"] #gold-chart-workspace .chart-preset-btn {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #334155 !important;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-preset-btn:hover,
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-preset-btn.is-active,
+html[data-theme="light"] #gold-chart-workspace .chart-preset-btn:hover,
+html[data-theme="light"] #gold-chart-workspace .chart-preset-btn.is-active {
+  background: rgba(180, 118, 8, 0.12) !important;
+  border-color: rgba(180, 118, 8, 0.48) !important;
+  color: #9A6700 !important;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-layer-item,
+html[data-theme="light"] #gold-chart-workspace .chart-layer-item {
+  background: rgba(15, 23, 42, 0.025);
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-layer-item:hover,
+html[data-theme="light"] #gold-chart-workspace .chart-layer-item:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .gold-chart-stage,
+html[data-theme="light"] #gold-chart-workspace .gold-chart-stage {
+  background: #FFFFFF;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud {
+  background: rgba(255, 255, 255, 0.90);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #334155;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-time,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-time {
+  color: #9A6700;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-pair b,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-pair b {
+  color: #0f172a;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-up,
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-up b,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-up,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-up b {
+  color: #059669;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-down,
+html[data-amyfx-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-down b,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-down,
+html[data-theme="light"] #gold-chart-workspace .chart-ohlc-hud .ohlc-down b {
+  color: #E11D48;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .manual-drawing-toolbar,
+html[data-theme="light"] #gold-chart-workspace .manual-drawing-toolbar {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .manual-drawing-toolbar .draw-btn,
+html[data-theme="light"] #gold-chart-workspace .manual-drawing-toolbar .draw-btn {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+html[data-amyfx-theme="light"] #gold-chart-workspace .manual-drawing-toolbar .draw-btn.is-active,
+html[data-theme="light"] #gold-chart-workspace .manual-drawing-toolbar .draw-btn.is-active {
+  background: rgba(180, 118, 8, 0.15) !important;
+  border-color: rgba(180, 118, 8, 0.55) !important;
+  color: #9A6700 !important;
+}
+
+@media (max-width: 480px) {
+  #gold-chart-workspace .chart-util-btn,
+  #gold-chart-workspace #chart-auto-price {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+  #gold-chart-workspace .chart-countdown-text {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  #gold-chart-workspace .chart-ohlc-hud {
+    top: 5px;
+    left: 6px;
+    padding: 3px 6px;
+    font-size: 9px;
+    gap: 2px 5px;
+    max-width: calc(100% - 86px);
+  }
+  #gold-chart-workspace .chart-ohlc-hud .ohlc-range {
+    display: none;
+  }
+  #gold-chart-workspace .manual-drawing-toolbar {
+    bottom: 28px;
+    padding: 3px 4px;
+    gap: 3px;
+    max-width: calc(100% - 10px);
+  }
+  #gold-chart-workspace .manual-drawing-toolbar .draw-btn {
+    min-height: 28px !important;
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    gap: 2px;
+  }
+}
+

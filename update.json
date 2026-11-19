@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.453/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.454/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Fix Anti-Menguap POI Setup Buy & Sell: Implementasi Lifecycle 3-Fase (Waiting -> In-Play/Terjemput -> Terminal). Setup dan zona chart tetap terkunci dan dipantau saat harga menyentuh entry sampai TP/SL tercapai.",
-    "✦ Mode Posisi Berjalan (In-Play): Status badge dan SOP Box memandu posisi aktif saat sedang menguji zona tanpa mereset atau menghilangkan kartu.",
-    "✦ Preservasi POI Tested Chart: Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus dan tidak langsung terhapus mendadak."
+    "✦ Cockpit Mapping V3 Glassmorphism: Tab switcher interaktif BUY/SELL terpadu, layout glassmorphism simetris dengan Peta Harga.",
+    "✦ Penanda Waktu WITA & Deteksi DOL: Crosshair chart resmi WITA (UTC+8) dan deteksi terarah Draw on Liquidity ke pool likuiditas aktif.",
+    "✦ Price Alert Manager V3: Sinkronisasi badge alarm aktif di Beranda & Mapping, tab daftar alarm, dan validasi inline modern.",
+    "✦ Profil Trader Dinamis: Identitas nama trader lokal dan kalkulasi nominal risiko USD otomatis."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.453/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.454/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950453,
-  "latest_version_name": "2.0.0-pro.453",
+  "latest_version_code": 950454,
+  "latest_version_name": "2.0.0-pro.454",
   "mandatory": false,
-  "releaseDate": "2026-11-17",
+  "releaseDate": "2026-11-19",
   "release_notes": [
-    "✦ Fix Anti-Menguap POI Setup Buy & Sell: Implementasi Lifecycle 3-Fase (Waiting -> In-Play/Terjemput -> Terminal). Setup dan zona chart tetap terkunci dan dipantau saat harga menyentuh entry sampai TP/SL tercapai.",
-    "✦ Mode Posisi Berjalan (In-Play): Status badge dan SOP Box memandu posisi aktif saat sedang menguji zona tanpa mereset atau menghilangkan kartu.",
-    "✦ Preservasi POI Tested Chart: Kotak FVG dan Order Block yang sedang diuji harga tetap digambar di canvas dengan garis putus-putus dan tidak langsung terhapus mendadak."
+    "✦ Cockpit Mapping V3 Glassmorphism: Tab switcher interaktif BUY/SELL terpadu, layout glassmorphism simetris dengan Peta Harga.",
+    "✦ Penanda Waktu WITA & Deteksi DOL: Crosshair chart resmi WITA (UTC+8) dan deteksi terarah Draw on Liquidity ke pool likuiditas aktif.",
+    "✦ Price Alert Manager V3: Sinkronisasi badge alarm aktif di Beranda & Mapping, tab daftar alarm, dan validasi inline modern.",
+    "✦ Profil Trader Dinamis: Identitas nama trader lokal dan kalkulasi nominal risiko USD otomatis."
   ],
-  "version": "2.0.0-pro.453",
-  "versionCode": 950453,
+  "version": "2.0.0-pro.454",
+  "versionCode": 950454,
   "sha256": "019994fbd86f1ed523ff6e6687ffa94bc50c20113e36a4f22ebb67b123023461"
 }

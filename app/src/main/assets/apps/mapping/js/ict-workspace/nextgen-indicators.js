@@ -135,11 +135,11 @@ function getTradingDayKey(timeSec) {
     }
   }
 
-  // Final resolution: Authoritative Daily D1 preferred, or local NY trading day calculation
-  if (Number.isFinite(resolvedServerPdh) && Number.isFinite(resolvedServerPdl)) {
-    pdh = Number.isFinite(localPdh) ? Math.max(resolvedServerPdh, localPdh) : resolvedServerPdh;
-    pdl = Number.isFinite(localPdl) ? Math.min(resolvedServerPdl, localPdl) : resolvedServerPdl;
-  } else if (Number.isFinite(localPdh) && Number.isFinite(localPdl)) {
+  // Final resolution: Authoritative Daily D1 preferred directly (never merge two different trading days via max/min)
+  if (Number.isFinite(resolvedServerPdh) && Number.isFinite(resolvedServerPdl) && resolvedServerPdh > resolvedServerPdl) {
+    pdh = resolvedServerPdh;
+    pdl = resolvedServerPdl;
+  } else if (Number.isFinite(localPdh) && Number.isFinite(localPdl) && localPdh > localPdl) {
     pdh = localPdh;
     pdl = localPdl;
   }
@@ -149,17 +149,17 @@ function getTradingDayKey(timeSec) {
     const todayCandles = dayBuckets.get(dayKeys[dayKeys.length - 1]) || [];
     for (const c of todayCandles) {
       if (!pdhConsumed && c.high > pdh && c.close < pdh) {
-        sweeps.push({ time: c.time, price: c.high, type: 'PDH_SWEEP', side: 'BUY', symbol: '×', color: '#f97316' });
+        sweeps.push({ time: c.time, price: c.high, level: pdh, type: 'PDH_SWEEP', pool: 'PDH', side: 'SELL', reactionSide: 'SELL', symbol: '×', color: '#f97316' });
       }
       if (!pdlConsumed && c.low < pdl && c.close > pdl) {
-        sweeps.push({ time: c.time, price: c.low, type: 'PDL_SWEEP', side: 'SELL', symbol: '×', color: '#3b82f6' });
+        sweeps.push({ time: c.time, price: c.low, level: pdl, type: 'PDL_SWEEP', pool: 'PDL', side: 'BUY', reactionSide: 'BUY', symbol: '×', color: '#3b82f6' });
       }
       if (c.high >= pdh) pdhConsumed = true;
       if (c.low <= pdl) pdlConsumed = true;
     }
   }
 
-  // Previous Week High / Low
+  // Previous Week High / Low (strictly genuine prior-week extremes; never substitute Pivot R1/S1)
   const weekKeys = [...weekBuckets.keys()];
   let localPwh = null;
   let localPwl = null;
@@ -173,20 +173,16 @@ function getTradingDayKey(timeSec) {
 
   const resolvedServerPwh = Number.isFinite(serverAmyLevels.pwh) && serverAmyLevels.pwh > 0
     ? serverAmyLevels.pwh
-    : (Number.isFinite(liqPwh) && liqPwh > 0
-      ? liqPwh
-      : (Number.isFinite(context?.amy?.pivots?.W?.R1) ? context.amy.pivots.W.R1 : null));
+    : (Number.isFinite(liqPwh) && liqPwh > 0 ? liqPwh : null);
 
   const resolvedServerPwl = Number.isFinite(serverAmyLevels.pwl) && serverAmyLevels.pwl > 0
     ? serverAmyLevels.pwl
-    : (Number.isFinite(liqPwl) && liqPwl > 0
-      ? liqPwl
-      : (Number.isFinite(context?.amy?.pivots?.W?.S1) ? context.amy.pivots.W.S1 : null));
+    : (Number.isFinite(liqPwl) && liqPwl > 0 ? liqPwl : null);
 
-  if (Number.isFinite(resolvedServerPwh) && Number.isFinite(resolvedServerPwl)) {
-    pwh = Number.isFinite(localPwh) ? Math.max(resolvedServerPwh, localPwh) : resolvedServerPwh;
-    pwl = Number.isFinite(localPwl) ? Math.min(resolvedServerPwl, localPwl) : resolvedServerPwl;
-  } else if (Number.isFinite(localPwh) && Number.isFinite(localPwl)) {
+  if (Number.isFinite(resolvedServerPwh) && Number.isFinite(resolvedServerPwl) && resolvedServerPwh > resolvedServerPwl) {
+    pwh = resolvedServerPwh;
+    pwl = resolvedServerPwl;
+  } else if (Number.isFinite(localPwh) && Number.isFinite(localPwl) && localPwh > localPwl) {
     pwh = localPwh;
     pwl = localPwl;
   }
@@ -196,10 +192,10 @@ function getTradingDayKey(timeSec) {
     const currentWeekCandles = weekBuckets.get(weekKeys[weekKeys.length - 1]) || [];
     for (const c of currentWeekCandles) {
       if (!pwhConsumed && c.high > pwh && c.close < pwh) {
-        sweeps.push({ time: c.time, price: c.high, type: 'PWH_SWEEP', side: 'BUY', symbol: '×', color: '#d946ef' });
+        sweeps.push({ time: c.time, price: c.high, level: pwh, type: 'PWH_SWEEP', pool: 'PWH', side: 'SELL', reactionSide: 'SELL', symbol: '×', color: '#d946ef' });
       }
       if (!pwlConsumed && c.low < pwl && c.close > pwl) {
-        sweeps.push({ time: c.time, price: c.low, type: 'PWL_SWEEP', side: 'SELL', symbol: '×', color: '#06b6d4' });
+        sweeps.push({ time: c.time, price: c.low, level: pwl, type: 'PWL_SWEEP', pool: 'PWL', side: 'BUY', reactionSide: 'BUY', symbol: '×', color: '#06b6d4' });
       }
       if (c.high >= pwh) pwhConsumed = true;
       if (c.low <= pwl) pwlConsumed = true;
@@ -219,10 +215,10 @@ function getTradingDayKey(timeSec) {
     const afterAsia = safeCandles.filter(c => c.time > asiaEnd);
     for (const c of afterAsia) {
       if (!asiaHighConsumed && c.high > asiaHigh && c.close < asiaHigh) {
-        sweeps.push({ time: c.time, price: c.high, type: 'ASIA_HIGH_SWEEP', side: 'BUY', symbol: '◆', color: '#a855f7' });
+        sweeps.push({ time: c.time, price: c.high, level: asiaHigh, type: 'ASIA_HIGH_SWEEP', pool: 'Asia High', side: 'SELL', reactionSide: 'SELL', symbol: '◆', color: '#a855f7' });
       }
       if (!asiaLowConsumed && c.low < asiaLow && c.close > asiaLow) {
-        sweeps.push({ time: c.time, price: c.low, type: 'ASIA_LOW_SWEEP', side: 'SELL', symbol: '◆', color: '#a855f7' });
+        sweeps.push({ time: c.time, price: c.low, level: asiaLow, type: 'ASIA_LOW_SWEEP', pool: 'Asia Low', side: 'BUY', reactionSide: 'BUY', symbol: '◆', color: '#a855f7' });
       }
       if (c.high >= asiaHigh) asiaHighConsumed = true;
       if (c.low <= asiaLow) asiaLowConsumed = true;
@@ -232,7 +228,7 @@ function getTradingDayKey(timeSec) {
     asiaLow = serverLevels.asiaLow;
   }
 
-  // 3. Pivots, BSL / SSL, Market Structure (BOS / MSS), Trend Invalidation, FVG, and OB
+  // 3. Pivots, BSL / SSL, Market Structure (BOS / MSS), Trend Invalidation, FVG, OB, Sweep & DOL
   const bslLines = [];
   const sslLines = [];
   const structureEvents = [];
@@ -243,35 +239,61 @@ function getTradingDayKey(timeSec) {
   let lastLow = null;
   let lastHighTime = null;
   let lastLowTime = null;
+  let lastHighIndex = -1;
+  let lastLowIndex = -1;
+  // Protected Structural High/Low — ONLY move when a confirmed BOS/MSS validates the leg!
+  let protectedHigh = null;
+  let protectedHighTime = null;
+  let protectedHighIndex = -1;
+  let protectedLow = null;
+  let protectedLowTime = null;
+  let protectedLowIndex = -1;
+  let legHigh = null;
+  let legLow = null;
   let bslConsumed = false;
   let sslConsumed = false;
   let bslBroken = false;
   let sslBroken = false;
   const tf = options.tf || options.timeframe || 'M15';
+  const expectedInterval = { M1: 60, M5: 300, M15: 900, H1: 3600 }[tf] || 900;
+  // Causal evolution from candle 0 — never pre-seed from end-of-series future bias
   let trend = 'NEUTRAL';
-  if (tf === 'M15') {
-    const ctxBias = context?.m15?.structure || context?.m15?.control || context?.amy?.dashboard?.biasDir;
-    if (String(ctxBias).toUpperCase().includes('BULL') || ctxBias === 1) trend = 'BULL';
-    else if (String(ctxBias).toUpperCase().includes('BEAR') || ctxBias === -1) trend = 'BEAR';
-  }
 
-  // Calculate body moving average for displacement
+  // Per-bar rolling ATR(14) & body moving average for displacement / thickness filters
   const bodies = safeCandles.map(c => Math.abs(c.close - c.open));
   const meanBodies = [];
+  const barAtrs = [];
   for (let i = 0; i < safeCandles.length; i++) {
-    if (i < 3) {
+    const c = safeCandles[i];
+    const prevC = i > 0 ? safeCandles[i - 1] : null;
+    const tr = prevC ? Math.max(c.high - c.low, Math.abs(c.high - prevC.close), Math.abs(c.low - prevC.close)) : (c.high - c.low);
+    if (i === 0) {
+      barAtrs.push(Math.max(tr, 0.5));
       meanBodies.push(bodies[i]);
     } else {
-      const slice = bodies.slice(Math.max(0, i - 3), i + 1);
+      const alpha = Math.min(i + 1, 14);
+      barAtrs.push((barAtrs[i - 1] * (alpha - 1) + tr) / alpha);
+      const slice = bodies.slice(Math.max(0, i - 4), i + 1);
       meanBodies.push(slice.reduce((a, b) => a + b, 0) / slice.length);
     }
   }
 
+  const isContiguousPair = (a, b) => {
+    if (!a || !b) return false;
+    const dt = b.time - a.time;
+    return dt > 0 && dt <= expectedInterval * 3;
+  };
+
   for (let i = 0; i < safeCandles.length; i++) {
     const c = safeCandles[i];
     const prev = safeCandles[i - 1];
+    const curAtr = barAtrs[i] || 2.0;
+    const isGoldScale = c.close > 100;
+    const minSweepDepth = isGoldScale ? Math.max(0.25, curAtr * 0.08) : Math.max(0.01, curAtr * 0.05);
+    const minFvgThick = isGoldScale ? Math.max(0.8, curAtr * 0.15) : Math.max(0.02, curAtr * 0.1);
+    const minObThick = isGoldScale ? Math.max(0.6, curAtr * 0.12) : Math.max(0.02, curAtr * 0.08);
 
-    // Check pivot at i - swingLen
+    // Check pivot at k = i - swingLen (strictly causal: confirmed only at bar i)
     const k = i - swingLen;
     if (k >= swingLen) {
       const target = safeCandles[k];
@@ -293,6 +315,7 @@ function getTradingDayKey(timeSec) {
       if (isPh) {
         lastHigh = target.high;
         lastHighTime = target.time;
+        lastHighIndex = k;
         bslConsumed = false;
         bslBroken = false;
         bslLines.push({
@@ -306,6 +329,7 @@ function getTradingDayKey(timeSec) {
       if (isPl) {
         lastLow = target.low;
         lastLowTime = target.time;
+        lastLowIndex = k;
         sslConsumed = false;
         sslBroken = false;
         sslLines.push({
@@ -317,211 +341,400 @@ function getTradingDayKey(timeSec) {
       }
     }
 
-    // BSL / SSL Sweeps
-    if (!bslConsumed && lastHigh != null && c.high > lastHigh && c.close < lastHigh) {
+    // BSL / SSL Sweeps (meaningful wick beyond liquidity + close back inside)
+    if (!bslConsumed && lastHigh != null && c.high >= lastHigh + minSweepDepth && c.close < lastHigh) {
       bslConsumed = true;
-      sweeps.push({ time: c.time, price: c.high, type: 'BSL_SWEEP', side: 'BUY', symbol: '×', color: '#ef4444' });
+      for (const l of bslLines) {
+        if (!l.consumed && Math.abs(l.level - lastHigh) < 0.05) l.consumed = true;
+      }
+      sweeps.push({
+        time: c.time,
+        price: c.high,
+        level: lastHigh,
+        type: 'BSL_SWEEP',
+        pool: 'BSL',
+        side: 'SELL',
+        reactionSide: 'SELL',
+        symbol: '×',
+        color: '#ef4444'
+      });
     }
-    if (!sslConsumed && lastLow != null && c.low < lastLow && c.close > lastLow) {
+    if (!sslConsumed && lastLow != null && c.low <= lastLow - minSweepDepth && c.close > lastLow) {
       sslConsumed = true;
-      sweeps.push({ time: c.time, price: c.low, type: 'SSL_SWEEP', side: 'SELL', symbol: '×', color: '#22c55e' });
+      for (const l of sslLines) {
+        if (!l.consumed && Math.abs(l.level - lastLow) < 0.05) l.consumed = true;
+      }
+      sweeps.push({
+        time: c.time,
+        price: c.low,
+        level: lastLow,
+        type: 'SSL_SWEEP',
+        pool: 'SSL',
+        side: 'BUY',
+        reactionSide: 'BUY',
+        symbol: '×',
+        color: '#22c55e'
+      });
     }
 
-    // Market Structure Breaks: BOS and MSS
-    // Break ke arah berlawanan adalah MSS pembalikan tren (tidak boleh terblokir oleh flag broken lama)
+    // Mark any prior unconsumed BSL/SSL lines as consumed once price closes beyond them
+    for (const l of bslLines) {
+      if (!l.consumed && c.time > l.confirmedTime && c.close > l.level) l.consumed = true;
+    }
+    for (const l of sslLines) {
+      if (!l.consumed && c.time > l.confirmedTime && c.close < l.level) l.consumed = true;
+    }
+
+    // Helper: find true structural origin extreme between two bar indices
+    const findOriginExtreme = (startIdx, endIdx, mode) => {
+      const from = Math.max(0, startIdx);
+      const to = Math.min(safeCandles.length - 1, endIdx);
+      let bestVal = mode === 'low' ? Infinity : -Infinity;
+      let bestTime = null;
+      let bestIdx = -1;
+      for (let idx = from; idx <= to; idx++) {
+        const bar = safeCandles[idx];
+        if (mode === 'low' && bar.low < bestVal) {
+          bestVal = bar.low;
+          bestTime = bar.time;
+          bestIdx = idx;
+        } else if (mode === 'high' && bar.high > bestVal) {
+          bestVal = bar.high;
+          bestTime = bar.time;
+          bestIdx = idx;
+        }
+      }
+      return bestIdx >= 0 ? { level: bestVal, time: bestTime, index: bestIdx } : null;
+    };
+
+    // Track current leg high/low for active dealing range
+    if (trend === 'BULL') {
+      legHigh = legHigh == null ? c.high : Math.max(legHigh, c.high);
+    } else if (trend === 'BEAR') {
+      legLow = legLow == null ? c.low : Math.min(legLow, c.low);
+    }
+
+    // Market Structure Breaks:
+    // - Continuation BOS breaks active swing (lastHigh in BULL / lastLow in BEAR)
+    // - Reversal MSS MUST close beyond Protected Swing (protectedHigh in BEAR / protectedLow in BULL)
+    const bullBreakLevel = trend === 'BEAR' && protectedHigh != null ? protectedHigh : lastHigh;
+    const bullBreakTime = trend === 'BEAR' && protectedHigh != null ? protectedHighTime : lastHighTime;
+    const bullBreakIndex = trend === 'BEAR' && protectedHigh != null ? protectedHighIndex : lastHighIndex;
+
+    const bearBreakLevel = trend === 'BULL' && protectedLow != null ? protectedLow : lastLow;
+    const bearBreakTime = trend === 'BULL' && protectedLow != null ? protectedLowTime : lastLowTime;
+    const bearBreakIndex = trend === 'BULL' && protectedLow != null ? protectedLowIndex : lastLowIndex;
+
     const canBreakBull = trend !== 'BULL' || !bslBroken;
     const canBreakBear = trend !== 'BEAR' || !sslBroken;
 
-    const rawBreakBull = canBreakBull && lastHigh != null && c.close > lastHigh && (prev ? prev.close <= lastHigh : true);
-    const rawBreakBear = canBreakBear && lastLow != null && c.close < lastLow && (prev ? prev.close >= lastLow : true);
+    const rawBreakBull = canBreakBull && bullBreakLevel != null && c.close > bullBreakLevel && (prev ? prev.close <= bullBreakLevel : true);
+    const rawBreakBear = canBreakBear && bearBreakLevel != null && c.close < bearBreakLevel && (prev ? prev.close >= bearBreakLevel : true);
 
-    const mssBull = rawBreakBull && trend !== 'BULL';
-    const mssBear = rawBreakBear && trend !== 'BEAR';
-    const bosBull = rawBreakBull && trend === 'BULL';
-    const bosBear = rawBreakBear && trend === 'BEAR';
+    const mssBull = rawBreakBull && trend === 'BEAR';
+    const mssBear = rawBreakBear && trend === 'BULL';
 
     if (rawBreakBull) {
+      const prevTrend = trend;
       trend = 'BULL';
       bslBroken = true;
       sslBroken = false;
+
+      // Lock true Protected Low: lowest point between broken swing high and break candle
+      const originSearchFrom = bullBreakIndex >= 0 ? bullBreakIndex : Math.max(0, i - 25);
+      const originLow = findOriginExtreme(originSearchFrom, i, 'low');
+      if (originLow) {
+        if (prevTrend !== 'BULL' || protectedLow == null || originLow.level >= protectedLow) {
+          protectedLow = originLow.level;
+          protectedLowTime = originLow.time;
+          protectedLowIndex = originLow.index;
+        }
+      } else if (lastLow != null && (prevTrend !== 'BULL' || protectedLow == null || lastLow > protectedLow)) {
+        protectedLow = lastLow;
+        protectedLowTime = lastLowTime;
+        protectedLowIndex = lastLowIndex;
+      }
+      protectedHigh = null;
+      protectedHighTime = null;
+      protectedHighIndex = -1;
+      legLow = protectedLow ?? lastLow ?? c.low;
+      legHigh = Math.max(bullBreakLevel, c.high);
+
+      for (const l of bslLines) {
+        if (!l.consumed && Math.abs(l.level - bullBreakLevel) < 0.05) l.consumed = true;
+      }
       structureEvents.push({
-        type: mssBull ? 'MSS' : 'BOS',
+        type: mssBull || prevTrend === 'BEAR' ? 'MSS' : 'BOS',
         side: 'BULL',
-        level: lastHigh,
-        startTime: lastHighTime,
+        level: bullBreakLevel,
+        startTime: bullBreakTime,
         endTime: c.time,
         color: '#22c55e'
       });
 
-      // Search back for Order Block (last opposite/down candle before break)
-      let obFound = false;
+      // Search back for unbroken Origin Order Block (last opposing down candle meeting minObThick before break)
       for (let offset = 1; offset <= obSearchBars && i - offset >= 0; offset++) {
-        const candidate = safeCandles[i - offset];
-        if (!obFound && candidate.close < candidate.open) {
-          obFound = true;
-          const top = obUseBody ? Math.max(candidate.open, candidate.close) : candidate.high;
-          const bot = obUseBody ? Math.min(candidate.open, candidate.close) : candidate.low;
+        const originIdx = i - offset;
+        const candidate = safeCandles[originIdx];
+        if (candidate.close < candidate.open) {
+          const bodyTop = Math.max(candidate.open, candidate.close);
+          const bodyBot = Math.min(candidate.open, candidate.close);
+          const fullThick = candidate.high - candidate.low;
+          if (fullThick < minObThick) continue;
+          const useBodyRange = obUseBody && (bodyTop - bodyBot) >= minObThick;
+          const top = useBodyRange ? bodyTop : candidate.high;
+          const bot = useBodyRange ? bodyBot : candidate.low;
+          // Reject OB if already invalidated (closed below bot) between origin and break bar
+          let preBroken = false;
+          for (let mid = originIdx + 1; mid <= i; mid++) {
+            if (safeCandles[mid].close < bot) { preBroken = true; break; }
+          }
+          if (preBroken) continue;
           obList.push({
             side: 'BUY',
             top,
             bot,
             ce: (top + bot) / 2,
             startTime: candidate.time,
+            originIndex: originIdx,
+            formedIndex: i,
             label: '+OB',
             color: '#3b82f6',
-            mitigated: false
+            tested: false,
+            mitigated: false,
+            lifecycle: 'FRESH'
           });
+          break;
         }
       }
     }
 
     if (rawBreakBear) {
+      const prevTrend = trend;
       trend = 'BEAR';
       sslBroken = true;
       bslBroken = false;
+
+      // Lock true Protected High: highest point between broken swing low and break candle
+      const originSearchFrom = bearBreakIndex >= 0 ? bearBreakIndex : Math.max(0, i - 25);
+      const originHigh = findOriginExtreme(originSearchFrom, i, 'high');
+      if (originHigh) {
+        if (prevTrend !== 'BEAR' || protectedHigh == null || originHigh.level <= protectedHigh) {
+          protectedHigh = originHigh.level;
+          protectedHighTime = originHigh.time;
+          protectedHighIndex = originHigh.index;
+        }
+      } else if (lastHigh != null && (prevTrend !== 'BEAR' || protectedHigh == null || lastHigh < protectedHigh)) {
+        protectedHigh = lastHigh;
+        protectedHighTime = lastHighTime;
+        protectedHighIndex = lastHighIndex;
+      }
+      protectedLow = null;
+      protectedLowTime = null;
+      protectedLowIndex = -1;
+      legHigh = protectedHigh ?? lastHigh ?? c.high;
+      legLow = Math.min(bearBreakLevel, c.low);
+
+      for (const l of sslLines) {
+        if (!l.consumed && Math.abs(l.level - bearBreakLevel) < 0.05) l.consumed = true;
+      }
       structureEvents.push({
-        type: mssBear ? 'MSS' : 'BOS',
+        type: mssBear || prevTrend === 'BULL' ? 'MSS' : 'BOS',
         side: 'BEAR',
-        level: lastLow,
-        startTime: lastLowTime,
+        level: bearBreakLevel,
+        startTime: bearBreakTime,
         endTime: c.time,
         color: '#ef4444'
       });
 
-      // Search back for Order Block (last opposite/up candle before break)
-      let obFound = false;
+      // Search back for unbroken Origin Order Block (last opposing up candle meeting minObThick before break)
       for (let offset = 1; offset <= obSearchBars && i - offset >= 0; offset++) {
-        const candidate = safeCandles[i - offset];
-        if (!obFound && candidate.close > candidate.open) {
-          obFound = true;
-          const top = obUseBody ? Math.max(candidate.open, candidate.close) : candidate.high;
-          const bot = obUseBody ? Math.min(candidate.open, candidate.close) : candidate.low;
+        const originIdx = i - offset;
+        const candidate = safeCandles[originIdx];
+        if (candidate.close > candidate.open) {
+          const bodyTop = Math.max(candidate.open, candidate.close);
+          const bodyBot = Math.min(candidate.open, candidate.close);
+          const fullThick = candidate.high - candidate.low;
+          if (fullThick < minObThick) continue;
+          const useBodyRange = obUseBody && (bodyTop - bodyBot) >= minObThick;
+          const top = useBodyRange ? bodyTop : candidate.high;
+          const bot = useBodyRange ? bodyBot : candidate.low;
+          // Reject OB if already invalidated (closed above top) between origin and break bar
+          let preBroken = false;
+          for (let mid = originIdx + 1; mid <= i; mid++) {
+            if (safeCandles[mid].close > top) { preBroken = true; break; }
+          }
+          if (preBroken) continue;
           obList.push({
             side: 'SELL',
             top,
             bot,
             ce: (top + bot) / 2,
             startTime: candidate.time,
+            originIndex: originIdx,
+            formedIndex: i,
             label: '-OB',
             color: '#ef4444',
-            mitigated: false
+            tested: false,
+            mitigated: false,
+            lifecycle: 'FRESH'
+          });
+          break;
+        }
+      }
+    }
+
+    // Displacement & FVG check (3 strictly contiguous candles + ATR thickness filter)
+    if (i >= 2) {
+      const prev2 = safeCandles[i - 2];
+      const prev1 = safeCandles[i - 1];
+      const contiguous3 = isContiguousPair(prev2, prev1) && isContiguousPair(prev1, c);
+
+      if (contiguous3) {
+        const b = Math.abs(prev1.close - prev1.open);
+        const bRange = Math.max(prev1.high - prev1.low, 0.01);
+        const bRatio = b / bRange;
+        const mBody = meanBodies[i - 1] || b;
+
+        const dispBull = prev1.close > prev1.open && b >= mBody * 0.9 && bRatio >= 0.45;
+        const dispBear = prev1.close < prev1.open && b >= mBody * 0.9 && bRatio >= 0.45;
+
+        const bullGap = c.low - prev2.high;
+        if (dispBull && bullGap >= minFvgThick) {
+          fvgList.push({
+            side: 'BUY',
+            top: c.low,
+            bot: prev2.high,
+            ce: (c.low + prev2.high) / 2,
+            startTime: prev2.time,
+            formedIndex: i,
+            color: '#22c55e',
+            tested: false,
+            mitigated: false,
+            lifecycle: 'FRESH'
+          });
+        }
+
+        const bearGap = prev2.low - c.high;
+        if (dispBear && bearGap >= minFvgThick) {
+          fvgList.push({
+            side: 'SELL',
+            top: prev2.low,
+            bot: c.high,
+            ce: (prev2.low + c.high) / 2,
+            startTime: prev2.time,
+            formedIndex: i,
+            color: '#ef4444',
+            tested: false,
+            mitigated: false,
+            lifecycle: 'FRESH'
           });
         }
       }
     }
 
-    // Displacement and FVG check (at 3 consecutive candles: i-2, i-1, i)
-    if (i >= 2) {
-      const prev2 = safeCandles[i - 2];
-      const prev1 = safeCandles[i - 1];
-
-      const b = Math.abs(prev1.close - prev1.open);
-      const bRange = Math.max(prev1.high - prev1.low, 0.01);
-      const bRatio = b / bRange;
-      const mBody = meanBodies[i - 1] || b;
-      const compactBody = (prev1.high - Math.max(prev1.close, prev1.open) < b * 0.36) &&
-                          (Math.min(prev1.close, prev1.open) - prev1.low < b * 0.36);
-
-      const dispBull = prev1.close > prev1.open && b > mBody && compactBody && bRatio >= 0.45;
-      const dispBear = prev1.close < prev1.open && b > mBody && compactBody && bRatio >= 0.45;
-
-      if (dispBull && c.low > prev2.high) {
-        fvgList.push({
-          side: 'BUY',
-          top: c.low,
-          bot: prev2.high,
-          ce: (c.low + prev2.high) / 2,
-          startTime: prev2.time,
-          color: '#22c55e',
-          tested: false,
-          mitigated: false
-        });
-      }
-
-      if (dispBear && c.high < prev2.low) {
-        fvgList.push({
-          side: 'SELL',
-          top: prev2.low,
-          bot: c.high,
-          ce: (prev2.low + c.high) / 2,
-          startTime: prev2.time,
-          color: '#ef4444',
-          tested: false,
-          mitigated: false
-        });
-      }
-    }
-
-    // Update FVG mitigation / tested state
+    // Update FVG tested / mitigated state strictly AFTER formation bar (fixes self-mitigation bug)
     for (const fvg of fvgList) {
-      if (fvg.mitigated || c.time <= fvg.startTime) continue;
+      if (fvg.mitigated || i <= fvg.formedIndex) continue;
       if (fvg.side === 'BUY') {
-        if (c.low < fvg.top) fvg.tested = true;
-        if (c.low <= fvg.bot) {
+        if (c.low <= fvg.top && c.high >= fvg.bot) {
+          fvg.tested = true;
+          fvg.lifecycle = 'ACTIVE';
+        }
+        if (c.close < fvg.bot) {
           fvg.mitigated = true;
           fvg.endTime = c.time;
+          fvg.lifecycle = 'BROKEN';
         }
       } else {
-        if (c.high > fvg.bot) fvg.tested = true;
-        if (c.high >= fvg.top) {
+        if (c.high >= fvg.bot && c.low <= fvg.top) {
+          fvg.tested = true;
+          fvg.lifecycle = 'ACTIVE';
+        }
+        if (c.close > fvg.top) {
           fvg.mitigated = true;
           fvg.endTime = c.time;
+          fvg.lifecycle = 'BROKEN';
         }
       }
     }
 
-    // Update OB mitigation
+    // Update OB tested / broken state strictly AFTER formation bar
     for (const ob of obList) {
-      if (ob.mitigated || c.time <= ob.startTime) continue;
-      if (ob.side === 'BUY' && c.close < ob.bot) {
-        ob.mitigated = true;
-        ob.endTime = c.time;
-      } else if (ob.side === 'SELL' && c.close > ob.top) {
-        ob.mitigated = true;
-        ob.endTime = c.time;
+      if (ob.mitigated || i <= ob.formedIndex) continue;
+      if (ob.side === 'BUY') {
+        if (c.low <= ob.top && c.high >= ob.bot) {
+          ob.tested = true;
+          ob.lifecycle = 'ACTIVE';
+        }
+        if (c.close < ob.bot) {
+          ob.mitigated = true;
+          ob.endTime = c.time;
+          ob.lifecycle = 'BROKEN';
+        }
+      } else {
+        if (c.high >= ob.bot && c.low <= ob.top) {
+          ob.tested = true;
+          ob.lifecycle = 'ACTIVE';
+        }
+        if (c.close > ob.top) {
+          ob.mitigated = true;
+          ob.endTime = c.time;
+          ob.lifecycle = 'BROKEN';
+        }
       }
     }
   }
 
-  // Trend Invalidation line
+  // Fallback to context M15 bias only if causal loop remained NEUTRAL
+  if (trend === 'NEUTRAL' && tf === 'M15') {
+    const ctxBias = context?.m15?.structure || context?.m15?.control || context?.amy?.dashboard?.biasDir;
+    if (String(ctxBias).toUpperCase().includes('BULL') || ctxBias === 1) trend = 'BULL';
+    else if (String(ctxBias).toUpperCase().includes('BEAR') || ctxBias === -1) trend = 'BEAR';
+  }
+
+  // Trend Invalidation line — strictly anchored to Protected Structural Swing (never internal pullback pivot)
   let trendInvalidation = null;
   let trendInvalidationText = '';
   let trendInvalidationColor = '#ef4444';
   let trendInvalidationTime = null;
 
-  // Kalibrasi Batas CHoCH / Trend Invalidation:
-  // Bullish: Batal Bull jika close menembus ke bawah Swing Low (SSL / lastLow)
-  // Bearish: Batal Bear jika close menembus ke atas Swing High (BSL / lastHigh)
   if (trend === 'BULL') {
-    const invLevel = Number.isFinite(lastLow) ? lastLow : (Number(context?.m15?.invalidLevel) || Number(context?.amy?.dashboard?.invalidLevel));
-    if (Number.isFinite(invLevel)) {
+    const invLevel = Number.isFinite(protectedLow)
+      ? protectedLow
+      : (Number.isFinite(lastLow) ? lastLow : (Number(context?.amy?.dashboard?.protectedLow) || Number(context?.m15?.invalidLevel) || Number(context?.amy?.dashboard?.invalidLevel)));
+    if (Number.isFinite(invLevel) && invLevel > 0) {
       trendInvalidation = invLevel;
       trendInvalidationText = `BULL INVALID < ${invLevel.toFixed(2)}`;
       trendInvalidationColor = '#ef4444';
-      trendInvalidationTime = lastLowTime || safeCandles.at(-1)?.time;
+      trendInvalidationTime = protectedLowTime || lastLowTime || safeCandles.at(-1)?.time;
     }
   } else if (trend === 'BEAR') {
-    const invLevel = Number.isFinite(lastHigh) ? lastHigh : (Number(context?.h1?.swingHigh) || Number(context?.amy?.levels?.pdh));
-    if (Number.isFinite(invLevel)) {
+    const invLevel = Number.isFinite(protectedHigh)
+      ? protectedHigh
+      : (Number.isFinite(lastHigh) ? lastHigh : (Number(context?.amy?.dashboard?.protectedHigh) || Number(context?.h1?.swingHigh)));
+    if (Number.isFinite(invLevel) && invLevel > 0) {
       trendInvalidation = invLevel;
       trendInvalidationText = `BEAR INVALID > ${invLevel.toFixed(2)}`;
       trendInvalidationColor = '#f97316';
-      trendInvalidationTime = lastHighTime || safeCandles.at(-1)?.time;
+      trendInvalidationTime = protectedHighTime || lastHighTime || safeCandles.at(-1)?.time;
     }
   }
 
-  // Calculate ATR 14 for Batas Ekspansi V6.1
-  let trSum = 0;
-  const trSlice = safeCandles.slice(-14);
-  for (let idx = 0; idx < trSlice.length; idx++) {
-    const cur = trSlice[idx];
-    const prevC = idx > 0 ? trSlice[idx - 1].close : cur.open;
-    const tr = Math.max(cur.high - cur.low, Math.abs(cur.high - prevC), Math.abs(cur.low - prevC));
-    trSum += tr;
-  }
-  const atr14 = trSlice.length > 0 ? (trSum / trSlice.length) : 5.0;
+  // Structural Dealing Range (active BOS leg when valid, else 80-bar pdHigh/pdLow fallback)
+  const structuralRangeHigh = (Number.isFinite(legHigh) && Number.isFinite(legLow) && legHigh > legLow)
+    ? legHigh
+    : pdHigh;
+  const structuralRangeLow = (Number.isFinite(legHigh) && Number.isFinite(legLow) && legHigh > legLow)
+    ? legLow
+    : pdLow;
+  const structuralEq = (Number.isFinite(structuralRangeHigh) && Number.isFinite(structuralRangeLow) && structuralRangeHigh > structuralRangeLow)
+    ? (structuralRangeHigh + structuralRangeLow) / 2
+    : pdEq;
 
-  // Batas Ekspansi ala AMY ICT V6.1 (Std Dev -2.0 & -4.0: Target Normal & Batas Habis)
+  const atr14 = barAtrs.at(-1) || 5.0;
+
+  // Batas Ekspansi ala AMY ICT V6.1
   let expansion = null;
   if (trend === 'BULL' && Number.isFinite(lastHigh) && Number.isFinite(lastLow)) {
     const legRange = Math.max(lastHigh - lastLow, atr14 * 1.5);
@@ -584,19 +797,65 @@ function getTradingDayKey(timeSec) {
     }
   }
 
-  // TradingView Parity: Tampilkan POI aktif terdekat (termasuk yang sedang diuji/tested agar tidak mendadak hilang saat disentuh)
+  // TradingView Parity: Active POI selection (unbroken, or recently tested within 1h)
   const curP = safeCandles.at(-1)?.close || 3940;
   const lastBarTime = safeCandles.at(-1)?.time || 0;
-  const isViablePoi = z => !z.mitigated || (z.tested && (!z.endTime || z.endTime >= lastBarTime - 3600));
+  const isViablePoi = z => !z.mitigated;
   const viableObs = obList.filter(isViablePoi);
-  const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
-  const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
+  const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
+  const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
   const activeObs = [nearestBullOb, nearestBearOb].filter(Boolean);
 
   const viableFvgs = fvgList.filter(isViablePoi);
-  const nearestBullFvg = viableFvgs.filter(f => f.side === 'BUY' && f.top <= curP + 8).sort((a, b) => b.top - a.top)[0];
-  const nearestBearFvg = viableFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - 8).sort((a, b) => a.bot - b.bot)[0];
+  const nearestBullFvg = viableFvgs.filter(f => f.side === 'BUY' && f.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
+  const nearestBearFvg = viableFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
   const activeFvgs = [nearestBullFvg, nearestBearFvg].filter(Boolean);
+
+  // Unified Directed Draw on Liquidity (DOL) from unconsumed pools strictly ahead of price
+  const dedupePools = list => list.filter((x, idx) => list.findIndex(y => Math.abs(y.level - x.level) < 0.08) === idx);
+  const poolsAbove = dedupePools([
+    ...bslLines.filter(l => !l.consumed && l.level > curP).map(l => ({ name: 'BSL Swing', level: l.level })),
+    ...(Number.isFinite(asiaHigh) && !asiaHighConsumed && asiaHigh > curP ? [{ name: 'Asia High', level: asiaHigh }] : []),
+    ...(Number.isFinite(pdh) && !pdhConsumed && pdh > curP ? [{ name: 'PDH', level: pdh }] : []),
+    ...(Number.isFinite(pwh) && !pwhConsumed && pwh > curP ? [{ name: 'PWH', level: pwh }] : []),
+    ...(Number.isFinite(pdHigh) && pdHigh > curP ? [{ name: 'Range High', level: pdHigh }] : [])
+  ]).sort((a, b) => a.level - b.level);
+
+  const poolsBelow = dedupePools([
+    ...sslLines.filter(l => !l.consumed && l.level < curP).map(l => ({ name: 'SSL Swing', level: l.level })),
+    ...(Number.isFinite(asiaLow) && !asiaLowConsumed && asiaLow < curP ? [{ name: 'Asia Low', level: asiaLow }] : []),
+    ...(Number.isFinite(pdl) && !pdlConsumed && pdl < curP ? [{ name: 'PDL', level: pdl }] : []),
+    ...(Number.isFinite(pwl) && !pwlConsumed && pwl < curP ? [{ name: 'PWL', level: pwl }] : []),
+    ...(Number.isFinite(pdLow) && pdLow < curP ? [{ name: 'Range Low', level: pdLow }] : [])
+  ]).sort((a, b) => b.level - a.level);
+
+  const sortedSweeps = [...sweeps].sort((a, b) => (a.time || 0) - (b.time || 0));
+  const latestSweep = sortedSweeps.at(-1) || null;
+  const sweepIsFresh = Boolean(latestSweep && lastBarTime - latestSweep.time <= expectedInterval * 8);
+  const sweepReactionDir = latestSweep
+    ? (latestSweep.reactionSide === 'BUY' || latestSweep.type?.includes('SSL') || latestSweep.type?.includes('LOW') || latestSweep.type?.includes('PDL') || latestSweep.type?.includes('PWL') ? 1 : -1)
+    : 0;
+  const dolDir = sweepIsFresh ? sweepReactionDir : (trend === 'BULL' ? 1 : trend === 'BEAR' ? -1 : 0);
+  const dolCandidate = dolDir === 1 ? poolsAbove[0] : dolDir === -1 ? poolsBelow[0] : null;
+  const dol = dolCandidate ? {
+    dir: dolDir,
+    side: dolDir === 1 ? 'BUY' : 'SELL',
+    level: dolCandidate.level,
+    name: dolCandidate.name,
+    distance: Math.abs(dolCandidate.level - curP),
+    status: 'ACTIVE',
+    poolsAbove: poolsAbove.slice(0, 3),
+    poolsBelow: poolsBelow.slice(0, 3)
+  } : {
+    dir: dolDir,
+    side: dolDir === 1 ? 'BUY' : dolDir === -1 ? 'SELL' : null,
+    level: null,
+    name: null,
+    distance: null,
+    status: 'NONE',
+    poolsAbove: poolsAbove.slice(0, 3),
+    poolsBelow: poolsBelow.slice(0, 3)
+  };
 
   return {
     keyLevels: {
@@ -614,22 +873,36 @@ function getTradingDayKey(timeSec) {
       asiaEnd,
       asiaHighConsumed,
       asiaLowConsumed,
-      pdEq,
-      pdHigh,
-      pdLow,
+      pdEq: structuralEq,
+      pdHigh: structuralRangeHigh,
+      pdLow: structuralRangeLow,
+      lookbackHigh: pdHigh,
+      lookbackLow: pdLow,
+      protectedHigh,
+      protectedLow,
       trendInvalidation,
       trendInvalidationText,
       trendInvalidationColor,
       trend
     },
+    dealingRange: Number.isFinite(structuralRangeHigh) && Number.isFinite(structuralRangeLow) && structuralRangeHigh > structuralRangeLow ? {
+      rangeHigh: structuralRangeHigh,
+      rangeLow: structuralRangeLow,
+      eq: structuralEq
+    } : null,
     liquidity: {
       bsl: bslLines.filter(l => !l.consumed).slice(-2),
       ssl: sslLines.filter(l => !l.consumed).slice(-2),
-      sweeps: sweeps.slice(-8)
+      sweeps: sortedSweeps.slice(-8),
+      latestSweep: latestSweep ? { ...latestSweep, fresh: sweepIsFresh, reactionDir: sweepReactionDir } : null
     },
+    dol,
     structure: {
       events: structureEvents.slice(-options.structureHistory || -5),
+      lastEvent: structureEvents.at(-1) || null,
       trend,
+      protectedHigh,
+      protectedLow,
       invalidation: trendInvalidation ? {
         level: trendInvalidation,
         text: trendInvalidationText,

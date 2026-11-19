@@ -5,33 +5,35 @@
 <meta name="theme-color" content="#0c1320"><title>Amy FX Pro · Konteks Gold</title>
 <script src="../shared/amyfx-theme-controller.js"></script>
 <link rel="stylesheet" href="css/ict-workspace.css">
-<link rel="stylesheet" href="css/ict-dashboard-v2.css">
 <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css">
 <link rel="stylesheet" href="../shared/amyfx-theme.css">
 <link rel="stylesheet" href="../shared/amyfx-components.css">
 <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
 <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
 <link rel="stylesheet" href="../shared/amyfx-obsidian-glass.css" data-amyfx-obsidian-glass="v1">
+<link rel="stylesheet" href="css/ict-dashboard-v2.css">
 </head>
 <body class="amyfx-module amyfx-module--mapping amyfx-module--ict">
 
-<!-- ── HEADER ── -->
-<header style="display:flex; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box; padding:12px 16px;">
+<!-- ── HEADER: Modern Glass Cockpit Bar ── -->
+<header class="cockpit-header">
   <button type="button" class="nav-arrow-btn nav-arrow-left" id="amyfxNavBack" data-amyfx-nav="back" aria-label="Kembali ke beranda">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <line x1="19" y1="12" x2="5" y2="12"></line>
       <polyline points="12 19 5 12 12 5"></polyline>
     </svg>
   </button>
-  <div style="flex:1; text-align:center; padding:0 8px;">
-    <small style="display:block; letter-spacing:0.14em; color:var(--muted); font-size:10px; font-weight:700;">AMY FX PRO · XAU/USD</small>
-    <h1 style="margin:2px 0 0; font-size:1.15rem; line-height:1.2; font-weight:800; color:#fff; letter-spacing:0.02em;">Market Intelligence</h1>
-    <div id="cockpit-session-pill" class="cockpit-session-pill" style="display:inline-block; margin-top:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--amy-accent,#F5C451); letter-spacing:0.02em;">[ ⏳ Memuat Sesi... ]</div>
+  <div class="cockpit-header-center">
+    <span class="cockpit-eyebrow">AMY FX PRO · XAU/USD</span>
+    <div class="cockpit-title-row">
+      <h1>Mapping Cockpit</h1>
+      <span id="cockpit-session-pill" class="cockpit-session-tag">Memuat sesi…</span>
+    </div>
   </div>
-  <div style="display:flex; align-items:center; gap:8px;">
-    <span id="connection" role="status" style="margin:0; font-size:11px; padding:3px 8px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);">Memuat</span>
+  <div class="cockpit-header-right">
+    <span id="connection" role="status" class="cockpit-conn-status">Memuat</span>
     <button type="button" class="nav-arrow-btn nav-arrow-right" id="amyfxNavForward" data-amyfx-nav="forward" aria-label="Maju">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <line x1="5" y1="12" x2="19" y2="12"></line>
         <polyline points="12 5 19 12 12 19"></polyline>
       </svg>
@@ -42,223 +44,397 @@
 <div id="economic-event-banner" class="economic-event-banner" style="display:none;" role="alert" aria-live="polite"></div>
 <p id="error" role="alert" hidden></p>
 
-<!-- ── MAIN: 1-Page Scroll Dashboard ── -->
+<!-- ── MAIN: Modern Glass Cockpit ── -->
 <main id="app">
   <div class="ict-dashboard-scroll">
 
     <!-- ══════════════════════════════════════
-         CARD 1: HERO CONTEXT — Live Bias ICT
-         ══════════════════════════════════════ -->
-    <article id="hero-ict-context" class="hero-context-card" aria-label="Konteks Bias ICT Live">
-
-      <!-- Price + jam -->
-      <div class="hero-price-row">
-        <span class="hero-live-price" id="hero-price">—</span>
-        <span class="hero-eq-badge" id="hero-eq">≈ EQ —</span>
-        <span class="hero-clock" id="hero-clock">— WITA</span>
-      </div>
-
-      <!-- Bias banner -->
-      <div class="hero-bias-banner bias-neutral" id="hero-bias-banner">
-        🧭 MEMUAT DATA BIAS...
-      </div>
-
-      <!-- Warning counter-trend -->
-      <div class="hero-warning-box" id="hero-warning" hidden>
-        ⚠️ WASPADA: Hanya koreksi sementara — jangan FOMO entry melawan HTF!
-      </div>
-
-      <!-- Tabel 3-TF -->
-      <table class="hero-tf-table" aria-label="Bias 3 Timeframe">
-        <thead>
-          <tr>
-            <th>Timeframe</th>
-            <th>Bias</th>
-            <th>Kondisi</th>
-          </tr>
-        </thead>
-        <tbody id="hero-tf-tbody">
-          <tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);">Memuat matriks bias 3-TF...</td></tr>
-        </tbody>
-      </table>
-
-      <!-- Kesimpulan bernarasi -->
-      <p class="hero-conclusion" id="hero-conclusion">
-        Menunggu data konteks terbaru dari server...
-      </p>
-
-    </article>
-
-    <!-- ══════════════════════════════════════
-         CARD 2: PETA HARGA / CHART GOLD
+         1. CHART GOLD · XAU/USD (Paling Atas — 100% Paritas Peta Harga)
          ══════════════════════════════════════ -->
     <article class="price-map gold-price-panel">
       <section id="gold-chart-workspace" aria-label="Chart Gold XAU/USD">
         <div class="section-heading chart-heading">
           <h2>Chart Gold · XAU/USD</h2>
           <div class="chart-price-wrap" style="display:flex; align-items:center; gap:8px;">
-            <span id="chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM 50% · NETRAL ⚪</span>
+            <span id="chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM 50% · NETRAL</span>
             <strong id="chart-price">—</strong>
           </div>
         </div>
         <div class="gold-chart-controls">
-          <label>Timeframe <select id="timeframe"><option value="M15">M15</option><option value="M5">M5</option></select></label>
+          <label>Timeframe <select id="timeframe"><option value="H1">H1</option><option value="M15" selected>M15</option><option value="M5">M5</option></select></label>
           <button type="button" id="refresh">Perbarui</button>
-          <button type="button" id="btn-chart-custom-price-alert" title="Pasang Alarm Target Harga">🔔 Pasang Alarm</button>
-          <button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">⛶ Fullscreen</button>
+          <button type="button" id="btn-chart-custom-price-alert" title="Pasang Alarm Target Harga">Pasang Alarm</button>
+          <button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">Fullscreen</button>
         </div>
+
+        <!-- Mini Utility Strip: Toggle Layer ICT · Gambar Manual · Reset Skala · Candle Countdown -->
+        <div class="gold-chart-utility-strip" aria-label="Kontrol Tambahan Chart Gold">
+          <div class="gold-chart-utility-actions">
+            <button type="button" id="btn-chart-layers" class="chart-util-btn" aria-expanded="false" aria-controls="chart-layer-popover" title="Atur Layer Indikator ICT">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              <span id="chart-layers-label">Layer (5)</span>
+              <svg class="chart-util-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <button type="button" id="btn-chart-draw" class="chart-util-btn" aria-pressed="false" title="Buka Alat Gambar Manual di Chart">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>Gambar</span>
+            </button>
+            <button type="button" id="chart-auto-price" class="chart-util-btn" title="Reset Skala Harga & Fokus Candle Terbaru">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+              <span>Reset</span>
+            </button>
+          </div>
+          <span id="chart-candle-countdown" class="chart-countdown-text" title="Sisa waktu penutupan candle aktif">Tutup M15 · --:--</span>
+        </div>
+
+        <!-- Popover Toggle Layer ICT -->
+        <div id="chart-layer-popover" class="chart-layer-popover" role="region" aria-label="Pengaturan Layer Indikator ICT" hidden>
+          <div class="chart-layer-popover-head">
+            <span class="chart-layer-popover-title">Layer Indikator ICT</span>
+            <div class="chart-layer-presets" role="group" aria-label="Preset Layer">
+              <button type="button" class="chart-preset-btn" data-layer-preset="clean">Fokus Bersih</button>
+              <button type="button" class="chart-preset-btn" data-layer-preset="all">Semua</button>
+              <button type="button" class="chart-preset-btn" data-layer-preset="bare">Polos</button>
+            </div>
+          </div>
+          <div class="chart-layer-grid">
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="poi" checked><span>Zona OB &amp; FVG</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="structure" checked><span>BOS / MSS &amp; Inv</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="liquidity" checked><span>Sweep &amp; BSL/SSL</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="pdhl" checked><span>PDH / PDL</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="alarms" checked><span>Garis Alarm</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="asia"><span>Sesi Asia H/L</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="pwhl"><span>PWH / PWL &amp; EQ</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="idm"><span>Inducement (IDM)</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="expansion"><span>Target Ekspansi</span></label>
+            <label class="chart-layer-item"><input type="checkbox" data-layer-key="killzones"><span>Killzone Sesi</span></label>
+          </div>
+        </div>
+
         <p id="source" role="status">Memuat candle tertutup…</p><p id="chart-error" role="alert"></p>
-        <div id="chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
+        <div class="gold-chart-stage">
+          <div id="chart-ohlc-hud" class="chart-ohlc-hud" aria-live="off"></div>
+          <div id="chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
+        </div>
         <p id="chart-note"></p>
       </section>
       <details class="ict-settings" style="display:none;"><summary>Atur tampilan chart</summary><div id="ict-controls"></div></details>
     </article>
 
     <!-- ══════════════════════════════════════
-         CARD 3: DEALING RANGE AKTIF
+         2. HERO RINGKAS — Live Bias ICT + 3-TF + Sweep/DOL
          ══════════════════════════════════════ -->
-    <article id="card-dealing-range" class="dr-card" aria-label="Dealing Range Aktif">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0;">🗺️ Dealing Range Aktif</h3>
-        <span id="dr-scope-badge" style="font-size:10.5px; font-weight:700; color:var(--amy-accent,#F5C451); background:rgba(245,196,81,0.12); border:1px solid rgba(245,196,81,0.25); border-radius:6px; padding:2px 8px;">M15 Dealing Range</span>
+    <article id="hero-ict-context" class="cockpit-card hero-context-card" aria-label="Konteks Bias ICT Live">
+      <div class="hero-top-row">
+        <div class="hero-price-block">
+          <span class="hero-kicker">XAU/USD Live</span>
+          <div class="hero-price-line">
+            <span class="hero-live-price" id="hero-price">—</span>
+            <span class="hero-eq-meta" id="hero-eq">EQ —</span>
+          </div>
+        </div>
+        <div class="hero-top-right">
+          <span class="hero-bias-pill bias-neutral" id="hero-bias-banner">Memuat bias…</span>
+          <span class="hero-clock" id="hero-clock">— WITA</span>
+        </div>
       </div>
 
-      <div class="dr-visual-wrap">
-        <!-- Visual bar vertikal -->
-        <div class="dr-bar-track" aria-hidden="true">
-          <div class="dr-bar-fill" id="dr-bar-fill" style="height:50%"></div>
-          <div class="dr-bar-dot"  id="dr-bar-dot"  style="bottom:calc(50% - 8px)"></div>
+      <!-- Matriks 3-TF Horizontal Sejajar (H1 · M15 · M5) -->
+      <div class="hero-tf-grid" id="hero-tf-grid" aria-label="Bias 3 Timeframe">
+        <div class="hero-tf-cell">
+          <div class="hero-tf-head"><span class="hero-tf-name">H1 · HTF</span><span class="hero-tf-dir bias-neutral">NETRAL</span></div>
+          <span class="hero-tf-desc">Memuat struktur…</span>
+        </div>
+        <div class="hero-tf-cell">
+          <div class="hero-tf-head"><span class="hero-tf-name">M15 · MTF</span><span class="hero-tf-dir bias-neutral">NETRAL</span></div>
+          <span class="hero-tf-desc">Memuat struktur…</span>
+        </div>
+        <div class="hero-tf-cell">
+          <div class="hero-tf-head"><span class="hero-tf-name">M5 · LTF</span><span class="hero-tf-dir bias-neutral">NETRAL</span></div>
+          <span class="hero-tf-desc">Memuat trigger…</span>
+        </div>
+      </div>
+
+      <!-- Live ICT Engine Strip: Break · Sweep · DOL -->
+      <div class="hero-ict-strip" aria-label="Telemetri Struktur, Sweep, dan DOL">
+        <div class="hero-ict-metric">
+          <span class="hero-ict-label">Break Terakhir</span>
+          <strong class="hero-ict-val" id="hero-break-val">—</strong>
+        </div>
+        <div class="hero-ict-metric">
+          <span class="hero-ict-label">Liquidity Sweep</span>
+          <strong class="hero-ict-val" id="hero-sweep-val">—</strong>
+        </div>
+        <div class="hero-ict-metric">
+          <span class="hero-ict-label">Target DOL</span>
+          <strong class="hero-ict-val" id="hero-dol-val">—</strong>
+        </div>
+      </div>
+
+      <!-- Peringatan Kontekstual Tunggal (muncul hanya jika counter-trend / zona ekstrem) -->
+      <div class="hero-warning-box" id="hero-warning" hidden></div>
+
+      <!-- Narasi 1 Baris Objektif -->
+      <p class="hero-conclusion" id="hero-conclusion">
+        Menunggu data konteks terbaru dari server…
+      </p>
+    </article>
+
+    <!-- ══════════════════════════════════════
+         3. DEALING RANGE & PETA SKENARIO (2-Kolom Desktop / Stack Mobile)
+         ══════════════════════════════════════ -->
+    <div class="cockpit-split-row">
+      <!-- Dealing Range Aktif -->
+      <article id="card-dealing-range" class="cockpit-card dr-card" aria-label="Dealing Range Aktif">
+        <div class="cockpit-card-head">
+          <div class="cockpit-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="20" x2="20" y2="20"></line><line x1="4" y1="4" x2="20" y2="4"></line><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="3 3"></line><circle cx="12" cy="12" r="2.5"></circle></svg>
+            <h3>Dealing Range</h3>
+          </div>
+          <span id="dr-scope-badge" class="cockpit-meta-tag">M15 · <span id="dr-pct-tag">50%</span></span>
         </div>
 
-        <!-- Label level -->
-        <div class="dr-labels">
-          <div class="dr-label-row dr-bsl">
-            <span class="dr-label-name">Range High (BSL)</span>
-            <span class="dr-label-val" id="dr-bsl-val">—</span>
+        <!-- Horizontal Gauge Premium / EQ / Discount -->
+        <div class="dr-gauge-wrap">
+          <div class="dr-gauge-zones">
+            <span>Diskon</span>
+            <span>EQ 50%</span>
+            <span>Premium</span>
           </div>
-          <div class="dr-label-row dr-eq">
-            <span class="dr-label-name">EQ 50%</span>
-            <span class="dr-label-val" id="dr-eq-val">—</span>
+          <div class="dr-gauge-track" aria-hidden="true">
+            <div class="dr-gauge-eq-mark"></div>
+            <div class="dr-gauge-fill" id="dr-bar-fill" style="width:50%"></div>
+            <div class="dr-gauge-dot" id="dr-bar-dot" style="left:50%"></div>
           </div>
-          <div class="dr-label-row dr-ssl">
+        </div>
+
+        <!-- 3 Level Utama -->
+        <div class="dr-metrics-row">
+          <div class="dr-metric dr-ssl">
             <span class="dr-label-name">Range Low (SSL)</span>
             <span class="dr-label-val" id="dr-ssl-val">—</span>
           </div>
+          <div class="dr-metric dr-eq">
+            <span class="dr-label-name">EQ 50%</span>
+            <span class="dr-label-val" id="dr-eq-val">—</span>
+          </div>
+          <div class="dr-metric dr-bsl">
+            <span class="dr-label-name">Range High (BSL)</span>
+            <span class="dr-label-val" id="dr-bsl-val">—</span>
+          </div>
+        </div>
+
+        <div class="dr-status-badge zone-eq" id="dr-status-badge">
+          Menghitung posisi zona…
+        </div>
+
+        <div id="dr-major-context" class="dr-major-row">
+          <span>PDH–PDL: <strong id="dr-major-range">—</strong></span>
+          <span>EQ Mayor: <strong id="dr-major-eq">—</strong></span>
+        </div>
+      </article>
+
+      <!-- Peta Skenario Prioritas -->
+      <article id="card-scenario" class="cockpit-card scenario-card" aria-label="Skenario Prioritas Hari Ini">
+        <div class="cockpit-card-head">
+          <div class="cockpit-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+            <h3>Peta Skenario</h3>
+          </div>
+          <span class="cockpit-meta-tag">
+            <strong id="scenario-price">—</strong> · <span id="scenario-zone-label">Memuat…</span>
+          </span>
+        </div>
+
+        <div class="scenario-paths">
+          <div class="scenario-path scenario-path--sell">
+            <div class="scenario-path-dir">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+              <span>Jika Naik ke Supply</span>
+            </div>
+            <div class="scenario-path-body">
+              Tunggu retest <strong id="sell-zone-label">zona supply</strong> lalu cari konfirmasi <strong>SELL</strong>
+            </div>
+          </div>
+
+          <div class="scenario-path scenario-path--buy">
+            <div class="scenario-path-dir">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              <span>Jika Turun ke Demand</span>
+            </div>
+            <div class="scenario-path-body">
+              Tunggu sweep SSL <strong id="buy-zone-label">zona demand</strong> lalu cari konfirmasi <strong>BUY</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-trade-zone-badge" id="no-trade-label">
+          NO-TRADE ZONE (EQ): Menghitung area tengah…
+        </div>
+      </article>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         4. PANEL EKSEKUSI POI TERPADU · TAB SWITCH BUY / SELL
+         ══════════════════════════════════════ -->
+    <article id="card-poi-cockpit" class="cockpit-card poi-cockpit-card" aria-label="Rencana Eksekusi POI BUY dan SELL">
+      <div class="poi-cockpit-top">
+        <div class="cockpit-card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><line x1="12" y1="3" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg>
+          <h3>Rencana Eksekusi POI</h3>
+        </div>
+
+        <div class="poi-segmented" role="tablist" aria-label="Pilih arah setup POI">
+          <button type="button" role="tab" id="tab-poi-buy" class="poi-tab-btn poi-tab-btn--buy is-active" data-poi-tab="BUY" aria-selected="true" aria-controls="card-poi-buy">
+            <span class="poi-tab-dot" id="tab-buy-dot" aria-hidden="true"></span>
+            <span class="poi-tab-label">BUY Setup</span>
+            <span class="poi-tab-tag" id="tab-buy-tag" hidden>Prioritas</span>
+          </button>
+          <button type="button" role="tab" id="tab-poi-sell" class="poi-tab-btn poi-tab-btn--sell" data-poi-tab="SELL" aria-selected="false" aria-controls="card-poi-sell">
+            <span class="poi-tab-dot" id="tab-sell-dot" aria-hidden="true"></span>
+            <span class="poi-tab-label">SELL Setup</span>
+            <span class="poi-tab-tag" id="tab-sell-tag" hidden>Prioritas</span>
+          </button>
         </div>
       </div>
 
-      <!-- Status badge zona -->
-      <div class="dr-status-badge zone-eq" id="dr-status-badge">
-        ⏳ Menghitung posisi zona...
-      </div>
-
-      <!-- Konteks Dealing Range Mayor H1 / Daily (Kalibrasi ICT) -->
-      <div id="dr-major-context" style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:11px; color:var(--muted,#94A3B8); display:flex; justify-content:space-between; align-items:center;">
-        <span>Range Mayor (PDH–PDL): <strong id="dr-major-range" style="color:#CBD5E1;">—</strong></span>
-        <span>EQ Mayor: <strong id="dr-major-eq" style="color:var(--amy-accent,#F5C451);">—</strong></span>
-      </div>
-    </article>
-
-    <!-- ══════════════════════════════════════
-         CARD 4: POI SELL SETUP
-         ══════════════════════════════════════ -->
-    <article id="card-poi-sell" class="poi-card poi-card--sell" aria-label="POI Sell Setup">
-      <div class="poi-card-header">
-        <h3>🔴 SELL SETUP</h3>
-        <span class="poi-badge poi-badge--sell" id="poi-sell-badge">Target Pembalikan — Resistance Ekstrem</span>
-      </div>
-
-      <table class="poi-table poi-table--sell" aria-label="Level POI Sell">
-        <thead>
-          <tr>
-            <th>POI</th>
-            <th>Level</th>
-            <th>Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="sell-poi-tbody">
-          <tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);">Memuat level SELL...</td></tr>
-        </tbody>
-      </table>
-
-      <!-- SOP Entry -->
-      <div class="sop-box sop-box--sell">
-        <strong>SOP Entry SELL (Napas Spread XAUUSDc)</strong>
-        <ul id="sell-sop-list">
-          <li>Menunggu data FVG bearish dari engine...</li>
-        </ul>
-      </div>
-    </article>
-
-    <!-- ══════════════════════════════════════
-         CARD 5: POI BUY SETUP
-         ══════════════════════════════════════ -->
-    <article id="card-poi-buy" class="poi-card poi-card--buy" aria-label="POI Buy Setup">
-      <div class="poi-card-header">
-        <h3>🟢 BUY SETUP</h3>
-        <span class="poi-badge poi-badge--buy" id="poi-buy-badge">Pijakan Retest — Jemput di Demand</span>
-      </div>
-
-      <table class="poi-table poi-table--buy" aria-label="Level POI Buy">
-        <thead>
-          <tr>
-            <th>POI</th>
-            <th>Level</th>
-            <th>Keterangan</th>
-          </tr>
-        </thead>
-        <tbody id="buy-poi-tbody">
-          <tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);">Memuat level BUY...</td></tr>
-        </tbody>
-      </table>
-
-      <!-- Warning BUY -->
-      <div class="poi-warning-box">
-        ⚠️ <strong>Buy hanya valid</strong> jika ada konfirmasi M5: <em>Absorption Wick + Bullish Displacement</em> setelah sweep SSL. Jangan masuk sebelum konfirmasi!
-      </div>
-
-      <!-- SOP Entry BUY -->
-      <div class="sop-box sop-box--buy">
-        <strong>SOP Entry BUY (Napas Spread XAUUSDc)</strong>
-        <ul id="buy-sop-list">
-          <li>Menunggu data Demand/SSL dari engine...</li>
-        </ul>
-      </div>
-    </article>
-
-    <!-- ══════════════════════════════════════
-         CARD 6: SKENARIO PRIORITAS
-         ══════════════════════════════════════ -->
-    <article id="card-scenario" class="scenario-card" aria-label="Skenario Prioritas Hari Ini">
-      <h3>📋 Skenario Prioritas Hari Ini</h3>
-
-      <div class="scenario-price-anchor">
-        📍 Harga sekarang:
-        <strong id="scenario-price">—</strong>
-        <span class="scenario-zone-label" id="scenario-zone-label">(memuat...)</span>
-      </div>
-
-      <div class="scenario-arrows">
-        <div class="scenario-arrow scenario-arrow--up">
-          ⬆️ JIKA NAIK → Tunggu retest <strong id="sell-zone-label">zona supply</strong> → <strong>SELL</strong>
+      <!-- TAB PANEL: BUY SETUP -->
+      <section id="card-poi-buy" class="poi-tab-panel" role="tabpanel" aria-labelledby="tab-poi-buy">
+        <div class="poi-panel-status-row">
+          <span class="poi-badge poi-badge--buy" id="poi-buy-badge">Pijakan Retest — Jemput di Demand</span>
+          <button type="button" class="cockpit-lot-btn" id="btn-lot-buy">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="11" x2="10" y2="11"></line><line x1="14" y1="11" x2="16" y2="11"></line><line x1="8" y1="16" x2="10" y2="16"></line><line x1="14" y1="16" x2="16" y2="16"></line></svg>
+            <span>Hitung Lot</span>
+          </button>
         </div>
-        <div class="scenario-arrow scenario-arrow--down">
-          ⬇️ JIKA TURUN → Tunggu sweep SSL <strong id="buy-zone-label">zona demand</strong> → <strong>BUY konfirmasi</strong>
-        </div>
-      </div>
 
-      <div class="no-trade-zone-badge" id="no-trade-label">
-        🚫 NO-TRADE ZONE: Menghitung area EQ...
-      </div>
+        <div id="poi-buy-zone-ban" class="poi-warning-box" hidden></div>
+
+        <!-- 3 Kartu Level Eksekusi BUY -->
+        <div class="poi-levels-grid">
+          <div class="poi-level-tile poi-level-tile--entry-buy">
+            <span class="poi-level-label">Entry Zona (OB/FVG)</span>
+            <strong class="poi-level-val" id="buy-entry-val">—</strong>
+            <span class="poi-level-sub" id="buy-entry-sub">Menunggu zona demand…</span>
+          </div>
+          <div class="poi-level-tile poi-level-tile--tp">
+            <span class="poi-level-label">Target DOL / TP</span>
+            <strong class="poi-level-val" id="buy-tp-val">—</strong>
+            <span class="poi-level-sub" id="buy-tp-sub">Likuiditas BSL atas</span>
+          </div>
+          <div class="poi-level-tile poi-level-tile--sl">
+            <span class="poi-level-label">Batas SL Aman</span>
+            <strong class="poi-level-val" id="buy-sl-val">—</strong>
+            <span class="poi-level-sub" id="buy-sl-sub">Protected Low - $0.40</span>
+          </div>
+        </div>
+
+        <!-- Rincian Level Pendukung -->
+        <div class="poi-table-wrap">
+          <table class="poi-table poi-table--buy" aria-label="Level POI Buy">
+            <thead>
+              <tr>
+                <th>Komponen</th>
+                <th>Level</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="buy-poi-tbody">
+              <tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);">Memuat level BUY…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Akordeon SOP Entry BUY -->
+        <details class="cockpit-sop-accordion sop-box--buy">
+          <summary class="cockpit-sop-summary">
+            <span>SOP Entry BUY · Napas Spread XAUUSDc</span>
+            <svg class="cockpit-sop-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="cockpit-sop-body">
+            <p class="poi-confirm-rule">Buy hanya valid setelah konfirmasi M5 (<em>Absorption Wick + Bullish Displacement</em>) atau M15 Direct Confirmation.</p>
+            <ul id="buy-sop-list">
+              <li>Menunggu data Demand/SSL dari engine…</li>
+            </ul>
+          </div>
+        </details>
+      </section>
+
+      <!-- TAB PANEL: SELL SETUP -->
+      <section id="card-poi-sell" class="poi-tab-panel" role="tabpanel" aria-labelledby="tab-poi-sell" hidden>
+        <div class="poi-panel-status-row">
+          <span class="poi-badge poi-badge--sell" id="poi-sell-badge">Target Pembalikan — Resistance Ekstrem</span>
+          <button type="button" class="cockpit-lot-btn" id="btn-lot-sell">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="11" x2="10" y2="11"></line><line x1="14" y1="11" x2="16" y2="11"></line><line x1="8" y1="16" x2="10" y2="16"></line><line x1="14" y1="16" x2="16" y2="16"></line></svg>
+            <span>Hitung Lot</span>
+          </button>
+        </div>
+
+        <div id="poi-sell-zone-ban" class="poi-warning-box" hidden></div>
+
+        <!-- 3 Kartu Level Eksekusi SELL -->
+        <div class="poi-levels-grid">
+          <div class="poi-level-tile poi-level-tile--entry-sell">
+            <span class="poi-level-label">Entry Zona (OB/FVG)</span>
+            <strong class="poi-level-val" id="sell-entry-val">—</strong>
+            <span class="poi-level-sub" id="sell-entry-sub">Menunggu zona supply…</span>
+          </div>
+          <div class="poi-level-tile poi-level-tile--tp">
+            <span class="poi-level-label">Target DOL / TP</span>
+            <strong class="poi-level-val" id="sell-tp-val">—</strong>
+            <span class="poi-level-sub" id="sell-tp-sub">Likuiditas SSL bawah</span>
+          </div>
+          <div class="poi-level-tile poi-level-tile--sl">
+            <span class="poi-level-label">Batas SL Aman</span>
+            <strong class="poi-level-val" id="sell-sl-val">—</strong>
+            <span class="poi-level-sub" id="sell-sl-sub">Protected High + $0.40</span>
+          </div>
+        </div>
+
+        <!-- Rincian Level Pendukung -->
+        <div class="poi-table-wrap">
+          <table class="poi-table poi-table--sell" aria-label="Level POI Sell">
+            <thead>
+              <tr>
+                <th>Komponen</th>
+                <th>Level</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="sell-poi-tbody">
+              <tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);">Memuat level SELL…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Akordeon SOP Entry SELL -->
+        <details class="cockpit-sop-accordion sop-box--sell">
+          <summary class="cockpit-sop-summary">
+            <span>SOP Entry SELL · Napas Spread XAUUSDc</span>
+            <svg class="cockpit-sop-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="cockpit-sop-body">
+            <ul id="sell-sop-list">
+              <li>Menunggu data Supply/BSL dari engine…</li>
+            </ul>
+          </div>
+        </details>
+      </section>
     </article>
 
     <!-- ── Last Update Bar ── -->
     <div class="dashboard-update-bar">
-      <span id="dashboard-last-update">🔄 Belum diperbarui</span>
-      <button type="button" onclick="document.getElementById('refresh').click()">⟳ Refresh Data</button>
+      <span id="dashboard-last-update">Belum diperbarui</span>
+      <button type="button" onclick="document.getElementById('refresh').click()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        <span>Perbarui Data</span>
+      </button>
     </div>
 
   </div><!-- /.ict-dashboard-scroll -->
+
+  <!-- Hidden compat table for legacy scripts -->
+  <table style="display:none;" aria-hidden="true"><tbody id="hero-tf-tbody"></tbody></table>
 
   <!-- Hidden compat elements — WAJIB ada agar JS lama tidak error -->
   <div style="display:none;" aria-hidden="true">

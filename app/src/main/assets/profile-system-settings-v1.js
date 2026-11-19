@@ -29,127 +29,67 @@
       : { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 68 };
   }
 
-  function updatePreviewCard(panel) {
+  function renderPresetButtons(presetsGrid) {
+    if (!presetsGrid) return;
+    const presets = getActivePresets();
+    const currentPreset = window.AmyFXTheme?.colors?.preset || '';
+    presetsGrid.innerHTML = presets.map(p => `
+      <button type="button" class="profile-preset-btn ${currentPreset === p.id ? 'is-active' : ''}" data-glass-preset="${p.id}" title="${p.name}">
+        <span class="profile-preset-swatch" style="background:${p.surface}; border-color:${p.accent}; box-shadow: 0 0 0 2px color-mix(in srgb, ${p.accent} 28%, transparent);"></span>
+        <span class="profile-preset-label">${p.name}</span>
+      </button>
+    `).join('');
+  }
+
+  function syncColorPanel(panel) {
     if (!panel) return;
     const colors = window.AmyFXTheme?.colors || {};
     const defaults = getThemeDefaults();
     const opacity = colors.opacity !== undefined ? Number(colors.opacity) : defaults.opacity;
-    const badge = panel.querySelector('#glass-opacity-val');
-    if (badge) badge.textContent = `${opacity}% Transparan`;
 
-    const preview = panel.querySelector('#glass-preview-card');
-    if (preview && colors.accent) {
-      preview.style.borderColor = colors.accent;
-    }
+    const activePref = window.AmyFXTheme?.preference || 'system';
+    panel.querySelectorAll('[data-amyfx-theme-choice]').forEach(btn => {
+      const isActive = btn.dataset.amyfxThemeChoice === activePref;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    renderPresetButtons(panel.querySelector('[data-glass-presets-grid]'));
+
+    panel.querySelectorAll('[data-theme-color]').forEach(input => {
+      const key = input.dataset.themeColor;
+      const val = colors[key] || defaults[key];
+      if (val) {
+        input.value = val;
+        const hexSpan = panel.querySelector(`[data-hex-for="${key}"]`);
+        if (hexSpan) hexSpan.textContent = val.toUpperCase();
+      }
+    });
+
+    const slider = panel.querySelector('[data-theme-glass-opacity]');
+    if (slider) slider.value = opacity;
+
+    const badge = panel.querySelector('#glass-opacity-val');
+    if (badge) badge.textContent = `${opacity}%`;
+
+    panel.querySelectorAll('[data-quick-opacity]').forEach(chip => {
+      chip.classList.toggle('is-active', Number(chip.dataset.quickOpacity) === opacity);
+    });
   }
 
-  function injectSettings() {
-    const selector = document.querySelector('#main-content .theme-selector');
-    if (!selector || document.querySelector('.color-customizer')) return;
-
-    const colors = window.AmyFXTheme?.colors || {};
-    const defaults = getThemeDefaults();
-    const opacityVal = colors.opacity !== undefined ? Number(colors.opacity) : defaults.opacity;
-    const presets = getActivePresets();
-    const currentPreset = colors.preset || '';
-
-    const prevTitle = selector.previousElementSibling;
-    if (prevTitle && prevTitle.classList.contains('profile-section-title') && prevTitle.textContent !== 'Tampilan & Gaya Kaca') {
-      prevTitle.textContent = 'Tampilan & Gaya Kaca';
+  function hydrateUnifiedSettings() {
+    const unified = document.querySelector('#main-content [data-amyfx-unified-appearance="true"]');
+    if (unified) {
+      if (unified.dataset.amyfxHydrated === 'true') return;
+      unified.dataset.amyfxHydrated = 'true';
+      syncColorPanel(unified);
+      return;
     }
 
-    const section = document.createElement('section');
-    section.className = 'color-customizer profile-glass-panel';
-    section.dataset.amyfxColorSettings = 'true';
-
-    section.innerHTML = `
-      <div class="color-customizer-head">
-        <div>
-          <strong>Personalisasi warna &amp; Kaca</strong>
-          <small>Satu panel terpadu untuk tema, warna kustom, dan transparansi kaca.</small>
-        </div>
-        <button type="button" data-theme-colors-reset aria-label="Kembalikan warna bawaan">Reset</button>
-      </div>
-
-      <div class="glass-setting-group">
-        <span class="glass-group-label">Mode Tampilan</span>
-        <div class="theme-selector" aria-label="Pilih tema aplikasi">
-          <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
-            <span>Sistem</span>
-          </button>
-          <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-            <span>Terang</span>
-          </button>
-          <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
-            <span>Gelap</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="glass-setting-group">
-        <span class="glass-group-label">Koleksi Kaca Berwarna</span>
-        <div class="glass-presets-grid">
-          ${presets.map(p => `
-            <button type="button" class="glass-preset-btn ${currentPreset === p.id ? 'is-active' : ''}" data-glass-preset="${p.id}" title="${p.name}">
-              <span class="glass-preset-swatch" style="background:${p.surface}; box-shadow: 0 0 8px ${p.accent};"></span>
-              <span>${p.name}</span>
-            </button>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="glass-setting-group">
-        <span class="glass-group-label">Palet Warna Utama</span>
-        <div class="color-customizer-grid">
-          ${[
-            ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
-          ].map(([key, label]) => {
-            const val = colors[key] || defaults[key];
-            return `
-            <div class="color-pick-item" data-color-cell="${key}">
-              <span>${label}</span>
-              <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
-              <span class="color-hex-val" data-hex-for="${key}">${val.toUpperCase()}</span>
-            </div>
-          `;}).join('')}
-        </div>
-      </div>
-
-      <div class="glass-setting-group">
-        <div class="glass-slider-head">
-          <span class="glass-group-label">Transparansi Kaca (Glassmorphism)</span>
-          <span class="glass-opacity-badge" id="glass-opacity-val">${opacityVal}% Transparan</span>
-        </div>
-        <div class="glass-slider-wrap">
-          <span class="glass-slider-hint">Bening</span>
-          <input type="range" min="15" max="95" value="${opacityVal}" class="glass-opacity-slider" data-theme-glass-opacity aria-label="Tingkat transparansi kaca">
-          <span class="glass-slider-hint">Pekat</span>
-        </div>
-        <div class="glass-chips-row">
-          <button type="button" class="glass-quick-chip" data-quick-opacity="30">Bening (30%)</button>
-          <button type="button" class="glass-quick-chip" data-quick-opacity="65">Seimbang (65%)</button>
-          <button type="button" class="glass-quick-chip" data-quick-opacity="90">Pekat (90%)</button>
-        </div>
-      </div>
-
-      <div class="glass-setting-group">
-        <span class="glass-group-label">Preview Efek Kaca</span>
-        <div class="glass-preview-tile" id="glass-preview-card">
-          <div class="glass-sheen"></div>
-          <div class="glass-preview-header">
-            <span class="glass-preview-chip">✨ AMY FX MORPH GLASS</span>
-            <span class="glass-preview-badge">Aktif</span>
-          </div>
-          <p class="glass-preview-desc">Kaca transparan dengan blur dinamis latar belakang, pantulan cahaya specular, dan kontras teks tajam.</p>
-        </div>
-      </div>
-    `;
-
-    selector.insertAdjacentElement('afterend', section);
-    updatePreviewCard(section);
+    // Fallback for any legacy page layout without unified appearance panel
+    const selector = document.querySelector('#main-content .theme-selector');
+    if (!selector || document.querySelector('[data-amyfx-color-settings]')) return;
+    syncColorPanel(selector.closest('section'));
   }
 
   function browserNotification(title, body) {
@@ -193,21 +133,7 @@
     if (resetBtn) {
       window.AmyFXTheme?.resetColors?.();
       const panel = document.querySelector('[data-amyfx-color-settings]');
-      if (panel) {
-        const defaults = getThemeDefaults();
-        panel.querySelectorAll('[data-theme-color]').forEach(input => {
-          const key = input.dataset.themeColor;
-          if (defaults[key]) {
-            input.value = defaults[key];
-            const hexSpan = panel.querySelector(`[data-hex-for="${key}"]`);
-            if (hexSpan) hexSpan.textContent = defaults[key].toUpperCase();
-          }
-        });
-        const slider = panel.querySelector('[data-theme-glass-opacity]');
-        if (slider) slider.value = defaults.opacity;
-        panel.querySelectorAll('.glass-preset-btn').forEach(btn => btn.classList.remove('is-active'));
-        updatePreviewCard(panel);
-      }
+      if (panel) syncColorPanel(panel);
       window.showToast?.('Warna dan efek kaca dikembalikan ke tema bawaan.');
       return;
     }
@@ -218,33 +144,16 @@
       const presets = getActivePresets();
       const preset = presets.find(p => p.id === presetId);
       if (preset) {
-        const newColors = {
+        window.AmyFXTheme?.setColors?.({
           background: preset.background,
           surface: preset.surface,
           text: preset.text,
           accent: preset.accent,
           opacity: preset.opacity,
           preset: preset.id
-        };
-        window.AmyFXTheme?.setColors?.(newColors);
-
+        });
         const panel = document.querySelector('[data-amyfx-color-settings]');
-        if (panel) {
-          panel.querySelectorAll('[data-theme-color]').forEach(input => {
-            const key = input.dataset.themeColor;
-            if (preset[key]) {
-              input.value = preset[key];
-              const hexSpan = panel.querySelector(`[data-hex-for="${key}"]`);
-              if (hexSpan) hexSpan.textContent = preset[key].toUpperCase();
-            }
-          });
-          const slider = panel.querySelector('[data-theme-glass-opacity]');
-          if (slider) slider.value = preset.opacity;
-          panel.querySelectorAll('.glass-preset-btn').forEach(btn => {
-            btn.classList.toggle('is-active', btn.dataset.glassPreset === presetId);
-          });
-          updatePreviewCard(panel);
-        }
+        if (panel) syncColorPanel(panel);
         window.showToast?.(`Tema kaca ${preset.name} diterapkan.`);
       }
       return;
@@ -256,11 +165,7 @@
       const current = window.AmyFXTheme?.colors || {};
       window.AmyFXTheme?.setColors?.({ ...current, opacity: op });
       const panel = document.querySelector('[data-amyfx-color-settings]');
-      if (panel) {
-        const slider = panel.querySelector('[data-theme-glass-opacity]');
-        if (slider) slider.value = op;
-        updatePreviewCard(panel);
-      }
+      if (panel) syncColorPanel(panel);
       window.showToast?.(`Transparansi kaca diatur ke ${op}%.`);
       return;
     }
@@ -276,7 +181,6 @@
       const panel = document.querySelector('[data-amyfx-color-settings]');
       const hexSpan = panel?.querySelector(`[data-hex-for="${key}"]`);
       if (hexSpan) hexSpan.textContent = val.toUpperCase();
-      updatePreviewCard(panel);
       return;
     }
 
@@ -286,7 +190,13 @@
       const values = { ...(window.AmyFXTheme?.colors || {}), opacity: op };
       window.AmyFXTheme?.setColors?.(values);
       const panel = document.querySelector('[data-amyfx-color-settings]');
-      updatePreviewCard(panel);
+      if (panel) {
+        const badge = panel.querySelector('#glass-opacity-val');
+        if (badge) badge.textContent = `${op}%`;
+        panel.querySelectorAll('[data-quick-opacity]').forEach(chip => {
+          chip.classList.toggle('is-active', Number(chip.dataset.quickOpacity) === op);
+        });
+      }
       return;
     }
   }
@@ -294,49 +204,24 @@
   document.addEventListener('input', handleColorOrOpacity);
   document.addEventListener('change', handleColorOrOpacity);
 
-  window.addEventListener('amyfx:theme-change', event => {
+  window.addEventListener('amyfx:theme-change', () => {
     const panel = document.querySelector('[data-amyfx-color-settings]');
-    if (!panel) return;
-
-    // Update theme choice active classes without replacing the panel
-    const activePref = window.AmyFXTheme?.preference || 'system';
-    panel.querySelectorAll('[data-amyfx-theme-choice]').forEach(btn => {
-      const isActive = btn.dataset.amyfxThemeChoice === activePref;
-      btn.classList.toggle('is-active', isActive);
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-
-    // Update presets grid in-place
-    const presetsGrid = panel.querySelector('.glass-presets-grid');
-    if (presetsGrid) {
-      const presets = getActivePresets();
-      const currentPreset = window.AmyFXTheme?.colors?.preset || '';
-      presetsGrid.innerHTML = presets.map(p => `
-        <button type="button" class="glass-preset-btn ${currentPreset === p.id ? 'is-active' : ''}" data-glass-preset="${p.id}" title="${p.name}">
-          <span class="glass-preset-swatch" style="background:${p.surface}; box-shadow: 0 0 8px ${p.accent};"></span>
-          <span>${p.name}</span>
-        </button>
-      `).join('');
-    }
-
-    updatePreviewCard(panel);
+    if (panel) syncColorPanel(panel);
   });
+
+  window.AmyFXProfileSettings = { sync: hydrateUnifiedSettings };
 
   const main = document.getElementById('main-content');
   if (main) {
     const observer = new MutationObserver(() => {
-      if (document.querySelector('[data-amyfx-color-settings]')) {
-        observer.disconnect();
-        return;
-      }
-      injectSettings();
+      hydrateUnifiedSettings();
     });
     observer.observe(main, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectSettings, { once: true });
+    document.addEventListener('DOMContentLoaded', hydrateUnifiedSettings, { once: true });
   } else {
-    injectSettings();
+    hydrateUnifiedSettings();
   }
 })();

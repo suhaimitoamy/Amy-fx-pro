@@ -227,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
           window.AmyPriceAlertManager.openAddAlertDialog();
         }
       });
+      window.AmyPriceAlertManager?.syncAlertButtonBadges?.();
       if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
     }
   }
@@ -1532,6 +1533,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderProfile() {
     setActive('profil');
+    const traderName = localStorage.getItem('amy_trader_name') || 'Trader';
     const userBalance = localStorage.getItem('amy_default_balance') || '5000';
     const userRisk = localStorage.getItem('amy_default_risk') || '1.5';
     const reminderConfig = window.AmyLearningReminder ? window.AmyLearningReminder.getConfig() : {
@@ -1546,226 +1548,320 @@ document.addEventListener('DOMContentLoaded', () => {
       night: { enabled: true, time: reminderConfig.time || '20:00', label: 'Malam' }
     };
 
-    const GLASS_PRESETS = [
-      { id: 'obsidian', name: 'Obsidian Glass', bg: '#070b14', accent: '#F5C451' },
-      { id: 'gold', name: 'Gold Terminal', bg: '#0c0f18', accent: '#F5C451' },
-      { id: 'cyber', name: 'Cyber Blue', bg: '#070e20', accent: '#3B82F6' },
-      { id: 'emerald', name: 'Emerald Risk', bg: '#05130e', accent: '#22C55E' },
-      { id: 'amethyst', name: 'Amethyst Flow', bg: '#0d0718', accent: '#C084FC' }
-    ];
+    const getInitials = (name) => {
+      const parts = String(name || 'TR').trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return String(parts[0] || 'TR').slice(0, 2).toUpperCase();
+    };
 
-    const activeGlassPreset = window.AmyFXTheme?.colors?.preset || 'obsidian';
-    const presetsHTML = GLASS_PRESETS.map(p => `
-      <button type="button" class="glass-preset-btn ${p.id === activeGlassPreset ? 'is-active' : ''}" data-glass-preset="${p.id}">
-        <span class="preset-dot" style="background:${p.accent}; box-shadow:0 0 8px ${p.accent};"></span>
-        <span>${p.name}</span>
-      </button>
-    `).join('');
+    const formatMoney = (val) => {
+      const num = Number(val);
+      return Number.isFinite(num) ? num.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '5,000';
+    };
+
+    const calcRiskUsd = (bal, risk) => {
+      const b = Number(bal);
+      const r = Number(risk);
+      if (!Number.isFinite(b) || !Number.isFinite(r) || b <= 0 || r <= 0) return '0.00';
+      return ((b * r) / 100).toFixed(2);
+    };
 
     const customBgData = window.AmyFXTheme?.customBg;
     const hasCustomBg = Boolean(customBgData && customBgData.image);
     const customBgDim = customBgData?.dim ?? 50;
     const customBgBlur = customBgData?.blur ?? 20;
 
+    const themeColors = window.AmyFXTheme?.colors || {};
+    const isLightResolved = window.AmyFXTheme?.resolved === 'light';
+    const themeDefaults = isLightResolved
+      ? { background: '#eef4fa', surface: '#ffffff', text: '#111a25', accent: '#216bdb', opacity: 80 }
+      : { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 68 };
+    const opacityVal = themeColors.opacity !== undefined ? Number(themeColors.opacity) : themeDefaults.opacity;
 
     mainContent.innerHTML = `
-      <div class="page-header">
-        <div>
+      <div class="profile-page">
+        <div class="profile-page-head">
           <h2>Profil &amp; Pengaturan</h2>
+          <p>Kelola identitas trader, tampilan aplikasi, parameter risiko, dan cadangan data lokal.</p>
         </div>
+
+        <!-- Identitas Trader -->
+        <section class="profile-panel profile-identity-card slide-up" aria-label="Identitas Trader">
+          <div class="profile-identity-main">
+            <div class="profile-monogram" id="traderAvatarInitials" aria-hidden="true">${escapeHtml(getInitials(traderName))}</div>
+            <div class="profile-identity-copy">
+              <strong id="traderNameTitle">${escapeHtml(traderName)}</strong>
+              <div class="profile-identity-meta" id="traderIdentityMeta">
+                <span>XAU/USD</span>
+                <span aria-hidden="true">·</span>
+                <span>Saldo $${escapeHtml(formatMoney(userBalance))}</span>
+                <span aria-hidden="true">·</span>
+                <span>Risiko ${escapeHtml(userRisk)}%</span>
+              </div>
+            </div>
+            <button type="button" id="editTraderNameBtn" class="profile-btn-ghost" aria-expanded="false" aria-controls="traderNameEditor">
+              Ubah Nama
+            </button>
+          </div>
+
+          <form id="traderNameEditor" class="profile-name-editor" hidden>
+            <label class="sr-only" for="traderNameInput">Nama Trader</label>
+            <input type="text" id="traderNameInput" class="profile-input" value="${escapeHtml(traderName)}" maxlength="36" placeholder="Masukkan nama trader" autocomplete="name">
+            <div class="profile-name-editor-actions">
+              <button type="submit" class="profile-btn-primary">Simpan</button>
+              <button type="button" id="cancelTraderNameBtn" class="profile-btn-ghost">Batal</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Tampilan & Gaya -->
+        <div class="profile-section-heading">
+          <h3>Tampilan &amp; Gaya</h3>
+          <button type="button" class="profile-link-action" data-theme-colors-reset aria-label="Kembalikan warna bawaan">Reset bawaan</button>
+        </div>
+        <section class="profile-panel slide-up" data-amyfx-unified-appearance="true" data-amyfx-color-settings="true">
+          <div class="profile-block">
+            <span class="profile-label">Mode Tampilan</span>
+            <div class="theme-selector profile-segmented" role="group" aria-label="Pilih tema aplikasi">
+              <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
+                <span>Sistem</span>
+              </button>
+              <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                <span>Terang</span>
+              </button>
+              <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
+                <span>Gelap</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="profile-block profile-divider">
+            <span class="profile-label">Koleksi Tema Kaca</span>
+            <div class="profile-presets-grid" data-glass-presets-grid></div>
+          </div>
+
+          <details class="profile-accordion profile-divider">
+            <summary class="profile-accordion-summary">
+              <span>Kustomisasi Warna &amp; Transparansi</span>
+              <svg class="profile-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="profile-accordion-body">
+              <div class="profile-subblock">
+                <span class="profile-sublabel">Palet Warna Utama</span>
+                <div class="profile-color-grid">
+                  ${[
+                    ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
+                  ].map(([key, label]) => {
+                    const val = themeColors[key] || themeDefaults[key];
+                    return `
+                    <div class="profile-color-item" data-color-cell="${key}">
+                      <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
+                      <span class="profile-color-name">${label}</span>
+                      <span class="profile-color-hex" data-hex-for="${key}">${val.toUpperCase()}</span>
+                    </div>
+                  `;}).join('')}
+                </div>
+              </div>
+
+              <div class="profile-subblock">
+                <div class="profile-slider-head">
+                  <span class="profile-sublabel">Transparansi Permukaan</span>
+                  <span class="profile-slider-value" id="glass-opacity-val">${opacityVal}%</span>
+                </div>
+                <div class="profile-slider-wrap">
+                  <span class="profile-slider-edge">Bening</span>
+                  <input type="range" min="15" max="95" value="${opacityVal}" class="profile-range" data-theme-glass-opacity aria-label="Tingkat transparansi kaca">
+                  <span class="profile-slider-edge">Pekat</span>
+                </div>
+                <div class="profile-quick-row">
+                  <button type="button" class="profile-quick-btn" data-quick-opacity="30">Bening 30%</button>
+                  <button type="button" class="profile-quick-btn" data-quick-opacity="65">Seimbang 65%</button>
+                  <button type="button" class="profile-quick-btn" data-quick-opacity="90">Pekat 90%</button>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="profile-block profile-divider">
+            <div class="profile-wallpaper-row">
+              <div>
+                <span class="profile-label" style="margin-bottom:2px;">Wallpaper Latar</span>
+                <span id="customBgBadge" class="profile-inline-status ${hasCustomBg ? 'is-active' : ''}">${hasCustomBg ? 'Foto kustom aktif' : 'Default gradien'}</span>
+              </div>
+              <div class="profile-wallpaper-actions">
+                <input type="file" id="customBgFileInput" accept="image/*" hidden>
+                <button type="button" id="uploadCustomBgBtn" class="profile-btn-ghost">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                  <span>Pilih Foto</span>
+                </button>
+                <button type="button" id="removeCustomBgBtn" class="profile-btn-danger-ghost" style="${hasCustomBg ? '' : 'display:none;'}">
+                  Hapus
+                </button>
+              </div>
+            </div>
+
+            <div id="customBgControls" class="profile-wallpaper-sliders" style="${hasCustomBg ? '' : 'display:none;'}">
+              <div class="profile-subblock">
+                <div class="profile-slider-head">
+                  <span class="profile-sublabel">Redupkan Latar</span>
+                  <span class="profile-slider-value" id="customBgDimVal">${customBgDim}%</span>
+                </div>
+                <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="profile-range">
+              </div>
+              <div class="profile-subblock">
+                <div class="profile-slider-head">
+                  <span class="profile-sublabel">Blur Kaca</span>
+                  <span class="profile-slider-value" id="customBgBlurVal">${customBgBlur}px</span>
+                </div>
+                <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="profile-range">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Parameter Trading & Risiko -->
+        <div class="profile-section-heading">
+          <h3>Parameter Trading &amp; Risiko</h3>
+          <span class="profile-section-meta">XAU/USD</span>
+        </div>
+        <section class="profile-panel slide-up">
+          <div class="profile-fields-grid">
+            <div class="profile-field">
+              <label for="profileBalance">Saldo Default (USD)</label>
+              <div class="profile-input-wrap">
+                <span class="profile-input-affix">$</span>
+                <input type="number" id="profileBalance" class="profile-input profile-input-num" value="${escapeHtml(userBalance)}" min="1" step="any">
+              </div>
+            </div>
+            <div class="profile-field">
+              <label for="profileRisk">Risiko per Trade</label>
+              <div class="profile-input-wrap">
+                <input type="number" step="0.5" min="0.1" max="10" id="profileRisk" class="profile-input profile-input-num" value="${escapeHtml(userRisk)}">
+                <span class="profile-input-affix">%</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-panel-footer">
+            <p class="profile-hint" id="profileRiskSummary">Maks. risiko $${escapeHtml(calcRiskUsd(userBalance, userRisk))}/trade · Disiplin SL ≤ 2% modal</p>
+            <button type="button" id="saveTradingParamsBtn" class="profile-btn-gold">Simpan Parameter</button>
+          </div>
+        </section>
+
+        <!-- Pengingat Belajar Academy -->
+        <div class="profile-section-heading">
+          <h3>Pengingat Belajar Academy</h3>
+        </div>
+        <section class="profile-panel slide-up">
+          <div class="profile-switch-row">
+            <div class="profile-switch-copy">
+              <strong>Notifikasi Pengingat Belajar</strong>
+              <small>Pengingat harian agar rutin mengulas materi ICT terakhir.</small>
+            </div>
+            <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
+              <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
+              <span class="profile-switch-track"></span>
+            </label>
+          </div>
+
+          <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
+            <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
+
+            <div class="profile-reminder-list">
+              <div class="profile-reminder-row">
+                <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi pagi">
+                  <input type="checkbox" id="reminderMorningEnabled" ${reminderSlots.morning?.enabled ? 'checked' : ''}>
+                  <span class="profile-switch-track"></span>
+                </label>
+                <div class="profile-reminder-copy">
+                  <strong>Sesi Pagi</strong>
+                  <small>Review materi &amp; mindset pagi</small>
+                </div>
+                <input type="time" id="reminderMorningTime" class="profile-time-input" aria-label="Jam sesi pagi" value="${escapeHtml(reminderSlots.morning?.time || '08:00')}">
+              </div>
+
+              <div class="profile-reminder-row">
+                <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi siang">
+                  <input type="checkbox" id="reminderAfternoonEnabled" ${reminderSlots.afternoon?.enabled ? 'checked' : ''}>
+                  <span class="profile-switch-track"></span>
+                </label>
+                <div class="profile-reminder-copy">
+                  <strong>Sesi Siang</strong>
+                  <small>Studi kilat sebelum London Open</small>
+                </div>
+                <input type="time" id="reminderAfternoonTime" class="profile-time-input" aria-label="Jam sesi siang" value="${escapeHtml(reminderSlots.afternoon?.time || '13:00')}">
+              </div>
+
+              <div class="profile-reminder-row">
+                <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi malam">
+                  <input type="checkbox" id="reminderNightEnabled" ${reminderSlots.night?.enabled ? 'checked' : ''}>
+                  <span class="profile-switch-track"></span>
+                </label>
+                <div class="profile-reminder-copy">
+                  <strong>Sesi Malam</strong>
+                  <small>Evaluasi setup &amp; baca materi</small>
+                </div>
+                <input type="time" id="reminderNightTime" class="profile-time-input" aria-label="Jam sesi malam" value="${escapeHtml(reminderSlots.night?.time || '20:00')}">
+              </div>
+            </div>
+
+            <div class="profile-last-lesson">
+              <span class="profile-sublabel">Materi Terakhir Dipelajari</span>
+              <div id="learningReminderLastTitle" class="profile-last-lesson-title">${escapeHtml(reminderConfig.lastTitle)}</div>
+              <small id="learningReminderLastTime" class="profile-last-lesson-time">${escapeHtml(reminderConfig.lastTimeText)}</small>
+            </div>
+
+            <div class="profile-actions-row">
+              <button type="button" id="saveLearningReminderBtn" class="profile-btn-primary">Simpan Jadwal</button>
+              <button type="button" id="testLearningReminderBtn" class="profile-btn-ghost">Uji Notifikasi</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Manajemen Data & Sistem -->
+        <div class="profile-section-heading">
+          <h3>Manajemen Data &amp; Sistem</h3>
+        </div>
+        <section class="profile-list profile-system-list">
+          <button class="profile-row" id="profileClearCacheBtn" type="button">
+            <span class="tool-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+            </span>
+            <span><strong>Bersihkan Cache Sementara</strong><small>Hapus cache sementara tanpa menghapus jurnal atau catatan.</small></span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </button>
+          <button class="profile-row" id="profileExportBtn" type="button">
+            <span class="tool-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </span>
+            <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi jurnal, kebiasaan, dan preferensi lokal.</small></span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </button>
+          <button class="profile-row" id="profileImportBtn" type="button">
+            <span class="tool-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </span>
+            <span><strong>Pulihkan Cadangan Data</strong><small>Impor kembali profil, kebiasaan, dan jurnal dari file backup JSON.</small></span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </button>
+          <input type="file" id="profileImportFileInput" accept="application/json" hidden>
+          <button class="profile-row danger-row" data-profile-action="clear" type="button">
+            <span class="tool-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </span>
+            <span><strong>Bersihkan Data Lokal</strong><small>Hapus riwayat, jurnal, dan koleksi lokal di perangkat ini.</small></span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </button>
+        </section>
       </div>
-
-      <!-- Kartu Profil Trader -->
-      <section class="profile-glass-panel slide-up" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:16px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #d4af37, #996515); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#070b14; box-shadow:0 0 12px rgba(212,175,55,0.35);">
-            🏆
-          </div>
-          <div>
-            <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; display:block;">Trader Pro Amy FX</span>
-            <strong id="traderNameTitle" style="font-size:16px; font-weight:800; color:var(--text-main);">${escapeHtml(localStorage.getItem('amy_trader_name') || 'Trader')}</strong>
-          </div>
-        </div>
-        <button type="button" id="editTraderNameBtn" class="glass-preset-btn" style="padding:6px 14px; font-size:12px; font-weight:700;">
-          <span>✏️ Ubah Nama</span>
-        </button>
-      </section>
-
-      <!-- Trading Environment Customization -->
-      <div class="profile-section-title" style="margin-top:8px;">Trading Environment Customization</div>
-      <section class="profile-glass-panel slide-up">
-        <div class="glass-group-label">Mode Tampilan</div>
-        <div class="theme-selector">
-          <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
-            <span>Sistem</span>
-          </button>
-          <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-            <span>Terang</span>
-          </button>
-          <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
-            <span>Gelap</span>
-          </button>
-        </div>
-
-        <div class="glass-group-label" style="margin-top:16px;">Preset Kaca &amp; Nuansa Trading</div>
-        <div class="presets-row">
-          ${presetsHTML}
-        </div>
-
-        <div class="glass-group-label" style="margin-top:18px; display:flex; justify-content:space-between; align-items:center;">
-          <span>Wallpaper &amp; Latar Belakang</span>
-          <span id="customBgBadge" class="bg-status-badge ${hasCustomBg ? 'active' : ''}">${hasCustomBg ? '● Foto Kustom Aktif' : 'Default Gradien'}</span>
-        </div>
-        <div class="wallpaper-controls-wrap">
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <input type="file" id="customBgFileInput" accept="image/*" style="display:none;">
-            <button type="button" id="uploadCustomBgBtn" class="glass-preset-btn">
-              <span>🖼️</span>
-              <span>Pilih Foto Sendiri</span>
-            </button>
-            <button type="button" id="removeCustomBgBtn" class="glass-preset-btn danger-preset-btn" style="${hasCustomBg ? '' : 'display:none;'}">
-              <span>🗑️</span>
-              <span>Hapus Wallpaper</span>
-            </button>
-          </div>
-
-          <div id="customBgControls" class="wallpaper-sliders-card" style="${hasCustomBg ? '' : 'display:none;'}">
-            <div style="margin-bottom:12px;">
-              <div class="slider-header">
-                <span>Kecerahan / Dimming Latar</span>
-                <span id="customBgDimVal">${customBgDim}%</span>
-              </div>
-              <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="trading-slider">
-            </div>
-            <div>
-              <div class="slider-header">
-                <span>Efek Frosted Blur (Kaca Buram)</span>
-                <span id="customBgBlurVal">${customBgBlur}px</span>
-              </div>
-              <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="trading-slider">
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Panel 2: Parameter Risiko Trading XAU/USD -->
-      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Parameter Trading &amp; Risiko (XAU/USD)</div>
-      <section style="padding:16px; border-radius:16px; background:var(--surface-color); border:1px solid var(--border-color); box-shadow:0 4px 16px rgba(0,0,0,0.05); margin-top:8px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div>
-            <span style="display:block; font-size:11px; font-weight:750; color:var(--text-muted); margin-bottom:4px;">Saldo Default ($)</span>
-            <input type="number" id="profileBalance" value="${escapeHtml(userBalance)}" style="width:100%; border:1px solid var(--border-color); background:var(--surface-soft); color:var(--text-main); border-radius:10px; padding:10px; font-size:14px; font-weight:700; font-family:monospace; box-sizing:border-box;">
-          </div>
-          <div>
-            <span style="display:block; font-size:11px; font-weight:750; color:var(--text-muted); margin-bottom:4px;">Batas Risiko / Trade (%)</span>
-            <input type="number" step="0.5" id="profileRisk" value="${escapeHtml(userRisk)}" style="width:100%; border:1px solid var(--border-color); background:var(--surface-soft); color:var(--text-main); border-radius:10px; padding:10px; font-size:14px; font-weight:700; font-family:monospace; box-sizing:border-box;">
-          </div>
-        </div>
-        <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-          <small style="color:var(--text-muted); font-size:11px; font-weight:600;">Aturan baku: Jangan ambil trade jika SL &gt; 2% modal.</small>
-          <button type="button" id="saveTradingParamsBtn" style="padding:8px 16px; background:linear-gradient(135deg, #d4af37, #aa8524); color:#000; font-weight:800; border-radius:10px; border:none; font-size:12px; cursor:pointer;">Simpan Parameter</button>
-        </div>
-      </section>
-
-      <!-- Panel 2.5: Pengingat Belajar & Peningkatan Skill (Academy) -->
-      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Pengingat Belajar &amp; Skill (Academy)</div>
-      <section style="padding:16px; border-radius:16px; background:var(--surface-color); border:1px solid var(--border-color); box-shadow:0 4px 16px rgba(0,0,0,0.05); margin-top:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-          <div>
-            <strong style="display:block; font-size:13px; font-weight:750; color:var(--text-main);">Notifikasi Pengingat Belajar</strong>
-            <small style="color:var(--text-muted); font-size:11px;">Mengingatkan materi terakhir untuk terus mengasah skill trading ICT-mu.</small>
-          </div>
-          <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''} style="width:20px; height:20px; accent-color:#38bdf8; cursor:pointer;">
-        </div>
-
-        <div id="learningReminderSettingsWrap" style="margin-top:14px; ${reminderConfig.enabled ? '' : 'display:none;'}">
-          <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
-          <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border-color); padding-top:12px;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;">
-              Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)
-            </div>
-
-            <!-- Slot Pagi -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-soft); padding:8px 12px; border-radius:10px; border:1px solid var(--border-color);">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="reminderMorningEnabled" ${reminderSlots.morning?.enabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:#38bdf8; cursor:pointer;">
-                <div>
-                  <span style="display:block; font-size:12px; font-weight:750; color:var(--text-main);">🌅 Pagi</span>
-                  <small style="color:var(--text-muted); font-size:10px;">Review materi &amp; mindset pagi</small>
-                </div>
-              </div>
-              <input type="time" id="reminderMorningTime" value="${escapeHtml(reminderSlots.morning?.time || '08:00')}" style="border:1px solid var(--border-color); background:var(--surface-color); color:var(--text-main); border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; font-family:monospace; outline:none;">
-            </div>
-
-            <!-- Slot Siang -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-soft); padding:8px 12px; border-radius:10px; border:1px solid var(--border-color);">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="reminderAfternoonEnabled" ${reminderSlots.afternoon?.enabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:#38bdf8; cursor:pointer;">
-                <div>
-                  <span style="display:block; font-size:12px; font-weight:750; color:var(--text-main);">☀️ Siang</span>
-                  <small style="color:var(--text-muted); font-size:10px;">Studi kilat sebelum London Open</small>
-                </div>
-              </div>
-              <input type="time" id="reminderAfternoonTime" value="${escapeHtml(reminderSlots.afternoon?.time || '13:00')}" style="border:1px solid var(--border-color); background:var(--surface-color); color:var(--text-main); border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; font-family:monospace; outline:none;">
-            </div>
-
-            <!-- Slot Malam -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-soft); padding:8px 12px; border-radius:10px; border:1px solid var(--border-color);">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="reminderNightEnabled" ${reminderSlots.night?.enabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:#38bdf8; cursor:pointer;">
-                <div>
-                  <span style="display:block; font-size:12px; font-weight:750; color:var(--text-main);">🌙 Malam</span>
-                  <small style="color:var(--text-muted); font-size:10px;">Evaluasi setup &amp; baca materi santai</small>
-                </div>
-              </div>
-              <input type="time" id="reminderNightTime" value="${escapeHtml(reminderSlots.night?.time || '20:00')}" style="border:1px solid var(--border-color); background:var(--surface-color); color:var(--text-main); border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; font-family:monospace; outline:none;">
-            </div>
-          </div>
-
-          <div style="margin-top:10px; padding:10px 12px; background:var(--surface-soft); border-radius:10px; border:1px solid var(--border-color);">
-            <span style="display:block; font-size:10px; font-weight:750; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Materi Terakhir yang Kamu Pelajari</span>
-            <div id="learningReminderLastTitle" style="font-size:13px; font-weight:700; margin-top:3px; color:var(--accent,#38bdf8);">${escapeHtml(reminderConfig.lastTitle)}</div>
-            <small id="learningReminderLastTime" style="color:var(--text-muted); font-size:11px;">${escapeHtml(reminderConfig.lastTimeText)}</small>
-          </div>
-
-          <div style="margin-top:12px; display:flex; gap:8px;">
-            <button type="button" id="saveLearningReminderBtn" style="flex:1; padding:9px 14px; background:linear-gradient(135deg, #38bdf8, #0284c7); color:#000; font-weight:800; border-radius:10px; border:none; font-size:12px; cursor:pointer;">Simpan Jadwal Pengingat</button>
-            <button type="button" id="testLearningReminderBtn" style="padding:9px 14px; background:var(--surface-soft); border:1px solid var(--border-color); color:var(--text-main); font-weight:700; border-radius:10px; font-size:12px; cursor:pointer;">🔔 Uji Notifikasi</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Panel 3: Manajemen Data & Keamanan -->
-      <div class="profile-section-title" style="margin-top:20px; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Manajemen Data &amp; Reset</div>
-      <section class="profile-list" style="margin-top:8px;">
-        <button class="profile-row" id="profileClearCacheBtn" type="button">
-          <span class="tool-icon">🧹</span>
-          <span><strong>Bersihkan Cache Sementara</strong><small>Hapus sisa unduhan update APK dan cache video tanpa menghapus catatan.</small></span>
-          <span class="chevron">›</span>
-        </button>
-        <button class="profile-row" id="profileExportBtn" type="button">
-          <span class="tool-icon">💾</span>
-          <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi semua jurnal riil, rutinitas, dan catatan lokal.</small></span>
-          <span class="chevron">›</span>
-        </button>
-        <button class="profile-row" id="profileImportBtn" type="button">
-          <span class="tool-icon">📥</span>
-          <span><strong>Pulihkan / Impor Cadangan Data</strong><small>Pulihkan data profil, kebiasaan, dan jurnal dari file backup JSON.</small></span>
-          <span class="chevron">›</span>
-        </button>
-        <input type="file" id="profileImportFileInput" accept="application/json" style="display:none;">
-        <button class="profile-row danger-row" data-profile-action="clear" type="button">
-          <span class="tool-icon">×</span>
-          <span><strong>Bersihkan Data Lokal</strong><small>Menghapus riwayat, jurnal, dan koleksi lokal secara aman.</small></span>
-          <span class="chevron">›</span>
-        </button>
-      </section>
     `;
 
-    // Event bindings for new profile features
+    // Sync unified appearance presets & sliders
+    window.AmyFXProfileSettings?.sync?.();
+
+    // Event bindings for profile features
     document.getElementById('profileClearCacheBtn')?.addEventListener('click', () => {
       let freedMb = '0.0';
       if (typeof window.Android?.clearAppCache === 'function') {
@@ -1782,22 +1878,70 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    document.getElementById('editTraderNameBtn')?.addEventListener('click', () => {
-      const current = localStorage.getItem('amy_trader_name') || 'Trader';
-      const updated = window.prompt('Masukkan Nama Trader Anda:', current);
-      if (updated && updated.trim()) {
-        localStorage.setItem('amy_trader_name', updated.trim());
-        const titleEl = document.getElementById('traderNameTitle');
-        if (titleEl) titleEl.textContent = updated.trim();
-        showToast('Nama profil trader berhasil diperbarui.');
+    const editNameBtn = document.getElementById('editTraderNameBtn');
+    const nameEditor = document.getElementById('traderNameEditor');
+    const nameInput = document.getElementById('traderNameInput');
+    const cancelNameBtn = document.getElementById('cancelTraderNameBtn');
+
+    function setNameEditorOpen(open) {
+      if (!nameEditor || !editNameBtn) return;
+      nameEditor.hidden = !open;
+      editNameBtn.setAttribute('aria-expanded', String(open));
+      if (open && nameInput) {
+        nameInput.value = localStorage.getItem('amy_trader_name') || 'Trader';
+        nameInput.focus();
+        nameInput.select();
       }
+    }
+
+    editNameBtn?.addEventListener('click', () => {
+      setNameEditorOpen(nameEditor ? nameEditor.hidden : true);
     });
 
+    cancelNameBtn?.addEventListener('click', () => setNameEditorOpen(false));
+
+    nameEditor?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const updated = (nameInput?.value || '').trim();
+      if (!updated) {
+        showToast('Nama trader tidak boleh kosong.');
+        nameInput?.focus();
+        return;
+      }
+      localStorage.setItem('amy_trader_name', updated);
+      const titleEl = document.getElementById('traderNameTitle');
+      const avatarEl = document.getElementById('traderAvatarInitials');
+      if (titleEl) titleEl.textContent = updated;
+      if (avatarEl) avatarEl.textContent = getInitials(updated);
+      setNameEditorOpen(false);
+      showToast('Nama profil trader berhasil diperbarui.');
+    });
+
+    const balanceInput = document.getElementById('profileBalance');
+    const riskInput = document.getElementById('profileRisk');
+    const riskSummaryEl = document.getElementById('profileRiskSummary');
+    const identityMetaEl = document.getElementById('traderIdentityMeta');
+
+    function refreshRiskPreview() {
+      const bal = balanceInput?.value || '5000';
+      const r = riskInput?.value || '1.5';
+      if (riskSummaryEl) {
+        riskSummaryEl.textContent = `Maks. risiko $${calcRiskUsd(bal, r)}/trade · Disiplin SL ≤ 2% modal`;
+      }
+    }
+
+    balanceInput?.addEventListener('input', refreshRiskPreview);
+    riskInput?.addEventListener('input', refreshRiskPreview);
+
     document.getElementById('saveTradingParamsBtn')?.addEventListener('click', () => {
-      const bal = document.getElementById('profileBalance')?.value || '5000';
-      const r = document.getElementById('profileRisk')?.value || '1.5';
+      const bal = balanceInput?.value || '5000';
+      const r = riskInput?.value || '1.5';
       localStorage.setItem('amy_default_balance', bal);
       localStorage.setItem('amy_default_risk', r);
+      refreshRiskPreview();
+      if (identityMetaEl) {
+        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>Saldo $${escapeHtml(formatMoney(bal))}</span><span aria-hidden="true">·</span><span>Risiko ${escapeHtml(r)}%</span>`;
+      }
       showToast('Parameter risiko trading XAU/USD berhasil disimpan.');
     });
 
@@ -1980,21 +2124,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         event.target.value = '';
       }
-    });
-
-    // Preset color buttons
-    document.querySelectorAll('[data-glass-preset]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const presetId = btn.dataset.glassPreset;
-        const preset = GLASS_PRESETS.find(p => p.id === presetId);
-        if (preset) {
-          window.AmyFXTheme?.setPreset?.(presetId);
-          document.querySelectorAll('[data-glass-preset]').forEach(b => {
-            b.classList.toggle('is-active', b.dataset.glassPreset === presetId);
-          });
-          showToast(`Tema kaca "${preset.name}" diterapkan.`);
-        }
-      });
     });
 
     // Custom Background Photo Handlers

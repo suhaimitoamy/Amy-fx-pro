@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jalusi 30x30 cm - Batang Kayu Penggerak Sistem Baut</title>
+    <style>
+        :root {
+            --bg-dark: #121316;
+            --panel-bg: rgba(26, 29, 36, 0.94);
+            --gold: #d4a359;
+            --gold-light: #f3cf8a;
+            --text-main: #f0f2f5;
+            --text-dim: #9aa0a6;
+            --border: rgba(212, 163, 89, 0.25);
+            --green: #48bb78;
+            --blue: #4299e1;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            padding: 10px 14px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            backdrop-filter: blur(10px);
+        }
+        .header-title h1 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--gold-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge {
+            font-size: 10px;
+            background: rgba(212, 163, 89, 0.15);
+            color: var(--gold);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .section-header-banner {
+            padding: 10px 14px;
+            background: linear-gradient(90deg, rgba(212, 163, 89, 0.15) 0%, rgba(26, 29, 36, 0.8) 100%);
+            border-left: 4px solid var(--gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .section-header-banner h2 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 3D CANVAS CONTAINERS */
+        .canvas-wrapper {
+            width: 100%;
+            height: 350px;
+            background: radial-gradient(circle at center, #262932 0%, #0e0f12 100%);
+            position: relative;
+            touch-action: none;
+            border-bottom: 1px solid var(--border);
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* CONTROL OVERLAYS */
+        .control-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            backdrop-filter: blur(8px);
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .slider-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gold-light);
+            min-width: 110px;
+        }
+        .slider-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--gold);
+            height: 6px;
+            border-radius: 3px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+        }
+        .btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn.active {
+            background: var(--gold);
+            color: #000;
+            font-weight: 600;
+            border-color: var(--gold);
+        }
+
+        /* STEP NAV BAR */
+        .step-nav-bar {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+        .step-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-dim);
+            padding: 4px 7px;
+            border-radius: 6px;
+            font-size: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .step-pill.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* CONTENT SECTIONS */
+        .content-section {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold-light);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        th, td {
+            padding: 7px 5px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        th {
+            color: var(--gold);
+            font-weight: 600;
+            background: rgba(212, 163, 89, 0.08);
+        }
+        .highlight {
+            color: var(--gold-light);
+            font-weight: 600;
+        }
+        .step-nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            gap: 8px;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 6px;
+            background: rgba(66, 153, 225, 0.15);
+            border: 1px solid rgba(66, 153, 225, 0.35);
+            color: #90cdf4;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .nav-btn:active {
+            background: var(--blue);
+            color: #fff;
+        }
+        .focus-box {
+            background: rgba(0,0,0,0.3);
+            border-left: 3px solid var(--gold);
+            padding: 10px;
+            border-radius: 0 8px 8px 0;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin-top: 8px;
+        }
+        .focus-box strong {
+            color: var(--gold-light);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Square Shutter 30x30 cm</h1>
+            <span class="badge">Sistem Batang Baut</span>
+        </div>
+        <span class="badge" style="color:var(--green); border-color:rgba(72,187,120,0.3)">Sesuai YouTube DIY</span>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- BAGIAN 1: MODEL 3D UTAMA (MODEL JADI)     -->
+    <!-- MENGGUNAKAN BATANG KAYU PENGGERAK DENGAN BAUT -->
+    <!-- ========================================== -->
+    <div class="section-header-banner">
+        <h2>🏠 1. Model 3D Jadi (Batang Kayu Penggerak Baut)</h2>
+        <span class="badge" style="color:var(--gold-light);">Hasil Akhir</span>
+    </div>
+
+    <div class="canvas-wrapper" id="main-canvas-container">
+        <canvas id="main-webgl-canvas"></canvas>
+        <div class="control-overlay">
+            <div class="slider-row">
+                <span class="slider-label">Batang Penggerak:</span>
+                <div class="slider-wrapper">
+                    <span style="font-size:10px; color:var(--text-dim);">Tutup</span>
+                    <input type="range" id="mainSlideRange" min="0" max="1" step="0.01" value="0.5">
+                    <span style="font-size:10px; color:var(--text-dim);">Buka</span>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" id="btnMainAnim">▶️ Auto Play</button>
+                <button class="btn active" id="btnMainWood">Tekstur Kayu</button>
+                <button class="btn" id="btnMainWire">Rangka Kawat</button>
+                <button class="btn" id="btnMainExplode">Bongkar Rakit</button>
+                <button class="btn" id="btnMainReset">Reset Kamera</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- BAGIAN 2: MODEL 3D CARA PEMBUATAN DETAIL   -->
+    <!-- ========================================== -->
+    <div class="section-header-banner" style="background: linear-gradient(90deg, rgba(66, 153, 225, 0.2) 0%, rgba(26, 29, 36, 0.8) 100%); border-left-color: var(--blue);">
+        <h2>🛠️ 2. Cara Bikin & Pasang Detail (3D Visual)</h2>
+        <span class="badge" style="color:var(--blue); border-color:rgba(66,153,225,0.4);" id="stepCounterBadge">Langkah 6 dari 6</span>
+    </div>
+
+    <div class="canvas-wrapper" id="step-canvas-container" style="height: 380px;">
+        <canvas id="step-webgl-canvas"></canvas>
+        <div class="control-overlay">
+            <div class="step-nav-bar">
+                <button class="step-pill" data-step="1">1. Potong Bahan</button>
+                <button class="step-pill" data-step="2">2. Bor Kusen</button>
+                <button class="step-pill" data-step="3">3. Pin Bambu</button>
+                <button class="step-pill" data-step="4">4. Kusen U</button>
+                <button class="step-pill" data-step="5">5. Masukkan Bilah</button>
+                <button class="step-pill active" data-step="6">6. Pasang Batang Baut</button>
+            </div>
+            <div class="step-nav-buttons">
+                <button class="nav-btn" id="btnPrevStep">◀️ Langkah Sebelumnya</button>
+                <button class="nav-btn" id="btnNextStep">Langkah Selanjutnya ▶️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KARTU PENJELASAN FISIK ULTRA DETAIL -->
+    <div class="content-section" style="padding-top:6px;">
+        <div class="card" style="border-color: rgba(66, 153, 225, 0.35);">
+            <div class="card-header">
+                <h3 class="card-title" id="stepTitle" style="color: #63b3ed;">Langkah 6: Pemasangan Batang Kayu Penggerak & Baut</h3>
+                <span class="badge" id="stepToolBadge">1 Batang Kayu + 8 Baut & Ring</span>
+            </div>
+            
+            <div id="stepDescription" style="font-size:12px; color:#d1d5db; line-height:1.6;">
+                Penjelasan langkah di sini...
+            </div>
+
+            <div class="focus-box" id="stepWhyBox">
+                <strong>Logika Fisik Sistem Baut:</strong>
+                <span id="stepWhyText">Kenapa harus seperti ini...</span>
+            </div>
+        </div>
+
+        <!-- DAFTAR POTONG BAHAN RESMI -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🪵 Rincian Komponen Resmi (Sistem Batang Baut)</h2>
+                <span class="badge">Satuan: cm & mm</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bagian</th>
+                        <th>Jml</th>
+                        <th>Ukuran ($P \times L \times T$)</th>
+                        <th>Fungsi Pengerjaan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="highlight">Kusen Atas & Bawah</td>
+                        <td>2 btg</td>
+                        <td>$30 \times 5 \times 2.5\text{ cm}$</td>
+                        <td>Rangka penutup atas & bawah</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Kusen Tiang Kiri & Kanan</td>
+                        <td>2 btg</td>
+                        <td>$25 \times 5 \times 2.5\text{ cm}$</td>
+                        <td>Dibor 8 lubang mangkok $\varnothing 4.5\text{ mm}$</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight" style="color:#68d391;">Bilah Kisi Jalusi</td>
+                        <td>8 btg</td>
+                        <td>$24.4 \times 3.4 \times 0.8\text{ cm}$</td>
+                        <td>Bilah daun penolak angin/hujan</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight" style="color:var(--gold-light);">Batang Kayu Penggerak</td>
+                        <td>1 btg</td>
+                        <td>$22 \times 1.4 \times 0.8\text{ cm}$</td>
+                        <td>Batang kayu yang menghubungkan bilah</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Baut & Ring Washer</td>
+                        <td>8 set</td>
+                        <td>$\varnothing 3.5\text{ mm} \times 2\text{ cm}$</td>
+                        <td>Menautkan batang kayu ke tiap bilah</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- LOCAL THREE.JS & CONTROLS -->
+    <script src="three.min.js"></script>
+    <script src="OrbitControls.js"></script>
+
+    <script>
+        // PROCEDURAL WOOD TEXTURE
+        function createWoodTexture(baseColorHex, grainColorHex) {
+            const size = 256;
+            const cvs = document.createElement('canvas');
+            cvs.width = size; cvs.height = size;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = baseColorHex;
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = grainColorHex;
+            for (let i = 0; i < 350; i++) {
+                const y = Math.random() * size;
+                const h = Math.random() * 2 + 0.5;
+                ctx.globalAlpha = Math.random() * 0.2 + 0.05;
+                ctx.fillRect(0, y, size, h);
+            }
+            ctx.globalAlpha = 1.0;
+            const texture = new THREE.CanvasTexture(cvs);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            return texture;
+        }
+
+        const woodKusenTex = createWoodTexture('#6e4420', '#3b220d');
+        const woodSlatTex  = createWoodTexture('#875629', '#4d2e14');
+        const woodActTex   = createWoodTexture('#78471f', '#3d230d');
+
+        const matKusen = new THREE.MeshStandardMaterial({ map: woodKusenTex, roughness: 0.65 });
+        const matSlat  = new THREE.MeshStandardMaterial({ map: woodSlatTex, roughness: 0.55 });
+        const matAct   = new THREE.MeshStandardMaterial({ map: woodActTex, roughness: 0.6 });
+        const matBolt  = new THREE.MeshStandardMaterial({ color: 0xd4a359, metalness: 0.85, roughness: 0.25 });
+        const matHoleIndicator = new THREE.MeshBasicMaterial({ color: 0xff3333 });
+
+        // ==============================================================
+        // 1. SCENE ATAS (MODEL JADI - SISTEM BATANG KAYU BAUT)
+        // ==============================================================
+        const mainContainer = document.getElementById('main-canvas-container');
+        const mainCanvas = document.getElementById('main-webgl-canvas');
+
+        const mainScene = new THREE.Scene();
+        const mainCamera = new THREE.PerspectiveCamera(40, mainContainer.clientWidth / mainContainer.clientHeight, 1, 3000);
+        mainCamera.position.set(10, 40, 750);
+
+        const mainRenderer = new THREE.WebGLRenderer({ canvas: mainCanvas, antialias: true, alpha: true });
+        mainRenderer.setSize(mainContainer.clientWidth, mainContainer.clientHeight);
+        mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const mainControls = new THREE.OrbitControls(mainCamera, mainRenderer.domElement);
+        mainControls.enableDamping = true;
+        mainControls.dampingFactor = 0.08;
+
+        mainScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+        const mDir1 = new THREE.DirectionalLight(0xfffaed, 0.9);
+        mDir1.position.set(200, 350, 400); mainScene.add(mDir1);
+        const mDir2 = new THREE.DirectionalLight(0xd4e2ff, 0.4);
+        mDir2.position.set(-300, -200, -200); mainScene.add(mDir2);
+
+        const outerW = 300, outerH = 300, frameD = 50, frameTh = 25;
+        const clearW = outerW - 2 * frameTh, clearH = outerH - 2 * frameTh;
+        const slatLen = clearW - 6, slatW = 34, slatTh = 8, slatPitch = 28, slatCount = 8;
+        const boltOffset = (slatW / 2) - 4; // 13 mm dari as tengah
+        const actW = 14, actTh = 8, actH = (slatCount - 1) * slatPitch + 24; // 220 mm
+        const actX = (clearW / 2) - 26; // ditaruh di dekat sisi kanan
+
+        const mainAssembly = new THREE.Group();
+        mainScene.add(mainAssembly);
+
+        // Kusen 4 sisi
+        const mKusenGroup = new THREE.Group();
+        mainAssembly.add(mKusenGroup);
+        const geomKHoriz = new THREE.BoxGeometry(outerW, frameTh, frameD);
+        const mkBawah = new THREE.Mesh(geomKHoriz, matKusen);
+        mkBawah.position.set(0, -outerH/2 + frameTh/2, 0); mKusenGroup.add(mkBawah);
+        const mkAtas = new THREE.Mesh(geomKHoriz, matKusen);
+        mkAtas.position.set(0, outerH/2 - frameTh/2, 0); mKusenGroup.add(mkAtas);
+        const geomKVert = new THREE.BoxGeometry(frameTh, clearH, frameD);
+        const mkKiri = new THREE.Mesh(geomKVert, matKusen);
+        mkKiri.position.set(-outerW/2 + frameTh/2, 0, 0); mKusenGroup.add(mkKiri);
+        const mkKanan = new THREE.Mesh(geomKVert, matKusen);
+        mkKanan.position.set(outerW/2 - frameTh/2, 0, 0); mKusenGroup.add(mkKanan);
+
+        // 8 Bilah kisi
+        const mainSlatPivots = [];
+        const geomSlat = new THREE.BoxGeometry(slatLen, slatW, slatTh);
+        const geomPin = new THREE.CylinderGeometry(2.2, 2.2, 5, 16);
+        const geomBolt = new THREE.CylinderGeometry(1.8, 1.8, 12, 16);
+        const geomWasher = new THREE.CylinderGeometry(3.5, 3.5, 2, 16);
+        const startY = -((slatCount - 1) * slatPitch) / 2;
+
+        for (let i = 0; i < slatCount; i++) {
+            const pivot = new THREE.Group();
+            pivot.position.set(0, startY + (i * slatPitch), 0);
+            const sm = new THREE.Mesh(geomSlat, matSlat);
+            pivot.add(sm);
+
+            // Pin poros samping ke kusen
+            const pL = new THREE.Mesh(geomPin, matBolt);
+            pL.rotation.z = Math.PI / 2; pL.position.set(-slatLen/2 - 2, 0, 0); pivot.add(pL);
+            const pR = new THREE.Mesh(geomPin, matBolt);
+            pR.rotation.z = Math.PI / 2; pR.position.set(slatLen/2 + 2, 0, 0); pivot.add(pR);
+
+            // Baut kuningan di tiap bilah untuk batang penggerak
+            const bMesh = new THREE.Mesh(geomBolt, matBolt);
+            bMesh.rotation.x = Math.PI / 2;
+            bMesh.position.set(actX, boltOffset, 6);
+            pivot.add(bMesh);
+
+            const wMesh = new THREE.Mesh(geomWasher, matBolt);
+            wMesh.rotation.x = Math.PI / 2;
+            wMesh.position.set(actX, boltOffset, 12);
+            pivot.add(wMesh);
+
+            mainAssembly.add(pivot);
+            mainSlatPivots.push(pivot);
+        }
+
+        // Batang Kayu Penggerak (Wooden Actuator Bar)
+        const mainActuatorBar = new THREE.Mesh(new THREE.BoxGeometry(actW, actH, actTh), matAct);
+        mainAssembly.add(mainActuatorBar);
+
+        function updateMainActuator(factor) {
+            const minAngle = 10 * (Math.PI / 180);
+            const maxAngle = 85 * (Math.PI / 180);
+            const currentAngle = minAngle + (factor * (maxAngle - minAngle));
+
+            mainSlatPivots.forEach(pivot => { pivot.rotation.x = currentAngle; });
+
+            // Hitung posisi batang kayu penggerak
+            const sY = -Math.sin(currentAngle) * boltOffset;
+            const sZ =  Math.cos(currentAngle) * boltOffset;
+
+            mainActuatorBar.position.set(actX, sY, sZ + actTh/2 + 3);
+            mainActuatorBar.rotation.x = currentAngle;
+        }
+
+        const mainSlideRange = document.getElementById('mainSlideRange');
+        mainSlideRange.addEventListener('input', (e) => {
+            if (isMainAuto) stopMainAuto();
+            updateMainActuator(parseFloat(e.target.value));
+        });
+
+        let isMainAuto = false, mAnimDir = 1, mAnimVal = 0.5;
+        const btnMainAnim = document.getElementById('btnMainAnim');
+        function stopMainAuto() { isMainAuto = false; btnMainAnim.innerText = '▶️ Auto Play'; btnMainAnim.classList.remove('active'); }
+        btnMainAnim.addEventListener('click', () => {
+            isMainAuto = !isMainAuto;
+            if (isMainAuto) { btnMainAnim.innerText = '⏸️ Stop'; btnMainAnim.classList.add('active'); }
+            else { stopMainAuto(); }
+        });
+
+        let isMainExploded = false;
+        const btnMainExplode = document.getElementById('btnMainExplode');
+        btnMainExplode.addEventListener('click', () => {
+            isMainExploded = !isMainExploded;
+            if (isMainExploded) {
+                btnMainExplode.classList.add('active');
+                mainActuatorBar.position.z += 60;
+                mkBawah.position.y -= 70; mkAtas.position.y += 70;
+                mkKiri.position.x -= 70; mkKanan.position.x += 70;
+            } else {
+                btnMainExplode.classList.remove('active');
+                mkBawah.position.y = -outerH/2 + frameTh/2;
+                mkAtas.position.y = outerH/2 - frameTh/2;
+                mkKiri.position.x = -outerW/2 + frameTh/2;
+                mkKanan.position.x = outerW/2 - frameTh/2;
+                updateMainActuator(parseFloat(mainSlideRange.value));
+            }
+        });
+
+        const btnMainWood = document.getElementById('btnMainWood');
+        const btnMainWire = document.getElementById('btnMainWire');
+        btnMainWire.addEventListener('click', () => {
+            btnMainWire.classList.add('active'); btnMainWood.classList.remove('active');
+            matKusen.wireframe = true; matSlat.wireframe = true; matAct.wireframe = true; matBolt.wireframe = true;
+        });
+        btnMainWood.addEventListener('click', () => {
+            btnMainWood.classList.add('active'); btnMainWire.classList.remove('active');
+            matKusen.wireframe = false; matSlat.wireframe = false; matAct.wireframe = false; matBolt.wireframe = false;
+        });
+        document.getElementById('btnMainReset').addEventListener('click', () => {
+            mainCamera.position.set(10, 40, 750);
+            mainControls.target.set(0, 0, 0); mainControls.reset();
+        });
+
+        updateMainActuator(0.5);
+
+        // ==============================================================
+        // 2. SCENE BAWAH (PANDUAN PEMBUATAN DETAIL)
+        // ==============================================================
+        const stepContainer = document.getElementById('step-canvas-container');
+        const stepCanvas = document.getElementById('step-webgl-canvas');
+
+        const stepScene = new THREE.Scene();
+        const stepCamera = new THREE.PerspectiveCamera(40, stepContainer.clientWidth / stepContainer.clientHeight, 1, 3000);
+        stepCamera.position.set(0, 40, 680);
+
+        const stepRenderer = new THREE.WebGLRenderer({ canvas: stepCanvas, antialias: true, alpha: true });
+        stepRenderer.setSize(stepContainer.clientWidth, stepContainer.clientHeight);
+        stepRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const stepControls = new THREE.OrbitControls(stepCamera, stepRenderer.domElement);
+        stepControls.enableDamping = true;
+        stepControls.dampingFactor = 0.08;
+
+        stepScene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const sDir1 = new THREE.DirectionalLight(0xfffaed, 0.9);
+        sDir1.position.set(150, 300, 350); stepScene.add(sDir1);
+
+        const stepAssembly = new THREE.Group();
+        stepScene.add(stepAssembly);
+
+        // DATA LANGKAH DETAIL
+        const stepData = [
+            {
+                step: 1,
+                title: "Langkah 1: Menyiapkan 5 Kelompok Potongan Kayu",
+                tool: "Alat: Gergaji Tangan / Minta Potongkan Toko Kayu",
+                desc: "Siapkan 5 kelompok kayu yang sudah diserut: (1) Dua balok kusen atas & bawah panjang 30 cm, (2) Dua balok tiang kusen panjang 25 cm, (3) Delapan bilah papan kisi panjang 24.4 cm, (4) Satu batang kayu penggerak panjang 22 cm, (5) Delapan set baut & ring washer.",
+                why: "Biar tidak capek gergaji manual, minta toko kayu memotongkannya pakai mesin mitre saw agar 100% presisi dan siku 90°."
+            },
+            {
+                step: 2,
+                title: "Langkah 2: Mengebor Lubang Mangkok di Tiang Kusen",
+                tool: "Alat: Bor Tangan (Mata Bor 5 mm), Meteran, Pensil",
+                desc: "Tandai 8 titik lubang di tiang kusen dengan jarak tiap 2.8 cm (titik pertama 1.6 cm dari ujung). Bor sedalam 8 mm (JANGAN TEMBUS SAMPAI LUAR!). Titik merah di 3D menunjukkan 8 lubang mangkok dudukan poros ini.",
+                why: "Lubang ini tidak boleh tembus agar dari luar kusen terlihat mulus tanpa ada paku/baut jelek yang kelihatan."
+            },
+            {
+                step: 3,
+                title: "Langkah 3: Memasang Pin Sumpit Bambu di Kedua Ujung Bilah",
+                tool: "Alat: Sumpit Bambu, Gergaji Kecil, Lem Kayu",
+                desc: "Ambil ke-8 bilah kisi (24.4 cm). Bor lubang kecil di kedua ujungnya sedalam 6 mm, lalu tancapkan potongan sumpit bambu dengan lem kayu, biarkan menonjol 5 mm sebagai poros putar samping.",
+                why: "Pin bambu ini dilem mati di bilah kayu, tapi saat dimasukkan ke lubang kusen sifatnya licin dan longgar sehingga bilah bisa berputar bebas seperti roda mobil."
+            },
+            {
+                step: 4,
+                title: "Langkah 4: Merakit Kusen 3 Sisi (Membentuk Huruf U)",
+                tool: "Alat: Lem Kayu PVAc, 4 bh Sekrup Kayu 5 cm, Obeng",
+                desc: "Sambungkan kusen bawah (30 cm) dengan tiang kiri (25 cm) dan tiang kanan (25 cm) menggunakan lem dan sekrup membentuk huruf 'U'. Kusen atas sengaja BELUM DIPASANG agar bilah kisi bisa dimasukkan!",
+                why: "Kusen wajib berbentuk huruf U dulu agar bilah-bilah kayu bisa dimasukkan dari atas ke dalam lubang tiang."
+            },
+            {
+                step: 5,
+                title: "Langkah 5: Memasukkan 8 Bilah Kisi & Menutup Kusen Atas",
+                tool: "Alat: Obeng & 4 bh Sekrup Kusen Atas",
+                desc: "Masukkan pin bambu kiri ke lubang tiang kiri, lalu masukkan pin bambu kanan ke lubang tiang kanan untuk ke-8 bilah secara berurutan. Setelah semua bilah duduk rapi, pasang balok kusen atas dari atas lalu sekrup kencang di kedua sudut atas.",
+                why: "Setelah kusen atas disekrup, ke-8 bilah otomatis terkunci rapi di tempatnya dan tidak akan bisa lepas."
+            },
+            {
+                step: 6,
+                title: "Langkah 6: Memasang Batang Kayu Penggerak dengan Baut",
+                tool: "Alat: 1 Batang Kayu Penggerak 22 cm, 8 Baut & Ring, Obeng",
+                desc: "Ambil 1 batang kayu penggerak (22 cm x 1.4 cm x 0.8 cm) yang sudah dilubangi 8 titik berjarak 2.8 cm. Tempelkan batang kayu ini ke bilah-bilah kisi, lalu pasang BAUT + RING WASHER ke tiap bilah kayu. Kunci baut secukupnya (jangan dikencangkan mati agar batang kayu bisa berputar bebas di leher baut).",
+                why: "Tepat seperti di YouTube! Karena ada 1 batang kayu yang dibaut ke tiap bilah, saat batang kayu ini dipegang dan digerakkan naik-turun, baut bertindak sebagai engsel putar dan SEMUA BILAH KISI BERPUTAR SEREMPAK!"
+            }
+        ];
+
+        let currentStep = 6; // Default langsung tampilkan Langkah 6 yang dibahas Sayang!
+
+        // RENDER 3D PER LANGKAH
+        function renderStep3D(stepNum) {
+            while (stepAssembly.children.length > 0) {
+                stepAssembly.remove(stepAssembly.children[0]);
+            }
+
+            if (stepNum === 1) {
+                // Semua bahan terhampar lengkap
+                const g1 = new THREE.Group();
+                const k1 = new THREE.Mesh(new THREE.BoxGeometry(300, 25, 50), matKusen);
+                k1.position.set(0, 110, 0); g1.add(k1);
+                const k2 = new THREE.Mesh(new THREE.BoxGeometry(300, 25, 50), matKusen);
+                k2.position.set(0, 75, 0); g1.add(k2);
+                const t1 = new THREE.Mesh(new THREE.BoxGeometry(25, 250, 50), matKusen);
+                t1.position.set(-130, -50, 0); g1.add(t1);
+                const t2 = new THREE.Mesh(new THREE.BoxGeometry(25, 250, 50), matKusen);
+                t2.position.set(-95, -50, 0); g1.add(t2);
+                for (let i = 0; i < 8; i++) {
+                    const bl = new THREE.Mesh(new THREE.BoxGeometry(244, 10, 34), matSlat);
+                    bl.position.set(40, -140 + (i * 12), 0); g1.add(bl);
+                }
+                const actPiece = new THREE.Mesh(new THREE.BoxGeometry(14, 220, 8), matAct);
+                actPiece.position.set(150, -50, 0); g1.add(actPiece);
+                stepAssembly.add(g1);
+
+            } else if (stepNum === 2) {
+                // Tiang kusen dengan 8 lubang bor merah
+                const g2 = new THREE.Group();
+                const tiangL = new THREE.Mesh(new THREE.BoxGeometry(25, 250, 50), matKusen);
+                tiangL.position.set(-65, 0, 0); g2.add(tiangL);
+                const tiangR = new THREE.Mesh(new THREE.BoxGeometry(25, 250, 50), matKusen);
+                tiangR.position.set(65, 0, 0); g2.add(tiangR);
+
+                const geomHole = new THREE.CylinderGeometry(2.5, 2.5, 8, 16);
+                for (let i = 0; i < 8; i++) {
+                    const y = -((7 * 28)/2) + (i * 28);
+                    const hL = new THREE.Mesh(geomHole, matHoleIndicator);
+                    hL.rotation.z = Math.PI / 2; hL.position.set(-65 + 12.5, y, 0); g2.add(hL);
+                    const hR = new THREE.Mesh(geomHole, matHoleIndicator);
+                    hR.rotation.z = Math.PI / 2; hR.position.set(65 - 12.5, y, 0); g2.add(hR);
+                }
+                stepAssembly.add(g2);
+
+            } else if (stepNum === 3) {
+                // Bilah kisi dengan pin bambu di ujung kiri & kanan
+                const g3 = new THREE.Group();
+                for (let i = 0; i < 4; i++) {
+                    const y = -60 + (i * 40);
+                    const sm = new THREE.Mesh(new THREE.BoxGeometry(244, 34, 8), matSlat);
+                    sm.position.set(0, y, 0); g3.add(sm);
+
+                    const p1 = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 14, 16), matBolt);
+                    p1.rotation.z = Math.PI / 2; p1.position.set(-122 - 3, y, 0); g3.add(p1);
+                    const p2 = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 14, 16), matBolt);
+                    p2.rotation.z = Math.PI / 2; p2.position.set(122 + 3, y, 0); g3.add(p2);
+                }
+                stepAssembly.add(g3);
+
+            } else if (stepNum === 4) {
+                // Kusen dirakit bentuk U
+                const g4 = new THREE.Group();
+                const kb = new THREE.Mesh(new THREE.BoxGeometry(outerW, frameTh, frameD), matKusen);
+                kb.position.set(0, -outerH/2 + frameTh/2, 0); g4.add(kb);
+                const kl = new THREE.Mesh(new THREE.BoxGeometry(frameTh, clearH, frameD), matKusen);
+                kl.position.set(-outerW/2 + frameTh/2, 0, 0); g4.add(kl);
+                const kr = new THREE.Mesh(new THREE.BoxGeometry(frameTh, clearH, frameD), matKusen);
+                kr.position.set(outerW/2 - frameTh/2, 0, 0); g4.add(kr);
+
+                const ka = new THREE.Mesh(new THREE.BoxGeometry(outerW, frameTh, frameD), matKusen);
+                ka.position.set(0, outerH/2 + 60, 0); g4.add(ka);
+                stepAssembly.add(g4);
+
+            } else if (stepNum === 5) {
+                // Kusen 4 sisi tertutup & 8 bilah duduk di poros
+                const g5 = new THREE.Group();
+                const kb = new THREE.Mesh(new THREE.BoxGeometry(outerW, frameTh, frameD), matKusen);
+                kb.position.set(0, -outerH/2 + frameTh/2, 0); g5.add(kb);
+                const ka = new THREE.Mesh(new THREE.BoxGeometry(outerW, frameTh, frameD), matKusen);
+                ka.position.set(0, outerH/2 - frameTh/2, 0); g5.add(ka);
+                const kl = new THREE.Mesh(new THREE.BoxGeometry(frameTh, clearH, frameD), matKusen);
+                kl.position.set(-outerW/2 + frameTh/2, 0, 0); g5.add(kl);
+                const kr = new THREE.Mesh(new THREE.BoxGeometry(frameTh, clearH, frameD), matKusen);
+                kr.position.set(outerW/2 - frameTh/2, 0, 0); g5.add(kr);
+
+                for (let i = 0; i < slatCount; i++) {
+                    const y = startY + (i * slatPitch);
+                    const sm = new THREE.Mesh(geomSlat, matSlat);
+                    sm.position.set(0, y, 0); sm.rotation.x = 35 * (Math.PI / 180); g5.add(sm);
+                }
+                stepAssembly.add(g5);
+
+            } else if (stepNum === 6) {
+                // LANGKAH 6: ZOOM DETAIL BATANG KAYU PENGGERAK DENGAN 8 BAUT!
+                const g6 = new THREE.Group();
+                // 4 sisi kusen
+                const kb = new THREE.Mesh(new THREE.BoxGeometry(outerW, frameTh, frameD), matKusen);
+                kb.position.set(0, -outerH/2 + frameTh/2, 0); g6.add(kb);
+                const ka = new THREE.Mesh(new THREE.BoxGeometry(outerW, frameTh, frameD), matKusen);
+                ka.position.set(0, outerH/2 - frameTh/2, 0); g6.add(ka);
+                const kl = new THREE.Mesh(new THREE.BoxGeometry(frameTh, clearH, frameD), matKusen);
+                kl.position.set(-outerW/2 + frameTh/2, 0, 0); g6.add(kl);
+                const kr = new THREE.Mesh(new THREE.BoxGeometry(frameTh, clearH, frameD), matKusen);
+                kr.position.set(outerW/2 - frameTh/2, 0, 0); g6.add(kr);
+
+                // 8 bilah kisi
+                for (let i = 0; i < slatCount; i++) {
+                    const y = startY + (i * slatPitch);
+                    const sm = new THREE.Mesh(geomSlat, matSlat);
+                    sm.position.set(0, y, 0);
+                    sm.rotation.x = 40 * (Math.PI / 180);
+                    g6.add(sm);
+
+                    // Kepala baut dan ring kuningan di tiap bilah
+                    const bMesh = new THREE.Mesh(geomBolt, matBolt);
+                    bMesh.rotation.x = Math.PI / 2;
+                    bMesh.position.set(actX, y + 10, 6);
+                    g6.add(bMesh);
+
+                    const wMesh = new THREE.Mesh(geomWasher, matBolt);
+                    wMesh.rotation.x = Math.PI / 2;
+                    wMesh.position.set(actX, y + 10, 12);
+                    g6.add(wMesh);
+                }
+
+                // 1 Batang Kayu Penggerak yang menautkan semua bilah
+                const actBarStep = new THREE.Mesh(new THREE.BoxGeometry(actW, actH, actTh), matAct);
+                actBarStep.position.set(actX, -8, 14);
+                actBarStep.rotation.x = 40 * (Math.PI / 180);
+                g6.add(actBarStep);
+
+                stepAssembly.add(g6);
+            }
+        }
+
+        // UPDATE UI TEKS
+        function updateStepUI(stepIndex) {
+            const data = stepData[stepIndex - 1];
+            document.getElementById('stepCounterBadge').innerText = `Langkah ${data.step} dari 6`;
+            document.getElementById('stepTitle').innerText = data.title;
+            document.getElementById('stepToolBadge').innerText = data.tool;
+            document.getElementById('stepDescription').innerText = data.desc;
+            document.getElementById('stepWhyText').innerText = data.why;
+
+            document.querySelectorAll('.step-pill').forEach(pill => {
+                if (parseInt(pill.getAttribute('data-step')) === stepIndex) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+
+            renderStep3D(stepIndex);
+        }
+
+        document.querySelectorAll('.step-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                currentStep = parseInt(e.target.getAttribute('data-step'));
+                updateStepUI(currentStep);
+            });
+        });
+
+        document.getElementById('btnPrevStep').addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepUI(currentStep);
+            }
+        });
+
+        document.getElementById('btnNextStep').addEventListener('click', () => {
+            if (currentStep < 6) {
+                currentStep++;
+                updateStepUI(currentStep);
+            }
+        });
+
+        // INIT LANGKAH 6 (LANGSUNG TAMPILKAN LANGKAH 6)
+        updateStepUI(6);
+
+        // ANIMATION LOOP UNTUK KEDUA KANVAS
+        function animateAll() {
+            requestAnimationFrame(animateAll);
+
+            if (isMainAuto && !isMainExploded) {
+                mAnimVal += 0.008 * mAnimDir;
+                if (mAnimVal >= 1.0) { mAnimVal = 1.0; mAnimDir = -1; }
+                if (mAnimVal <= 0.0) { mAnimVal = 0.0; mAnimDir = 1; }
+                mainSlideRange.value = mAnimVal;
+                updateMainActuator(mAnimVal);
+            }
+            mainControls.update();
+            mainRenderer.render(mainScene, mainCamera);
+
+            stepControls.update();
+            stepRenderer.render(stepScene, stepCamera);
+        }
+        animateAll();
+
+        window.addEventListener('resize', () => {
+            const w1 = mainContainer.clientWidth, h1 = mainContainer.clientHeight;
+            mainCamera.aspect = w1 / h1; mainCamera.updateProjectionMatrix();
+            mainRenderer.setSize(w1, h1);
+
+            const w2 = stepContainer.clientWidth, h2 = stepContainer.clientHeight;
+            stepCamera.aspect = w2 / h2; stepCamera.updateProjectionMatrix();
+            stepRenderer.setSize(w2, h2);
+        });
+    </script>
+</body>
+</html>

@@ -34,6 +34,9 @@ export function createManualDrawingTool({ container, chart, series, getTf, getCa
   let dragOriginal = null;
   let activePointerId = null;
   let isFullscreenActive = false;
+  let toolbarManuallyVisible = false;
+  let clearConfirmArmed = false;
+  let clearConfirmTimer = null;
 
   // 1. Storage Helpers
   function getStorageKey(tf) {
@@ -101,7 +104,7 @@ export function createManualDrawingTool({ container, chart, series, getTf, getCa
         <button type="button" class="draw-btn ${activeTool === 'zone' ? 'is-active' : ''}" data-tool="zone" title="Gambar Kotak Zona (FVG / OB)">🔲 +Zona</button>
         <button type="button" class="draw-btn ${activeTool === 'line' ? 'is-active' : ''}" data-tool="line" title="Garis Level Harga">📏 Level</button>
         <button type="button" class="draw-btn ${activeTool === 'target100' ? 'is-active' : ''}" data-tool="target100" title="Target Scalp 100 Pips">🎯 100P</button>
-        ${drawings.length > 0 ? `<button type="button" class="draw-btn" data-action="clear-all" title="Hapus Semua Gambar" style="color:#ef4444;">🗑️</button>` : ''}
+        ${drawings.length > 0 ? `<button type="button" class="draw-btn ${clearConfirmArmed ? 'is-danger-confirm' : ''}" data-action="clear-all" title="Hapus Semua Gambar" style="color:${clearConfirmArmed ? '#ffffff' : '#ef4444'};${clearConfirmArmed ? 'background:#dc2626;border-color:#dc2626;' : ''}">${clearConfirmArmed ? 'Yakin Hapus?' : '🗑️'}</button>` : ''}
       `;
     }
   }
@@ -154,12 +157,22 @@ export function createManualDrawingTool({ container, chart, series, getTf, getCa
       saveDrawings();
       setActiveTool('pan');
     } else if (action === 'clear-all') {
-      if (confirm('Hapus semua zona dan garis pada chart ini?')) {
-        drawings = [];
-        selectedId = null;
-        saveDrawings();
-        setActiveTool('pan');
+      if (!clearConfirmArmed) {
+        clearConfirmArmed = true;
+        renderToolbar();
+        if (clearConfirmTimer) clearTimeout(clearConfirmTimer);
+        clearConfirmTimer = setTimeout(() => {
+          clearConfirmArmed = false;
+          renderToolbar();
+        }, 3000);
+        return;
       }
+      clearConfirmArmed = false;
+      if (clearConfirmTimer) clearTimeout(clearConfirmTimer);
+      drawings = [];
+      selectedId = null;
+      saveDrawings();
+      setActiveTool('pan');
     } else if (action === 'extend' && selectedId) {
       const item = drawings.find(d => d.id === selectedId);
       if (item && item.type === 'zone' && item.points?.length >= 2) {
@@ -799,10 +812,24 @@ export function createManualDrawingTool({ container, chart, series, getTf, getCa
     },
     setFullscreen(enabled) {
       isFullscreenActive = enabled;
-      toolbar.style.display = enabled ? 'flex' : 'none';
+      toolbar.style.display = (enabled || toolbarManuallyVisible) ? 'flex' : 'none';
       selectedId = null;
       setActiveTool('pan');
       setTimeout(scheduleRepaint, 50);
+    },
+    setToolbarVisible(visible) {
+      toolbarManuallyVisible = Boolean(visible);
+      toolbar.style.display = toolbarManuallyVisible ? 'flex' : 'none';
+      if (!toolbarManuallyVisible) {
+        selectedId = null;
+        setActiveTool('pan');
+      } else {
+        renderToolbar();
+      }
+      setTimeout(scheduleRepaint, 40);
+    },
+    isToolbarVisible() {
+      return toolbar.style.display !== 'none';
     },
     repaint() {
       scheduleRepaint();

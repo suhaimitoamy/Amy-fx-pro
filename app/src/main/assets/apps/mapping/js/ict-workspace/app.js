@@ -1,20 +1,223 @@
 import {mountChartFullscreen} from './chart-fullscreen.js';
 import {loadCandles} from './data.js';
 import {normalize,analyze,timestamp} from './engine.js';
-import {createPriceChart} from './chart-view.js';
+import {createPriceChart,DEFAULT_CHART_LAYERS} from './chart-view.js';
 import {mountDisplay,renderAmy,loadDisplay,isGoldMarketOpen} from './ict-presentation.js';
 import {mountEconomicEventBanner} from './economic-countdown.js';
 import {updateDealingRangeBadge} from './dealing-range-badge.js';
 import {startCockpitSessionPill} from '../engine/market-session-clock.js';
 import {initDetailsPersistence} from './details-persistence.js';
+import {createManualDrawingTool} from '../../../../manual-drawing-tool.js';
 const $=id=>document.getElementById(id);
+const CHART_LAYERS_STORAGE_KEY='amyfx.chart.layers.v1';
+const LAYER_KEYS=Object.keys(DEFAULT_CHART_LAYERS);
+
+function loadChartLayers(){
+  const base={...DEFAULT_CHART_LAYERS};
+  try{
+    if(typeof localStorage!=='undefined'){
+      const saved=JSON.parse(localStorage.getItem(CHART_LAYERS_STORAGE_KEY)||'null');
+      if(saved&&typeof saved==='object'){
+        for(const k of LAYER_KEYS){
+          if(typeof saved[k]==='boolean')base[k]=saved[k];
+        }
+      }
+    }
+  }catch(_){}
+  return base;
+}
+
+function saveChartLayers(next){
+  try{
+    if(typeof localStorage!=='undefined'){
+      localStorage.setItem(CHART_LAYERS_STORAGE_KEY,JSON.stringify(next));
+    }
+  }catch(_){}
+}
+
 let context=null,display=null,driverPlan=null;
-let chart=null,controller=null,generation=0,timer=null,overlay=null,raw=null;
-try{chart=createPriceChart($('chart'),{touchAxes:true});}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
-const fullscreen=mountChartFullscreen(chart);
+let chart=null,drawingTool=null,controller=null,generation=0,timer=null,countdownTimer=null,overlay=null,raw=null;
+let lastDrawnCandles=[];
+let chartLayers=loadChartLayers();
+
+function formatOhlcTimeWita(timeSec){
+  if(!Number.isFinite(timeSec)||timeSec<=0)return '';
+  try{
+    const d=new Date(timeSec*1000);
+    return new Intl.DateTimeFormat('id-ID',{
+      timeZone:'Asia/Makassar',hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+    }).format(d)+' WITA';
+  }catch(_){return '';}
+}
+
+function renderOhlcHud(info){
+  const el=$('chart-ohlc-hud');
+  if(!el)return;
+  if(!info||!Number.isFinite(info.close)){
+    el.innerHTML='';
+    el.hidden=true;
+    return;
+  }
+  el.hidden=false;
+  const up=info.close>=info.open;
+  const cls=up?'ohlc-up':'ohlc-down';
+  const sign=info.diff>=0?'+':'';
+  const timeTag=info.hovering&&info.time?`<span class="ohlc-time">${formatOhlcTimeWita(info.time)}</span>`:'';
+  el.innerHTML=
+    `${timeTag}`+
+    `<span class="ohlc-pair"><em>O</em><b>${info.open.toFixed(2)}</b></span>`+
+    `<span class="ohlc-pair"><em>H</em><b>${info.high.toFixed(2)}</b></span>`+
+    `<span class="ohlc-pair"><em>L</em><b>${info.low.toFixed(2)}</b></span>`+
+    `<span class="ohlc-pair ${cls}"><em>C</em><b>${info.close.toFixed(2)}</b></span>`+
+    `<span class="ohlc-diff ${cls}">${sign}${info.diff.toFixed(2)}</span>`+
+    `<span class="ohlc-range">Rng $${info.range.toFixed(2)}</span>`;
+}
+
+try{chart=createPriceChart($('chart'),{touchAxes:true});chart?.setOnCrosshairOHLC?.(renderOhlcHud);}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
+if(chart?.chart&&chart?.series){
+  try{
+    drawingTool=createManualDrawingTool({
+      container:$('chart'),
+      chart:chart.chart,
+      series:chart.series,
+      getTf:()=>$('timeframe')?.value||'M15',
+      getCandles:()=>lastDrawnCandles
+    });
+  }catch(_){}
+}
+const fullscreen=mountChartFullscreen(chart,drawingTool);
 try{mountEconomicEventBanner();}catch(_){}
 try{startCockpitSessionPill('cockpit-session-pill');}catch(_){}
 $('chart-auto-price')?.addEventListener('click',()=>chart?.autoPrice());
+
+// Manual Drawing Tool Toggle
+function syncDrawButtonState(){
+  const btn=$('btn-chart-draw');
+  if(!btn)return;
+  const vis=Boolean(drawingTool?.isToolbarVisible?.());
+  btn.classList.toggle('is-active',vis);
+  btn.setAttribute('aria-pressed',String(vis));
+}
+$('btn-chart-draw')?.addEventListener('click',()=>{
+  if(!drawingTool)return;
+  const next=!drawingTool.isToolbarVisible();
+  drawingTool.setToolbarVisible(next);
+  syncDrawButtonState();
+});
+
+// ICT Layer Popover & Presets
+function syncLayerUI(){
+  const activeCount=LAYER_KEYS.reduce((n,k)=>n+(chartLayers[k]?1:0),0);
+  const label=$('chart-layers-label');
+  if(label)label.textContent=`Layer (${activeCount})`;
+  document.querySelectorAll('#chart-layer-popover [data-layer-key]').forEach(input=>{
+    const key=input.dataset.layerKey;
+    if(key in chartLayers)input.checked=Boolean(chartLayers[key]);
+  });
+  const isClean=LAYER_KEYS.every(k=>Boolean(chartLayers[k])===Boolean(DEFAULT_CHART_LAYERS[k]));
+  const isAll=activeCount===LAYER_KEYS.length;
+  const isBare=activeCount===0;
+  document.querySelectorAll('#chart-layer-popover [data-layer-preset]').forEach(btn=>{
+    const p=btn.dataset.layerPreset;
+    btn.classList.toggle('is-active',(p==='clean'&&isClean)||(p==='all'&&isAll)||(p==='bare'&&isBare));
+  });
+}
+
+function setLayerPopoverOpen(open){
+  const popover=$('chart-layer-popover');
+  const btn=$('btn-chart-layers');
+  if(!popover||!btn)return;
+  popover.hidden=!open;
+  btn.setAttribute('aria-expanded',String(open));
+  btn.classList.toggle('is-active',open);
+}
+
+$('btn-chart-layers')?.addEventListener('click',event=>{
+  event.stopPropagation();
+  const popover=$('chart-layer-popover');
+  if(!popover)return;
+  setLayerPopoverOpen(popover.hidden);
+});
+
+$('chart-layer-popover')?.addEventListener('click',event=>{
+  event.stopPropagation();
+  const presetBtn=event.target.closest('[data-layer-preset]');
+  if(!presetBtn)return;
+  const preset=presetBtn.dataset.layerPreset;
+  if(preset==='clean'){
+    chartLayers={...DEFAULT_CHART_LAYERS};
+  }else if(preset==='all'){
+    chartLayers=Object.fromEntries(LAYER_KEYS.map(k=>[k,true]));
+  }else if(preset==='bare'){
+    chartLayers=Object.fromEntries(LAYER_KEYS.map(k=>[k,false]));
+  }
+  saveChartLayers(chartLayers);
+  syncLayerUI();
+  draw();
+});
+
+$('chart-layer-popover')?.addEventListener('change',event=>{
+  const input=event.target.closest('[data-layer-key]');
+  if(!input)return;
+  const key=input.dataset.layerKey;
+  if(!(key in chartLayers))return;
+  chartLayers={...chartLayers,[key]:Boolean(input.checked)};
+  saveChartLayers(chartLayers);
+  syncLayerUI();
+  draw();
+});
+
+document.addEventListener('click',event=>{
+  const popover=$('chart-layer-popover');
+  const btn=$('btn-chart-layers');
+  if(!popover||popover.hidden)return;
+  if(!popover.contains(event.target)&&!btn?.contains(event.target)){
+    setLayerPopoverOpen(false);
+  }
+});
+
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){
+    const popover=$('chart-layer-popover');
+    if(popover&&!popover.hidden)setLayerPopoverOpen(false);
+  }
+});
+
+syncLayerUI();
+
+// Candle Close Countdown (1s, visibility-aware, respects weekend closure)
+function updateCandleCountdown(){
+  const el=$('chart-candle-countdown');
+  if(!el)return;
+  const tf=$('timeframe')?.value||'M15';
+  const nowSec=Date.now()/1000;
+  if(!isGoldMarketOpen(nowSec)){
+    el.textContent='Pasar Tutup';
+    el.classList.add('is-closed');
+    el.classList.remove('is-urgent');
+    return;
+  }
+  const dur={M5:300,M15:900,H1:3600}[tf]||900;
+  const rem=Math.max(1,dur-(Math.floor(nowSec)%dur));
+  const mins=String(Math.floor(rem/60)).padStart(2,'0');
+  const secs=String(rem%60).padStart(2,'0');
+  el.textContent=`Tutup ${tf} · ${mins}:${secs}`;
+  el.classList.remove('is-closed');
+  el.classList.toggle('is-urgent',rem<=60);
+}
+
+function startCountdownTimer(){
+  clearTimeout(countdownTimer);
+  updateCandleCountdown();
+  if(!document.hidden){
+    countdownTimer=setTimeout(function tick(){
+      updateCandleCountdown();
+      if(!document.hidden) countdownTimer=setTimeout(tick,1000);
+    },1000);
+  }
+}
+startCountdownTimer();
+
 display=mountDisplay(next=>{display=next;renderAmy(context?.amy,display,context?.news,context);draw();});
 // A cached trade plan from the previous application version must not be served as current context.
 try{localStorage.removeItem('amyfx.ict.mapping.v1');}catch{}
@@ -73,7 +276,7 @@ function draw(degraded=false){
     const candles=filterCandles(rawCandles,closed);
     const lastTime=candles.at(-1)?.time||0;
     const ageSec=Math.floor(Date.now()/1000)-lastTime;
-    const maxFresh=tf==='M5'?1200:2700; // 20m untuk M5, 45m untuk M15
+    const maxFresh=tf==='H1'?7200:tf==='M5'?1200:2700;
     const isFresh=closed||(lastTime>0&&ageSec<=maxFresh);
     result={candles,tf,plan:null,sourceTime:lastTime||null,fresh:isFresh};
   }
@@ -82,9 +285,12 @@ function draw(degraded=false){
     if(degraded&&$('source'))$('source').textContent='Belum ada candle. Periksa koneksi lalu tekan Perbarui.';
     return;
   }
+  lastDrawnCandles=result.candles;
   const activePlan=driverPlan||context?.amy?.plan||overlay||result.plan;
-  const presentation={settings:display||loadDisplay(),amy:context?.amy,context,candles:result.candles,tf};
+  const presentation={settings:display||loadDisplay(),amy:context?.amy,context,candles:result.candles,tf,layers:chartLayers};
   chart?.draw(result,activePlan,presentation);
+  drawingTool?.setCandles?.(result.candles);
+  updateCandleCountdown();
   const last=result.candles.at(-1);
   const currentLive=Number(window.amyfxCurrentPrice);
   const displayPrice=(!closed&&Number.isFinite(currentLive)&&currentLive>0)?currentLive:(last?last.close:null);
@@ -241,12 +447,13 @@ async function refresh(){
   $('refresh').disabled=true;if($('chart-error')){ $('chart-error').textContent=''; $('chart-error').style.color=''; }
   if(raw)draw();
   try{
-    const [response,h1Context,m5Response]=await Promise.all([
+    const [response,h1Loaded,m5Response]=await Promise.all([
       loadCandles(tf,request.signal),
-      loadCandles('H1',request.signal).catch(()=>({candles:[],degraded:true})),
+      tf==='H1'?Promise.resolve(null):loadCandles('H1',request.signal).catch(()=>({candles:[],degraded:true})),
       (tf==='M15'?loadCandles('M5',request.signal).catch(()=>null):Promise.resolve(null))
     ]);
     if(id!==generation)return;
+    const h1Context=tf==='H1'?response:(h1Loaded||{candles:[],degraded:true});
     const closed=!isGoldMarketOpen(Date.now()/1000);
     const candles=filterCandles(response.candles,closed);
     const contextCandles=filterCandles(h1Context.candles,closed);
@@ -327,11 +534,20 @@ $('timeframe').addEventListener('change',()=>{
   }else{
     raw=null;
   }
+  drawingTool?.setTf?.(newTf);
+  updateCandleCountdown();
   chart?.reset();draw();refresh();
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){generation++;controller?.abort();clearTimeout(timer);}else refresh();});
-window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);});
-window.addEventListener('pageshow',event=>{if(event.persisted)refresh();});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);
+  }else{
+    startCountdownTimer();
+    refresh();
+  }
+});
+window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);});
+window.addEventListener('pageshow',event=>{if(event.persisted){startCountdownTimer();refresh();}});
 window.addEventListener('online',refresh);
 window.setTab(new URLSearchParams(location.search).get('route')||location.hash.slice(1)||'Dashboard');
 const initialStored=getStoredCandles($('timeframe')?.value||'M15');

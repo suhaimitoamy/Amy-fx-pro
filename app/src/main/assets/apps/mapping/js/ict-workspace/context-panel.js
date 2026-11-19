@@ -137,14 +137,10 @@ function render(){
     ?Number(window.amyfxCurrentPrice)
     :Number(c.price||0);
 
-  let rHigh=Number(ind?.keyLevels?.pdHigh??c.m15?.dealingRange?.rangeHigh);
-  let rLow=Number(ind?.keyLevels?.pdLow??c.m15?.dealingRange?.rangeLow);
-  if(livePrice>0&&Number.isFinite(rHigh)&&Math.abs(rHigh-livePrice)>80&&Number.isFinite(c.m15?.dealingRange?.rangeHigh)){
-    rHigh=Number(c.m15.dealingRange.rangeHigh);
-    rLow=Number(c.m15.dealingRange.rangeLow);
-  }
-  const eq=(Number.isFinite(rHigh)&&Number.isFinite(rLow))?(rHigh+rLow)/2:null;
-  const dr=(Number.isFinite(rHigh)&&Number.isFinite(rLow))
+  const rHigh=Number(c.m15?.dealingRange?.rangeHigh??ind?.dealingRange?.rangeHigh??ind?.keyLevels?.pdHigh);
+  const rLow=Number(c.m15?.dealingRange?.rangeLow??ind?.dealingRange?.rangeLow??ind?.keyLevels?.pdLow);
+  const eq=(Number.isFinite(rHigh)&&Number.isFinite(rLow)&&rHigh>rLow)?(rHigh+rLow)/2:null;
+  const dr=(Number.isFinite(rHigh)&&Number.isFinite(rLow)&&rHigh>rLow)
     ?{
         location:(livePrice>eq+(rHigh-rLow)*0.025)?'PREMIUM':(livePrice<eq-(rHigh-rLow)*0.025)?'DISCOUNT':'EQUILIBRIUM',
         eq,
@@ -155,7 +151,7 @@ function render(){
 
   const drLoc = dr?.location ? ` [${dr.location}]` : '';
   const confScore = c.confluence ? ` · Skor: ${c.confluence.score}/100 (${c.confluence.grade})${c.confluence.winDir?` · dominan ${c.confluence.winDir===1?'BUY':'SELL'}`:''}` : '';
-  setTxt('h1-bias',id(ind?.structure?.trend==='BULL'?'BULLISH':ind?.structure?.trend==='BEAR'?'BEARISH':(c.h1?.bias||'NEUTRAL')));
+  setTxt('h1-bias',id(c.h1?.bias||'NEUTRAL'));
   setTxt('h1-health',`Kesehatan: ${id(c.h1?.health)}`);
 
   const poi=(c.m15?.poi&&Number.isFinite(Number(c.m15.poi.low))&&Math.abs(Number(c.m15.poi.low)-livePrice)<80)

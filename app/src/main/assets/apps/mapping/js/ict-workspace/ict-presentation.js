@@ -565,6 +565,7 @@ export function dashboardContextV6Rows(amy, context = null) {
   const chartCandles = (typeof window !== 'undefined' && Array.isArray(window.amyfxLastCandles) && window.amyfxLastCandles.length > 0)
     ? window.amyfxLastCandles
     : (Array.isArray(amy?.chartCandles) ? amy.chartCandles : []);
+  const lastCandle = chartCandles.length > 0 ? chartCandles[chartCandles.length - 1] : null;
 
   let candleHigh = null;
   let candleLow = null;
@@ -587,9 +588,11 @@ export function dashboardContextV6Rows(amy, context = null) {
     ? Number(lastCandle.close)
     : 0;
 
-  // 1. 3-TF Order Flow
-  const isHtfBull = (ind?.structure?.trend === 'BULL') || (ctx?.h1?.bias === 'BULLISH') || (d?.biasDir === 1);
-  const isMtfBull = (ind?.keyLevels?.trend === 'BULL') || (ctx?.m15?.structure === 'BULLISH') || (d?.mssDir === 1);
+  // 1. 3-TF Order Flow (H1 dari ctx.h1.bias; M15 dari struktur M15/chart; M5 dari trigger M5)
+  const h1BiasUpper = String(ctx?.h1?.bias || '').toUpperCase();
+  const isHtfBull = h1BiasUpper ? h1BiasUpper.includes('BULL') : ((ind?.structure?.trend === 'BULL') || (d?.biasDir === 1));
+  const m15StructUpper = String(ctx?.m15?.structure || '').toUpperCase();
+  const isMtfBull = m15StructUpper ? m15StructUpper.includes('BULL') : ((ind?.structure?.trend === 'BULL') || (d?.mssDir === 1));
   const isLtfBull = (ctx?.m5?.status === 'CONFIRMED' ? (ctx?.primary?.side === 'BUY') : Boolean(amy?.trigger?.bullBreak || amy?.trigger?.bullDisp || ((amy?.entry?.buy || 0) > (amy?.entry?.sell || 0))));
 
   const isFullBullAlign = isHtfBull && isMtfBull && isLtfBull;
@@ -597,29 +600,33 @@ export function dashboardContextV6Rows(amy, context = null) {
   const isBullPullback = isHtfBull && (!isLtfBull || !isMtfBull);
   const isBearPullback = !isHtfBull && (isLtfBull || isMtfBull);
 
-  // 2. Dealing Range & Percent (prioritize live chart candles / indicators over stale server numbers)
-  const indHigh = ind?.keyLevels?.pdHigh || candleHigh;
-  const indLow = ind?.keyLevels?.pdLow || candleLow;
+  // 2. Dealing Range & Percent (Single Source of Truth: ctx.m15.dealingRange → ind.dealingRange → fallback dashboard)
   const ctxHigh = Number(ctx?.m15?.dealingRange?.rangeHigh ?? ctx?.keyLevels?.rangeHigh);
   const ctxLow = Number(ctx?.m15?.dealingRange?.rangeLow ?? ctx?.keyLevels?.rangeLow);
+  const indHigh = Number(ind?.dealingRange?.rangeHigh ?? ind?.keyLevels?.pdHigh ?? candleHigh);
+  const indLow = Number(ind?.dealingRange?.rangeLow ?? ind?.keyLevels?.pdLow ?? candleLow);
 
-  const rHigh = (Number.isFinite(indHigh) && indHigh > 0 && (!currentPrice || Math.abs(indHigh - currentPrice) < 80))
-    ? indHigh
-    : (Number.isFinite(ctxHigh) && ctxHigh > 0 && (!currentPrice || Math.abs(ctxHigh - currentPrice) < 80))
+  const hasCtxRange = Number.isFinite(ctxHigh) && Number.isFinite(ctxLow) && ctxHigh > ctxLow && (!currentPrice || (Math.abs(ctxHigh - currentPrice) < 120 && Math.abs(currentPrice - ctxLow) < 120));
+  const hasIndRange = Number.isFinite(indHigh) && Number.isFinite(indLow) && indHigh > indLow && (!currentPrice || (Math.abs(indHigh - currentPrice) < 120 && Math.abs(currentPrice - indLow) < 120));
+
+  const rHigh = hasCtxRange
     ? ctxHigh
+    : hasIndRange
+    ? indHigh
     : Number(d?.rangeHigh ?? d?.protectedHigh ?? levels?.bsl);
 
-  const rLow = (Number.isFinite(indLow) && indLow > 0 && (!currentPrice || Math.abs(currentPrice - indLow) < 80))
-    ? indLow
-    : (Number.isFinite(ctxLow) && ctxLow > 0 && (!currentPrice || Math.abs(currentPrice - ctxLow) < 80))
+  const rLow = hasCtxRange
     ? ctxLow
+    : hasIndRange
+    ? indLow
     : Number(d?.rangeLow ?? d?.protectedLow ?? levels?.ssl);
 
   const hasRange = Number.isFinite(rHigh) && Number.isFinite(rLow) && rHigh > rLow;
   const eqMid = hasRange ? (rHigh + rLow) / 2 : null;
-  const rangePct = (hasRange && currentPrice > 0) ? Math.min(100, Math.max(0, Math.round(((currentPrice - rLow) / (rHigh - rLow)) * 100))) : 50;
-  const isDiscount = rangePct < 47.5;
-  const isPremium = rangePct > 52.5;
+  const rawPct = (hasRange && currentPrice > 0) ? ((currentPrice - rLow) / (rHigh - rLow)) * 100 : 50;
+  const rangePct = Math.min(100, Math.max(0, Math.round(rawPct)));
+  const isDiscount = rawPct < 47.5;
+  const isPremium = rawPct > 52.5;
   const zoneLabel = isDiscount ? `DISCOUNT (<47.5%) [${rangePct}%]` : isPremium ? `PREMIUM (>52.5%) [${rangePct}%]` : `EQUILIBRIUM (50%) [${rangePct}%]`;
 
   if (typeof window !== 'undefined') {

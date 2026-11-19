@@ -101,8 +101,17 @@ export function advance(plan, candle, index, duration) {
   return p;
 }
 export function analyze({ candles, context, tf='M15', now=Date.now()/1000, degraded=false }) {
-  if (!['M5','M15'].includes(tf)) throw new Error('Entry hanya M5 atau M15');
-  const duration=DURATIONS[tf]; const ltf=normalize(candles,tf,now), htf=normalize(context,'H1',now);
+  if (!['M5','M15','H1'].includes(tf)) throw new Error('Timeframe tidak didukung');
+  const duration=DURATIONS[tf];
+  if (tf==='H1') {
+    const htf=normalize(candles,'H1',now);
+    const cs=htf.candles, latest=cs.at(-1);
+    const fresh=!degraded && Boolean(latest) && now-(latest.time+duration)<=duration+120;
+    return { model:MODEL.id, tf:'H1', candles:cs, context:structure(cs), rejected:htf.rejected,
+      sourceTime:latest?.time??null, session:session(now), history:[], plan:null, signal:'WAIT',
+      stage:'HTF_CONTEXT', reason:'Timeframe H1 menampilkan struktur HTF & level likuiditas mayor.', fresh, levels:[] };
+  }
+  const ltf=normalize(candles,tf,now), htf=normalize(context,'H1',now);
   const cs=ltf.candles, hs=htf.candles, latest=cs.at(-1);
   const base={ model:MODEL.id, tf, candles:cs, context:structure(hs), rejected:ltf.rejected+htf.rejected,
     sourceTime:latest?.time??null, session:session(now), history:[], plan:null, signal:'WAIT', stage:'DATA',
