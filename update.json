@@ -11,7 +11,7 @@
   "latest_version_code": 950457,
   "latest_version_name": "2.0.0-pro.457",
   "mandatory": false,
-  "releaseDate": "2026-11-20",
+  "releaseDate": "2026-11-19",
   "release_notes": [
     "✦ Market Intel V2: Topbar modern, filter feed Gold/High Impact/All, dan tombol perbarui manual.",
     "✦ Natural UI & Personalisation: Section 11 CSS polish & tema Light/Dark.",
@@ -19,5 +19,5 @@
   ],
   "version": "2.0.0-pro.457",
   "versionCode": 950457,
-  "sha256": ""
+  "sha256": "9070ee25e97b2755949bc431eacede34094dd4cca0547c3090d1be488c0eacfa"
 }
