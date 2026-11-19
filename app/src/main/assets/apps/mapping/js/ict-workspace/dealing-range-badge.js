@@ -38,7 +38,7 @@ export function getDealingRangeStatus(price, dealingRange) {
   if (!Number.isFinite(p) || p <= 0) {
     return {
       zone: 'EQUILIBRIUM',
-      text: 'EQUILIBRIUM · 50%',
+      text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
       className: 'dr-badge dr-neutral',
       pct: 50
     };
@@ -88,7 +88,7 @@ export function getDealingRangeStatus(price, dealingRange) {
     if (rawPct < 47.5) {
       return {
         zone: 'DISCOUNT',
-        text: `ZONA DISKON · ${pct}%`,
+        text: 'ZONA DISKON (<47.5%) 🟢',
         className: 'dr-badge dr-discount',
         eq,
         pct
@@ -97,7 +97,7 @@ export function getDealingRangeStatus(price, dealingRange) {
     if (rawPct > 52.5) {
       return {
         zone: 'PREMIUM',
-        text: `ZONA PREMIUM · ${pct}%`,
+        text: 'ZONA PREMIUM (>52.5%) 🔴',
         className: 'dr-badge dr-premium',
         eq,
         pct
@@ -105,7 +105,7 @@ export function getDealingRangeStatus(price, dealingRange) {
     }
     return {
       zone: 'EQUILIBRIUM',
-      text: `EQUILIBRIUM · ${pct}%`,
+      text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
       className: 'dr-badge dr-neutral',
       eq,
       pct
@@ -117,7 +117,7 @@ export function getDealingRangeStatus(price, dealingRange) {
     if (Math.abs(p - eq) <= threshold) {
       return {
         zone: 'EQUILIBRIUM',
-        text: 'EQUILIBRIUM · 50%',
+        text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
         className: 'dr-badge dr-neutral',
         eq,
         pct: 50
@@ -126,14 +126,14 @@ export function getDealingRangeStatus(price, dealingRange) {
     if (p < eq) {
       return {
         zone: 'DISCOUNT',
-        text: 'ZONA DISKON',
+        text: 'ZONA DISKON (<47.5%) 🟢',
         className: 'dr-badge dr-discount',
         eq
       };
     }
     return {
       zone: 'PREMIUM',
-      text: 'ZONA PREMIUM',
+      text: 'ZONA PREMIUM (>52.5%) 🔴',
       className: 'dr-badge dr-premium',
       eq
     };
@@ -144,14 +144,14 @@ export function getDealingRangeStatus(price, dealingRange) {
   if (loc.includes('DISCOUNT')) {
     return {
       zone: 'DISCOUNT',
-      text: 'ZONA DISKON',
+      text: 'ZONA DISKON (<47.5%) 🟢',
       className: 'dr-badge dr-discount'
     };
   }
   if (loc.includes('PREMIUM')) {
     return {
       zone: 'PREMIUM',
-      text: 'ZONA PREMIUM',
+      text: 'ZONA PREMIUM (>52.5%) 🔴',
       className: 'dr-badge dr-premium'
     };
   }
@@ -159,7 +159,7 @@ export function getDealingRangeStatus(price, dealingRange) {
   // Default fallback
   return {
     zone: 'EQUILIBRIUM',
-    text: 'EQUILIBRIUM · 50%',
+    text: 'EQUILIBRIUM 50% · NO-TRADE ⚪',
     className: 'dr-badge dr-neutral',
     pct: 50
   };
