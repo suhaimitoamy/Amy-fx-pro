@@ -10,7 +10,7 @@ function mount(touchAxes){
     timeScale:()=>({fitContent:()=>fit++}),remove(){}};
   const context={window:{LightweightCharts:{createChart:(_,options)=>{config=options;return chart;}},addEventListener(){},removeEventListener(){}},
     document:{documentElement:{dataset:{}}},createIctCanvas:()=>({update(){},invalidate(){},destroy(){}})};
-  const source=readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/chart-view.js','utf8').replace(/^import .*;\n/gm,'').replace('export function','function');
+  const source=readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/chart-view.js','utf8').replace(/^import .*;\n/gm,'').replace(/export function/g,'function').replace(/export const/g,'const');
   vm.runInNewContext(source,context);
   const view=context.createPriceChart({},touchAxes===undefined?undefined:{touchAxes});
   return {view,applied,priceOptions,get config(){return config;},get fit(){return fit;},get updates(){return updates;}};
@@ -92,7 +92,7 @@ test('Item 2.35: Auto-Clamping Bounded Y-Axis Visualizer clamps outlier ranges a
     createIctCanvas: () => ({ update(){}, invalidate(){}, destroy(){} })
   };
   const source = readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/chart-view.js','utf8')
-    .replace(/^import .*;\n/gm,'').replace('export function','function');
+    .replace(/^import .*;\n/gm,'').replace(/export function/g,'function').replace(/export const/g,'const');
   vm.runInNewContext(source, context);
   const view = context.createPriceChart({});
 

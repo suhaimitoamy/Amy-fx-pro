@@ -36,7 +36,8 @@ test('chart-view updateActiveCandle tracks live price ticks into forming bar and
 
   const source = read('apps/mapping/js/ict-workspace/chart-view.js')
     .replace(/^import .*;\n/gm, '')
-    .replace('export function', 'function');
+    .replace(/export function/g, 'function')
+    .replace(/export const/g, 'const');
   vm.runInNewContext(source, context);
 
   const view = context.createPriceChart({});
@@ -122,7 +123,8 @@ test('chart-view updateActiveCandle suppresses active candle synthesis during we
 
   const source = read('apps/mapping/js/ict-workspace/chart-view.js')
     .replace(/^import .*;\n/gm, '')
-    .replace('export function', 'function');
+    .replace(/export function/g, 'function')
+    .replace(/export const/g, 'const');
   vm.runInNewContext(source, context);
 
   const view = context.createPriceChart({});
