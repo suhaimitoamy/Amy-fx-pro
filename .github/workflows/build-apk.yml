@@ -11,6 +11,7 @@ on:
       - 'app/src/main/assets/app-version.js'
       - 'app/src/main/assets/update-checker.js'
       - 'app/src/main/assets/apps/academy/**'
+      - 'app/src/main/assets/apps/journal/**'
       - 'app/src/main/assets/apps/mapping/**'
       - 'app/src/main/assets/apps/market-intel/**'
       - 'app/src/main/assets/apps/shared/**'
