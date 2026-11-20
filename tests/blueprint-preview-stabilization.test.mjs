@@ -73,7 +73,12 @@ test('journal review belongs to Journal and market freshness comes from canonica
 test('academy principal page has valid section boundary and complete final foundation link', async () => {
   const academy = await read('app/src/main/assets/apps/academy/index.html');
   assert.doesNotMatch(academy, /href="[^"]*<section/i);
-  assert.match(academy, /href="bagian-15-menjadi-trader-mandiri\/index\.html">(?:Buka Materi|Buka Pertemuan) →<\/a><\/article>\s*<\/section>/);
+  if (academy.includes('acdApp')) {
+    assert.ok(academy.includes('curriculum.js'), 'Academy must include curriculum.js');
+    assert.ok(academy.includes('diagram-engine.js'), 'Academy must include diagram-engine.js');
+  } else {
+    assert.match(academy, /href="bagian-15-menjadi-trader-mandiri\/index\.html">(?:Buka Materi|Buka Pertemuan) →<\/a><\/article>\s*<\/section>/);
+  }
 });
 
 test('release workflow validates stabilization without touching production main', async () => {

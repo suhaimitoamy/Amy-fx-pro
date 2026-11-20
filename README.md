@@ -18,6 +18,8 @@ Amy FX Pro adalah **hybrid trading workspace untuk XAU/USD (Gold)** yang menggab
 | **Published APK** | [GitHub Releases (amyfx-pro-2.0.0-pro.459)](https://github.com/suhaimitoamy/Amy-fx-pro/releases/tag/amyfx-pro-2.0.0-pro.459) |
 | **Runtime** | Android WebView + HTML/CSS/JS + Vercel Serverless + Local Termux (Port 8080) |
 
+> Paket Android `com.amyelitesuite.learningpreview` dipertahankan dari baseline `Amy FX Preview` pada `personal/amyfx-private` (`2.0.0-pro.316`) agar pembaruan tetap kompatibel. Kanal pembaruan sumber: `Amy-fx-pro/main/update.json`.
+
 ---
 
 ## 🏛️ Arsitektur Sistem
