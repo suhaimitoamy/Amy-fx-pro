@@ -112,6 +112,7 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
   let lastClosePrice = null, lastResult = null, activeBar = null;
   let activeLayers = { ...DEFAULT_CHART_LAYERS };
   let isHoveringCrosshair = false;
+  let crosshairCallback = onCrosshairOHLC;
 
   const palette = getThemeColors();
   const chart = window.LightweightCharts.createChart(element, {
@@ -186,10 +187,11 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
   let key = '', lines = [], indicatorLines = [], alertLines = [], rightBars = null;
 
   function emitOHLC(bar, hovering) {
-    if (typeof onCrosshairOHLC !== 'function' || !bar) return;
+    const cb = crosshairCallback || onCrosshairOHLC;
+    if (typeof cb !== 'function' || !bar) return;
     const o = Number(bar.open), h = Number(bar.high), l = Number(bar.low), c = Number(bar.close);
     if (!Number.isFinite(o) || !Number.isFinite(h) || !Number.isFinite(l) || !Number.isFinite(c)) return;
-    onCrosshairOHLC({
+    cb({
       time: bar.time,
       open: o,
       high: h,
@@ -209,7 +211,8 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
   }
 
   const handleCrosshairMove = (param) => {
-    if (typeof onCrosshairOHLC !== 'function') return;
+    const cb = crosshairCallback || onCrosshairOHLC;
+    if (typeof cb !== 'function') return;
     const bar = param?.seriesData?.get?.(series);
     if (bar && Number.isFinite(bar.close)) {
       isHoveringCrosshair = true;
@@ -335,6 +338,9 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
   }
 
   return {
+    setOnCrosshairOHLC(fn) {
+      crosshairCallback = fn;
+    },
     draw(result, plan = result.plan, presentation = null) {
       lastResult = result;
       activeBar = null;

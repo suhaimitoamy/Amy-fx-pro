@@ -73,7 +73,7 @@ function renderOhlcHud(info){
     `<span class="ohlc-range">Rng $${info.range.toFixed(2)}</span>`;
 }
 
-try{chart=createPriceChart($('chart'),{touchAxes:true,onCrosshairOHLC:renderOhlcHud});}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
+try{chart=createPriceChart($('chart'),{touchAxes:true});if(typeof renderOhlcHud==='function')chart.setOnCrosshairOHLC?.(renderOhlcHud);}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
 if(chart?.chart&&chart?.series){
   try{
     drawingTool=createManualDrawingTool({
@@ -206,12 +206,16 @@ function updateCandleCountdown(){
   el.classList.toggle('is-urgent',rem<=60);
 }
 
-function startCountdownTimer(){
-  clearInterval(countdownTimer);
+function tickCandleCountdown(){
+  clearTimeout(countdownTimer);
   updateCandleCountdown();
   if(!document.hidden){
-    countdownTimer=setInterval(updateCandleCountdown,1000);
+    countdownTimer=setTimeout(tickCandleCountdown,1000);
   }
+}
+
+function startCountdownTimer(){
+  tickCandleCountdown();
 }
 startCountdownTimer();
 
@@ -544,13 +548,13 @@ $('timeframe').addEventListener('change',()=>{
 });
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
-    generation++;controller?.abort();clearTimeout(timer);clearInterval(countdownTimer);
+    generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);
   }else{
     startCountdownTimer();
     refresh();
   }
 });
-window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);clearInterval(countdownTimer);});
+window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);});
 window.addEventListener('pageshow',event=>{if(event.persisted){startCountdownTimer();refresh();}});
 window.addEventListener('online',refresh);
 window.setTab(new URLSearchParams(location.search).get('route')||location.hash.slice(1)||'Dashboard');
