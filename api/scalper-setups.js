@@ -92,17 +92,21 @@ export default async function handler(req, res) {
     const size15 = closedOrWeekend ? 350 : 160;
     const size5 = closedOrWeekend ? 800 : 160;
     const size60 = closedOrWeekend ? 200 : 168;
-    const [res15, res5, res60, calRes] = await Promise.all([
+    const [res15, res5, res60, resD1, calRes] = await Promise.all([
       fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=15min&outputsize=${size15}`),
       fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=5min&outputsize=${size5}`),
       fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=1h&outputsize=${size60}`),
+      fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=1day&outputsize=10`),
       fetchWithAbort(`${baseUrl}/api/calendar`)
     ]);
 
     const m15 = convertCandles(res15?.values || res15, 900, 180);
     const m5 = convertCandles(res5?.values || res5, 300, 180);
     const h1 = convertCandles(res60?.values || res60, 3600, 180);
-    const d1 = (h1 && h1.length >= 12) ? synthesizeD1FromH1(h1, nowSec) : [];
+    let d1 = convertCandles(resD1?.values || resD1, 86400, 180);
+    if ((!d1 || !d1.length) && h1 && h1.length >= 12) {
+      d1 = synthesizeD1FromH1(h1, nowSec);
+    }
 
     // Jika TwelveData gagal / rate limit (429) dan candle tidak lengkap, gunakan cachePayload jika ada
     if ((!m15.length || !h1.length) && cachePayload) {
