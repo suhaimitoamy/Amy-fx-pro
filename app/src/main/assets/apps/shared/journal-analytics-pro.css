@@ -3,10 +3,12 @@
  */
 
 .jp-pro-root,
-.jp-home-card {
+.jp-home-card,
+.jp-journal-filter-bar,
+.journal-date-head {
   --jp-surface: var(--surface, var(--card-bg, #111827));
-  --jp-surface-soft: var(--surface-soft, rgba(255, 255, 255, 0.03));
-  --jp-border: var(--border, rgba(148, 163, 184, 0.18));
+  --jp-surface-soft: var(--surface-soft, rgba(255, 255, 255, 0.04));
+  --jp-border: var(--border, rgba(148, 163, 184, 0.2));
   --jp-text: var(--text, #f1f5f9);
   --jp-muted: var(--muted, #94a3b8);
   --jp-accent: var(--gold, var(--accent, #d4a832));
@@ -17,10 +19,16 @@
 }
 
 [data-amyfx-theme="light"] .jp-pro-root,
-[data-amyfx-theme="light"] .jp-home-card {
+[data-amyfx-theme="light"] .jp-home-card,
+[data-amyfx-theme="light"] .jp-journal-filter-bar,
+[data-amyfx-theme="light"] .journal-date-head,
+[data-theme="light"] .jp-pro-root,
+[data-theme="light"] .jp-home-card,
+[data-theme="light"] .jp-journal-filter-bar,
+[data-theme="light"] .journal-date-head {
   --jp-surface: var(--surface, #ffffff);
   --jp-surface-soft: var(--surface-soft, #f8fafc);
-  --jp-border: var(--border, rgba(15, 23, 42, 0.12));
+  --jp-border: var(--border, rgba(15, 23, 42, 0.14));
   --jp-text: var(--text, #0f172a);
   --jp-muted: var(--muted, #475569);
   --jp-accent: var(--gold, #b45309);
@@ -634,3 +642,79 @@
     transition: none;
   }
 }
+
+/* ─── Opsi 1: Focused Journal Quick Filter Bar & 3-Tab Bottom Nav ───────── */
+.jp-journal-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.jp-search-input {
+  flex: 1 1 220px;
+  min-width: 180px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--jp-border);
+  background: var(--jp-surface-soft);
+  color: var(--jp-text);
+  font-size: 0.84rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 140ms ease;
+}
+
+.jp-search-input::placeholder {
+  color: var(--jp-muted);
+}
+
+.jp-search-input:focus {
+  border-color: var(--jp-accent);
+}
+
+nav.bottom-nav.bottom-nav--focused {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  justify-items: stretch !important;
+}
+
+.journal-date-head em.is-pos {
+  color: var(--jp-pos);
+}
+
+.journal-date-head em.is-neg {
+  color: var(--jp-neg);
+}
+
+@media (max-width: 720px) {
+  .jp-journal-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .jp-journal-filter-bar .jp-seg {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: space-between;
+  }
+
+  .jp-journal-filter-bar .jp-seg-btn {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  .jp-search-input {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+  }
+}
+

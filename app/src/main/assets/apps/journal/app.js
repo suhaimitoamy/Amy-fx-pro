@@ -117,9 +117,13 @@ const dom = {
   journalId: document.querySelector("#journalId"),
   journalDateInput: document.querySelector("#journalDateInput"),
   journalMarketInput: document.querySelector("#journalMarketInput"),
+  journalDirectionInput: document.querySelector("#journalDirectionInput"),
+  journalSessionInput: document.querySelector("#journalSessionInput"),
   journalTitleInput: document.querySelector("#journalTitleInput"),
   journalSetupInput: document.querySelector("#journalSetupInput"),
   journalResultInput: document.querySelector("#journalResultInput"),
+  journalPnlInput: document.querySelector("#journalPnlInput"),
+  journalRrInput: document.querySelector("#journalRrInput"),
   journalProfitInput: document.querySelector("#journalProfitInput"),
   journalLossInput: document.querySelector("#journalLossInput"),
   journalEvaluationInput: document.querySelector("#journalEvaluationInput"),
@@ -130,6 +134,8 @@ const dom = {
   journalFileMeta: document.querySelector("#journalFileMeta"),
   journalMessage: document.querySelector("#journalMessage"),
   resetJournalBtn: document.querySelector("#resetJournalBtn"),
+  journalSearchInput: document.querySelector("#journalSearchInput"),
+  journalFilterButtons: document.querySelectorAll("[data-journal-result-filter]"),
   journalList: document.querySelector("#journalList"),
   journalEmpty: document.querySelector("#journalEmpty"),
   aiProviderInput: document.querySelector("#aiProviderInput"),
@@ -229,7 +235,9 @@ const state = {
   collectionFilter: "",
   sort: "pinned-newest",
   showArchived: false,
-  view: "library",
+  view: "journal",
+  journalResultFilter: "all",
+  journalSearchQuery: "",
   pendingMedia: null,
   activeDocument: null,
   renderedObjectUrls: new Set(),
@@ -305,8 +313,8 @@ async function boot() {
   loadAssistantSettings();
   state.assistantChatHistory = loadAssistantChatHistory();
   loadSettings();
-  fillSelect(dom.categoryInput, categories);
-  fillSelect(dom.statusInput, statuses);
+  if (dom.categoryInput) fillSelect(dom.categoryInput, categories);
+  if (dom.statusInput) fillSelect(dom.statusInput, statuses);
   renderPills();
   bindEvents();
   if (dom.journalDateInput && !dom.journalDateInput.value) dom.journalDateInput.value = new Date().toISOString().slice(0, 10);
@@ -385,7 +393,11 @@ function bindEvents() {
     });
   });
 
-  dom.openFormBtn?.addEventListener("click", () => openForm());
+  dom.openFormBtn?.addEventListener("click", () => {
+    setView("journal");
+    resetJournalForm();
+    openJournalEditor("new");
+  });
   dom.emptyAddBtn?.addEventListener("click", () => openForm());
   dom.uploadMediaBtn?.addEventListener("click", () => dom.mediaDirectFileInput?.click());
   dom.emptyMediaUploadBtn?.addEventListener("click", () => dom.mediaDirectFileInput?.click());
@@ -453,23 +465,25 @@ function bindEvents() {
   document.getElementById("syncObsidianBtn")?.addEventListener("click", handleObsidianSync);
   document.getElementById("syncNotesObsidianBtn")?.addEventListener("click", handleObsidianSync);
 
-  // Quick Backup, Restore & PIN forwards from Header and Drawer
-  document.getElementById("headBackupBtn")?.addEventListener("click", () => dom.exportAllBtn?.click());
-  document.getElementById("headRestoreInput")?.addEventListener("change", (e) => {
-    if (dom.importBackupInput && e.target.files?.length) {
-      dom.importBackupInput.files = e.target.files;
-      dom.importBackupInput.dispatchEvent(new Event("change"));
-    }
+  // Direct Backup, Restore & PIN handlers from Sidebar Drawer (and legacy hidden triggers)
+  document.getElementById("headBackupBtn")?.addEventListener("click", exportBackup);
+  document.getElementById("headRestoreInput")?.addEventListener("change", importBackup);
+  document.getElementById("drawerBackupBtn")?.addEventListener("click", () => {
+    closeSidebar();
+    exportBackup();
   });
-  document.getElementById("drawerBackupBtn")?.addEventListener("click", () => dom.exportAllBtn?.click());
   document.getElementById("drawerRestoreInput")?.addEventListener("change", (e) => {
-    if (dom.importBackupInput && e.target.files?.length) {
-      dom.importBackupInput.files = e.target.files;
-      dom.importBackupInput.dispatchEvent(new Event("change"));
-    }
+    closeSidebar();
+    importBackup(e);
   });
-  document.getElementById("drawerPinBtn")?.addEventListener("click", () => dom.setPinBtn?.click());
-  document.getElementById("drawerClearPinBtn")?.addEventListener("click", () => dom.clearPinBtn?.click());
+  document.getElementById("drawerPinBtn")?.addEventListener("click", () => {
+    closeSidebar();
+    setLocalPin();
+  });
+  document.getElementById("drawerClearPinBtn")?.addEventListener("click", () => {
+    closeSidebar();
+    clearLocalPin();
+  });
 
   dom.scanStorageBtn?.addEventListener("click", scanStorageFiles);
   dom.storageScanInput?.addEventListener("change", handleStorageScanInput);
@@ -478,6 +492,18 @@ function bindEvents() {
   dom.setPinBtn?.addEventListener("click", setLocalPin);
   dom.clearPinBtn?.addEventListener("click", clearLocalPin);
   dom.newJournalBtn?.addEventListener("click", () => { resetJournalForm(); openJournalEditor("new"); });
+  dom.journalFilterButtons?.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.journalResultFilter = button.dataset.journalResultFilter || "all";
+      dom.journalFilterButtons.forEach((b) => b.classList.toggle("is-active", b === button));
+      renderJournals();
+    });
+  });
+  const debouncedJournalSearch = debounce(() => {
+    state.journalSearchQuery = (dom.journalSearchInput?.value || "").trim().toLowerCase();
+    renderJournals();
+  }, 140);
+  dom.journalSearchInput?.addEventListener("input", debouncedJournalSearch);
   dom.newNoteBtn?.addEventListener("click", () => openNoteForm(null));
   dom.cancelNoteBtn?.addEventListener("click", closeNoteForm);
   dom.noteForm?.addEventListener("submit", saveNote);
@@ -700,6 +726,7 @@ function cleanItemForStorage(item) {
 }
 
 function loadSettings() {
+  const FOCUSED_VIEWS = ["journal", "statistics", "habits", "notes"];
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
     state.category = saved.category || "Semua";
@@ -710,14 +737,14 @@ function loadSettings() {
     state.collectionFilter = saved.collectionFilter || "";
     state.sort = saved.sort || "pinned-newest";
     state.showArchived = Boolean(saved.showArchived);
-    state.view = saved.view === "code" ? "library" : (saved.view || "library");
-    dom.searchInput.value = state.query;
+    state.view = FOCUSED_VIEWS.includes(saved.view) ? saved.view : "journal";
+    if (dom.searchInput) dom.searchInput.value = state.query;
     if (dom.collectionFilterInput) dom.collectionFilterInput.value = state.collectionFilter;
     if (dom.sortSelect) dom.sortSelect.value = state.sort;
     if (dom.showArchivedInput) dom.showArchivedInput.checked = state.showArchived;
     setView(state.view, false);
   } catch {
-    setView("library", false);
+    setView("journal", false);
   }
 }
 
@@ -875,13 +902,8 @@ function switchPerformaSubtab(tab) {
 }
 
 function setView(view, shouldRender = true) {
-  if (view === "statistics") {
-    view = "habits";
-    switchPerformaSubtab("stats");
-  } else if (view === "habits") {
-    switchPerformaSubtab("habits");
-  }
-  state.view = ["library", "code", "media", "journal", "assistant", "statistics", "notes", "habits"].includes(view) ? view : "library";
+  const FOCUSED_VIEWS = ["journal", "statistics", "habits", "notes"];
+  state.view = FOCUSED_VIEWS.includes(view) ? view : "journal";
   Object.entries(dom.views).forEach(([key, section]) => {
     if (!section) return;
     const isActive = key === state.view;
@@ -898,8 +920,8 @@ function setView(view, shouldRender = true) {
   if (shouldRender) scheduleRender();
   if (state.view === "habits") {
     renderJournalHabits();
+  } else if (state.view === "statistics") {
     renderStatistics(getFilteredItems(state.items));
-    renderDashboard(state.items);
   }
 }
 
@@ -1395,36 +1417,23 @@ function updateRenderCounters({ allMatches, codeItems, mediaItems }) {
   if (dom.libraryCount) dom.libraryCount.textContent = makeCount(allMatches.length);
   if (dom.codeCount) dom.codeCount.textContent = makeCount(codeItems.length);
   if (dom.mediaCount) dom.mediaCount.textContent = makeCount(mediaItems.length);
-  if (dom.journalCount) dom.journalCount.textContent = `${state.journals.length} jurnal`;
+  if (dom.journalCount) dom.journalCount.textContent = `${state.journals.length} trade`;
 }
 
-function renderActiveView({ allMatches, codeItems, mediaItems }) {
+function renderActiveView({ allMatches }) {
   switch (state.view) {
-    case "code":
-      renderGrid(dom.codeGrid, codeItems);
-      if (dom.codeEmpty) dom.codeEmpty.hidden = codeItems.length > 0;
+    case "statistics":
+      renderStatistics(allMatches);
       break;
-    case "media":
-      renderGrid(dom.mediaGrid, mediaItems);
-      if (dom.mediaEmpty) dom.mediaEmpty.hidden = mediaItems.length > 0;
-      break;
-    case "journal":
-      renderJournals();
-      break;
-    case "assistant":
-      renderAssistantPanel();
+    case "habits":
+      renderJournalHabits();
       break;
     case "notes":
       renderNotes();
       break;
-    case "statistics":
-      renderStatistics(allMatches);
-      break;
-
-    case "library":
+    case "journal":
     default:
-      renderGrid(dom.libraryGrid, allMatches);
-      if (dom.libraryEmpty) dom.libraryEmpty.hidden = allMatches.length > 0;
+      renderJournals();
       break;
   }
 }
@@ -1839,32 +1848,9 @@ function calculateStreak() {
   return streak;
 }
 
-function renderDashboard(items) {
+function renderDashboard() {
   const containers = [dom.dashboardGrid, document.getElementById('dashboardGridHabits')].filter(Boolean);
-  if (!containers.length) return;
-  const totals = {
-    total: items.length,
-    code: items.filter((item) => getItemFileType(item) === "Kode").length,
-    image: items.filter((item) => getItemFileType(item) === "Gambar").length,
-    video: items.filter((item) => getItemFileType(item) === "Video").length,
-    pdf: items.filter((item) => getItemFileType(item) === "PDF").length,
-    word: items.filter((item) => getItemFileType(item) === "Word").length,
-    favorite: items.filter((item) => item.favorite).length,
-    archived: state.items.filter((item) => item.archived).length,
-    journal: state.journals.length
-  };
-
-  containers.forEach(container => {
-    container.replaceChildren(
-      makeStatCard("🔥 Streak", calculateStreak() + " Hari"),
-      makeStatCard("Total File", totals.total),
-      makeStatCard("Kode", totals.code),
-      makeStatCard("Gambar", totals.image),
-      makeStatCard("Video", totals.video),
-      makeStatCard("PDF", totals.pdf),
-      makeStatCard("Jurnal", totals.journal)
-    );
-  });
+  containers.forEach((container) => container.replaceChildren());
 }
 
 function makeStatCard(label, value) {
@@ -1882,46 +1868,15 @@ function makeStatCard(label, value) {
 }
 
 
-function renderStatistics(items) {
+function renderStatistics() {
   const targetContainers = [dom.statisticsViewContent, document.getElementById('statisticsViewContentHabits')].filter(Boolean);
   if (!targetContainers.length) return;
-  const total = items.length;
-  const totals = {
-    video: items.filter((item) => getItemFileType(item) === "Video").length,
-    pdf: items.filter((item) => getItemFileType(item) === "PDF").length,
-    image: items.filter((item) => getItemFileType(item) === "Gambar").length,
-    journal: state.journals.length
-  };
-  const unread = items.filter((item) => item.status === "Belum dibaca").length;
-  const learned = items.filter((item) => ["Dipelajari", "Dipakai", "Selesai"].includes(item.status)).length;
-  const used = items.filter((item) => item.status === "Dipakai").length;
-  const videoWatched = items.filter((item) => getItemFileType(item) === "Video" && item.status !== "Belum dibaca").length;
-  const pdfOpened = items.filter((item) => getItemFileType(item) === "PDF" && item.status !== "Belum dibaca").length;
-  const progressPercent = total ? Math.round((learned / total) * 100) : 0;
-  const videoPercent = totals.video ? Math.round((videoWatched / totals.video) * 100) : 0;
-  const pdfPercent = totals.pdf ? Math.round((pdfOpened / totals.pdf) * 100) : 0;
 
   const journalStats = getJournalStatistics();
   const monthInfo = getCurrentMonthInfo();
   const calendarHtml = buildStatisticsCalendar(monthInfo.year, monthInfo.month);
-  const performanceRing = journalStats.entryCount ? Math.round((journalStats.win / journalStats.entryCount) * 100) : 0;
 
   const statsHtml = `
-    <div class="stats-summary-grid">
-      ${makeStatisticsCard("Total Materi", total, "stack")}
-      ${makeStatisticsCard("Video", totals.video, "video")}
-      ${makeStatisticsCard("PDF", totals.pdf, "pdf")}
-      ${makeStatisticsCard("Gambar", totals.image, "image")}
-      ${makeStatisticsCard("Jurnal", totals.journal, "journal")}
-    </div>
-
-    <div class="stats-progress-grid">
-      ${makeProgressStat("Sudah dibaca", learned, progressPercent)}
-      ${makeProgressStat("Belum dibaca", unread, total ? Math.round((unread / total) * 100) : 0)}
-      ${makeProgressStat("Video ditonton", videoWatched, videoPercent)}
-      ${makeProgressStat("PDF terbuka", pdfOpened, pdfPercent)}
-    </div>
-
     <section class="stats-panel jp-pro-host-panel">
       <div class="jp-pro-mount" data-jp-pro-mount></div>
     </section>
@@ -1931,38 +1886,12 @@ function renderStatistics(items) {
         <button type="button" class="calendar-nav-button" data-stats-month-nav="-1" aria-label="Bulan sebelumnya">‹</button>
         <div>
           <h3>${monthInfo.label}</h3>
-          <p>Monthly Journal • ${journalStats.monthJournalCount} jurnal</p>
+          <p>Kalender P/L Bulanan • ${journalStats.monthJournalCount} trade</p>
         </div>
         <button type="button" class="calendar-nav-button" data-stats-month-nav="1" aria-label="Bulan berikutnya">›</button>
       </div>
       ${calendarHtml}
     </section>
-
-    <div class="stats-lower-grid">
-      <section class="stats-panel stat-donut-card">
-        <h3>Performa Bulanan</h3>
-        <div class="donut-wrap">
-          <div class="donut-ring" style="--value:${performanceRing}"><strong>${performanceRing}%</strong><span>Win Rate</span></div>
-          <div class="donut-legend">
-            <span><i class="legend-profit"></i>Win ${journalStats.win}</span>
-            <span><i class="legend-loss"></i>Loss ${journalStats.loss}</span>
-            <span><i class="legend-neutral"></i>BE ${journalStats.be}</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="stats-panel progress-learning-card">
-        <h3>Progress Belajar</h3>
-        <div class="learning-line"><span>Total Materi</span><strong>${total}</strong></div>
-        <div class="learning-progress"><i style="width:${progressPercent}%"></i></div>
-        <div class="learning-percent">${progressPercent}%</div>
-        <div class="learning-list">
-          <span>Sudah dibaca <strong>${learned}</strong></span>
-          <span>Belum dibaca <strong>${unread}</strong></span>
-          <span>Dipakai <strong>${used}</strong></span>
-        </div>
-      </section>
-    </div>
   `;
 
   targetContainers.forEach(container => {
@@ -1972,7 +1901,10 @@ function renderStatistics(items) {
       window.AmyJournalAnalyticsPro.mountProAnalytics(proMount, state.journals, {
         onLogFirst: () => {
           setView("journal");
-          setTimeout(() => dom.newJournalBtn?.click(), 60);
+          setTimeout(() => {
+            resetJournalForm();
+            openJournalEditor("new");
+          }, 60);
         }
       });
     } else if (proMount && window.AmyJournalAnalytics?.renderEquitySVG) {
@@ -1981,8 +1913,6 @@ function renderStatistics(items) {
   });
 
   bindStatisticsCalendarEvents();
-  bindDashboardInteractions();
-  requestAnimationFrame(() => animateDashboard());
 }
 
 function makeStatisticsCard(label, value, type) {
@@ -2141,7 +2071,7 @@ function shiftStatisticsMonth(offset) {
 }
 
 function buildStatisticsCalendar(year, month) {
-  const dayLabels = ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MINGGUAN"];
+  const dayLabels = ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MGG"];
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
   const startDay = first.getDay();
@@ -2161,7 +2091,7 @@ function buildStatisticsCalendar(year, month) {
     const win = week.flatMap((cell) => cell.journals || []).filter((journal) => journal.result === "Win").length;
     const loss = week.flatMap((cell) => cell.journals || []).filter((journal) => journal.result === "Loss").length;
     const weekClass = win > loss ? "is-win" : loss > win ? "is-loss" : "";
-    const weekText = win || loss ? `${win}W / ${loss}L` : "No Trade";
+    const weekText = win || loss ? `${win}W/${loss}L` : "—";
     return week.map((cell) => makeCalendarCell(cell)).join("") + `<div class="cal-cell cal-week ${weekClass}">${weekText}</div>`;
   }).join("");
   return `<div class="statistics-calendar">${header}${rows}</div>`;
@@ -2174,7 +2104,7 @@ function makeCalendarCell(cell) {
   const hasLoss = journals.some((journal) => journal.result === "Loss");
   const hasBe = journals.some((journal) => journal.result === "BE");
   const cls = hasWin ? "is-win" : hasLoss ? "is-loss" : hasBe ? "is-be" : "";
-  const label = journals.length ? (journals.length > 1 ? `${journals.length} jurnal` : journals[0].result || "Jurnal") : "No Trade";
+  const label = journals.length ? (journals.length > 1 ? `${journals.length} trd` : journals[0].result || "Jurnal") : "—";
   if (!journals.length) return `<div class="cal-cell ${cls}"><strong>${cell.day}</strong><span>${label}</span></div>`;
   return `<button type="button" class="cal-cell ${cls} is-clickable" data-journal-date="${cell.date}"><strong>${cell.day}</strong><span>${label}</span></button>`;
 }
@@ -5752,9 +5682,10 @@ async function saveJournals(journals = state.journals, options = {}) {
   try {
     window.dispatchEvent(new CustomEvent("amyfx:journal-state-change", { detail: { count: Array.isArray(journals) ? journals.length : 0 } }));
   } catch (_) {}
-  if (state.view === "habits") {
+  if (state.view === "statistics") {
+    renderStatistics();
+  } else if (state.view === "habits") {
     renderJournalHabits();
-    renderStatistics(getFilteredItems(state.items));
   }
   return saved;
 }
@@ -5763,12 +5694,16 @@ function normalizeJournals(journals) {
   return (journals || []).map((journal) => ({
     id: createId(),
     date: new Date().toISOString().slice(0, 10),
-    title: "Jurnal Trading",
-    market: "",
+    title: "Trade XAU/USD",
+    market: "XAU/USD",
+    direction: "",
+    session: "",
     setup: "",
     result: "Belum selesai",
     profit: 0,
     loss: 0,
+    pnlMoney: null,
+    riskReward: null,
     evaluation: "",
     mistakes: "",
     lessons: "",
@@ -5788,10 +5723,15 @@ function resetJournalForm() {
   dom.journalForm.reset();
   dom.journalId.value = "";
   dom.journalDateInput.value = new Date().toISOString().slice(0, 10);
+  if (dom.journalMarketInput) dom.journalMarketInput.value = "XAU/USD";
+  if (dom.journalDirectionInput) dom.journalDirectionInput.value = "Buy";
+  if (dom.journalSessionInput) dom.journalSessionInput.value = "";
   dom.journalResultInput.value = "Belum selesai";
+  if (dom.journalPnlInput) dom.journalPnlInput.value = "";
+  if (dom.journalRrInput) dom.journalRrInput.value = "";
   if (dom.journalProfitInput) dom.journalProfitInput.value = "";
   if (dom.journalLossInput) dom.journalLossInput.value = "";
-  dom.journalFileMeta.textContent = "Gambar chart, video, PDF, Markdown, TXT, Word";
+  dom.journalFileMeta.textContent = "PNG, JPG, WEBP atau PDF";
   dom.journalMessage.textContent = "";
   if (dom.resetJournalBtn) dom.resetJournalBtn.textContent = "Tutup Editor";
   state.pendingJournalFiles = [];
@@ -5802,10 +5742,10 @@ function openJournalEditor(mode = "new") {
   state.journalEditorOpen = true;
   dom.journalForm.hidden = false;
   dom.journalForm.classList.add("is-open");
-  if (dom.newJournalBtn) dom.newJournalBtn.textContent = mode === "edit" ? "Editor Aktif" : "Editor Terbuka";
+  if (dom.newJournalBtn) dom.newJournalBtn.textContent = mode === "edit" ? "Edit Trade" : "Editor Terbuka";
   requestAnimationFrame(() => {
     dom.journalForm.scrollIntoView({ block: "start", behavior: "smooth" });
-    dom.journalTitleInput?.focus();
+    (dom.journalSetupInput || dom.journalTitleInput)?.focus();
   });
 }
 
@@ -5814,7 +5754,7 @@ function closeJournalEditor() {
   state.journalEditorOpen = false;
   dom.journalForm.hidden = true;
   dom.journalForm.classList.remove("is-open");
-  if (dom.newJournalBtn) dom.newJournalBtn.textContent = "+ Jurnal Baru";
+  if (dom.newJournalBtn) dom.newJournalBtn.textContent = "+ Catat Trade";
   state.pendingJournalFiles = [];
   if (dom.journalFileInput) dom.journalFileInput.value = "";
   if (dom.journalMessage) dom.journalMessage.textContent = "";
@@ -5824,7 +5764,7 @@ async function handleJournalFilePick() {
   const files = [...(dom.journalFileInput?.files || [])];
   state.pendingJournalFiles = [];
   if (!files.length) {
-    dom.journalFileMeta.textContent = "Gambar chart, video, PDF, Markdown, TXT, Word";
+    dom.journalFileMeta.textContent = "PNG, JPG, WEBP atau PDF";
     return;
   }
   try {
@@ -5845,18 +5785,71 @@ async function handleJournalFilePick() {
   }
 }
 
+function parseSignedTradeAmount(value) {
+  const normalized = String(value ?? "").replace(/,/g, ".").replace(/[^0-9.-]/g, "");
+  const number = Number.parseFloat(normalized);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function buildAutoTradeTitle({ direction, market, setup, session }) {
+  const dir = direction ? direction.toUpperCase() : "";
+  const pair = market || "XAU/USD";
+  const head = [dir, pair].filter(Boolean).join(" ");
+  const detail = [setup, session].filter(Boolean).join(" · ");
+  return detail ? `${head} — ${detail}` : (head || "Trade XAU/USD");
+}
+
 function getJournalFormData() {
   const now = new Date().toISOString();
   const existing = state.journals.find((journal) => journal.id === dom.journalId.value);
+  const market = dom.journalMarketInput.value.trim() || "XAU/USD";
+  const direction = dom.journalDirectionInput?.value || "";
+  const session = dom.journalSessionInput?.value || "";
+  const setup = dom.journalSetupInput.value.trim();
+  const result = dom.journalResultInput.value;
+
+  const rawPnl = dom.journalPnlInput
+    ? parseSignedTradeAmount(dom.journalPnlInput.value)
+    : (parseTradeAmount(dom.journalProfitInput?.value) - parseTradeAmount(dom.journalLossInput?.value));
+
+  let profit = 0;
+  let loss = 0;
+  let pnlMoney = 0;
+
+  if (result === "Win") {
+    profit = Math.abs(rawPnl);
+    pnlMoney = profit;
+  } else if (result === "Loss") {
+    loss = Math.abs(rawPnl);
+    pnlMoney = -loss;
+  } else if (result === "BE" || result === "Tidak entry") {
+    profit = 0;
+    loss = 0;
+    pnlMoney = 0;
+  } else {
+    if (rawPnl > 0) profit = rawPnl;
+    if (rawPnl < 0) loss = Math.abs(rawPnl);
+    pnlMoney = rawPnl;
+  }
+
+  const rawRr = dom.journalRrInput ? Number.parseFloat(String(dom.journalRrInput.value || "").replace(/,/g, ".")) : NaN;
+  const riskReward = Number.isFinite(rawRr) && rawRr > 0 ? Math.round(rawRr * 100) / 100 : null;
+  const manualTitle = dom.journalTitleInput.value.trim();
+  const title = manualTitle || buildAutoTradeTitle({ direction, market, setup, session });
+
   const draft = {
     id: existing?.id || createId(),
     date: dom.journalDateInput.value || new Date().toISOString().slice(0, 10),
-    title: dom.journalTitleInput.value.trim() || "Jurnal Trading",
-    market: dom.journalMarketInput.value.trim(),
-    setup: dom.journalSetupInput.value.trim(),
-    result: dom.journalResultInput.value,
-    profit: parseTradeAmount(dom.journalProfitInput?.value),
-    loss: parseTradeAmount(dom.journalLossInput?.value),
+    title,
+    market,
+    direction,
+    session,
+    setup,
+    result,
+    profit,
+    loss,
+    pnlMoney,
+    riskReward,
     evaluation: dom.journalEvaluationInput.value.trim(),
     mistakes: dom.journalMistakesInput.value.trim(),
     lessons: dom.journalLessonsInput.value.trim(),
@@ -5873,7 +5866,7 @@ function getJournalFormData() {
 }
 
 function buildJournalRevisionHistory(existing, next, now) {
-  const changed = ["title", "market", "setup", "result", "profit", "loss", "evaluation", "mistakes", "lessons", "emotion"]
+  const changed = ["title", "market", "direction", "session", "setup", "result", "profit", "loss", "riskReward", "evaluation", "mistakes", "lessons", "emotion"]
     .some((key) => String(existing?.[key] || "") !== String(next?.[key] || ""));
   if (!changed) return existing.revisionHistory || [];
   return [
@@ -5925,9 +5918,10 @@ async function saveJournalForm(event) {
     state.journals = exists
       ? state.journals.map((entry) => entry.id === journal.id ? journal : entry)
       : [journal, ...state.journals];
+    state.journalOpenDate = journal.date || state.journalOpenDate;
     saveJournals();
     state.pendingJournalFiles = [];
-    dom.journalFileInput.value = "";
+    if (dom.journalFileInput) dom.journalFileInput.value = "";
     resetJournalForm();
     closeJournalEditor();
     render();
@@ -5937,13 +5931,55 @@ async function saveJournalForm(event) {
   }
 }
 
+function getFilteredJournals() {
+  const resultFilter = state.journalResultFilter || "all";
+  const q = (state.journalSearchQuery || "").trim().toLowerCase();
+  return [...state.journals]
+    .filter((entry) => {
+      if (resultFilter !== "all" && String(entry.result || "") !== resultFilter) return false;
+      if (!q) return true;
+      const haystack = [
+        entry.title,
+        entry.market,
+        entry.direction,
+        entry.session,
+        entry.setup,
+        entry.result,
+        entry.mistakes,
+        entry.emotion,
+        entry.evaluation,
+        entry.lessons
+      ].join(" ").toLowerCase();
+      return haystack.includes(q);
+    })
+    .sort((a, b) => dateValue(b.date || b.updatedAt || b.createdAt) - dateValue(a.date || a.updatedAt || a.createdAt));
+}
+
 function renderJournals() {
   if (!dom.journalList) return;
   dom.journalList.replaceChildren();
-  const journals = [...state.journals].sort((a, b) => dateValue(b.date || b.updatedAt || b.createdAt) - dateValue(a.date || a.updatedAt || a.createdAt));
+  const totalCount = state.journals.length;
+  const journals = getFilteredJournals();
+  const isFiltered = (state.journalResultFilter && state.journalResultFilter !== "all") || Boolean(state.journalSearchQuery);
   dom.journalEmpty.hidden = journals.length > 0;
-  dom.journalCount.textContent = `${journals.length} jurnal`;
+  if (dom.journalEmpty && journals.length === 0) {
+    const emptyTitle = dom.journalEmpty.querySelector("h3");
+    const emptyText = dom.journalEmpty.querySelector("p");
+    if (isFiltered && totalCount > 0) {
+      if (emptyTitle) emptyTitle.textContent = "Tidak ada trade yang cocok";
+      if (emptyText) emptyText.textContent = "Coba ubah filter hasil atau kata kunci pencarian.";
+    } else {
+      if (emptyTitle) emptyTitle.textContent = "Belum ada trade tercatat";
+      if (emptyText) emptyText.textContent = "Klik + Catat Trade untuk mulai merekam eksekusi XAU/USD dan membangun Equity Curve.";
+    }
+  }
+  dom.journalCount.textContent = isFiltered
+    ? `${journals.length} dari ${totalCount} trade`
+    : `${totalCount} trade`;
   const grouped = groupJournalsByDate(journals);
+  if (grouped.length > 0 && (!state.journalOpenDate || !grouped.some(([d]) => d === state.journalOpenDate))) {
+    state.journalOpenDate = grouped[0][0];
+  }
   const fragment = document.createDocumentFragment();
   grouped.forEach(([date, rows]) => fragment.append(createJournalDateGroup(date, rows)));
   dom.journalList.append(fragment);
@@ -5968,15 +6004,15 @@ function createJournalDateGroup(date, journals) {
 
   const win = journals.filter((journal) => journal.result === "Win").length;
   const loss = journals.filter((journal) => journal.result === "Loss").length;
-  const profit = journals.reduce((sum, journal) => sum + parseTradeAmount(journal.profit), 0);
-  const lossAmount = journals.reduce((sum, journal) => sum + parseTradeAmount(journal.loss), 0);
+  const net = journals.reduce((sum, journal) => sum + parseTradeAmount(journal.profit) - parseTradeAmount(journal.loss), 0);
+  const netTone = net > 0 ? "is-pos" : net < 0 ? "is-neg" : "";
 
   const head = document.createElement("button");
   head.type = "button";
   head.className = "journal-date-head";
   head.innerHTML = `
-    <span><strong>${formatDate(date)}</strong><small>${journals.length} jurnal • ${win}W / ${loss}L</small></span>
-    <em>${formatTradeAmount(profit - lossAmount)}</em>
+    <span><strong>${formatDate(date)}</strong><small>${journals.length} trade • ${win}W / ${loss}L</small></span>
+    <em class="jp-num ${netTone}">${net > 0 ? "+" : ""}${formatTradeAmount(net)}</em>
     <i aria-hidden="true"></i>
   `;
   head.addEventListener("click", () => toggleJournalDateGroup(date));
@@ -6015,13 +6051,22 @@ function createJournalCard(journal, expanded = false) {
   const title = document.createElement("h3");
   title.textContent = journal.title;
   const meta = document.createElement("p");
-  meta.textContent = [formatDate(journal.date), journal.market, journal.setup, journal.result, getJournalProfitLossText(journal)].filter(Boolean).join(" • ");
+  const rrText = Number.isFinite(Number(journal.riskReward)) && Number(journal.riskReward) > 0 ? `R:R ${journal.riskReward}` : "";
+  meta.textContent = [
+    journal.direction ? journal.direction.toUpperCase() : "",
+    journal.market,
+    journal.session,
+    journal.setup,
+    journal.result,
+    getJournalProfitLossText(journal),
+    rrText
+  ].filter(Boolean).join(" • ");
   copy.append(title, meta);
 
   const actions = document.createElement("div");
   actions.className = "journal-actions";
   const edit = makeJournalButton("Edit", () => editJournal(journal.id));
-  const analyze = makeJournalButton("Tanya", () => askFromJournal(journal.id));
+  const analyze = makeJournalButton("Tanya Amy", () => askFromJournal(journal.id));
   const remove = makeJournalButton("Hapus", () => deleteJournal(journal.id), "danger");
   [edit, analyze, remove].forEach((button) => button.addEventListener("click", (event) => event.stopPropagation()));
   actions.append(edit, analyze, remove);
@@ -6030,7 +6075,7 @@ function createJournalCard(journal, expanded = false) {
 
   const body = document.createElement("div");
   body.className = "journal-body";
-  body.append(makeJournalTextBlock("Evaluasi", journal.evaluation));
+  body.append(makeJournalTextBlock("Catatan Eksekusi", journal.evaluation));
   body.append(makeJournalTextBlock("Kesalahan", journal.mistakes));
   body.append(makeJournalTextBlock("Pelajaran", journal.lessons));
   if (journal.emotion) body.append(makeJournalTextBlock("Emosi", journal.emotion));
@@ -6180,10 +6225,17 @@ function editJournal(id) {
   if (!journal) return;
   dom.journalId.value = journal.id;
   dom.journalDateInput.value = journal.date || new Date().toISOString().slice(0, 10);
-  dom.journalMarketInput.value = journal.market || "";
+  dom.journalMarketInput.value = journal.market || "XAU/USD";
+  if (dom.journalDirectionInput) dom.journalDirectionInput.value = journal.direction || "Buy";
+  if (dom.journalSessionInput) dom.journalSessionInput.value = journal.session || "";
   dom.journalTitleInput.value = journal.title || "";
   dom.journalSetupInput.value = journal.setup || "";
   dom.journalResultInput.value = journal.result || "Belum selesai";
+  const net = Number.isFinite(Number(journal.pnlMoney))
+    ? Number(journal.pnlMoney)
+    : (parseTradeAmount(journal.profit) - parseTradeAmount(journal.loss));
+  if (dom.journalPnlInput) dom.journalPnlInput.value = net ? String(net) : "";
+  if (dom.journalRrInput) dom.journalRrInput.value = journal.riskReward ? String(journal.riskReward) : "";
   if (dom.journalProfitInput) dom.journalProfitInput.value = journal.profit ? String(journal.profit) : "";
   if (dom.journalLossInput) dom.journalLossInput.value = journal.loss ? String(journal.loss) : "";
   let combinedNotes = journal.evaluation || "";
@@ -6193,8 +6245,8 @@ function editJournal(id) {
   dom.journalMistakesInput.value = journal.mistakes || "";
   dom.journalLessonsInput.value = journal.lessons || "";
   dom.journalEmotionInput.value = journal.emotion || "";
-  dom.journalFileMeta.textContent = "Tambah lampiran baru bila perlu";
-  dom.journalMessage.textContent = "Mode edit jurnal aktif.";
+  dom.journalFileMeta.textContent = "Tambah screenshot baru bila perlu";
+  dom.journalMessage.textContent = "Mode edit trade aktif.";
   if (dom.resetJournalBtn) dom.resetJournalBtn.textContent = "Batal Edit";
   setView("journal");
   openJournalEditor("edit");
@@ -6203,7 +6255,7 @@ function editJournal(id) {
 async function deleteJournal(id) {
   const journal = state.journals.find((entry) => entry.id === id);
   if (!journal) return;
-  if (!window.confirm(`Hapus jurnal "${journal.title}"?`)) return;
+  if (!window.confirm(`Hapus trade "${journal.title}"?`)) return;
   await Promise.all((journal.attachments || []).map((attachment) => deleteFileRecord(attachment.fileId).catch(() => {})));
   state.journals = state.journals.filter((entry) => entry.id !== id);
   saveJournals();
@@ -6220,15 +6272,15 @@ function formatTradeAmount(value) {
   const number = Number(value) || 0;
   const sign = number < 0 ? "-" : "";
   const abs = Math.abs(number);
-  return `${sign}${abs.toLocaleString("id-ID", { maximumFractionDigits: 2 })}`;
+  return `${sign}$${abs.toLocaleString("id-ID", { maximumFractionDigits: 2 })}`;
 }
 
 function getJournalProfitLossText(journal) {
   const profit = parseTradeAmount(journal.profit);
   const loss = parseTradeAmount(journal.loss);
-  if (profit && loss) return `P/L ${formatTradeAmount(profit - loss)}`;
-  if (profit) return `Profit ${formatTradeAmount(profit)}`;
-  if (loss) return `Loss ${formatTradeAmount(loss)}`;
+  const net = profit - loss;
+  if (net > 0) return `+${formatTradeAmount(net)}`;
+  if (net < 0) return formatTradeAmount(net);
   return "";
 }
 
@@ -7689,29 +7741,29 @@ function saveAiPopupAsMaterial() {
 async function askFromJournal(id) {
   const journal = state.journals.find((entry) => entry.id === id);
   if (!journal) return;
-  setView("assistant");
-  dom.assistantQuestionInput.value = `Analisis jurnal ini berdasarkan kebiasaan trading saya. Data jurnal lengkap:
-${formatJournalForAI(journal)}`;
-  await askAssistant();
+  const prompt = `Review trade jurnal saya secara singkat dan actionable:\n${formatJournalForAI(journal)}`;
+  if (window.AmyLocalAssistant?.openWithPrompt) {
+    window.AmyLocalAssistant.openWithPrompt(prompt);
+    return;
+  }
+  window.showToast?.("Buka Amy Live di pojok kanan bawah untuk review trade ini.");
 }
 
 function formatJournalForAI(journal) {
   return [
     `Tanggal: ${formatDate(journal.date)}`,
-    `Market: ${journal.market || "-"}`,
+    `Pair: ${journal.market || "XAU/USD"}${journal.direction ? ` (${journal.direction})` : ""}`,
+    journal.session ? `Sesi: ${journal.session}` : "",
     `Judul: ${journal.title || "-"}`,
     `Setup: ${journal.setup || "-"}`,
     `Hasil: ${journal.result || "-"}`,
-    `Profit: ${formatTradeAmount(parseTradeAmount(journal.profit))}`,
-    `Loss: ${formatTradeAmount(parseTradeAmount(journal.loss))}`,
     `Net P/L: ${formatTradeAmount(parseTradeAmount(journal.profit) - parseTradeAmount(journal.loss))}`,
-    `Catatan awal: ${journal.plan || "-"}`,
-    `Evaluasi: ${journal.evaluation || "-"}`,
+    journal.riskReward ? `R:R: ${journal.riskReward}` : "",
+    `Catatan Eksekusi: ${journal.evaluation || "-"}`,
     `Kesalahan: ${journal.mistakes || "-"}`,
     `Pelajaran: ${journal.lessons || "-"}`,
-    `Emosi: ${journal.emotion || "-"}`,
-    `Lampiran: ${(journal.attachments || []).length}`
-  ].join("\n");
+    `Emosi: ${journal.emotion || "-"}`
+  ].filter(Boolean).join("\n");
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {

@@ -78,47 +78,180 @@ function advanceZone(z,c,newThisBar=false){
 }
 export function dashboardEngine(candles,options={}){
   const s={...DEFAULTS,...options},atr=wilderAtr(candles),history=[],events=[];
-  let ph=null,pl=null,bias=0,mss=0,invalid=null,rh=null,rl=null,sweep=null,bullFvg=null,bearFvg=null,bullOb=null,bearOb=null,dolMemory=null;
+  let ph=null,pl=null,protectedHigh=null,protectedLow=null,bias=0,mss=0,invalid=null,rh=null,rl=null,sweep=null,bullFvg=null,bearFvg=null,bullOb=null,bearOb=null,dolMemory=null,lastBreak=null;
+  const bslPool=[],sslPool=[];
+
+  const findOriginOb=(index,side,minThick)=>{
+    const maxBack=Math.max(2,s.obLength||10);
+    for(let off=1;off<=maxBack&&index-off>=0;off++){
+      const cur=candles[index-off];
+      if(!pair(cur,candles[index-off+1]))break;
+      const isOpp=side==='BUY'?cur.close<cur.open:cur.close>cur.open;
+      if(!isOpp)continue;
+      const bodyLo=Math.min(cur.open,cur.close),bodyHi=Math.max(cur.open,cur.close);
+      const bodyThick=bodyHi-bodyLo,fullThick=cur.high-cur.low;
+      if(fullThick<minThick)continue;
+      const lo=bodyThick>=minThick?bodyLo:cur.low;
+      const hi=bodyThick>=minThick?bodyHi:cur.high;
+      return zone('OB',side,lo,hi,cur,index-off);
+    }
+    return null;
+  };
+
+  const resolveDirectedDol=(dir,price,keyLvls)=>{
+    if(!dir||!finite(price))return {target:null,name:null};
+    const cands=[];
+    if(dir===1){
+      for(const p of bslPool)if(!p.consumed&&p.level>price)cands.push({level:p.level,name:'BSL Swing'});
+      if(finite(ph?.level)&&ph.level>price)cands.push({level:ph.level,name:'BSL M15'});
+      if(finite(rh)&&rh>price)cands.push({level:rh,name:'Range High'});
+      if(finite(keyLvls?.asiaHigh)&&keyLvls.asiaHigh>price)cands.push({level:keyLvls.asiaHigh,name:'Asia High'});
+      if(finite(keyLvls?.pdh)&&keyLvls.pdh>price)cands.push({level:keyLvls.pdh,name:'PDH'});
+      cands.sort((a,b)=>a.level-b.level);
+    }else{
+      for(const p of sslPool)if(!p.consumed&&p.level<price)cands.push({level:p.level,name:'SSL Swing'});
+      if(finite(pl?.level)&&pl.level<price)cands.push({level:pl.level,name:'SSL M15'});
+      if(finite(rl)&&rl<price)cands.push({level:rl,name:'Range Low'});
+      if(finite(keyLvls?.asiaLow)&&keyLvls.asiaLow<price)cands.push({level:keyLvls.asiaLow,name:'Asia Low'});
+      if(finite(keyLvls?.pdl)&&keyLvls.pdl<price)cands.push({level:keyLvls.pdl,name:'PDL'});
+      cands.sort((a,b)=>b.level-a.level);
+    }
+    return cands[0]?{target:cands[0].level,name:cands[0].name}:{target:null,name:null};
+  };
+
   for(let i=0;i<candles.length;i++){
     const c=candles[i],prev=candles[i-1],p=pivotAt(candles,i,s.swingLen);
-    if(p.high)ph=p.high;if(p.low)pl=p.low;
-    const contiguous=pair(prev,c),bull=contiguous&&ph&&pl&&c.close>ph.level&&prev.close<=ph.level,
-      bear=contiguous&&ph&&pl&&c.close<pl.level&&prev.close>=pl.level;
-    let invalidNow=false,changed=false;
-    const oldBias=bias;
-    if(bias===1&&invalid!=null&&c.close<invalid||bias===-1&&invalid!=null&&c.close>invalid){
-      invalidNow=true;changed=true;bias=bias===1?(bear?-1:0):(bull?1:0);mss=bias;
-      if(bias){invalid=bias===1?pl.level:ph.level;rh=bias===1?Math.max(ph.level,c.high):ph.level;rl=bias===-1?Math.min(pl.level,c.low):pl.level;}
-    }else if(bull&&bias!==1||bear&&bias!==-1){bias=bull?1:-1;mss=bias;invalid=bull?pl.level:ph.level;rh=bull?Math.max(ph.level,c.high):ph.level;rl=bear?Math.min(pl.level,c.low):pl.level;changed=true;}
-    else if(bull&&bias===1){mss=1;rh=Math.max(rh??ph.level,c.high);}
-    else if(bear&&bias===-1){mss=-1;rl=Math.min(rl??pl.level,c.low);}
-    if(bull||bear)events.push({kind:oldBias===(bull?1:-1)?'BOS':'MSS',side:bull?'BUY':'SELL',level:bull?ph.level:pl.level,time:c.close_time,from:bull?ph.time:pl.time});
-    if(changed)sweep=null;
-    const min=s.tick*s.minSweepTicks;
-    const bslSweep=ph&&c.high>ph.level&&c.close<ph.level&&c.high-ph.level>=min;
-    const sslSweep=pl&&c.low<pl.level&&c.close>pl.level&&pl.level-c.low>=min;
-    if(sslSweep&&!bslSweep)sweep={dir:1,index:i,time:c.close_time,price:pl.level,extreme:c.low};
-    if(bslSweep&&!sslSweep)sweep={dir:-1,index:i,time:c.close_time,price:ph.level,extreme:c.high};
-    const sweepInvalid=sweep&&(sweep.dir===1?c.close<sweep.price:c.close>sweep.price);
-    const invalidSweep=sweepInvalid?{...sweep}:null;if(sweepInvalid)sweep=null;
-    const sweepStatus=sweep?(i-sweep.index<=s.freshBars?1:2):sweepInvalid?3:0;
-    const dolDir=sweepStatus===1?sweep.dir:0,dolTarget=dolDir===1?ph?.level:dolDir===-1?pl?.level:null;
-    const dolKey=sweep&&dolTarget!=null?`${sweep.time}:${dolTarget}`:null;
-    if(dolKey!==dolMemory?.key)dolMemory=dolKey?{key:dolKey,reached:false}:null;
-    if(dolMemory&&(dolDir===1?c.high>=dolTarget:c.low<=dolTarget))dolMemory.reached=true;
-    const dolReached=Boolean(dolMemory?.reached);
-    const dolStatus=!dolDir||dolTarget==null?0:dolReached?2:1,dolAlign=!dolDir||!bias?0:dolDir===bias?1:-1;
-    const a=candles[i-2],three=a&&pair(a,prev)&&contiguous;
-    const newBull=three&&c.low>a.high,newBear=three&&c.high<a.low;
-    if(newBull)bullFvg=zone('FVG','BUY',a.high,c.low,c,i);
-    if(newBear)bearFvg=zone('FVG','SELL',c.high,a.low,c,i);
+    if(p.high){
+      ph=p.high;
+      bslPool.push({level:p.high.level,time:p.high.time,consumed:false});
+      if(bslPool.length>12)bslPool.shift();
+    }
+    if(p.low){
+      pl=p.low;
+      sslPool.push({level:p.low.level,time:p.low.time,consumed:false});
+      if(sslPool.length>12)sslPool.shift();
+    }
+
+    const curAtr=atr[i]||Math.max(c.high-c.low,s.tick);
+    const isGoldScale=c.close>100;
+    const minSweep=Math.max(s.tick*s.minSweepTicks,isGoldScale?Math.max(0.25,curAtr*0.08):curAtr*0.05);
+    const minFvgThick=isGoldScale?Math.max(0.8,curAtr*0.15):Math.max(s.tick*2,curAtr*0.1);
+    const minObThick=isGoldScale?Math.max(0.6,curAtr*0.12):Math.max(s.tick*2,curAtr*0.08);
+
+    const contiguous=pair(prev,c);
     const bodies=candles.slice(Math.max(0,i-19),i+1),avg=bodies.length===20&&consecutive(bodies)?mean(bodies.map(body)):null;
     const bullDisp=contiguous&&avg!=null&&c.close>c.open&&body(c)>avg*s.dispMult&&c.close>prev.high;
     const bearDisp=contiguous&&avg!=null&&c.close<c.open&&body(c)>avg*s.dispMult&&c.close<prev.low;
-    if(bullDisp)bullOb=zone('OB','BUY',prev.close<prev.open?prev.low:c.low,prev.close<prev.open?prev.open:c.open,c,i);
-    if(bearDisp)bearOb=zone('OB','SELL',prev.close>prev.open?prev.open:c.open,prev.close>prev.open?prev.high:c.high,c,i);
+
+    const bullRef=protectedHigh||ph,bearRef=protectedLow||pl;
+    const bull=contiguous&&bullRef&&pl&&c.close>bullRef.level&&prev.close<=bullRef.level;
+    const bear=contiguous&&bearRef&&ph&&c.close<bearRef.level&&prev.close>=bearRef.level;
+
+    let invalidNow=false,changed=false;
+    const oldBias=bias;
+    if(bias===1&&invalid!=null&&c.close<invalid||bias===-1&&invalid!=null&&c.close>invalid){
+      invalidNow=true;changed=true;
+      const flippedTo=bias===1?(bear?-1:0):(bull?1:0);
+      bias=flippedTo;mss=flippedTo;
+      if(bias===1){
+        invalid=pl?.level??null;protectedLow=pl;protectedHigh=ph;
+        rh=Math.max(ph?.level??c.high,c.high);rl=pl?.level??c.low;
+      }else if(bias===-1){
+        invalid=ph?.level??null;protectedHigh=ph;protectedLow=pl;
+        rh=ph?.level??c.high;rl=Math.min(pl?.level??c.low,c.low);
+      }else{
+        // Reset dealing range bounds cleanly when bias returns to NEUTRAL
+        invalid=null;protectedHigh=ph;protectedLow=pl;
+        rh=ph?Math.max(ph.level,c.high):c.high;
+        rl=pl?Math.min(pl.level,c.low):c.low;
+      }
+    }else if(bull&&bias!==1||bear&&bias!==-1){
+      bias=bull?1:-1;mss=bias;
+      invalid=bull?pl.level:ph.level;
+      protectedLow=pl;protectedHigh=ph;
+      rh=bull?Math.max(bullRef.level,c.high):ph.level;
+      rl=bear?Math.min(bearRef.level,c.low):pl.level;
+      changed=true;
+    }else if(bull&&bias===1){
+      mss=1;
+      if(pl&&(!protectedLow||pl.level>protectedLow.level)){protectedLow=pl;invalid=pl.level;}
+      protectedHigh=ph;
+      rh=Math.max(rh??bullRef.level,c.high);
+    }else if(bear&&bias===-1){
+      mss=-1;
+      if(ph&&(!protectedHigh||ph.level<protectedHigh.level)){protectedHigh=ph;invalid=ph.level;}
+      protectedLow=pl;
+      rl=Math.min(rl??bearRef.level,c.low);
+    }
+
+    if(bull||bear){
+      const ev={
+        kind:oldBias===(bull?1:-1)?'BOS':'MSS',
+        side:bull?'BUY':'SELL',
+        level:bull?bullRef.level:bearRef.level,
+        time:c.close_time,
+        from:bull?bullRef.time:bearRef.time,
+        displaced:bull?bullDisp:bearDisp
+      };
+      events.push(ev);
+      lastBreak=ev;
+    }
+
+    // Mark broken/swept liquidity pools as consumed
+    for(const pHigh of bslPool){if(!pHigh.consumed&&c.high>=pHigh.level+minSweep*0.5&&c.close>pHigh.level)pHigh.consumed=true;}
+    for(const pLow of sslPool){if(!pLow.consumed&&c.low<=pLow.level-minSweep*0.5&&c.close<pLow.level)pLow.consumed=true;}
+
+    if(changed)sweep=null;
+    const bslSweep=ph&&c.high>=ph.level+minSweep&&c.close<ph.level;
+    const sslSweep=pl&&c.low<=pl.level-minSweep&&c.close>pl.level;
+    if(sslSweep&&!bslSweep){
+      sweep={dir:1,reactionSide:'BUY',pool:'SSL',index:i,time:c.close_time,price:pl.level,extreme:c.low};
+      for(const pLow of sslPool)if(Math.abs(pLow.level-pl.level)<s.tick*5)pLow.consumed=true;
+    }
+    if(bslSweep&&!sslSweep){
+      sweep={dir:-1,reactionSide:'SELL',pool:'BSL',index:i,time:c.close_time,price:ph.level,extreme:c.high};
+      for(const pHigh of bslPool)if(Math.abs(pHigh.level-ph.level)<s.tick*5)pHigh.consumed=true;
+    }
+    const sweepInvalid=sweep&&(sweep.dir===1?c.close<sweep.price:c.close>sweep.price);
+    const invalidSweep=sweepInvalid?{...sweep}:null;if(sweepInvalid)sweep=null;
+    const sweepStatus=sweep?(i-sweep.index<=s.freshBars?1:2):sweepInvalid?3:0;
+
+    // Persistent Directed DOL: fresh sweep has priority, else active structural bias
+    const dolDir=sweepStatus===1?sweep.dir:(bias||0);
+    const dolPick=resolveDirectedDol(dolDir,c.close,options.keyLevels);
+    const dolTarget=dolPick.target;
+    const dolName=dolPick.name;
+    const dolKey=dolDir&&dolTarget!=null?`${dolDir}:${dolTarget.toFixed(2)}`:null;
+    if(dolKey!==dolMemory?.key)dolMemory=dolKey?{key:dolKey,target:dolTarget,dir:dolDir,reached:false}:null;
+    if(dolMemory&&(dolMemory.dir===1?c.high>=dolMemory.target:c.low<=dolMemory.target))dolMemory.reached=true;
+    const dolReached=Boolean(dolMemory?.reached);
+    const dolStatus=!dolDir||dolTarget==null?0:dolReached?2:1,dolAlign=!dolDir||!bias?0:dolDir===bias?1:-1;
+
+    // FVG with contiguity + minimum thickness + middle-candle displacement
+    const a=candles[i-2],three=a&&pair(a,prev)&&contiguous;
+    const midRange=prev?Math.max(prev.high-prev.low,s.tick):s.tick;
+    const midRatio=prev?body(prev)/midRange:0;
+    const bullGap=three?c.low-a.high:0;
+    const bearGap=three?a.low-c.high:0;
+    const newBull=three&&bullGap>=minFvgThick&&prev.close>prev.open&&midRatio>=0.45;
+    const newBear=three&&bearGap>=minFvgThick&&prev.close<prev.open&&midRatio>=0.45;
+    if(newBull)bullFvg=zone('FVG','BUY',a.high,c.low,c,i);
+    if(newBear)bearFvg=zone('FVG','SELL',c.high,a.low,c,i);
+
+    // OB anchored to BOS/MSS or strong displacement, locating true last opposing origin candle
+    let newBullOb=false,newBearOb=false;
+    if(bull||bullDisp){
+      const found=findOriginOb(i,'BUY',minObThick);
+      if(found){bullOb=found;newBullOb=true;}
+    }
+    if(bear||bearDisp){
+      const found=findOriginOb(i,'SELL',minObThick);
+      if(found){bearOb=found;newBearOb=true;}
+    }
+
     // Deliberate correctness fix: a zone's formation candle is not a subsequent retest.
-    advanceZone(bullFvg,c,newBull);advanceZone(bearFvg,c,newBear);advanceZone(bullOb,c,bullDisp);advanceZone(bearOb,c,bearDisp);
+    advanceZone(bullFvg,c,newBull);advanceZone(bearFvg,c,newBear);advanceZone(bullOb,c,newBullOb);advanceZone(bearOb,c,newBearOb);
+
     const candidates=(bias===1?[bullOb,bullFvg]:bias===-1?[bearOb,bearFvg]:[]).filter(z=>z&&z.status<4);
     const poi=candidates.sort((a,b)=>distance(c.close,a)-distance(c.close,b))[0]||null;
     const high=rh!=null&&rl!=null?Math.max(rh,rl):null,low=rh!=null&&rl!=null?Math.min(rh,rl):null;
@@ -131,13 +264,14 @@ export function dashboardEngine(candles,options={}){
     const coreReason=[
       bias===1?'Bias M15 Bullish':bias===-1?'Bias M15 Bearish':'Bias M15 Netral',
       priceZone===1?'Lokasi Premium':priceZone===-1?'Lokasi Diskon':'Lokasi Equilibrium',
-      sweepStatus===1?`${sweep?.dir===1?'SSL':'BSL'} Swept (Fresh)`:null,
-      dolStatus===1?`Target DOL: ${number(dolTarget)}`:dolStatus===2?'DOL Reached':null,
+      sweepStatus===1?`${sweep?.pool||(sweep?.dir===1?'SSL':'BSL')} Swept (Fresh)`:null,
+      dolStatus===1?`Target DOL: ${dolName?dolName+' ':''}${number(dolTarget)}`:dolStatus===2?'DOL Reached':null,
       poi?`POI: ${poi.side} ${poi.kind} (${poi.lifecycle})`:null
     ].filter(Boolean).join(' · ');
-    const item={time:c.close_time,candle:{...c},atr:atr[i],biasDir:bias,mssDir:mss,bullMss:Boolean(bull),bearMss:Boolean(bear),bullDisp:Boolean(bullDisp),bearDisp:Boolean(bearDisp),protectedHigh:ph?.level??null,protectedLow:pl?.level??null,
+    const item={time:c.close_time,candle:{...c},atr:atr[i],biasDir:bias,mssDir:mss,bullMss:Boolean(bull),bearMss:Boolean(bear),bullDisp:Boolean(bullDisp),bearDisp:Boolean(bearDisp),lastBreak:lastBreak?{...lastBreak}:null,
+      protectedHigh:protectedHigh?.level??ph?.level??null,protectedLow:protectedLow?.level??pl?.level??null,
       invalidLevel:invalid,invalidStatus,rangeHigh:high,rangeLow:low,eq,eqLow,eqHigh,priceZone,locationStatus:bias&&priceZone?-bias*priceZone:0,
-      bsl:ph?.level??null,ssl:pl?.level??null,sweep:sweep?{...sweep}:invalidSweep,sweepDir:sweep?.dir||0,sweepStatus,dolDir,dolTarget,dolStatus,dolAlign,dolDistance:dolTarget==null?null:Math.abs(dolTarget-c.close),
+      bsl:ph?.level??null,ssl:pl?.level??null,sweep:sweep?{...sweep}:invalidSweep,sweepDir:sweep?.dir||0,sweepStatus,dolDir,dolTarget,dolName,dolStatus,dolAlign,dolDistance:dolTarget==null?null:Math.abs(dolTarget-c.close),
       poi:poi?{...poi}:null,poiPriority:priority,poiLocation:poiLoc,poiDistance:distance(c.close,poi),alasanInti:coreReason,coreReason};
     history.push(item);
   }
@@ -169,28 +303,66 @@ export function sessions(seconds){
   return [ny.minute>=420&&ny.minute<540?'NY':null,ld.minute>=420&&ld.minute<600?'LONDON_OPEN':null,
     ld.minute>=900&&ld.minute<1020?'LONDON_CLOSE':null,jp.minute>=600&&jp.minute<840?'ASIA':null].filter(Boolean);
 }
-// M1 key levels are only published after observed session/day start and complete coverage.
-export function keyLevelHistory(m1=[]){
-  const history=[];let mo=null,moTime=null,day=null,asia=null,working=null;
-  for(let i=0;i<m1.length;i++){
-    const c=m1[i],p=localParts(c.open_time),previous=m1[i-1],prev=previous?localParts(previous.open_time):null;
-    if(p.date!==day){day=p.date;mo=null;moTime=null;}
-    if(p.minute===0){mo=c.open;moTime=c.open_time;}
+// Intraday key levels (NY Midnight Open & Asia 20:00-00:00 NY) with M1 -> M5 -> M15 fallback.
+export function keyLevelHistory(candles=[]){
+  const history=[];let mo=null,moTime=null,moStatus='UNAVAILABLE',day=null,asia=null,working=null;
+  for(let i=0;i<candles.length;i++){
+    const c=candles[i],dur=Math.max(60,c.close_time-c.open_time),sourceTf=dur<=60?'M1':dur<=300?'M5':'M15';
+    const p=localParts(c.open_time),previous=candles[i-1],prev=previous?localParts(previous.open_time):null;
+    if(p.date!==day){day=p.date;mo=null;moTime=null;moStatus='UNAVAILABLE';}
+    if(p.minute===0){mo=c.open;moTime=c.open_time;moStatus='FIXED';}
+    else if(mo==null&&p.minute>0&&p.minute<=15){mo=c.open;moTime=c.open_time;moStatus='ESTIMATED';}
     const inAsia=p.minute>=1200,wasAsia=prev&&prev.minute>=1200;
-    if(inAsia&&!wasAsia)working=p.minute===1200?{high:c.high,low:c.low,time:c.open_time,last:c.open_time,complete:true}:null;
-    if(inAsia&&working){if(working.last!==c.open_time)working.complete=false;working.high=Math.max(working.high,c.high);working.low=Math.min(working.low,c.low);working.last=c.close_time;}
-    if(!inAsia&&wasAsia&&working){if(working.last!==c.open_time)working.complete=false;if(working.complete)asia={...working,locked:true};working=null;}
-    const current=inAsia?(working?.complete?{...working,locked:false}:null):asia;
+    if(inAsia&&!wasAsia)working=p.minute<=1215?{high:c.high,low:c.low,time:c.open_time,last:c.open_time,covered:0,complete:true}:null;
+    if(inAsia&&working){
+      if(working.last!==c.open_time)working.complete=false;
+      working.high=Math.max(working.high,c.high);
+      working.low=Math.min(working.low,c.low);
+      working.covered+=dur;
+      working.last=c.close_time;
+    }
+    if(!inAsia&&wasAsia&&working){
+      if(working.last!==c.open_time)working.complete=false;
+      const minCovered=dur<=60?11520:7200;
+      if(working.complete||working.covered>=minCovered)asia={...working,locked:true,sourceTf};
+      working=null;
+    }
+    const liveOk=working&&(working.complete||working.covered>=Math.min(dur*2,1800));
+    const current=inAsia?(liveOk?{...working,locked:false,sourceTf}:null):asia;
     const valid=current&&c.close_time-current.last<=36*3600?current:null;
-    history.push({time:c.close_time,date:day,midnightOpen:mo,midnightTime:moTime,midnightStatus:mo==null?'UNAVAILABLE':'FIXED',
-      asiaHigh:valid?.high??null,asiaLow:valid?.low??null,asiaTime:valid?.time??null,asiaStatus:valid?(valid.locked?'LOCKED':'TRACKING'):'UNAVAILABLE'});
+    history.push({time:c.close_time,date:day,barDuration:dur,sourceTf,midnightOpen:mo,midnightTime:moTime,midnightStatus:mo==null?'UNAVAILABLE':moStatus,
+      asiaHigh:valid?.high??null,asiaLow:valid?.low??null,asiaTime:valid?.time??null,asiaStatus:valid?(valid.locked?'LOCKED':'TRACKING'):'UNAVAILABLE',asiaSource:valid?.sourceTf??null});
   }return history;
 }
-export function keyLevels({m1=[],d1=[],m15=[],nowSeconds,options={}}){
-  const current=last(keyLevelHistory(m1)),ny=localParts(nowSeconds),daily=last(d1),p=pivotList(m15,options.swingLen||5);
-  const snapshot=current&&nowSeconds-current.time<=900?current:{};
-  return {...snapshot,midnightOpen:current?.date===ny.date?snapshot.midnightOpen??null:null,midnightStatus:current?.date===ny.date?snapshot.midnightStatus||'UNAVAILABLE':'UNAVAILABLE',
-    asiaHigh:snapshot.asiaHigh??null,asiaLow:snapshot.asiaLow??null,asiaStatus:snapshot.asiaStatus||'UNAVAILABLE',pdh:daily?.high??null,pdl:daily?.low??null,bsl:last(p.highs)?.level??null,ssl:last(p.lows)?.level??null};
+export function keyLevels({m1=[],m5=[],m15=[],d1=[],nowSeconds,options={}}){
+  const ny=localParts(nowSeconds),daily=last(d1),p=pivotList(m15,options.swingLen||5);
+  const pickFresh=(bars)=>{
+    if(!Array.isArray(bars)||!bars.length)return null;
+    const cur=last(keyLevelHistory(bars));
+    if(!cur)return null;
+    const maxAge=Math.max(900,(cur.barDuration||60)*2+300);
+    return nowSeconds-cur.time<=maxAge?cur:null;
+  };
+  const candidates=[pickFresh(m1),pickFresh(m5),pickFresh(m15)].filter(Boolean);
+  const moSnap=candidates.find(s=>s.date===ny.date&&s.midnightOpen!=null)||null;
+  const asiaSnap=candidates.find(s=>s.asiaHigh!=null&&s.asiaLow!=null)||null;
+  const baseSnap=moSnap||asiaSnap||candidates[0]||{};
+  return {
+    ...baseSnap,
+    midnightOpen:moSnap?.midnightOpen??null,
+    midnightTime:moSnap?.midnightTime??null,
+    midnightStatus:moSnap?.midnightStatus||'UNAVAILABLE',
+    midnightSource:moSnap?.sourceTf||null,
+    asiaHigh:asiaSnap?.asiaHigh??null,
+    asiaLow:asiaSnap?.asiaLow??null,
+    asiaTime:asiaSnap?.asiaTime??null,
+    asiaStatus:asiaSnap?.asiaStatus||'UNAVAILABLE',
+    asiaSource:asiaSnap?.asiaSource||asiaSnap?.sourceTf||null,
+    pdh:daily?.high??null,
+    pdl:daily?.low??null,
+    bsl:last(p.highs)?.level??null,
+    ssl:last(p.lows)?.level??null
+  };
 }
 export function pivotList(candles,len=3,right=len){const highs=[],lows=[];for(let i=0;i<candles.length;i++){const p=pivotAt(candles,i,len,right);if(p.high)highs.push(p.high);if(p.low)lows.push(p.low);}return {highs,lows};}
 export function classicPivot(c){if(!c)return null;const p=(c.high+c.low+c.close)/3,r=c.high-c.low,r3=c.high+2*(p-c.low),s3=c.low-2*(c.high-p);
@@ -787,14 +959,16 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
 export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={}}){
   const H=clean(h1,nowSeconds,3600),M=clean(m15,nowSeconds,900),T=clean(m5,nowSeconds,300),I=clean(m1,nowSeconds,60),D=clean(d1,nowSeconds);
   const executionT=T.length>=15?T:M;
-  const dashboard=dashboardEngine(M,settings),trigger=triggerEngine(executionT,settings),levels=keyLevels({m1:I,d1:D,m15:M,nowSeconds});
+  const dashboard=dashboardEngine(M,settings),trigger=triggerEngine(executionT,settings),levels=keyLevels({m1:I,m5:T,d1:D,m15:M,nowSeconds});
   const pivots=pivotSources(D,nowSeconds);
-  const signals=[],keyHistory=keyLevelHistory(I);let cursor=0,keyCursor=0;
+  const keySource=I.length?I:(T.length>=48?T:M);
+  const keyTol=Math.max(900,keySource[0]?(keySource[0].close_time-keySource[0].open_time)*2+300:900);
+  const signals=[],keyHistory=keyLevelHistory(keySource);let cursor=0,keyCursor=0;
   for(const t of trigger){while(cursor+1<dashboard.history.length&&dashboard.history[cursor+1].time<=t.time)cursor++;
     const d=dashboard.history[cursor];if(!d||d.time>t.time)continue;
     // Key levels must be evaluated as of this candle, never with today's final Asia range.
     while(keyCursor+1<keyHistory.length&&keyHistory[keyCursor+1].time<=t.time)keyCursor++;
-    const historicLevels=keyHistory[keyCursor]?.time<=t.time&&t.time-keyHistory[keyCursor].time<=900?keyHistory[keyCursor]:{};
+    const historicLevels=keyHistory[keyCursor]?.time<=t.time&&t.time-keyHistory[keyCursor].time<=keyTol?keyHistory[keyCursor]:{};
     const entry=entryScore(d,t,historicLevels,settings);if(entry.score>=60&&d.biasDir&&entry.winDir===d.biasDir&&d.invalidStatus<2)signals.push({...entry,time:t.candle.open_time});
   }
   const current=dashboard.current,latestTrigger=last(trigger)||null,entry=entryScore(current,latestTrigger,levels,settings);
@@ -802,7 +976,7 @@ export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={
   const assistant=entryAssistantV3(current,executionT,levels,pivots,settings);
   const visuals=baseVisuals(M,settings);
   return {
-    chartCandles:{M15:M.slice(-500),M5:T.slice(-500),M1:I.slice(-500)},
+    chartCandles:{H1:H.slice(-200),M15:M.slice(-500),M5:T.slice(-500),M1:I.slice(-500)},
     policy:AMY_POLICY,
     dashboard:current,
     entry,

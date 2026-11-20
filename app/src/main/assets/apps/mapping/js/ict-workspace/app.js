@@ -1,8 +1,7 @@
 import {mountChartFullscreen} from './chart-fullscreen.js';
 import {loadCandles} from './data.js';
 import {normalize,analyze,timestamp} from './engine.js';
-import {createPriceChart} from './chart-view.js';
-const DEFAULT_CHART_LAYERS = createPriceChart.DEFAULT_CHART_LAYERS;
+import {createPriceChart,DEFAULT_CHART_LAYERS} from './chart-view.js';
 import {mountDisplay,renderAmy,loadDisplay,isGoldMarketOpen} from './ict-presentation.js';
 import {mountEconomicEventBanner} from './economic-countdown.js';
 import {updateDealingRangeBadge} from './dealing-range-badge.js';
@@ -74,7 +73,7 @@ function renderOhlcHud(info){
     `<span class="ohlc-range">Rng $${info.range.toFixed(2)}</span>`;
 }
 
-try{chart=createPriceChart($('chart'),{touchAxes:true});chart?.setOnCrosshairOHLC?.(renderOhlcHud);}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
+try{chart=createPriceChart($('chart'),{touchAxes:true,onCrosshairOHLC:renderOhlcHud});}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
 if(chart?.chart&&chart?.series){
   try{
     drawingTool=createManualDrawingTool({
@@ -208,13 +207,10 @@ function updateCandleCountdown(){
 }
 
 function startCountdownTimer(){
-  clearTimeout(countdownTimer);
+  clearInterval(countdownTimer);
   updateCandleCountdown();
   if(!document.hidden){
-    countdownTimer=setTimeout(function tick(){
-      updateCandleCountdown();
-      if(!document.hidden) countdownTimer=setTimeout(tick,1000);
-    },1000);
+    countdownTimer=setInterval(updateCandleCountdown,1000);
   }
 }
 startCountdownTimer();
@@ -373,6 +369,7 @@ window.addEventListener('amyfx:twelvedata-price',event=>{
 });
 window.addEventListener('amyfx:live-price-display',event=>{
   const detail=event?.detail;
+  if(detail?.source==='mapping-sse')return;
   applyLivePrice(Number(detail?.price),Number(detail?.capturedAt));
 });
 function startBrowserLivePriceStream(){
@@ -387,8 +384,13 @@ function startBrowserLivePriceStream(){
     es.onmessage=(event)=>{
       try{
         const data=JSON.parse(event.data);
-        if(data&&Number.isFinite(Number(data.price))){
-          applyLivePrice(Number(data.price),Number(data.timestamp)||Date.now());
+        const liveNum=Number(data?.price);
+        if(data&&Number.isFinite(liveNum)&&liveNum>0){
+          const ts=Number(data.timestamp)||Date.now();
+          applyLivePrice(liveNum,ts);
+          window.dispatchEvent(new CustomEvent('amyfx:live-price-display',{
+            detail:{price:liveNum,capturedAt:ts,source:'mapping-sse'}
+          }));
         }
       }catch(_){}
     };
@@ -542,13 +544,13 @@ $('timeframe').addEventListener('change',()=>{
 });
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
-    generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);
+    generation++;controller?.abort();clearTimeout(timer);clearInterval(countdownTimer);
   }else{
     startCountdownTimer();
     refresh();
   }
 });
-window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);});
+window.addEventListener('pagehide',()=>{generation++;controller?.abort();clearTimeout(timer);clearInterval(countdownTimer);});
 window.addEventListener('pageshow',event=>{if(event.persisted){startCountdownTimer();refresh();}});
 window.addEventListener('online',refresh);
 window.setTab(new URLSearchParams(location.search).get('route')||location.hash.slice(1)||'Dashboard');

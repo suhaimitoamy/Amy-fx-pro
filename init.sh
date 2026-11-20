@@ -13,12 +13,15 @@ echo "==> [Amy FX Pro] 1. Fast Syntax Validation..."
 node --check app/src/main/assets/app.js
 node --check app/src/main/assets/apps/shared/amy-gemini-live-bridge.js
 node --check app/src/main/assets/apps/shared/journal-analytics-pro.js
+node --check app/src/main/assets/apps/mapping/js/ict-workspace/mapping-accuracy.js
+node --check app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js
+node --check app/src/main/assets/apps/academy/js/diagram-engine.js
 node --check lib/twelvedata-key-pool.mjs
 node --check tools/serve-local.mjs
 echo "    ✓ Syntax validation clean (0 errors)"
 
 echo "==> [Amy FX Pro] 2. Baseline Health Verification (Targeted Tests)..."
-node --test tests/home-price-chart.test.mjs tests/journal-analytics-pro.test.mjs tests/twelvedata-key-pool.test.mjs
+node --test tests/home-price-chart.test.mjs tests/journal-analytics-pro.test.mjs tests/twelvedata-key-pool.test.mjs tests/mapping-accuracy.test.mjs tests/mapping-history-engine.test.mjs tests/academy-curriculum.test.mjs
 echo "    ✓ Baseline targeted tests passed"
 
 echo "==> [Amy FX Pro] 3. Preview Server Command:"

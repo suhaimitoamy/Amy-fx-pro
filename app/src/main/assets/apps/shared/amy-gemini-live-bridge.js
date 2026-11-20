@@ -410,53 +410,9 @@
     return null;
   }
 
-  function findLessonFromChatHistory(knowledgeList) {
-    const knowledge = Array.isArray(knowledgeList) ? knowledgeList : (root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []));
-    if (!Array.isArray(knowledge) || !knowledge.length) return null;
-    const hist = loadHistory();
-    if (!Array.isArray(hist) || !hist.length) return null;
-
-    const sorted = [...knowledge].filter(k => k.title && k.title.length > 3).sort((a, b) => b.title.length - a.title.length);
-    for (let i = hist.length - 1; i >= Math.max(0, hist.length - 6); i--) {
-      const text = hist[i]?.text || '';
-      if (!text) continue;
-      for (const k of sorted) {
-        const esc = k.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        if (new RegExp('\\b' + esc + '\\b', 'i').test(text)) {
-          return k;
-        }
-      }
-    }
-    return null;
-  }
-
   function resolveLessonFromQuery(queryOrTitle) {
     const rawQ = String(queryOrTitle || '').trim();
-    const q = rawQ.toLowerCase();
-    const knowledge = root.AmyLocalKnowledge || (typeof window !== 'undefined' ? window.AmyLocalKnowledge : []);
-
-    const isGenericRef =
-      !q ||
-      /^(buka\s+)?(materi\s+)?(itu|nya|materinya|terakhir|tadi|lanjutkan|ini)$/i.test(q) ||
-      /\b(materi itu|materinya|buka materi itu|buka materinya|materi terakhir|yang tadi|materi tadi|lanjutkan materi|materi ini|bab ini)\b/i.test(q);
-
-    if (isGenericRef) {
-      if (lastRequestedLesson && lastRequestedLesson.title) return lastRequestedLesson;
-      if (lastReadLessonDetails && lastReadLessonDetails.title) return lastReadLessonDetails;
-
-      const fromHist = findLessonFromChatHistory(knowledge);
-      if (fromHist) {
-        const path = resolveLessonHtmlPath(fromHist.path);
-        return {
-          title: fromHist.title,
-          relPath: path.replace(/^apps\/academy\//, ''),
-          fullPath: path,
-          summary: (fromHist.text || '').slice(0, 1800),
-          fullText: fromHist.text || ''
-        };
-      }
-    }
-
+    const knowledge = root.AmyLocalKnowledge || [];
     const found = findInLocalKnowledge(rawQ, knowledge);
     if (found) {
       const path = resolveLessonHtmlPath(found.path);
@@ -468,19 +424,6 @@
         fullText: found.text || ''
       };
     }
-
-    const fallbackHist = findLessonFromChatHistory(knowledge);
-    if (fallbackHist) {
-      const path = resolveLessonHtmlPath(fallbackHist.path);
-      return {
-        title: fallbackHist.title,
-        relPath: path.replace(/^apps\/academy\//, ''),
-        fullPath: path,
-        summary: (fallbackHist.text || '').slice(0, 1800),
-        fullText: fallbackHist.text || ''
-      };
-    }
-
     return null;
   }
 
@@ -1253,6 +1196,44 @@
         border: none !important;
       }
 
+      /* Mobile 360x820 (1080x2460 @ DPR 3) Calibration */
+      @media (max-width: 440px) {
+        #amy-local-panel:not(.amy-bubble-fullscreen) {
+          left: 8px !important;
+          right: 8px !important;
+          width: auto !important;
+          bottom: 80px !important;
+          max-height: calc(100dvh - 102px) !important;
+          border-radius: 18px !important;
+        }
+        #amy-local-panel .prompts {
+          flex-wrap: wrap !important;
+          overflow-x: visible !important;
+          gap: 5px !important;
+          padding: 7px 10px !important;
+        }
+        #amy-local-panel .prompts button {
+          padding: 5px 9px !important;
+          font-size: 11px !important;
+        }
+        #amy-local-panel form {
+          gap: 5px !important;
+          padding: 8px 8px !important;
+        }
+        #amy-local-panel form input {
+          font-size: 13px !important;
+          padding: 8px 9px !important;
+        }
+        .amy-bar-btn {
+          width: 32px !important;
+          height: 32px !important;
+        }
+        .amy-send-btn {
+          width: 34px !important;
+          height: 32px !important;
+        }
+      }
+
       /* FULL LIGHT MODE OVERRIDES (data-amyfx-theme="light" & data-theme="light") */
       :is(html[data-amyfx-theme="light"], html[data-theme="light"]) #amy-local-fab {
         background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
@@ -1849,7 +1830,6 @@
               const sysText =
                 `Kamu adalah ✦ AMY, asisten khusus trading XAU/USD di Amy FX Pro (Pure Gold Scalper M15/M5 WITA).\n` +
                 `Sapa pengguna dengan "Sayang", jawab tegas, jujur (Anti-Yes-Man), dan 100% berdasar data live aplikasi.\n` +
-                `FORMAT ANGKA (MUTLAK): Wajib gunakan DIGIT ANGKA ($3595.57, 3611.41, 50%, 100 pips). Dilarang keras mengeja angka menjadi huruf (jangan eja "tiga ribu...").\n` +
                 `KONTEKS LIVE APLIKASI:\n${appContext}`;
               const gContents = [];
               for (const h of hist.slice(-6)) {
@@ -2139,9 +2119,6 @@
                       `Kamu adalah ✦ AMY, asisten trading suara khusus XAU/USD (Gold) di Amy FX Pro.\n` +
                       `FOKUS 100% TRADING XAU/USD & FITUR AMY FX PRO: Tolak halus topik non-trading dan arahkan kembali ke trading Gold atau fitur aplikasi.\n` +
                       `PROFIL: Sayang adalah Pure Gold Scalper M15/M5 target 100 Pips ($10), zona waktu WITA (UTC+8). Panggil selalu "Sayang" dengan hangat, tajam, dan jujur (Anti-Yes-Man).\n` +
-                      `ATURAN FORMAT ANGKA & LEVEL (MUTLAK):\n` +
-                      `- WAJIB menuliskan dan menyebutkan SEMUA angka harga, level support/resistance, Order Block, FVG, persentase, dan pips MENGGUNAKAN DIGIT ANGKA (contoh: $3595.57, 3611.41 - 3624.32, 50%, 100 pips).\n` +
-                      `- DILARANG KERAS mengeja angka menjadi huruf atau kata-kata panjang (JANGAN PERNAH tulis "tiga ribu lima ratus...", "seventeen", dll). Trader butuh melihat angka digit riil dengan cepat dan presisi.\n` +
                       `ATURAN TOOL:\n` +
                       `- Selalu panggil tool data (get_mapping_structure_details, get_market_news_summary, get_journal_summary, calculate_gold_lot, get_practice_summary) dan JAWAB LANGSUNG DI TEMPAT.\n` +
                       `- Jangan panggil navigate_to_page kecuali Sayang eksplisit menyuruh pindah halaman.\n` +
@@ -2264,14 +2241,6 @@
                       setTimeout(() => {
                         try { window.location.assign(resolveAppUrl(les.fullPath)); } catch (_) {}
                       }, 500);
-                      setTimeout(() => {
-                        if (isLiveConnected) {
-                          setOrbVisualState(isStreamingMic ? 'listening' : '', isStreamingMic ? 'Mendengarkan…' : 'Siap Menemani Sayang');
-                        } else {
-                          setOrbVisualState('', 'Ketuk Gelembung untuk Bicara');
-                        }
-                        isSending = false;
-                      }, 2200);
                     }
                   }
                   functionResponses.push({ id: fc.id, name: fc.name, response: { output } });

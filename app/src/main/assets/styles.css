@@ -286,6 +286,12 @@ main {
   padding: 18px 16px 112px;
 }
 
+@media (max-width: 480px) {
+  main {
+    padding: 14px 12px 136px;
+  }
+}
+
 .page-header {
   margin-bottom: 20px;
   display: flex;

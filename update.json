@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.458/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.459/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Pro Journal Analytics: Single-source engine, interaktif SVG Equity Curve & Underwater Drawdown, filter 7H/30H/90H/Semua, dan metrik R-Multiple.",
-    "✦ Integrasi Beranda & Jurnal: Ringkasan performa jurnal di Beranda dengan 4 KPI, quick log, dan evaluasi bareng Amy Live.",
-    "✦ TwelveData Multi-Key Pool: Rotasi otomatis multi-key, failover cerdas HTTP 429, dan optimasi kredit API ~80%."
+    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI (Auto-backfill 30j + live persistence 7 hari), 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
+    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live.",
+    "✦ Kalibrasi Responsif Mobile & Jurnal Diet: Optimasi presisi layar 360x820px, kalkulator lot anti-overflow, dan perampingan fokus jurnal."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.458/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.459/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950458,
-  "latest_version_name": "2.0.0-pro.458",
+  "latest_version_code": 950459,
+  "latest_version_name": "2.0.0-pro.459",
   "mandatory": false,
   "releaseDate": "2026-11-20",
   "release_notes": [
-    "✦ Pro Journal Analytics: Single-source engine, interaktif SVG Equity Curve & Underwater Drawdown, filter 7H/30H/90H/Semua, dan metrik R-Multiple.",
-    "✦ Integrasi Beranda & Jurnal: Ringkasan performa jurnal di Beranda dengan 4 KPI, quick log, dan evaluasi bareng Amy Live.",
-    "✦ TwelveData Multi-Key Pool: Rotasi otomatis multi-key, failover cerdas HTTP 429, dan optimasi kredit API ~80%."
+    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI (Auto-backfill 30j + live persistence 7 hari), 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
+    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live.",
+    "✦ Kalibrasi Responsif Mobile & Jurnal Diet: Optimasi presisi layar 360x820px, kalkulator lot anti-overflow, dan perampingan fokus jurnal."
   ],
-  "version": "2.0.0-pro.458",
-  "versionCode": 950458,
-  "sha256": "046e9efb8c11b9589d7d510d9c12f317047db72f448b2143efe8372c1a857fb2"
+  "version": "2.0.0-pro.459",
+  "versionCode": 950459,
+  "sha256": ""
 }

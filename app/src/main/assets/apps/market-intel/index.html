@@ -2,13 +2,12 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#070B12">
-  <title>Berita — Amy FX</title>
+  <title>Market Intel — Amy FX Pro</title>
   <script src="../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
   <link rel="stylesheet" href="../shared/market-intelligence.css">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="heatmap-v2.css">
   <link rel="stylesheet" href="../shared/amyfx-blueprint-v1.css" data-amyfx-blueprint-css="v1">
   <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css" data-amyfx-ui-tokens="v1">
   <link rel="stylesheet" href="../shared/amyfx-theme.css" data-amyfx-theme="v1">
@@ -37,19 +36,21 @@
         </svg>
       </button>
     </header>
-    <nav class="intel-tabs">
-      <button class="intel-tab active" data-tab="sentiment">Kompas Fundamental</button>
-      <button class="intel-tab" data-tab="news">Berita</button>
-      <button class="intel-tab" data-tab="calendar">Kalender</button>
+
+    <nav class="intel-tabs" role="tablist" aria-label="Navigasi Market Intel">
+      <button type="button" class="intel-tab active" data-tab="sentiment" role="tab" aria-selected="true">Kompas Fundamental</button>
+      <button type="button" class="intel-tab" data-tab="news" role="tab" aria-selected="false">Berita</button>
+      <button type="button" class="intel-tab" data-tab="calendar" role="tab" aria-selected="false">Kalender</button>
     </nav>
-    <section id="intel-briefing" class="amy-briefing" aria-live="polite"></section>
-    <section id="panel-sentiment" class="intel-panel active">
+
+    <section id="panel-sentiment" class="intel-panel active" role="tabpanel">
       <div class="intel-status-row">
         <div class="status-bar" id="sentiment-status">Memuat kompas fundamental &amp; sentimen makro...</div>
         <button type="button" class="intel-refresh-btn" id="btn-refresh-sentiment" aria-label="Perbarui Kompas">Perbarui</button>
       </div>
       <div id="sentiment-content" class="sentiment-wrap"></div>
     </section>
+
     <section id="panel-news" class="intel-panel" role="tabpanel">
       <div class="calendar-filters news-filters" role="group" aria-label="Filter Berita">
         <button type="button" class="news-filter active" data-news-filter="gold">Fokus Gold (XAU)</button>
@@ -62,12 +63,13 @@
       </div>
       <div id="news-list" class="news-list"></div>
     </section>
+
     <section id="panel-calendar" class="intel-panel" role="tabpanel">
       <div class="calendar-filters" role="group" aria-label="Filter Kalender Ekonomi">
-        <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold (USD) 🇺🇸</button>
-        <button type="button" class="cal-filter" data-filter="high">High Impact 🔴</button>
-        <button type="button" class="cal-filter" data-filter="medium">Medium 🟠</button>
-        <button type="button" class="cal-filter" data-filter="all">Semua Rilis 🌐</button>
+        <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold (USD)</button>
+        <button type="button" class="cal-filter" data-filter="high">High Impact</button>
+        <button type="button" class="cal-filter" data-filter="medium">Medium</button>
+        <button type="button" class="cal-filter" data-filter="all">Semua Rilis</button>
       </div>
       <div class="intel-status-row">
         <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>
@@ -75,6 +77,7 @@
       </div>
       <div id="calendar-list" class="calendar-list"></div>
     </section>
+
     <div id="loading-overlay" class="loading-overlay" hidden>
       <div class="spinner"></div>
       <p>Memuat Data...</p>
@@ -84,7 +87,6 @@
   <script src="../shared/amyfx-market-state-contract-v1.js" data-amyfx-market-contract="v2"></script>
   <script src="../shared/market-intelligence.js"></script>
   <script src="app.js"></script>
-  <script type="module" src="ict-intel.js"></script>
   <script src="../shared/amyfx-blueprint-hotfix-v1.js" data-amyfx-blueprint-hotfix="v1"></script>
   <script src="../shared/amyfx-blueprint-v1.js" data-amyfx-blueprint-js="v1"></script>
   <script src="../shared/amyfx-universal-nav.js"></script>

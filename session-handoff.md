@@ -1,27 +1,27 @@
 # Amy FX Pro — Session Handoff
 
 ## 1. Verified Now (Status Terverifikasi Saat Ini)
-- **Versi Rilis:** `2.0.0-pro.458` (code `950458`) — Sukses terbit di GitHub Release.
-- **CI/CD Workflow:** `Lint / Static Check` & `Amy FX Pro Build and Release` **100% SUCCESS** (Semua 218 regression test lolos).
-- **Baseline Verification:** Script `./init.sh` lulus bersih (0 error, 12/12 baseline test pass).
-- **Fitur Baru Terpasang:**
-  - Central Pro Journal Analytics & interactive SVG Equity Curve (`apps/shared/journal-analytics-pro.js` & `.css`).
-  - Integrasi dashboard analitik jurnal di Beranda & Jurnal.
-  - TwelveData Multi-Key Pool (`lib/twelvedata-key-pool.mjs`) & optimasi kredit ~80%.
-  - Format angka digit mutlak pada Amy Live Voice (`amy-gemini-live-bridge.js`).
+- **Versi Rilis:** `2.0.0-pro.459` (code `950459`) — Integrasi borongan dari Google AI Studio.
+- **Baseline Verification:** Script `./init.sh` lulus bersih (0 error, 34/34 targeted test pass).
+- **Fitur Baru Terpasang dari AI Studio:**
+  - **Mapping Reaction History Engine:** Tracking POI touch/outcome (auto-backfill 30j + live persistence 7 hari di localStorage, scorecard Respect%).
+  - **Mapping Accuracy & SSOT M15:** 5 pilar resolusi arah tunggal, dual-layer scalper POI (M5/M15 continuation), dan perbaikan zero-height OB.
+  - **Amy FX Academy Reborn:** 6 Level kurikulum (30 Pelajaran + 90 Kuis Diagnostik), Zero-Dependency SVG Diagram Engine (`diagram-engine.js`), dan sinkronisasi pengetahuan Amy Live.
+  - **Kalibrasi Mobile 360x820px:** Fix overflow lot calculator, padding kalender bulanan, dan layout jurnal responsif.
+  - **Jurnal Diet & Unified P/L:** Penghapusan bloat modul non-trading dengan 100% kompatibilitas data lama.
 
 ## 2. Changed This Session
-- Migrasi borongan 19 berkas dari Google AI Studio.
-- Perbaikan regresi UI label profile & fetch D1 pada `app.js` dan `api/scalper-setups.js`.
-- Penambahan 4 file harness primitif: `init.sh`, `feature_list.json`, `session-handoff.md`, `clean-state-checklist.md`.
+- Migrasi borongan 40 berkas dari commit `77bf5f7` repo Google AI Studio (`Amy-fx-ai-studio`).
+- Penambahan 3 test suite baru: `tests/mapping-accuracy.test.mjs`, `tests/mapping-history-engine.test.mjs`, `tests/academy-curriculum.test.mjs`.
+- Bump versi ke `2.0.0-pro.459` / `950459`.
 
 ## 3. Broken Or Unverified Risks
 - Tidak ada blocker kritis yang aktif.
-- Kuota Opus sedang dalam masa tunggu reset (otomatis memakai Gemini Flash / Sonnet sesuai kebutuhan).
+- Semua 34 targeted baseline test lolos 100%.
 
 ## 4. Next Best Actions
-- Lanjutkan pemantauan chart live XAU/USD sesi trading harian Sayang.
-- Eksperimen riset lab jika Sayang ingin menguji strategi baru.
+- Pantau CI/CD GitHub Actions release pipeline untuk APK `2.0.0-pro.459`.
+- Lanjutkan pengawalan chart live XAU/USD.
 
 ## 5. Standard Commands
 - Inisialisasi & verifikasi cepat: `./init.sh`

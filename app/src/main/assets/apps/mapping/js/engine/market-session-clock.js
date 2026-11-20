@@ -233,109 +233,191 @@ function formatDuration(ms) {
   return `${minutes}m`;
 }
 
-export function sessionCountdownPill(value = Date.now()) {
+function nyClockParts(timestamp) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(new Date(timestamp));
+  const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+  const hour = Number(map.hour || 0);
+  const minute = Number(map.minute || 0);
+  return {
+    weekday: map.weekday || '',
+    hour,
+    minute,
+    totalMinutes: hour * 60 + minute
+  };
+}
+
+export function resolveGoldSessionState(value = Date.now()) {
   const timestamp = timestampMs(value);
   if (!Number.isFinite(timestamp)) {
     return {
-      text: '[ ⏳ Memuat Sesi... ]',
-      activeSession: 'UNKNOWN',
-      status: 'OFFLINE'
+      code: 'UNKNOWN',
+      label: 'Memuat Sesi…',
+      pillText: 'Memuat Sesi…',
+      status: 'OFFLINE',
+      isKillzone: false,
+      isClosed: false,
+      remainingMs: 0
     };
   }
 
-  const asia = sessionDetail(SESSION_DEFINITIONS.ASIA, timestamp);
-  const london = sessionDetail(SESSION_DEFINITIONS.LONDON, timestamp);
-  const newYork = sessionDetail(SESSION_DEFINITIONS.NEW_YORK, timestamp);
+  const ny = nyClockParts(timestamp);
+  const mins = ny.totalMinutes;
 
-  // 1. Active sessions
-  if (asia.active) {
-    const remaining = Math.max(0, asia.end - timestamp);
+  // Weekend closure: Fri 17:00 NY -> Sun 17:00 NY
+  const isWeekend =
+    ny.weekday === 'Sat' ||
+    (ny.weekday === 'Fri' && mins >= 17 * 60) ||
+    (ny.weekday === 'Sun' && mins < 17 * 60);
+  if (isWeekend) {
     return {
-      text: `[ 🇯🇵 Sesi Asia Aktif (Sisa ${formatDuration(remaining)}) ]`,
-      activeSession: 'ASIA',
+      code: 'PASAR TUTUP',
+      label: 'Pasar Tutup · Akhir Pekan',
+      pillText: 'Pasar Tutup · Akhir Pekan',
+      status: 'CLOSED',
+      isKillzone: false,
+      isClosed: true,
+      remainingMs: 0
+    };
+  }
+
+  // Daily Gold rollover: 17:00 - 18:00 NY
+  if (mins >= 17 * 60 && mins < 18 * 60) {
+    const remMs = (18 * 60 - mins) * 60000;
+    return {
+      code: 'PASAR TUTUP',
+      label: 'Rollover Harian · 17:00–18:00 NY',
+      pillText: `Rollover Harian · Buka ${formatDuration(remMs)}`,
+      status: 'CLOSED',
+      isKillzone: false,
+      isClosed: true,
+      remainingMs: remMs
+    };
+  }
+
+  // London Killzone: 02:00 - 05:00 NY
+  if (mins >= 2 * 60 && mins < 5 * 60) {
+    const remMs = (5 * 60 - mins) * 60000;
+    return {
+      code: 'LONDON',
+      label: 'London Killzone',
+      pillText: `London Killzone · Sisa ${formatDuration(remMs)}`,
       status: 'ACTIVE',
-      season: 'WITA',
-      witaTime: `${asia.witaStart}–${asia.witaEnd} WITA`,
-      remainingMs: remaining
-    };
-  }
-
-  if (london.active) {
-    const remaining = Math.max(0, london.end - timestamp);
-    return {
-      text: `[ 🇬🇧 London Killzone Aktif (Sisa ${formatDuration(remaining)}) ]`,
       activeSession: 'LONDON',
-      status: 'ACTIVE',
-      season: london.season,
-      witaTime: `${london.witaStart}–${london.witaEnd} WITA`,
-      remainingMs: remaining
+      isKillzone: true,
+      isClosed: false,
+      remainingMs: remMs
     };
   }
 
-  if (newYork.active) {
-    const remaining = Math.max(0, newYork.end - timestamp);
+  // London-NY Pre-Open: 05:00 - 07:00 NY
+  if (mins >= 5 * 60 && mins < 7 * 60) {
+    const remMs = (7 * 60 - mins) * 60000;
     return {
-      text: `[ 🇺🇸 New York Sesi Aktif (Sisa ${formatDuration(remaining)}) ]`,
-      activeSession: 'NEW_YORK',
-      status: 'ACTIVE',
-      season: newYork.season,
-      witaTime: `${newYork.witaStart}–${newYork.witaEnd} WITA`,
-      remainingMs: remaining
-    };
-  }
-
-  // 2. Upcoming / countdown to next session
-  if (timestamp < asia.start) {
-    const msUntil = asia.start - timestamp;
-    return {
-      text: `[ 🇯🇵 Menuju Sesi Asia dalam ${formatDuration(msUntil)} (${asia.witaStart} WITA) ]`,
-      activeSession: 'OFF_SESSION',
+      code: 'LONDON-NY PRE-OPEN',
+      label: 'London–NY Pre-Open',
+      pillText: `London–NY Pre-Open · NY ${formatDuration(remMs)}`,
       status: 'UPCOMING',
-      nextSession: 'ASIA',
-      season: 'WITA',
-      targetTime: asia.witaStart,
-      remainingMs: msUntil
-    };
-  }
-
-  if (timestamp < london.start) {
-    const msUntil = london.start - timestamp;
-    return {
-      text: `[ 🇬🇧 Menuju London Open dalam ${formatDuration(msUntil)} (${london.witaStart} WITA) ]`,
       activeSession: 'OFF_SESSION',
-      status: 'UPCOMING',
-      nextSession: 'LONDON',
-      season: london.season,
-      targetTime: london.witaStart,
-      remainingMs: msUntil
-    };
-  }
-
-  if (timestamp < newYork.start) {
-    const msUntil = newYork.start - timestamp;
-    return {
-      text: `[ 🇺🇸 Menuju NY Open dalam ${formatDuration(msUntil)} (${newYork.witaStart} WITA) ]`,
-      activeSession: 'OFF_SESSION',
-      status: 'UPCOMING',
       nextSession: 'NEW_YORK',
-      season: newYork.season,
-      targetTime: newYork.witaStart,
-      remainingMs: msUntil
+      isKillzone: false,
+      isClosed: false,
+      remainingMs: remMs
     };
   }
 
-  const tomorrowTimestamp = timestamp + 24 * 3600 * 1000;
-  const tomorrowAsia = sessionDetail(SESSION_DEFINITIONS.ASIA, tomorrowTimestamp);
-  const msUntilTomorrow = Math.max(0, tomorrowAsia.start - timestamp);
+  // New York Killzone: 07:00 - 11:00 NY
+  if (mins >= 7 * 60 && mins < 11 * 60) {
+    const remMs = (11 * 60 - mins) * 60000;
+    return {
+      code: 'NEW YORK',
+      label: 'NY Killzone',
+      pillText: `NY Killzone · Sisa ${formatDuration(remMs)}`,
+      status: 'ACTIVE',
+      activeSession: 'NEW_YORK',
+      isKillzone: true,
+      isClosed: false,
+      remainingMs: remMs
+    };
+  }
 
+  // New York Afternoon: 11:00 - 17:00 NY
+  if (mins >= 11 * 60 && mins < 17 * 60) {
+    const remMs = (17 * 60 - mins) * 60000;
+    return {
+      code: 'NEW YORK SIANG',
+      label: 'New York Siang',
+      pillText: `New York Siang · Sisa ${formatDuration(remMs)}`,
+      status: 'ACTIVE',
+      activeSession: 'NEW_YORK',
+      isKillzone: false,
+      isClosed: false,
+      remainingMs: remMs
+    };
+  }
+
+  // Asia Session: 20:00 - 00:00 NY
+  if (mins >= 20 * 60) {
+    const remMs = (24 * 60 - mins) * 60000;
+    return {
+      code: 'ASIA',
+      label: 'Sesi Asia',
+      pillText: `Sesi Asia · Sisa ${formatDuration(remMs)}`,
+      status: 'ACTIVE',
+      activeSession: 'ASIA',
+      isKillzone: false,
+      isClosed: false,
+      remainingMs: remMs
+    };
+  }
+
+  // Transition windows: 00:00-02:00 NY (to London) or 18:00-20:00 NY (to Asia)
+  if (mins < 2 * 60) {
+    const remMs = (2 * 60 - mins) * 60000;
+    return {
+      code: 'TRANSISI',
+      label: 'Transisi Sesi',
+      pillText: `Transisi · London ${formatDuration(remMs)}`,
+      status: 'UPCOMING',
+      activeSession: 'OFF_SESSION',
+      nextSession: 'LONDON',
+      isKillzone: false,
+      isClosed: false,
+      remainingMs: remMs
+    };
+  }
+
+  const remMs = (20 * 60 - mins) * 60000;
   return {
-    text: `[ 🇯🇵 Menuju Sesi Asia dalam ${formatDuration(msUntilTomorrow)} (${tomorrowAsia.witaStart} WITA) ]`,
-    activeSession: 'OFF_SESSION',
+    code: 'TRANSISI',
+    label: 'Transisi Sesi',
+    pillText: `Transisi · Asia ${formatDuration(remMs)}`,
     status: 'UPCOMING',
+    activeSession: 'OFF_SESSION',
     nextSession: 'ASIA',
-    season: 'WITA',
-    targetTime: tomorrowAsia.witaStart,
-    remainingMs: msUntilTomorrow
+    isKillzone: false,
+    isClosed: false,
+    remainingMs: remMs
+  };
+}
+
+export function sessionCountdownPill(value = Date.now()) {
+  const state = resolveGoldSessionState(value);
+  return {
+    text: state.pillText,
+    label: state.label,
+    code: state.code,
+    activeSession: state.activeSession || 'OFF_SESSION',
+    nextSession: state.nextSession || null,
+    status: state.status,
+    isKillzone: state.isKillzone,
+    isClosed: state.isClosed,
+    remainingMs: state.remainingMs
   };
 }
 
@@ -344,11 +426,21 @@ export function updateCockpitSessionPill(element, timestamp = Date.now()) {
   if (!pillEl) return null;
   const info = sessionCountdownPill(timestamp);
   pillEl.textContent = info.text;
-  if (info.status === 'ACTIVE') {
+  if (info.status === 'CLOSED') {
+    pillEl.className = 'cockpit-session-pill session-closed';
+    pillEl.style.color = '#f87171';
+    pillEl.style.borderColor = 'rgba(248,113,113,0.38)';
+    pillEl.style.background = 'rgba(248,113,113,0.12)';
+  } else if (info.status === 'ACTIVE' && info.isKillzone) {
     pillEl.className = 'cockpit-session-pill session-active';
     pillEl.style.color = '#22C55E';
     pillEl.style.borderColor = 'rgba(34,197,94,0.4)';
     pillEl.style.background = 'rgba(34,197,94,0.12)';
+  } else if (info.status === 'ACTIVE') {
+    pillEl.className = 'cockpit-session-pill session-active';
+    pillEl.style.color = '#38bdf8';
+    pillEl.style.borderColor = 'rgba(56,189,248,0.35)';
+    pillEl.style.background = 'rgba(56,189,248,0.10)';
   } else {
     pillEl.className = 'cockpit-session-pill session-upcoming';
     pillEl.style.color = 'var(--amy-accent,#F5C451)';
@@ -364,4 +456,8 @@ export function startCockpitSessionPill(element = 'cockpit-session-pill', interv
     return setInterval(() => updateCockpitSessionPill(element), intervalMs);
   }
   return null;
+}
+
+if (typeof window !== 'undefined') {
+  window.AmySessionClock = { resolveGoldSessionState, sessionCountdownPill, updateCockpitSessionPill };
 }

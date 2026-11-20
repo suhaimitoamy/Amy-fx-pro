@@ -4,12 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#070B12">
-    <meta name="description" content="Trading Library Manager untuk mengelola materi, indikator, gambar chart, video pembelajaran, dan dokumen trading.">
-    <title>Jurnal Trading — Amy FX</title>
+    <meta name="description" content="Jurnal Trading XAU/USD, Analitik Equity Curve, Kalender P/L, dan Disiplin Habits — Amy FX Pro.">
+    <title>Jurnal Trading — Amy FX Pro</title>
     <script src="../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
     <link rel="stylesheet" href="./style.css?v=20261001-media3">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%23050806'/%3E%3Cpath d='M20 62h12V36H20v26Zm22 0h12V24H42v38Zm22 0h12V44H64v18Z' fill='%2339ff88'/%3E%3Cpath d='M18 72h60' stroke='%23f4fff7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="amy-journal-final-fix.css">
   <link rel="stylesheet" href="../shared/amyfx-blueprint-v1.css" data-amyfx-blueprint-css="v1">
   <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css" data-amyfx-ui-tokens="v1">
   <link rel="stylesheet" href="../shared/amyfx-theme.css" data-amyfx-theme="v1">
@@ -34,20 +33,11 @@
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">AMY</div>
           <div class="brand-copy">
-            <h1 style="margin:0; font-size:1.05rem; font-weight:800; color:var(--text);">Amy FX Pro</h1>
+            <h1 style="margin:0; font-size:1.05rem; font-weight:800; color:var(--text);">Jurnal Trading</h1>
           </div>
         </div>
         <div class="header-actions">
-          <button class="icon-button" id="focusSearchBtn" type="button" aria-label="Fokus pencarian">
-            <span class="search-icon" aria-hidden="true"></span>
-          </button>
-          <button class="add-button" id="openFormBtn" type="button" aria-label="Tambah data">+</button>
-          <button type="button" class="nav-arrow-btn nav-arrow-right" id="amyfxNavForward" data-amyfx-nav="forward" aria-label="Maju">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </button>
+          <button class="add-button" id="openFormBtn" type="button" aria-label="Catat trade baru" title="Catat trade baru">+</button>
         </div>
       </header>
 
@@ -57,71 +47,64 @@
           <div class="side-drawer-brand">
             <div class="brand-mark" aria-hidden="true">AMY</div>
             <div>
-              <span>Quick Menu</span>
-              <h2>Jurnal &amp; Library</h2>
+              <span>Amy FX Pro</span>
+              <h2>Jurnal Trading</h2>
             </div>
           </div>
           <button class="icon-button side-close-button" id="closeSidebarBtn" type="button" aria-label="Tutup navigasi">×</button>
         </div>
-        <nav class="side-drawer-menu" aria-label="Menu cepat">
-          <button class="side-nav-button is-active" type="button" data-view="library">
-            <span class="nav-icon library-icon" aria-hidden="true"></span>
-            <span>Library</span>
-          </button>
-          <button class="side-nav-button" type="button" data-view="journal">
+        <nav class="side-drawer-menu" aria-label="Menu utama jurnal">
+          <button class="side-nav-button is-active" type="button" data-view="journal">
             <span class="nav-icon journal-icon" aria-hidden="true"></span>
             <span>Jurnal Trading</span>
+          </button>
+          <button class="side-nav-button" type="button" data-view="statistics">
+            <span class="nav-icon statistics-icon" aria-hidden="true"></span>
+            <span>Performa &amp; Analitik</span>
           </button>
           <button class="side-nav-button" type="button" data-view="habits">
             <span class="nav-icon habits-icon" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path><polyline points="7 7 12 2 17 7"></polyline></svg>
             </span>
-            <span>Performa &amp; Habits</span>
-          </button>
-          <button class="side-nav-button" type="button" data-view="media">
-            <span class="nav-icon media-icon" aria-hidden="true"></span>
-            <span>Media</span>
+            <span>Disiplin &amp; Habits</span>
           </button>
           <button class="side-nav-button" type="button" data-view="notes">
             <span class="nav-icon journal-icon" aria-hidden="true"></span>
             <span>Catatan Pribadi</span>
           </button>
-          <button class="side-nav-button" type="button" data-view="statistics">
-            <span class="nav-icon statistics-icon" aria-hidden="true"></span>
-            <span>Statistik</span>
-          </button>
-          <button class="side-nav-button" type="button" data-view="assistant">
-            <span class="nav-icon assistant-icon" aria-hidden="true"></span>
-            <span>Asisten</span>
-          </button>
         </nav>
         <div class="side-drawer-footer">
-          <strong>Pencadangan Data &amp; Privasi</strong>
+          <strong>Data &amp; Keamanan</strong>
           <div class="drawer-actions-row" style="display: flex; gap: 8px; margin-top: 8px;">
-            <button class="ghost-button compact" id="drawerBackupBtn" type="button" style="flex: 1; font-size: 11px; padding: 6px 10px; font-weight: 750;">
-              📥 Backup ZIP
+            <button class="ghost-button compact" id="drawerBackupBtn" type="button" style="flex: 1; font-size: 11px; padding: 6px 10px; font-weight: 700;">
+              Backup ZIP
             </button>
-            <label class="ghost-button compact import-button" for="drawerRestoreInput" style="flex: 1; font-size: 11px; padding: 6px 10px; font-weight: 750; text-align: center; cursor: pointer;">
-              📤 Restore
+            <label class="ghost-button compact import-button" for="drawerRestoreInput" style="flex: 1; font-size: 11px; padding: 6px 10px; font-weight: 700; text-align: center; cursor: pointer;">
+              Restore
             </label>
             <input id="drawerRestoreInput" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
           </div>
           <div class="drawer-actions-row" style="display: flex; gap: 8px; margin-top: 6px;">
             <button class="ghost-button compact" id="drawerPinBtn" type="button" style="flex: 1; font-size: 11px; padding: 6px 8px; font-weight: 700;">
-              🔒 Atur PIN
+              Atur PIN
             </button>
             <button class="ghost-button compact danger" id="drawerClearPinBtn" type="button" style="flex: 1; font-size: 11px; padding: 6px 8px; font-weight: 700;">
-              🔓 Hapus PIN
+              Hapus PIN
+            </button>
+          </div>
+          <div class="drawer-actions-row" style="display: flex; gap: 8px; margin-top: 6px;">
+            <button class="ghost-button compact" id="syncObsidianBtn" type="button" style="flex: 1; font-size: 11px; padding: 6px 8px; font-weight: 700;">
+              Sinkron Obsidian
             </button>
           </div>
         </div>
       </aside>
 
-      <section class="control-panel" aria-label="Filter dan pencarian">
+      <section class="control-panel" aria-label="Filter dan pencarian" hidden>
         <div class="search-row" style="display: flex; gap: 8px; width: 100%;">
           <label class="search-box" for="searchInput" style="flex: 1;">
             <span class="search-icon" aria-hidden="true"></span>
-            <input id="searchInput" type="search" autocomplete="off" placeholder="Cari materi, file, kategori, status...">
+            <input id="searchInput" type="search" autocomplete="off" placeholder="Cari trade...">
           </label>
           <button class="icon-button filter-toggle-btn" id="filterToggleBtn" type="button" aria-label="Toggle Filter" style="flex: 0 0 auto; width: 46px; height: 46px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
@@ -169,7 +152,7 @@
       </section>
 
       <main class="main-content">
-        <section class="view is-active" id="libraryView" aria-labelledby="libraryHeading">
+        <section class="view" id="libraryView" aria-labelledby="libraryHeading" hidden>
           <div class="section-head">
             <div>
               <h2 id="libraryHeading">Library</h2>
@@ -231,15 +214,26 @@
         </section>
 
 
-        <section class="view" id="journalView" aria-labelledby="journalHeading" hidden>
+        <section class="view is-active" id="journalView" aria-labelledby="journalHeading">
           <div class="section-head">
             <div>
-              <h2 id="journalHeading">Jurnal</h2>
-              <p id="journalCount">0 jurnal</p>
+              <h2 id="journalHeading">Jurnal Trading</h2>
+              <p id="journalCount">0 trade</p>
             </div>
             <div class="section-actions">
-              <button class="primary-button" id="newJournalBtn" type="button">+ Jurnal Baru</button>
+              <button class="primary-button" id="newJournalBtn" type="button">+ Catat Trade</button>
             </div>
+          </div>
+
+          <div class="jp-journal-filter-bar" aria-label="Filter daftar trade">
+            <div class="jp-seg" role="group" aria-label="Filter hasil trade">
+              <button type="button" class="jp-seg-btn is-active" data-journal-result-filter="all">Semua</button>
+              <button type="button" class="jp-seg-btn" data-journal-result-filter="Win">Win</button>
+              <button type="button" class="jp-seg-btn" data-journal-result-filter="Loss">Loss</button>
+              <button type="button" class="jp-seg-btn" data-journal-result-filter="BE">BE</button>
+              <button type="button" class="jp-seg-btn" data-journal-result-filter="Belum selesai">Terbuka</button>
+            </div>
+            <input id="journalSearchInput" class="jp-search-input" type="search" autocomplete="off" placeholder="Cari setup, pair, kesalahan...">
           </div>
 
           <form class="journal-form journal-editor" id="journalForm" hidden>
@@ -250,18 +244,34 @@
                 <input id="journalDateInput" type="date" required>
               </label>
               <label class="field">
-                <span>Pair / Market</span>
-                <input id="journalMarketInput" type="text" maxlength="40" placeholder="XAUUSD, BTCUSD, EURUSD">
+                <span>Pair</span>
+                <input id="journalMarketInput" type="text" maxlength="24" value="XAU/USD" placeholder="XAU/USD">
               </label>
             </div>
-            <label class="field">
-              <span>Judul jurnal</span>
-              <input id="journalTitleInput" type="text" maxlength="100" required placeholder="Contoh: Evaluasi entry London session">
-            </label>
             <div class="form-grid">
               <label class="field">
-                <span>Setup</span>
-                <input id="journalSetupInput" type="text" maxlength="80" placeholder="OB, FVG, liquidity sweep">
+                <span>Arah</span>
+                <select id="journalDirectionInput">
+                  <option value="">Pilih arah</option>
+                  <option value="Buy">Buy (Long)</option>
+                  <option value="Sell">Sell (Short)</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Sesi (WITA)</span>
+                <select id="journalSessionInput">
+                  <option value="">Otomatis (WITA)</option>
+                  <option value="Asia">Asia (07–15)</option>
+                  <option value="London">London (15–20)</option>
+                  <option value="NY AM">NY AM (20–01)</option>
+                  <option value="NY PM">NY PM (01–07)</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-grid">
+              <label class="field">
+                <span>Setup ICT</span>
+                <input id="journalSetupInput" type="text" maxlength="80" placeholder="OB + FVG, Sweep M5, MSS">
               </label>
               <label class="field">
                 <span>Hasil</span>
@@ -276,49 +286,55 @@
             </div>
             <div class="form-grid">
               <label class="field">
-                <span>Profit</span>
-                <input id="journalProfitInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Untung trade">
+                <span>Nominal P/L ($)</span>
+                <input id="journalPnlInput" type="number" inputmode="decimal" step="0.01" placeholder="Contoh: 120 atau -45">
               </label>
               <label class="field">
-                <span>Loss</span>
-                <input id="journalLossInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Rugi trade">
+                <span>R:R (Opsional)</span>
+                <input id="journalRrInput" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Contoh: 2.5">
               </label>
             </div>
+            <input id="journalProfitInput" type="hidden">
+            <input id="journalLossInput" type="hidden">
             <label class="field">
-              <span>Catatan, Rencana &amp; Evaluasi (Plan → Eksekusi → Outcome)</span>
-              <textarea id="journalEvaluationInput" rows="6" maxlength="4800" placeholder="1. Rencana Entry (Plan &amp; POI)&#10;2. Eksekusi Aktual (Alasan masuk, disiplin waktu)&#10;3. Hasil &amp; Evaluasi (Outcome, deviasi, kondisi market)&#10;4. Satu Tindakan Perbaikan Berikutnya"></textarea>
+              <span>Judul (Opsional)</span>
+              <input id="journalTitleInput" type="text" maxlength="100" placeholder="Kosongkan untuk judul otomatis dari Pair + Setup">
+            </label>
+            <label class="field">
+              <span>Catatan Eksekusi</span>
+              <textarea id="journalEvaluationInput" rows="3" maxlength="4800" placeholder="Alasan entry, konfirmasi M5, atau deviasi dari rencana"></textarea>
             </label>
             <div class="form-grid">
               <label class="field">
                 <span>Kesalahan</span>
-                <textarea id="journalMistakesInput" rows="3" maxlength="1600" placeholder="FOMO, entry cepat, revenge trade..."></textarea>
+                <input id="journalMistakesInput" type="text" maxlength="200" placeholder="FOMO, entry prematur, geser SL">
               </label>
               <label class="field">
-                <span>Pelajaran</span>
-                <textarea id="journalLessonsInput" rows="3" maxlength="1600" placeholder="Apa yang perlu diperbaiki."></textarea>
+                <span>Emosi</span>
+                <input id="journalEmotionInput" type="text" maxlength="120" placeholder="Tenang, ragu, serakah">
               </label>
             </div>
             <label class="field">
-              <span>Emosi</span>
-              <input id="journalEmotionInput" type="text" maxlength="120" placeholder="Tenang, takut, serakah, ragu, percaya diri">
+              <span>Pelajaran (Opsional)</span>
+              <input id="journalLessonsInput" type="text" maxlength="240" placeholder="Satu perbaikan untuk trade berikutnya">
             </label>
             <label class="file-drop" for="journalFileInput" id="journalFileDropLabel">
-              <span class="file-drop-title">Tambah lampiran jurnal</span>
-              <span class="file-drop-meta" id="journalFileMeta">Gambar chart, video, PDF, Markdown, TXT, Word, Excel, PowerPoint</span>
+              <span class="file-drop-title">Lampiran screenshot chart</span>
+              <span class="file-drop-meta" id="journalFileMeta">PNG, JPG, WEBP atau PDF</span>
             </label>
-            <input id="journalFileInput" type="file" multiple accept="image/*,video/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.3gp,.avi,.md,.txt,.doc,.docx,.pdf,.xls,.xlsx,.csv,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/markdown,text/plain" hidden>
+            <input id="journalFileInput" type="file" multiple accept="image/*,.png,.jpg,.jpeg,.webp,.pdf" hidden>
             <p class="form-message" id="journalMessage" role="status"></p>
             <div class="form-actions">
-              <button class="ghost-button" id="resetJournalBtn" type="button">Tutup Editor</button>
-              <button class="primary-button" type="submit">Simpan Jurnal</button>
+              <button class="ghost-button" id="resetJournalBtn" type="button">Tutup</button>
+              <button class="primary-button" type="submit">Simpan Trade</button>
             </div>
           </form>
 
           <div class="journal-list" id="journalList"></div>
           <div class="empty-state" id="journalEmpty" hidden>
-            <div class="empty-mark" aria-hidden="true">J</div>
-            <h3>Jurnal kosong</h3>
-            <p>Tulis jurnal teks dulu, lalu tambahkan gambar chart kapan saja.</p>
+            <div class="empty-mark" aria-hidden="true">+</div>
+            <h3>Belum ada catatan trade</h3>
+            <p>Catat trade XAU/USD pertamamu untuk mulai melacak Equity Curve, Win Rate, dan pola kesalahan.</p>
           </div>
         </section>
 
@@ -420,22 +436,10 @@
         <section class="view" id="statisticsView" aria-labelledby="statisticsHeading" hidden>
           <div class="section-head">
             <div>
-              <h2 id="statisticsHeading">Dasbor & Statistik</h2>
-              <p id="statisticsCount">Performa trading</p>
-            </div>
-            <div class="section-actions">
-              <button class="ghost-button" id="syncObsidianBtn" type="button" title="Sinkronkan catatan & trade ke Obsidian Catatan Pribadi">📓 Simpan ke Obsidian</button>
-              <button class="ghost-button" id="exportAllBtn" type="button">Backup</button>
-              <label class="ghost-button import-button" for="importBackupInput">Restore</label>
-              <input id="importBackupInput" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
-              <button class="ghost-button" id="scanStorageBtn" type="button">Scan HP</button>
-              <input id="storageScanInput" type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.csv,.ppt,.pptx" hidden>
-              <button class="ghost-button" id="setPinBtn" type="button">PIN</button>
-              <button class="ghost-button danger" id="clearPinBtn" type="button">Hapus PIN</button>
+              <h2 id="statisticsHeading">Performa &amp; Analitik</h2>
+              <p id="statisticsCount">Equity Curve, Drawdown &amp; Kalender P/L</p>
             </div>
           </div>
-          <p class="form-message" id="scanStorageMessage" role="status"></p>
-          <div class="dashboard-grid" id="dashboardGrid"></div>
           <div class="statistics-page" id="statisticsViewContent"></div>
         </section>
 
@@ -476,64 +480,42 @@
           <div class="journal-list" id="notesList" aria-live="polite"></div>
         </section>
 
-        <!-- Performa & Habits Unified Section -->
+        <!-- Disiplin & Habits Section -->
         <section class="view" id="habitsView" aria-labelledby="habitsHeading" hidden>
           <div class="section-head">
             <div>
-              <h2 id="habitsHeading">Performa &amp; Habits</h2>
-              <p id="habitsCount">Evaluasi Disiplin, Win Rate &amp; Rutinitas Trading Emas</p>
+              <h2 id="habitsHeading">Disiplin &amp; Habits</h2>
+              <p id="habitsCount">Rutinitas harian &amp; kalkulator lot XAU/USD</p>
             </div>
             <div class="section-actions">
               <button class="primary-button" id="journalNewHabitBtn" type="button">+ Kebiasaan</button>
-              <button class="ghost-button" id="headBackupBtn" type="button">Backup ZIP</button>
-              <label class="ghost-button import-button" for="headRestoreInput">Restore</label>
-              <input id="headRestoreInput" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
             </div>
           </div>
 
-          <!-- Sub-Tab Switcher: Habits vs Statistik -->
-          <div class="performa-subnav" id="performaSubNav" role="tablist">
-            <button type="button" class="performa-subtab is-active" id="subtabHabitsBtn" data-performa-subtab="habits" role="tab" aria-selected="true">
-              <span class="subtab-icon">🎯</span>
-              <span>Rutinitas &amp; Habits</span>
-            </button>
-            <button type="button" class="performa-subtab" id="subtabStatsBtn" data-performa-subtab="stats" role="tab" aria-selected="false">
-              <span class="subtab-icon">📊</span>
-              <span>Statistik &amp; Win Rate</span>
-            </button>
-          </div>
-
-          <!-- Subpane 1: Rutinitas & Habits -->
           <div id="subpaneHabits">
-            <!-- Executive KPI Strip (Gaya UI Dasbor & Statistik) -->
             <div class="stats-summary-grid habit-executive-kpi-grid">
               <article class="stats-card">
-                <span class="stats-icon stats-icon-streak">🔥</span>
                 <p>Streak Disiplin</p>
-                <strong id="kpiHabitStreak" class="animate-count-up" data-target="0">0 Hari</strong>
+                <strong id="kpiHabitStreak" class="jp-tabular">0 Hari</strong>
               </article>
               <article class="stats-card">
-                <span class="stats-icon stats-icon-checklist">🎯</span>
                 <p>Checklist Hari Ini</p>
-                <strong id="kpiHabitDone">0 / 7 Selesai</strong>
+                <strong id="kpiHabitDone" class="jp-tabular">0 / 7 Selesai</strong>
               </article>
               <article class="stats-card">
-                <span class="stats-icon stats-icon-consistency">📈</span>
-                <p>Konsistensi 35D</p>
-                <strong id="kpiHabitConsistency">0%</strong>
+                <p>Konsistensi 35H</p>
+                <strong id="kpiHabitConsistency" class="jp-tabular">0%</strong>
               </article>
               <article class="stats-card">
-                <span class="stats-icon stats-icon-risk">⚖️</span>
                 <p>Batas Risiko SL</p>
-                <strong id="kpiHabitRisk">1.5%</strong>
+                <strong id="kpiHabitRisk" class="jp-tabular">1.5%</strong>
               </article>
             </div>
 
-            <!-- Date Navigation Panel -->
             <div class="habit-date-bar">
               <div class="habit-date-info">
-                <span id="jHabitMonthLabel">SEPTEMBER 2026</span>
-                <h3 id="jHabitDayLabel">Senin, 16 September</h3>
+                <span id="jHabitMonthLabel">BULAN</span>
+                <h3 id="jHabitDayLabel">Hari Ini</h3>
               </div>
               <div class="habit-date-nav">
                 <button type="button" class="icon-button" id="jHabitPrevDay" aria-label="Hari Sebelumnya">‹</button>
@@ -542,20 +524,17 @@
               </div>
             </div>
 
-            <!-- 35-Day Consistency Heatmap Grid -->
             <div class="habit-heatmap-card">
               <div class="habit-heatmap-head">
                 <div class="heatmap-title-group">
                   <strong>Matriks Disiplin 35 Hari</strong>
-                  <small id="jHabitMatrixSubtitle">Tingkat kepatuhan checklist harian (Senin–Jumat)</small>
+                  <small id="jHabitMatrixSubtitle">Kepatuhan checklist harian (Senin–Jumat)</small>
                 </div>
                 <div class="heatmap-pills-group">
                   <div class="streak-pill" id="jHabitStreak">
-                    <span class="flame-icon">🔥</span>
                     <span id="jHabitStreakText">Streak: 0 Hari</span>
                   </div>
                   <div class="penalty-pill" id="jHabitPenalty">
-                    <span class="penalty-icon">⚠️</span>
                     <span id="jHabitPenaltyText">0 Penalti</span>
                   </div>
                 </div>
@@ -565,10 +544,10 @@
               </div>
               <div class="heatmap-tiles-grid" id="jHabitHeatmapGrid"></div>
               <div class="heatmap-bottom-legend">
-                <span class="legend-text">Semakin hijau = Patuh | Merah = Penalti terlewat</span>
+                <span class="legend-text">Hijau = Patuh · Merah = Terlewat</span>
                 <div class="legend-scale">
-                  <span class="scale-box lvl-penalty" title="Penalti (Hari trading terlewat)"></span>
-                  <span class="scale-box lvl-0" title="Hari Ini / Netral"></span>
+                  <span class="scale-box lvl-penalty" title="Penalti"></span>
+                  <span class="scale-box lvl-0" title="Netral"></span>
                   <span class="scale-box lvl-1" title="25%"></span>
                   <span class="scale-box lvl-2" title="50%"></span>
                   <span class="scale-box lvl-3" title="75%"></span>
@@ -577,13 +556,11 @@
               </div>
             </div>
 
-            <!-- Dynamic Penalty Alert Banner -->
             <div id="jHabitPenaltyBanner" class="habit-penalty-alert" style="display: none;"></div>
 
-            <!-- Quick Gold (XAU/USD) Lot Calculator integrated -->
             <div class="habit-calc-card">
               <div class="calc-head">
-                <strong>Kalkulator Lot Cepat XAU/USD (Disiplin Max 1-2%)</strong>
+                <strong>Kalkulator Lot Cepat XAU/USD</strong>
               </div>
               <div class="calc-grid">
                 <label class="mini-field">
@@ -600,55 +577,36 @@
                 </label>
                 <div class="calc-output">
                   <span>Rekomendasi Lot</span>
-                  <strong id="jCalcLotResult">0.09 Lot</strong>
+                  <strong id="jCalcLotResult" class="jp-tabular">0.09 Lot</strong>
                 </div>
               </div>
             </div>
 
-            <!-- Habit Checklist Header -->
             <div class="habits-list-head">
               <h3>Checklist Rutinitas Hari Ini</h3>
-              <span id="jHabitProgressText" class="badge">0 / 7 Selesai</span>
+              <span id="jHabitProgressText" class="badge jp-tabular">0 / 7 Selesai</span>
             </div>
 
-            <!-- Habit Checklist Cards -->
             <div class="habits-cards-list" id="jHabitsCardsList"></div>
-          </div>
-
-          <!-- Subpane 2: Statistik & Win Rate -->
-          <div id="subpaneStats" hidden>
-            <div class="section-actions" style="margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
-              <button class="ghost-button" id="exportAllBtnHabits" type="button">Backup ZIP</button>
-              <label class="ghost-button import-button" for="importBackupInputHabits">Restore</label>
-              <input id="importBackupInputHabits" type="file" accept=".zip,.csv,.json,application/zip,text/csv,application/json" hidden>
-              <button class="ghost-button" id="setPinBtnHabits" type="button">PIN</button>
-              <button class="ghost-button danger" id="clearPinBtnHabits" type="button">Hapus PIN</button>
-            </div>
-            <div class="dashboard-grid" id="dashboardGridHabits"></div>
-            <div class="statistics-page" id="statisticsViewContentHabits"></div>
           </div>
         </section>
       </main>
 
-      <!-- Bottom Nav with Performa Tab -->
-      <nav class="bottom-nav" aria-label="Navigasi utama">
-        <button class="nav-button is-active" type="button" data-view="library">
-          <span class="nav-icon library-icon" aria-hidden="true"></span>
-          <span>Library</span>
-        </button>
-        <button class="nav-button" type="button" data-view="journal">
+      <!-- Focused 3-Tab Bottom Nav -->
+      <nav class="bottom-nav bottom-nav--focused" aria-label="Navigasi utama">
+        <button class="nav-button is-active" type="button" data-view="journal">
           <span class="nav-icon journal-icon" aria-hidden="true"></span>
           <span>Jurnal</span>
+        </button>
+        <button class="nav-button" type="button" data-view="statistics">
+          <span class="nav-icon statistics-icon" aria-hidden="true"></span>
+          <span>Performa</span>
         </button>
         <button class="nav-button" type="button" data-view="habits">
           <span class="nav-icon habits-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path><polyline points="7 7 12 2 17 7"></polyline></svg>
           </span>
-          <span>Performa</span>
-        </button>
-        <button class="nav-button" type="button" data-view="notes">
-          <span class="nav-icon journal-icon" aria-hidden="true"></span>
-          <span>Catatan</span>
+          <span>Disiplin</span>
         </button>
       </nav>
     </div>
@@ -850,13 +808,10 @@
     </dialog>
 
     <script src="./jszip.min.js?v=20260623" defer></script>
-    <script src="./journal-schema.js?v=20261018-1" defer></script>
-    <script src="../shared/journal-analytics-pro.js?v=20261119-1" defer></script>
-    <script src="./journal-analytics.js?v=20261119-1" defer></script>
-    <script src="./app.js?v=20261001-media3" defer></script>
-    <script src="./background-video.js?v=20260725-bg1" defer></script>
-  <script src="amy-journal-final-fix.js"></script>
-  <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
+    <script src="../shared/journal-analytics-pro.js?v=20261120-1" defer></script>
+    <script src="./journal-analytics.js?v=20261120-1" defer></script>
+    <script src="./app.js?v=20261120-opsi1" defer></script>
+    <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
 <script>
 /* AMYFX_NOTIFY_GUARD_START */
 (function(){

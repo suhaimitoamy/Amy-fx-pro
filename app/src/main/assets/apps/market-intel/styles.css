@@ -1466,7 +1466,13 @@ body.amyfx-module--intel #intel-briefing {
 .intel-container {
   max-width: 960px;
   margin: 0 auto;
-  padding: 12px 14px 28px;
+  padding: 12px 14px 96px;
+}
+
+@media (max-width: 480px) {
+  .intel-container {
+    padding: 10px 12px 96px;
+  }
 }
 
 .intel-topbar {

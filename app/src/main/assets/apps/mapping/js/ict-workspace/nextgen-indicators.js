@@ -800,7 +800,7 @@ function getTradingDayKey(timeSec) {
   // TradingView Parity: Active POI selection (unbroken, or recently tested within 1h)
   const curP = safeCandles.at(-1)?.close || 3940;
   const lastBarTime = safeCandles.at(-1)?.time || 0;
-  const isViablePoi = z => !z.mitigated || (z.tested && (!z.endTime || z.endTime >= lastBarTime - 3600));
+  const isViablePoi = z => !z.mitigated;
   const viableObs = obList.filter(isViablePoi);
   const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
   const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
@@ -910,6 +910,7 @@ function getTradingDayKey(timeSec) {
   }
 
   return {
+    tf: options.tf || 'M15',
     keyLevels: {
       pdh,
       pdl,

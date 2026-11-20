@@ -145,7 +145,7 @@ export function injectLotCalculatorStyles() {
       background: rgba(0, 0, 0, 0.72);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      z-index: 99999;
+      z-index: 2147483645;
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -207,14 +207,15 @@ export function injectLotCalculatorStyles() {
     }
     .amy-lot-grid-inputs {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
       margin-bottom: 14px;
     }
     .amy-lot-field {
       display: flex;
       flex-direction: column;
       gap: 6px;
+      min-width: 0;
     }
     .amy-lot-field label {
       font-size: 11px;
@@ -224,10 +225,13 @@ export function injectLotCalculatorStyles() {
       letter-spacing: 0.05em;
     }
     .amy-lot-input {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 10px 10px;
       color: #fff;
       font-size: 14px;
       font-family: monospace;

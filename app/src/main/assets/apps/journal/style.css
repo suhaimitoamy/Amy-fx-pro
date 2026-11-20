@@ -956,6 +956,7 @@ textarea:focus-visible {
 
 .sheet-dialog[open] {
   position: fixed;
+  z-index: 10020;
   top: auto;
   right: 8px;
   bottom: 0;
@@ -2102,6 +2103,7 @@ body.is-locked .app-shell {
 
 .journal-form {
   margin-bottom: 14px;
+  scroll-margin-top: 86px;
 }
 
 .journal-list,
@@ -2656,7 +2658,8 @@ body.sidebar-open {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 4px;
-  overflow-x: auto;
+  width: 100%;
+  overflow-x: visible;
 }
 
 .cal-head {
@@ -2664,29 +2667,68 @@ body.sidebar-open {
   font-size: 0.58rem;
   font-weight: 900;
   text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cal-cell {
   display: grid;
-  min-width: 54px;
-  min-height: 52px;
-  gap: 3px;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  min-width: 0;
+  min-height: 46px;
+  gap: 2px;
   border: 1px solid rgba(244, 255, 247, 0.07);
-  border-radius: 10px;
+  border-radius: 9px;
   background: rgba(244, 255, 247, 0.035);
-  padding: 6px;
+  padding: 5px 2px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .cal-cell strong {
   color: var(--text);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
+  line-height: 1.1;
 }
 
 .cal-cell span,
 .cal-week {
   color: var(--muted);
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 800;
+  line-height: 1.15;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .statistics-calendar {
+    gap: 3px;
+  }
+  .cal-head {
+    font-size: 0.54rem;
+  }
+  .cal-cell {
+    min-height: 42px;
+    padding: 4px 2px;
+    border-radius: 8px;
+  }
+  .cal-cell strong {
+    font-size: 0.7rem;
+  }
+  .cal-cell span,
+  .cal-week {
+    font-size: 0.52rem;
+  }
+  .journal-form {
+    padding: 14px 12px 24px;
+    scroll-margin-top: 84px;
+  }
 }
 
 .cal-cell.is-win {
@@ -2954,6 +2996,7 @@ body.sidebar-open {
   border-radius: var(--radius-lg);
   background: rgba(16, 23, 18, 0.72);
   padding: 10px;
+  scroll-margin-top: 86px;
 }
 
 .journal-date-head {

@@ -7,6 +7,28 @@
  *   4. Panel Eksekusi POI Terpadu dengan Tab Switch BUY / SELL + Hitung Lot
  */
 
+import {
+  resolveM15Direction,
+  formatPdlPdhRange,
+  resolveSsotTelemetry,
+  formatTp1Subtitle,
+  selectScalperDualLayerPoi,
+  evaluateScalperPoiVerdict
+} from './mapping-accuracy.js';
+import { calculateNextGenIndicators } from './nextgen-indicators.js';
+import { resolveGoldSessionState } from '../engine/market-session-clock.js';
+import {
+  loadHistoryState,
+  saveHistoryState,
+  backfillFromCandles,
+  recordLivePoiProgress,
+  mergeHistoryState,
+  filterByRange,
+  summarizePoiStats,
+  formatWitaClock,
+  createEmptyHistoryState
+} from './mapping-history-engine.js';
+
 (function () {
   'use strict';
 
@@ -29,8 +51,59 @@
   let latestBuyOverlay = null;
   let latestSellOverlay = null;
   let lastPublishedPlanSig = '';
+  const dualLayerCache = { m15Key: '', m15Ng: null, m5Key: '', m5Ng: null };
 
-  /* ── Jam WITA & Deteksi Sesi Trading Gold ── */
+  /* ── Riwayat Reaksi & Hasil POI State (Persisted 7 Hari di localStorage) ── */
+  const historyStorage = typeof window !== 'undefined' ? window.localStorage : null;
+  let mappingHistoryState = loadHistoryState(historyStorage);
+  let activeHistoryTab = 'POI';
+  let activeHistoryRange = 'TODAY';
+  let historyShowAll = false;
+  let lastHistoryBackfillKey = '';
+  let historyResetFloorMs = 0;
+
+  function toNgCandles(rows) {
+    if (!Array.isArray(rows) || rows.length < 15) return [];
+    return rows
+      .map(c => ({
+        time: Number(c.open_time ?? c.time),
+        open: Number(c.open),
+        high: Number(c.high),
+        low: Number(c.low),
+        close: Number(c.close)
+      }))
+      .filter(c => Number.isFinite(c.time) && Number.isFinite(c.open) && Number.isFinite(c.high) && Number.isFinite(c.low) && Number.isFinite(c.close));
+  }
+
+  function getDualLayerNextGen(amy, chartNg) {
+    const chartIsM15 = chartNg && (!chartNg.tf || String(chartNg.tf).toUpperCase() === 'M15');
+    let ngM15 = chartIsM15 ? chartNg : null;
+    const rawM15 = amy?.chartCandles?.M15;
+    if (!ngM15 && Array.isArray(rawM15) && rawM15.length >= 20) {
+      const lastBar = rawM15[rawM15.length - 1];
+      const key = `${rawM15.length}:${lastBar?.open_time}:${lastBar?.close}`;
+      if (dualLayerCache.m15Key !== key) {
+        dualLayerCache.m15Ng = calculateNextGenIndicators(toNgCandles(rawM15), { tf: 'M15' });
+        dualLayerCache.m15Key = key;
+      }
+      ngM15 = dualLayerCache.m15Ng;
+    }
+
+    let ngM5 = (chartNg && String(chartNg.tf || '').toUpperCase() === 'M5') ? chartNg : null;
+    const rawM5 = amy?.chartCandles?.M5;
+    if (!ngM5 && Array.isArray(rawM5) && rawM5.length >= 20) {
+      const lastBar = rawM5[rawM5.length - 1];
+      const key = `${rawM5.length}:${lastBar?.open_time}:${lastBar?.close}`;
+      if (dualLayerCache.m5Key !== key) {
+        dualLayerCache.m5Ng = calculateNextGenIndicators(toNgCandles(rawM5), { tf: 'M5' });
+        dualLayerCache.m5Key = key;
+      }
+      ngM5 = dualLayerCache.m5Ng;
+    }
+    return { ngM15, ngM5 };
+  }
+
+  /* ── Jam WITA (Pill Sesi Header dimiliki 100% oleh market-session-clock.js agar bebas bentrok timer) ── */
   function getWITA() {
     return new Date().toLocaleTimeString('id-ID', {
       timeZone: 'Asia/Makassar',
@@ -41,42 +114,13 @@
     }) + ' WITA';
   }
 
-  function resolveSessionLabel() {
-    const now = new Date();
-    const nyParts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/New_York',
-      weekday: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).formatToParts(now);
-    const day = nyParts.find(p => p.type === 'weekday')?.value || '';
-    const hour = Number(nyParts.find(p => p.type === 'hour')?.value || 0);
-    if (day === 'Sat' || (day === 'Fri' && hour >= 17) || (day === 'Sun' && hour < 17)) {
-      return 'Pasar Tutup · Akhir Pekan';
-    }
-    if (hour >= 8 && hour < 12) return 'NY Killzone · Aktif';
-    if (hour >= 12 && hour < 17) return 'New York · Sesi Siang';
-    if (hour >= 2 && hour < 5) return 'London Killzone · Aktif';
-    if (hour >= 5 && hour < 8) return 'London–NY Pre-Open';
-    if (hour >= 20 || hour < 2) return 'Sesi Asia';
-    return 'Transisi Sesi';
-  }
-
-  function updateSessionPill() {
-    const el = $('cockpit-session-pill');
-    if (el) el.textContent = resolveSessionLabel();
-  }
-
   function startClock() {
     const el = $('hero-clock');
     if (el) el.textContent = getWITA();
-    updateSessionPill();
     setInterval(() => {
       const e = $('hero-clock');
       if (e) e.textContent = getWITA();
     }, 1000);
-    setInterval(updateSessionPill, 60000);
   }
 
   /* ── Single Source of Truth Sync: POI Scalper Pro -> Chart Gold & Hero Entry Distance ── */
@@ -245,6 +289,325 @@
 
     const btnAlarmSell = $('btn-alarm-sell');
     if (btnAlarmSell) btnAlarmSell.addEventListener('click', () => triggerQuickEntryAlarm('SELL'));
+
+    // Riwayat Reaksi & Hasil POI interactions
+    document.querySelectorAll('[data-history-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-history-tab');
+        setActiveHistoryTab(tab);
+      });
+    });
+
+    document.querySelectorAll('[data-history-range]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const range = btn.getAttribute('data-history-range');
+        setActiveHistoryRange(range);
+      });
+    });
+
+    const btnHistoryMore = $('btn-history-toggle-all');
+    if (btnHistoryMore) {
+      btnHistoryMore.addEventListener('click', () => {
+        historyShowAll = !historyShowAll;
+        renderMappingHistory();
+      });
+    }
+
+    const btnHistoryClear = $('btn-history-clear');
+    if (btnHistoryClear) {
+      btnHistoryClear.addEventListener('click', () => {
+        historyResetFloorMs = Date.now();
+        historyShowAll = false;
+        mappingHistoryState = createEmptyHistoryState();
+        saveHistoryState(historyStorage, mappingHistoryState);
+        renderMappingHistory();
+      });
+    }
+  }
+
+  /* ── Riwayat Reaksi & Hasil POI Rendering & Sync ── */
+  function setActiveHistoryTab(tab) {
+    activeHistoryTab = String(tab).toUpperCase() === 'TIMELINE' ? 'TIMELINE' : 'POI';
+    historyShowAll = false;
+    const isPoi = activeHistoryTab === 'POI';
+
+    const tabPoi = $('tab-history-poi');
+    const tabTl = $('tab-history-timeline');
+    const panelPoi = $('panel-history-poi');
+    const panelTl = $('panel-history-timeline');
+
+    if (tabPoi) {
+      tabPoi.classList.toggle('is-active', isPoi);
+      tabPoi.setAttribute('aria-selected', isPoi ? 'true' : 'false');
+    }
+    if (tabTl) {
+      tabTl.classList.toggle('is-active', !isPoi);
+      tabTl.setAttribute('aria-selected', !isPoi ? 'true' : 'false');
+    }
+    if (panelPoi) panelPoi.hidden = !isPoi;
+    if (panelTl) panelTl.hidden = isPoi;
+
+    renderMappingHistory();
+  }
+
+  function setActiveHistoryRange(range) {
+    activeHistoryRange = String(range).toUpperCase() === '7D' ? '7D' : 'TODAY';
+    historyShowAll = false;
+    const isToday = activeHistoryRange === 'TODAY';
+
+    const btnToday = $('history-range-today');
+    const btn7d = $('history-range-7d');
+    if (btnToday) {
+      btnToday.classList.toggle('is-active', isToday);
+      btnToday.setAttribute('aria-pressed', isToday ? 'true' : 'false');
+    }
+    if (btn7d) {
+      btn7d.classList.toggle('is-active', !isToday);
+      btn7d.setAttribute('aria-pressed', !isToday ? 'true' : 'false');
+    }
+
+    renderMappingHistory();
+  }
+
+  function formatPoiOutcomeBadge(rec) {
+    switch (rec?.status) {
+      case 'TP2_HIT':
+        return { text: 'TP2 DOL ★', cls: 'is-tp2' };
+      case 'TP1_HIT':
+        return { text: 'TP1 BEP ✓', cls: 'is-tp1' };
+      case 'REACTING':
+        return { text: `Memantul +$${Number(rec.maxFavorable || 0).toFixed(1)}`, cls: 'is-react' };
+      case 'SL_HIT':
+        return { text: 'Jebol SL ✕', cls: 'is-sl' };
+      default:
+        return { text: 'Disentuh', cls: 'is-test' };
+    }
+  }
+
+  function formatTimelineCategory(ev) {
+    const sideUpper = String(ev?.side || '').toUpperCase();
+    const isBuy = sideUpper === 'BUY';
+    const isSell = sideUpper === 'SELL';
+    const sideTone = isBuy ? 'is-buy' : isSell ? 'is-sell' : 'is-gold';
+
+    switch (ev?.category) {
+      case 'POI_TOUCH':
+        return { label: 'POI', tagCls: isBuy ? 'is-buy' : isSell ? 'is-sell' : 'is-cat', itemCls: sideTone };
+      case 'POI_OUTCOME':
+        return { label: 'HASIL', tagCls: isBuy ? 'is-buy' : isSell ? 'is-sell' : 'is-cat', itemCls: sideTone };
+      case 'SWEEP':
+        return { label: 'SWEEP', tagCls: 'is-gold', itemCls: 'is-gold' };
+      case 'BREAK':
+        return { label: 'STRUKTUR', tagCls: isBuy ? 'is-buy' : isSell ? 'is-sell' : 'is-cat', itemCls: sideTone };
+      case 'KEY_LEVEL':
+        return { label: 'LEVEL', tagCls: 'is-gold', itemCls: 'is-gold' };
+      default:
+        return { label: 'EVENT', tagCls: 'is-cat', itemCls: 'is-gold' };
+    }
+  }
+
+  function renderMappingHistory() {
+    const nowMs = Date.now();
+    const includeDate = activeHistoryRange === '7D';
+    const scopeLabel = activeHistoryRange === '7D' ? '7 Hari' : 'Hari Ini';
+
+    const poiStats = summarizePoiStats(mappingHistoryState.poiRecords, activeHistoryRange, nowMs);
+    const timelineItems = filterByRange(mappingHistoryState.timelineEvents, 'ts', activeHistoryRange, nowMs);
+
+    const poiCountEl = $('history-poi-count');
+    const tlCountEl = $('history-timeline-count');
+    if (poiCountEl) poiCountEl.textContent = String(poiStats.total);
+    if (tlCountEl) tlCountEl.textContent = String(timelineItems.length);
+
+    // Scorecard bar
+    const scoreMainEl = $('history-score-main');
+    const scoreChipsEl = $('history-score-chips');
+    if (scoreMainEl && scoreChipsEl) {
+      if (activeHistoryTab === 'POI') {
+        if (poiStats.total === 0) {
+          scoreMainEl.textContent = `Belum ada zona POI tersentuh (${scopeLabel.toLowerCase()}) — pantau rencana aktif di atas.`;
+          scoreChipsEl.innerHTML = '';
+        } else {
+          const rateTxt = poiStats.respectRate !== null ? ` · Respect ${poiStats.respectRate}%` : '';
+          scoreMainEl.textContent = `${scopeLabel}: ${poiStats.total} POI Disentuh${rateTxt}`;
+          const chips = [
+            `<span class="history-chip is-respect">TP1/TP2: ${poiStats.tp1Count + poiStats.tp2Count}</span>`,
+            `<span class="history-chip is-sl">Jebol SL: ${poiStats.slCount}</span>`,
+            `<span class="history-chip is-active">Aktif: ${poiStats.reactingCount + poiStats.testingCount}</span>`
+          ];
+          scoreChipsEl.innerHTML = chips.join('');
+        }
+      } else {
+        if (timelineItems.length === 0) {
+          scoreMainEl.textContent = `Belum ada jejak kejadian market (${scopeLabel.toLowerCase()}).`;
+          scoreChipsEl.innerHTML = '';
+        } else {
+          const poiEv = timelineItems.filter(e => e.category === 'POI_TOUCH' || e.category === 'POI_OUTCOME').length;
+          const sweepEv = timelineItems.filter(e => e.category === 'SWEEP').length;
+          const breakEv = timelineItems.filter(e => e.category === 'BREAK').length;
+          const levelEv = timelineItems.filter(e => e.category === 'KEY_LEVEL').length;
+          scoreMainEl.textContent = `${scopeLabel}: ${timelineItems.length} Kejadian Market Tercatat`;
+          const chips = [];
+          if (poiEv > 0) chips.push(`<span class="history-chip is-respect">POI: ${poiEv}</span>`);
+          if (sweepEv > 0) chips.push(`<span class="history-chip is-active">Sweep: ${sweepEv}</span>`);
+          if (breakEv > 0) chips.push(`<span class="history-chip">Struktur: ${breakEv}</span>`);
+          if (levelEv > 0) chips.push(`<span class="history-chip">Level: ${levelEv}</span>`);
+          scoreChipsEl.innerHTML = chips.join('');
+        }
+      }
+    }
+
+    // Panel 1: Hasil POI
+    const poiListEl = $('history-poi-list');
+    if (poiListEl) {
+      if (poiStats.items.length === 0) {
+        poiListEl.innerHTML = `<div class="history-empty">Belum ada POI yang disentuh pada rentang ${esc(scopeLabel.toLowerCase())}. Saat harga menyentuh zona Demand/Supply aktif, status dan hasilnya tercatat otomatis di sini.</div>`;
+      } else {
+        const visible = historyShowAll ? poiStats.items : poiStats.items.slice(0, 5);
+        poiListEl.innerHTML = visible.map(rec => {
+          const isSell = rec.side === 'SELL';
+          const sideCls = isSell ? 'is-sell' : 'is-buy';
+          const badge = formatPoiOutcomeBadge(rec);
+          const clock = formatWitaClock(rec.touchedAt, includeDate);
+          const tp2Part = Number.isFinite(Number(rec.tp2)) && Number(rec.tp2) > 0 ? ` · TP2 $${fmt(rec.tp2)}` : '';
+          const maxFav = Number(rec.maxFavorable) || 0;
+          const favPart = maxFav > 0 ? `Maks +$${maxFav.toFixed(1)}` : `Sentuh $${fmt(rec.touchPrice)}`;
+          return `
+            <div class="history-item ${sideCls}">
+              <div class="history-item-top">
+                <div class="history-item-left">
+                  <span class="history-side-tag ${sideCls}">${esc(rec.side)}</span>
+                  <span class="history-item-title">${esc(rec.kind)} ${esc(rec.tf)} · $${fmt(rec.low)}–$${fmt(rec.high)}</span>
+                </div>
+                <div class="history-item-left">
+                  <span class="history-outcome-badge ${badge.cls}">${esc(badge.text)}</span>
+                  <span class="history-item-time">${esc(clock)}</span>
+                </div>
+              </div>
+              <div class="history-item-meta">
+                <span>CE $${fmt(rec.ce)} · SL $${fmt(rec.sl)} · TP1 $${fmt(rec.tp1)}${tp2Part}</span>
+                <span>${esc(favPart)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Panel 2: Timeline Market
+    const tlListEl = $('history-timeline-list');
+    if (tlListEl) {
+      if (timelineItems.length === 0) {
+        tlListEl.innerHTML = `<div class="history-empty">Belum ada kejadian market pada rentang ${esc(scopeLabel.toLowerCase())}.</div>`;
+      } else {
+        const visible = historyShowAll ? timelineItems : timelineItems.slice(0, 5);
+        tlListEl.innerHTML = visible.map(ev => {
+          const cat = formatTimelineCategory(ev);
+          const clock = formatWitaClock(ev.ts, includeDate);
+          const priceStr = Number.isFinite(Number(ev.price)) && Number(ev.price) > 0 ? `$${fmt(ev.price)}` : '';
+          return `
+            <div class="history-item ${cat.itemCls}">
+              <div class="history-item-top">
+                <div class="history-item-left">
+                  <span class="history-side-tag ${cat.tagCls}">${esc(cat.label)}</span>
+                  <span class="history-item-title">${esc(ev.title)}</span>
+                </div>
+                <span class="history-item-time">${esc(clock)}</span>
+              </div>
+              <div class="history-item-meta">
+                <span>${esc(ev.detail)}</span>
+                ${priceStr ? `<span>${esc(priceStr)}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Footer controls (Expand/Collapse + Reset)
+    const activeList = activeHistoryTab === 'POI' ? poiStats.items : timelineItems;
+    const totalStored = (mappingHistoryState.poiRecords?.length || 0) + (mappingHistoryState.timelineEvents?.length || 0);
+    const footerEl = $('history-footer-row');
+    const moreBtn = $('btn-history-toggle-all');
+    if (footerEl) {
+      footerEl.hidden = activeList.length === 0 && totalStored === 0;
+    }
+    if (moreBtn) {
+      if (activeList.length > 5) {
+        moreBtn.hidden = false;
+        moreBtn.textContent = historyShowAll ? 'Ringkas (5)' : `Tampilkan semua (${activeList.length})`;
+      } else {
+        moreBtn.hidden = true;
+      }
+    }
+  }
+
+  function syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice) {
+    const amy = ctx?.amy || ctx;
+    const m15Candles = amy?.chartCandles?.M15 || [];
+    const m5Candles = amy?.chartCandles?.M5 || [];
+    const lastM15 = m15Candles[m15Candles.length - 1];
+    const lastM5 = m5Candles[m5Candles.length - 1];
+    const backfillKey = `${m15Candles.length}:${lastM15?.open_time || 0}:${m5Candles.length}:${lastM5?.open_time || 0}:${historyResetFloorMs}`;
+    const nowMs = Date.now();
+
+    let stateChanged = false;
+    if (backfillKey !== lastHistoryBackfillKey && (m15Candles.length >= 10 || m5Candles.length >= 10)) {
+      lastHistoryBackfillKey = backfillKey;
+      const rawBackfill = backfillFromCandles({
+        m15Candles,
+        m5Candles,
+        ctx,
+        ngM15,
+        ngM5,
+        nowMs,
+        lookbackHours: 30
+      });
+      const filteredBackfill = historyResetFloorMs > 0
+        ? {
+            version: 1,
+            poiRecords: rawBackfill.poiRecords.filter(r => r.touchedAt >= historyResetFloorMs),
+            timelineEvents: rawBackfill.timelineEvents.filter(e => e.ts >= historyResetFloorMs)
+          }
+        : rawBackfill;
+      mappingHistoryState = mergeHistoryState(mappingHistoryState, filteredBackfill, nowMs);
+      stateChanged = true;
+    }
+
+    const activePlans = [latestBuyOverlay, latestSellOverlay].filter(Boolean);
+    if (Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
+      const liveRes = recordLivePoiProgress({
+        state: mappingHistoryState,
+        plans: activePlans,
+        livePrice,
+        nowMs
+      });
+      if (liveRes.changed) {
+        mappingHistoryState = liveRes.state;
+        stateChanged = true;
+      }
+    }
+
+    if (stateChanged) {
+      saveHistoryState(historyStorage, mappingHistoryState);
+    }
+    renderMappingHistory();
+  }
+
+  function tickMappingHistory(livePrice) {
+    if (!Number.isFinite(livePrice) || livePrice <= 0) return;
+    const activePlans = [latestBuyOverlay, latestSellOverlay].filter(Boolean);
+    const liveRes = recordLivePoiProgress({
+      state: mappingHistoryState,
+      plans: activePlans,
+      livePrice,
+      nowMs: Date.now()
+    });
+    if (liveRes.changed) {
+      mappingHistoryState = liveRes.state;
+      saveHistoryState(historyStorage, mappingHistoryState);
+      renderMappingHistory();
+    }
   }
 
   /* ── Live price sync ── */
@@ -329,13 +692,14 @@
     }
 
     const pct = Math.round((todayRange / refAdr) * 100);
+    const refTag = refLabel ? ` · ${refLabel}` : '';
     if (pct >= 120) {
-      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Ekstrem Jenuh)`, tone: 'is-bear' };
+      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Ekstrem Jenuh${refTag})`, tone: 'is-bear' };
     }
     if (pct >= 90) {
-      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Waspada Jenuh)`, tone: 'is-gold' };
+      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Waspada Jenuh${refTag})`, tone: 'is-gold' };
     }
-    return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Napas Sehat)`, tone: 'is-bull' };
+    return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Napas Sehat${refTag})`, tone: 'is-bull' };
   }
 
   /* ── Single Source of Truth: Dealing Range & EQ (Hero · Gauge · POI · Chart Badge) ── */
@@ -343,10 +707,11 @@
     const amy = ctx?.amy || ctx;
     const dashboard = amy?.dashboard;
     const ng = window.amyfxLastIndicators || null;
+    const ngIsM15 = !ng?.tf || String(ng.tf).toUpperCase() === 'M15';
 
     const sources = [
       ctx?.m15?.dealingRange,
-      ng?.dealingRange,
+      ngIsM15 ? ng?.dealingRange : null,
       amy?.levels?.dealingRange,
       ctx?.dealingRange,
       dashboard
@@ -461,74 +826,9 @@
     };
   }
 
-  /* ── Telemetry Merger: Break · Sweep · DOL (NextGen + AmyICT) ── */
+  /* ── Telemetry Merger: Break · Sweep · DOL (Single Source of Truth M15) ── */
   function resolveLiveTelemetry(ctx, livePrice) {
-    const amy = ctx?.amy || ctx;
-    const dashboard = amy?.dashboard;
-    const ng = window.amyfxLastIndicators || null;
-
-    // 1. Structure Break (BOS / MSS)
-    let breakText = 'Menunggu Break';
-    let breakTone = '';
-    const lastEv = ng?.structure?.lastEvent || dashboard?.lastBreak || ctx?.h1?.lastBreak || null;
-    if (lastEv && (lastEv.type || lastEv.kind || lastEv.label)) {
-      const evType = String(lastEv.type || lastEv.kind || lastEv.label).toUpperCase();
-      const evDir = String(lastEv.direction || lastEv.side || '').toUpperCase();
-      const isBull = evDir.includes('BULL') || evDir === 'BUY' || lastEv.dir === 1;
-      const isBear = evDir.includes('BEAR') || evDir === 'SELL' || lastEv.dir === -1;
-      const lvl = num(lastEv.level ?? lastEv.price);
-      const dirTxt = isBull ? 'Bull' : (isBear ? 'Bear' : '');
-      breakText = `${evType}${dirTxt ? ' ' + dirTxt : ''}${Number.isFinite(lvl) ? ` @ $${fmt(lvl)}` : ''}`;
-      breakTone = isBull ? 'is-bull' : (isBear ? 'is-bear' : '');
-    } else if (dashboard?.bullMss || dashboard?.bearMss || dashboard?.bullBos || dashboard?.bearBos) {
-      const isBull = Boolean(dashboard.bullMss || dashboard.bullBos);
-      const kind = (dashboard.bullMss || dashboard.bearMss) ? 'MSS' : 'BOS';
-      breakText = `${kind} ${isBull ? 'Bull' : 'Bear'}`;
-      breakTone = isBull ? 'is-bull' : 'is-bear';
-    }
-
-    // 2. Liquidity Sweep (gugurkan reaksi sweep yang sudah ditembus BOS)
-    let sweepText = 'Belum ada sweep';
-    let sweepTone = '';
-    const latestNgSweep = ng?.liquidity?.latestSweep || (Array.isArray(ng?.liquidity?.sweeps) && ng.liquidity.sweeps.length ? ng.liquidity.sweeps[ng.liquidity.sweeps.length - 1] : null);
-    const dashSweep = dashboard?.latestSweep || null;
-    const activeSweep = latestNgSweep || dashSweep;
-    if (activeSweep) {
-      const poolName = activeSweep.pool || String(activeSweep.type || '').replace(/_SWEEP$/i, '').replace(/_/g, ' ') || 'Likuiditas';
-      const lvl = num(activeSweep.level ?? activeSweep.price);
-      if (activeSweep.broken) {
-        sweepText = `${poolName}${Number.isFinite(lvl) ? ` $${fmt(lvl)}` : ''} · Tembus BOS`;
-        sweepTone = '';
-      } else {
-        const rSide = String(activeSweep.reactionSide || activeSweep.side || '').toUpperCase();
-        const isBuyReact = rSide === 'BUY' || rSide === 'BULLISH' || activeSweep.type === 'SSL_SWEEP' || activeSweep.type === 'PDL_SWEEP' || activeSweep.type === 'ASIA_LOW_SWEEP';
-        const isSellReact = rSide === 'SELL' || rSide === 'BEARISH' || activeSweep.type === 'BSL_SWEEP' || activeSweep.type === 'PDH_SWEEP' || activeSweep.type === 'ASIA_HIGH_SWEEP';
-        const reactLabel = isBuyReact ? 'Reaksi Buy' : (isSellReact ? 'Reaksi Sell' : '');
-        sweepText = `${poolName}${Number.isFinite(lvl) ? ` $${fmt(lvl)}` : ''}${reactLabel ? ` · ${reactLabel}` : ''}`;
-        sweepTone = isBuyReact ? 'is-bull' : (isSellReact ? 'is-bear' : 'is-gold');
-      }
-    }
-
-    // 3. Draw on Liquidity (DOL)
-    let dolText = 'Menunggu arah DOL';
-    let dolTone = 'is-gold';
-    const ngDol = ng?.dol && Number.isFinite(num(ng.dol.level)) ? ng.dol : null;
-    const dashDolLvl = num(dashboard?.dolTarget);
-    if (ngDol) {
-      const dist = Number.isFinite(livePrice) && livePrice > 0 ? Math.abs(ngDol.level - livePrice) : num(ngDol.distance);
-      const arrow = ngDol.side === 'BUY' ? '↑' : (ngDol.side === 'SELL' ? '↓' : '');
-      dolText = `${arrow} ${ngDol.name || 'DOL'} $${fmt(ngDol.level)}${Number.isFinite(dist) ? ` ($${fmt(dist)})` : ''}`;
-      dolTone = ngDol.side === 'BUY' ? 'is-bull' : (ngDol.side === 'SELL' ? 'is-bear' : 'is-gold');
-    } else if (Number.isFinite(dashDolLvl)) {
-      const dir = dashboard?.dolDir || dashboard?.biasDir || 0;
-      const arrow = dir === 1 ? '↑' : (dir === -1 ? '↓' : '');
-      const dist = livePrice > 0 ? Math.abs(dashDolLvl - livePrice) : NaN;
-      const dName = dashboard?.dolName || (dir === 1 ? 'BSL' : (dir === -1 ? 'SSL' : 'DOL'));
-      dolText = `${arrow} ${dName} $${fmt(dashDolLvl)}${Number.isFinite(dist) ? ` ($${fmt(dist)})` : ''}`;
-      dolTone = dir === 1 ? 'is-bull' : (dir === -1 ? 'is-bear' : 'is-gold');
-    }
-
-    return { breakText, breakTone, sweepText, sweepTone, dolText, dolTone };
+    return resolveSsotTelemetry(ctx, window.amyfxLastIndicators || null, livePrice);
   }
 
   /* ── 1. Hero Ringkas: Bias 3-TF + Telemetri Break/Sweep/DOL ── */
@@ -764,18 +1064,14 @@
     if (fill) fill.style.width = `${pct}%`;
     if (dot)  dot.style.left = `${pct}%`;
 
-    // Range Mayor (PDH / PDL — baca keyLevels NextGen yang akurat)
+    // Range Mayor (PDL–PDH urutan Low ke High agar konsisten dengan label)
     const pdh = Number(amy?.levels?.pdh || ng?.keyLevels?.pdh || ctx.h1?.swingHigh);
     const pdl = Number(amy?.levels?.pdl || ng?.keyLevels?.pdl || ctx.h1?.swingLow);
     const majorRangeEl = $('dr-major-range');
     const majorEqEl = $('dr-major-eq');
-    if (pdh > 0 && pdl > 0) {
-      if (majorRangeEl) majorRangeEl.textContent = `$${fmt(pdl)} – $${fmt(pdh)}`;
-      if (majorEqEl) majorEqEl.textContent = `$${fmt((pdh + pdl) / 2)}`;
-    } else {
-      if (majorRangeEl) majorRangeEl.textContent = 'Belum tersedia';
-      if (majorEqEl) majorEqEl.textContent = '—';
-    }
+    const majorFmt = formatPdlPdhRange(pdl, pdh);
+    if (majorRangeEl) majorRangeEl.textContent = majorFmt.rangeText;
+    if (majorEqEl) majorEqEl.textContent = majorFmt.eqText;
 
     // Status badge ringkas (bedakan Sweep dangkal vs Breakdown/Breakout valid!)
     const badge = $('dr-status-badge');
@@ -835,7 +1131,8 @@
     if (!ctx) return;
     const amy = ctx.amy || ctx;
     const dashboard = amy?.dashboard;
-    const ng = window.amyfxLastIndicators || null;
+    const { ngM15, ngM5 } = getDualLayerNextGen(amy, window.amyfxLastIndicators || null);
+    const ng = ngM15 || window.amyfxLastIndicators || null;
     const livePrice = Number(window.amyfxCurrentPrice) || Number(ctx.price) || Number(dashboard?.candle?.close) || 0;
 
     // Subtitle badge berdasarkan bias
@@ -967,6 +1264,22 @@
     const uniqueBearOBs = dedupeZones(rawObs.filter(isBearOb).map(obZoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
     const uniqueBullOBs = dedupeZones(rawObs.filter(isBullOb).map(obZoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
 
+    // Lapisan Refinement M5 (Scalper Dual-Layer: FVG & OB M5 aktif langsung dari candle M5 server)
+    const m5RawFvgs = Array.isArray(ngM5?.poi?.fvg) ? ngM5.poi.fvg : [];
+    const m5BearFVGs = dedupeZones(m5RawFvgs.filter(f => {
+      const s = String(f.side || f.direction || f.type || '').toUpperCase();
+      return (s === 'SELL' || s === 'BEARISH' || f.dir === -1) && isActiveZone(f);
+    }).map(zoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
+
+    const m5BullFVGs = dedupeZones(m5RawFvgs.filter(f => {
+      const s = String(f.side || f.direction || f.type || '').toUpperCase();
+      return (s === 'BUY' || s === 'BULLISH' || f.dir === 1) && isActiveZone(f);
+    }).map(zoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
+
+    const m5RawObs = Array.isArray(ngM5?.poi?.ob) ? ngM5.poi.ob : [];
+    const m5BearOBs = dedupeZones(m5RawObs.filter(isBearOb).map(o => ({ ...obZoneOf(o), label: o.label || '-OB Supply M5' })).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
+    const m5BullOBs = dedupeZones(m5RawObs.filter(isBullOb).map(o => ({ ...obZoneOf(o), label: o.label || '+OB Demand M5' })).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
+
     // Evaluasi M5 independen (selaras 100% dengan Hero Card)
     let m5Dir = 0;
     const m5Status = String(ctx.m5?.status || '').toUpperCase();
@@ -985,22 +1298,22 @@
       }
     }
 
-    // Filter Sesi Killzone & Berita High-Impact USD untuk Scalper
-    const sessionLabel = resolveSessionLabel();
+    // Filter Sesi Killzone & Berita High-Impact USD untuk Scalper (Single Source: market-session-clock.js)
+    const sessionState = resolveGoldSessionState(Date.now());
     const newsStatus = String(ctx.news?.status || '').toUpperCase();
     let sessionGuard = { label: 'Sesi Aktif · Selektif M5', tone: 'is-caution', ok: true, halfLot: false, blocked: false };
-    if (sessionLabel.includes('Pasar Tutup')) {
-      sessionGuard = { label: 'Pasar Tutup · Akhir Pekan', tone: 'is-danger', ok: false, halfLot: false, blocked: true };
+    if (sessionState.isClosed) {
+      sessionGuard = { label: sessionState.label, tone: 'is-danger', ok: false, halfLot: false, blocked: true };
     } else if (newsStatus === 'NEWS_LOCK') {
       sessionGuard = { label: 'News USD Aktif · Tahan Entry', tone: 'is-danger', ok: false, halfLot: true, blocked: true };
     } else if (newsStatus === 'UPCOMING') {
       sessionGuard = { label: 'News USD <30m · Kurangi Lot 50%', tone: 'is-caution', ok: true, halfLot: true, blocked: false };
-    } else if (sessionLabel.includes('Killzone')) {
-      sessionGuard = { label: `${sessionLabel.split('·')[0].trim()} · Ideal Scalping`, tone: 'is-killzone', ok: true, halfLot: false, blocked: false };
-    } else if (sessionLabel.includes('Pre-Open') || sessionLabel.includes('Siang')) {
-      sessionGuard = { label: `${sessionLabel} · Selektif M5`, tone: 'is-caution', ok: true, halfLot: false, blocked: false };
+    } else if (sessionState.isKillzone) {
+      sessionGuard = { label: `${sessionState.label} · Ideal Scalping`, tone: 'is-killzone', ok: true, halfLot: false, blocked: false };
+    } else if (sessionState.code === 'LONDON-NY PRE-OPEN' || sessionState.code === 'NEW YORK SIANG') {
+      sessionGuard = { label: `${sessionState.label} · Selektif M5`, tone: 'is-caution', ok: true, halfLot: false, blocked: false };
     } else {
-      sessionGuard = { label: `${sessionLabel} · Luar Killzone (Lot 50%)`, tone: 'is-caution', ok: false, halfLot: true, blocked: false };
+      sessionGuard = { label: `${sessionState.label} · Luar Killzone (Lot 50%)`, tone: 'is-caution', ok: false, halfLot: true, blocked: false };
     }
 
     // Kandidat Likuiditas Riil (Single Source: NextGen DOL + keyLevels + Protected Swings + Dashboard)
@@ -1013,17 +1326,32 @@
     const ngPoolsAbove = Array.isArray(ng?.dol?.poolsAbove) ? ng.dol.poolsAbove.map(p => ({ name: p.name, k: 'H', v: num(p.level ?? p.price) })) : [];
     const ngPoolsBelow = Array.isArray(ng?.dol?.poolsBelow) ? ng.dol.poolsBelow.map(p => ({ name: p.name, k: 'L', v: num(p.level ?? p.price) })) : [];
 
-    // Active BOS Leg & OTE (61.8% – 78.6%) yang mengikuti ekspansi harga live
+    // Active BOS Leg & OTE (61.8% – 78.6%) — hanya pakai NextGen activeLeg jika searah SSOT M15!
     let activeLeg = null;
-    if (ng?.activeLeg && Number.isFinite(num(ng.activeLeg.high)) && Number.isFinite(num(ng.activeLeg.low))) {
-      const aHigh = chartTrend === 'BULL' && livePrice > 0 ? Math.max(ng.activeLeg.high, livePrice) : ng.activeLeg.high;
-      const aLow = chartTrend === 'BEAR' && livePrice > 0 ? Math.min(ng.activeLeg.low, livePrice) : ng.activeLeg.low;
+    const ngLegTrend = String(ng?.activeLeg?.trend || '').toUpperCase();
+    const ngLegMatchesM15 = (m15Dir === 1 && ngLegTrend === 'BULL') || (m15Dir === -1 && ngLegTrend === 'BEAR') || m15Dir === 0;
+    if (ng?.activeLeg && ngLegMatchesM15 && Number.isFinite(num(ng.activeLeg.high)) && Number.isFinite(num(ng.activeLeg.low))) {
+      const aHigh = ngLegTrend === 'BULL' && livePrice > 0 ? Math.max(ng.activeLeg.high, livePrice) : ng.activeLeg.high;
+      const aLow = ngLegTrend === 'BEAR' && livePrice > 0 ? Math.min(ng.activeLeg.low, livePrice) : ng.activeLeg.low;
       if (aHigh > aLow) {
         const span = aHigh - aLow;
         const aEq = (aHigh + aLow) / 2;
-        const o1 = chartTrend === 'BEAR' ? aLow + span * 0.618 : aHigh - span * 0.786;
-        const o2 = chartTrend === 'BEAR' ? aLow + span * 0.786 : aHigh - span * 0.618;
-        activeLeg = { high: aHigh, low: aLow, eq: aEq, oteLow: Math.min(o1, o2), oteHigh: Math.max(o1, o2) };
+        const o1 = ngLegTrend === 'BEAR' ? aLow + span * 0.618 : aHigh - span * 0.786;
+        const o2 = ngLegTrend === 'BEAR' ? aLow + span * 0.786 : aHigh - span * 0.618;
+        activeLeg = { trend: ngLegTrend, high: aHigh, low: aLow, eq: aEq, oteLow: Math.min(o1, o2), oteHigh: Math.max(o1, o2) };
+      }
+    }
+
+    // Recent M15 Impulse Leg (16 bar M15 terakhir ~4 jam) untuk validasi Continuation FVG/OB saat ekspansi
+    let impulseHigh = NaN;
+    let impulseLow = NaN;
+    const recentM15Bars = Array.isArray(amy?.chartCandles?.M15) ? amy.chartCandles.M15.slice(-16) : [];
+    if (recentM15Bars.length >= 6) {
+      const hiVals = recentM15Bars.map(b => Number(b.high)).filter(Number.isFinite);
+      const loVals = recentM15Bars.map(b => Number(b.low)).filter(Number.isFinite);
+      if (hiVals.length && loVals.length) {
+        impulseHigh = Math.max(...hiVals, livePrice > 0 ? livePrice : -Infinity);
+        impulseLow = Math.min(...loVals, livePrice > 0 ? livePrice : Infinity);
       }
     }
 
@@ -1052,69 +1380,24 @@
 
     const MAX_STRUCTURAL_SL_BUFFER = 9.0;
 
-    // Helper pilih POI Scalper Pro: Leg Aktif + OTE (61.8%–78.6%) + Anti-Kontradiksi Invalidasi
-    function selectBestPOI(obs, fvgList, side) {
+    // Helper pilih POI Scalper Dual-Layer (M5 Refinement + M15 Structural Swing via pure module)
+    function selectDualLayerPOI(side) {
       const isSell = side === 'SELL';
-      const combined = [
-        ...obs.map(z => ({
-          low: z.lo,
-          high: z.hi,
-          ce: z.ce,
-          label: z.label,
-          kind: 'OB',
-          fresh: z.raw?.lifecycle === 'FRESH' || z.raw?.tested === false
-        })),
-        ...fvgList.map((z, i) => ({
-          low: z.lo,
-          high: z.hi,
-          ce: z.ce,
-          label: `${isSell ? 'Bearish' : 'Bullish'} FVG #${i + 1}`,
-          kind: 'FVG',
-          fresh: !z.tested
-        }))
-      ]
-        .filter(z => isSell ? z.high >= livePrice - 1.0 : z.low <= livePrice + 1.0)
-        .map(z => {
-          const breached = livePrice > 0 && (isSell ? livePrice > z.high + 0.25 : livePrice < z.low - 0.25);
-          const outsideInvalidation = isSell
-            ? (Number.isFinite(protectedHigh) && (chartTrend === 'BEAR' || m15Dir === -1) && z.low > protectedHigh + 0.25)
-            : (Number.isFinite(protectedLow) && (chartTrend === 'BULL' || m15Dir === 1) && z.high < protectedLow - 0.25);
-          const inOte = Boolean(activeLeg && z.high >= activeLeg.oteLow - 0.5 && z.low <= activeLeg.oteHigh + 0.5);
-          const refEq = activeLeg ? activeLeg.eq : eqVal;
-          const inRightHalf = Number.isFinite(refEq) ? (isSell ? z.ce >= refEq - 1.0 : z.ce <= refEq + 1.0) : true;
-          return { ...z, breached, outsideInvalidation, inOte, inRightHalf };
-        });
-
-      if (!combined.length) return null;
-
-      // Utamakan zona yang belum jebol DAN berada di dalam batas Protected High/Low leg aktif
-      const unbrokenInside = combined.filter(z => !z.breached && !z.outsideInvalidation);
-      const insideAny = combined.filter(z => !z.outsideInvalidation);
-      const unbrokenAny = combined.filter(z => !z.breached);
-      const basePool = unbrokenInside.length
-        ? unbrokenInside
-        : (unbrokenAny.length ? unbrokenAny : (insideAny.length ? insideAny : combined));
-
-      // Jika di basePool ada zona di paruh leg aktif yang tepat (Premium/OTE untuk SELL, Diskon/OTE untuk BUY) dalam jarak scalping (<$18), prioritaskan
-      const legMatched = basePool.filter(z => {
-        const dist = isSell ? Math.max(0, z.low - livePrice) : Math.max(0, livePrice - z.high);
-        return z.inRightHalf && dist <= 18.0;
+      return selectScalperDualLayerPoi({
+        side,
+        m15Obs: isSell ? uniqueBearOBs : uniqueBullOBs,
+        m15Fvgs: isSell ? bearFVGs : bullFVGs,
+        m5Obs: isSell ? m5BearOBs : m5BullOBs,
+        m5Fvgs: isSell ? m5BearFVGs : m5BullFVGs,
+        livePrice,
+        m15Dir,
+        activeLeg,
+        eqVal,
+        protectedHigh,
+        protectedLow,
+        impulseHigh,
+        impulseLow
       });
-      const pool = legMatched.length ? legMatched : basePool;
-
-      const scoreZone = z => {
-        const dist = isSell ? Math.max(0, z.low - livePrice) : Math.max(0, livePrice - z.high);
-        let score = dist;
-        if (z.fresh) score -= 3.5;
-        if (z.inOte) score -= 4.0;
-        if (z.kind === 'OB') score -= 1.2;
-        if (z.outsideInvalidation) score += 25.0;
-        if (z.breached) score += 30.0;
-        return score;
-      };
-
-      pool.sort((a, b) => scoreZone(a) - scoreZone(b));
-      return pool[0] || null;
     }
 
     // Helper pilih Invalidasi & SL yang WAJIB berada di LUAR batas zona entry (anti-terbalik) + Guardrail SL Scalper
@@ -1232,10 +1515,9 @@
       return { tp1, tp2, risk, rr1, rr2 };
     }
 
-    // Helper Evaluasi & Render 5-Poin Scalper Verdict Gate
+    // Helper Evaluasi & Render 5-Poin Scalper Verdict Gate (Delegasi ke pure module mapping-accuracy.js)
     function evaluateAndRenderVerdict(side, cfg) {
       const isSell = side === 'SELL';
-      const sideDir = isSell ? -1 : 1;
       const prefix = isSell ? 'sell' : 'buy';
       const barEl = $(`${prefix}-verdict-bar`);
       const gradeEl = $(`${prefix}-verdict-grade`);
@@ -1244,122 +1526,46 @@
       const checksEl = $(`${prefix}-verdict-checks`);
       if (!barEl) return { grade: 'WAIT', skip: false, score: 0 };
 
-      const isWithM15 = m15Dir === sideDir;
-      const isWithH1 = h1Dir === sideDir;
-      const isCounterFull = (h1Dir === -sideDir && m15Dir === -sideDir);
-      const isM5Aligned = m5Dir === sideDir;
+      const verdict = evaluateScalperPoiVerdict({
+        side,
+        h1Dir,
+        m15Dir,
+        m5Dir,
+        zone: cfg.zone,
+        livePrice,
+        slGuard: cfg.slGuard,
+        rr1: cfg.rr1,
+        tp1: cfg.tp1 || null,
+        isSlHit: cfg.isSlHit,
+        sessionGuard,
+        newsStatus
+      });
 
-      // 5 Cek Konfluensi Scalper
-      const trendPass = isWithM15 || (m15Dir === 0 && isWithH1);
-      const trendLabel = isWithH1 && isWithM15
-        ? 'Tren H1+M15'
-        : isWithM15
-          ? 'Searah M15'
-          : isCounterFull
-            ? (isM5Aligned ? 'Counter H1+M15' : 'Counter 3-TF')
-            : 'Counter M15';
-
-      const zone = cfg.zone;
-      const locPass = Boolean(zone && zone.inRightHalf && !zone.outsideInvalidation);
-      const locLabel = zone?.inOte
-        ? 'Zona OTE'
-        : locPass
-          ? (isSell ? 'Premium Leg' : 'Diskon Leg')
-          : 'Lokasi Lemah';
-
-      const poiPass = Boolean(zone && !zone.breached && !zone.outsideInvalidation && !cfg.isSlHit);
-      const poiLabel = !zone
-        ? 'Belum Ada POI'
-        : zone.breached || cfg.isSlHit
-          ? 'Zona Jebol'
-          : zone.outsideInvalidation
-            ? 'Di Luar Invalid'
-            : (zone.fresh ? `Fresh ${zone.kind}` : `${zone.kind} Aktif`);
-
-      const m5Pass = isM5Aligned;
-      const m5Label = isM5Aligned ? 'M5 Konfirm' : 'Tunggu M5';
-
-      const slOk = cfg.slGuard.status !== 'tight' && Number.isFinite(cfg.slGuard.dist) && cfg.slGuard.dist <= 9.0;
-      const rrOk = Number.isFinite(cfg.rr1) && cfg.rr1 >= 1.4;
-      const rrSlPass = Boolean(zone) && slOk && rrOk && !sessionGuard.blocked;
-      const rrSlLabel = sessionGuard.blocked
-        ? 'Sesi/News Lock'
-        : !zone
-          ? 'Menunggu R:R'
-          : !slOk
-            ? (cfg.slGuard.status === 'tight' ? 'SL Terlalu Ketat' : 'SL Lebar')
-            : rrOk
-              ? `R:R 1:${cfg.rr1.toFixed(1)}`
-              : 'R:R Kecil';
-
-      const checks = [
-        { ok: trendPass, warn: !trendPass && isM5Aligned, label: trendLabel },
-        { ok: locPass, warn: false, label: locLabel },
-        { ok: poiPass, warn: false, label: poiLabel },
-        { ok: m5Pass, warn: !m5Pass && trendPass, label: m5Label },
-        { ok: rrSlPass, warn: slOk && rrOk && sessionGuard.halfLot, label: rrSlLabel }
-      ];
-
-      const score = checks.reduce((n, c) => n + (c.ok ? 1 : 0), 0);
-
-      let cls = 'is-wait';
-      let gradeText = 'GRADE B · TUNGGU KONFIRMASI';
-      let isSkip = false;
-
-      if (sessionGuard.blocked) {
-        cls = 'is-skip';
-        gradeText = newsStatus === 'NEWS_LOCK' ? 'SKIP · NEWS USD AKTIF' : 'SKIP · PASAR TUTUP';
-        isSkip = true;
-      } else if (!zone || zone.breached || cfg.isSlHit) {
-        cls = 'is-skip';
-        gradeText = zone?.breached || cfg.isSlHit ? 'SKIP · ZONA SUDAH JEBOL' : 'SKIP · BELUM ADA ZONA';
-        isSkip = true;
-      } else if (zone.outsideInvalidation) {
-        cls = 'is-skip';
-        gradeText = 'SKIP · ZONA DI LUAR INVALIDASI';
-        isSkip = true;
-      } else if (isCounterFull && !isM5Aligned) {
-        cls = 'is-skip';
-        gradeText = 'SKIP · COUNTER-TREND (WAJIB MSS M5)';
-        isSkip = true;
-      } else if (score === 5) {
-        cls = isSell ? 'is-ready-sell' : 'is-ready';
-        gradeText = 'GRADE A+ · SIAP EKSEKUSI SCALPER';
-      } else if (score === 4 && trendPass && poiPass) {
-        cls = 'is-wait';
-        gradeText = isM5Aligned ? 'GRADE A · SIAP EKSEKUSI' : 'GRADE A · SIAP PANTAU M5';
-      } else if (score >= 3 && poiPass) {
-        cls = 'is-wait';
-        gradeText = isCounterFull ? 'GRADE B · SCALP REVERSAL M5' : 'GRADE B · TUNGGU PULLBACK & M5';
-      } else {
-        cls = 'is-skip';
-        gradeText = 'SKIP · PROBABILITAS RENDAH';
-        isSkip = true;
-      }
-
-      barEl.className = `poi-verdict-card ${cls}`;
-      if (gradeEl) gradeEl.textContent = gradeText;
-      if (scoreEl) scoreEl.textContent = `${score}/5`;
+      barEl.className = `poi-verdict-card ${verdict.cls}`;
+      if (gradeEl) gradeEl.textContent = verdict.grade;
+      if (scoreEl) scoreEl.textContent = `${verdict.score}/5`;
       if (guardEl) {
         guardEl.textContent = sessionGuard.label;
         guardEl.className = `poi-session-guard ${sessionGuard.tone}`;
       }
       if (checksEl) {
-        checksEl.innerHTML = checks.map(c => {
+        checksEl.innerHTML = verdict.checks.map(c => {
           const itemCls = c.ok ? 'is-pass' : (c.warn ? 'is-warn' : 'is-fail');
           const mark = c.ok ? '✓' : (c.warn ? '•' : '✕');
           return `<span class="poi-check-item ${itemCls}"><span class="poi-check-mark">${mark}</span><span>${esc(c.label)}</span></span>`;
         }).join('');
       }
 
-      return { grade: gradeText, skip: isSkip, score };
+      return verdict;
     }
 
     // ══════════════════════════════════════════════
     // SELL SETUP COMPUTATION & RENDER (SCALPER PRO)
     // ══════════════════════════════════════════════
     const sellTbody = $('sell-poi-tbody');
-    let primarySellZone = selectBestPOI(uniqueBearOBs.filter(z => z.hi >= livePrice - 1.5), bearFVGs, 'SELL');
+    const sellSelection = selectDualLayerPOI('SELL');
+    let primarySellZone = sellSelection.primary;
+    const backupSellZone = sellSelection.backup;
     let isSellTesting = false;
     let isSellReacting = false;
     let isSellTpHit = false;
@@ -1435,6 +1641,7 @@
       ? {
           scalper: true,
           side: 'SELL',
+          tf: primarySellZone.tf || 'M15',
           kind: primarySellZone.kind || 'OB',
           label: primarySellZone.label || '-OB',
           alarmPrice: Number(primarySellZone.low.toFixed(2)),
@@ -1454,6 +1661,7 @@
       zone: primarySellZone,
       slGuard: sellSlGuard,
       rr1: sellRr,
+      tp1: tpCandSell,
       isSlHit: isSellSlHit
     });
 
@@ -1462,24 +1670,22 @@
     const sellEntrySubEl = $('sell-entry-sub');
     if (sellEntryValEl) sellEntryValEl.textContent = primarySellZone ? fmtRange(primarySellZone.low, primarySellZone.high) : 'Belum Ada';
     if (sellEntrySubEl) {
+      const tfTag = primarySellZone?.tf ? ` ${primarySellZone.tf}` : '';
       const oteTag = primarySellZone?.inOte ? ' · OTE' : '';
       const freshTag = primarySellZone?.fresh ? 'Fresh ' : '';
+      const distTag = (primarySellZone && Number.isFinite(sellVerdict.zoneDist) && sellVerdict.zoneDist >= 0.5)
+        ? ` · +$${sellVerdict.zoneDist.toFixed(1)}`
+        : (primarySellZone && Number.isFinite(sellVerdict.zoneDist) ? ' · Di Zona' : '');
       sellEntrySubEl.textContent = primarySellZone
-        ? `${freshTag}${primarySellZone.kind || 'OB'}${oteTag} · CE $${fmt(primarySellZone.ce)}`
+        ? `${freshTag}${primarySellZone.kind || 'OB'}${tfTag}${oteTag} · CE $${fmt(primarySellZone.ce)}${distTag}`
         : 'Tunggu Supply/OB di atas harga';
     }
     const sellTpValEl = $('sell-tp-val');
     const sellTpSubEl = $('sell-tp-sub');
     if (sellTpValEl) sellTpValEl.textContent = Number.isFinite(sellTpVal) ? `$${fmt(sellTpVal)}` : '—';
     if (sellTpSubEl) {
-      const rrTag = Number.isFinite(sellRr) && sellRr > 0 ? `1:${sellRr.toFixed(1)}` : '';
-      const runnerTag = tpCandSell2 ? ` · Runner $${fmt(tpCandSell2.v)}` : '';
-      const tp1Desc = tpCandSell?.synthetic
-        ? `Partial BEP (${rrTag || '1:1.8'})`
-        : `BEP ${tpCandSell?.name || 'TP1'}${rrTag ? ` (${rrTag})` : ''}`;
-      sellTpSubEl.textContent = Number.isFinite(sellTpVal)
-        ? `${tp1Desc}${runnerTag}`
-        : 'Likuiditas SSL bawah';
+      const subText = formatTp1Subtitle(tpCandSell, tpCandSell2, sellRr);
+      sellTpSubEl.textContent = subText || 'Likuiditas SSL bawah';
     }
     const sellSlValEl = $('sell-sl-val');
     const sellSlSubEl = $('sell-sl-sub');
@@ -1518,10 +1724,18 @@
               ? `Reaksi dari $${fmt(activeSellSession?.triggeredPrice || primarySellZone.low)} · Bergerak -$${fmt(Math.max(0, (activeSellSession?.triggeredPrice || primarySellZone.low) - livePrice))}`
               : `50% CE: $${fmt(primarySellZone.ce)}${primarySellZone.inOte ? ' · Area OTE 62%–79%' : ''} — jemputan Sell`;
         sellRows.push({
-          poi: `${isSellInPlay ? '[Aktif] ' : ''}Entry [${primarySellZone.kind || 'OB'}] · ${primarySellZone.label}`,
+          poi: `${isSellInPlay ? '[Aktif] ' : ''}Entry [${primarySellZone.kind || 'OB'} ${primarySellZone.tf || 'M15'}] · ${primarySellZone.label}`,
           level: fmtRange(primarySellZone.low, primarySellZone.high),
           note: trigNote
         });
+        if (backupSellZone) {
+          const bDist = livePrice > 0 ? Math.max(0, backupSellZone.low - livePrice) : NaN;
+          sellRows.push({
+            poi: `Cadangan [${backupSellZone.kind} ${backupSellZone.tf}] · Pullback Dalam`,
+            level: fmtRange(backupSellZone.low, backupSellZone.high),
+            note: `CE $${fmt(backupSellZone.ce)}${Number.isFinite(bDist) ? ` (+$${fmt(bDist)})` : ''} — zona Supply sekunder jika zona pertama ditembus`
+          });
+        }
       } else {
         sellRows.push({
           poi: 'Status OB & FVG',
@@ -1535,9 +1749,13 @@
         const dist1 = Math.max(0, refEntry - tpCandSell.v);
         const rr1Str = Number.isFinite(sellRr) ? ` · R:R 1:${sellRr.toFixed(1)}` : '';
         sellRows.push({
-          poi: `TP1 Cepat (BEP 60%) · ${tpCandSell.name}`,
+          poi: tpCandSell.synthetic
+            ? `TP1 Proyeksi R:R (Non-Struktural) · ${tpCandSell.name}`
+            : `TP1 DOL Struktural (BEP 60%) · ${tpCandSell.name}`,
           level: '$' + fmt(tpCandSell.v),
-          note: `-$${fmt(dist1)} dari CE${rr1Str} — Close 60% & geser SL ke BEP`
+          note: tpCandSell.synthetic
+            ? `-$${fmt(dist1)} dari CE${rr1Str} — Estimasi partial BEP (bukan pool likuiditas asli)`
+            : `-$${fmt(dist1)} dari CE${rr1Str} — Close 60% & geser SL ke BEP`
         });
       }
       if (tpCandSell2) {
@@ -1597,7 +1815,9 @@
     // BUY SETUP COMPUTATION & RENDER (SCALPER PRO)
     // ══════════════════════════════════════════════
     const buyTbody = $('buy-poi-tbody');
-    let primaryBuyZone = selectBestPOI(uniqueBullOBs.filter(z => z.lo <= livePrice + 1.5), bullFVGs, 'BUY');
+    const buySelection = selectDualLayerPOI('BUY');
+    let primaryBuyZone = buySelection.primary;
+    const backupBuyZone = buySelection.backup;
     let isBuyTesting = false;
     let isBuyReacting = false;
     let isBuyTpHit = false;
@@ -1673,6 +1893,7 @@
       ? {
           scalper: true,
           side: 'BUY',
+          tf: primaryBuyZone.tf || 'M15',
           kind: primaryBuyZone.kind || 'OB',
           label: primaryBuyZone.label || '+OB',
           alarmPrice: Number(primaryBuyZone.high.toFixed(2)),
@@ -1692,6 +1913,7 @@
       zone: primaryBuyZone,
       slGuard: buySlGuard,
       rr1: buyRr,
+      tp1: tpCandBuy,
       isSlHit: isBuySlHit
     });
 
@@ -1700,24 +1922,22 @@
     const buyEntrySubEl = $('buy-entry-sub');
     if (buyEntryValEl) buyEntryValEl.textContent = primaryBuyZone ? fmtRange(primaryBuyZone.low, primaryBuyZone.high) : 'Belum Ada';
     if (buyEntrySubEl) {
+      const tfTag = primaryBuyZone?.tf ? ` ${primaryBuyZone.tf}` : '';
       const oteTag = primaryBuyZone?.inOte ? ' · OTE' : '';
       const freshTag = primaryBuyZone?.fresh ? 'Fresh ' : '';
+      const distTag = (primaryBuyZone && Number.isFinite(buyVerdict.zoneDist) && buyVerdict.zoneDist >= 0.5)
+        ? ` · -$${buyVerdict.zoneDist.toFixed(1)}`
+        : (primaryBuyZone && Number.isFinite(buyVerdict.zoneDist) ? ' · Di Zona' : '');
       buyEntrySubEl.textContent = primaryBuyZone
-        ? `${freshTag}${primaryBuyZone.kind || 'OB'}${oteTag} · CE $${fmt(primaryBuyZone.ce)}`
+        ? `${freshTag}${primaryBuyZone.kind || 'OB'}${tfTag}${oteTag} · CE $${fmt(primaryBuyZone.ce)}${distTag}`
         : 'Tunggu Demand/OB di bawah harga';
     }
     const buyTpValEl = $('buy-tp-val');
     const buyTpSubEl = $('buy-tp-sub');
     if (buyTpValEl) buyTpValEl.textContent = Number.isFinite(buyTpVal) ? `$${fmt(buyTpVal)}` : '—';
     if (buyTpSubEl) {
-      const rrTag = Number.isFinite(buyRr) && buyRr > 0 ? `1:${buyRr.toFixed(1)}` : '';
-      const runnerTag = tpCandBuy2 ? ` · Runner $${fmt(tpCandBuy2.v)}` : '';
-      const tp1Desc = tpCandBuy?.synthetic
-        ? `Partial BEP (${rrTag || '1:1.8'})`
-        : `BEP ${tpCandBuy?.name || 'TP1'}${rrTag ? ` (${rrTag})` : ''}`;
-      buyTpSubEl.textContent = Number.isFinite(buyTpVal)
-        ? `${tp1Desc}${runnerTag}`
-        : 'Likuiditas BSL atas';
+      const subText = formatTp1Subtitle(tpCandBuy, tpCandBuy2, buyRr);
+      buyTpSubEl.textContent = subText || 'Likuiditas BSL atas';
     }
     const buySlValEl = $('buy-sl-val');
     const buySlSubEl = $('buy-sl-sub');
@@ -1756,10 +1976,18 @@
               ? `Reaksi dari $${fmt(activeBuySession?.triggeredPrice || primaryBuyZone.high)} · Bergerak +$${fmt(Math.max(0, livePrice - (activeBuySession?.triggeredPrice || primaryBuyZone.high)))}`
               : `50% CE: $${fmt(primaryBuyZone.ce)}${primaryBuyZone.inOte ? ' · Area OTE 62%–79%' : ''} — jemputan Buy`;
         buyRows.push({
-          poi: `${isBuyInPlay ? '[Aktif] ' : ''}Entry [${primaryBuyZone.kind || 'OB'}] · ${primaryBuyZone.label}`,
+          poi: `${isBuyInPlay ? '[Aktif] ' : ''}Entry [${primaryBuyZone.kind || 'OB'} ${primaryBuyZone.tf || 'M15'}] · ${primaryBuyZone.label}`,
           level: fmtRange(primaryBuyZone.low, primaryBuyZone.high),
           note: trigNote
         });
+        if (backupBuyZone) {
+          const bDist = livePrice > 0 ? Math.max(0, livePrice - backupBuyZone.high) : NaN;
+          buyRows.push({
+            poi: `Cadangan [${backupBuyZone.kind} ${backupBuyZone.tf}] · Pullback Dalam`,
+            level: fmtRange(backupBuyZone.low, backupBuyZone.high),
+            note: `CE $${fmt(backupBuyZone.ce)}${Number.isFinite(bDist) ? ` (-$${fmt(bDist)})` : ''} — zona Demand sekunder jika retest lebih dalam`
+          });
+        }
       } else {
         buyRows.push({
           poi: 'Status OB & FVG',
@@ -1773,9 +2001,13 @@
         const dist1 = Math.max(0, tpCandBuy.v - refEntry);
         const rr1Str = Number.isFinite(buyRr) ? ` · R:R 1:${buyRr.toFixed(1)}` : '';
         buyRows.push({
-          poi: `TP1 Cepat (BEP 60%) · ${tpCandBuy.name}`,
+          poi: tpCandBuy.synthetic
+            ? `TP1 Proyeksi R:R (Non-Struktural) · ${tpCandBuy.name}`
+            : `TP1 DOL Struktural (BEP 60%) · ${tpCandBuy.name}`,
           level: '$' + fmt(tpCandBuy.v),
-          note: `+$${fmt(dist1)} dari CE${rr1Str} — Close 60% & geser SL ke BEP`
+          note: tpCandBuy.synthetic
+            ? `+$${fmt(dist1)} dari CE${rr1Str} — Estimasi partial BEP (bukan pool likuiditas asli)`
+            : `+$${fmt(dist1)} dari CE${rr1Str} — Close 60% & geser SL ke BEP`
         });
       }
       if (tpCandBuy2) {
@@ -1914,7 +2146,8 @@
           buyWarn.hidden = false;
         } else {
           buyWarn.className = 'poi-warning-box is-danger';
-          buyWarn.innerHTML = `<strong>Dilarang FOMO Buy di Pucuk:</strong> Posisi berada di Zona Premium (${pct}%). Buy valid hanya setelah koreksi ke Demand Diskon (${buyLabelZone ? fmtRange(buyLabelZone.low, buyLabelZone.high) : 'Demand bawah'}).`;
+          const backupTxt = backupBuyZone ? ` · Cadangan ${backupBuyZone.tf}: ${fmtRange(backupBuyZone.low, backupBuyZone.high)}` : '';
+          buyWarn.innerHTML = `<strong>Dilarang FOMO Buy di Pucuk:</strong> Posisi berada di Zona Premium Makro (${pct}%). Tunggu retest ke POI terdekat (${buyLabelZone ? fmtRange(buyLabelZone.low, buyLabelZone.high) : 'Demand bawah'}${primaryBuyZone?.tf ? ` · ${primaryBuyZone.tf}` : ''})${backupTxt}.`;
           buyWarn.hidden = false;
         }
       } else {
@@ -1939,9 +2172,10 @@
         : 'zona demand (menunggu validasi)';
     }
 
-    // Sinkronkan Single Source of Truth POI ke Chart Gold, Hero Distance, dan Tombol Alarm 1-Klik
+    // Sinkronkan Single Source of Truth POI ke Chart Gold, Hero Distance, Tombol Alarm 1-Klik & Riwayat Reaksi POI
     publishActiveScalperPlan();
     syncEntryAlarmButtons();
+    syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice);
   }
 
   /* ── Master Update ── */
@@ -1975,12 +2209,17 @@
     if (Number.isFinite(p) && p > 0) {
       applyHeroPrice(p);
       if (window.amyfxLastContext) updateDealingRange(window.amyfxLastContext);
+      tickMappingHistory(p);
     }
   });
 
   window.addEventListener('amyfx:live-price-display', event => {
     const p = Number(event?.detail?.price);
-    if (Number.isFinite(p) && p > 0) applyHeroPrice(p);
+    if (Number.isFinite(p) && p > 0) {
+      applyHeroPrice(p);
+      if (window.amyfxLastContext) updateDealingRange(window.amyfxLastContext);
+      tickMappingHistory(p);
+    }
   });
 
   /* ── Init ── */
@@ -1989,6 +2228,7 @@
     setActivePoiTab(activePoiTab, false);
     startClock();
     syncEntryAlarmButtons();
+    renderMappingHistory();
     if (window.amyfxLastContext) {
       updateAll(window.amyfxLastContext);
     }

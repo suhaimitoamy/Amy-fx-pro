@@ -1,5 +1,12 @@
 # Bug History
 
+## 2026-11-20 — Perbaikan 5 Cacat Akurasi Mapping Cockpit (Dual-Engine Contradiction, Asia/MO Unavailable, Drift Live Price, PDL-PDH, Session Timer Clash)
+1. **Kontradiksi Dual-Engine (Hero M15 BULL vs Break/DOL Bearish):** `dashboard-v2.js` sebelumnya memprioritaskan `window.amyfxLastIndicators` (NextGen) yang bisa memakai timeframe non-M15 atau swing berbeda. Kini didelegasikan ke `resolveSsotTelemetry` di `mapping-accuracy.js` berbasis SSOT M15 backend dan `nextgen-indicators.js` menandai `tf`.
+2. **Asia High/Low & NY Midnight Open selalu `UNAVAILABLE`:** `/api/scalper-setups` tidak mengambil M1 demi hemat kredit, sementara `keyLevels()` hanya membaca `m1`. Kini `keyLevelHistory`/`keyLevels` mendukung fallback `M1 → M5 → M15` dan langsung menghasilkan `midnightOpen` (`FIXED`, M5) serta `asiaHigh`/`asiaLow` (`LOCKED`, M5) secara live.
+3. **Drift Harga & Dealing Range % + Label `PDH–PDL` Terbalik:** SSE `app.js` tidak mem-broadcast `amyfx:live-price-display` dan `dashboard-v2.js` hanya menyegarkan Hero tanpa Dealing Range. Kini sinkron setiap tick dengan TTL `/api/scalper-setups` 60 detik; label diperbaiki ke `PDL–PDH` dengan format pasti `Low – High` (`formatPdlPdhRange`).
+4. **Verdict Gate Terlalu Longgar (`GRADE A+ · SIAP EKSEKUSI` saat harga $14 jauh di atas POI) & TP1 Sintetis:** `evaluateScalperPoiVerdict` kini memisahkan `SIAP EKSEKUSI SCALPER` (`<= $4` dari zona) vs `TUNGGU PULLBACK` (`$4–$18`), `PANTAU JAUH` (`> $18`), memperketat SL ideal `<= $7.5`, dan melabeli TP1 sintetis sebagai `Proyeksi R:R (Non-Struktural)`.
+5. **Rebutan Timer Pill Sesi & Kamus Sesi Tidak Seragam:** Menghapus timer `updateSessionPill` duplikat di `dashboard-v2.js` sehingga `market-session-clock.js` menjadi pemilik tunggal `#cockpit-session-pill` dengan kamus sesi Gold (`goldSessionDetail` ↔ `resolveGoldSessionState`) yang 100% identik dan sadar weekend/rollover 17:00–18:00 NY.
+
 ## 2026-09-30 — Pro381 Market Intel Baseline 11 Bugs Hardening
 
 1. **Bug 1 (Kompas without data hardcoded SELL ON RALLY & connection badge)**:
