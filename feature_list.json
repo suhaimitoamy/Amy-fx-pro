@@ -1,0 +1,74 @@
+{
+  "project": "Amy FX Pro",
+  "version": "2.0.0-pro.458",
+  "last_updated": "2026-11-20",
+  "rules": {
+    "single_active_feature": true,
+    "passing_requires_evidence": true,
+    "do_not_skip_verification": true
+  },
+  "status_legend": {
+    "not_started": "Pekerjaan belum dimulai.",
+    "in_progress": "Fitur ini sedang aktif dikerjakan.",
+    "blocked": "Pekerjaan tertahan sampai kendala terselesaikan.",
+    "passing": "Verifikasi sintaks dan tes lolos dengan bukti nyata."
+  },
+  "features": [
+    {
+      "id": "gold-chart-001",
+      "priority": 1,
+      "area": "mapping",
+      "title": "Paritas Card Chart Gold & Peta Harga",
+      "user_visible_behavior": "Card Peta Harga di Beranda dan Chart Gold di Mapping memiliki paritas visual 100% dalam kontainer glassmorphism 340px dengan M15/M5 toggle.",
+      "status": "passing",
+      "verification": [
+        "Jalankan node --test tests/home-price-chart.test.mjs",
+        "Periksa kontainer .gold-price-panel dan .home-price-panel"
+      ],
+      "evidence": ["tests/home-price-chart.test.mjs passed 6/6"],
+      "notes": "Invarian Pro 403 terkunci"
+    },
+    {
+      "id": "journal-analytics-002",
+      "priority": 2,
+      "area": "journal",
+      "title": "Central Pro Journal Analytics & SVG Equity Curve",
+      "user_visible_behavior": "Performa jurnal trading menampilkan Equity Curve SVG interaktif, underwater drawdown, winrate, profit factor, dan breakdown sesi WITA.",
+      "status": "passing",
+      "verification": [
+        "Jalankan node --test tests/journal-analytics-pro.test.mjs",
+        "Buka Beranda slot #home-journal-analytics-slot dan Modul Jurnal"
+      ],
+      "evidence": ["tests/journal-analytics-pro.test.mjs passed 4/4"],
+      "notes": "Diintegrasikan dari AI Studio (v2.0.0-pro.458)"
+    },
+    {
+      "id": "api-optimization-003",
+      "priority": 3,
+      "area": "backend",
+      "title": "TwelveData Multi-Key Pool & 429 Failover",
+      "user_visible_behavior": "Permintaan candle XAU/USD merotasi banyak API key gratis dan otomatis failover saat terkena limit HTTP 429.",
+      "status": "passing",
+      "verification": [
+        "Jalankan node --test tests/twelvedata-key-pool.test.mjs",
+        "Periksa lib/twelvedata-key-pool.mjs"
+      ],
+      "evidence": ["tests/twelvedata-key-pool.test.mjs passed 2/2"],
+      "notes": "Menghemat ~80% kredit kuota harian TwelveData"
+    },
+    {
+      "id": "live-voice-004",
+      "priority": 4,
+      "area": "assistant",
+      "title": "Amy Live Voice & Strict Numeric Formatting",
+      "user_visible_behavior": "Amy Live berbicara dan menulis angka harga/level murni menggunakan digit ($3595.57, 50%, 100 pips), dilarang mengeja kata huruf panjang.",
+      "status": "passing",
+      "verification": [
+        "Periksa systemInstruction di amy-gemini-live-bridge.js",
+        "Validasi sintaks node --check app/src/main/assets/apps/shared/amy-gemini-live-bridge.js"
+      ],
+      "evidence": ["Sintaks valid & prompt aturan format angka mutlak aktif"],
+      "notes": "Memperbaiki isu ejaan kata pada Screenshot 20261120-085205"
+    }
+  ]
+}
