@@ -247,5 +247,150 @@ def create_academy_web_shell(catalog):
     print("     ✓ Created apps/academy/index.html")
 
 
+def markdown_to_html_body(md_text):
+    """Simple converter for standard markdown to HTML article body."""
+    lines = md_text.strip().splitlines()
+    html_parts = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line:
+            i += 1
+            continue
+            
+        # Code block
+        if line.startswith("```"):
+            code_lines = []
+            i += 1
+            while i < len(lines) and not lines[i].strip().startswith("```"):
+                code_lines.append(lines[i])
+                i += 1
+            i += 1
+            code_content = "\n".join(code_lines)
+            html_parts.append(f"<pre><code>{code_content}</code></pre>")
+            continue
+            
+        # Alerts/Notes
+        if line.startswith("> [!NOTE]") or line.startswith("> [!TIP]") or line.startswith("> [!IMPORTANT]") or line.startswith("> [!WARNING]"):
+            note_type = line.replace("> [!", "").replace("]", "").strip()
+            note_lines = []
+            i += 1
+            while i < len(lines) and lines[i].strip().startswith(">"):
+                clean_l = lines[i].strip().lstrip(">").strip()
+                if clean_l:
+                    note_lines.append(clean_l)
+                i += 1
+            inner_note = "<br>".join(note_lines)
+            html_parts.append(f'<div class="note"><strong>{note_type.title()}</strong><br><p>{inner_note}</p></div>')
+            continue
+            
+        # Headings
+        if line.startswith("###### "):
+            html_parts.append(f"<h6>{line[7:].strip()}</h6>")
+            i += 1
+            continue
+        elif line.startswith("##### "):
+            html_parts.append(f"<h5>{line[6:].strip()}</h5>")
+            i += 1
+            continue
+        elif line.startswith("#### "):
+            html_parts.append(f"<h4>{line[5:].strip()}</h4>")
+            i += 1
+            continue
+        elif line.startswith("### "):
+            html_parts.append(f"<h3>{line[4:].strip()}</h3>")
+            i += 1
+            continue
+        elif line.startswith("## "):
+            html_parts.append(f"<h2>{line[3:].strip()}</h2>")
+            i += 1
+            continue
+        elif line.startswith("# "):
+            html_parts.append(f"<h1>{line[2:].strip()}</h1>")
+            i += 1
+            continue
+            
+        # Lists
+        if line.startswith("- ") or line.startswith("* "):
+            list_items = []
+            while i < len(lines) and (lines[i].strip().startswith("- ") or lines[i].strip().startswith("* ")):
+                item_text = lines[i].strip()[2:].strip()
+                item_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', item_text)
+                item_text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', item_text)
+                list_items.append(f"<li>{item_text}</li>")
+                i += 1
+            html_parts.append(f"<ul>\n" + "\n".join(list_items) + "\n</ul>")
+            continue
+            
+        # Paragraph
+        para_lines = [line]
+        i += 1
+        while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#", "-", "*", ">", "```")):
+            para_lines.append(lines[i].strip())
+            i += 1
+        para_text = " ".join(para_lines)
+        para_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', para_text)
+        para_text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', para_text)
+        html_parts.append(f"<p>{para_text}</p>")
+
+    return "\n\n".join(html_parts)
+
+
+def import_modules():
+    """Unpacks edited Markdown modules from AI Studio back into Amy FX Pro HTML chapters."""
+    print("===> [Import] Scanning edited Markdown files in AI Studio...")
+    md_files = sorted(STUDIO_MODUL_DIR.glob("*.md"))
+    if not md_files:
+        print(f"     No markdown files found in {STUDIO_MODUL_DIR}")
+        return
+
+    chapter_pattern = re.compile(r'<!-- CHAPTER_START: ([\w\-]+\.html)(?: \| TITLE: (.*?))? -->\s*(.*?)\s*<!-- CHAPTER_END: \1 -->', re.DOTALL)
+    total_imported = 0
+
+    for md_file in md_files:
+        content = md_file.read_text(encoding='utf-8')
+        matches = chapter_pattern.findall(content)
+        if not matches:
+            continue
+
+        b_name = md_file.stem
+        target_dir = PRO_ACADEMY_DIR / b_name
+        if not target_dir.exists():
+            continue
+
+        for filename, title, md_body in matches:
+            target_file = target_dir / filename
+            if not target_file.exists():
+                continue
+
+            orig_html = target_file.read_text(encoding='utf-8')
+            new_body_html = markdown_to_html_body(md_body)
+
+            # Preserve outer shell (header, breadcrumb, footer buttons)
+            soup = bs4.BeautifulSoup(orig_html, 'html.parser')
+            article_panel = soup.find('div', class_='glass-panel')
+            if article_panel:
+                h1 = article_panel.find('h1')
+                title_html = f"<h1>{title or (h1.get_text().strip() if h1 else filename)}</h1>\n\n"
+                
+                # Replace content of glass-panel
+                inner_markup = title_html + new_body_html
+                new_soup = bs4.BeautifulSoup(f'<div class="glass-panel" style="margin-top: 20px;">{inner_markup}</div>', 'html.parser')
+                article_panel.replace_with(new_soup.find('div'))
+                
+                target_file.write_text(str(soup), encoding='utf-8')
+                total_imported += 1
+
+        print(f"     ✓ Synced {len(matches)} chapters back from {md_file.name}")
+
+    print(f"\n===> [Import Complete] Successfully updated {total_imported} HTML chapters in Amy FX Pro!")
+
+
 if __name__ == '__main__':
-    export_modules()
+    mode = sys.argv[1].lower() if len(sys.argv) > 1 else 'export'
+    if mode == 'import':
+        import_modules()
+    elif mode == 'export':
+        export_modules()
+    else:
+        print(f"Usage: {sys.argv[0]} [export|import]")
