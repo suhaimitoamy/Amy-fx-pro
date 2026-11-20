@@ -294,8 +294,8 @@ export function createIctCanvas(element, chart, series) {
             ctx.lineTo(lineRight, syy);
             ctx.stroke();
             ctx.setLineDash([]);
-            const tag = sw.reclaimed ? 'Valid' : 'Sweep';
-            label(`${sw.pool || 'SWEEP'} · ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 4, sw.color || '#f59e0b');
+            const tag = sw.reclaimed ? '🎯 Reclaimed Valid' : '⚖️ Menunggu Rejection Close';
+            label(`${sw.label || sw.pool || 'SWEEP'} ${tag}`, Math.max(4, Math.min(xx + 8, plotRight - 110)), syy - 4, sw.color || '#f59e0b');
           }
         }
       }
