@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.459/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.460/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI (Auto-backfill 30j + live persistence 7 hari), 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
-    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live.",
-    "✦ Kalibrasi Responsif Mobile & Jurnal Diet: Optimasi presisi layar 360x820px, kalkulator lot anti-overflow, dan perampingan fokus jurnal."
+    "✦ Chart Gold Safe Dynamic Import: Perbaikan pemuatan dinamis pada modul charting (app.js) dan fallback aman.",
+    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI, 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
+    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.459/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.460/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950459,
-  "latest_version_name": "2.0.0-pro.459",
+  "latest_version_code": 950460,
+  "latest_version_name": "2.0.0-pro.460",
   "mandatory": false,
   "releaseDate": "2026-11-20",
   "release_notes": [
-    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI (Auto-backfill 30j + live persistence 7 hari), 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
-    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live.",
-    "✦ Kalibrasi Responsif Mobile & Jurnal Diet: Optimasi presisi layar 360x820px, kalkulator lot anti-overflow, dan perampingan fokus jurnal."
+    "✦ Chart Gold Safe Dynamic Import: Perbaikan pemuatan dinamis pada modul charting (app.js) dan fallback aman.",
+    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI, 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
+    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live."
   ],
-  "version": "2.0.0-pro.459",
-  "versionCode": 950459,
-  "sha256": "de23c4010f3c60c762fb06341b387820aad1c4d204748e1847d4c1186b199e7a"
+  "version": "2.0.0-pro.460",
+  "versionCode": 950460,
+  "sha256": ""
 }

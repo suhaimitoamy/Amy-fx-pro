@@ -1,7 +1,7 @@
 # Amy FX Pro — Session Handoff
 
 ## 1. Verified Now (Status Terverifikasi Saat Ini)
-- **Versi Rilis:** `2.0.0-pro.459` (code `950459`) — Integrasi borongan dari Google AI Studio.
+- **Versi Rilis:** `2.0.0-pro.460` (code `950460`) — Perbaikan dynamic import aman pada modul Chart Gold & resilient vendor fallback.
 - **Baseline Verification:** Script `./init.sh` lulus bersih (0 error, 34/34 targeted test pass).
 - **Fitur Baru Terpasang dari AI Studio:**
   - **Mapping Reaction History Engine:** Tracking POI touch/outcome (auto-backfill 30j + live persistence 7 hari di localStorage, scorecard Respect%).
