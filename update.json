@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.457/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.458/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Market Intel V2: Topbar modern, filter feed Gold/High Impact/All, dan tombol perbarui manual.",
-    "✦ Natural UI & Personalisation: Section 11 CSS polish & tema Light/Dark.",
-    "✦ Enhanced Local Assistant: Kalkulator Lot/Risiko XAU, Tracking Habits/Streak Disiplin, Jadwal Kalender Ekonomi, dan Ringkasan Practice."
+    "✦ Pro Journal Analytics: Single-source engine, interaktif SVG Equity Curve & Underwater Drawdown, filter 7H/30H/90H/Semua, dan metrik R-Multiple.",
+    "✦ Integrasi Beranda & Jurnal: Ringkasan performa jurnal di Beranda dengan 4 KPI, quick log, dan evaluasi bareng Amy Live.",
+    "✦ TwelveData Multi-Key Pool: Rotasi otomatis multi-key, failover cerdas HTTP 429, dan optimasi kredit API ~80%."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.457/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.458/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950457,
-  "latest_version_name": "2.0.0-pro.457",
+  "latest_version_code": 950458,
+  "latest_version_name": "2.0.0-pro.458",
   "mandatory": false,
-  "releaseDate": "2026-11-19",
+  "releaseDate": "2026-11-20",
   "release_notes": [
-    "✦ Market Intel V2: Topbar modern, filter feed Gold/High Impact/All, dan tombol perbarui manual.",
-    "✦ Natural UI & Personalisation: Section 11 CSS polish & tema Light/Dark.",
-    "✦ Enhanced Local Assistant: Kalkulator Lot/Risiko XAU, Tracking Habits/Streak Disiplin, Jadwal Kalender Ekonomi, dan Ringkasan Practice."
+    "✦ Pro Journal Analytics: Single-source engine, interaktif SVG Equity Curve & Underwater Drawdown, filter 7H/30H/90H/Semua, dan metrik R-Multiple.",
+    "✦ Integrasi Beranda & Jurnal: Ringkasan performa jurnal di Beranda dengan 4 KPI, quick log, dan evaluasi bareng Amy Live.",
+    "✦ TwelveData Multi-Key Pool: Rotasi otomatis multi-key, failover cerdas HTTP 429, dan optimasi kredit API ~80%."
   ],
-  "version": "2.0.0-pro.457",
-  "versionCode": 950457,
+  "version": "2.0.0-pro.458",
+  "versionCode": 950458,
   "sha256": "ba8b9df81ab88ee9ec8812aa4864a052a2c8b54113b0d23c9e04b993dfa762bc"
 }

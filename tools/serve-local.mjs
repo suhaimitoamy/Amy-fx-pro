@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { getTwelveDataKeys } from '../lib/twelvedata-key-pool.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -408,6 +409,28 @@ const requestHandler = async (req, res) => {
     }
 
     if (pathname === '/api/live-price') {
+      if (getTwelveDataKeys().length > 0 && typeof WebSocket === 'function') {
+        try {
+          const handler = (await import('../api/live-price.js')).default;
+          res.status = (code) => {
+            res.statusCode = code;
+            return {
+              json: (d) => {
+                res.setHeader('Content-Type', 'application/json; charset=utf-8');
+                res.end(JSON.stringify(d));
+              },
+              end: (d) => res.end(d)
+            };
+          };
+          await handler(req, res);
+          return;
+        } catch (_) {
+          if (res.headersSent) {
+            if (!res.writableEnded) res.end();
+            return;
+          }
+        }
+      }
       res.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-store',
@@ -470,6 +493,88 @@ const requestHandler = async (req, res) => {
           });
           res.end(cached.rawJson || JSON.stringify(cached.data));
           return;
+        }
+      }
+
+      // If local TwelveData key(s) are configured (TWELVEDATA_API_KEYS / TWELVEDATA_API_KEY / /root/.twelvedata_keys),
+      // execute local multi-key rotation handler first before hitting upstream Vercel.
+      if (getTwelveDataKeys().length > 0) {
+        try {
+          const localHandler = (await import('../api/twelvedata.js')).default;
+          let localStatus = 200;
+          const localHeaders = {};
+          let localBody = null;
+          const fakeRes = {
+            setHeader: (k, v) => { localHeaders[k] = v; },
+            status: (c) => { localStatus = c; return fakeRes; },
+            json: (d) => { localBody = d; },
+            send: (d) => { localBody = d; },
+            end: () => {}
+          };
+          const fakeReq = {
+            method: req.method,
+            headers: req.headers,
+            query: Object.fromEntries(parsedUrl.searchParams.entries())
+          };
+          await localHandler(fakeReq, fakeRes);
+          const localParsed = typeof localBody === 'string'
+            ? (() => { try { return JSON.parse(localBody); } catch { return null; } })()
+            : localBody;
+          let localOpenSec = 0;
+          if (localParsed?.values?.[0]?.datetime) {
+            const dt = localParsed.values[0].datetime;
+            const norm = dt.endsWith('Z') ? dt : dt.replace(' ', 'T') + 'Z';
+            const ms = Date.parse(norm);
+            if (Number.isFinite(ms)) localOpenSec = Math.floor(ms / 1000);
+          }
+          const maxAllowedAgeLocal = isWeekend ? (72 * 3600) : 172800;
+          const isLocalStale = Boolean(
+            localParsed?.staleFallback === true ||
+            localParsed?.rateLimited === true ||
+            /stale/i.test(localParsed?.source || '') ||
+            (localOpenSec > 0 && (nowSec - localOpenSec) > maxAllowedAgeLocal)
+          );
+          if (
+            localStatus === 200 &&
+            localParsed &&
+            localParsed.status !== 'error' &&
+            Array.isArray(localParsed.values) &&
+            localParsed.values.length > 0 &&
+            !isLocalStale
+          ) {
+            const localJson = JSON.stringify(localParsed);
+            const localCloseSec = (localOpenSec && localOpenSec <= nowSec + 60)
+              ? (localOpenSec + intervalSec)
+              : (Math.floor(nowSec / intervalSec) + 1) * intervalSec;
+            const entry = {
+              data: localParsed,
+              rawJson: localJson,
+              storedAt: Date.now(),
+              storedAtSec: nowSec,
+              openSec: localOpenSec,
+              closeSec: localCloseSec,
+              symbol,
+              interval,
+              outputsize
+            };
+            localCandleCache.set(cacheKey, entry);
+            const existingFbLen = localCandleCache.get(fallbackKey)?.data?.values?.length || 0;
+            if (localParsed.values.length >= existingFbLen) {
+              localCandleCache.set(fallbackKey, entry);
+            }
+            saveCandleCacheToFile();
+            res.writeHead(200, {
+              ...localHeaders,
+              'Content-Type': 'application/json; charset=utf-8',
+              'Access-Control-Allow-Origin': '*',
+              'X-AmyFX-Market-Cache': localHeaders['X-AmyFX-Market-Cache'] || 'LOCAL_MULTIPOOL_FRESH',
+              'Cache-Control': 'no-store'
+            });
+            res.end(localJson);
+            return;
+          }
+        } catch (_) {
+          // Fall through to upstream Vercel + SQLite fallback
         }
       }
 

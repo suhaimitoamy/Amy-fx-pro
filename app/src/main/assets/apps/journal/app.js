@@ -314,9 +314,14 @@ async function boot() {
   initJournalHabitsListeners();
   try {
     const urlParams = new URLSearchParams(window.location.search);
-    const initialView = urlParams.get("view");
+    const hash = String(window.location.hash || "").toLowerCase();
+    const initialView = urlParams.get("view") || (hash === "#analytics" ? "statistics" : hash === "#new-trade" ? "journal" : "");
     if (initialView) {
       setView(initialView);
+    }
+    if (urlParams.get("action") === "new" || hash === "#new-trade") {
+      setView("journal");
+      setTimeout(() => dom.newJournalBtn?.click(), 60);
     }
   } catch (_) {}
   initBackGuard();
@@ -1917,18 +1922,8 @@ function renderStatistics(items) {
       ${makeProgressStat("PDF terbuka", pdfOpened, pdfPercent)}
     </div>
 
-    <section class="stats-panel">
-      <h3>Performa Jurnal Trading</h3>
-      <div class="journal-performance-grid">
-        ${makeJournalStat("Total Entry", journalStats.entryCount, "chart")}
-        ${makeJournalStat("Win Rate", `${journalStats.winRate}%`, "target")}
-        ${makeJournalStat("Win / Loss", `${journalStats.win} / ${journalStats.loss}`, "ratio")}
-        ${makeJournalStat("BE / No Entry", `${journalStats.be} / ${journalStats.noEntry}`, "money")}
-        ${makeJournalStat("Total Profit", formatTradeAmount(journalStats.totalProfit), "money")}
-        ${makeJournalStat("Total Loss", formatTradeAmount(journalStats.totalLoss), "money")}
-        ${makeJournalStat("Net P/L", formatTradeAmount(journalStats.netProfit), "target")}
-      </div>
-      ${window.AmyJournalAnalytics?.renderEquitySVG ? window.AmyJournalAnalytics.renderEquitySVG(state.journals) : ''}
+    <section class="stats-panel jp-pro-host-panel">
+      <div class="jp-pro-mount" data-jp-pro-mount></div>
     </section>
 
     <section class="stats-panel calendar-panel">
@@ -1972,6 +1967,17 @@ function renderStatistics(items) {
 
   targetContainers.forEach(container => {
     container.innerHTML = statsHtml;
+    const proMount = container.querySelector('[data-jp-pro-mount]');
+    if (proMount && window.AmyJournalAnalyticsPro?.mountProAnalytics) {
+      window.AmyJournalAnalyticsPro.mountProAnalytics(proMount, state.journals, {
+        onLogFirst: () => {
+          setView("journal");
+          setTimeout(() => dom.newJournalBtn?.click(), 60);
+        }
+      });
+    } else if (proMount && window.AmyJournalAnalytics?.renderEquitySVG) {
+      proMount.innerHTML = window.AmyJournalAnalytics.renderEquitySVG(state.journals);
+    }
   });
 
   bindStatisticsCalendarEvents();
@@ -5743,8 +5749,12 @@ function loadJournals() {
 async function saveJournals(journals = state.journals, options = {}) {
   const saved = await saveMetadataArray(JOURNALS_META_RECORD, JOURNAL_STORAGE_KEY, journals, options);
   refreshInsightCache();
+  try {
+    window.dispatchEvent(new CustomEvent("amyfx:journal-state-change", { detail: { count: Array.isArray(journals) ? journals.length : 0 } }));
+  } catch (_) {}
   if (state.view === "habits") {
     renderJournalHabits();
+    renderStatistics(getFilteredItems(state.items));
   }
   return saved;
 }

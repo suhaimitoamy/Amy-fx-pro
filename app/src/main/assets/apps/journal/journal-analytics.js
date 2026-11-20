@@ -125,6 +125,16 @@ window.AmyJournalAnalytics = {
         </svg>
       </div>
     `;
+  },
+  analyzePro(entries, options) {
+    return window.AmyJournalAnalyticsPro?.analyzePro?.(entries, options) || null;
+  },
+  mountProAnalytics(container, entries, options) {
+    if (window.AmyJournalAnalyticsPro?.mountProAnalytics) {
+      window.AmyJournalAnalyticsPro.mountProAnalytics(container, entries, options);
+      return true;
+    }
+    return false;
   }
 };
 

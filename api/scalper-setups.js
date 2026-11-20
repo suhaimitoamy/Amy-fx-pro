@@ -3,7 +3,7 @@ import { evaluateSixDrivers, SIX_ENGINE_VERSION } from '../lib/scalper-engine/si
 
 let cachePayload = null;
 let cacheTime = 0;
-const CACHE_TTL_MS = 90000; // 90 seconds in-memory cache
+const CACHE_TTL_MS = 180000; // 3-minute in-memory cache to conserve TwelveData credits
 
 function isWeekendClosure(timeSec) {
   try {
@@ -92,21 +92,17 @@ export default async function handler(req, res) {
     const size15 = closedOrWeekend ? 350 : 80;
     const size5 = closedOrWeekend ? 800 : 80;
     const size60 = closedOrWeekend ? 180 : 80;
-    const [res15, res5, res60, resD1, calRes] = await Promise.all([
+    const [res15, res5, res60, calRes] = await Promise.all([
       fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=15min&outputsize=${size15}`),
       fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=5min&outputsize=${size5}`),
       fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=1h&outputsize=${size60}`),
-      fetchWithAbort(`${baseUrl}/api/twelvedata?symbol=XAU/USD&interval=1day&outputsize=10`),
       fetchWithAbort(`${baseUrl}/api/calendar`)
     ]);
 
     const m15 = convertCandles(res15?.values || res15, 900);
     const m5 = convertCandles(res5?.values || res5, 300);
     const h1 = convertCandles(res60?.values || res60, 3600);
-    let d1 = convertCandles(resD1?.values || resD1, 86400);
-    if ((!d1 || !d1.length) && h1 && h1.length >= 12) {
-      d1 = synthesizeD1FromH1(h1);
-    }
+    const d1 = (h1 && h1.length >= 12) ? synthesizeD1FromH1(h1) : [];
 
     // Jika TwelveData gagal / rate limit (429) dan candle tidak lengkap, gunakan cachePayload jika ada
     if ((!m15.length || !h1.length) && cachePayload) {

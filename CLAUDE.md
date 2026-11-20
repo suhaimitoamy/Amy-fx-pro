@@ -490,8 +490,20 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
      - Tetap mempertahankan 100% kontrak pengujian offline tanpa panggilan remote API eksternal.
   4. *Integritas & Versi:* Seluruh 126 targeted test suite lolos 100%. Versi dinaikkan ke `2.0.0-pro.457` (code `950457`).
 
-## Standar Integrasi Otonom Google AI Studio (Skill: amy-fx-google-ai-studio)
-- Di sesi baru, asisten mengenali repositori prototyping Google AI Studio (`/root/Amy-fx-ai-studio`) dan langsung memetakan berkas baru ke direktori produksi `Amy-fx-pro` (`app/src/main/assets/` & root serverless) secara borongan/lengkap tanpa tertinggal.
+## Rilis Pro 458: Pro Journal Analytics, SVG Equity Curve & TwelveData Multi-Key Pool (20 Nov 2026)
+- **Konteks:** Migrasi borongan fitur dari commit `f85e67d` Google AI Studio (`suhaimitoamy/Amy-fx-ai-studio`) ke `Amy-fx-pro`.
+- **Solusi & Implementasi:**
+  1. *Central Journal Analytics Pro (`apps/shared/journal-analytics-pro.js` & `.css`):*
+     - Engine analitik tunggal zero-dependency (100% offline-first IndexedDB + localStorage) menghitung Equity Curve net $/R, underwater drawdown, win rate, profit factor, expectancy, streaks, performa per sesi WITA, performa per setup ICT, dan leak cost kesalahan trading.
+     - Visualisasi SVG responsif dengan pointer/touch scrubber native yang mendukung tema Dark & Light mode.
+  2. *Integrasi Dashboard Beranda & Modul Jurnal:*
+     - Kartu ringkas Performa Jurnal di Beranda (`index.html`, `app.js`, `amyfx-home-data-integration-v1.js`) di bawah Peta Harga dengan 4 KPI tabular dan deep-link cepat.
+     - Modul Jurnal (`apps/journal/app.js`, `index.html`, `journal-analytics.js`) mengadopsi host container Pro mount dengan filter 7H/30H/90H/Semua dan toggle R-Multiple.
+  3. *TwelveData Multi-Key Pool (`lib/twelvedata-key-pool.mjs`):*
+     - Rotasi seimbang multi-key gratis (via `TWELVEDATA_API_KEYS`, `TWELVEDATA_API_KEY_1..10`, `/root/.twelvedata_keys`).
+     - Failover otomatis saat status 429 rate limit (cooldown 65s/daily limit).
+     - Optimasi kredit API: cache TTL 180s pada `scalper-setups.js`, sintesis candle D1 dari H1 (menghapus panggilan D1 berulang), dan cache sharing lintas outputsize.
+  4. *Integritas & Versi:* Targeted test suites (`journal-analytics-pro.test.mjs`, `twelvedata-key-pool.test.mjs`, `profile-version-update-regression.test.mjs`) lolos 100%. Versi dinaikkan ke `2.0.0-pro.458` (code `950458`).
 
 
 

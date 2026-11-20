@@ -2061,7 +2061,7 @@
                     {
                       name: 'get_journal_summary',
                       description:
-                        'Mengambil evaluasi Jurnal Trading lengkap (IndexedDB + localStorage: Win rate, Profit Factor, Net Pips, jam profit WITA, emosi) serta Habit & Discipline Streak.',
+                        'Mengambil Analitik Jurnal Pro lengkap (IndexedDB + localStorage: Equity Curve Net $/R, Win Rate, Profit Factor, Expectancy, Max Drawdown & Drawdown Aktif, Streak, Sesi WITA & Setup ICT terkuat, Leak Cost kesalahan psikologi) serta Habit & Discipline Streak.',
                       parameters: { type: 'OBJECT', properties: {} }
                     },
                     {

@@ -87,8 +87,10 @@
   }
 
   async function readMetadataCounts() {
+    const legacyJournals = readLegacyRows(LEGACY_JOURNAL_KEY);
     const fallback = {
-      journals: legacyJournalCount(),
+      journals: legacyJournals.length,
+      journalRows: legacyJournals,
       library: legacyLibraryCount()
     };
     const db = await openExistingDatabase();
@@ -122,7 +124,11 @@
         requests.forEach(([recordId, key]) => {
           const request = store.get(recordId);
           request.onsuccess = () => {
-            result[key] = safeArray(request.result?.value).length;
+            const rows = safeArray(request.result?.value);
+            result[key] = rows.length;
+            if (key === "journals") {
+              result.journalRows = rows.length ? rows : legacyJournals;
+            }
             done();
           };
           request.onerror = done;
@@ -153,6 +159,18 @@
     return window.AmyFXHomeStats;
   }
 
+  let lastJournalSlotSig = "";
+
+  function renderHomeJournalSlot(journalRows) {
+    const slot = document.getElementById("home-journal-analytics-slot");
+    if (!slot || !window.AmyJournalAnalyticsPro?.renderHomeSnapshot) return;
+    const rows = safeArray(journalRows);
+    const sig = `${rows.length}:${rows.map(r => `${r?.id || ""}:${r?.result || ""}:${r?.profit || ""}:${r?.loss || ""}:${r?.pnlMoney || ""}:${r?.updatedAt || ""}`).join("|")}`;
+    if (sig === lastJournalSlotSig && slot.childElementCount > 0) return;
+    lastJournalSlotSig = sig;
+    window.AmyJournalAnalyticsPro.renderHomeSnapshot(slot, rows);
+  }
+
   async function refresh() {
     const token = ++refreshToken;
     const analyses = mappingCount();
@@ -165,6 +183,7 @@
     const journalTarget = statValue("Catatan Jurnal");
     if (mappingTarget && mappingTarget.textContent !== String(analyses)) mappingTarget.textContent = String(analyses);
     if (journalTarget && journalTarget.textContent !== String(journals)) journalTarget.textContent = String(journals);
+    renderHomeJournalSlot(metadata.journalRows);
     publish(analyses, journals, library);
   }
 
@@ -187,21 +206,32 @@
       new MutationObserver(mutations => {
         const isSelf = mutations.every(m => {
           const t = m.target;
-          return t?.nodeType === 3 && (t.parentElement?.matches?.(".stat-card strong") || t.parentElement?.closest?.(".stat-card"));
+          const el = t?.nodeType === 1 ? t : t?.parentElement;
+          return Boolean(
+            el?.closest?.("#home-journal-analytics-slot") ||
+            (t?.nodeType === 3 && (t.parentElement?.matches?.(".stat-card strong") || t.parentElement?.closest?.(".stat-card")))
+          );
         });
         if (!isSelf) schedule();
       }).observe(target, { childList: true, subtree: true });
     }
     window.addEventListener("focus", schedule);
     window.addEventListener("storage", event => {
-      if (!event.key || ["amy_mapping_analyses", LEGACY_JOURNAL_KEY, LEGACY_ITEMS_KEY].includes(event.key)) schedule();
+      if (!event.key || ["amy_mapping_analyses", LEGACY_JOURNAL_KEY, LEGACY_ITEMS_KEY, "amy_default_balance", "amy_default_risk"].includes(event.key)) {
+        lastJournalSlotSig = "";
+        schedule();
+      }
     });
     [
+      "amyfx:home-rendered",
       "amyfx:journal-state-change",
       "amyfx:library-state-change",
       "amyfx:mapping-state-change",
       "amyfx:integration-change"
-    ].forEach(name => window.addEventListener(name, schedule));
+    ].forEach(name => window.addEventListener(name, () => {
+      lastJournalSlotSig = "";
+      schedule();
+    }));
     document.addEventListener("visibilitychange", () => { if (!document.hidden) schedule(); });
   }
 

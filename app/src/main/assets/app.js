@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <p id="home-chart-source" role="status">Memuat candle tertutup…</p><p id="home-chart-error" role="alert"></p>
       <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
       <p id="home-chart-note"></p>
-    </section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
+    </section><section id="home-journal-analytics-slot" class="home-journal-pro-slot" aria-label="Ringkasan performa jurnal"></section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
     if (typeof mainContent.querySelector === 'function') {
       mainContent.querySelector('#home-chart-alert')?.addEventListener('click', () => {
         if (typeof window.AmyPriceAlertManager?.openAddAlertDialog === 'function') {
@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       window.AmyPriceAlertManager?.syncAlertButtonBadges?.();
       if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
+      try { window.dispatchEvent(new CustomEvent('amyfx:home-rendered')); } catch (_) {}
     }
   }
 
@@ -1750,9 +1751,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </section>
 
-        <!-- Pengingat Belajar & Skill -->
+        <!-- Pengingat Belajar Academy -->
         <div class="profile-section-heading">
-          <h3>Pengingat Belajar &amp; Skill</h3>
+          <h3>Pengingat Belajar Academy</h3>
         </div>
         <section class="profile-panel slide-up">
           <div class="profile-switch-row">
@@ -1768,7 +1769,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
             <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
-            <div class="profile-sublabel">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</div>
 
             <div class="profile-reminder-list">
               <div class="profile-reminder-row">
