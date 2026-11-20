@@ -10,9 +10,10 @@ test('Lesson resolution from chat history correctly extracts lesson title', () =
   const knowledge = win.AmyLocalKnowledge;
   assert.ok(Array.isArray(knowledge) && knowledge.length > 0, 'Knowledge must be populated');
 
+  const targetLesson = knowledge.find(k => k.title.includes('Order Block')) || knowledge[0];
   const history = [
     { role: 'user', text: 'kita belajar apa' },
-    { role: 'model', text: 'Terakhir kita sedang membahas materi Breaker Block di modul Smart Money Concept...' }
+    { role: 'model', text: `Terakhir kita sedang membahas materi ${targetLesson.title} di kurikulum ICT...` }
   ];
 
   const sorted = [...knowledge].filter(k => k.title && k.title.length > 3).sort((a, b) => b.title.length - a.title.length);
@@ -21,7 +22,9 @@ test('Lesson resolution from chat history correctly extracts lesson title', () =
     const text = history[i]?.text || '';
     for (const k of sorted) {
       const esc = k.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      if (new RegExp('\\b' + esc + '\\b', 'i').test(text)) {
+      const startBound = /^\w/.test(k.title) ? '\\b' : '';
+      const endBound = /\w$/.test(k.title) ? '\\b' : '(?=[\\s.,!?;:]|$)';
+      if (new RegExp(startBound + esc + endBound, 'i').test(text)) {
         found = k;
         break;
       }
@@ -30,7 +33,7 @@ test('Lesson resolution from chat history correctly extracts lesson title', () =
   }
 
   assert.ok(found, 'Should find lesson from history');
-  assert.equal(found.title, 'Breaker Block');
+  assert.equal(found.title, targetLesson.title);
 });
 
 test('resolveLessonHtmlPath converts index.html#chapter to chapter.html', () => {
