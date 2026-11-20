@@ -407,14 +407,59 @@ export function resolveGoldSessionState(value = Date.now()) {
 }
 
 export function sessionCountdownPill(value = Date.now()) {
-  const state = resolveGoldSessionState(value);
+  const timestamp = timestampMs(value);
+  const state = resolveGoldSessionState(timestamp);
+  const asia = sessionDetail(SESSION_DEFINITIONS.ASIA, timestamp);
+  const london = sessionDetail(SESSION_DEFINITIONS.LONDON, timestamp);
+  const newYork = sessionDetail(SESSION_DEFINITIONS.NEW_YORK, timestamp);
+
+  let text = state.pillText;
+  let status = state.status;
+  let activeSession = state.activeSession || 'OFF_SESSION';
+  let nextSession = state.nextSession || null;
+
+  if (asia.active) {
+    const remaining = Math.max(0, asia.end - timestamp);
+    text = `🇯🇵 Sesi Asia Aktif (Sisa ${formatDuration(remaining)})`;
+    status = 'ACTIVE';
+    activeSession = 'ASIA';
+  } else if (london.active) {
+    const remaining = Math.max(0, london.end - timestamp);
+    text = `🇬🇧 London Killzone Aktif (Sisa ${formatDuration(remaining)})`;
+    status = 'ACTIVE';
+    activeSession = 'LONDON';
+  } else if (newYork.active) {
+    const remaining = Math.max(0, newYork.end - timestamp);
+    text = `🇺🇸 New York Sesi Aktif (Sisa ${formatDuration(remaining)})`;
+    status = 'ACTIVE';
+    activeSession = 'NEW_YORK';
+  } else if (timestamp < newYork.start && (timestamp >= london.end || timestamp >= newYork.start - 2 * 3600 * 1000)) {
+    const msUntil = newYork.start - timestamp;
+    text = `🇺🇸 Menuju NY Open dalam ${formatDuration(msUntil)} (${newYork.witaStart} WITA)`;
+    status = 'UPCOMING';
+    nextSession = 'NEW_YORK';
+    activeSession = 'OFF_SESSION';
+  } else if (timestamp < london.start && timestamp >= london.start - 2 * 3600 * 1000) {
+    const msUntil = london.start - timestamp;
+    text = `🇬🇧 Menuju London Open dalam ${formatDuration(msUntil)} (${london.witaStart} WITA)`;
+    status = 'UPCOMING';
+    nextSession = 'LONDON';
+    activeSession = 'OFF_SESSION';
+  } else if (timestamp < asia.start) {
+    const msUntil = asia.start - timestamp;
+    text = `🇯🇵 Menuju Sesi Asia dalam ${formatDuration(msUntil)} (${asia.witaStart} WITA)`;
+    status = 'UPCOMING';
+    nextSession = 'ASIA';
+    activeSession = 'OFF_SESSION';
+  }
+
   return {
-    text: state.pillText,
+    text,
     label: state.label,
     code: state.code,
-    activeSession: state.activeSession || 'OFF_SESSION',
-    nextSession: state.nextSession || null,
-    status: state.status,
+    activeSession,
+    nextSession,
+    status,
     isKillzone: state.isKillzone,
     isClosed: state.isClosed,
     remainingMs: state.remainingMs
