@@ -1263,6 +1263,8 @@ import {
 
     const uniqueBearOBs = dedupeZones(rawObs.filter(isBearOb).map(obZoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
     const uniqueBullOBs = dedupeZones(rawObs.filter(isBullOb).map(obZoneOf).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
+    const viableBearOBs = uniqueBearOBs.filter(z => z.hi >= livePrice - 1.5);
+    const viableBullOBs = uniqueBullOBs.filter(z => z.lo <= livePrice + 1.5);
 
     // Lapisan Refinement M5 (Scalper Dual-Layer: FVG & OB M5 aktif langsung dari candle M5 server)
     const m5RawFvgs = Array.isArray(ngM5?.poi?.fvg) ? ngM5.poi.fvg : [];
