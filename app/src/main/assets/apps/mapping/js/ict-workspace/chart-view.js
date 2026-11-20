@@ -1,7 +1,7 @@
 import {createIctCanvas} from './ict-canvas.js';
 import {calculateNextGenIndicators} from './nextgen-indicators.js';
 
-const DEFAULT_CHART_LAYERS = Object.freeze({
+export const DEFAULT_CHART_LAYERS = Object.freeze({
   poi: true,
   structure: true,
   liquidity: true,

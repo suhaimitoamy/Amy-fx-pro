@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.460/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.461/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Chart Gold Safe Dynamic Import: Perbaikan pemuatan dinamis pada modul charting (app.js) dan fallback aman.",
+    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js agar app.js dapat dimuat sempurna oleh WebView tanpa SyntaxError.",
+    "✦ Chart Gold Safe Dynamic Import: Pemuatan dinamis aman untuk manual-drawing-tool dan details-persistence.",
     "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI, 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
     "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.460/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.461/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950460,
-  "latest_version_name": "2.0.0-pro.460",
+  "latest_version_code": 950461,
+  "latest_version_name": "2.0.0-pro.461",
   "mandatory": false,
   "releaseDate": "2026-11-20",
   "release_notes": [
-    "✦ Chart Gold Safe Dynamic Import: Perbaikan pemuatan dinamis pada modul charting (app.js) dan fallback aman.",
+    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js agar app.js dapat dimuat sempurna oleh WebView tanpa SyntaxError.",
+    "✦ Chart Gold Safe Dynamic Import: Pemuatan dinamis aman untuk manual-drawing-tool dan details-persistence.",
     "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI, 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
     "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live."
   ],
-  "version": "2.0.0-pro.460",
-  "versionCode": 950460,
+  "version": "2.0.0-pro.461",
+  "versionCode": 950461,
   "sha256": "37ee437f957e0c29f15224f5aa00a80d2137cec5b8ae68f006cca8b790db794a"
 }
