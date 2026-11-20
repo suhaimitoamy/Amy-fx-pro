@@ -345,7 +345,9 @@ export function keyLevels({m1=[],m5=[],m15=[],d1=[],nowSeconds,options={}}){
   };
   const candidates=[pickFresh(m1),pickFresh(m5),pickFresh(m15)].filter(Boolean);
   const moSnap=candidates.find(s=>s.date===ny.date&&s.midnightOpen!=null)||null;
-  const asiaSnap=candidates.find(s=>s.asiaHigh!=null&&s.asiaLow!=null)||null;
+  const isNowInAsia=ny.minute>=1200;
+  const rawAsiaSnap=candidates.find(s=>s.asiaHigh!=null&&s.asiaLow!=null)||null;
+  const asiaSnap=rawAsiaSnap&&(rawAsiaSnap.asiaStatus==='LOCKED'||(isNowInAsia&&rawAsiaSnap.asiaStatus==='TRACKING'))?rawAsiaSnap:null;
   const baseSnap=moSnap||asiaSnap||candidates[0]||{};
   return {
     ...baseSnap,
