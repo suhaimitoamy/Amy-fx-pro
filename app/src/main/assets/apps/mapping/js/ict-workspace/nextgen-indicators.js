@@ -776,6 +776,7 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
 
       if (brokeZone) {
         zone.mitigated = true;
+        zone.tested = false;
         zone.endTime = c.time;
         zone.brokenAt = c.time;
         zone.lifecycle = 'BROKEN';
@@ -918,13 +919,13 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
   const cleanObs = obList.map(z => stripInternal(z, 'OB'));
   const cleanFvgs = fvgList.map(z => stripInternal(z, 'FVG'));
 
-  const isActivePoi = z => !z.mitigated;
-  const viableObs = cleanObs.filter(isActivePoi);
+  const isViablePoi = z => !z.mitigated || (z.tested && (!z.endTime || z.endTime >= lastBarTime - 3600));
+  const viableObs = cleanObs.filter(isViablePoi);
   const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
   const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
   const activeObs = [nearestBullOb, nearestBearOb].filter(Boolean);
 
-  const viableFvgs = cleanFvgs.filter(isActivePoi);
+  const viableFvgs = cleanFvgs.filter(isViablePoi);
   const nearestBullFvg = viableFvgs.filter(f => f.side === 'BUY' && f.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
   const nearestBearFvg = viableFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
   const activeFvgs = [nearestBullFvg, nearestBearFvg].filter(Boolean);
