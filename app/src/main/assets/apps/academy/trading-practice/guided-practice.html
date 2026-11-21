@@ -1,9 +1,126 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#070b12"><title>Latihan Soal — Trading Practice</title><script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script><link rel="stylesheet" href="../assets/css/style.css"><link rel="stylesheet" href="assets/css/practice.css"><script>const ROOT_PATH='../';</script><script src="../assets/js/auth.js"></script><script src="../assets/js/main.js" defer></script></head>
-<body class="amyfx-module amyfx-module--academy practice-page"><script>requireLogin();</script>
-<header class="topbar hide-until-auth"><nav class="nav"><a class="brand" href="index.html" style="white-space:nowrap; display:inline-flex; align-items:center; gap:10px;"><span class="brand-mark" style="white-space:nowrap; width:auto; min-width:44px; height:38px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:0.04em;">AMY</span><span>Latihan Soal</span></a><button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button><div class="navlinks" id="navlinks"><a href="../index.html">Academy</a><a href="index.html">Practice</a><a href="candle-replay.html">Replay</a><a href="../daftar-materi.html">Daftar Materi</a></div></nav></header>
-<main class="container hide-until-auth"><section class="practice-hero"><div class="eyebrow">60 SOAL · MUDAH / SEDANG / ADVANCED</div><h1>Baca chart, lalu <span>jelaskan keputusan.</span></h1><p>60 studi kasus eksekusi nyata XAU/USD. Melatih refleks keputusan sisi kanan chart: Filter Inducement, Killzone timing, penempatan SL Invalidation, dan disiplin No-Trade.</p></section>
-<section class="practice-panel guided-controls"><label>Tingkat<select class="guided-category" id="exerciseCategory"><option value="ALL">Campuran · 60 kasus</option><option value="mudah">Mudah · 20 kasus</option><option value="sedang">Sedang · 20 kasus</option><option value="advanced">Advanced · 20 kasus</option></select></label><label>Panjang sesi<select class="guided-category" id="sessionLength"><option value="10">10 kasus</option><option value="20">20 kasus</option><option value="60">Semua kasus pada tingkat terpilih</option></select></label><button id="startSession" class="practice-button" disabled>Mulai sesi baru</button><button id="lastSummary" class="practice-button" hidden>Rangkuman terakhir</button><p>Pengaturan diterapkan saat memulai sesi baru. Kasus yang belum dikerjakan diprioritaskan.</p></section><div class="practice-layout" id="guidedWorkspace"><section><div class="ohlc-strip"><span>Waktu<strong id="ohlcTime">—</strong></span><span>O<strong id="ohlcOpen">—</strong></span><span>H<strong id="ohlcHigh">—</strong></span><span>L<strong id="ohlcLow">—</strong></span><span>C<strong id="ohlcClose">—</strong></span><span>TF<strong id="exerciseTimeframe">—</strong></span></div><div id="chart" class="practice-chart-shell"></div><p id="chartGuide" class="source-note"></p><p class="source-note">Chart riil XAU/USD (Gold) sesi 2025. Dilengkapi penanda struktur, level acuan, dan titik keputusan sisi kanan chart.</p></section>
-<aside class="practice-side"><section class="practice-panel"><div class="eyebrow" id="exerciseLabel">LATIHAN 1</div><div class="guided-progress"><span id="guidedProgress" style="width:0"></span></div><h2 id="exerciseTitle">Memuat latihan…</h2><p id="exercisePrompt" class="guided-question"></p><div id="exerciseChoices" class="guided-choices"></div><div id="guidedStatus" class="practice-status" role="status" aria-live="polite">Ikuti instruksi di sini.</div><button id="nextExercise" class="practice-button" type="button" hidden>Latihan berikutnya</button><button id="endSession" class="practice-button" type="button">Akhiri sesi &amp; tinjau</button><p id="saveNotice" role="status"></p></section><section class="practice-panel"><h3>Prinsip</h3><p id="exercisePrinciple">Session menjawab kapan, bukan arah. Selector, konfirmasi, lokasi, dan timing tetap dipisahkan.</p><a id="exerciseLesson" class="btn" href="../daftar-materi.html" hidden>Buka Materi →</a></section></aside></div><section id="guidedSummary" hidden><h2>Rangkuman latihan</h2><h3 id="summaryScore"></h3><p id="summaryIntro"></p><div id="reviewTopics"></div><button id="restartSession" class="practice-button">Latihan lagi · soal acak</button><a class="btn" href="../daftar-materi.html">Semua Materi Perkuliahan</a></section></main>
-<script src="vendor/lightweight-charts.standalone.production.js"></script><script src="assets/js/practice-core.js"></script><script src="assets/js/storage.js"></script><script src="assets/js/drawing-core.js"></script><script src="assets/js/chart-engine.js"></script><script src="assets/js/practice-ui.js"></script><script src="assets/js/guided-session.js"></script><script src="assets/js/guided-practice.js"></script>
-</body></html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#070b12">
+  <title>Latihan Soal 60 Kasus — Amy FX Backtest Lab</title>
+  <script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
+  <link rel="stylesheet" href="assets/css/practice.css">
+</head>
+<body class="amyfx-module amyfx-module--backtest">
+  <header class="bt-header">
+    <div class="bt-header-inner">
+      <a class="bt-brand" href="index.html">
+        <span class="bt-brand-mark">A</span>
+        <span>Amy FX</span>
+        <span class="bt-brand-sub">Backtest</span>
+      </a>
+
+      <nav class="bt-nav" id="navlinks" aria-label="Navigasi Backtest Lab">
+        <a href="../../../index.html">Beranda</a>
+        <a href="candle-replay.html">Replay</a>
+        <a href="backtest-history.html">Performa</a>
+        <a href="guided-practice.html" class="is-active">Latihan</a>
+        <a href="../index.html">Tutorial</a>
+      </nav>
+
+      <div class="bt-header-actions">
+        <button type="button" id="themeToggleBtn" class="bt-btn-sm">Terang</button>
+        <button type="button" id="hamburger" class="bt-hamburger" aria-label="Buka menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="bt-container">
+    <div class="bt-page-head">
+      <h1>Latihan 60 Kasus</h1>
+      <div class="bt-toolbar-group bt-filter-bar">
+        <select id="exerciseCategory" class="bt-select" aria-label="Tingkat kesulitan">
+          <option value="ALL">Semua · 60</option>
+          <option value="mudah">Mudah · 20</option>
+          <option value="sedang">Sedang · 20</option>
+          <option value="advanced">Advanced · 20</option>
+        </select>
+        <select id="sessionLength" class="bt-select" aria-label="Panjang sesi">
+          <option value="10">10 soal</option>
+          <option value="20">20 soal</option>
+          <option value="60">60 soal</option>
+        </select>
+        <button id="startSession" type="button" class="bt-btn bt-btn-primary" disabled>Mulai</button>
+        <button id="lastSummary" type="button" class="bt-btn" hidden>Rangkuman</button>
+      </div>
+    </div>
+
+    <div class="bt-guided-grid" id="guidedWorkspace">
+      <section class="bt-chart-stage">
+        <div class="bt-ohlc-bar">
+          <div class="bt-ohlc-vals">
+            <span id="ohlcTime">—</span>
+            <span><b>O</b><span id="ohlcOpen">—</span></span>
+            <span><b>H</b><span id="ohlcHigh">—</span></span>
+            <span><b>L</b><span id="ohlcLow">—</span></span>
+            <span><b>C</b><span id="ohlcClose">—</span></span>
+          </div>
+          <span class="bt-tag bt-tag-be" id="exerciseTimeframe">—</span>
+        </div>
+        <div id="chart" class="practice-chart-shell"></div>
+        <p id="chartGuide" class="bt-chart-guide"></p>
+      </section>
+
+      <aside class="bt-side-stack">
+        <section class="bt-card">
+          <div class="bt-card-head bt-card-head-tight">
+            <span class="bt-card-title" id="exerciseLabel">SOAL 1</span>
+          </div>
+          <div class="bt-progress-track">
+            <div class="bt-progress-fill" id="guidedProgress"></div>
+          </div>
+          <h2 id="exerciseTitle" class="bt-exercise-title">Memuat studi kasus…</h2>
+          <p id="exercisePrompt" class="bt-exercise-prompt"></p>
+
+          <div id="exerciseChoices" class="bt-choices"></div>
+          <p id="guidedStatus" class="bt-status-line" role="status" aria-live="polite">Pilih jawaban terbaik.</p>
+
+          <div class="bt-toolbar-group bt-exercise-actions">
+            <button id="nextExercise" type="button" class="bt-btn bt-btn-primary" hidden>Lanjut</button>
+            <button id="endSession" type="button" class="bt-btn">Selesai</button>
+          </div>
+          <p id="saveNotice" class="bt-status-line" role="status"></p>
+        </section>
+
+        <section class="bt-card">
+          <h3 class="bt-card-title bt-card-title-mb">Prinsip &amp; Materi</h3>
+          <div class="bt-principle-box" id="exercisePrinciple">Jawab untuk membuka penjelasan &amp; materi terkait.</div>
+          <a id="exerciseLesson" class="bt-btn bt-btn-primary" href="../index.html" hidden>Materi →</a>
+        </section>
+      </aside>
+    </div>
+
+    <section id="guidedSummary" class="bt-card bt-section" hidden>
+      <div class="bt-card-head">
+        <div>
+          <h2 class="bt-summary-title">Rangkuman Sesi</h2>
+          <p id="summaryScore" class="bt-summary-score tabular"></p>
+        </div>
+        <div class="bt-toolbar-group">
+          <button id="restartSession" type="button" class="bt-btn bt-btn-primary">Ulangi Acak</button>
+          <a class="bt-btn" href="../index.html">Tutorial →</a>
+        </div>
+      </div>
+      <p id="summaryIntro" class="bt-meta-hint"></p>
+      <div id="reviewTopics" class="bt-side-stack"></div>
+    </section>
+  </main>
+
+  <script src="vendor/lightweight-charts.standalone.production.js"></script>
+  <script src="assets/js/practice-core.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/drawing-core.js"></script>
+  <script src="assets/js/chart-engine.js"></script>
+  <script src="assets/js/practice-ui.js"></script>
+  <script src="assets/js/guided-session.js"></script>
+  <script src="assets/js/guided-practice.js"></script>
+</body>
+</html>

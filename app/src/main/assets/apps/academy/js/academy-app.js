@@ -162,8 +162,7 @@
         <div class="acd-level-head">
           <div>
             <span class="acd-level-code">${esc(level.code)}</span>
-            <h2 id="lvl-heading-${level.id}">${esc(level.title)}</h2>
-            <p>${esc(level.tagline)}</p>
+            <h2 id="lvl-heading-${level.id}">${esc(level.title)} <button type="button" class="amy-info-btn" data-info-tip="${esc(level.tagline)}" aria-label="Info ${esc(level.code)}" aria-expanded="false">i</button></h2>
           </div>
           <span class="acd-level-progress acd-nums">${lvlStat ? `${lvlStat.completed} / ${lvlStat.total} selesai` : ''}</span>
         </div>
@@ -179,9 +178,8 @@
     return `<div class="acd-overview">
       <section class="acd-hero" aria-label="Ringkasan Kurikulum">
         <div>
-          <p class="acd-hero-kicker">Kurikulum ICT Scalper · XAU/USD · Standar WITA</p>
-          <h1>Zero to Scalper Academy</h1>
-          <p class="acd-hero-sub">6 Level terstruktur berisi 30 pelajaran inti tanpa basa-basi: dari nol anatomi candlestick, peta likuiditas, 4 model entry A+ (Sweep-FVG, OB, IFVG, Turtle Soup), Killzone WITA, hingga protokol 100 sample.</p>
+          <p class="acd-hero-kicker">6 Level · 30 Pelajaran · XAU/USD (WITA)</p>
+          <h1>Zero to Scalper Academy <button type="button" class="amy-info-btn" data-info-tip="6 Level terstruktur berisi 30 pelajaran inti: anatomi candlestick, peta likuiditas, 4 model entry A+ (Sweep-FVG, OB, IFVG, Turtle Soup), Killzone WITA, hingga protokol 100 sample." aria-label="Info kurikulum" aria-expanded="false">i</button></h1>
         </div>
         <div class="acd-hero-right">
           <div class="acd-hero-stats">

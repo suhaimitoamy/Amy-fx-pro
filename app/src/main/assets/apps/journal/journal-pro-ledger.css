@@ -63,7 +63,8 @@
 
 .amyfx-module--journal .app-shell:has(#habitsView.is-active) .control-panel,
 .amyfx-module--journal .app-shell:has(#journalView.is-active) .control-panel,
-.amyfx-module--journal .app-shell:has(#statisticsView.is-active) .control-panel {
+.amyfx-module--journal .app-shell:has(#statisticsView.is-active) .control-panel,
+.amyfx-module--journal .app-shell:has(#notesView.is-active) .control-panel {
   display: none !important;
 }
 
@@ -477,15 +478,21 @@
 
 /* Empty State */
 .jl-empty-state {
+  width: 100%;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 40px 16px !important;
   text-align: center;
+  font-style: normal !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.jl-empty-state * {
+  font-style: normal !important;
 }
 
 .jl-empty-state[hidden] {
@@ -1565,3 +1572,309 @@ body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
     transition: none;
   }
 }
+
+/* ─── Account Mode Isolation Bar (Real | Simulasi | Semua) ────────────────── */
+.jl-account-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-account-seg {
+  background: var(--jl-surface-subtle);
+  border: 1px solid var(--jl-line);
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.jl-account-seg .jp-seg-btn {
+  color: var(--jl-muted);
+  background: transparent;
+}
+
+.jl-account-seg .jp-seg-btn.is-active {
+  background: var(--jl-accent);
+  color: var(--jl-accent-ink);
+  font-weight: 800;
+}
+
+.jl-account-mode-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jl-page-head--compact {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.jl-quick-row-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jl-sim-tag {
+  font-family: var(--jl-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--jl-accent);
+  margin-right: 6px;
+}
+
+@media (max-width: 720px) {
+  .jl-account-mode-bar {
+    padding: 8px 0;
+    gap: 6px;
+  }
+
+  .jl-account-mode-hint {
+    font-size: 0.68rem;
+  }
+}
+
+.jl-btn-compact {
+  min-height: 38px;
+  padding: 0 13px;
+  font-size: 0.8rem;
+}
+
+/* ─── TAB 4: CATATAN PRIBADI (PRO LEDGER HAIRLINE) ───────────────────────── */
+body.amyfx-module--journal .app-header .brand-copy h1,
+[data-amyfx-theme="light"] body.amyfx-module--journal .app-header .brand-copy h1,
+[data-theme="light"] body.amyfx-module--journal .app-header .brand-copy h1 {
+  color: #f8fafc !important;
+}
+
+.jl-notes-search-bar {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-notes-search-bar .jp-search-input {
+  width: 100%;
+  background: var(--jl-surface-subtle);
+  border: 1px solid var(--jl-line);
+  border-radius: 9px;
+  color: var(--jl-text);
+}
+
+[data-amyfx-theme="light"] .amyfx-module--journal .jl-notes-search-bar .jp-search-input,
+[data-theme="light"] .amyfx-module--journal .jl-notes-search-bar .jp-search-input,
+[data-amyfx-theme="light"] .amyfx-module--journal .jl-search-row .jp-search-input,
+[data-theme="light"] .amyfx-module--journal .jl-search-row .jp-search-input {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+.jl-note-editor {
+  margin: 14px 0 8px;
+  padding: 16px;
+  scroll-margin-top: 88px;
+  border-radius: 14px;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jl-note-editor[hidden] {
+  display: none !important;
+}
+
+.jl-note-editor:not([hidden]) ~ .jl-notes-list .jl-empty-state {
+  display: none !important;
+}
+
+.jl-note-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-note-editor-head strong {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--jl-text);
+}
+
+.jl-note-close {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  font-size: 1.15rem;
+}
+
+.jl-note-meta-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+}
+
+.jl-note-editor-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.jl-notes-list {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 16px;
+}
+
+body.amyfx-module--journal article.jl-note-row {
+  border: none !important;
+  border-bottom: 1px solid var(--jl-line) !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+.jl-note-trigger {
+  width: 100%;
+  padding: 14px 4px;
+  border: none;
+  background: transparent;
+  color: var(--jl-text);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background-color 0.14s ease;
+}
+
+.jl-note-trigger:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-note-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.jl-note-title {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--jl-text);
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jl-note-row.is-open .jl-note-title {
+  white-space: normal;
+}
+
+.jl-note-date {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.jl-note-preview {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: var(--jl-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.jl-note-row.is-open .jl-note-preview {
+  display: block;
+  -webkit-line-clamp: unset;
+  color: var(--jl-text);
+}
+
+.jl-note-actions {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 4px 12px;
+}
+
+.jl-note-row.is-open .jl-note-actions {
+  display: flex;
+}
+
+.jl-note-actions .small-button {
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  line-height: 1 !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--jl-line-strong) !important;
+  background: transparent !important;
+  color: var(--jl-text) !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.jl-note-actions .small-button:hover {
+  background: var(--jl-surface-hover) !important;
+  border-color: var(--jl-accent) !important;
+}
+
+.jl-note-actions .small-button.danger {
+  color: var(--jl-neg) !important;
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+.jl-note-actions .small-button.danger.is-armed {
+  background: var(--jl-neg) !important;
+  color: #ffffff !important;
+  border-color: var(--jl-neg) !important;
+}
+
+.amyfx-module--journal .nav-button .notes-icon,
+.amyfx-module--journal .side-nav-button .notes-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .jl-note-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jl-note-editor {
+    padding: 14px 12px;
+  }
+}
+

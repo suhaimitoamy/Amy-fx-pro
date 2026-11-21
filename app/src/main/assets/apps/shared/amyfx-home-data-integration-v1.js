@@ -164,7 +164,10 @@
   function renderHomeJournalSlot(journalRows) {
     const slot = document.getElementById("home-journal-analytics-slot");
     if (!slot || !window.AmyJournalAnalyticsPro?.renderHomeSnapshot) return;
-    const rows = safeArray(journalRows);
+    const allRows = safeArray(journalRows);
+    const rows = window.AmyAccountSimEngine?.filterJournalsByMode
+      ? window.AmyAccountSimEngine.filterJournalsByMode(allRows, "REAL")
+      : allRows.filter(r => String(r?.accountMode || "").toUpperCase() !== "SIM" && r?.source !== "sim-cockpit");
     const sig = `${rows.length}:${rows.map(r => `${r?.id || ""}:${r?.result || ""}:${r?.profit || ""}:${r?.loss || ""}:${r?.pnlMoney || ""}:${r?.updatedAt || ""}`).join("|")}`;
     if (sig === lastJournalSlotSig && slot.childElementCount > 0) return;
     lastJournalSlotSig = sig;
@@ -209,6 +212,7 @@
           const el = t?.nodeType === 1 ? t : t?.parentElement;
           return Boolean(
             el?.closest?.("#home-journal-analytics-slot") ||
+            el?.closest?.("#home-account-cockpit-slot") ||
             (t?.nodeType === 3 && (t.parentElement?.matches?.(".stat-card strong") || t.parentElement?.closest?.(".stat-card")))
           );
         });

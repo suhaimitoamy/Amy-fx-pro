@@ -1487,3 +1487,195 @@ html[data-amyfx-theme="light"] .profile-page .profile-system-list .profile-row.d
     width: 100%;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   11B. PROFIL MINIMALIS 3-TAB (AKUN | TAMPILAN | SISTEM)
+   ═══════════════════════════════════════════════════ */
+.profile-page--clean {
+  gap: 14px;
+  padding-bottom: 28px;
+}
+
+.profile-page--clean .profile-identity-card {
+  padding: 14px 16px;
+}
+
+.profile-page--clean .profile-monogram {
+  width: 42px;
+  height: 42px;
+  font-size: 0.85rem;
+}
+
+.profile-page--clean .profile-btn-sm {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+}
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 13px;
+  background: var(--amy-surface-solid, #131c2b);
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.1));
+}
+
+.profile-tab {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--amy-text-secondary, #94a3b8);
+  font-size: 0.84rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.profile-tab:hover {
+  color: var(--amy-text, #f5f8fc);
+}
+
+.profile-tab.is-active {
+  background: color-mix(in srgb, var(--amy-accent, #69b7ff) 16%, rgba(255, 255, 255, 0.04));
+  border-color: color-mix(in srgb, var(--amy-accent, #69b7ff) 45%, transparent);
+  color: var(--amy-text, #ffffff);
+}
+
+.profile-tab-panel[hidden] {
+  display: none !important;
+}
+
+.profile-akun-layout,
+.profile-sistem-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-akun-layout .home-account-cockpit-slot {
+  margin: 0;
+}
+
+.profile-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.profile-fields-grid--compact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-fields-grid--compact .profile-field {
+  min-width: 0;
+}
+
+.profile-fields-grid--compact .profile-field label {
+  font-size: 0.74rem;
+  margin-bottom: 5px;
+}
+
+.profile-fields-grid--compact .profile-input-wrap {
+  min-height: 40px;
+  padding: 0 10px;
+}
+
+.profile-page .profile-fields-grid--compact .profile-input-wrap .profile-input {
+  min-height: 38px !important;
+  font-size: 0.85rem;
+  padding: 6px 4px !important;
+}
+
+.profile-sim-seg--full {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+.profile-sim-seg--full .profile-sim-seg-btn {
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
+}
+
+.profile-sim-ops--compact {
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.profile-sim-reset-row--compact {
+  padding-top: 10px;
+  border-top: 1px solid var(--amy-border, rgba(255, 255, 255, 0.08));
+}
+
+.profile-last-lesson--compact {
+  margin-top: 8px;
+  padding-top: 10px;
+}
+
+body.amyfx-module--home .profile-page--clean .profile-system-list .profile-row.profile-row--compact {
+  min-height: 52px !important;
+  padding: 10px 14px !important;
+  grid-template-columns: 34px 1fr 14px !important;
+}
+
+body.amyfx-module--home .profile-page--clean .profile-system-list .profile-row.profile-row--compact .tool-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+}
+
+.profile-page--clean .profile-reminder-row {
+  padding: 8px 0;
+}
+
+@media (max-width: 440px) {
+  .profile-fields-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .profile-page--clean .profile-panel-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .profile-page--clean .profile-panel-footer .profile-btn-gold {
+    width: auto;
+    min-width: 96px;
+  }
+}
+
+/* Light Mode Parity for Profil 3-Tab */
+html[data-amyfx-theme="light"] .profile-tabs {
+  background: #ffffff !important;
+  border-color: rgba(50, 80, 130, 0.12) !important;
+  box-shadow: 0 1px 6px rgba(20, 40, 80, 0.05) !important;
+}
+
+html[data-amyfx-theme="light"] .profile-tab {
+  color: #52637c !important;
+}
+
+html[data-amyfx-theme="light"] .profile-tab:hover {
+  color: #16233a !important;
+}
+
+html[data-amyfx-theme="light"] .profile-tab.is-active {
+  background: rgba(33, 107, 219, 0.1) !important;
+  border-color: rgba(33, 107, 219, 0.28) !important;
+  color: #1656b8 !important;
+}
+

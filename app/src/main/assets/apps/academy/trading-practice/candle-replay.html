@@ -1,50 +1,381 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#070b12"><title>Candle Replay — Trading Practice</title>
-<script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script><link rel="stylesheet" href="../assets/css/style.css"><link rel="stylesheet" href="assets/css/practice.css"><script>const ROOT_PATH='../';</script><script src="../assets/js/auth.js"></script><script src="../assets/js/main.js" defer></script></head>
-<body class="amyfx-module amyfx-module--academy practice-page"><script>requireLogin();</script>
-<header class="topbar hide-until-auth"><nav class="nav"><a class="brand" href="index.html" style="white-space:nowrap; display:inline-flex; align-items:center; gap:10px;"><span class="brand-mark" style="white-space:nowrap; width:auto; min-width:44px; height:38px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:0.04em;">AMY</span><span>Candle Replay</span></a><button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button><div class="navlinks" id="navlinks"><a href="../index.html">Academy</a><a href="index.html">Practice</a><a href="chart-analysis.html">Chart</a><a href="guided-practice.html">Guided</a><a href="#replayHistory">Riwayat</a></div></nav></header>
-<main class="container hide-until-auth">
-  <section class="practice-hero replay-heading"><div><div class="eyebrow">TRADING PRACTICE</div><h1>Candle Replay</h1></div><a class="btn" href="#replayHistory">Riwayat</a></section>
-  <div id="replayWorkspace">
-  <div class="practice-toolbar"><label>Data <select id="datasetSource" aria-label="Pilih pack historis"><option>Memuat…</option></select></label><button type="button" id="btnResumeReplay" class="btn-resume-replay" style="display:none; align-items:center; gap:6px; font-size:11px; font-weight:700; color:#fff; background:rgba(245,196,81,0.18); border:1px solid rgba(245,196,81,0.4); padding:4px 10px; border-radius:6px; cursor:pointer;" title="Lanjutkan latihan dari bar terakhir yang dibuka"><span>📍 Lanjutkan dari Bar Terakhir</span></button><label>Timeframe <select id="timeframe"><option>M1</option><option>M5</option><option selected>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select></label><label>Kecepatan <select id="speed"><option value="1500">0.5×</option><option value="900" selected>1×</option><option value="450">2×</option><option value="180">5×</option></select></label><details class="drawing-menu"><summary>Alat Gambar</summary><div class="drawing-menu-grid"><button type="button" data-drawing-tool="select">Pilih / Geser</button><button type="button" data-drawing-tool="trend">Trend</button><button type="button" data-drawing-tool="horizontal">Horizontal</button><button type="button" data-drawing-tool="horizontalRay">Ray</button><button type="button" data-drawing-tool="parallelChannel">Channel</button><button type="button" data-drawing-tool="fibonacci">Fibonacci</button><button type="button" data-drawing-tool="longPosition">Long</button><button type="button" data-drawing-tool="shortPosition">Short</button><button type="button" data-drawing-tool="priceRange">Rentang Harga</button><button type="button" data-drawing-tool="rectangle">Rectangle</button><button type="button" data-drawing-tool="arrow">Arrow</button><button type="button" data-drawing-tool="path">Path</button><button type="button" data-drawing-tool="circle">Circle</button><button type="button" data-drawing-tool="text">Text</button><button type="button" data-drawing-tool="note">Note</button><button type="button" data-drawing-tool="priceNote">Price Note</button><button type="button" id="finishDrawing">Gesture Chart</button><button type="button" id="undoDrawing">Urungkan</button><button type="button" id="deleteDrawing" class="danger-action" disabled>Hapus Terpilih</button><button type="button" id="clearDrawings" class="danger-action">Hapus Semua</button><span id="drawingStatus" class="drawing-menu-help" role="status" aria-live="polite">Gesture chart aktif.</span></div></details></div>
-  <div class="ohlc-strip"><span>TF<strong id="ohlcTf">M15</strong></span><span>Waktu<strong id="ohlcTime">—</strong></span><span>O<strong id="ohlcOpen">—</strong></span><span>H<strong id="ohlcHigh">—</strong></span><span>L<strong id="ohlcLow">—</strong></span><span>C<strong id="ohlcClose">—</strong></span><span>Terlihat<strong id="visibleCount">0 candle</strong></span></div>
-  <div class="practice-layout">
-    <section><div id="chart" class="practice-chart-shell"></div><div class="practice-panel" style="margin-top:12px"><input id="replaySlider" class="replay-slider" type="range" min="0" max="100" value="0" aria-label="Posisi replay"><div class="replay-controls" style="margin-top:10px"><button id="resetReplay">Awal</button><button id="previousCandle">−1</button><button id="nextCandle">+1</button><button id="nextFive">+5</button><button id="playPause">Putar</button></div><div id="replayStatus" class="practice-status">Menyiapkan replay…</div><details class="replay-source"><summary>Info data</summary><p id="sourceNote" class="source-note"></p></details></div></section>
-    <aside class="practice-side">
-      <section class="practice-panel cloud-library-panel">
-        <h2>Perpustakaan Cloud (2019–2026)</h2>
-        <p>Pasang data candle historis XAU/USD langsung dari cloud tanpa upload manual (8 tahun penuh, multi-timeframe M1–D1).</p>
-        <div class="practice-form-grid" style="grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <label class="practice-field">Tahun
-            <select id="cloudYearSelect">
-              <option value="2026">2026 (9 Bulan)</option>
-              <option value="2025">2025 (12 Bulan)</option>
-              <option value="2024">2024 (12 Bulan)</option>
-              <option value="2023">2023 (12 Bulan)</option>
-              <option value="2022">2022 (12 Bulan)</option>
-              <option value="2021">2021 (12 Bulan)</option>
-              <option value="2020">2020 (12 Bulan)</option>
-              <option value="2019">2019 (12 Bulan)</option>
-            </select>
-          </label>
-          <label class="practice-field">Bulan
-            <select id="cloudMonthSelect">
-              <option value="ALL">Semua Bulan (Tahun Penuh)</option>
-            </select>
-          </label>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#070b12">
+  <title>Backtest Replay Lab — Amy FX</title>
+  <script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
+  <link rel="stylesheet" href="assets/css/practice.css">
+</head>
+<body class="amyfx-module amyfx-module--backtest">
+  <header class="bt-header">
+    <div class="bt-header-inner">
+      <a class="bt-brand" href="index.html">
+        <span class="bt-brand-mark">A</span>
+        <span>Amy FX</span>
+        <span class="bt-brand-sub">Backtest</span>
+      </a>
+
+      <nav class="bt-nav" id="navlinks" aria-label="Navigasi Backtest Lab">
+        <a href="../../../index.html">Beranda</a>
+        <a href="candle-replay.html" class="is-active">Replay</a>
+        <a href="backtest-history.html">Performa</a>
+        <a href="guided-practice.html">Latihan</a>
+        <a href="../index.html">Tutorial</a>
+      </nav>
+
+      <div class="bt-header-actions">
+        <button type="button" id="themeToggleBtn" class="bt-btn-sm">Terang</button>
+        <button type="button" id="hamburger" class="bt-hamburger" aria-label="Buka menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="bt-container">
+    <!-- Pro Simulasi Account Bar (Synced with Profile Parameter Trading) -->
+    <section class="bt-account-bar" aria-label="Akun Simulasi Backtest">
+      <div class="bt-account-metrics">
+        <div class="bt-metric">
+          <span class="bt-metric-label">Saldo</span>
+          <span class="bt-metric-value is-gold" id="accBalance">—</span>
         </div>
-        <button id="cloudInstallBtn" class="practice-button" type="button" style="width:100%; font-weight:bold; background:var(--gold, #d4af37); color:#070b12;">⚡ Pasang dari Cloud</button>
-        <div id="cloudInstallStatus" class="practice-status" role="status" aria-live="polite">Siap mengunduh dari Cloud.</div>
+        <div class="bt-metric">
+          <span class="bt-metric-label">Float</span>
+          <span class="bt-metric-value" id="accFloating">—</span>
+        </div>
+        <div class="bt-metric">
+          <span class="bt-metric-label">Net R</span>
+          <span class="bt-metric-value" id="accNetR">+0.00R</span>
+        </div>
+        <div class="bt-metric">
+          <span class="bt-metric-label">Win Rate</span>
+          <span class="bt-metric-value" id="accWinRate">—</span>
+        </div>
+      </div>
+
+      <div class="bt-account-controls">
+        <select id="sessionSelect" class="bt-select" aria-label="Pilih Sesi Backtest"></select>
+        <button type="button" id="newSessionBtn" class="bt-btn-sm">+ Sesi</button>
+        <button type="button" id="resetSessionBtn" class="bt-btn-sm bt-btn-danger">Reset</button>
+        <div class="bt-seg" id="currencyToggle" role="group" aria-label="Mata Uang">
+          <button type="button" data-currency="IDR" class="is-active" aria-pressed="true">Rp</button>
+          <button type="button" data-currency="USD" aria-pressed="false">$</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="bt-replay-grid">
+      <!-- Left: Replay Chart Workspace -->
+      <section class="bt-chart-stage" id="replayWorkspace">
+        <div class="bt-toolbar-row">
+          <div class="bt-toolbar-group bt-source-group">
+            <select id="replaySourceSelect" class="bt-select bt-source-select" aria-label="Pilih Dataset Historis"></select>
+            <button type="button" id="openDataManager" class="bt-btn-sm bt-btn-primary">Data Cloud</button>
+          </div>
+
+          <div class="bt-toolbar-group bt-tf-group">
+            <div class="bt-seg bt-tf-seg" id="tfSegBar" role="group" aria-label="Timeframe">
+              <button type="button" data-tf="M1">M1</button>
+              <button type="button" data-tf="M5">M5</button>
+              <button type="button" data-tf="M15" class="is-active" aria-pressed="true">M15</button>
+              <button type="button" data-tf="M30">M30</button>
+              <button type="button" data-tf="H1">H1</button>
+              <button type="button" data-tf="H4">H4</button>
+              <button type="button" data-tf="D1">D1</button>
+            </div>
+
+            <details class="drawing-menu">
+              <summary>Alat +</summary>
+              <div class="drawing-menu-grid">
+                <button type="button" data-drawing-tool="fibonacci">Fibonacci</button>
+                <button type="button" data-drawing-tool="horizontalRay">Sinar Horiz</button>
+                <button type="button" data-drawing-tool="priceRange">Rentang</button>
+                <button type="button" data-drawing-tool="parallelChannel">Kanal</button>
+                <button type="button" data-drawing-tool="arrow">Panah</button>
+                <button type="button" data-drawing-tool="text">Teks</button>
+                <button type="button" id="undoDrawing">Undo</button>
+                <button type="button" id="deleteDrawing" disabled>Hapus</button>
+                <button type="button" id="clearDrawings">Bersihkan</button>
+                <button type="button" id="finishDrawing">Selesai</button>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="bt-ohlc-bar">
+          <div class="bt-ohlc-vals">
+            <span id="ohlcTime">—</span>
+            <span><b>O</b><span id="ohlcOpen">—</span></span>
+            <span><b>H</b><span id="ohlcHigh">—</span></span>
+            <span><b>L</b><span id="ohlcLow">—</span></span>
+            <span><b>C</b><span id="ohlcClose">—</span></span>
+          </div>
+          <div class="bt-ohlc-meta">
+            <span class="bt-tag bt-tag-be" id="replaySessionBadge">Session</span>
+            <span class="bt-source-badge" id="replaySourceBadge">Sample · Jan 2025</span>
+          </div>
+        </div>
+
+        <!-- Chart Surface (practice-ui.js injects quick drawing bar right above #chart) -->
+        <div id="chart" class="practice-chart-shell"></div>
+
+        <!-- Playback & Killzone Transport Bar -->
+        <div class="bt-playback-bar">
+          <div class="bt-playback-controls">
+            <button type="button" class="bt-btn-sm" data-step="-5">-5</button>
+            <button type="button" class="bt-btn-sm" data-step="-1">-1</button>
+            <button type="button" id="playToggle" class="bt-btn-sm bt-btn-primary">Putar</button>
+            <button type="button" class="bt-btn-sm" data-step="1">+1</button>
+            <button type="button" class="bt-btn-sm" data-step="5">+5</button>
+            <button type="button" class="bt-btn-sm" data-step="20">+20</button>
+            <select id="speedSelect" class="bt-select bt-speed-select" aria-label="Kecepatan Putar">
+              <option value="1200">0.7x</option>
+              <option value="700" selected>1x</option>
+              <option value="350">2x</option>
+              <option value="160">4x</option>
+            </select>
+          </div>
+
+          <div class="bt-killzone-group">
+            <button type="button" class="bt-btn-sm" data-killzone="Asia">Asia</button>
+            <button type="button" class="bt-btn-sm" data-killzone="London">London</button>
+            <button type="button" class="bt-btn-sm" data-killzone="New York">NY</button>
+            <details class="bt-jump-pop">
+              <summary class="bt-btn-sm">Tanggal</summary>
+              <div class="bt-jump-pop-body">
+                <input type="datetime-local" id="jumpDateInput" class="bt-input" aria-label="Loncat ke tanggal">
+                <button type="button" id="jumpDateBtn" class="bt-btn-sm bt-btn-primary">Loncat</button>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="bt-status-foot">
+          <span id="replayStatus">Memuat data…</span>
+          <span id="drawingStatus">Gesture aktif</span>
+        </div>
       </section>
-      <section class="practice-panel"><h2>Catat keputusan</h2><form id="tradeForm"><div class="practice-form-grid"><label class="practice-field">Keputusan<select name="bias"><option>WAIT</option><option>BUY</option><option>SELL</option></select></label><label class="practice-field">Entry<input name="entry" inputmode="decimal"></label><label class="practice-field">Stop Loss<input name="stopLoss" inputmode="decimal"></label><label class="practice-field">Take Profit<input name="takeProfit" inputmode="decimal"></label><label class="practice-field full">Catatan<textarea name="notes" placeholder="Alasan keputusan sebelum membuka candle berikutnya"></textarea></label></div><button id="tradeSubmit" class="practice-button" type="submit" disabled>Simpan keputusan</button></form><div id="decisionLockState" class="decision-lock-state" data-state="idle"><span>Belum dikunci</span><strong>Pilih posisi replay</strong></div><div id="tradeStatus" class="practice-status" role="status" aria-live="polite">Hasil mengikuti candle berikutnya.</div></section><section class="practice-panel"><a class="btn" href="chart-analysis.html">Kelola data historis →</a></section><details class="practice-panel"><summary>Panduan replay</summary><p>Ganti timeframe tidak memindahkan waktu di dalam pack aktif. +1 berarti satu candle timeframe aktif. Setup tersimpan lokal dan tidak dihitung sebagai strategi otomatis.</p></details></aside>
-  </div>
-  </div>
-  <section id="replayHistory" class="practice-panel replay-history" aria-labelledby="replayHistoryTitle">
-    <h2 id="replayHistoryTitle">Riwayat entry Candle Replay</h2>
-    <p>Keputusan tersimpan di perangkat ini. Hasil diperbarui sampai cursor yang sudah diputar; hasil tersimpan tetap ada saat mundur.</p>
-    <div id="replayHistoryStatus" class="practice-status" role="status" aria-live="polite">Memuat riwayat…</div>
-    <div id="replayHistoryRows" class="replay-history-list"></div>
-  </section>
-</main>
-<script src="vendor/lightweight-charts.standalone.production.js"></script><script src="assets/js/practice-core.js"></script><script src="assets/js/storage.js"></script><script src="assets/js/zip-reader.js"></script><script src="assets/js/data-provider.js"></script><script src="assets/js/replay-engine.js"></script><script src="assets/js/trade-engine.js"></script><script src="assets/js/drawing-core.js"></script><script src="assets/js/chart-engine.js"></script><script src="assets/js/practice-ui.js"></script><script src="assets/js/candle-replay.js"></script>
-</body></html>
+
+      <!-- Right Sidebar: Active Positions & Order Ticket -->
+      <aside class="bt-side-stack">
+        <!-- Active Open Positions Management -->
+        <section class="bt-card">
+          <div class="bt-card-head">
+            <h2 class="bt-card-title">Posisi Aktif</h2>
+            <span class="bt-tag bt-tag-open" id="openPositionsCount">0</span>
+          </div>
+          <div id="activePositionsList" class="bt-pos-list">
+            <div class="bt-empty-inline">Belum ada posisi aktif.</div>
+          </div>
+        </section>
+
+        <!-- Order Execution Ticket -->
+        <section class="bt-card">
+          <div class="bt-card-head">
+            <h2 class="bt-card-title">Order</h2>
+            <span class="bt-meta-hint" id="riskProfileHint">Risiko 1%</span>
+          </div>
+
+          <form id="tradeForm" novalidate>
+            <input type="hidden" name="bias" value="BUY">
+            <input type="hidden" name="orderType" value="MARKET">
+
+            <div class="bt-form-grid">
+              <div class="bt-field">
+                <label>Arah</label>
+                <div class="bt-seg bt-seg-full" id="biasSeg" role="group" aria-label="Arah">
+                  <button type="button" data-bias="BUY" class="is-buy is-active">BUY</button>
+                  <button type="button" data-bias="SELL" class="is-sell">SELL</button>
+                  <button type="button" data-bias="WAIT">WAIT</button>
+                </div>
+              </div>
+
+              <div class="bt-field">
+                <label>Tipe</label>
+                <div class="bt-seg bt-seg-full" id="orderTypeSeg" role="group" aria-label="Tipe Order">
+                  <button type="button" data-order-type="MARKET" class="is-active">Market</button>
+                  <button type="button" data-order-type="LIMIT">Limit</button>
+                </div>
+              </div>
+
+              <div class="bt-field">
+                <label>
+                  <span>Entry</span>
+                  <button type="button" class="bt-mini-chip is-active" data-tap-target="entry">Tap</button>
+                </label>
+                <input type="number" step="0.01" name="entry" class="bt-input tabular" placeholder="2640.00">
+              </div>
+
+              <div class="bt-field">
+                <label>
+                  <span>Lot</span>
+                  <button type="button" id="autoLotBtn" class="bt-mini-chip">Auto</button>
+                </label>
+                <input type="number" step="0.01" min="0.01" max="50" name="lot" class="bt-input tabular" value="0.10">
+              </div>
+
+              <div class="bt-field">
+                <label>
+                  <span>SL</span>
+                  <button type="button" class="bt-mini-chip" data-tap-target="stopLoss">Tap</button>
+                </label>
+                <input type="number" step="0.01" name="stopLoss" class="bt-input tabular" placeholder="2635.00">
+              </div>
+
+              <div class="bt-field">
+                <label>
+                  <span>TP</span>
+                  <span class="bt-quick-links">
+                    <button type="button" id="quickRr2" class="bt-mini-chip">1:2</button>
+                    <button type="button" id="quickRr3" class="bt-mini-chip">1:3</button>
+                    <button type="button" class="bt-mini-chip" data-tap-target="takeProfit">Tap</button>
+                  </span>
+                </label>
+                <input type="number" step="0.01" name="takeProfit" class="bt-input tabular" placeholder="2650.00">
+              </div>
+
+              <div class="bt-field is-full">
+                <label for="setupTypeSelect">Setup ICT</label>
+                <select id="setupTypeSelect" name="setupType" class="bt-select">
+                  <option value="Auto">Auto</option>
+                  <option value="FVG">FVG</option>
+                  <option value="Order Block">Order Block</option>
+                  <option value="Liquidity Sweep">Liquidity Sweep</option>
+                  <option value="BOS / MSS">BOS / MSS</option>
+                  <option value="IFVG">IFVG</option>
+                  <option value="Turtle Soup">Turtle Soup</option>
+                </select>
+              </div>
+
+              <div class="bt-field is-full">
+                <label for="tradeNotes">Catatan</label>
+                <textarea id="tradeNotes" name="notes" class="bt-textarea bt-textarea-compact" rows="1" placeholder="Catatan setup (opsional)"></textarea>
+              </div>
+            </div>
+
+            <div class="bt-order-summary">
+              <strong id="orderRrPreview" class="tabular">R:R —</strong>
+              <span id="orderRiskPreview" class="tabular bt-meta-hint">—</span>
+            </div>
+
+            <button type="submit" id="tradeSubmit" class="bt-btn bt-btn-primary bt-btn-block">Eksekusi Order</button>
+            <p id="tradeStatus" class="bt-status-line" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </aside>
+    </div>
+
+    <!-- Current Session Recent Trades -->
+    <section class="bt-card bt-section">
+      <div class="bt-card-head">
+        <h2 class="bt-card-title">Riwayat Sesi</h2>
+        <a href="backtest-history.html" class="bt-btn-sm">Analitik →</a>
+      </div>
+      <div class="bt-table-wrap">
+        <table class="bt-table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Order</th>
+              <th>Harga</th>
+              <th>Setup</th>
+              <th>Status</th>
+              <th class="num">Hasil</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="replayTradesBody">
+            <tr><td colspan="7"><div class="bt-empty-inline">Memuat riwayat…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Unified Cloud Library (2019–2026) & Local ZIP/CSV/JSON Data Manager Dialog -->
+  <dialog id="dataManagerDialog" class="bt-dialog" aria-labelledby="dataManagerTitle">
+    <div class="bt-dialog-head">
+      <h2 id="dataManagerTitle">Data Cloud XAU/USD</h2>
+      <button type="button" id="closeDataManager" class="bt-btn-sm">Tutup</button>
+    </div>
+    <div class="bt-dialog-body">
+      <div class="bt-dialog-block">
+        <h3>Unduh Cloud (2019–2026)</h3>
+        <div class="bt-dialog-row">
+          <select id="cloudYearSelect" class="bt-select" aria-label="Tahun Cloud"></select>
+          <select id="cloudMonthSelect" class="bt-select" aria-label="Bulan Cloud"></select>
+          <button type="button" id="cloudInstallBtn" class="bt-btn bt-btn-primary">Pasang</button>
+        </div>
+        <p id="cloudInstallStatus" class="bt-status-line" role="status" aria-live="polite">Memuat katalog…</p>
+      </div>
+
+      <div class="bt-dialog-block">
+        <h3>Impor Lokal (ZIP / CSV / JSON)</h3>
+        <div class="bt-dialog-row">
+          <input type="file" id="datasetFile" class="bt-input bt-file-input" accept=".zip,.csv,.json" multiple>
+          <select id="importTimeframe" class="bt-select bt-tf-import" aria-label="Timeframe Impor">
+            <option value="M1" selected>M1</option>
+            <option value="M5">M5</option>
+            <option value="M15">M15</option>
+            <option value="H1">H1</option>
+          </select>
+          <button type="button" id="importButton" class="bt-btn">Impor</button>
+        </div>
+        <p id="importStatus" class="bt-status-line" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="bt-dialog-block">
+        <div class="bt-card-head bt-card-head-tight">
+          <h3>Pack Terpasang</h3>
+          <span id="packSummary" class="bt-meta-hint">0 pack</span>
+        </div>
+        <div id="packLibrary" class="bt-pack-list"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Create New Backtest Session Dialog -->
+  <dialog id="sessionDialog" class="bt-dialog bt-dialog-sm" aria-labelledby="sessionDialogTitle">
+    <div class="bt-dialog-head">
+      <h2 id="sessionDialogTitle">Sesi Baru</h2>
+      <button type="button" id="closeSessionDialog" class="bt-btn-sm">Tutup</button>
+    </div>
+    <div class="bt-dialog-body">
+      <form id="newSessionForm">
+        <div class="bt-form-grid">
+          <div class="bt-field is-full">
+            <label for="sessionNameInput">Nama Sesi</label>
+            <input type="text" id="sessionNameInput" name="sessionName" class="bt-input" placeholder="NY Killzone Jan 2025" required>
+          </div>
+          <div class="bt-field">
+            <label for="sessionBalInput">Modal ($)</label>
+            <input type="number" id="sessionBalInput" name="sessionBalance" class="bt-input tabular" min="50" step="50" value="5000" required>
+          </div>
+          <div class="bt-field">
+            <label for="sessionRiskInput">Risiko (%)</label>
+            <input type="number" id="sessionRiskInput" name="sessionRisk" class="bt-input tabular" min="0.1" max="10" step="0.1" value="1" required>
+          </div>
+        </div>
+        <button type="submit" class="bt-btn bt-btn-primary bt-btn-block">Simpan Sesi</button>
+        <p id="sessionDialogStatus" class="bt-status-line" role="status"></p>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="vendor/lightweight-charts.standalone.production.js"></script>
+  <script src="assets/js/zip-reader.js"></script>
+  <script src="assets/js/practice-core.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/data-provider.js"></script>
+  <script src="assets/js/drawing-core.js"></script>
+  <script src="assets/js/chart-engine.js"></script>
+  <script src="assets/js/replay-engine.js"></script>
+  <script src="assets/js/trade-engine.js"></script>
+  <script src="assets/js/practice-analytics.js"></script>
+  <script src="assets/js/practice-ui.js"></script>
+  <script src="assets/js/cloud-library-ui.js"></script>
+  <script src="assets/js/candle-replay.js"></script>
+</body>
+</html>

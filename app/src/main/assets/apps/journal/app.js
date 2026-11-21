@@ -118,10 +118,12 @@ const dom = {
   closeJournalSheetBtn: document.querySelector("#closeJournalSheetBtn"),
   journalSheetTitle: document.querySelector("#journalSheetTitle"),
   journalSheetEyebrow: document.querySelector("#journalSheetEyebrow"),
+  quickAccountModeBtns: document.querySelectorAll("[data-quick-account-mode]"),
   quickDirectionBtns: document.querySelectorAll("[data-quick-direction]"),
   quickResultBtns: document.querySelectorAll("[data-quick-result]"),
   journalForm: document.querySelector("#journalForm"),
   journalId: document.querySelector("#journalId"),
+  journalAccountModeInput: document.querySelector("#journalAccountModeInput"),
   journalDateInput: document.querySelector("#journalDateInput"),
   journalMarketInput: document.querySelector("#journalMarketInput"),
   journalDirectionInput: document.querySelector("#journalDirectionInput"),
@@ -143,6 +145,8 @@ const dom = {
   resetJournalBtn: document.querySelector("#resetJournalBtn"),
   journalSearchInput: document.querySelector("#journalSearchInput"),
   journalFilterButtons: document.querySelectorAll("[data-journal-result-filter]"),
+  journalAccountFilterButtons: document.querySelectorAll("[data-journal-account-filter]"),
+  journalAccountModeHint: document.querySelector("#journalAccountModeHint"),
   journalList: document.querySelector("#journalList"),
   journalEmpty: document.querySelector("#journalEmpty"),
   aiProviderInput: document.querySelector("#aiProviderInput"),
@@ -243,6 +247,7 @@ const state = {
   sort: "pinned-newest",
   showArchived: false,
   view: "journal",
+  journalAccountFilter: "REAL",
   journalResultFilter: "all",
   journalSearchQuery: "",
   pendingMedia: null,
@@ -325,6 +330,20 @@ async function boot() {
   renderPills();
   bindEvents();
   if (dom.journalDateInput && !dom.journalDateInput.value) dom.journalDateInput.value = new Date().toISOString().slice(0, 10);
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = String(urlParams.get("mode") || "").trim().toUpperCase();
+    if (modeParam === "SIM" || modeParam === "REAL") {
+      state.journalAccountFilter = modeParam;
+    } else if (modeParam === "ALL") {
+      state.journalAccountFilter = "all";
+    } else {
+      const hasReal = state.journals.some((e) => resolveEntryAccountMode(e) === "REAL");
+      const hasSim = state.journals.some((e) => resolveEntryAccountMode(e) === "SIM");
+      state.journalAccountFilter = !hasReal && hasSim ? "SIM" : "REAL";
+    }
+  } catch (_) {}
+  syncJournalAccountFilterUi();
   render();
   initJournalHabitsListeners();
   try {
@@ -401,6 +420,15 @@ function bindEvents() {
   });
 
   dom.openFormBtn?.addEventListener("click", () => {
+    if (state.view === "notes") {
+      openNoteForm(null);
+      return;
+    }
+    if (state.view === "habits") {
+      const habitDlg = document.getElementById("jHabitDialog");
+      if (habitDlg?.showModal) habitDlg.showModal();
+      return;
+    }
     setView("journal");
     resetJournalForm();
     openJournalEditor("new");
@@ -513,10 +541,27 @@ function bindEvents() {
       syncJournalQuickPickers();
     });
   });
+  dom.quickAccountModeBtns?.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (dom.journalAccountModeInput) {
+        dom.journalAccountModeInput.value = btn.dataset.quickAccountMode === "SIM" ? "SIM" : "REAL";
+      }
+      syncJournalQuickPickers();
+    });
+  });
   dom.quickResultBtns?.forEach((btn) => {
     btn.addEventListener("click", () => {
       if (dom.journalResultInput) dom.journalResultInput.value = btn.dataset.quickResult || "Belum selesai";
       syncJournalQuickPickers();
+    });
+  });
+  dom.journalAccountFilterButtons?.forEach((button) => {
+    button.addEventListener("click", () => {
+      const next = button.dataset.journalAccountFilter || "REAL";
+      state.journalAccountFilter = next === "SIM" || next === "all" ? next : "REAL";
+      syncJournalAccountFilterUi();
+      renderJournals();
+      renderStatistics();
     });
   });
   dom.journalFilterButtons?.forEach((button) => {
@@ -533,6 +578,11 @@ function bindEvents() {
   dom.journalSearchInput?.addEventListener("input", debouncedJournalSearch);
   dom.newNoteBtn?.addEventListener("click", () => openNoteForm(null));
   dom.cancelNoteBtn?.addEventListener("click", closeNoteForm);
+  document.getElementById("closeNoteFormBtn")?.addEventListener("click", closeNoteForm);
+  document.getElementById("notesSearchInput")?.addEventListener("input", (e) => {
+    state.notesQuery = String(e.target.value || "").trim().toLowerCase();
+    renderNotes();
+  });
   dom.noteForm?.addEventListener("submit", saveNote);
   dom.notesList?.addEventListener("click", handleNoteActions);
   dom.resetJournalBtn?.addEventListener("click", closeJournalEditor);
@@ -1952,14 +2002,79 @@ function makeStatCard(label, value) {
 }
 
 
+function resolveEntryAccountMode(entry) {
+  if (typeof window.AmyAccountSimEngine?.getEntryAccountMode === "function") {
+    return window.AmyAccountSimEngine.getEntryAccountMode(entry);
+  }
+  const raw = String(entry?.accountMode || "").trim().toUpperCase();
+  if (raw === "SIM" || entry?.source === "sim-cockpit") return "SIM";
+  return "REAL";
+}
+
+function getModeScopedJournals() {
+  const mode = state.journalAccountFilter || "REAL";
+  if (typeof window.AmyAccountSimEngine?.filterJournalsByMode === "function") {
+    return window.AmyAccountSimEngine.filterJournalsByMode(state.journals, mode);
+  }
+  if (mode === "all") return [...state.journals];
+  return state.journals.filter((entry) => resolveEntryAccountMode(entry) === mode);
+}
+
+function getActiveJournalCurrencyContext() {
+  if (state.journalAccountFilter === "SIM" && typeof window.AmyAccountSimEngine?.readParams === "function") {
+    const p = window.AmyAccountSimEngine.readParams();
+    return { currency: p.currency === "IDR" ? "IDR" : "USD", usdIdrRate: p.usdIdrRate || 16500 };
+  }
+  return { currency: "USD", usdIdrRate: 16500 };
+}
+
+function formatScopedAmount(value, { signed = false, compact = false } = {}) {
+  const ctx = getActiveJournalCurrencyContext();
+  const n = Number(value) || 0;
+  if (ctx.currency === "IDR") {
+    const idr = Math.round(n * ctx.usdIdrRate);
+    const sign = idr < 0 ? "-" : (signed && idr > 0 ? "+" : "");
+    const abs = Math.abs(idr);
+    if (compact) {
+      if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}jt`;
+      if (abs >= 1e3) return `${sign}${Math.round(abs / 1e3)}rb`;
+      return `${sign}Rp${abs}`;
+    }
+    return `${sign}Rp${abs.toLocaleString("id-ID")}`;
+  }
+  const sign = n < 0 ? "-" : (signed && n > 0 ? "+" : "");
+  const abs = Math.abs(n);
+  if (compact) {
+    if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+    return `${sign}$${Math.round(abs)}`;
+  }
+  return `${sign}$${abs.toLocaleString("id-ID", { maximumFractionDigits: 2 })}`;
+}
+
+function syncJournalAccountFilterUi() {
+  const active = state.journalAccountFilter || "REAL";
+  document.querySelectorAll("[data-journal-account-filter]").forEach((btn) => {
+    const isAct = btn.dataset.journalAccountFilter === active;
+    btn.classList.toggle("is-active", isAct);
+    btn.setAttribute("aria-pressed", isAct ? "true" : "false");
+  });
+  if (dom.journalAccountModeHint) {
+    dom.journalAccountModeHint.textContent = active === "SIM"
+      ? "Sekat Simulasi · Sinkron Cockpit Beranda"
+      : active === "all"
+      ? "Gabungan Real + Simulasi"
+      : "Sekat Real · Terpisah dari Simulasi";
+  }
+}
+
 function buildPerformaCalendarPane() {
   const journalStats = getJournalStatistics();
   const monthInfo = getCurrentMonthInfo();
   const calendarHtml = buildStatisticsCalendar(monthInfo.year, monthInfo.month);
   const netTone = journalStats.netProfit > 0 ? "is-pos" : journalStats.netProfit < 0 ? "is-neg" : "";
   const netText = journalStats.monthJournalCount
-    ? `${journalStats.netProfit > 0 ? "+" : ""}${formatTradeAmount(journalStats.netProfit)}`
-    : "$0";
+    ? formatScopedAmount(journalStats.netProfit, { signed: true })
+    : formatScopedAmount(0);
 
   return `
     <section class="jl-calendar-pane" aria-label="Kalender P/L Bulanan">
@@ -1983,6 +2098,8 @@ function buildPerformaCalendarPane() {
 function renderStatistics() {
   const targetContainers = [dom.statisticsViewContent, document.getElementById('statisticsViewContentHabits')].filter(Boolean);
   if (!targetContainers.length) return;
+  const scopedJournals = getModeScopedJournals();
+  const currencyCtx = getActiveJournalCurrencyContext();
 
   targetContainers.forEach(container => {
     let proMount = container.querySelector('[data-jp-pro-mount]');
@@ -1992,7 +2109,9 @@ function renderStatistics() {
     }
 
     if (proMount && window.AmyJournalAnalyticsPro?.mountProAnalytics) {
-      window.AmyJournalAnalyticsPro.mountProAnalytics(proMount, state.journals, {
+      window.AmyJournalAnalyticsPro.mountProAnalytics(proMount, scopedJournals, {
+        currency: currencyCtx.currency,
+        usdIdrRate: currencyCtx.usdIdrRate,
         renderCalendar: () => buildPerformaCalendarPane(),
         onBindCalendar: () => bindStatisticsCalendarEvents(),
         onLogFirst: () => {
@@ -2004,7 +2123,7 @@ function renderStatistics() {
         }
       });
     } else if (proMount && window.AmyJournalAnalytics?.renderEquitySVG) {
-      proMount.innerHTML = window.AmyJournalAnalytics.renderEquitySVG(state.journals);
+      proMount.innerHTML = window.AmyJournalAnalytics.renderEquitySVG(scopedJournals);
     }
   });
 }
@@ -2112,7 +2231,7 @@ function bindDashboardInteractions() {
 function getJournalStatistics() {
   const monthInfo = getCurrentMonthInfo();
   const monthPrefix = `${monthInfo.year}-${String(monthInfo.month + 1).padStart(2, "0")}`;
-  const monthJournals = state.journals.filter((journal) => String(journal.date || "").startsWith(monthPrefix));
+  const monthJournals = getModeScopedJournals().filter((journal) => String(journal.date || "").startsWith(monthPrefix));
   return {
     ...calculateJournalStats(monthJournals),
     monthJournalCount: monthJournals.length
@@ -2166,6 +2285,7 @@ function shiftStatisticsMonth(offset) {
 
 function buildStatisticsCalendar(year, month) {
   const dayLabels = ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MGG"];
+  const scoped = getModeScopedJournals();
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
   const startDay = first.getDay();
@@ -2174,7 +2294,7 @@ function buildStatisticsCalendar(year, month) {
   for (let i = 0; i < startDay; i += 1) cells.push({ empty: true });
   for (let day = 1; day <= totalDays; day += 1) {
     const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const journals = state.journals.filter((journal) => journal.date === date);
+    const journals = scoped.filter((journal) => journal.date === date);
     cells.push({ day, date, journals });
   }
   while (cells.length % 7 !== 0) cells.push({ empty: true });
@@ -2199,19 +2319,13 @@ function makeCalendarCell(cell) {
   const hasLoss = journals.some((journal) => journal.result === "Loss");
   const hasBe = journals.some((journal) => journal.result === "BE");
   const cls = net > 0 ? "is-win" : net < 0 ? "is-loss" : hasWin ? "is-win" : hasLoss ? "is-loss" : hasBe ? "is-be" : "";
-  const compactNet = (value) => {
-    const abs = Math.abs(value);
-    const sign = value > 0 ? "+" : value < 0 ? "-" : "";
-    if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
-    return `${sign}$${Math.round(abs)}`;
-  };
   const label = !journals.length
     ? ""
     : net !== 0
-      ? compactNet(net)
+      ? formatScopedAmount(net, { signed: true, compact: true })
       : (journals.length > 1 ? `${journals.length}t` : (journals[0].result === "Belum selesai" ? "Open" : journals[0].result || "1t"));
   if (!journals.length) return `<div class="cal-cell ${cls}"><strong class="jp-tabular">${cell.day}</strong><span class="jp-tabular"></span></div>`;
-  return `<button type="button" class="cal-cell ${cls} is-clickable" data-journal-date="${cell.date}" title="${cell.date}: ${journals.length} trade (${net >= 0 ? "+" : ""}${formatTradeAmount(net)})"><strong class="jp-tabular">${cell.day}</strong><span class="jp-tabular">${label}</span></button>`;
+  return `<button type="button" class="cal-cell ${cls} is-clickable" data-journal-date="${cell.date}" title="${cell.date}: ${journals.length} trade (${formatScopedAmount(net, { signed: true })})"><strong class="jp-tabular">${cell.day}</strong><span class="jp-tabular">${label}</span></button>`;
 }
 
 function bindStatisticsCalendarEvents() {
@@ -2224,7 +2338,7 @@ function bindStatisticsCalendarEvents() {
 }
 
 function openJournalDate(date) {
-  const journals = state.journals.filter((journal) => journal.date === date);
+  const journals = getModeScopedJournals().filter((journal) => journal.date === date);
   if (!journals.length) return;
   state.journalOpenDate = date;
   state.journalOpenId = journals.length === 1 ? journals[0].id : "";
@@ -5818,14 +5932,21 @@ function normalizeJournals(journals) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...journal,
+    accountMode: resolveEntryAccountMode(journal),
     attachments: Array.isArray(journal.attachments) ? journal.attachments : [],
     revisionHistory: Array.isArray(journal.revisionHistory) ? journal.revisionHistory : []
   }));
 }
 
 function syncJournalQuickPickers() {
+  const accMode = dom.journalAccountModeInput?.value === "SIM" ? "SIM" : "REAL";
   const dir = dom.journalDirectionInput?.value || "";
   const res = dom.journalResultInput?.value || "Belum selesai";
+  dom.quickAccountModeBtns?.forEach((btn) => {
+    const active = btn.dataset.quickAccountMode === accMode;
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  });
   dom.quickDirectionBtns?.forEach((btn) => {
     const active = btn.dataset.quickDirection === dir;
     btn.classList.toggle("is-active", active);
@@ -5842,6 +5963,9 @@ function resetJournalForm() {
   if (!dom.journalForm) return;
   dom.journalForm.reset();
   dom.journalId.value = "";
+  if (dom.journalAccountModeInput) {
+    dom.journalAccountModeInput.value = state.journalAccountFilter === "SIM" ? "SIM" : "REAL";
+  }
   dom.journalDateInput.value = new Date().toISOString().slice(0, 10);
   if (dom.journalMarketInput) dom.journalMarketInput.value = "XAU/USD";
   if (dom.journalDirectionInput) dom.journalDirectionInput.value = "Buy";
@@ -5986,8 +6110,22 @@ function getJournalFormData() {
   const manualTitle = dom.journalTitleInput.value.trim();
   const title = manualTitle || buildAutoTradeTitle({ direction, market, setup, session });
 
+  const accountMode = dom.journalAccountModeInput?.value === "SIM" ? "SIM" : "REAL";
   const draft = {
+    ...(existing ? {
+      source: existing.source,
+      lot: existing.lot,
+      entryPrice: existing.entryPrice,
+      exitPrice: existing.exitPrice,
+      sl: existing.sl,
+      tp: existing.tp,
+      pnlPips: existing.pnlPips,
+      closeReason: existing.closeReason,
+      openedAt: existing.openedAt,
+      closedAt: existing.closedAt
+    } : {}),
     id: existing?.id || createId(),
+    accountMode,
     date: dom.journalDateInput.value || new Date().toISOString().slice(0, 10),
     title,
     market,
@@ -6083,7 +6221,7 @@ async function saveJournalForm(event) {
 function getFilteredJournals() {
   const resultFilter = state.journalResultFilter || "all";
   const q = (state.journalSearchQuery || "").trim().toLowerCase();
-  return [...state.journals]
+  return getModeScopedJournals()
     .filter((entry) => {
       if (resultFilter !== "all" && String(entry.result || "") !== resultFilter) return false;
       if (!q) return true;
@@ -6097,7 +6235,8 @@ function getFilteredJournals() {
         entry.mistakes,
         entry.emotion,
         entry.evaluation,
-        entry.lessons
+        entry.lessons,
+        resolveEntryAccountMode(entry)
       ].join(" ").toLowerCase();
       return haystack.includes(q);
     })
@@ -6107,7 +6246,8 @@ function getFilteredJournals() {
 function renderJournals() {
   if (!dom.journalList) return;
   dom.journalList.replaceChildren();
-  const totalCount = state.journals.length;
+  const modeScoped = getModeScopedJournals();
+  const totalCount = modeScoped.length;
   const journals = getFilteredJournals();
   const isFiltered = (state.journalResultFilter && state.journalResultFilter !== "all") || Boolean(state.journalSearchQuery);
   dom.journalEmpty.hidden = journals.length > 0;
@@ -6117,14 +6257,18 @@ function renderJournals() {
     if (isFiltered && totalCount > 0) {
       if (emptyTitle) emptyTitle.textContent = "Tidak ada trade yang cocok";
       if (emptyText) emptyText.textContent = "Coba ubah filter hasil atau kata kunci pencarian.";
+    } else if (state.journalAccountFilter === "SIM") {
+      if (emptyTitle) emptyTitle.textContent = "Belum ada riwayat Simulasi";
+      if (emptyText) emptyText.textContent = "Buka & tutup posisi di Cockpit Akun Pro Beranda (atau klik + Catat Trade mode Simulasi) agar tercatat otomatis di sini.";
     } else {
-      if (emptyTitle) emptyTitle.textContent = "Belum ada trade tercatat";
-      if (emptyText) emptyText.textContent = "Klik + Catat Trade untuk mulai merekam eksekusi XAU/USD dan membangun Equity Curve.";
+      if (emptyTitle) emptyTitle.textContent = "Belum ada trade Real tercatat";
+      if (emptyText) emptyText.textContent = "Klik + Catat Trade untuk mulai merekam eksekusi XAU/USD Real. Trade simulasi dari Beranda dipisahkan di tab Simulasi.";
     }
   }
+  const modeSuffix = state.journalAccountFilter === "SIM" ? " (Simulasi)" : state.journalAccountFilter === "REAL" ? " (Real)" : "";
   dom.journalCount.textContent = isFiltered
-    ? `${journals.length} dari ${totalCount} trade`
-    : `${totalCount} trade`;
+    ? `${journals.length} dari ${totalCount} trade${modeSuffix}`
+    : `${totalCount} trade${modeSuffix}`;
   const grouped = groupJournalsByDate(journals);
   if (grouped.length > 0 && (!state.journalOpenDate || !grouped.some(([d]) => d === state.journalOpenDate))) {
     state.journalOpenDate = grouped[0][0];
@@ -6166,7 +6310,7 @@ function createJournalDateGroup(date, journals) {
       <small class="jp-tabular">${journals.length} trade · ${win}W/${loss}L</small>
     </span>
     <span class="jl-date-right">
-      <em class="jp-tabular ${netTone}">${net > 0 ? "+" : ""}${formatTradeAmount(net)}</em>
+      <em class="jp-tabular ${netTone}">${formatScopedAmount(net, { signed: true })}</em>
       <span class="jl-chevron" aria-hidden="true">›</span>
     </span>
   `;
@@ -6200,6 +6344,7 @@ function createJournalCard(journal, expanded = false) {
   row.classList.toggle("is-expanded", expanded);
   row.dataset.id = journal.id;
 
+  const isSim = resolveEntryAccountMode(journal) === "SIM";
   const resTone = journal.result === "Win"
     ? "is-pos"
     : journal.result === "Loss"
@@ -6210,6 +6355,9 @@ function createJournalCard(journal, expanded = false) {
 
   const pnlText = getJournalProfitLossText(journal);
   const rrText = Number.isFinite(Number(journal.riskReward)) && Number(journal.riskReward) > 0 ? `R:R ${journal.riskReward}` : "";
+  const lotText = Number.isFinite(Number(journal.lot)) && Number(journal.lot) > 0 ? `${Number(journal.lot).toFixed(2)} lot` : "";
+  const pipsNum = Number(journal.pnlPips);
+  const pipsText = Number.isFinite(pipsNum) && pipsNum !== 0 ? `${pipsNum > 0 ? "+" : ""}${pipsNum.toFixed(1)}p` : "";
   const rightFigure = pnlText || (journal.result === "Belum selesai" ? "Open" : journal.result || "—");
 
   const head = document.createElement("button");
@@ -6226,16 +6374,25 @@ function createJournalCard(journal, expanded = false) {
 
   const title = document.createElement("strong");
   title.className = "jl-trade-title";
-  title.textContent = journal.title;
+  if (isSim) {
+    const simTag = document.createElement("span");
+    simTag.className = "jl-sim-tag";
+    simTag.textContent = "SIM";
+    title.append(simTag, document.createTextNode(journal.title));
+  } else {
+    title.textContent = journal.title;
+  }
 
   const meta = document.createElement("span");
   meta.className = "jl-trade-meta jp-tabular";
   meta.textContent = [
     journal.direction ? journal.direction.toUpperCase() : "",
     journal.market,
+    lotText,
     journal.session,
     journal.setup,
-    rrText
+    rrText,
+    pipsText
   ].filter(Boolean).join(" · ");
 
   copy.append(title, meta);
@@ -6446,6 +6603,9 @@ function editJournal(id) {
   const journal = state.journals.find((entry) => entry.id === id);
   if (!journal) return;
   dom.journalId.value = journal.id;
+  if (dom.journalAccountModeInput) {
+    dom.journalAccountModeInput.value = resolveEntryAccountMode(journal);
+  }
   dom.journalDateInput.value = journal.date || new Date().toISOString().slice(0, 10);
   dom.journalMarketInput.value = journal.market || "XAU/USD";
   if (dom.journalDirectionInput) dom.journalDirectionInput.value = journal.direction || "Buy";
@@ -6503,9 +6663,8 @@ function getJournalProfitLossText(journal) {
   const profit = parseTradeAmount(journal.profit);
   const loss = parseTradeAmount(journal.loss);
   const net = profit - loss;
-  if (net > 0) return `+${formatTradeAmount(net)}`;
-  if (net < 0) return formatTradeAmount(net);
-  return "";
+  if (net === 0) return "";
+  return formatScopedAmount(net, { signed: true });
 }
 
 function loadAssistantSettings() {
@@ -8235,19 +8394,22 @@ function openNoteForm(note = null) {
   dom.noteForm.hidden = false;
   const isEditing = Boolean(note && !(note instanceof Event) && (note.id != null));
   const submitBtn = dom.noteForm.querySelector('button[type="submit"]');
+  const formHeading = document.getElementById("noteFormTitle");
 
   if (isEditing) {
     dom.noteId.value = String(note.id);
     dom.noteDateInput.value = note.date || "";
     dom.noteTitleInput.value = note.title || "";
     dom.noteContentInput.value = note.content || "";
-    if (submitBtn) submitBtn.textContent = "Perbarui Catatan";
+    if (formHeading) formHeading.textContent = "Edit Catatan";
+    if (submitBtn) submitBtn.textContent = "Perbarui";
   } else {
     dom.noteForm.reset();
     dom.noteId.value = "";
     const now = new Date();
     dom.noteDateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    if (submitBtn) submitBtn.textContent = "Simpan Catatan";
+    if (formHeading) formHeading.textContent = "Catatan Baru";
+    if (submitBtn) submitBtn.textContent = "Simpan";
   }
 
   dom.noteForm.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -8259,8 +8421,11 @@ function closeNoteForm() {
   dom.noteForm.hidden = true;
   dom.noteForm.reset();
   dom.noteId.value = "";
+  const formHeading = document.getElementById("noteFormTitle");
+  if (formHeading) formHeading.textContent = "Catatan Baru";
   const submitBtn = dom.noteForm.querySelector('button[type="submit"]');
-  if (submitBtn) submitBtn.textContent = "Simpan Catatan";
+  if (submitBtn) submitBtn.textContent = "Simpan";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function saveNote(e) {
@@ -8288,6 +8453,7 @@ function saveNote(e) {
   }
 
   state.personalNotes = sortNotes(state.personalNotes);
+  state.expandedNoteId = String(id);
   saveNotes();
   closeNoteForm();
   renderNotes();
@@ -8298,12 +8464,17 @@ function handleNoteActions(e) {
   const btn = e.target.closest("button");
   if (!btn) return;
 
-  if (btn.classList.contains("toggle-collapse-btn")) {
-    const card = btn.closest(".note-card");
-    const content = btn.previousElementSibling || card?.querySelector(".note-content");
-    if (content) {
-      const isCollapsed = content.classList.toggle("is-collapsed");
-      btn.textContent = isCollapsed ? "Baca Selengkapnya" : "Tutup";
+  if (btn.classList.contains("empty-new-note-btn")) {
+    openNoteForm(null);
+    return;
+  }
+
+  if (btn.classList.contains("jl-note-trigger")) {
+    const row = btn.closest(".jl-note-row");
+    if (row) {
+      const open = row.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      state.expandedNoteId = open ? String(row.dataset.id || "") : "";
     }
     return;
   }
@@ -8319,67 +8490,75 @@ function handleNoteActions(e) {
       showToast("Catatan tidak ditemukan");
     }
   } else if (btn.classList.contains("delete-note-btn")) {
-    if (confirm("Hapus catatan ini?")) {
-      state.personalNotes = state.personalNotes.filter(n => String(n.id) !== String(id));
-      saveNotes();
-      renderNotes();
-      showToast("Catatan dihapus");
+    if (!btn.classList.contains("is-armed")) {
+      btn.classList.add("is-armed");
+      btn.textContent = "Yakin?";
+      clearTimeout(btn._armTimer);
+      btn._armTimer = setTimeout(() => {
+        btn.classList.remove("is-armed");
+        btn.textContent = "Hapus";
+      }, 3000);
+      return;
     }
-  } else if (btn.classList.contains("roast-note-btn")) {
-    roastNote(id);
-  }
-}
-
-function roastNote(id) {
-  const note = state.personalNotes.find(n => String(n.id) === String(id));
-  if (!note) return;
-  
-  const prompt = `Ini adalah catatan pribadi saya:\nJudul: ${note.title}\nIsi: ${note.content}\n\nInstruksi: Anda adalah pelatih trading/mentor yang SANGAT GALAK, SARKASTIK, TEGAS, dan KEJAM. Evaluasi tulisan saya ini. Maki kesalahan saya agar mental saya kuat, dan berikan motivasi negatif agar saya disiplin. Jangan bersikap sopan, jadilah brutal tapi membangun (Tough Love).`;
-  
-  dom.assistantQuestionInput.value = prompt;
-  setView("assistant");
-  if (typeof askAssistant === "function") {
-    askAssistant();
-  } else {
-    dom.askAssistantBtn?.click();
+    clearTimeout(btn._armTimer);
+    state.personalNotes = state.personalNotes.filter(n => String(n.id) !== String(id));
+    if (String(state.expandedNoteId) === String(id)) state.expandedNoteId = "";
+    saveNotes();
+    renderNotes();
+    showToast("Catatan dihapus");
   }
 }
 
 function renderNotes() {
   if (!dom.notesList || state.view !== "notes") return;
-  
+
   state.personalNotes = sortNotes(state.personalNotes);
-  dom.notesCount.textContent = `${state.personalNotes.length} catatan`;
+  const query = String(state.notesQuery || "").trim().toLowerCase();
+  const visibleNotes = query
+    ? state.personalNotes.filter((n) =>
+        `${n.title || ""} ${n.content || ""} ${n.date || ""}`.toLowerCase().includes(query)
+      )
+    : state.personalNotes;
+
+  if (dom.notesCount) {
+    dom.notesCount.textContent = query
+      ? `${visibleNotes.length} / ${state.personalNotes.length} catatan`
+      : `${state.personalNotes.length} catatan`;
+  }
   dom.notesList.replaceChildren();
 
-  if (state.personalNotes.length === 0) {
+  if (visibleNotes.length === 0) {
     const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.innerHTML = `<p>Belum ada catatan pribadi.</p>`;
+    empty.className = "empty-state jl-empty-state";
+    empty.innerHTML = query
+      ? `<h3>Catatan tidak ditemukan</h3>`
+      : `<h3>Belum ada catatan</h3><button class="jl-primary-btn empty-new-note-btn" type="button">+ Tulis Catatan</button>`;
     dom.notesList.append(empty);
     return;
   }
 
   let needsSave = false;
   const fragment = document.createDocumentFragment();
-  state.personalNotes.forEach((note, index) => {
+  visibleNotes.forEach((note, index) => {
     if (!note.id) {
       note.id = typeof createId === "function" ? createId() : `note-${Date.now()}-${index}`;
       needsSave = true;
     }
+    const isOpen = String(state.expandedNoteId || "") === String(note.id) || (visibleNotes.length === 1 && index === 0);
     const article = document.createElement("article");
-    article.className = "note-card";
+    article.className = `jl-note-row${isOpen ? " is-open" : ""}`;
+    article.dataset.id = String(note.id);
     article.innerHTML = `
-      <div class="note-header">
-        <strong>${escapeHtml(note.title)}</strong>
-        <span>${escapeHtml(note.date)}</span>
-      </div>
-      <div class="note-content is-collapsed">${escapeHtml(note.content).replace(/\n/g, "<br>")}</div>
-      <button class="text-button toggle-collapse-btn" data-id="${escapeHtml(note.id)}" type="button">Baca Selengkapnya</button>
-      <div class="note-actions">
-        <button class="icon-button edit-note-btn" data-id="${escapeHtml(note.id)}" type="button" aria-label="Edit">✎</button>
-        <button class="icon-button delete-note-btn" data-id="${escapeHtml(note.id)}" type="button" aria-label="Hapus">🗑</button>
-        <button class="roast-note-btn" data-id="${escapeHtml(note.id)}" type="button">🔥 Evaluasi Kasar AI</button>
+      <button class="jl-note-trigger" type="button" aria-expanded="${isOpen ? "true" : "false"}">
+        <div class="jl-note-top">
+          <strong class="jl-note-title">${escapeHtml(note.title || "Tanpa judul")}</strong>
+          <span class="jl-note-date jp-tabular">${escapeHtml(note.date || "")}</span>
+        </div>
+        <p class="jl-note-preview">${escapeHtml(note.content || "")}</p>
+      </button>
+      <div class="jl-note-actions">
+        <button class="small-button edit-note-btn" data-id="${escapeHtml(note.id)}" type="button">Edit</button>
+        <button class="small-button danger delete-note-btn" data-id="${escapeHtml(note.id)}" type="button">Hapus</button>
       </div>
     `;
     fragment.append(article);

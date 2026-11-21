@@ -1,4 +1,4 @@
-/* Amy FX Trading Practice — timestamp-owned replay controller with selectable historical packs. */
+/* Amy FX Backtest Lab — fast, zero-future-leak, low-RAM timestamp-owned replay controller. */
 (function (root) {
   'use strict';
 
@@ -9,7 +9,7 @@
     var low = 0;
     var high = items.length;
     while (low < high) {
-      var middle = Math.floor((low + high) / 2);
+      var middle = (low + high) >> 1;
       if (items[middle] < value) low = middle + 1;
       else high = middle;
     }
@@ -30,14 +30,16 @@
     this.movePending = false;
     this.speedMs = Number(options.speedMs || 900);
     this.isDefaultInitial = true;
-    this.prefetchBuffer = new Map();
-    this.isPrefetching = false;
     this.onChange = typeof options.onChange === 'function' ? options.onChange : function () {};
     this.onEnd = typeof options.onEnd === 'function' ? options.onEnd : function () {};
   }
 
   ReplayController.prototype.loadTimeline = async function () {
-    this.timeline = await this.provider.getTimeline({ symbol: this.symbol, timeframe: this.timeframe, sourceId: this.sourceId });
+    this.timeline = await this.provider.getTimeline({
+      symbol: this.symbol,
+      timeframe: this.timeframe,
+      sourceId: this.sourceId
+    });
     if (!this.timeline.length) throw new Error('Timeline replay kosong.');
     return this.timeline.slice();
   };
@@ -63,6 +65,7 @@
 
   ReplayController.prototype.setTimeframe = async function (timeframe) {
     this.pause();
+    this.movePending = false;
     this.requestSequence += 1;
     this.timeframe = String(timeframe || 'M15').toUpperCase();
     await this.loadTimeline();
@@ -75,6 +78,7 @@
 
   ReplayController.prototype.setSource = async function (sourceId, timestamp) {
     this.pause();
+    this.movePending = false;
     this.requestSequence += 1;
     this.sourceId = sourceId || null;
     this.cursor = null;
@@ -92,7 +96,10 @@
     var currentIndex = this.timeline[insertion] === this.cursor ? insertion : insertion - 1;
     var targetIndex = Math.max(0, Math.min(this.timeline.length - 1, currentIndex + Number(count || 0)));
     this.cursor = this.timeline[targetIndex];
-    if (targetIndex === this.timeline.length - 1 && Number(count || 0) > 0) { this.pause(); this.onEnd(); }
+    if (targetIndex === this.timeline.length - 1 && Number(count || 0) > 0) {
+      this.pause();
+      this.onEnd();
+    }
     return this.emit(count < 0 ? 'previous' : 'advance', previous);
   };
 
@@ -110,40 +117,12 @@
     return this.emit('seek', previous);
   };
 
-  ReplayController.prototype.prefetchWindow = async function (count) {
-    if (this.isPrefetching || !this.timeline || !this.timeline.length || this.cursor == null) return;
-    this.isPrefetching = true;
-    try {
-      var countToFetch = count || 30;
-      var insertion = lowerBound(this.timeline, this.cursor);
-      var currentIndex = this.timeline[insertion] === this.cursor ? insertion : insertion - 1;
-      var tf = this.timeframe;
-      var src = this.sourceId;
-      var sym = this.symbol || 'XAUUSD';
-
-      for (var i = 1; i <= countToFetch; i++) {
-        var nextIdx = currentIndex + i;
-        if (nextIdx >= this.timeline.length) break;
-        var nextCursor = this.timeline[nextIdx];
-        var key = sym + ':' + tf + ':' + src + ':' + nextCursor;
-        if (this.prefetchBuffer.has(key)) continue;
-
-        try {
-          var res = await this.provider.getCandles({
-            symbol: sym,
-            timeframe: tf,
-            sourceId: src,
-            cursor: nextCursor
-          });
-          if (this.timeframe !== tf || this.sourceId !== src) break;
-          this.prefetchBuffer.set(key, res);
-        } catch (_) {
-          break;
-        }
-      }
-    } finally {
-      this.isPrefetching = false;
-    }
+  ReplayController.prototype.jumpToKillzone = async function (targetSession) {
+    this.pause();
+    if (!this.timeline.length) await this.loadTimeline();
+    var nextTs = core.findNextKillzoneCursor(this.timeline, this.cursor, targetSession);
+    if (nextTs == null) return null;
+    return this.seek(nextTs);
   };
 
   ReplayController.prototype.emit = async function (reason, previousCursor) {
@@ -151,25 +130,26 @@
     var cursor = this.cursor;
     var timeframe = this.timeframe;
     var sourceId = this.sourceId;
-    var key = (this.symbol || 'XAUUSD') + ':' + timeframe + ':' + sourceId + ':' + cursor;
 
-    var result;
-    if (this.prefetchBuffer && this.prefetchBuffer.has(key)) {
-      result = this.prefetchBuffer.get(key);
-      this.prefetchBuffer.delete(key);
-    } else {
-      result = await this.provider.getCandles({
-        symbol: this.symbol,
-        timeframe: this.timeframe,
-        sourceId: this.sourceId,
-        cursor: cursor
-      });
+    var result = await this.provider.getCandles({
+      symbol: this.symbol,
+      timeframe: timeframe,
+      sourceId: sourceId,
+      cursor: cursor
+    });
+
+    if (sequence !== this.requestSequence || cursor !== this.cursor || timeframe !== this.timeframe || sourceId !== this.sourceId) {
+      return null;
     }
-    if (sequence !== this.requestSequence || cursor !== this.cursor || timeframe !== this.timeframe || sourceId !== this.sourceId) return null;
+
     this.sourceId = result.sourceId || this.sourceId;
-    if (result.candles.some(function (candle) { return candle.time > this.cursor || Number(candle.lastSourceTime || candle.time) > this.cursor; }, this)) {
-      throw new Error('NO FUTURE LEAK invariant gagal.');
+    if (result.candles.length) {
+      var last = result.candles[result.candles.length - 1];
+      if (last.time > this.cursor || Number(last.lastSourceTime || last.time) > this.cursor) {
+        throw new Error('NO FUTURE LEAK invariant gagal.');
+      }
     }
+
     var payload = {
       reason: reason,
       sourceId: this.sourceId,
@@ -189,15 +169,11 @@
   ReplayController.prototype.play = function () {
     var self = this;
     if (self.playTimer) return;
-    self.prefetchWindow(30);
     self.playTimer = setInterval(function () {
       if (self.movePending) return;
       self.movePending = true;
       self.move(1).catch(function () { self.pause(); self.onEnd(); }).finally(function () {
         self.movePending = false;
-        if (self.prefetchBuffer && self.prefetchBuffer.size < 10) {
-          self.prefetchWindow(30);
-        }
       });
     }, self.speedMs);
   };
@@ -205,7 +181,6 @@
   ReplayController.prototype.pause = function () {
     if (this.playTimer) clearInterval(this.playTimer);
     this.playTimer = null;
-    if (this.prefetchBuffer) this.prefetchBuffer.clear();
   };
 
   ReplayController.prototype.setSpeed = function (milliseconds) {
@@ -215,45 +190,11 @@
     if (wasPlaying) this.play();
   };
 
-  ReplayController.prototype.destroy = function () { this.pause(); this.requestSequence += 1; };
-
-  ReplayController.prototype.projectTimeframeCursor = function (targetTimeframe) {
-    if (this.cursor == null) return null;
-    var sec = core.timeframeSeconds ? core.timeframeSeconds(targetTimeframe) : null;
-    if (!sec) return { currentCursor: this.cursor, targetTimeframe: String(targetTimeframe).toUpperCase() };
-    var offset = String(targetTimeframe).toUpperCase() === 'D1' ? 17 * 3600 : 0;
-    var bucket = Math.floor((this.cursor - offset) / sec) * sec + offset;
-    return {
-      currentCursor: this.cursor,
-      targetTimeframe: String(targetTimeframe).toUpperCase(),
-      candleOpenTime: bucket,
-      candleCloseTime: bucket + sec,
-      intraCandleElapsedSec: Math.max(0, this.cursor - bucket)
-    };
-  };
-
-  ReplayController.prototype.getMultiTimeframeContext = async function (timeframes) {
-    var tfs = Array.isArray(timeframes) && timeframes.length ? timeframes : ['D1', 'H1', 'M15', 'M5'];
-    var currentCursor = this.cursor;
-    var results = {};
-    for (var i = 0; i < tfs.length; i++) {
-      var tf = tfs[i];
-      var data = await this.provider.getCandles({
-        timeframe: tf,
-        cursor: currentCursor,
-        sourceId: this.sourceId,
-        playbackSessionId: this.playbackSessionId
-      });
-      results[tf] = {
-        timeframe: tf,
-        cursor: currentCursor,
-        candles: (data && data.candles) || [],
-        latestCandle: (data && data.candles && data.candles[data.candles.length - 1]) || null
-      };
-    }
-    return results;
+  ReplayController.prototype.destroy = function () {
+    this.pause();
+    this.movePending = false;
+    this.requestSequence += 1;
   };
 
   root.AmyReplayEngine = Object.freeze({ ReplayController: ReplayController, lowerBound: lowerBound });
 })(typeof window !== 'undefined' ? window : globalThis);
-

@@ -20,7 +20,7 @@
       ],
       "principle": "Hukum Inti ICT: No Liquidity Run = No Valid Trade. FVG yang terbentuk tanpa adanya pengambilan likuiditas (sweep) terlebih dahulu hanyalah pancingan (inducement) bagi trader retail sebelum harga digerakkan menyapu likuiditas sesungguhnya.",
       "lesson": {
-        "href": "../bagian-20-idm-inducement-masterclass/index.html",
+        "href": "../index.html?lesson=inducement-idm-umpan-ritel",
         "title": "Inducement & FVG Masterclass"
       },
       "candles": [
@@ -241,7 +241,7 @@
       ],
       "principle": "Wick menembus level lalu close kembali di bawahnya adalah tanda klasik Liquidity Sweep. Smart Money hanya meminjam likuiditas buy stop retail untuk mengisi order Sell institusi mereka.",
       "lesson": {
-        "href": "../bagian-19-liquidity-masterclass/index.html",
+        "href": "../index.html?lesson=bsl-dan-ssl-liquidity",
         "title": "Liquidity Masterclass"
       },
       "candles": [
@@ -457,7 +457,7 @@
       ],
       "principle": "FVG yang terletak tepat di bawah kolam likuiditas mayor (BSL) sering bertindak sebagai perangkap. Trader retail memasang Sell di FVG dengan SL di atas Swing High, menyediakan likuiditas ganda bagi institusi.",
       "lesson": {
-        "href": "../bagian-20-idm-inducement-masterclass/index.html",
+        "href": "../index.html?lesson=inducement-idm-umpan-ritel",
         "title": "Inducement & FVG Masterclass"
       },
       "candles": [
@@ -673,7 +673,7 @@
       ],
       "principle": "Decoy FVG di tengah dealing range sering kali di-sweep untuk mencari diskon atau mitigasi extreme. Extreme FVG menawarkan invalidation point yang ketat dan probabilitas keberhasilan jauh lebih tinggi.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/index.html",
+        "href": "../index.html?lesson=fvg-bisi-sibi-ce-50",
         "title": "FVG Masterclass"
       },
       "candles": [
@@ -894,7 +894,7 @@
       ],
       "principle": "Equal Lows yang terbentuk tepat di atas zona demand/FVG adalah \"Liquidity Inducement\". Algoritma Smart Money sengaja mencetak support buatan ini untuk memancing stop loss retail sebelum menyapu keduanya sekaligus.",
       "lesson": {
-        "href": "../bagian-20-idm-inducement-masterclass/index.html",
+        "href": "../index.html?lesson=inducement-idm-umpan-ritel",
         "title": "Inducement & FVG Masterclass"
       },
       "candles": [
@@ -1115,7 +1115,7 @@
       ],
       "principle": "Higher Timeframe mendikte arah aliran dana (Order Flow). FVG di LTF yang melawan tren HTF rentan ditembus dengan mudah. Gunakan FVG berlawanan arah hanya sebagai target TP atau area diskon untuk re-entry searah HTF.",
       "lesson": {
-        "href": "../bagian-07-bias-dan-top-down/index.html",
+        "href": "../index.html?lesson=daily-bias-draw-on-liquidity",
         "title": "Top-Down Analysis & Bias"
       },
       "candles": [
@@ -1331,7 +1331,7 @@
       ],
       "principle": "Time and Price adalah dua pilar kembar ICT. Harga tanpa waktu yang tepat (Killzone aktif) hanyalah pergerakan acak algoritma internal broker yang tidak didukung volume bank besar.",
       "lesson": {
-        "href": "../bagian-08-session-dan-waktu/index.html",
+        "href": "../index.html?lesson=jadwal-killzone-wita-silver-bullet",
         "title": "Session & Waktu Trading"
       },
       "candles": [
@@ -1547,7 +1547,7 @@
       ],
       "principle": "Ketika FVG yang seharusnya menahan harga gagal dan ditembus agresif dengan body close, zona tersebut bertransformasi menjadi Inversion Fair Value Gap (IFVG). Zona ini kini menjadi zona support bagi Smart Money.",
       "lesson": {
-        "href": "../bagian-21-ifvg-inversion-model/index.html",
+        "href": "../index.html?lesson=model-ifvg-inversion",
         "title": "IFVG Inversion Model"
       },
       "candles": [
@@ -1763,7 +1763,7 @@
       ],
       "principle": "Berbeda dengan konsep klasik retail (support makin sering dites makin kuat), dalam ICT, FVG yang sudah disentuh telah termitigasi (order flow seimbang kembali). Kedatangan harga berikutnya kemungkinan besar akan menembusnya.",
       "lesson": {
-        "href": "../bagian-17-fvg-masterclass/index.html",
+        "href": "../index.html?lesson=fvg-bisi-sibi-ce-50",
         "title": "FVG Masterclass"
       },
       "candles": [
@@ -1979,7 +1979,7 @@
       ],
       "principle": "Sweep likuiditas hanyalah separuh syarat. Separuh syarat lainnya yang mutlak adalah \"Displacement\" (pergerakan agresif meninggalkan imbalance). Tanpa dorongan kuat, harga kemungkinan hanya konsolidasi sebelum meneruskan tren.",
       "lesson": {
-        "href": "../bagian-06-ict-core/index.html",
+        "href": "../index.html?lesson=displacement-jejak-institusi",
         "title": "ICT Core Concepts"
       },
       "candles": [
@@ -2195,7 +2195,7 @@
       ],
       "principle": "Timeframe tinggi (M15) memberi lokasi POI, namun timeframe rendah (M1/M5) memberi konfirmasi timing eksekusi. Jangan menangkap pisau jatuh sebelum struktur internal berbalik arah.",
       "lesson": {
-        "href": "../bagian-16-advanced-entry-logic/index.html",
+        "href": "../index.html?lesson=model-sweep-mss-fvg",
         "title": "Advanced Entry Logic"
       },
       "candles": [
@@ -2411,7 +2411,7 @@
       ],
       "principle": "True Displacement ditandai dengan candle bertubuh panjang dan meninggalkan Fair Value Gap. Pergerakan merayap tumpang tindih menunjukkan ketiadaan partisipasi institusi agresif dan rentan mengalami deep retracement.",
       "lesson": {
-        "href": "../bagian-24-market-structure-advanced/index.html",
+        "href": "../index.html?lesson=bos-valid-vs-sweep-palsu",
         "title": "Market Structure Advanced"
       },
       "candles": [
@@ -2627,7 +2627,7 @@
       ],
       "principle": "Pergerakan 15 menit sebelum pembukaan sesi sering kali merupakan \"pre-market spoofing\" untuk memancing likuiditas trader tidak sabar. Pesanan sebenarnya institusi baru dilepaskan setelah sesi resmi dimulai.",
       "lesson": {
-        "href": "../bagian-25-session-entry-model/index.html",
+        "href": "../index.html?lesson=siklus-amd-judas-swing",
         "title": "Session Entry Model"
       },
       "candles": [
@@ -2843,7 +2843,7 @@
       ],
       "principle": "Judas Swing adalah manuver tipuan khas pembukaan sesi. Jangan menebak pucuk ekor; biarkan lilin M5 membuktikan pembalikan dengan mencetak Market Structure Shift (MSS) ke bawah.",
       "lesson": {
-        "href": "../bagian-25-session-entry-model/index.html",
+        "href": "../index.html?lesson=siklus-amd-judas-swing",
         "title": "Session Entry Model"
       },
       "candles": [
@@ -3059,7 +3059,7 @@
       ],
       "principle": "Pasar tidak mengenal kata \"sudah terlalu tinggi\". Sesi New York sering kali meneruskan ekspansi London setelah retracement kecil, atau membuat Judas Swing ke atas lagi sebelum berbalik. Wajib tunggu bukti struktur!",
       "lesson": {
-        "href": "../bagian-10-xauusd-playbook/index.html",
+        "href": "../index.html?lesson=sop-playbook-harian-xauusd",
         "title": "XAUUSD Session Playbook"
       },
       "candles": [
@@ -3275,7 +3275,7 @@
       ],
       "principle": "Kompresi volatilitas yang berkepanjangan selalu berujung pada ekspansi volatilitas tinggi. Ketiadaan likuiditas di dua sesi pertama berarti ada timbunan stop order besar di atas dan di bawah range.",
       "lesson": {
-        "href": "../bagian-06-ict-core/index.html",
+        "href": "../index.html?lesson=displacement-jejak-institusi",
         "title": "ICT Core Concepts"
       },
       "candles": [
@@ -3496,7 +3496,7 @@
       ],
       "principle": "Ini adalah setup A+ \"London Low Sweep at HTF OTE\". Sapuan Low London di area diskon OTE adalah resep utama pembalikan harga institusi di sesi New York.",
       "lesson": {
-        "href": "../bagian-30-a-plus-setup-library/index.html",
+        "href": "../index.html?lesson=memilih-1-model-dan-filter-gagal",
         "title": "A+ Setup Library"
       },
       "candles": [
@@ -3717,7 +3717,7 @@
       ],
       "principle": "Trading menjelang berita berdampak tinggi bukanlah trading, melainkan perjudian probabilitas acak. Slippage broker, pelebaran spread, dan requote dapat melompati Stop Loss Anda dan menguras modal seketika.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -3933,7 +3933,7 @@
       ],
       "principle": "Setelah London tutup, likuiditas global menyusut signifikan. Melakukan open posisi di fase transisi malam hari sering berujung pada posisi floating lama tanpa arah dan tergerus biaya swap/spread malam.",
       "lesson": {
-        "href": "../bagian-08-session-dan-waktu/index.html",
+        "href": "../index.html?lesson=jadwal-killzone-wita-silver-bullet",
         "title": "Session & Waktu Trading"
       },
       "candles": [
@@ -4149,7 +4149,7 @@
       ],
       "principle": "Aturan Emas: Never chase price. Trader retail selalu masuk di ujung lilin panjang karena takut ketinggalan, dan di saat itulah institusi melakukan profit-taking atau mengizinkan retracement.",
       "lesson": {
-        "href": "../bagian-09-entry-model/index.html",
+        "href": "../index.html?lesson=model-order-block-sniper",
         "title": "ICT Entry Model"
       },
       "candles": [
@@ -4365,7 +4365,7 @@
       ],
       "principle": "Secara makro, Gold dan DXY bergerak berlawanan arah. Jika keduanya turun bersamaan, salah satu pasar sedang berbohong (SMT Divergence). Penurunan Gold yang tidak didukung penguatan Dollar adalah tanda kuat jebakan jual.",
       "lesson": {
-        "href": "../bagian-31-ict-advanced-concepts/index.html",
+        "href": "../index.html?lesson=cisd-vs-mss-sinyal-awal",
         "title": "ICT SMT Divergence"
       },
       "candles": [
@@ -4581,7 +4581,7 @@
       ],
       "principle": "Range Asia adalah \"umpan likuiditas\". Volume Asia yang relatif rendah mengakumulasi pesanan stop loss retail tepat di atas High dan di bawah Low Asia. Sesi London hampir selalu menyapu salah satu sisi ini.",
       "lesson": {
-        "href": "../bagian-08-session-dan-waktu/index.html",
+        "href": "../index.html?lesson=jadwal-killzone-wita-silver-bullet",
         "title": "Session & Waktu Trading"
       },
       "candles": [
@@ -4802,7 +4802,7 @@
       ],
       "principle": "Lilin yang sedang berjalan (running candle) tidak memiliki status sah dalam analisis teknikal. Ekor yang terlihat seperti penolakan bisa dengan mudah terisi kembali menjadi body penuh sebelum menit ke-15 selesai.",
       "lesson": {
-        "href": "../bagian-02-membaca-chart/index.html",
+        "href": "../index.html?lesson=membaca-candlestick-body-wick",
         "title": "Membaca Candlestick Nyata"
       },
       "candles": [
@@ -5018,7 +5018,7 @@
       ],
       "principle": "Ketika Low of the Day sudah tercetak di sesi London (sering kali terjadi antara pukul 15.00–17.00 WITA), sesi New York bertindak sebagai mesin kelanjutan (continuation). Retest ke OB/FVG di New York adalah setup A+ Buy.",
       "lesson": {
-        "href": "../bagian-30-a-plus-setup-library/index.html",
+        "href": "../index.html?lesson=memilih-1-model-dan-filter-gagal",
         "title": "A+ Setup Library"
       },
       "candles": [
@@ -5234,7 +5234,7 @@
       ],
       "principle": "Equilibrium (50%) adalah nilai wajar pasar. Smart Money tidak membeli di nilai wajar; mereka membeli di Diskon (di bawah 50%) dan menjual di Premium (di atas 50%). Trading di area 50% adalah penyebab utama akun tergerus chop.",
       "lesson": {
-        "href": "../bagian-27-no-trade-advanced/index.html",
+        "href": "../index.html?lesson=protokol-news-lock-usd",
         "title": "No Trade Advanced & Dead Zone"
       },
       "candles": [
@@ -5450,7 +5450,7 @@
       ],
       "principle": "Membeli di area Premium berarti Anda membayar harga termahal di pasar. Jika terjadi koreksi atau reversal, jarak menuju Stop Loss logis sangat jauh sedangkan potensi ruang kenaikan sudah menipis.",
       "lesson": {
-        "href": "../bagian-23-premium-discount-advanced/index.html",
+        "href": "../index.html?lesson=premium-discount-equilibrium",
         "title": "Premium & Discount Advanced"
       },
       "candles": [
@@ -5666,7 +5666,7 @@
       ],
       "principle": "Seorang sniper profesional tidak menembak ke semak-semak hanya karena dia bosan menunggu. Menahan diri (Hands on Pockets) adalah keterampilan teknis tingkat tinggi yang membedakan trader pro dari amatir.",
       "lesson": {
-        "href": "../bagian-27-no-trade-advanced/index.html",
+        "href": "../index.html?lesson=protokol-news-lock-usd",
         "title": "No Trade Advanced"
       },
       "candles": [
@@ -5882,7 +5882,7 @@
       ],
       "principle": "Logika bisnis murni: Pedagang grosir mana pun selalu membeli barang di harga diskon untuk kemudian dijual kembali di harga premium. Konsep dasar ini berlaku mutlak di pasar derivatif global.",
       "lesson": {
-        "href": "../bagian-23-premium-discount-advanced/index.html",
+        "href": "../index.html?lesson=premium-discount-equilibrium",
         "title": "Premium & Discount Advanced"
       },
       "candles": [
@@ -6098,7 +6098,7 @@
       ],
       "principle": "Penembusan level eksternal harian yang langsung berbalik masuk ke dalam range adalah \"Failed Auction\". Smart Money telah mendistribusikan posisi mereka dan harga akan ditarik kembali menuju target likuiditas berlawanan.",
       "lesson": {
-        "href": "../bagian-19-liquidity-masterclass/index.html",
+        "href": "../index.html?lesson=bsl-dan-ssl-liquidity",
         "title": "Liquidity Masterclass"
       },
       "candles": [
@@ -6314,7 +6314,7 @@
       ],
       "principle": "Ketika bertransaksi melawan tren HTF (counter-trend), ekspektasi target harus realistis. Harga yang berada di diskon dalam tren turun kuat biasanya hanya melakukan koreksi minor sebelum melanjutkan penurunan.",
       "lesson": {
-        "href": "../bagian-07-bias-dan-top-down/index.html",
+        "href": "../index.html?lesson=daily-bias-draw-on-liquidity",
         "title": "Top-Down Analysis & Bias"
       },
       "candles": [
@@ -6530,7 +6530,7 @@
       ],
       "principle": "Tugas nomor satu seorang trader bukanlah menghasilkan uang setiap jam, melainkan melindungi modal dari kehancuran. Modal yang utuh memungkinkan Anda mengeksekusi dengan percaya diri saat setup A+ akhirnya muncul.",
       "lesson": {
-        "href": "../bagian-27-no-trade-advanced/index.html",
+        "href": "../index.html?lesson=protokol-news-lock-usd",
         "title": "No Trade Advanced"
       },
       "candles": [
@@ -6746,7 +6746,7 @@
       ],
       "principle": "Siklus ICT adalah pergerakan bolak-balik: IRL ke ERL, lalu ERL kembali ke IRL. Ketika target ERL tersentuh, likuiditas keluar telah terpenuhi dan risiko terjadinya pembalikan arah meningkat drastis.",
       "lesson": {
-        "href": "../bagian-19-liquidity-masterclass/index.html",
+        "href": "../index.html?lesson=bsl-dan-ssl-liquidity",
         "title": "Liquidity Masterclass"
       },
       "candles": [
@@ -6962,7 +6962,7 @@
       ],
       "principle": "Hukum Aliran Pasar ICT: Harga hanya bergerak dari Internal Liquidity (FVG / OB) menuju External Liquidity (Old Highs / Old Lows), dan sebaliknya. Mengetahui posisi siklus ini menghilangkan kebingungan arah live trade.",
       "lesson": {
-        "href": "../bagian-31-ict-advanced-concepts/index.html",
+        "href": "../index.html?lesson=cisd-vs-mss-sinyal-awal",
         "title": "ICT Advanced Concepts"
       },
       "candles": [
@@ -7183,7 +7183,7 @@
       ],
       "principle": "Matematika trader profesional berakar pada asimetri risiko. Mengambil trade dengan risiko 2R demi reward 1R adalah jaminan kehancuran akun dalam jangka panjang, bahkan dengan win rate 50%.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -7404,7 +7404,7 @@
       ],
       "principle": "Pola Power of Three (AMD): Accumulation di Asia, Manipulation (Judas Swing) di London, dan Distribution di London/New York. Mengenali manipulasi drop adalah kunci menangkap pergerakan distribusi naik.",
       "lesson": {
-        "href": "../bagian-06-ict-core/index.html",
+        "href": "../index.html?lesson=displacement-jejak-institusi",
         "title": "ICT Core Concepts"
       },
       "candles": [
@@ -7625,7 +7625,7 @@
       ],
       "principle": "Volume pasar valuta dan logam mulia digerakkan oleh transaksi antar-bank (Interbank Market). Saat bank-bank utama tutup, algoritma likuiditas tidak aktif dan spread broker bisa melebar tanpa peringatan.",
       "lesson": {
-        "href": "../bagian-27-no-trade-advanced/index.html",
+        "href": "../index.html?lesson=protokol-news-lock-usd",
         "title": "No Trade Advanced"
       },
       "candles": [
@@ -7841,7 +7841,7 @@
       ],
       "principle": "Stop Loss bukan ditentukan oleh nominal rupiah atau batasan pip acak, melainkan oleh \"Struktur Invalidation\". Jika Swing Low pembentuk MSS ditembus ke bawah, maka alasan analisa kita telah gugur dan trade wajib dihentikan.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -8062,7 +8062,7 @@
       ],
       "principle": "Kesalahan fatal trader pemula adalah memotong jarak SL menjadi sempit demi memasang lot besar. Trader profesional menjaga risiko uang tetap konstan ($) dengan cara mengecilkan lot saat jarak SL lebar.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -8283,7 +8283,7 @@
       ],
       "principle": "Tidak semua setup yang muncul wajib diambil. Jika geometri pasar tidak memberikan minimal 1:1.5 atau 1:2 Risk-to-Reward menuju target likuiditas nyata, setup tersebut harus dibuang ke tempat sampah.",
       "lesson": {
-        "href": "../bagian-28-trade-management-advanced/index.html",
+        "href": "../index.html?lesson=manajemen-trade-partial-bep-notrade",
         "title": "Trade Management Advanced"
       },
       "candles": [
@@ -8509,7 +8509,7 @@
       ],
       "principle": "Mayoritas trader retail menempatkan stop order tepat di angka-angka bulat rapi. Algoritma institusi menargetkan kolam likuiditas ini untuk mengumpulkan volume sebelum membalikkan arah harga.",
       "lesson": {
-        "href": "../bagian-19-liquidity-masterclass/index.html",
+        "href": "../index.html?lesson=bsl-dan-ssl-liquidity",
         "title": "Liquidity Masterclass"
       },
       "candles": [
@@ -8725,7 +8725,7 @@
       ],
       "principle": "Setelah likuiditas pertama diambil, pasar berhak melakukan retracement dalam. Mengunci trade ke Break Even (BE) memastikan bahwa trade yang sudah menang tidak akan pernah berakhir menjadi kerugian finansial.",
       "lesson": {
-        "href": "../bagian-28-trade-management-advanced/index.html",
+        "href": "../index.html?lesson=manajemen-trade-partial-bep-notrade",
         "title": "Trade Management Advanced"
       },
       "candles": [
@@ -8946,7 +8946,7 @@
       ],
       "principle": "Jika alasan mengapa Anda masuk posisi sudah gugur di chart (terjadi MSS berlawanan arah), mempertahankan posisi hanya karena SL belum kena adalah tindakan egois. Cut loss lebih dini menghemat modal berharga.",
       "lesson": {
-        "href": "../bagian-28-trade-management-advanced/index.html",
+        "href": "../index.html?lesson=manajemen-trade-partial-bep-notrade",
         "title": "Trade Management Advanced"
       },
       "candles": [
@@ -9167,7 +9167,7 @@
       ],
       "principle": "Dalam bisnis apa pun ada biaya operasional. Dalam trading, Stop Loss adalah biaya operasional untuk melihat apakah ide analisa kita terbukti benar atau salah. Tanpa SL, satu kesalahan akan menghapus seluruh modal.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -9383,7 +9383,7 @@
       ],
       "principle": "Target Take Profit institusional tidak ditentukan secara khayalan (seperti \"saya mau profit $100\"), melainkan di mana likuiditas pihak lawan berada. Low Asia adalah magnet penarikan harga alami bagi order sell institusi.",
       "lesson": {
-        "href": "../bagian-19-liquidity-masterclass/index.html",
+        "href": "../index.html?lesson=bsl-dan-ssl-liquidity",
         "title": "Liquidity Masterclass"
       },
       "candles": [
@@ -9604,7 +9604,7 @@
       ],
       "principle": "Pada setup Deep OTE XAU/USD, volatilitas sering kali menghasilkan jarum ekor yang menyentuh dasar Order Block sebelum melesat. Menaruh SL tepat di garis 78.6% sering membuat Anda terkena stop out prematur.",
       "lesson": {
-        "href": "../bagian-30-a-plus-setup-library/index.html",
+        "href": "../index.html?lesson=memilih-1-model-dan-filter-gagal",
         "title": "A+ Setup Library"
       },
       "candles": [
@@ -9825,7 +9825,7 @@
       ],
       "principle": "Menggeser SL menjauh adalah tanda trader menolak mengakui kesalahan analisanya. Sekali Anda membiasakan diri menggeser SL, pasar pada akhirnya akan membawa pergerakan searah yang menghanguskan seluruh saldo akun.",
       "lesson": {
-        "href": "../bagian-13-psikologi-trading/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi Trading Inti"
       },
       "candles": [
@@ -10041,7 +10041,7 @@
       ],
       "principle": "Negative Risk-to-Reward menciptakan ilusi rasa aman semu. Pasar finansial memiliki distribusi probabilitas liar; satu kali slippage atau lonjakan harga saat Anda menahan floating 50 pip akan menghabisi akun seketika.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -10262,7 +10262,7 @@
       ],
       "principle": "Strategi \"Runner with HTF Alignment\": Mengamankan profit di target lokal menghilangkan tekanan psikologis, sementara membiarkan sisa posisi (runner) mengejar target Daily menghasilkan Risk-to-Reward masif (+5R hingga +10R).",
       "lesson": {
-        "href": "../bagian-28-trade-management-advanced/index.html",
+        "href": "../index.html?lesson=manajemen-trade-partial-bep-notrade",
         "title": "Trade Management Advanced"
       },
       "candles": [
@@ -10483,7 +10483,7 @@
       ],
       "principle": "Fase pasca-loss adalah saat di mana rasionalitas otak trader paling lemah. Keinginan membalas dendam (Revenge Trading) adalah pemicu kehancuran modal terbesar. Menjauh dari layar memulihkan kendali logika.",
       "lesson": {
-        "href": "../bagian-13-psikologi-trading/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi Trading Inti"
       },
       "candles": [
@@ -10699,7 +10699,7 @@
       ],
       "principle": "Pergerakan harga tanpa setup Anda BUKAN peluang Anda. Trader pro tahu bahwa uang yang tidak hilang karena menahan diri dari FOMO bernilai sama tingginya dengan uang hasil profit.",
       "lesson": {
-        "href": "../bagian-36-psikologi-ict-lanjutan/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi ICT Lanjutan"
       },
       "candles": [
@@ -10915,7 +10915,7 @@
       ],
       "principle": "Disiplin menghentikan trading saat target harian tercapai adalah tanda kedewasaan trader. Pasar tidak akan pernah kehabisan hari esok, namun euforia overconfidence sering menghapus hasil kerja keras harian.",
       "lesson": {
-        "href": "../bagian-13-psikologi-trading/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi Trading Inti"
       },
       "candles": [
@@ -11131,7 +11131,7 @@
       ],
       "principle": "Trading bukanlah bermain video game di mana menekan tombol berkali-kali menghasilkan skor tinggi. Semakin sering Anda membuka posisi tanpa kriteria SOP ketat, semakin besar peluang Anda tergilas biaya spread dan noise pasar.",
       "lesson": {
-        "href": "../bagian-13-psikologi-trading/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi Trading Inti"
       },
       "candles": [
@@ -11347,7 +11347,7 @@
       ],
       "principle": "Execution Paralysis (kelumpuhan eksekusi) terjadi ketika risiko uang per trade terlalu besar bagi mental Anda. Turunkan ukuran lot hingga nominal kerugian terasa nyaman dan tidak menakutkan bagi alam bawah sadar Anda.",
       "lesson": {
-        "href": "../bagian-36-psikologi-ict-lanjutan/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi ICT Lanjutan"
       },
       "candles": [
@@ -11563,7 +11563,7 @@
       ],
       "principle": "Fase Drawdown adalah keniscayaan statistik dalam trading. Trader pro merespons drawdown dengan cara \"bertahan hidup\" (memperkecil ukuran risiko) untuk melindungi modal psikologis hingga ritme pasar kembali selaras.",
       "lesson": {
-        "href": "../bagian-12-risk-management/index.html",
+        "href": "../index.html?lesson=sizing-lot-xauusd-risiko",
         "title": "Risk Management Standard"
       },
       "candles": [
@@ -11779,7 +11779,7 @@
       ],
       "principle": "Anda tidak bisa memperbaiki apa yang tidak Anda ukur. Jurnal trading mencatat bukan hanya angka pips, melainkan kondisi mental saat Anda klik order. Pola kesalahan yang tercatat adalah peta menuju konsistensi.",
       "lesson": {
-        "href": "../bagian-14-backtesting-dan-jurnal/index.html",
+        "href": "../index.html?lesson=protokol-100-sample-mandiri",
         "title": "Backtesting & Jurnal Trading"
       },
       "candles": [
@@ -11995,7 +11995,7 @@
       ],
       "principle": "Trading adalah perjalanan mandiri. Anda tidak tahu modal, toleransi risiko, atau rencana exit orang lain. Menuruti analisa luar merusak tanggung jawab pribadi dan menghancurkan rasa percaya diri terhadap sistem Anda sendiri.",
       "lesson": {
-        "href": "../bagian-15-menjadi-trader-mandiri/index.html",
+        "href": "../index.html?lesson=protokol-100-sample-mandiri",
         "title": "Menjadi Trader Mandiri"
       },
       "candles": [
@@ -12211,7 +12211,7 @@
       ],
       "principle": "Konsep terpenting dalam psikologi kuantitatif: Memisahkan \"Kualitas Keputusan\" dari \"Hasil Akhir\". Hasil trade individu adalah acak, namun keunggulan strategi (Edge) terbukti dalam sampel 50 hingga 100 transaksi disiplin.",
       "lesson": {
-        "href": "../bagian-13-psikologi-trading/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi Trading Inti"
       },
       "candles": [
@@ -12427,7 +12427,7 @@
       ],
       "principle": "Kemenangan beruntun sering kali lebih berbahaya bagi psikologi daripada kekalahan. Euforia melahirkan rasa kebal risiko, mendorong trader melanggar aturan lot, hingga akhirnya 1 kekalahan menghabiskan semua profit yang terkumpul.",
       "lesson": {
-        "href": "../bagian-13-psikologi-trading/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi Trading Inti"
       },
       "candles": [
@@ -12643,7 +12643,7 @@
       ],
       "principle": "Trading adalah olahraga kinerja kognitif tinggi (High-Performance Cognitive Sport) layaknya atlet catur atau pilot. Saat energi mental terkuras, kemampuan otak memproses risiko menurun tajam.",
       "lesson": {
-        "href": "../bagian-36-psikologi-ict-lanjutan/index.html",
+        "href": "../index.html?lesson=psikologi-scalper-anti-fomo",
         "title": "Psikologi ICT Lanjutan"
       },
       "candles": [
@@ -12859,7 +12859,7 @@
       ],
       "principle": "Konsistensi bukanlah hasil uang harian yang selalu hijau, melainkan kepatuhan tanpa kompromi pada Trading Plan Anda: mengeksekusi setup yang sama, mengelola risiko yang sama, dan bersikap tenang menghadapi apa pun hasil pasar.",
       "lesson": {
-        "href": "../bagian-15-menjadi-trader-mandiri/index.html",
+        "href": "../index.html?lesson=protokol-100-sample-mandiri",
         "title": "Menjadi Trader Mandiri"
       },
       "candles": [

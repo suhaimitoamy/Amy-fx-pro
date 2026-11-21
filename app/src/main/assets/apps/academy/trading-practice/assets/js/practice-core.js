@@ -1,4 +1,4 @@
-/* Amy FX Trading Practice — shared candle primitives. */
+/* Amy FX Backtest Lab — pure candle, ICT session (DST-aware), and zero-future-leak primitives. */
 (function (root) {
   'use strict';
 
@@ -14,7 +14,23 @@
     D1: 86400
   });
 
+  var nyFormatter = null;
+  var witaFormatterDate = null;
+  var witaFormatterTime = null;
+
+  function getNyFormatter() {
+    if (!nyFormatter) {
+      nyFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+    }
+    return nyFormatter;
+  }
+
   function finite(value) {
+    if (value == null || value === '') return null;
     var number = Number(value);
     return Number.isFinite(number) ? number : null;
   }
@@ -56,71 +72,51 @@
     return Array.from(byTime.values()).sort(function (a, b) { return a.time - b.time; });
   }
 
-  function mergeCandleSeries(primary, secondary, options) {
-    options = options || {};
-    var replaceExisting = options.replaceExisting === true;
-    var byTime = new Map();
-    normalizeCandles(primary).forEach(function (candle) { byTime.set(candle.time, candle); });
-    normalizeCandles(secondary).forEach(function (candle) {
-      if (replaceExisting || !byTime.has(candle.time)) byTime.set(candle.time, candle);
-    });
-    return Array.from(byTime.values()).sort(function (a, b) { return a.time - b.time; });
-  }
-
-  function upsertLatestCandle(items, value, options) {
-    options = options || {};
-    var trusted = options.trustedSeries === true && Array.isArray(items);
-    var candles = trusted ? (options.mutate === true ? items : items.slice()) : normalizeCandles(items);
-    var candle = normalizeCandle(value);
-    if (!candle) return { candles: candles, candle: null, action: 'INVALID' };
-    var immutableThrough = finite(options.immutableThrough);
-    if (immutableThrough != null && candle.time <= immutableThrough) {
-      return { candles: candles, candle: null, action: 'IGNORED_HISTORICAL' };
-    }
-    var last = candles.length ? candles[candles.length - 1] : null;
-    if (last && candle.time < last.time) return { candles: candles, candle: null, action: 'IGNORED_OLDER' };
-    if (last && candle.time === last.time) {
-      candles[candles.length - 1] = candle;
-      return { candles: candles, candle: candle, action: 'UPDATED' };
-    }
-    candles.push(candle);
-    return { candles: candles, candle: candle, action: 'APPENDED' };
-  }
-
   function timeframeSeconds(timeframe) {
     return TIMEFRAME_SECONDS[String(timeframe || '').toUpperCase()] || null;
   }
 
+  function nyParts(timestampSec) {
+    try {
+      var parts = getNyFormatter().formatToParts(new Date(timestampSec * 1000));
+      var vals = {};
+      for (var i = 0; i < parts.length; i += 1) vals[parts[i].type] = parts[i].value;
+      var hour = parseInt(vals.hour, 10);
+      if (hour === 24) hour = 0;
+      return {
+        year: parseInt(vals.year, 10),
+        month: parseInt(vals.month, 10),
+        day: parseInt(vals.day, 10),
+        hour: hour,
+        minute: parseInt(vals.minute, 10)
+      };
+    } catch (_) {
+      var d = new Date((timestampSec - 5 * 3600) * 1000);
+      return {
+        year: d.getUTCFullYear(),
+        month: d.getUTCMonth() + 1,
+        day: d.getUTCDate(),
+        hour: d.getUTCHours(),
+        minute: d.getUTCMinutes()
+      };
+    }
+  }
+
+  // DST-aware ICT trading day key (rolls at 17:00 America/New_York)
+  function nyTradingDayKey(timestampSec) {
+    var p = nyParts(timestampSec);
+    var dt = new Date(Date.UTC(p.year, p.month - 1, p.hour >= 17 ? p.day + 1 : p.day));
+    return dt.toISOString().slice(0, 10);
+  }
+
   function nyTradingDayBucket(timestampSec) {
     try {
-      var d = new Date(timestampSec * 1000);
-      var parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      }).formatToParts(d);
-      var vals = {};
-      for (var p = 0; p < parts.length; p += 1) vals[parts[p].type] = parts[p].value;
-      var nyYear = parseInt(vals.year, 10);
-      var nyMonth = parseInt(vals.month, 10);
-      var nyDay = parseInt(vals.day, 10);
-      var nyHour = parseInt(vals.hour, 10);
-
-      var startYear = nyYear;
-      var startMonth = nyMonth;
-      var startDay = nyHour >= 17 ? nyDay : nyDay - 1;
-
-      var tempDate = new Date(Date.UTC(startYear, startMonth - 1, startDay, 17, 0, 0));
-      var guess = tempDate.getTime();
+      var p = nyParts(timestampSec);
+      var startDay = p.hour >= 17 ? p.day : p.day - 1;
+      var guess = Date.UTC(p.year, p.month - 1, startDay, 17, 0, 0);
       for (var attempt = 0; attempt < 3; attempt += 1) {
-        var chkParts = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'America/New_York',
-          year: 'numeric', month: '2-digit', day: '2-digit',
-          hour: '2-digit', minute: '2-digit', hour12: false
-        }).formatToParts(new Date(guess));
-        var chkVals = {};
-        for (var c = 0; c < chkParts.length; c += 1) chkVals[chkParts[c].type] = chkParts[c].value;
-        var diffMin = (17 * 60) - (parseInt(chkVals.hour, 10) * 60 + parseInt(chkVals.minute, 10));
+        var chk = nyParts(Math.floor(guess / 1000));
+        var diffMin = (17 * 60) - (chk.hour * 60 + chk.minute);
         if (diffMin === 0) break;
         guess += diffMin * 60000;
       }
@@ -129,6 +125,108 @@
       var off = 17 * 3600;
       return Math.floor((timestampSec - off) / 86400) * 86400 + off;
     }
+  }
+
+  // DST-aware ICT Killzone / Session classifier (America/New_York)
+  // Asia: 20:00–00:59 NY | London: 02:00–06:59 NY | New York: 07:00–15:59 NY | Other: rollover/deadzone
+  function classifyIctSession(timestampSec) {
+    var ts = finite(timestampSec);
+    if (ts == null) return 'Other';
+    var p = nyParts(ts);
+    var h = p.hour;
+    if (h >= 20 || h < 2) return 'Asia';
+    if (h >= 2 && h < 7) return 'London';
+    if (h >= 7 && h < 16) return 'New York';
+    return 'Other';
+  }
+
+  // Find next cursor timestamp in timeline that enters targetSession killzone open
+  // targetSession: 'Asia' (20:00 NY), 'London' (02:00 NY), 'New York' (08:00 NY)
+  function findNextKillzoneCursor(timeline, currentCursor, targetSession) {
+    if (!Array.isArray(timeline) || !timeline.length) return null;
+    var target = String(targetSession || 'London').toLowerCase();
+    var targetStartHour = target === 'asia' ? 20 : (target === 'new york' || target === 'ny' ? 8 : 2);
+    var targetEndHour = target === 'asia' ? 23 : (target === 'new york' || target === 'ny' ? 11 : 5);
+
+    var cur = finite(currentCursor);
+    var startIdx = 0;
+    if (cur != null) {
+      var lo = 0, hi = timeline.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (timeline[mid] <= cur) lo = mid + 1;
+        else hi = mid;
+      }
+      startIdx = lo;
+    }
+
+    var currentDayKey = cur != null ? nyTradingDayKey(cur) : null;
+    var curParts = cur != null ? nyParts(cur) : null;
+    var alreadyInside = Boolean(curParts && curParts.hour >= targetStartHour && curParts.hour <= targetEndHour);
+
+    for (var i = startIdx; i < timeline.length; i += 1) {
+      var ts = timeline[i];
+      var p = nyParts(ts);
+      if (p.hour >= targetStartHour && p.hour <= targetEndHour) {
+        if (alreadyInside && nyTradingDayKey(ts) === currentDayKey) continue;
+        return ts;
+      }
+    }
+    return null;
+  }
+
+  // Pure zero-future-leak ICT reference levels strictly from candles <= cursor
+  // Returns PDH, PDL (previous NY trading day), Asia High, Asia Low (20:00–00:00 NY of current day)
+  function computeReplayIctLevels(candles, cursor) {
+    if (!Array.isArray(candles) || !candles.length) return [];
+    var safeCursor = finite(cursor);
+    var currentDay = null;
+    var prevDay = null;
+    var daysOrder = [];
+    var dayStats = {};
+    var asiaByDay = {};
+
+    for (var i = 0; i < candles.length; i += 1) {
+      var c = candles[i];
+      if (!c) continue;
+      var ts = Number(c.lastSourceTime != null ? c.lastSourceTime : c.time);
+      if (safeCursor != null && (c.time > safeCursor || ts > safeCursor)) break;
+
+      var dayKey = nyTradingDayKey(c.time);
+      if (!dayStats[dayKey]) {
+        dayStats[dayKey] = { high: c.high, low: c.low };
+        daysOrder.push(dayKey);
+      } else {
+        if (c.high > dayStats[dayKey].high) dayStats[dayKey].high = c.high;
+        if (c.low < dayStats[dayKey].low) dayStats[dayKey].low = c.low;
+      }
+
+      var p = nyParts(c.time);
+      if (p.hour >= 20 && p.hour <= 23) {
+        if (!asiaByDay[dayKey]) {
+          asiaByDay[dayKey] = { high: c.high, low: c.low };
+        } else {
+          if (c.high > asiaByDay[dayKey].high) asiaByDay[dayKey].high = c.high;
+          if (c.low < asiaByDay[dayKey].low) asiaByDay[dayKey].low = c.low;
+        }
+      }
+    }
+
+    if (!daysOrder.length) return [];
+    currentDay = daysOrder[daysOrder.length - 1];
+    prevDay = daysOrder.length >= 2 ? daysOrder[daysOrder.length - 2] : null;
+
+    var levels = [];
+    if (prevDay && dayStats[prevDay]) {
+      levels.push({ id: 'pdh', type: 'pdh', price: dayStats[prevDay].high, title: 'PDH' });
+      levels.push({ id: 'pdl', type: 'pdl', price: dayStats[prevDay].low, title: 'PDL' });
+    }
+    var asia = asiaByDay[currentDay] || (prevDay ? asiaByDay[prevDay] : null);
+    if (asia) {
+      levels.push({ id: 'asiaH', type: 'asia', price: asia.high, title: 'Asia H' });
+      levels.push({ id: 'asiaL', type: 'asia', price: asia.low, title: 'Asia L' });
+    }
+    return levels;
   }
 
   function aggregateCandles(items, targetTimeframe, options) {
@@ -157,7 +255,11 @@
         return cursor == null || candle.time <= cursor;
       });
     }
-    if (targetSeconds === sourceSeconds) return normalized.map(function (candle) { return Object.assign({}, candle); });
+    if (targetSeconds === sourceSeconds) {
+      return normalized.map(function (candle) {
+        return { time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close };
+      });
+    }
 
     var output = [];
     var current = null;
@@ -192,29 +294,6 @@
     return output;
   }
 
-  function synthesizeNyCloseD1(items, options) {
-    var opts = Object.assign({}, options, { nyCloseDst: true });
-    var d1Bars = aggregateCandles(items, 'D1', opts);
-    var synthesized = [];
-    for (var i = 0; i < d1Bars.length; i += 1) {
-      var bar = d1Bars[i];
-      var prev = i > 0 ? d1Bars[i - 1] : null;
-      var pdh = prev ? prev.high : null;
-      var pdl = prev ? prev.low : null;
-      var tdr = Number((bar.high - bar.low).toFixed(2));
-      var eq = Number(((bar.high + bar.low) / 2).toFixed(2));
-      synthesized.push(Object.assign({}, bar, {
-        pdh: pdh,
-        pdl: pdl,
-        previousDayHigh: pdh,
-        previousDayLow: pdl,
-        trueDayRange: tdr,
-        equilibrium: eq
-      }));
-    }
-    return synthesized;
-  }
-
   function visibleCandles(items, cursor, timeframe, sourceTimeframe, options) {
     var safeCursor = finite(cursor);
     if (safeCursor == null) return [];
@@ -223,8 +302,11 @@
       cursor: safeCursor
     });
     var visible = aggregateCandles(items, timeframe, opts);
-    if (visible.some(function (candle) { return candle.lastSourceTime > safeCursor || candle.time > safeCursor; })) {
-      throw new Error('Replay invariant gagal: future candle terdeteksi.');
+    if (visible.length) {
+      var tail = visible[visible.length - 1];
+      if ((tail.lastSourceTime != null && tail.lastSourceTime > safeCursor) || tail.time > safeCursor) {
+        throw new Error('Replay invariant gagal: future candle terdeteksi.');
+      }
     }
     return visible;
   }
@@ -299,15 +381,23 @@
     var value = finite(timestamp);
     if (value == null) return '—';
     try {
-      return new Intl.DateTimeFormat('id-ID', {
-        timeZone: 'Asia/Makassar',
-        year: includeDate ? 'numeric' : undefined,
-        month: includeDate ? 'short' : undefined,
-        day: includeDate ? '2-digit' : undefined,
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).format(new Date(value * 1000)) + ' WITA';
+      if (includeDate) {
+        if (!witaFormatterDate) {
+          witaFormatterDate = new Intl.DateTimeFormat('id-ID', {
+            timeZone: 'Asia/Makassar',
+            year: 'numeric', month: 'short', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: false
+          });
+        }
+        return witaFormatterDate.format(new Date(value * 1000)) + ' WITA';
+      }
+      if (!witaFormatterTime) {
+        witaFormatterTime = new Intl.DateTimeFormat('id-ID', {
+          timeZone: 'Asia/Makassar',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        });
+      }
+      return witaFormatterTime.format(new Date(value * 1000)) + ' WITA';
     } catch (_) {
       return new Date(value * 1000).toISOString();
     }
@@ -318,57 +408,12 @@
     return number == null ? '—' : number.toFixed(2);
   }
 
-  function TickAggregator(timeframe) {
-    this.setTimeframe(timeframe || 'M1');
-    this.current = null;
-  }
-
-  TickAggregator.prototype.setTimeframe = function (timeframe) {
-    var seconds = timeframeSeconds(timeframe);
-    if (!seconds) throw new Error('Timeframe live tidak didukung.');
-    this.timeframe = timeframe;
-    this.seconds = seconds;
-    this.offset = String(timeframe || '').toUpperCase() === 'D1' ? 17 * 3600 : 0;
-    this.current = null;
-  };
-
-  TickAggregator.prototype.seed = function (value) {
-    var candle = normalizeCandle(value);
-    if (!candle) {
-      this.current = null;
-      return false;
-    }
-    candle.time = Math.floor((candle.time - this.offset) / this.seconds) * this.seconds + this.offset;
-    this.current = candle;
-    return true;
-  };
-
-  TickAggregator.prototype.push = function (tick) {
-    var tickPrice = finite(tick && tick.price);
-    var tickTime = parseTime(tick && tick.timestamp);
-    if (tickPrice == null || tickTime == null || tickPrice <= 0) return null;
-    var bucket = Math.floor((tickTime - this.offset) / this.seconds) * this.seconds + this.offset;
-    if (this.current && bucket < this.current.time) return null;
-    var closed = null;
-    if (!this.current || this.current.time !== bucket) {
-      closed = this.current ? Object.assign({}, this.current, { isClosed: true }) : null;
-      this.current = { time: bucket, open: tickPrice, high: tickPrice, low: tickPrice, close: tickPrice };
-    } else {
-      this.current.high = Math.max(this.current.high, tickPrice);
-      this.current.low = Math.min(this.current.low, tickPrice);
-      this.current.close = tickPrice;
-    }
-    return { current: Object.assign({}, this.current), closed: closed };
-  };
-
   root.AmyPracticeCore = Object.freeze({
     TIMEFRAME_SECONDS: TIMEFRAME_SECONDS,
     finite: finite,
     parseTime: parseTime,
     normalizeCandle: normalizeCandle,
     normalizeCandles: normalizeCandles,
-    mergeCandleSeries: mergeCandleSeries,
-    upsertLatestCandle: upsertLatestCandle,
     timeframeSeconds: timeframeSeconds,
     aggregateCandles: aggregateCandles,
     visibleCandles: visibleCandles,
@@ -376,8 +421,11 @@
     parseCsv: parseCsv,
     formatWita: formatWita,
     price: price,
-    TickAggregator: TickAggregator,
+    nyParts: nyParts,
+    nyTradingDayKey: nyTradingDayKey,
     nyTradingDayBucket: nyTradingDayBucket,
-    synthesizeNyCloseD1: synthesizeNyCloseD1
+    classifyIctSession: classifyIctSession,
+    findNextKillzoneCursor: findNextKillzoneCursor,
+    computeReplayIctLevels: computeReplayIctLevels
   });
 })(typeof window !== 'undefined' ? window : globalThis);

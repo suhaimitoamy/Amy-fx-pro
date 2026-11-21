@@ -156,8 +156,62 @@ export function mountHomeChart(root) {
   const $=id=>root.querySelector('#'+id);
   let view=null,raw=null,controller=null,timer=null,generation=0,disposed=false,es=null,drawingTool=null;
   let h1Cache=null,h1CacheTime=0;
+  let simPriceLines=[];
   try { view=createPriceChart($('home-price-chart')); }
   catch { $('home-price-chart').textContent='Chart tidak tersedia. Coba muat ulang aplikasi.';return ()=>{}; }
+  function clearSimPriceLines(){
+    if(!view?.series)return;
+    simPriceLines.forEach(line=>{try{view.series.removePriceLine(line);}catch(_){}});
+    simPriceLines=[];
+  }
+  function renderSimPriceLines(positions){
+    clearSimPriceLines();
+    if(!view?.series||!Array.isArray(positions)||!positions.length)return;
+    const isLight=document.documentElement.dataset.amyfxTheme==='light'||document.documentElement.dataset.theme==='light';
+    positions.forEach(pos=>{
+      if(!Number.isFinite(Number(pos?.entryPrice)))return;
+      const isBuy=pos.side==='BUY';
+      const isProfit=Number(pos.pnlUsd)>=0;
+      const entryColor=isProfit?(isLight?'#15803d':'#22c55e'):(isLight?'#dc2626':'#f87171');
+      try{
+        simPriceLines.push(view.series.createPriceLine({
+          price:Number(pos.entryPrice),
+          color:entryColor,
+          lineWidth:2,
+          lineStyle:2,
+          axisLabelVisible:true,
+          title:`${pos.side} ${Number(pos.lot).toFixed(2)} · ${pos.pnlText||''}`
+        }));
+      }catch(_){}
+      if(Number.isFinite(Number(pos.tp))&&Number(pos.tp)>0){
+        try{
+          simPriceLines.push(view.series.createPriceLine({
+            price:Number(pos.tp),
+            color:isLight?'#0f766e':'#34d399',
+            lineWidth:1,
+            lineStyle:3,
+            axisLabelVisible:true,
+            title:`TP ${isBuy?'BUY':'SELL'}`
+          }));
+        }catch(_){}
+      }
+      if(Number.isFinite(Number(pos.sl))&&Number(pos.sl)>0){
+        try{
+          simPriceLines.push(view.series.createPriceLine({
+            price:Number(pos.sl),
+            color:isLight?'#b91c1c':'#fb7185',
+            lineWidth:1,
+            lineStyle:3,
+            axisLabelVisible:true,
+            title:`SL ${isBuy?'BUY':'SELL'}`
+          }));
+        }catch(_){}
+      }
+    });
+  }
+  function handleSimPositionsEvent(event){
+    renderSimPriceLines(event?.detail?.positions||[]);
+  }
   if(view?.chart&&view?.series){
     try{
       drawingTool=createManualDrawingTool({
@@ -210,8 +264,11 @@ export function mountHomeChart(root) {
     const last=result.candles.at(-1);
     const currentLive=Number(window.amyfxCurrentPrice);
     const displayPrice=(!closed&&Number.isFinite(currentLive)&&currentLive>0)?currentLive:(last?last.close:null);
-    if(closed&&last&&Number.isFinite(last.close)){
-      window.amyfxCurrentPrice=last.close;
+    if(displayPrice&&Number.isFinite(displayPrice)){
+      if(closed||!Number.isFinite(currentLive)||currentLive<=0){
+        window.amyfxCurrentPrice=displayPrice;
+      }
+      try{window.dispatchEvent(new CustomEvent('amyfx:home-chart-price',{detail:{price:displayPrice,closed}}));}catch(_){}
     }
     $('home-chart-price').textContent=displayPrice?displayPrice.toFixed(2):'—';
     if($('home-chart-dealing-range-badge')){
@@ -328,9 +385,14 @@ export function mountHomeChart(root) {
   window.addEventListener('online',refresh);window.addEventListener('pagehide',stop);window.addEventListener('pageshow',pageshow);
   window.addEventListener('amyfx:twelvedata-price',handleLiveTick);
   window.addEventListener('amyfx:live-price-display',handleLiveTick);
+  window.addEventListener('amyfx:sim-positions-updated',handleSimPositionsEvent);
+  if(window.AmyHomeAccountCockpit?.getSnapshot?.()?.positions?.length){
+    const snap=window.AmyHomeAccountCockpit.getSnapshot();
+    renderSimPriceLines(snap.positions.map(p=>({...p,pnlText:window.AmyAccountSimEngine?.formatMoney?.(p.pnlUsd,{currency:snap.params.currency,usdIdrRate:snap.params.usdIdrRate,signed:true})||''})));
+  }
   refresh();
   startBrowserLivePriceStream();
-  return ()=>{disposed=true;stop();view.destroy();
+  return ()=>{disposed=true;stop();clearSimPriceLines();view.destroy();
     fsTeardown?.();
     drawingTool?.destroy();
     if(es){
@@ -343,6 +405,7 @@ export function mountHomeChart(root) {
     window.removeEventListener('pagehide',stop);window.removeEventListener('pageshow',pageshow);
     window.removeEventListener('amyfx:twelvedata-price',handleLiveTick);
     window.removeEventListener('amyfx:live-price-display',handleLiveTick);
+    window.removeEventListener('amyfx:sim-positions-updated',handleSimPositionsEvent);
   };
 }
 window.AmyHomeChart={mount:mountHomeChart,isWeekendClosure,isGoldMarketOpen,filterCandles};

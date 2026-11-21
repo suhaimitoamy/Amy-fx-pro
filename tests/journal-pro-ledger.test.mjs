@@ -92,7 +92,7 @@ test("mountProAnalytics renders Hero Equity Curve, 4 KPI cells, and 3 sub-tabs (
 
   // Switch to Kebocoran sub-tab
   container.clickSubtab("leaks");
-  assert.match(container.innerHTML, /Detektor Kebocoran/);
+  assert.match(container.innerHTML, /Kebocoran/);
   assert.match(container.innerHTML, /FOMO/);
 });
 
@@ -149,9 +149,9 @@ test("apps/journal/index.html has zero duplicate IDs, preserves legacy & drawer 
   }
 
   // User-restored side-drawer views preserved
-  assert.match(html, /data-view="library"/);
-  assert.match(html, /data-view="media"/);
-  assert.match(html, /data-view="assistant"/);
+  assert.match(html, /data-view="journal"/);
+  assert.match(html, /data-view="statistics"/);
+  assert.match(html, /data-view="habits"/);
   assert.match(html, /data-view="notes"/);
   assert.match(html, /journal-pro-ledger\.css/);
 });

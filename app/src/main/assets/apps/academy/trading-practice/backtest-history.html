@@ -1,29 +1,200 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#070b12"><title>Riwayat Backtest Lokal — Trading Practice</title><script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script><link rel="stylesheet" href="../assets/css/style.css"><link rel="stylesheet" href="assets/css/practice.css"><script>const ROOT_PATH='../';</script><script src="../assets/js/auth.js"></script><script src="../assets/js/main.js" defer></script></head>
-<body class="amyfx-module amyfx-module--academy practice-page"><script>requireLogin();</script>
-<header class="topbar hide-until-auth"><nav class="nav"><a class="brand" href="index.html" style="white-space:nowrap; display:inline-flex; align-items:center; gap:10px;"><span class="brand-mark" style="white-space:nowrap; width:auto; min-width:44px; height:38px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:0.04em;">AMY</span><span>Riwayat Lokal</span></a><button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button><div class="navlinks" id="navlinks"><a href="../index.html">Academy</a><a href="index.html">Practice</a><a href="chart-analysis.html">Chart</a><a href="candle-replay.html">Replay</a></div></nav></header>
-<main class="container hide-until-auth"><section class="practice-hero"><div class="eyebrow">JURNAL PERANGKAT INI</div><h1>Riwayat <span>Backtest Lokal</span></h1><p>Rekap keputusan manual dan hasil forward candle dari replay. Angka di sini mendeskripsikan latihan tersimpan—bukan validasi strategi atau klaim profitabilitas.</p></section>
-<section class="metric-row"><div class="metric"><span>Total catatan</span><strong id="metricTotal">0</strong></div><div class="metric"><span>WIN</span><strong id="metricWin">0</strong></div><div class="metric"><span>LOSS</span><strong id="metricLoss">0</strong></div><div class="metric"><span>OPEN / WAIT</span><strong id="metricOpen">0</strong></div></section>
-<section class="metric-row analytics-metric-row" id="analyticsMetricRow" style="margin-top:10px;">
-  <div class="metric"><span>Win Rate</span><strong id="metricWinRate" style="color:#00e676;">0%</strong></div>
-  <div class="metric"><span>Expectancy R</span><strong id="metricExpectancy" style="color:#f5c451;">0.00R</strong></div>
-  <div class="metric"><span>Profit Factor</span><strong id="metricProfitFactor">0.00</strong></div>
-  <div class="metric"><span>Max Drawdown</span><strong id="metricMaxDD" style="color:#ff5252;">0.0R</strong></div>
-</section>
-<section class="practice-panel" id="analyticsBreakdownPanel" style="margin-top:16px;">
-  <h2>Evaluasi Kebiasaan &amp; Setup ICT</h2>
-  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:10px;">
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px;">
-      <h3 style="font-size:12px; font-weight:800; color:var(--text-muted,#94a3b8); text-transform:uppercase; margin-bottom:10px;">Performa Setup ICT (FVG vs OB vs Sweep)</h3>
-      <div id="setupBreakdownList" style="display:flex; flex-direction:column; gap:6px;"></div>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#070b12">
+  <title>Performa &amp; Riwayat Backtest — Amy FX</title>
+  <script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
+  <link rel="stylesheet" href="assets/css/practice.css">
+</head>
+<body class="amyfx-module amyfx-module--backtest">
+  <header class="bt-header">
+    <div class="bt-header-inner">
+      <a class="bt-brand" href="index.html">
+        <span class="bt-brand-mark">A</span>
+        <span>Amy FX</span>
+        <span class="bt-brand-sub">Backtest</span>
+      </a>
+
+      <nav class="bt-nav" id="navlinks" aria-label="Navigasi Backtest Lab">
+        <a href="../../../index.html">Beranda</a>
+        <a href="candle-replay.html">Replay</a>
+        <a href="backtest-history.html" class="is-active">Performa</a>
+        <a href="guided-practice.html">Latihan</a>
+        <a href="../index.html">Tutorial</a>
+      </nav>
+
+      <div class="bt-header-actions">
+        <button type="button" id="themeToggleBtn" class="bt-btn-sm">Terang</button>
+        <button type="button" id="hamburger" class="bt-hamburger" aria-label="Buka menu" aria-expanded="false">☰</button>
+      </div>
     </div>
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px;">
-      <h3 style="font-size:12px; font-weight:800; color:var(--text-muted,#94a3b8); text-transform:uppercase; margin-bottom:10px;">Performa Sesi (London vs New York vs Asia)</h3>
-      <div id="sessionBreakdownList" style="display:flex; flex-direction:column; gap:6px;"></div>
+  </header>
+
+  <main class="bt-container">
+    <div class="bt-page-head">
+      <h1>Performa</h1>
+      <div class="bt-toolbar-group bt-filter-bar">
+        <select id="filterSession" class="bt-select" aria-label="Filter Sesi"></select>
+        <select id="filterStatus" class="bt-select" aria-label="Filter Status">
+          <option value="ALL">Status</option>
+          <option value="WIN">WIN</option>
+          <option value="LOSS">LOSS</option>
+          <option value="BE">BE</option>
+          <option value="OPEN">OPEN</option>
+          <option value="MISSED">MISSED</option>
+          <option value="CANCELLED">CANCELLED</option>
+          <option value="WAIT">WAIT</option>
+        </select>
+        <select id="filterTimeframe" class="bt-select" aria-label="Filter Timeframe">
+          <option value="ALL">TF</option>
+          <option value="M1">M1</option>
+          <option value="M5">M5</option>
+          <option value="M15">M15</option>
+          <option value="M30">M30</option>
+          <option value="H1">H1</option>
+          <option value="H4">H4</option>
+          <option value="D1">D1</option>
+        </select>
+        <div class="bt-seg" id="historyCurrencyToggle" role="group" aria-label="Mata Uang">
+          <button type="button" data-currency="IDR" class="is-active">Rp</button>
+          <button type="button" data-currency="USD">$</button>
+        </div>
+        <button type="button" id="exportCsvBtn" class="bt-btn-sm">CSV</button>
+      </div>
     </div>
-  </div>
-</section>
-<section class="practice-panel"><div class="practice-toolbar"><label>Hasil <select id="resultFilter"><option value="">Semua</option><option>WIN</option><option>LOSS</option><option>OPEN</option></select></label><label>Timeframe <select id="timeframeFilter"><option value="">Semua</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select></label></div><div id="historyStatus" class="practice-status">Membaca penyimpanan lokal…</div><div class="practice-table-wrap"><table class="practice-table"><thead><tr><th>Waktu WITA</th><th>TF</th><th>Keputusan</th><th>Entry / SL / TP</th><th>Hasil</th><th>R rencana / aktual</th><th>Catatan</th><th></th></tr></thead><tbody id="historyRows"></tbody></table></div></section>
-<section class="practice-panel" style="margin-top:18px"><h2>Hasil Latihan Soal</h2><div id="guidedHistory" class="practice-table-wrap"></div></section></main>
-<script src="assets/js/practice-core.js"></script><script src="assets/js/storage.js"></script><script src="assets/js/practice-analytics.js"></script><script src="assets/js/practice-ui.js"></script><script src="assets/js/backtest-history.js"></script>
-</body></html>
+
+    <!-- 4 Pro KPI Cards -->
+    <section class="bt-kpi-grid" aria-label="Metrik Utama Backtest">
+      <article class="bt-kpi-card">
+        <span class="bt-kpi-label">Net Profit</span>
+        <span class="bt-kpi-val" id="kpiNetProfit">—</span>
+        <span class="bt-kpi-sub" id="kpiNetSub">—</span>
+      </article>
+      <article class="bt-kpi-card">
+        <span class="bt-kpi-label">Win Rate</span>
+        <span class="bt-kpi-val" id="kpiWinRate">—</span>
+        <span class="bt-kpi-sub" id="kpiWinSub">—</span>
+      </article>
+      <article class="bt-kpi-card">
+        <span class="bt-kpi-label">Profit Factor</span>
+        <span class="bt-kpi-val" id="kpiProfitFactor">—</span>
+        <span class="bt-kpi-sub" id="kpiExpectancySub">—</span>
+      </article>
+      <article class="bt-kpi-card">
+        <span class="bt-kpi-label">Max Drawdown</span>
+        <span class="bt-kpi-val is-neg" id="kpiMaxDd">—</span>
+        <span class="bt-kpi-sub" id="kpiStreakSub">—</span>
+      </article>
+    </section>
+
+    <!-- Hero Equity Curve & Underwater Drawdown -->
+    <section class="bt-card">
+      <div class="bt-card-head">
+        <h2 class="bt-card-title">Kurva Ekuitas</h2>
+        <div class="bt-seg" id="curveModeToggle" role="group" aria-label="Mode Kurva">
+          <button type="button" data-curve-mode="R" class="is-active">R</button>
+          <button type="button" data-curve-mode="MONEY">Saldo</button>
+        </div>
+      </div>
+      <div id="equityCurveChart" class="bt-equity-shell"></div>
+    </section>
+
+    <!-- Breakdown by ICT Setup & DST Session -->
+    <section class="bt-breakdown-grid">
+      <article class="bt-card">
+        <div class="bt-card-head">
+          <h2 class="bt-card-title">Setup ICT</h2>
+        </div>
+        <div class="bt-table-wrap">
+          <table class="bt-table">
+            <thead>
+              <tr>
+                <th>Setup</th>
+                <th class="num">W / L</th>
+                <th class="num">WR</th>
+                <th class="num">Net R</th>
+              </tr>
+            </thead>
+            <tbody id="setupBreakdownBody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="bt-card">
+        <div class="bt-card-head">
+          <h2 class="bt-card-title">Sesi ICT</h2>
+        </div>
+        <div class="bt-table-wrap">
+          <table class="bt-table">
+            <thead>
+              <tr>
+                <th>Sesi</th>
+                <th class="num">W / L</th>
+                <th class="num">WR</th>
+                <th class="num">Net R</th>
+              </tr>
+            </thead>
+            <tbody id="sessionBreakdownBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <!-- Ledger Riwayat Trade -->
+    <section class="bt-card bt-section">
+      <div class="bt-card-head">
+        <h2 class="bt-card-title">Riwayat Trade</h2>
+        <a href="../../journal/index.html" class="bt-btn-sm">Jurnal →</a>
+      </div>
+      <p id="historyStatus" class="bt-status-line bt-status-inline" role="status" aria-live="polite"></p>
+      <div class="bt-table-wrap">
+        <table class="bt-table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>TF · Sesi</th>
+              <th>Order</th>
+              <th>Harga</th>
+              <th>Setup</th>
+              <th>Status</th>
+              <th class="num">Hasil</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="historyTradesBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Guided Practice History -->
+    <section class="bt-card bt-section">
+      <div class="bt-card-head">
+        <h2 class="bt-card-title">Latihan Soal</h2>
+        <span class="bt-tag bt-tag-be" id="guidedAccuracyBadge">0 soal</span>
+      </div>
+      <div class="bt-table-wrap">
+        <table class="bt-table">
+          <thead>
+            <tr>
+              <th>Kasus</th>
+              <th>TF</th>
+              <th>Jawaban</th>
+              <th>Hasil</th>
+            </tr>
+          </thead>
+          <tbody id="guidedHistoryBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/practice-core.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/practice-analytics.js"></script>
+  <script src="assets/js/practice-ui.js"></script>
+  <script src="assets/js/backtest-history.js"></script>
+</body>
+</html>

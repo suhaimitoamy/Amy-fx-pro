@@ -10,6 +10,7 @@
   const LEGACY_KEYS = ["amyfx.theme", "amy_theme"];
   const media = window.matchMedia?.("(prefers-color-scheme: light)");
   const root = document.documentElement;
+  const currentScriptSrc = String(document.currentScript?.getAttribute?.("src") || "");
   let preference = readPreference();
 
   function readCustomBg() {
@@ -300,10 +301,23 @@
     return theme;
   }
 
+  function ensureInfoTipScript() {
+    if (window.AmyInfoTip || document.querySelector('script[src*="amyfx-info-tip.js"]')) return;
+    const baseSrc = currentScriptSrc || document.querySelector('script[src*="amyfx-theme-controller.js"]')?.getAttribute("src") || "";
+    const tipSrc = baseSrc
+      ? baseSrc.replace(/amyfx-theme-controller\.js(?:\?.*)?$/i, "amyfx-info-tip.js")
+      : "apps/shared/amyfx-info-tip.js";
+    const s = document.createElement("script");
+    s.src = tipSrc;
+    s.defer = true;
+    (document.head || document.documentElement).appendChild(s);
+  }
+
   function decorateDocument() {
     const name = moduleName();
     document.body?.classList.add("amyfx-module", `amyfx-module--${name}`);
     document.body?.setAttribute("data-amyfx-module", name);
+    ensureInfoTipScript();
     syncControls();
   }
 

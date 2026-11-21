@@ -1,32 +1,124 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
-  <meta name="theme-color" content="#070b12"><title>Trading Practice — Amy FX Academy</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#070b12">
+  <title>Backtest Lab — Amy FX</title>
   <script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
-  <link rel="stylesheet" href="../assets/css/style.css"><link rel="stylesheet" href="assets/css/practice.css">
-  <script>const ROOT_PATH='../';</script><script src="../assets/js/auth.js"></script><script src="../assets/js/main.js" defer></script>
+  <link rel="stylesheet" href="assets/css/practice.css">
 </head>
-<body class="amyfx-module amyfx-module--academy practice-page">
-<script>requireLogin();</script>
-<header class="topbar hide-until-auth"><nav class="nav">
-  <a class="brand" href="../index.html" style="white-space:nowrap; display:inline-flex; align-items:center; gap:10px;"><span class="brand-mark" style="white-space:nowrap; width:auto; min-width:44px; height:38px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; font-weight:900; letter-spacing:0.04em;">AMY</span><span>Trading Practice</span></a>
-  <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
-  <div class="navlinks" id="navlinks"><a href="../index.html">Academy</a><a href="index.html">Practice</a><a href="../daftar-materi.html">Daftar Materi</a><a href="backtest-history.html">Riwayat Lokal</a></div>
-</nav></header>
-<main class="container hide-until-auth">
-  <section class="practice-hero">
-    <div class="eyebrow">AMY FX ACADEMY</div>
-    <h1>Trading Practice</h1>
-    <p>Analisis chart, latih keputusan, tinjau hasil.</p>
+<body class="amyfx-module amyfx-module--backtest">
+  <header class="bt-header">
+    <div class="bt-header-inner">
+      <a class="bt-brand" href="index.html">
+        <span class="bt-brand-mark">A</span>
+        <span>Amy FX</span>
+        <span class="bt-brand-sub">Backtest</span>
+      </a>
 
-  </section>
-  <section class="practice-grid" aria-label="Mode latihan">
-    <article class="practice-card wide"><div class="practice-icon">01</div><h2>Chart Analysis</h2><p>Analisis chart, gambar level, dan impor data historis.</p><a class="btn primary" href="chart-analysis.html">Buka Chart Analysis →</a></article>
-    <article class="practice-card"><div class="practice-icon">02</div><h2>Candle Replay</h2><p>Latihan membaca candle satu per satu dan catat keputusan trading.</p><a class="btn primary" href="candle-replay.html">Mulai Replay →</a></article>
-    <article class="practice-card"><div class="practice-icon">03</div><h2>Latihan Soal</h2><p>60 studi kasus eksekusi nyata XAU/USD: mudah, sedang, advanced. Melatih keputusan sisi kanan chart dan filter jebakan pasar.</p><a class="btn" href="guided-practice.html">Mulai Latihan →</a></article>
-    <article class="practice-card wide"><div class="practice-icon">04</div><h2>Riwayat Backtest Lokal</h2><p>Tinjau setup manual, hasil forward candle, catatan, dan latihan terpandu. Ini jurnal latihan—bukan validator profitabilitas otomatis.</p><a class="btn" href="backtest-history.html">Lihat Riwayat →</a></article>
-  </section>
-  <details class="practice-panel" style="margin-top:20px"><summary>Sumber data & batas penggunaan</summary><p>Chart Analysis dan Replay: sample bawaan berisi 4.320 candle XAUUSD M1 dari arsip monthly repaired-audited Maret 2009 di Data backtest Amy. Sample ini untuk mengoperasikan UI, bukan hasil backtest. Anda dapat menggantinya dengan CSV/JSON OHLC lokal; data tidak dikirim ke server. Guided Practice memakai skenario OHLC ilustratif yang sesuai dengan masing-masing soal.</p></details>
-</main>
-</body></html>
+      <nav class="bt-nav" id="navlinks" aria-label="Navigasi Backtest Lab">
+        <a href="../../../index.html">Beranda</a>
+        <a href="candle-replay.html">Replay</a>
+        <a href="backtest-history.html">Performa</a>
+        <a href="guided-practice.html">Latihan</a>
+        <a href="../index.html">Tutorial</a>
+      </nav>
+
+      <div class="bt-header-actions">
+        <button type="button" id="themeToggleBtn" class="bt-btn-sm">Terang</button>
+        <button type="button" id="hamburger" class="bt-hamburger" aria-label="Buka menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="bt-container">
+    <div class="bt-page-head">
+      <h1>Backtest Lab</h1>
+      <div class="bt-toolbar-group">
+        <a href="candle-replay.html" class="bt-btn bt-btn-primary">Buka Replay →</a>
+      </div>
+    </div>
+
+    <section class="bt-account-bar" aria-label="Ringkasan Backtest Lokal">
+      <div class="bt-account-metrics">
+        <div class="bt-metric">
+          <span class="bt-metric-label">Sesi</span>
+          <span class="bt-metric-value is-gold" id="hubSessionName">Sesi Utama</span>
+        </div>
+        <div class="bt-metric">
+          <span class="bt-metric-label">Saldo</span>
+          <span class="bt-metric-value" id="hubBalance">—</span>
+        </div>
+        <div class="bt-metric">
+          <span class="bt-metric-label">Trade</span>
+          <span class="bt-metric-value" id="hubTradeCount">0</span>
+        </div>
+        <div class="bt-metric">
+          <span class="bt-metric-label">Data</span>
+          <span class="bt-metric-value" id="hubPackCount">Sample · Jan 2025</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="bt-hub-grid">
+      <a class="bt-hub-card is-featured" href="candle-replay.html">
+        <div>
+          <h2>Replay Lab <button type="button" class="amy-info-btn" data-info-tip="Simulasi bar-by-bar M1–D1 Cloud 2019–2026 tanpa melihat candle masa depan." aria-label="Info Replay Lab" aria-expanded="false">i</button></h2>
+        </div>
+        <div class="bt-hub-meta">
+          <span>Zero Future Leak</span>
+          <span>Buka →</span>
+        </div>
+      </a>
+
+      <a class="bt-hub-card" href="backtest-history.html">
+        <div>
+          <h2>Performa <button type="button" class="amy-info-btn" data-info-tip="Kurva ekuitas, analisis setup ICT, dan ekspor trade ke Jurnal Simulasi." aria-label="Info Performa Backtest" aria-expanded="false">i</button></h2>
+        </div>
+        <div class="bt-hub-meta">
+          <span>Analitik &amp; CSV</span>
+          <span>Buka →</span>
+        </div>
+      </a>
+
+      <a class="bt-hub-card" href="guided-practice.html">
+        <div>
+          <h2>Latihan 60 Kasus <button type="button" class="amy-info-btn" data-info-tip="60 studi kasus chart XAU/USD terhubung langsung ke modul Tutorial Trading." aria-label="Info Latihan 60 Kasus" aria-expanded="false">i</button></h2>
+        </div>
+        <div class="bt-hub-meta">
+          <span>60 Soal</span>
+          <span>Buka →</span>
+        </div>
+      </a>
+    </section>
+  </main>
+
+  <script src="assets/js/practice-core.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/practice-analytics.js"></script>
+  <script src="assets/js/practice-ui.js"></script>
+  <script>
+    (async function () {
+      try {
+        var storage = window.AmyPracticeStorage;
+        var analytics = window.AmyPracticeAnalytics;
+        var ui = window.AmyPracticeUI;
+        var prof = storage.readProfileAccountParams();
+        var sess = storage.getActiveSession();
+        var trades = await storage.listTrades(sess.id);
+        var packs = await storage.listHistoricalPacks();
+        var stats = analytics.computeStats(trades, {
+          initialBalanceUsd: sess.initialBalanceUsd,
+          defaultRiskUsd: sess.initialBalanceUsd * (sess.riskPercent / 100)
+        });
+        ui.text('hubSessionName', sess.name);
+        ui.text('hubBalance', storage.formatMoney(stats.currentBalanceUsd, prof.currency, prof.usdIdrRate));
+        ui.text('hubTradeCount', String(trades.length) + ' (' + stats.wins + 'W/' + stats.losses + 'L)');
+        ui.text('hubPackCount', packs.length ? (packs.length + ' pack Cloud/lokal') : 'Sample · Jan 2025');
+      } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

@@ -1,23 +1,26 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.462/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.463/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Mapping POI Accuracy & Touch Tracking: Indikator jejak sentuhan zona POI (FRESH, CE, BROKEN), ghost boxes untuk zona jebol, dan filtering DOL likuiditas yang sudah diambil.",
-    "✦ Journal Pro Ledger UI: Desain ledger baru dengan quick pickers, dialog modal modern, dan toolbar analitik yang lebih tajam.",
-    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js dengan layer touches aktif default."
+    "✦ Backtest Lab Overhaul: Candle Replay baru dengan Cloud Library, Practice Analytics, Trade Engine dengan spread/lot/SL/TP presisi, dan Guided Exercises 60 soal.",
+    "✦ Account Sim Engine: Simulasi akun trading virtual (SIM) dengan Balance, Equity, Margin, Auto-Lot, dan catatan jurnal terpisah REAL vs SIM.",
+    "✦ Home Account Cockpit: Dashboard ringkasan akun di Beranda dengan Balance live, Equity Curve mini, dan Open Position monitor.",
+    "✦ Info Tooltips (amyfx-info-tip): Tooltip edukasi interaktif untuk setiap metrik dan tombol kunci di seluruh aplikasi.",
+    "✦ Journal Pro Ledger: Upgrade navigasi (journal, statistics, habits, notes) dan integrasi Account Sim."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.462/AmyFX-Pro-latest.apk",
-  "enabled": true,
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.463/AmyFX-Pro-latest.apk",
+  "enabled": false,
   "force_update": false,
-  "latest_version_code": 950462,
-  "latest_version_name": "2.0.0-pro.462",
+  "latest_version_code": 950463,
+  "latest_version_name": "2.0.0-pro.463",
   "mandatory": false,
   "releaseDate": "2026-11-21",
   "release_notes": [
-    "✦ Mapping POI Accuracy & Touch Tracking: Indikator jejak sentuhan zona POI (FRESH, CE, BROKEN), ghost boxes untuk zona jebol, dan filtering DOL likuiditas yang sudah diambil.",
-    "✦ Journal Pro Ledger UI: Desain ledger baru dengan quick pickers, dialog modal modern, dan toolbar analitik yang lebih tajam.",
-    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js dengan layer touches aktif default."
+    "✦ Backtest Lab Overhaul: Candle Replay baru dengan Cloud Library, Practice Analytics, Trade Engine dengan spread/lot/SL/TP presisi, dan Guided Exercises 60 soal.",
+    "✦ Account Sim Engine: Simulasi akun trading virtual (SIM) dengan Balance, Equity, Margin, Auto-Lot, dan catatan jurnal terpisah REAL vs SIM.",
+    "✦ Home Account Cockpit: Dashboard ringkasan akun di Beranda dengan Balance live, Equity Curve mini, dan Open Position monitor.",
+    "✦ Info Tooltips (amyfx-info-tip): Tooltip edukasi interaktif untuk setiap metrik dan tombol kunci di seluruh aplikasi.",
+    "✦ Journal Pro Ledger: Upgrade navigasi (journal, statistics, habits, notes) dan integrasi Account Sim."
   ],
-  "version": "2.0.0-pro.462",
-  "versionCode": 950462,
-  "sha256": "927ec8c310818531e0def42dbce3095c14523f94db7e3b40152e6cf5ff4e8e62"
+  "version": "2.0.0-pro.463",
+  "versionCode": 950463
 }

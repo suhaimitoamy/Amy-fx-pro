@@ -211,8 +211,16 @@
     return normalizedList.filter((item) => item.timestampMs > 0 && item.timestampMs >= cutoff);
   }
 
-  function formatSignedMoney(val) {
+  function formatSignedMoney(val, fmtOpts) {
     const n = Number(val) || 0;
+    if (fmtOpts && fmtOpts.currency === "IDR") {
+      const rate = Number(fmtOpts.usdIdrRate) > 0 ? Number(fmtOpts.usdIdrRate) : 16500;
+      const idr = Math.round(n * rate);
+      const absIdr = Math.abs(idr).toLocaleString("id-ID");
+      if (idr > 0) return `+Rp${absIdr}`;
+      if (idr < 0) return `-Rp${absIdr}`;
+      return `Rp0`;
+    }
     const abs = Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (n > 0) return `+$${abs}`;
     if (n < 0) return `-$${abs}`;
@@ -227,15 +235,20 @@
     return `0.00R`;
   }
 
-  function formatValue(val, unit) {
-    return unit === "money" ? formatSignedMoney(val) : formatSignedR(val);
+  function formatValue(val, unit, fmtOpts) {
+    return unit === "money" ? formatSignedMoney(val, fmtOpts) : formatSignedR(val);
   }
 
-  function formatAbsValue(val, unit) {
+  function formatAbsValue(val, unit, fmtOpts) {
     const n = Math.abs(Number(val) || 0);
-    return unit === "money"
-      ? `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      : `${n.toFixed(2)}R`;
+    if (unit === "money") {
+      if (fmtOpts && fmtOpts.currency === "IDR") {
+        const rate = Number(fmtOpts.usdIdrRate) > 0 ? Number(fmtOpts.usdIdrRate) : 16500;
+        return `Rp${Math.round(n * rate).toLocaleString("id-ID")}`;
+      }
+      return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `${n.toFixed(2)}R`;
   }
 
   function formatDateShort(isoDate) {
@@ -253,6 +266,9 @@
     const nowMs = Number.isFinite(options.nowMs) ? options.nowMs : Date.now();
     const defaultBalance = Number(options.defaultBalance || 0) > 0 ? Number(options.defaultBalance) : 0;
     const defaultRisk = Number(options.defaultRisk || 0) > 0 ? Number(options.defaultRisk) : 0;
+    const currency = options.currency === "IDR" ? "IDR" : "USD";
+    const usdIdrRate = Number(options.usdIdrRate) > 0 ? Number(options.usdIdrRate) : 16500;
+    const fmtOpts = { currency, usdIdrRate };
 
     const allNormalized = rawList.map((e, i) => normalizeEntry(e, i, { defaultBalance, defaultRisk }));
     const ranged = filterByRange(allNormalized, range, nowMs);
@@ -450,34 +466,36 @@
     const bullets = [];
     if (bestSession) {
       bullets.push(
-        `Sesi terkuat: ${bestSession.key} (${formatValue(bestSession.net, unit)} · ${bestSession.winRate}% WR dari ${bestSession.total} trade).`
+        `Sesi terkuat: ${bestSession.key} (${formatValue(bestSession.net, unit, fmtOpts)} · ${bestSession.winRate}% WR dari ${bestSession.total} trade).`
       );
     } else if (bestSetup) {
       bullets.push(
-        `Setup terkuat: ${bestSetup.key} (${formatValue(bestSetup.net, unit)} · ${bestSetup.winRate}% WR).`
+        `Setup terkuat: ${bestSetup.key} (${formatValue(bestSetup.net, unit, fmtOpts)} · ${bestSetup.winRate}% WR).`
       );
     }
     if (topLeak && topLeak.lossImpact > 0) {
       bullets.push(
-        `Kebocoran terbesar: ${topLeak.key} (${topLeak.count}x, biaya rugi -${formatAbsValue(topLeak.lossImpact, unit)}).`
+        `Kebocoran terbesar: ${topLeak.key} (${topLeak.count}x, biaya rugi -${formatAbsValue(topLeak.lossImpact, unit, fmtOpts)}).`
       );
     } else if (worstSession) {
       bullets.push(
-        `Sesi rawan: ${worstSession.key} (${formatValue(worstSession.net, unit)} · ${worstSession.winRate}% WR) — kurangi ukuran lot atau perketat konfirmasi M5.`
+        `Sesi rawan: ${worstSession.key} (${formatValue(worstSession.net, unit, fmtOpts)} · ${worstSession.winRate}% WR) — kurangi ukuran lot atau perketat konfirmasi M5.`
       );
     } else if (closedCount > 0 && currentDrawdown === 0 && equity > 0) {
       bullets.push("Ekuitas berada di puncak tertinggi (All-Time High) — jaga konsistensi risiko 1–1.5% per setup.");
     } else if (closedCount > 0 && currentDrawdown > 0) {
-      bullets.push(`Sedang dalam drawdown -${formatAbsValue(currentDrawdown, unit)} dari puncak — fokus hanya pada setup Grade A+.`);
+      bullets.push(`Sedang dalam drawdown -${formatAbsValue(currentDrawdown, unit, fmtOpts)} dari puncak — fokus hanya pada setup Grade A+.`);
     }
 
     const headline = closedCount === 0
       ? "Belum ada trade tertutup untuk dianalisis."
-      : bullets[0] || `Total ${closedCount} trade tertutup · Net ${formatValue(equity, unit)} · Win Rate ${winRate.toFixed(1)}%.`;
+      : bullets[0] || `Total ${closedCount} trade tertutup · Net ${formatValue(equity, unit, fmtOpts)} · Win Rate ${winRate.toFixed(1)}%.`;
 
     return {
       range,
       unit,
+      currency,
+      usdIdrRate,
       hasAnyMoney,
       defaultBalance,
       summary: {
@@ -620,11 +638,12 @@
       const ddPoly = ddCoords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
       const ddArea = `${ddCoords[0].x.toFixed(1)},${ddPadT} ${ddPoly} ${ddCoords[ddCoords.length - 1].x.toFixed(1)},${ddPadT}`;
 
+      const fmtOpts = { currency: analysis.currency, usdIdrRate: analysis.usdIdrRate };
       ddSvg = `
         <div class="jp-dd-strip">
           <div class="jp-dd-head">
             <span>Underwater Drawdown</span>
-            <span class="jp-tabular">Maks -${escapeHtml(formatAbsValue(analysis.summary.maxDrawdown, unit))}${analysis.summary.maxDrawdownPct != null ? ` (${analysis.summary.maxDrawdownPct}%)` : ""}</span>
+            <span class="jp-tabular">Maks -${escapeHtml(formatAbsValue(analysis.summary.maxDrawdown, unit, fmtOpts))}${analysis.summary.maxDrawdownPct != null ? ` (${analysis.summary.maxDrawdownPct}%)` : ""}</span>
           </div>
           <svg class="jp-dd-svg" viewBox="0 0 ${width} ${ddH}" preserveAspectRatio="none" aria-hidden="true">
             <defs>
@@ -680,7 +699,7 @@
     `;
   }
 
-  function renderBreakdownRows(rows, unit, emptyMessage) {
+  function renderBreakdownRows(rows, unit, emptyMessage, fmtOpts) {
     if (!rows || !rows.length) {
       return `<p class="jp-empty-inline">${escapeHtml(emptyMessage)}</p>`;
     }
@@ -695,7 +714,7 @@
         <div class="jp-row">
           <div class="jp-row-top">
             <span class="jp-row-title">${escapeHtml(row.key)}<span class="jp-row-meta">${escapeHtml(tag)}</span></span>
-            <span class="jp-row-val jp-tabular ${toneClass}">${escapeHtml(formatValue(row.net, unit))}</span>
+            <span class="jp-row-val jp-tabular ${toneClass}">${escapeHtml(formatValue(row.net, unit, fmtOpts))}</span>
           </div>
           <div class="jp-row-sub">
             <span class="jp-tabular">${row.total} trade · ${row.winRate}% WR (${row.wins}W/${row.losses}L)</span>
@@ -708,13 +727,13 @@
     }).join("");
   }
 
-  function renderLeakRows(leaks, unit) {
+  function renderLeakRows(leaks, unit, fmtOpts) {
     if (!leaks || !leaks.length) {
-      return `<p class="jp-empty-inline">Belum ada pola kesalahan tercatat — pertahankan disiplin SOP M15/M5.</p>`;
+      return `<p class="jp-empty-inline">Belum ada pola kesalahan tercatat <button type="button" class="amy-info-btn" data-info-tip="Pola kesalahan disiplin (overtrade, FOMO, geser SL, dll.) akan otomatis terdeteksi dari catatan jurnal." aria-label="Info pola kesalahan" aria-expanded="false">i</button></p>`;
     }
     const maxLoss = Math.max(...leaks.map((l) => l.lossImpact || l.count), 0.0001);
     return leaks.slice(0, 6).map((row) => {
-      const impact = row.lossImpact > 0 ? `-${formatAbsValue(row.lossImpact, unit)}` : formatValue(row.net, unit);
+      const impact = row.lossImpact > 0 ? `-${formatAbsValue(row.lossImpact, unit, fmtOpts)}` : formatValue(row.net, unit, fmtOpts);
       const barPct = Math.max(8, Math.round(((row.lossImpact || row.count) / maxLoss) * 100));
       const tone = row.lossImpact > 0 || row.net < 0 ? "is-neg" : "is-warn";
       return `
@@ -738,6 +757,9 @@
     if (!container) return;
     const defaultBalance = Number(options.defaultBalance ?? (typeof localStorage !== "undefined" ? localStorage.getItem("amy_default_balance") : 0)) || 0;
     const defaultRisk = Number(options.defaultRisk ?? (typeof localStorage !== "undefined" ? localStorage.getItem("amy_default_risk") : 0)) || 0;
+    const currency = options.currency === "IDR" ? "IDR" : "USD";
+    const usdIdrRate = Number(options.usdIdrRate) > 0 ? Number(options.usdIdrRate) : 16500;
+    const fmtOpts = { currency, usdIdrRate };
 
     const hasCalendar = typeof options.renderCalendar === "function";
     const defaultSubtab = options.initialSubtab || (hasCalendar ? "calendar" : "breakdown");
@@ -752,7 +774,9 @@
         range: uiState.range,
         unit: uiState.unit,
         defaultBalance,
-        defaultRisk
+        defaultRisk,
+        currency,
+        usdIdrRate
       });
       const s = data.summary;
       const unit = data.unit;
@@ -780,7 +804,7 @@
               ${rangeOptions.map((opt) => `<button type="button" class="jp-seg-btn ${uiState.range === opt.id ? "is-active" : ""}" data-jp-range="${opt.id}">${opt.label}</button>`).join("")}
             </div>
             <div class="jp-seg" role="group" aria-label="Satuan kurva">
-              <button type="button" class="jp-seg-btn ${activeUnit === "money" ? "is-active" : ""}" data-jp-unit="money">$</button>
+              <button type="button" class="jp-seg-btn ${activeUnit === "money" ? "is-active" : ""}" data-jp-unit="money">${currency === "IDR" ? "Rp" : "$"}</button>
               <button type="button" class="jp-seg-btn ${activeUnit === "r" ? "is-active" : ""}" data-jp-unit="r">R</button>
             </div>
             <button type="button" class="jp-amy-btn" data-jp-ask-amy>Evaluasi Amy</button>
@@ -791,12 +815,14 @@
       const calendarPaneHtml = hasCalendar ? options.renderCalendar() : "";
 
       if (s.closedCount === 0) {
+        const emptyTip = s.totalAllTime > 0
+          ? "Pilih rentang Semua untuk melihat riwayat trade sebelumnya."
+          : "Catat hasil trade (Win, Loss, atau BE) agar Equity Curve, Drawdown, dan Kebocoran muncul otomatis.";
         container.innerHTML = `
           <div class="jp-pro-root jp-pro-ledger">
             ${toolbarHtml}
             <div class="jp-empty-card">
-              <h4>Belum ada trade tertutup pada rentang ini</h4>
-              <p>${s.totalAllTime > 0 ? "Pilih rentang Semua untuk melihat riwayat trade sebelumnya." : "Catat hasil trade (Win, Loss, atau BE) agar Equity Curve, Drawdown, dan Kebocoran muncul otomatis."}</p>
+              <h4>Belum ada trade tertutup <button type="button" class="amy-info-btn" data-info-tip="${escapeHtml(emptyTip)}" aria-label="Info performa" aria-expanded="false">i</button></h4>
               <div class="jp-empty-actions">
                 ${s.totalAllTime > 0
                   ? `<button type="button" class="jp-primary-btn" data-jp-range="all">Tampilkan Semua</button>`
@@ -813,7 +839,7 @@
       const lastPt = data.equitySeries[data.equitySeries.length - 1];
       const netTone = s.netValue > 0 ? "is-pos" : s.netValue < 0 ? "is-neg" : "is-flat";
       const pfTone = s.profitFactor === Infinity || s.profitFactor >= 1.5 ? "is-pos" : s.profitFactor >= 1 ? "is-flat" : "is-neg";
-      const expLabel = `Exp ${formatValue(s.expectancy, unit)}/trd`;
+      const expLabel = `Exp ${formatValue(s.expectancy, unit, fmtOpts)}/trd`;
       const streakLabel = `Streak ${formatStreak(s.currentStreak)}`;
 
       const subtabDefs = [
@@ -841,11 +867,10 @@
             ${briefHtml}
             <div class="jp-ledger-section">
               <div class="jp-panel-head">
-                <h4>Detektor Kebocoran &amp; Psikologi</h4>
-                <span>Biaya kesalahan disiplin</span>
+                <h4>Kebocoran &amp; Psikologi <button type="button" class="amy-info-btn" data-info-tip="Menghitung total biaya kerugian dari kesalahan disiplin yang tercatat pada jurnal." aria-label="Info kebocoran" aria-expanded="false">i</button></h4>
               </div>
               <div class="jp-rows jp-rows--leaks">
-                ${renderLeakRows(data.breakdowns.byLeak, unit)}
+                ${renderLeakRows(data.breakdowns.byLeak, unit, fmtOpts)}
               </div>
             </div>
           </div>
@@ -856,21 +881,19 @@
             <div class="jp-split-grid">
               <div class="jp-ledger-section">
                 <div class="jp-panel-head">
-                  <h4>Performa per Sesi (WITA)</h4>
-                  <span>Edge waktu eksekusi</span>
+                  <h4>Performa per Sesi (WITA) <button type="button" class="amy-info-btn" data-info-tip="Perbandingan hasil eksekusi berdasarkan jendela sesi Asia, London, NY AM, dan NY PM (WITA)." aria-label="Info sesi" aria-expanded="false">i</button></h4>
                 </div>
                 <div class="jp-rows">
-                  ${renderBreakdownRows(data.breakdowns.bySession, unit, "Belum ada data sesi.")}
+                  ${renderBreakdownRows(data.breakdowns.bySession, unit, "Belum ada data sesi.", fmtOpts)}
                 </div>
               </div>
 
               <div class="jp-ledger-section">
                 <div class="jp-panel-head">
-                  <h4>Performa per Setup ICT</h4>
-                  <span>Konsistensi pola entry</span>
+                  <h4>Performa per Setup ICT <button type="button" class="amy-info-btn" data-info-tip="Konsistensi setiap pola entry. Isi kolom Setup saat mencatat trade agar terkelompok otomatis." aria-label="Info setup" aria-expanded="false">i</button></h4>
                 </div>
                 <div class="jp-rows">
-                  ${renderBreakdownRows(data.breakdowns.bySetup, unit, "Isi kolom Setup saat mencatat trade.")}
+                  ${renderBreakdownRows(data.breakdowns.bySetup, unit, "Belum ada data setup.", fmtOpts)}
                 </div>
               </div>
             </div>
@@ -886,11 +909,11 @@
             <div class="jp-chart-head">
               <div class="jp-chart-inspect" data-jp-inspect>
                 <span class="jp-inspect-title">Trade #${lastPt.index} · ${escapeHtml(formatDateShort(lastPt.dateLabel))} · ${escapeHtml(lastPt.pair)}</span>
-                <span class="jp-inspect-sub jp-tabular">${escapeHtml(lastPt.setup)} · ${escapeHtml(lastPt.session)} · ${escapeHtml(lastPt.result)} (${escapeHtml(formatValue(lastPt.delta, unit))})</span>
+                <span class="jp-inspect-sub jp-tabular">${escapeHtml(lastPt.setup)} · ${escapeHtml(lastPt.session)} · ${escapeHtml(lastPt.result)} (${escapeHtml(formatValue(lastPt.delta, unit, fmtOpts))})</span>
               </div>
               <div class="jp-chart-total">
-                <strong class="jp-tabular ${netTone}" data-jp-eq-val>${escapeHtml(formatValue(lastPt.equity, unit))}</strong>
-                <span class="jp-tabular" data-jp-eq-sub>${lastPt.drawdownAbs > 0 ? `DD -${escapeHtml(formatAbsValue(lastPt.drawdownAbs, unit))}` : "Puncak Tertinggi"}</span>
+                <strong class="jp-tabular ${netTone}" data-jp-eq-val>${escapeHtml(formatValue(lastPt.equity, unit, fmtOpts))}</strong>
+                <span class="jp-tabular" data-jp-eq-sub>${lastPt.drawdownAbs > 0 ? `DD -${escapeHtml(formatAbsValue(lastPt.drawdownAbs, unit, fmtOpts))}` : "Puncak Tertinggi"}</span>
               </div>
             </div>
             ${buildEquityChartMarkup(data, false)}
@@ -899,7 +922,7 @@
           <section class="jp-kpi-strip" aria-label="4 Indikator Utama Performa">
             <article class="jp-kpi-cell">
               <span class="jp-kpi-label">Net P/L</span>
-              <strong class="jp-kpi-val jp-tabular ${netTone}">${escapeHtml(formatValue(s.netValue, unit))}</strong>
+              <strong class="jp-kpi-val jp-tabular ${netTone}">${escapeHtml(formatValue(s.netValue, unit, fmtOpts))}</strong>
               <span class="jp-kpi-sub jp-tabular">${s.returnPct != null && unit === "money" ? `${s.returnPct >= 0 ? "+" : ""}${s.returnPct}% modal` : `${formatSignedR(s.netR)} total`}</span>
             </article>
             <article class="jp-kpi-cell">
@@ -914,7 +937,7 @@
             </article>
             <article class="jp-kpi-cell">
               <span class="jp-kpi-label">Max Drawdown</span>
-              <strong class="jp-kpi-val jp-tabular ${s.maxDrawdown > 0 ? "is-neg" : "is-pos"}">-${escapeHtml(formatAbsValue(s.maxDrawdown, unit))}</strong>
+              <strong class="jp-kpi-val jp-tabular ${s.maxDrawdown > 0 ? "is-neg" : "is-pos"}">-${escapeHtml(formatAbsValue(s.maxDrawdown, unit, fmtOpts))}</strong>
               <span class="jp-kpi-sub jp-tabular">${escapeHtml(streakLabel)}</span>
             </article>
           </section>
@@ -1016,15 +1039,15 @@
         if (inspectEl) {
           inspectEl.innerHTML = `
             <span class="jp-inspect-title">Trade #${pt.index} · ${escapeHtml(formatDateShort(pt.dateLabel))} · ${escapeHtml(pt.pair)}</span>
-            <span class="jp-inspect-sub jp-tabular">${escapeHtml(pt.setup)} · ${escapeHtml(pt.session)} · ${escapeHtml(pt.result)} (${escapeHtml(formatValue(pt.delta, data.unit))})</span>
+            <span class="jp-inspect-sub jp-tabular">${escapeHtml(pt.setup)} · ${escapeHtml(pt.session)} · ${escapeHtml(pt.result)} (${escapeHtml(formatValue(pt.delta, data.unit, fmtOpts))})</span>
           `;
         }
         if (eqValEl) {
-          eqValEl.textContent = formatValue(pt.equity, data.unit);
+          eqValEl.textContent = formatValue(pt.equity, data.unit, fmtOpts);
           eqValEl.className = `jp-tabular ${pt.equity > 0 ? "is-pos" : pt.equity < 0 ? "is-neg" : "is-flat"}`;
         }
         if (eqSubEl) {
-          eqSubEl.textContent = pt.drawdownAbs > 0 ? `DD -${formatAbsValue(pt.drawdownAbs, data.unit)}` : "Puncak Tertinggi";
+          eqSubEl.textContent = pt.drawdownAbs > 0 ? `DD -${formatAbsValue(pt.drawdownAbs, data.unit, fmtOpts)}` : "Puncak Tertinggi";
         }
       };
 
@@ -1069,12 +1092,11 @@
         <div class="jp-home-card">
           <div class="jp-home-head">
             <div>
-              <h2>Performa Jurnal</h2>
-              <p class="jp-meta-line">Belum ada trade tertutup tercatat</p>
+              <h2>Performa Jurnal <button type="button" class="amy-info-btn" data-info-tip="Catat hasil trade XAU/USD pertamamu agar Equity Curve, Profit Factor, Max Drawdown, dan pola kebocoran tampil otomatis." aria-label="Info performa jurnal" aria-expanded="false">i</button></h2>
+              <p class="jp-meta-line">Belum ada trade tertutup</p>
             </div>
             <a class="jp-home-link" href="apps/journal/index.html?view=statistics">Buka Analitik →</a>
           </div>
-          <p class="jp-home-empty-copy">Catat hasil trade XAU/USD pertamamu agar Equity Curve, Profit Factor, Max Drawdown, dan pola kebocoran tampil otomatis di sini.</p>
           <div class="jp-home-actions">
             <a class="jp-primary-btn" href="apps/journal/index.html?view=journal&amp;action=new">Catat Trade Pertama</a>
             <button type="button" class="jp-amy-btn" data-jp-home-amy>Tanya Amy</button>

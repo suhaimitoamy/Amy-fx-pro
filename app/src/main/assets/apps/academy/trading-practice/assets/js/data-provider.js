@@ -1,4 +1,4 @@
-/* Amy FX Trading Practice — packaged sample + scalable local historical pack provider. */
+/* Amy FX Backtest Lab — packaged sample + Cloud 2019-2026 + local ZIP/CSV/JSON historical pack provider. */
 (function (root) {
   'use strict';
 
@@ -13,21 +13,38 @@
   var SELECTED_KEY = 'amy.practice.v2.selectedSource';
   var samplePromise = null;
   var candleCache = new Map();
-  var CACHE_LIMIT = 2;
+  var CACHE_LIMIT = 3;
+  var cloudManifestCache = null;
+
+  function formatMonthLabel(timestampSec) {
+    var ts = Number(timestampSec || 0);
+    if (!ts) return 'Sample Lokal';
+    try {
+      return new Intl.DateTimeFormat('id-ID', {
+        timeZone: 'UTC', month: 'short', year: 'numeric'
+      }).format(new Date(ts * 1000));
+    } catch (_) {
+      return new Date(ts * 1000).toISOString().slice(0, 7);
+    }
+  }
 
   function unpackSample(payload) {
     var candles = core.normalizeCandles((payload && payload.candles) || []);
+    var start = candles.length ? candles[0].time : null;
+    var end = candles.length ? candles[candles.length - 1].time : null;
+    var periodLabel = formatMonthLabel(start);
     return {
       id: SAMPLE_ID,
       kind: 'sample',
       symbol: String(payload.symbol || 'XAUUSD').toUpperCase(),
       timeframe: String(payload.baseTimeframe || 'M1').toUpperCase(),
-      source: payload.source || 'Packaged sample',
+      source: 'Sample Bawaan XAU/USD (' + periodLabel + ')',
       sampleOnly: true,
       timezone: payload.timezone || 'UTC',
-      start: candles.length ? candles[0].time : null,
-      end: candles.length ? candles[candles.length - 1].time : null,
+      start: start,
+      end: end,
       rowCount: candles.length,
+      label: 'Sample · ' + periodLabel + ' (' + candles.length.toLocaleString('id-ID') + ' M1)',
       candles: candles
     };
   }
@@ -52,7 +69,8 @@
         }
         return {
           id: SAMPLE_ID, kind: 'sample', symbol: 'XAUUSD', timeframe: 'M1',
-          source: 'Sample UI', sampleOnly: true, start: null, end: null, rowCount: 0, candles: []
+          source: 'Sample Lokal', sampleOnly: true, start: null, end: null, rowCount: 0,
+          label: 'Sample Lokal', candles: []
         };
       })();
     }
@@ -73,6 +91,9 @@
   function timeframeRank(timeframe) { return core.timeframeSeconds(timeframe) || Number.MAX_SAFE_INTEGER; }
 
   function sourceLabel(meta) {
+    if (meta && meta.sampleOnly) {
+      return meta.label || ('Sample · ' + formatMonthLabel(meta.start));
+    }
     var date = meta && meta.start ? new Date(Number(meta.start) * 1000) : null;
     var ym = date && Number.isFinite(date.getTime())
       ? date.toISOString().slice(0, 7)
@@ -96,22 +117,6 @@
     var rest = newline >= 0 ? value.slice(newline) : '';
     head = head.replace(/^(timestamp_utc|datetime_utc|time_utc)(?=,|;|\t)/i, 'timestamp');
     return head + rest;
-  }
-
-  function meaningfulLines(text) {
-    var clean = compatibleCsv(text);
-    var lines = [];
-    var start = 0;
-    var len = clean.length;
-    while (start < len) {
-      var nextNl = clean.indexOf('\n', start);
-      var end = nextNl < 0 ? len : nextNl;
-      var line = clean.slice(start, end).trim();
-      if (line.length > 0) lines.push(line);
-      if (nextNl < 0) break;
-      start = nextNl + 1;
-    }
-    return lines;
   }
 
   function metadataFromCsv(text) {
@@ -199,12 +204,12 @@
     return meta;
   }
 
-  async function saveZipPack(blob, entry, provenance, results) {
+  async function saveZipPack(blob, entry, provenance, timeframe, results) {
     var archive = await root.AmyZipArchive.open(blob);
     var text = await archive.text(entry);
     var info = metadataFromCsv(text);
     var meta = packMeta({
-      symbol: 'XAUUSD', timeframe: 'M1', source: provenance,
+      symbol: 'XAUUSD', timeframe: timeframe || 'M1', source: provenance,
       provenance: provenance, fileName: blob.name || entry.name.replace(/\.csv$/i, '.zip'),
       format: 'zip', entryPath: entry.name,
       start: info.start, end: info.end, rowCount: info.rowCount, size: blob.size
@@ -216,9 +221,7 @@
 
   async function saveTextPack(blob, options, results) {
     var text = await blob.text();
-    var info;
-    if (options.format === 'json') info = metadataFromJson(text);
-    else info = metadataFromCsv(text);
+    var info = options.format === 'json' ? metadataFromJson(text) : metadataFromCsv(text);
     if (info.rowCount < 20) throw new Error('Dataset harus berisi minimal 20 candle OHLC valid.');
     var meta = packMeta({
       symbol: options.symbol || 'XAUUSD', timeframe: options.timeframe || 'M1',
@@ -230,36 +233,40 @@
     return meta;
   }
 
-  async function scanZip(blob, context, depth, results, onProgress) {
-    if (!root.AmyZipArchive) throw new Error('ZIP reader Practice belum dimuat.');
+  async function scanZip(blob, context, depth, results, onProgress, fallbackTimeframe) {
+    if (!root.AmyZipArchive) throw new Error('ZIP reader belum dimuat.');
     if (depth > 5) throw new Error('Struktur ZIP terlalu dalam. Maksimal 5 lapisan.');
     var archive = await root.AmyZipArchive.open(blob);
     var entries = archive.list();
-    var m1Entries = entries.filter(root.AmyZipArchive.isM1CsvEntry);
+    var csvEntries = entries.filter(root.AmyZipArchive.isM1CsvEntry);
+    var detectedTf = 'M1';
+    if (!csvEntries.length) {
+      csvEntries = entries.filter(root.AmyZipArchive.isCsvEntry);
+      detectedTf = fallbackTimeframe || 'M1';
+    }
 
-    if (m1Entries.length === 1) {
-      if (onProgress) onProgress({ stage: 'validate', fileName: context.name, message: 'Memvalidasi M1 ' + context.name });
-      await saveZipPack(blob, m1Entries[0], context.provenance, results);
+    if (csvEntries.length === 1) {
+      if (onProgress) onProgress({ stage: 'validate', fileName: context.name, message: 'Memvalidasi ' + context.name });
+      await saveZipPack(blob, csvEntries[0], context.provenance, detectedTf, results);
       if (onProgress) onProgress({ stage: 'saved', fileName: context.name, packCount: results.length, message: results[results.length - 1].label + ' tersimpan' });
       return;
     }
 
-    if (m1Entries.length > 1) {
-      for (var m = 0; m < m1Entries.length; m += 1) {
-        if (onProgress) onProgress({ stage: 'extract', fileName: m1Entries[m].name, index: m + 1, total: m1Entries.length, message: 'Mengekstrak ' + m1Entries[m].name });
-        var csvBytes = await archive.extract(m1Entries[m]);
+    if (csvEntries.length > 1) {
+      for (var m = 0; m < csvEntries.length; m += 1) {
+        if (onProgress) onProgress({ stage: 'extract', fileName: csvEntries[m].name, index: m + 1, total: csvEntries.length, message: 'Mengekstrak ' + csvEntries[m].name });
+        var csvBytes = await archive.extract(csvEntries[m]);
         var csvBlob = new Blob([csvBytes], { type: 'text/csv' });
-        var childSource = context.provenance + ' → ' + m1Entries[m].name;
-        await saveTextPack(csvBlob, { symbol: 'XAUUSD', timeframe: 'M1', source: childSource, fileName: m1Entries[m].name, format: 'csv' }, results);
-        if (onProgress) onProgress({ stage: 'saved', fileName: m1Entries[m].name, packCount: results.length, message: results[results.length - 1].label + ' tersimpan' });
-        // Chunking yield: allow browser event loop to breathe (1 frame @ 60fps) to prevent UI freeze and ANR
+        var childSource = context.provenance + ' → ' + csvEntries[m].name;
+        await saveTextPack(csvBlob, { symbol: 'XAUUSD', timeframe: detectedTf, source: childSource, fileName: csvEntries[m].name, format: 'csv' }, results);
+        if (onProgress) onProgress({ stage: 'saved', fileName: csvEntries[m].name, packCount: results.length, message: results[results.length - 1].label + ' tersimpan' });
         await new Promise(function (resolve) { setTimeout(resolve, 16); });
       }
       return;
     }
 
     var nested = entries.filter(root.AmyZipArchive.isZipEntry);
-    if (!nested.length) throw new Error('Tidak ditemukan CSV M1 atau ZIP turunan di ' + context.name + '.');
+    if (!nested.length) throw new Error('Tidak ditemukan file CSV atau ZIP turunan di ' + context.name + '.');
     for (var i = 0; i < nested.length; i += 1) {
       if (onProgress) onProgress({ stage: 'extract', fileName: nested[i].name, message: 'Membuka ' + nested[i].name });
       var bytes = await archive.extract(nested[i]);
@@ -268,7 +275,7 @@
       await scanZip(childBlob, {
         name: nested[i].name,
         provenance: context.provenance + ' → ' + nested[i].name
-      }, depth + 1, results, onProgress);
+      }, depth + 1, results, onProgress, fallbackTimeframe);
       await new Promise(function (resolve) { setTimeout(resolve, 16); });
     }
   }
@@ -283,11 +290,11 @@
       var name = String(file.name || 'dataset-' + (i + 1));
       if (onProgress) onProgress({ stage: 'file', fileName: name, index: i + 1, total: list.length, message: 'Memproses ' + name });
       if (/\.zip$/i.test(name) || file.type === 'application/zip') {
-        await scanZip(file, { name: name, provenance: name }, 0, results, onProgress);
+        await scanZip(file, { name: name, provenance: name }, 0, results, onProgress, options.timeframe || 'M1');
       } else if (/\.json$/i.test(name) || file.type === 'application/json') {
-        await saveTextPack(file, { symbol: options.symbol || 'XAUUSD', timeframe: options.timeframe || 'M1', source: 'Imported local: ' + name, fileName: name, format: 'json' }, results);
+        await saveTextPack(file, { symbol: options.symbol || 'XAUUSD', timeframe: options.timeframe || 'M1', source: 'Impor lokal: ' + name, fileName: name, format: 'json' }, results);
       } else {
-        await saveTextPack(file, { symbol: options.symbol || 'XAUUSD', timeframe: options.timeframe || 'M1', source: 'Imported local: ' + name, fileName: name, format: 'csv' }, results);
+        await saveTextPack(file, { symbol: options.symbol || 'XAUUSD', timeframe: options.timeframe || 'M1', source: 'Impor lokal: ' + name, fileName: name, format: 'csv' }, results);
       }
       await new Promise(function (resolve) { setTimeout(resolve, 0); });
     }
@@ -303,7 +310,7 @@
     var text;
     var candles;
     if (meta.format === 'zip') {
-      if (!root.AmyZipArchive) throw new Error('ZIP reader Practice belum dimuat.');
+      if (!root.AmyZipArchive) throw new Error('ZIP reader belum dimuat.');
       var archive = await root.AmyZipArchive.open(stored.blob);
       text = await archive.text(meta.entryPath);
       candles = core.parseCsv(compatibleCsv(text));
@@ -319,21 +326,7 @@
     return cachePut(id, {
       id: id, kind: 'pack', symbol: meta.symbol, timeframe: meta.timeframe,
       source: meta.source, sampleOnly: false, start: meta.start, end: meta.end,
-      rowCount: meta.rowCount, candles: candles
-    });
-  }
-
-  async function legacySources(symbol) {
-    var requested = String(symbol || 'XAUUSD').toUpperCase();
-    var items = await storage.listDatasets();
-    return items.filter(function (item) { return item.symbol === requested; }).map(function (item) {
-      return {
-        id: 'legacy:' + item.id, kind: 'legacy', symbol: item.symbol, timeframe: item.timeframe,
-        source: item.source || 'Imported legacy dataset', sampleOnly: false,
-        start: item.start || (item.candles && item.candles[0] && item.candles[0].time),
-        end: item.end || (item.candles && item.candles.length && item.candles[item.candles.length - 1].time),
-        rowCount: item.rowCount || (item.candles && item.candles.length) || 0
-      };
+      rowCount: meta.rowCount, candles: candles, aggregatedByTf: {}
     });
   }
 
@@ -347,32 +340,29 @@
         return Object.assign({ kind: 'pack', sampleOnly: false }, item);
       });
     } catch (_) {}
-    var legacy = [];
-    try { legacy = await legacySources(requested); } catch (_) {}
     var output = [];
     if (sample && sample.symbol === requested && (sample.rowCount > 0 || !packs.length)) {
       output.push({
         id: sample.id, kind: 'sample', symbol: sample.symbol, timeframe: sample.timeframe,
-        source: sample.source, sampleOnly: true, start: sample.start, end: sample.end, rowCount: sample.rowCount,
-        label: 'Sample · Maret 2009'
+        source: sample.source, sampleOnly: true, start: sample.start, end: sample.end,
+        rowCount: sample.rowCount, label: sample.label
       });
     }
-    return output.concat(packs, legacy);
+    return output.concat(packs);
   }
 
   async function resolveSource(symbol, sourceId) {
-    var requested = String(symbol || 'XAUUSD').toUpperCase();
     var id = String(sourceId || selectedSourceId() || SAMPLE_ID);
-    if (id === SAMPLE_ID) return loadSample();
-    if (id.indexOf('pack:') === 0) return loadPackCandles(id);
-    if (id.indexOf('legacy:') === 0) {
-      var rawId = id.slice(7);
-      var items = await storage.listDatasets();
-      var item = items.find(function (candidate) { return candidate.id === rawId && candidate.symbol === requested; });
-      if (item) return Object.assign({ id: id, kind: 'legacy', sampleOnly: false }, item);
+    if (id === SAMPLE_ID) {
+      var s = await loadSample();
+      if (!s.aggregatedByTf) s.aggregatedByTf = {};
+      return s;
     }
+    if (id.indexOf('pack:') === 0) return loadPackCandles(id);
     setSelectedSourceId(SAMPLE_ID);
-    return loadSample();
+    var fallback = await loadSample();
+    if (!fallback.aggregatedByTf) fallback.aggregatedByTf = {};
+    return fallback;
   }
 
   async function sourceFor(symbol, timeframe, sourceId) {
@@ -385,15 +375,83 @@
     return source;
   }
 
+  function fullAggregated(source, timeframe) {
+    if (!source.aggregatedByTf) source.aggregatedByTf = {};
+    if (!source.aggregatedByTf[timeframe]) {
+      source.aggregatedByTf[timeframe] = core.aggregateCandles(source.candles, timeframe, {
+        sourceTimeframe: source.timeframe,
+        trustedSeries: true
+      });
+    }
+    return source.aggregatedByTf[timeframe];
+  }
+
+  // Fast O(log n) visible candle slice for replay playback (eliminates full-dataset re-aggregation on every step!)
+  function fastVisibleCandles(source, timeframe, cursor) {
+    var tfSec = core.timeframeSeconds(timeframe);
+    var srcSec = core.timeframeSeconds(source.timeframe || 'M1');
+    var full = fullAggregated(source, timeframe);
+    if (cursor == null) return full.slice();
+
+    if (tfSec === srcSec) {
+      var lo = 0, hi = full.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (full[mid].time <= cursor) lo = mid + 1;
+        else hi = mid;
+      }
+      return full.slice(0, lo);
+    }
+
+    // Binary search last fully completed bar where lastSourceTime <= cursor
+    var l = 0, h = full.length;
+    while (l < h) {
+      var m = (l + h) >> 1;
+      var lastTs = full[m].lastSourceTime != null ? full[m].lastSourceTime : full[m].time;
+      if (lastTs <= cursor) l = m + 1;
+      else h = m;
+    }
+    var result = full.slice(0, l);
+
+    // Check if next bar is partially formed at cursor (intra-candle MTF parity without future leak)
+    if (l < full.length && full[l].time <= cursor) {
+      var bucketStart = full[l].time;
+      var src = source.candles;
+      var sLo = 0, sHi = src.length;
+      while (sLo < sHi) {
+        var sm = (sLo + sHi) >> 1;
+        if (src[sm].time < bucketStart) sLo = sm + 1;
+        else sHi = sm;
+      }
+      var partial = null;
+      for (var k = sLo; k < src.length; k += 1) {
+        var c = src[k];
+        if (c.time > cursor) break;
+        if (!partial) {
+          partial = {
+            time: bucketStart, open: c.open, high: c.high, low: c.low, close: c.close,
+            sourceCount: 1, lastSourceTime: c.time
+          };
+        } else {
+          if (c.high > partial.high) partial.high = c.high;
+          if (c.low < partial.low) partial.low = c.low;
+          partial.close = c.close;
+          partial.sourceCount += 1;
+          partial.lastSourceTime = c.time;
+        }
+      }
+      if (partial) result.push(partial);
+    }
+
+    return result;
+  }
+
   async function getCandles(options) {
     options = options || {};
     var timeframe = String(options.timeframe || 'M15').toUpperCase();
     var source = await sourceFor(options.symbol || 'XAUUSD', timeframe, options.sourceId);
     var cursor = options.cursor == null ? null : core.finite(options.cursor);
-    var isTrusted = Array.isArray(source.candles);
-    var candles = cursor == null
-      ? core.aggregateCandles(source.candles, timeframe, { sourceTimeframe: source.timeframe, trustedSeries: isTrusted })
-      : core.visibleCandles(source.candles, cursor, timeframe, source.timeframe, { trustedSeries: isTrusted });
+    var candles = fastVisibleCandles(source, timeframe, cursor);
     return {
       sourceId: source.id,
       symbol: source.symbol,
@@ -404,26 +462,13 @@
       start: source.start,
       end: source.end,
       rowCount: source.rowCount || source.candles.length,
-      candles: candles.map(function (candle) { return Object.assign({}, candle); })
+      candles: candles
     };
   }
 
   async function getTimeline(options) {
     var result = await getCandles(Object.assign({}, options, { cursor: null }));
     return result.candles.map(function (candle) { return candle.lastSourceTime == null ? candle.time : candle.lastSourceTime; });
-  }
-
-  async function range(options) {
-    var result = await getCandles(Object.assign({}, options, { cursor: null }));
-    return {
-      sourceId: result.sourceId,
-      start: result.candles.length ? result.candles[0].time : null,
-      end: result.candles.length ? result.candles[result.candles.length - 1].time : null,
-      count: result.candles.length,
-      rowCount: result.rowCount,
-      source: result.source,
-      sampleOnly: result.sampleOnly
-    };
   }
 
   async function deleteSource(id) {
@@ -434,22 +479,18 @@
     return true;
   }
 
-  async function importFile(file, options) {
-    var results = await importFiles([file], options || {});
-    return results[0];
-  }
-
   function cloudApiBase() {
     if (typeof location !== 'undefined') {
-      var h = String(location.hostname || '').toLowerCase();
-      if (h === 'localhost' || h === '127.0.0.1') {
+      var proto = String(location.protocol || '').toLowerCase();
+      var host = String(location.hostname || '').toLowerCase();
+      // On any HTTP/HTTPS deployment (localhost, Vercel, preview URL), always use relative /api/candles
+      if ((proto === 'http:' || proto === 'https:') && host && host !== 'appassets.androidplatform.net') {
         return '/api/candles';
       }
     }
     return 'https://amy-fx.vercel.app/api/candles';
   }
 
-  var cloudManifestCache = null;
   async function loadCloudManifest() {
     if (cloudManifestCache) return cloudManifestCache;
     try {
@@ -462,34 +503,54 @@
     return null;
   }
 
-  async function installCloudPack(year, monthOption, onProgress) {
-    if (!root.AmyZipArchive) throw new Error('ZIP reader Practice belum dimuat.');
-    
-    var fileName = null;
-    var provenance = 'Cloud XAUUSD ' + year;
-
-    if (!monthOption || monthOption === 'ALL') {
-      fileName = 'XAUUSD_' + year + '_MONTHLY_ARCHIVES_REPAIRED_AUDITED.zip';
-      provenance += ' (Tahun Penuh)';
-    } else {
-      fileName = monthOption;
-      provenance += ' (' + monthOption + ')';
-    }
-
-    if (onProgress) onProgress({ stage: 'download', message: 'Mengunduh ' + fileName + ' dari Cloud…' });
-    
+  async function downloadSingleCloudZip(fileName, provenance, onProgress, results) {
     var resp = await fetch(cloudApiBase() + '?file=' + encodeURIComponent(fileName));
     if (!resp.ok) {
-      throw new Error('Gagal mengunduh file dari Cloud (HTTP ' + resp.status + ').');
+      throw new Error('Gagal mengunduh ' + fileName + ' dari Cloud (HTTP ' + resp.status + ').');
     }
-
     var blob = await resp.blob();
     try { Object.defineProperty(blob, 'name', { value: fileName }); } catch (_) {}
+    await scanZip(blob, { name: fileName, provenance: provenance }, 0, results, onProgress, 'M1');
+  }
 
+  // Safe cloud pack installer: for ALL months, downloads monthly ZIPs sequentially (~425KB each)
+  // so it NEVER exceeds Vercel's 4.5MB serverless payload limit!
+  async function installCloudPack(year, monthOption, onProgress) {
+    if (!root.AmyZipArchive) throw new Error('ZIP reader belum dimuat.');
     var results = [];
-    if (onProgress) onProgress({ stage: 'extract', message: 'Mengekstrak dan memasang pack…' });
-    await scanZip(blob, { name: fileName, provenance: provenance }, 0, results, onProgress);
-    
+    var y = String(year || '2025');
+
+    if (!monthOption || monthOption === 'ALL') {
+      var manifest = await loadCloudManifest();
+      var months = manifest && Array.isArray(manifest[y]) ? manifest[y] : null;
+      if (months && months.length) {
+        for (var i = 0; i < months.length; i += 1) {
+          var item = months[i];
+          if (onProgress) {
+            onProgress({
+              stage: 'download',
+              index: i + 1,
+              total: months.length,
+              message: 'Mengunduh bulan ' + (i + 1) + '/' + months.length + ': ' + item.label + ' (' + item.sizeKb + ' KB)…'
+            });
+          }
+          await downloadSingleCloudZip(item.file, 'Cloud XAUUSD ' + y + ' (' + item.label + ')', onProgress, results);
+          await new Promise(function (resolve) { setTimeout(resolve, 25); });
+        }
+        if (onProgress) onProgress({ stage: 'done', packCount: results.length, message: results.length + ' pack bulanan ' + y + ' berhasil dipasang!' });
+        return results;
+      }
+      // Fallback if manifest unavailable
+      var fallbackFile = 'XAUUSD_' + y + '_MONTHLY_ARCHIVES_REPAIRED_AUDITED.zip';
+      if (onProgress) onProgress({ stage: 'download', message: 'Mengunduh ' + fallbackFile + '…' });
+      await downloadSingleCloudZip(fallbackFile, 'Cloud XAUUSD ' + y + ' (Tahun Penuh)', onProgress, results);
+      if (onProgress) onProgress({ stage: 'done', packCount: results.length, message: results.length + ' pack berhasil dipasang!' });
+      return results;
+    }
+
+    var fileName = String(monthOption);
+    if (onProgress) onProgress({ stage: 'download', message: 'Mengunduh ' + fileName + ' dari Cloud…' });
+    await downloadSingleCloudZip(fileName, 'Cloud XAUUSD ' + y + ' (' + fileName + ')', onProgress, results);
     if (onProgress) onProgress({ stage: 'done', packCount: results.length, message: results.length + ' pack berhasil dipasang!' });
     return results;
   }
@@ -502,11 +563,11 @@
     setSelectedSourceId: setSelectedSourceId,
     getCandles: getCandles,
     getTimeline: getTimeline,
-    range: range,
-    importFile: importFile,
     importFiles: importFiles,
     deleteSource: deleteSource,
     sourceFor: sourceFor,
+    sourceLabel: sourceLabel,
+    cloudApiBase: cloudApiBase,
     loadCloudManifest: loadCloudManifest,
     installCloudPack: installCloudPack
   });

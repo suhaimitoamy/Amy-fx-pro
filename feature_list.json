@@ -1,6 +1,6 @@
 {
   "project": "Amy FX Pro",
-  "version": "2.0.0-pro.462",
+  "version": "2.0.0-pro.463",
   "last_updated": "2026-11-21",
   "rules": {
     "single_active_feature": true,
@@ -25,7 +25,9 @@
         "Jalankan node --test tests/home-price-chart.test.mjs",
         "Periksa kontainer .gold-price-panel dan .home-price-panel"
       ],
-      "evidence": ["tests/home-price-chart.test.mjs passed 6/6"],
+      "evidence": [
+        "tests/home-price-chart.test.mjs passed 6/6"
+      ],
       "notes": "Invarian Pro 403 terkunci"
     },
     {
@@ -39,7 +41,9 @@
         "Jalankan node --test tests/journal-analytics-pro.test.mjs",
         "Buka Beranda slot #home-journal-analytics-slot dan Modul Jurnal"
       ],
-      "evidence": ["tests/journal-analytics-pro.test.mjs passed 4/4"],
+      "evidence": [
+        "tests/journal-analytics-pro.test.mjs passed 4/4"
+      ],
       "notes": "Diintegrasikan dari AI Studio (v2.0.0-pro.458)"
     },
     {
@@ -53,7 +57,9 @@
         "Jalankan node --test tests/twelvedata-key-pool.test.mjs",
         "Periksa lib/twelvedata-key-pool.mjs"
       ],
-      "evidence": ["tests/twelvedata-key-pool.test.mjs passed 2/2"],
+      "evidence": [
+        "tests/twelvedata-key-pool.test.mjs passed 2/2"
+      ],
       "notes": "Menghemat ~80% kredit kuota harian TwelveData"
     },
     {
@@ -67,8 +73,12 @@
         "Periksa systemInstruction di amy-gemini-live-bridge.js",
         "Validasi sintaks node --check app/src/main/assets/apps/shared/amy-gemini-live-bridge.js"
       ],
-      "evidence": ["Sintaks valid & prompt aturan format angka mutlak aktif"],
+      "evidence": [
+        "Sintaks valid & prompt aturan format angka mutlak aktif"
+      ],
       "notes": "Memperbaiki isu ejaan kata pada Screenshot 20261120-085205"
     }
-  ]
+  ],
+  "currentVersion": "2.0.0-pro.463",
+  "versionCode": 950463
 }

@@ -11,36 +11,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const practiceItems = [
     {
-      id: 'chart-analysis',
-      title: 'Chart Analysis',
-      badge: 'Praktik',
-      icon: 'indicator',
-      desc: 'Analisis chart, gambar level, dan impor data historis candle.',
-      target: 'apps/academy/trading-practice/chart-analysis.html'
-    },
-    {
       id: 'candle-replay',
-      title: 'Candle Replay',
+      title: 'Replay Lab',
       badge: 'Replay',
       icon: 'mapping',
-      desc: 'Latihan membaca candle satu per satu dan catat keputusan trading.',
+      desc: 'Chart & Order Cloud',
       target: 'apps/academy/trading-practice/candle-replay.html'
     },
     {
-      id: 'guided-practice',
-      title: 'Latihan Soal',
-      badge: 'Latihan',
-      icon: 'academy',
-      desc: '60 studi kasus eksekusi chart riil XAU/USD & evaluasi keputusan.',
-      target: 'apps/academy/trading-practice/guided-practice.html'
+      id: 'backtest-history',
+      title: 'Performa',
+      badge: 'Analitik',
+      icon: 'journal',
+      desc: 'Kurva & Ledger',
+      target: 'apps/academy/trading-practice/backtest-history.html'
     },
     {
-      id: 'backtest-history',
-      title: 'Riwayat Backtest Lokal',
-      badge: 'Riwayat',
-      icon: 'journal',
-      desc: 'Tinjau setup manual, hasil forward candle, dan jurnal latihan.',
-      target: 'apps/academy/trading-practice/backtest-history.html'
+      id: 'guided-practice',
+      title: 'Latihan',
+      badge: 'Latihan',
+      icon: 'academy',
+      desc: '60 Studi Kasus',
+      target: 'apps/academy/trading-practice/guided-practice.html'
     }
   ];
 
@@ -220,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <p id="home-chart-source" role="status">Memuat candle tertutup…</p><p id="home-chart-error" role="alert"></p>
       <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
       <p id="home-chart-note"></p>
-    </section><section id="home-journal-analytics-slot" class="home-journal-pro-slot" aria-label="Ringkasan performa jurnal"></section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
+    </section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
     if (typeof mainContent.querySelector === 'function') {
       mainContent.querySelector('#home-chart-alert')?.addEventListener('click', () => {
         if (typeof window.AmyPriceAlertManager?.openAddAlertDialog === 'function') {
@@ -229,13 +221,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       window.AmyPriceAlertManager?.syncAlertButtonBadges?.();
       if(window.AmyHomeChart)disposeHomeChart=window.AmyHomeChart.mount(mainContent.querySelector('.home-price-panel'));
+      if (typeof window.AmyHomeAccountCockpit?.render === 'function') {
+        window.AmyHomeAccountCockpit.render();
+      }
       try { window.dispatchEvent(new CustomEvent('amyfx:home-rendered')); } catch (_) {}
     }
   }
 
   function renderProjectList(title) {
     setActive('proyek');
-    mainContent.innerHTML = `<div class="page-header"><div><span class="section-kicker">JALUR 03</span><h2>${title || 'Backtest'}</h2></div></div><div class="project-grid slide-up">${practiceItems.map(projectCard).join('')}</div>`;
+    mainContent.innerHTML = `<div class="section-heading"><h2>${title || 'Backtest'}</h2></div><div class="quick-grid slide-up">${practiceItems.map((item, idx) => quickCard(item, idx === 0)).join('')}</div>`;
   }
 
   // ─── AMY FX PRO ROOT MEDIA HUB & VAULT ──────────────────────────────
@@ -455,10 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filteredItems.length === 0) {
       contentHTML = `
         <div class="empty-state-card slide-up" style="text-align:center; padding:36px 20px; border-radius:20px; background:var(--surface-color); border:1px solid var(--border-color); margin-top:10px;">
-          <div style="font-size:42px; margin-bottom:12px;">🎬</div>
-          <strong style="display:block; font-size:16px; margin-bottom:6px; color:var(--text-main);">Belum ada item tersimpan di kategori ini</strong>
-          <span style="display:block; font-size:13px; color:var(--text-muted); max-width:340px; margin:0 auto 18px;">Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda.</span>
-          <button type="button" id="rootEmptyUploadMediaBtn" class="media-upload-btn" style="padding:10px 20px; font-size:13px;">+ Upload Video Pertama</button>
+          <div style="font-size:36px; margin-bottom:10px;">🎬</div>
+          <strong style="display:block; font-size:15px; margin-bottom:14px; color:var(--text-main);">Belum ada media tersimpan <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda." aria-label="Info media" aria-expanded="false">i</button></strong>
+          <button type="button" id="rootEmptyUploadMediaBtn" class="media-upload-btn" style="padding:10px 20px; font-size:13px;">+ Upload Media</button>
         </div>
       `;
     } else {
@@ -939,11 +933,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="amy-reel-sheet-header">
             <div class="amy-reel-sheet-title">
               <span style="font-size:18px;">🌙</span>
-              <strong>Timer Tidur Otomatis</strong>
+              <strong>Timer Tidur <button type="button" class="amy-info-btn" data-info-tip="Pilih kapan video berhenti otomatis agar Anda bisa istirahat dengan nyaman." aria-label="Info timer tidur" aria-expanded="false">i</button></strong>
             </div>
             <button type="button" class="amy-reel-sheet-close" id="amyReelSheetCloseBtn" aria-label="Tutup Menu">×</button>
           </div>
-          <div class="amy-reel-sheet-desc">Pilih kapan video berhenti otomatis agar Anda bisa istirahat dengan nyaman:</div>
           <div class="amy-reel-sheet-grid" id="amyReelTimerGrid">
             <button type="button" class="amy-timer-btn" data-timer-val="off">
               <span class="timer-btn-icon">❌</span>
@@ -1535,8 +1528,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderProfile() {
     setActive('profil');
     const traderName = localStorage.getItem('amy_trader_name') || 'Trader';
-    const userBalance = localStorage.getItem('amy_default_balance') || '5000';
-    const userRisk = localStorage.getItem('amy_default_risk') || '1.5';
+    const simEngine = window.AmyAccountSimEngine;
+    const simParams = simEngine?.readParams
+      ? simEngine.readParams()
+      : {
+          baseBalanceUsd: Number(localStorage.getItem('amy_default_balance') || 5000) || 5000,
+          riskPct: Number(localStorage.getItem('amy_default_risk') || 1.5) || 1.5,
+          currency: localStorage.getItem('amy_account_currency') === 'USD' ? 'USD' : 'IDR',
+          usdIdrRate: Number(localStorage.getItem('amy_usd_idr_rate') || 16500) || 16500,
+          leverage: Number(localStorage.getItem('amy_account_leverage') || 500) || 500,
+          spreadUsd: Number(localStorage.getItem('amy_account_spread') ?? 0.2)
+        };
+    const userBalance = String(simParams.baseBalanceUsd);
+    const userRisk = String(simParams.riskPct);
     const reminderConfig = window.AmyLearningReminder ? window.AmyLearningReminder.getConfig() : {
       enabled: localStorage.getItem('amy_learning_reminder_enabled') !== 'false',
       time: localStorage.getItem('amy_learning_reminder_time') || '20:00',
@@ -1560,11 +1564,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return Number.isFinite(num) ? num.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '5,000';
     };
 
+    const formatIdrQuick = (usd, rate) => {
+      if (simEngine?.formatIdr) return simEngine.formatIdr(Number(usd) * Number(rate));
+      const idr = Math.round((Number(usd) || 0) * (Number(rate) || 16500));
+      return 'Rp' + Math.abs(idr).toLocaleString('id-ID');
+    };
+
     const calcRiskUsd = (bal, risk) => {
       const b = Number(bal);
       const r = Number(risk);
       if (!Number.isFinite(b) || !Number.isFinite(r) || b <= 0 || r <= 0) return '0.00';
       return ((b * r) / 100).toFixed(2);
+    };
+
+    const buildIdentityBalanceText = (balUsd, currency, rate) => {
+      if (currency === 'IDR') {
+        return formatIdrQuick(balUsd, rate);
+      }
+      return `$${formatMoney(balUsd)}`;
+    };
+
+    const buildRiskSummaryText = (balUsd, riskPct, currency, rate) => {
+      const riskUsd = Number(calcRiskUsd(balUsd, riskPct));
+      const riskIdrText = formatIdrQuick(riskUsd, rate);
+      if (currency === 'IDR') {
+        return `Risiko ${riskIdrText} ($${riskUsd.toFixed(2)}) / trade`;
+      }
+      return `Risiko $${riskUsd.toFixed(2)} (${riskIdrText}) / trade`;
     };
 
     const customBgData = window.AmyFXTheme?.customBg;
@@ -1579,14 +1605,18 @@ document.addEventListener('DOMContentLoaded', () => {
       : { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 68 };
     const opacityVal = themeColors.opacity !== undefined ? Number(themeColors.opacity) : themeDefaults.opacity;
 
-    mainContent.innerHTML = `
-      <div class="profile-page">
-        <div class="profile-page-head">
-          <h2>Profil &amp; Pengaturan</h2>
-          <p>Kelola identitas trader, tampilan aplikasi, parameter risiko, dan cadangan data lokal.</p>
-        </div>
+    const savedTab = (() => {
+      try {
+        const t = sessionStorage.getItem('amy_profile_tab');
+        return ['akun', 'tampilan', 'sistem'].includes(t) ? t : 'akun';
+      } catch (_) {
+        return 'akun';
+      }
+    })();
 
-        <!-- Identitas Trader -->
+    mainContent.innerHTML = `
+      <div class="profile-page profile-page--clean">
+        <!-- Identitas Trader Ringkas -->
         <section class="profile-panel profile-identity-card slide-up" aria-label="Identitas Trader">
           <div class="profile-identity-main">
             <div class="profile-monogram" id="traderAvatarInitials" aria-hidden="true">${escapeHtml(getInitials(traderName))}</div>
@@ -1595,270 +1625,334 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="profile-identity-meta" id="traderIdentityMeta">
                 <span>XAU/USD</span>
                 <span aria-hidden="true">·</span>
-                <span>Saldo $${escapeHtml(formatMoney(userBalance))}</span>
+                <span>${escapeHtml(buildIdentityBalanceText(userBalance, simParams.currency, simParams.usdIdrRate))}</span>
                 <span aria-hidden="true">·</span>
-                <span>Risiko ${escapeHtml(userRisk)}%</span>
+                <span>${escapeHtml(userRisk)}%</span>
               </div>
             </div>
-            <button type="button" id="editTraderNameBtn" class="profile-btn-ghost" aria-expanded="false" aria-controls="traderNameEditor">
-              Ubah Nama
+            <button type="button" id="editTraderNameBtn" class="profile-btn-ghost profile-btn-sm" aria-expanded="false" aria-controls="traderNameEditor">
+              Ubah
             </button>
           </div>
 
           <form id="traderNameEditor" class="profile-name-editor" hidden>
             <label class="sr-only" for="traderNameInput">Nama Trader</label>
-            <input type="text" id="traderNameInput" class="profile-input" value="${escapeHtml(traderName)}" maxlength="36" placeholder="Masukkan nama trader" autocomplete="name">
+            <input type="text" id="traderNameInput" class="profile-input" value="${escapeHtml(traderName)}" maxlength="36" placeholder="Nama trader" autocomplete="name">
             <div class="profile-name-editor-actions">
-              <button type="submit" class="profile-btn-primary">Simpan</button>
-              <button type="button" id="cancelTraderNameBtn" class="profile-btn-ghost">Batal</button>
+              <button type="submit" class="profile-btn-primary profile-btn-sm">Simpan</button>
+              <button type="button" id="cancelTraderNameBtn" class="profile-btn-ghost profile-btn-sm">Batal</button>
             </div>
           </form>
         </section>
 
-        <!-- Tampilan & Gaya -->
-        <div class="profile-section-heading">
-          <h3>Tampilan &amp; Gaya</h3>
-          <button type="button" class="profile-link-action" data-theme-colors-reset aria-label="Kembalikan warna bawaan">Reset bawaan</button>
+        <!-- Navigasi Segmen Profil -->
+        <div class="profile-tabs" role="tablist" aria-label="Kategori profil">
+          <button type="button" role="tab" class="profile-tab ${savedTab === 'akun' ? 'is-active' : ''}" data-profile-tab="akun" aria-selected="${savedTab === 'akun' ? 'true' : 'false'}" aria-controls="profileTabAkun">Akun</button>
+          <button type="button" role="tab" class="profile-tab ${savedTab === 'tampilan' ? 'is-active' : ''}" data-profile-tab="tampilan" aria-selected="${savedTab === 'tampilan' ? 'true' : 'false'}" aria-controls="profileTabTampilan">Tampilan</button>
+          <button type="button" role="tab" class="profile-tab ${savedTab === 'sistem' ? 'is-active' : ''}" data-profile-tab="sistem" aria-selected="${savedTab === 'sistem' ? 'true' : 'false'}" aria-controls="profileTabSistem">Sistem</button>
         </div>
-        <section class="profile-panel slide-up" data-amyfx-unified-appearance="true" data-amyfx-color-settings="true">
-          <div class="profile-block">
-            <span class="profile-label">Mode Tampilan</span>
-            <div class="theme-selector profile-segmented" role="group" aria-label="Pilih tema aplikasi">
-              <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
-                <span>Sistem</span>
-              </button>
-              <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-                <span>Terang</span>
-              </button>
-              <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
-                <span>Gelap</span>
-              </button>
+
+        <!-- TAB 1: AKUN & SIMULASI -->
+        <div class="profile-tab-panel profile-akun-layout" id="profileTabAkun" role="tabpanel" data-profile-panel="akun" ${savedTab === 'akun' ? '' : 'hidden'}>
+          <section id="home-account-cockpit-slot" class="home-account-cockpit-slot profile-cockpit-slot" aria-label="Cockpit Akun Simulasi Pro"></section>
+
+          <section class="profile-panel slide-up" id="profileTradingParamsPanel" aria-label="Parameter Modal dan Risiko">
+            <div class="profile-label-row">
+              <span class="profile-label" style="margin-bottom:0;">Parameter Modal</span>
+              <span class="profile-section-meta">Pro · 100 oz</span>
             </div>
-          </div>
 
-          <div class="profile-block profile-divider">
-            <span class="profile-label">Koleksi Tema Kaca</span>
-            <div class="profile-presets-grid" data-glass-presets-grid></div>
-          </div>
-
-          <details class="profile-accordion profile-divider">
-            <summary class="profile-accordion-summary">
-              <span>Kustomisasi Warna &amp; Transparansi</span>
-              <svg class="profile-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </summary>
-            <div class="profile-accordion-body">
-              <div class="profile-subblock">
-                <span class="profile-sublabel">Palet Warna Utama</span>
-                <div class="profile-color-grid">
-                  ${[
-                    ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
-                  ].map(([key, label]) => {
-                    const val = themeColors[key] || themeDefaults[key];
-                    return `
-                    <div class="profile-color-item" data-color-cell="${key}">
-                      <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
-                      <span class="profile-color-name">${label}</span>
-                      <span class="profile-color-hex" data-hex-for="${key}">${val.toUpperCase()}</span>
-                    </div>
-                  `;}).join('')}
+            <div class="profile-fields-grid profile-fields-grid--compact">
+              <div class="profile-field">
+                <label for="profileBalance">Modal (USD)</label>
+                <div class="profile-input-wrap">
+                  <span class="profile-input-affix">$</span>
+                  <input type="number" id="profileBalance" class="profile-input profile-input-num" value="${escapeHtml(userBalance)}" min="1" step="any">
                 </div>
               </div>
-
-              <div class="profile-subblock">
-                <div class="profile-slider-head">
-                  <span class="profile-sublabel">Transparansi Permukaan</span>
-                  <span class="profile-slider-value" id="glass-opacity-val">${opacityVal}%</span>
+              <div class="profile-field">
+                <label for="profileRisk">Risiko</label>
+                <div class="profile-input-wrap">
+                  <input type="number" step="0.25" min="0.1" max="10" id="profileRisk" class="profile-input profile-input-num" value="${escapeHtml(userRisk)}">
+                  <span class="profile-input-affix">%</span>
                 </div>
-                <div class="profile-slider-wrap">
-                  <span class="profile-slider-edge">Bening</span>
-                  <input type="range" min="15" max="95" value="${opacityVal}" class="profile-range" data-theme-glass-opacity aria-label="Tingkat transparansi kaca">
-                  <span class="profile-slider-edge">Pekat</span>
+              </div>
+              <div class="profile-field">
+                <label for="profileUsdIdrRate">Kurs IDR</label>
+                <div class="profile-input-wrap">
+                  <span class="profile-input-affix">Rp</span>
+                  <input type="number" id="profileUsdIdrRate" class="profile-input profile-input-num" value="${escapeHtml(simParams.usdIdrRate)}" min="1000" step="50">
                 </div>
-                <div class="profile-quick-row">
-                  <button type="button" class="profile-quick-btn" data-quick-opacity="30">Bening 30%</button>
-                  <button type="button" class="profile-quick-btn" data-quick-opacity="65">Seimbang 65%</button>
-                  <button type="button" class="profile-quick-btn" data-quick-opacity="90">Pekat 90%</button>
+              </div>
+              <div class="profile-field">
+                <label for="profileLeverage">Leverage</label>
+                <div class="profile-input-wrap">
+                  <select id="profileLeverage" class="profile-input profile-input-num profile-select-bare" aria-label="Pilih leverage akun pro">
+                    ${[100, 200, 500, 1000].map(lv => `<option value="${lv}" ${Number(simParams.leverage) === lv ? 'selected' : ''}>1:${lv}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+              <div class="profile-field">
+                <label for="profileSpread">Spread XAU</label>
+                <div class="profile-input-wrap">
+                  <span class="profile-input-affix">$</span>
+                  <input type="number" id="profileSpread" class="profile-input profile-input-num" value="${escapeHtml(simParams.spreadUsd)}" min="0" max="5" step="0.05">
+                </div>
+              </div>
+              <div class="profile-field">
+                <label>Mata Uang</label>
+                <div class="profile-sim-seg profile-sim-seg--full" role="group" aria-label="Mata uang akun simulasi">
+                  <button type="button" class="profile-sim-seg-btn ${simParams.currency === 'IDR' ? 'is-active' : ''}" data-profile-currency="IDR" aria-pressed="${simParams.currency === 'IDR' ? 'true' : 'false'}">Rp</button>
+                  <button type="button" class="profile-sim-seg-btn ${simParams.currency === 'USD' ? 'is-active' : ''}" data-profile-currency="USD" aria-pressed="${simParams.currency === 'USD' ? 'true' : 'false'}">$</button>
                 </div>
               </div>
             </div>
-          </details>
 
-          <div class="profile-block profile-divider">
-            <div class="profile-wallpaper-row">
-              <div>
-                <span class="profile-label" style="margin-bottom:2px;">Wallpaper Latar</span>
-                <span id="customBgBadge" class="profile-inline-status ${hasCustomBg ? 'is-active' : ''}">${hasCustomBg ? 'Foto kustom aktif' : 'Default gradien'}</span>
+            <div class="profile-panel-footer">
+              <p class="profile-hint" id="profileRiskSummary">${escapeHtml(buildRiskSummaryText(userBalance, userRisk, simParams.currency, simParams.usdIdrRate))}</p>
+              <button type="button" id="saveTradingParamsBtn" class="profile-btn-gold">Simpan</button>
+            </div>
+
+            <details class="profile-accordion profile-divider">
+              <summary class="profile-accordion-summary">
+                <span>Kas &amp; Reset Simulasi</span>
+                <svg class="profile-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </summary>
+              <div class="profile-accordion-body profile-sim-ops--compact">
+                <div class="profile-sim-cashflow-row">
+                  <div class="profile-input-wrap profile-cashflow-input-wrap">
+                    <span class="profile-input-affix">$</span>
+                    <input type="number" id="profileCashflowUsd" class="profile-input profile-input-num" min="1" step="any" placeholder="500" aria-label="Nominal top up atau tarik dalam USD">
+                  </div>
+                  <button type="button" id="profileDepositBtn" class="profile-btn-ghost">+ Top Up</button>
+                  <button type="button" id="profileWithdrawBtn" class="profile-btn-ghost">- Tarik</button>
+                </div>
+                <div class="profile-sim-reset-row profile-sim-reset-row--compact">
+                  <span class="profile-sublabel" style="margin-bottom:0;">Reset simulasi <button type="button" class="amy-info-btn" data-info-tip="Menghapus saldo, cashflow, dan riwayat trade Simulasi saja. Jurnal Real tetap aman." aria-label="Info reset simulasi" aria-expanded="false">i</button></span>
+                  <button type="button" id="profileResetSimBtn" class="profile-btn-danger-ghost profile-btn-sm" data-confirm-arm="0">Reset</button>
+                </div>
               </div>
-              <div class="profile-wallpaper-actions">
-                <input type="file" id="customBgFileInput" accept="image/*" hidden>
-                <button type="button" id="uploadCustomBgBtn" class="profile-btn-ghost">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                  <span>Pilih Foto</span>
+            </details>
+          </section>
+        </div>
+
+        <!-- TAB 2: TAMPILAN -->
+        <div class="profile-tab-panel" id="profileTabTampilan" role="tabpanel" data-profile-panel="tampilan" ${savedTab === 'tampilan' ? '' : 'hidden'}>
+          <section class="profile-panel slide-up" data-amyfx-unified-appearance="true" data-amyfx-color-settings="true">
+            <div class="profile-block">
+              <div class="profile-label-row">
+                <span class="profile-label" style="margin-bottom:0;">Mode</span>
+                <button type="button" class="profile-link-action" data-theme-colors-reset aria-label="Kembalikan warna bawaan">Reset</button>
+              </div>
+              <div class="theme-selector profile-segmented" role="group" aria-label="Pilih tema aplikasi">
+                <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
+                  <span>Sistem</span>
                 </button>
-                <button type="button" id="removeCustomBgBtn" class="profile-btn-danger-ghost" style="${hasCustomBg ? '' : 'display:none;'}">
-                  Hapus
+                <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                  <span>Terang</span>
+                </button>
+                <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
+                  <span>Gelap</span>
                 </button>
               </div>
             </div>
 
-            <div id="customBgControls" class="profile-wallpaper-sliders" style="${hasCustomBg ? '' : 'display:none;'}">
-              <div class="profile-subblock">
-                <div class="profile-slider-head">
-                  <span class="profile-sublabel">Redupkan Latar</span>
-                  <span class="profile-slider-value" id="customBgDimVal">${customBgDim}%</span>
+            <div class="profile-block profile-divider">
+              <span class="profile-label">Tema Kaca</span>
+              <div class="profile-presets-grid" data-glass-presets-grid></div>
+            </div>
+
+            <div class="profile-block profile-divider">
+              <div class="profile-wallpaper-row">
+                <div>
+                  <span class="profile-label" style="margin-bottom:2px;">Wallpaper</span>
+                  <span id="customBgBadge" class="profile-inline-status ${hasCustomBg ? 'is-active' : ''}">${hasCustomBg ? 'Foto aktif' : 'Default'}</span>
                 </div>
-                <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="profile-range">
+                <div class="profile-wallpaper-actions">
+                  <input type="file" id="customBgFileInput" accept="image/*" hidden>
+                  <button type="button" id="uploadCustomBgBtn" class="profile-btn-ghost profile-btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <span>Pilih Foto</span>
+                  </button>
+                  <button type="button" id="removeCustomBgBtn" class="profile-btn-danger-ghost profile-btn-sm" style="${hasCustomBg ? '' : 'display:none;'}">
+                    Hapus
+                  </button>
+                </div>
               </div>
-              <div class="profile-subblock">
-                <div class="profile-slider-head">
-                  <span class="profile-sublabel">Blur Kaca</span>
-                  <span class="profile-slider-value" id="customBgBlurVal">${customBgBlur}px</span>
+
+              <div id="customBgControls" class="profile-wallpaper-sliders" style="${hasCustomBg ? '' : 'display:none;'}">
+                <div class="profile-subblock">
+                  <div class="profile-slider-head">
+                    <span class="profile-sublabel">Redup</span>
+                    <span class="profile-slider-value" id="customBgDimVal">${customBgDim}%</span>
+                  </div>
+                  <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="profile-range">
                 </div>
-                <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="profile-range">
+                <div class="profile-subblock">
+                  <div class="profile-slider-head">
+                    <span class="profile-sublabel">Blur</span>
+                    <span class="profile-slider-value" id="customBgBlurVal">${customBgBlur}px</span>
+                  </div>
+                  <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="profile-range">
+                </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <!-- Parameter Trading & Risiko -->
-        <div class="profile-section-heading">
-          <h3>Parameter Trading &amp; Risiko</h3>
-          <span class="profile-section-meta">XAU/USD</span>
+            <details class="profile-accordion profile-divider">
+              <summary class="profile-accordion-summary">
+                <span>Warna &amp; Transparansi</span>
+                <svg class="profile-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </summary>
+              <div class="profile-accordion-body">
+                <div class="profile-subblock">
+                  <div class="profile-color-grid">
+                    ${[
+                      ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
+                    ].map(([key, label]) => {
+                      const val = themeColors[key] || themeDefaults[key];
+                      return `
+                      <div class="profile-color-item" data-color-cell="${key}">
+                        <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
+                        <span class="profile-color-name">${label}</span>
+                        <span class="profile-color-hex" data-hex-for="${key}">${val.toUpperCase()}</span>
+                      </div>
+                    `;}).join('')}
+                  </div>
+                </div>
+
+                <div class="profile-subblock">
+                  <div class="profile-slider-head">
+                    <span class="profile-sublabel">Transparansi</span>
+                    <span class="profile-slider-value" id="glass-opacity-val">${opacityVal}%</span>
+                  </div>
+                  <div class="profile-slider-wrap">
+                    <span class="profile-slider-edge">Bening</span>
+                    <input type="range" min="15" max="95" value="${opacityVal}" class="profile-range" data-theme-glass-opacity aria-label="Tingkat transparansi kaca">
+                    <span class="profile-slider-edge">Pekat</span>
+                  </div>
+                  <div class="profile-quick-row">
+                    <button type="button" class="profile-quick-btn" data-quick-opacity="30">30%</button>
+                    <button type="button" class="profile-quick-btn" data-quick-opacity="65">65%</button>
+                    <button type="button" class="profile-quick-btn" data-quick-opacity="90">90%</button>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </section>
         </div>
-        <section class="profile-panel slide-up">
-          <div class="profile-fields-grid">
-            <div class="profile-field">
-              <label for="profileBalance">Saldo Default (USD)</label>
-              <div class="profile-input-wrap">
-                <span class="profile-input-affix">$</span>
-                <input type="number" id="profileBalance" class="profile-input profile-input-num" value="${escapeHtml(userBalance)}" min="1" step="any">
-              </div>
-            </div>
-            <div class="profile-field">
-              <label for="profileRisk">Risiko per Trade</label>
-              <div class="profile-input-wrap">
-                <input type="number" step="0.5" min="0.1" max="10" id="profileRisk" class="profile-input profile-input-num" value="${escapeHtml(userRisk)}">
-                <span class="profile-input-affix">%</span>
-              </div>
-            </div>
-          </div>
-          <div class="profile-panel-footer">
-            <p class="profile-hint" id="profileRiskSummary">Maks. risiko $${escapeHtml(calcRiskUsd(userBalance, userRisk))}/trade · Disiplin SL ≤ 2% modal</p>
-            <button type="button" id="saveTradingParamsBtn" class="profile-btn-gold">Simpan Parameter</button>
-          </div>
-        </section>
 
-        <!-- Pengingat Belajar & Skill -->
-        <div class="profile-section-heading">
-          <h3>Pengingat Belajar &amp; Skill</h3>
+        <!-- TAB 3: SISTEM & PENGINGAT -->
+        <div class="profile-tab-panel profile-sistem-stack" id="profileTabSistem" role="tabpanel" data-profile-panel="sistem" ${savedTab === 'sistem' ? '' : 'hidden'}>
+          <section class="profile-panel slide-up">
+            <div class="profile-switch-row">
+              <div class="profile-switch-copy">
+                <strong>Pengingat Belajar</strong>
+              </div>
+              <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
+                <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
+                <span class="profile-switch-track"></span>
+              </label>
+            </div>
+
+            <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
+              <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
+
+              <div class="profile-reminder-list">
+                <div class="profile-reminder-row">
+                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi pagi">
+                    <input type="checkbox" id="reminderMorningEnabled" ${reminderSlots.morning?.enabled ? 'checked' : ''}>
+                    <span class="profile-switch-track"></span>
+                  </label>
+                  <div class="profile-reminder-copy"><strong>Pagi</strong></div>
+                  <input type="time" id="reminderMorningTime" class="profile-time-input" aria-label="Jam sesi pagi" value="${escapeHtml(reminderSlots.morning?.time || '08:00')}">
+                </div>
+
+                <div class="profile-reminder-row">
+                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi siang">
+                    <input type="checkbox" id="reminderAfternoonEnabled" ${reminderSlots.afternoon?.enabled ? 'checked' : ''}>
+                    <span class="profile-switch-track"></span>
+                  </label>
+                  <div class="profile-reminder-copy"><strong>Siang</strong></div>
+                  <input type="time" id="reminderAfternoonTime" class="profile-time-input" aria-label="Jam sesi siang" value="${escapeHtml(reminderSlots.afternoon?.time || '13:00')}">
+                </div>
+
+                <div class="profile-reminder-row">
+                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi malam">
+                    <input type="checkbox" id="reminderNightEnabled" ${reminderSlots.night?.enabled ? 'checked' : ''}>
+                    <span class="profile-switch-track"></span>
+                  </label>
+                  <div class="profile-reminder-copy"><strong>Malam</strong></div>
+                  <input type="time" id="reminderNightTime" class="profile-time-input" aria-label="Jam sesi malam" value="${escapeHtml(reminderSlots.night?.time || '20:00')}">
+                </div>
+              </div>
+
+              <div class="profile-last-lesson profile-last-lesson--compact">
+                <div id="learningReminderLastTitle" class="profile-last-lesson-title">${escapeHtml(reminderConfig.lastTitle)}</div>
+                <small id="learningReminderLastTime" class="profile-last-lesson-time">${escapeHtml(reminderConfig.lastTimeText)}</small>
+              </div>
+
+              <div class="profile-actions-row">
+                <button type="button" id="saveLearningReminderBtn" class="profile-btn-primary">Simpan</button>
+                <button type="button" id="testLearningReminderBtn" class="profile-btn-ghost">Uji</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-list profile-system-list" aria-label="Data dan Aplikasi">
+            <button class="profile-row profile-row--compact" id="profileClearCacheBtn" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+              </span>
+              <span><strong>Bersihkan Cache</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="profile-row profile-row--compact" id="profileExportBtn" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </span>
+              <span><strong>Ekspor Cadangan</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="profile-row profile-row--compact" id="profileImportBtn" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </span>
+              <span><strong>Pulihkan Cadangan</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+            <input type="file" id="profileImportFileInput" accept="application/json" hidden>
+            <button class="profile-row profile-row--compact danger-row" data-profile-action="clear" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+              </span>
+              <span><strong>Hapus Data Lokal</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+          </section>
         </div>
-        <section class="profile-panel slide-up">
-          <div class="profile-switch-row">
-            <div class="profile-switch-copy">
-              <strong>Notifikasi Pengingat Belajar</strong>
-              <small>Pengingat harian agar rutin mengulas materi ICT terakhir.</small>
-            </div>
-            <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
-              <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
-              <span class="profile-switch-track"></span>
-            </label>
-          </div>
-
-          <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
-            <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
-            <div class="profile-sublabel">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</div>
-
-            <div class="profile-reminder-list">
-              <div class="profile-reminder-row">
-                <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi pagi">
-                  <input type="checkbox" id="reminderMorningEnabled" ${reminderSlots.morning?.enabled ? 'checked' : ''}>
-                  <span class="profile-switch-track"></span>
-                </label>
-                <div class="profile-reminder-copy">
-                  <strong>Sesi Pagi</strong>
-                  <small>Review materi &amp; mindset pagi</small>
-                </div>
-                <input type="time" id="reminderMorningTime" class="profile-time-input" aria-label="Jam sesi pagi" value="${escapeHtml(reminderSlots.morning?.time || '08:00')}">
-              </div>
-
-              <div class="profile-reminder-row">
-                <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi siang">
-                  <input type="checkbox" id="reminderAfternoonEnabled" ${reminderSlots.afternoon?.enabled ? 'checked' : ''}>
-                  <span class="profile-switch-track"></span>
-                </label>
-                <div class="profile-reminder-copy">
-                  <strong>Sesi Siang</strong>
-                  <small>Studi kilat sebelum London Open</small>
-                </div>
-                <input type="time" id="reminderAfternoonTime" class="profile-time-input" aria-label="Jam sesi siang" value="${escapeHtml(reminderSlots.afternoon?.time || '13:00')}">
-              </div>
-
-              <div class="profile-reminder-row">
-                <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi malam">
-                  <input type="checkbox" id="reminderNightEnabled" ${reminderSlots.night?.enabled ? 'checked' : ''}>
-                  <span class="profile-switch-track"></span>
-                </label>
-                <div class="profile-reminder-copy">
-                  <strong>Sesi Malam</strong>
-                  <small>Evaluasi setup &amp; baca materi</small>
-                </div>
-                <input type="time" id="reminderNightTime" class="profile-time-input" aria-label="Jam sesi malam" value="${escapeHtml(reminderSlots.night?.time || '20:00')}">
-              </div>
-            </div>
-
-            <div class="profile-last-lesson">
-              <span class="profile-sublabel">Materi Terakhir Dipelajari</span>
-              <div id="learningReminderLastTitle" class="profile-last-lesson-title">${escapeHtml(reminderConfig.lastTitle)}</div>
-              <small id="learningReminderLastTime" class="profile-last-lesson-time">${escapeHtml(reminderConfig.lastTimeText)}</small>
-            </div>
-
-            <div class="profile-actions-row">
-              <button type="button" id="saveLearningReminderBtn" class="profile-btn-primary">Simpan Jadwal</button>
-              <button type="button" id="testLearningReminderBtn" class="profile-btn-ghost">Uji Notifikasi</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Manajemen Data & Sistem -->
-        <div class="profile-section-heading">
-          <h3>Manajemen Data &amp; Sistem</h3>
-        </div>
-        <section class="profile-list profile-system-list">
-          <button class="profile-row" id="profileClearCacheBtn" type="button">
-            <span class="tool-icon" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
-            </span>
-            <span><strong>Bersihkan Cache Sementara</strong><small>Hapus cache sementara tanpa menghapus jurnal atau catatan.</small></span>
-            <span class="chevron" aria-hidden="true">›</span>
-          </button>
-          <button class="profile-row" id="profileExportBtn" type="button">
-            <span class="tool-icon" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </span>
-            <span><strong>Cadangkan / Ekspor Data</strong><small>Unduh file JSON berisi jurnal, kebiasaan, dan preferensi lokal.</small></span>
-            <span class="chevron" aria-hidden="true">›</span>
-          </button>
-          <button class="profile-row" id="profileImportBtn" type="button">
-            <span class="tool-icon" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            </span>
-            <span><strong>Pulihkan Cadangan Data</strong><small>Impor kembali profil, kebiasaan, dan jurnal dari file backup JSON.</small></span>
-            <span class="chevron" aria-hidden="true">›</span>
-          </button>
-          <input type="file" id="profileImportFileInput" accept="application/json" hidden>
-          <button class="profile-row danger-row" data-profile-action="clear" type="button">
-            <span class="tool-icon" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-            </span>
-            <span><strong>Bersihkan Data Lokal</strong><small>Hapus riwayat, jurnal, dan koleksi lokal di perangkat ini.</small></span>
-            <span class="chevron" aria-hidden="true">›</span>
-          </button>
-        </section>
       </div>
     `;
+
+    // Profile segmented tab switcher
+    const profileTabBtns = mainContent.querySelectorAll('[data-profile-tab]');
+    const profileTabPanels = mainContent.querySelectorAll('[data-profile-panel]');
+    profileTabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.profileTab || 'akun';
+        profileTabBtns.forEach((b) => {
+          const act = b.dataset.profileTab === target;
+          b.classList.toggle('is-active', act);
+          b.setAttribute('aria-selected', act ? 'true' : 'false');
+        });
+        profileTabPanels.forEach((panel) => {
+          panel.hidden = panel.dataset.profilePanel !== target;
+        });
+        try { sessionStorage.setItem('amy_profile_tab', target); } catch (_) {}
+      });
+    });
 
     // Sync unified appearance presets & sliders
     window.AmyFXProfileSettings?.sync?.();
@@ -1921,30 +2015,142 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const balanceInput = document.getElementById('profileBalance');
     const riskInput = document.getElementById('profileRisk');
+    const rateInput = document.getElementById('profileUsdIdrRate');
+    const leverageInput = document.getElementById('profileLeverage');
+    const spreadInput = document.getElementById('profileSpread');
     const riskSummaryEl = document.getElementById('profileRiskSummary');
     const identityMetaEl = document.getElementById('traderIdentityMeta');
+    const currencyBtns = document.querySelectorAll('[data-profile-currency]');
+    let selectedCurrency = simParams.currency;
 
     function refreshRiskPreview() {
       const bal = balanceInput?.value || '5000';
       const r = riskInput?.value || '1.5';
+      const rate = rateInput?.value || '16500';
       if (riskSummaryEl) {
-        riskSummaryEl.textContent = `Maks. risiko $${calcRiskUsd(bal, r)}/trade · Disiplin SL ≤ 2% modal`;
+        riskSummaryEl.textContent = buildRiskSummaryText(bal, r, selectedCurrency, rate);
       }
     }
 
-    balanceInput?.addEventListener('input', refreshRiskPreview);
-    riskInput?.addEventListener('input', refreshRiskPreview);
-
-    document.getElementById('saveTradingParamsBtn')?.addEventListener('click', () => {
-      const bal = balanceInput?.value || '5000';
-      const r = riskInput?.value || '1.5';
-      localStorage.setItem('amy_default_balance', bal);
-      localStorage.setItem('amy_default_risk', r);
+    function syncProfileCurrencyUi(nextCurrency) {
+      selectedCurrency = nextCurrency === 'USD' ? 'USD' : 'IDR';
+      currencyBtns.forEach((b) => {
+        const isAct = b.dataset.profileCurrency === selectedCurrency;
+        b.classList.toggle('is-active', isAct);
+        b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+      });
       refreshRiskPreview();
       if (identityMetaEl) {
-        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>Saldo $${escapeHtml(formatMoney(bal))}</span><span aria-hidden="true">·</span><span>Risiko ${escapeHtml(r)}%</span>`;
+        const balVal = Number(balanceInput?.value || simParams.baseBalanceUsd);
+        const riskVal = Number(riskInput?.value || simParams.riskPct);
+        const rateVal = Number(rateInput?.value || simParams.usdIdrRate);
+        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(balVal, selectedCurrency, rateVal))}</span><span aria-hidden="true">·</span><span>${escapeHtml(riskVal)}%</span>`;
       }
-      showToast('Parameter risiko trading XAU/USD berhasil disimpan.');
+    }
+
+    currencyBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        syncProfileCurrencyUi(btn.dataset.profileCurrency);
+      });
+    });
+
+    if (window.__amyProfileSimSyncHandler) {
+      window.removeEventListener('amyfx:sim-state-change', window.__amyProfileSimSyncHandler);
+    }
+    window.__amyProfileSimSyncHandler = (ev) => {
+      if (!document.getElementById('profileTradingParamsPanel')) return;
+      const cur = ev?.detail?.currency || (simEngine?.readParams ? simEngine.readParams().currency : null);
+      if (cur && cur !== selectedCurrency) {
+        syncProfileCurrencyUi(cur);
+      }
+    };
+    window.addEventListener('amyfx:sim-state-change', window.__amyProfileSimSyncHandler);
+
+    balanceInput?.addEventListener('input', refreshRiskPreview);
+    riskInput?.addEventListener('input', refreshRiskPreview);
+    rateInput?.addEventListener('input', refreshRiskPreview);
+
+    document.getElementById('saveTradingParamsBtn')?.addEventListener('click', () => {
+      const nextRaw = {
+        baseBalanceUsd: Number(balanceInput?.value || 5000),
+        riskPct: Number(riskInput?.value || 1.5),
+        currency: selectedCurrency,
+        usdIdrRate: Number(rateInput?.value || 16500),
+        leverage: Number(leverageInput?.value || 500),
+        spreadUsd: Number(spreadInput?.value ?? 0.2)
+      };
+      const saved = simEngine?.saveParams
+        ? simEngine.saveParams(nextRaw)
+        : nextRaw;
+      if (!simEngine?.saveParams) {
+        localStorage.setItem('amy_default_balance', String(saved.baseBalanceUsd));
+        localStorage.setItem('amy_default_risk', String(saved.riskPct));
+        localStorage.setItem('amy_account_currency', saved.currency);
+        localStorage.setItem('amy_usd_idr_rate', String(saved.usdIdrRate));
+        localStorage.setItem('amy_account_leverage', String(saved.leverage));
+        localStorage.setItem('amy_account_spread', String(saved.spreadUsd));
+      }
+      if (balanceInput) balanceInput.value = String(saved.baseBalanceUsd);
+      if (riskInput) riskInput.value = String(saved.riskPct);
+      if (rateInput) rateInput.value = String(saved.usdIdrRate);
+      if (leverageInput) leverageInput.value = String(saved.leverage);
+      if (spreadInput) spreadInput.value = String(saved.spreadUsd);
+      refreshRiskPreview();
+      if (identityMetaEl) {
+        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(saved.baseBalanceUsd, saved.currency, saved.usdIdrRate))}</span><span aria-hidden="true">·</span><span>${escapeHtml(saved.riskPct)}%</span>`;
+      }
+      try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
+      showToast('Parameter Akun Pro tersimpan.');
+    });
+
+    const cashflowInput = document.getElementById('profileCashflowUsd');
+    function handleSimCashflow(type) {
+      const amount = Number(cashflowInput?.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        showToast('Masukkan nominal USD yang valid (mis. 500).');
+        cashflowInput?.focus();
+        return;
+      }
+      if (simEngine?.addCashflow) {
+        simEngine.addCashflow({ type, amountUsd: amount, note: type === 'deposit' ? 'Top Up Profil' : 'Tarik Dana Profil' });
+      }
+      if (cashflowInput) cashflowInput.value = '';
+      try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
+      const label = type === 'deposit' ? 'Top Up' : 'Penarikan';
+      const idrText = formatIdrQuick(amount, Number(rateInput?.value || simParams.usdIdrRate));
+      showToast(`${label} simulasi $${formatMoney(amount)} (${idrText}) tercatat.`);
+    }
+    document.getElementById('profileDepositBtn')?.addEventListener('click', () => handleSimCashflow('deposit'));
+    document.getElementById('profileWithdrawBtn')?.addEventListener('click', () => handleSimCashflow('withdraw'));
+
+    const resetSimBtn = document.getElementById('profileResetSimBtn');
+    let resetSimTimer = null;
+    resetSimBtn?.addEventListener('click', async () => {
+      if (resetSimBtn.dataset.confirmArm !== '1') {
+        resetSimBtn.dataset.confirmArm = '1';
+        resetSimBtn.textContent = 'Ketuk Lagi: Konfirmasi Reset SIM';
+        resetSimBtn.classList.add('is-armed');
+        clearTimeout(resetSimTimer);
+        resetSimTimer = setTimeout(() => {
+          resetSimBtn.dataset.confirmArm = '0';
+          resetSimBtn.textContent = 'Reset Simulasi';
+          resetSimBtn.classList.remove('is-armed');
+        }, 5000);
+        return;
+      }
+      clearTimeout(resetSimTimer);
+      resetSimBtn.dataset.confirmArm = '0';
+      resetSimBtn.textContent = 'Reset Simulasi';
+      resetSimBtn.classList.remove('is-armed');
+      if (typeof window.AmyHomeAccountCockpit?.resetSimulationAccount === 'function') {
+        const res = await window.AmyHomeAccountCockpit.resetSimulationAccount();
+        showToast(`Akun Simulasi direset (${res?.removedSimCount || 0} trade SIM dibersihkan · ${res?.keptRealCount || 0} jurnal REAL aman).`);
+      } else {
+        localStorage.setItem('amy_sim_positions_v1', '[]');
+        localStorage.setItem('amy_sim_cashflows_v1', '[]');
+        try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
+        showToast('Akun Simulasi direset. Jurnal REAL tetap aman.');
+      }
     });
 
     // Learning Reminder event bindings
@@ -2054,6 +2260,14 @@ document.addEventListener('DOMContentLoaded', () => {
         traderName: localStorage.getItem('amy_trader_name') || 'Trader',
         balance: localStorage.getItem('amy_default_balance') || '5000',
         risk: localStorage.getItem('amy_default_risk') || '1.5',
+        accountSim: {
+          currency: localStorage.getItem('amy_account_currency') || 'IDR',
+          usdIdrRate: localStorage.getItem('amy_usd_idr_rate') || '16500',
+          leverage: localStorage.getItem('amy_account_leverage') || '500',
+          spreadUsd: localStorage.getItem('amy_account_spread') || '0.20',
+          positions: readJsonSafe('amy_sim_positions_v1', []),
+          cashflows: readJsonSafe('amy_sim_cashflows_v1', [])
+        },
         habits: readJsonSafe('amy_habits_v2', []),
         completedHabits: readJsonSafe('amy_completed_dates_v2', {}),
         journals: journalsList
@@ -2084,6 +2298,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.traderName) localStorage.setItem('amy_trader_name', String(data.traderName));
         if (data.balance) localStorage.setItem('amy_default_balance', String(data.balance));
         if (data.risk) localStorage.setItem('amy_default_risk', String(data.risk));
+        if (data.accountSim && typeof data.accountSim === 'object') {
+          if (data.accountSim.currency) localStorage.setItem('amy_account_currency', String(data.accountSim.currency));
+          if (data.accountSim.usdIdrRate) localStorage.setItem('amy_usd_idr_rate', String(data.accountSim.usdIdrRate));
+          if (data.accountSim.leverage) localStorage.setItem('amy_account_leverage', String(data.accountSim.leverage));
+          if (data.accountSim.spreadUsd !== undefined) localStorage.setItem('amy_account_spread', String(data.accountSim.spreadUsd));
+          if (Array.isArray(data.accountSim.positions)) localStorage.setItem('amy_sim_positions_v1', JSON.stringify(data.accountSim.positions));
+          if (Array.isArray(data.accountSim.cashflows)) localStorage.setItem('amy_sim_cashflows_v1', JSON.stringify(data.accountSim.cashflows));
+        }
         if (Array.isArray(data.habits)) localStorage.setItem('amy_habits_v2', JSON.stringify(data.habits));
         if (data.completedHabits && typeof data.completedHabits === 'object') {
           localStorage.setItem('amy_completed_dates_v2', JSON.stringify(data.completedHabits));
@@ -2239,6 +2461,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.AmyFXTheme?.apply?.();
+    if (typeof window.AmyHomeAccountCockpit?.render === 'function') {
+      window.AmyHomeAccountCockpit.render();
+    }
+    try { window.dispatchEvent(new CustomEvent('amyfx:profile-rendered')); } catch (_) {}
   }
 
   function handleKoleksi(action) {

@@ -63,6 +63,7 @@
     this.pendingCandles = null;
     this.candles = [];
     this.priceLines = [];
+    this.ictPriceLines = [];
     this.studyZone = null;
     this.onCrosshair = typeof options.onCrosshair === 'function' ? options.onCrosshair : function () {};
     this.onChartTap = typeof options.onChartTap === 'function' ? options.onChartTap : function () {};
@@ -93,17 +94,25 @@
     }.bind(this));
     container.appendChild(this.deleteButton);
 
+    var isLight = typeof document !== 'undefined' && document.documentElement.dataset.amyfxTheme === 'light';
     this.chart = root.LightweightCharts.createChart(this.host, {
       width: Math.max(280, container.clientWidth || 800),
       height: Math.max(360, Number(options.height || container.clientHeight || 520)),
-      layout: { background: { color: '#0b111a' }, textColor: '#a8b3c4', fontSize: 12 },
-      grid: { vertLines: { color: '#17202d' }, horzLines: { color: '#17202d' } },
+      layout: {
+        background: { color: isLight ? '#ffffff' : '#0b111a' },
+        textColor: isLight ? '#334155' : '#a8b3c4',
+        fontSize: 12
+      },
+      grid: {
+        vertLines: { color: isLight ? '#e8eef5' : '#17202d' },
+        horzLines: { color: isLight ? '#e8eef5' : '#17202d' }
+      },
       crosshair: { mode: root.LightweightCharts.CrosshairMode.Normal },
       rightPriceScale: {
-        visible: true, borderVisible: true, borderColor: '#263244', minimumWidth: 92,
+        visible: true, borderVisible: true, borderColor: isLight ? '#cbd5e1' : '#263244', minimumWidth: 92,
         entireTextOnly: true, alignLabels: true, scaleMargins: { top: 0.08, bottom: 0.12 }
       },
-      timeScale: { borderColor: '#263244', timeVisible: true, secondsVisible: false, rightOffset: 4, shiftVisibleRangeOnNewBar: this.followReplay },
+      timeScale: { borderColor: isLight ? '#cbd5e1' : '#263244', timeVisible: true, secondsVisible: false, rightOffset: 4, shiftVisibleRangeOnNewBar: this.followReplay },
       handleScale: {
         axisPressedMouseMove: { time: true, price: true },
         axisDoubleClickReset: { time: true, price: true },
@@ -122,8 +131,8 @@
       }
     });
     this.series = this.chart.addCandlestickSeries({
-      upColor: '#2dd4bf', downColor: '#fb7185', borderVisible: false,
-      wickUpColor: '#2dd4bf', wickDownColor: '#fb7185',
+      upColor: isLight ? '#0d9488' : '#2dd4bf', downColor: isLight ? '#e11d48' : '#fb7185', borderVisible: false,
+      wickUpColor: isLight ? '#0d9488' : '#2dd4bf', wickDownColor: isLight ? '#e11d48' : '#fb7185',
       lastValueVisible: true, priceLineVisible: true,
       priceFormat: { type: 'price', precision: 2, minMove: 0.01 }
     });
@@ -163,10 +172,41 @@
     var self = this;
     this.resizeObserver = root.ResizeObserver ? new root.ResizeObserver(function () { self.resize(); }) : null;
     if (this.resizeObserver) this.resizeObserver.observe(container);
+    this.handleThemeChange = function (evt) {
+      var nextTheme = (evt && evt.detail && evt.detail.theme) || document.documentElement.dataset.amyfxTheme || 'dark';
+      self.applyTheme(nextTheme);
+    };
+    root.addEventListener('amyfx:theme-change', this.handleThemeChange);
     root.addEventListener('resize', this.renderDrawings);
     this.resize();
     this.notify('Pilih alat gambar untuk mulai.');
   }
+
+  CandleChart.prototype.applyTheme = function (theme) {
+    var isLight = String(theme || '').toLowerCase() === 'light';
+    if (this.chart) {
+      this.chart.applyOptions({
+        layout: {
+          background: { color: isLight ? '#ffffff' : '#0b111a' },
+          textColor: isLight ? '#334155' : '#a8b3c4'
+        },
+        grid: {
+          vertLines: { color: isLight ? '#e8eef5' : '#17202d' },
+          horzLines: { color: isLight ? '#e8eef5' : '#17202d' }
+        },
+        rightPriceScale: { borderColor: isLight ? '#cbd5e1' : '#263244' },
+        timeScale: { borderColor: isLight ? '#cbd5e1' : '#263244' }
+      });
+    }
+    if (this.series) {
+      this.series.applyOptions({
+        upColor: isLight ? '#0d9488' : '#2dd4bf',
+        downColor: isLight ? '#e11d48' : '#fb7185',
+        wickUpColor: isLight ? '#0d9488' : '#2dd4bf',
+        wickDownColor: isLight ? '#e11d48' : '#fb7185'
+      });
+    }
+  };
 
   CandleChart.prototype.loadDrawings = function () {
     if (!this.storageKey) return [];
@@ -1098,9 +1138,30 @@
     (Array.isArray(levels) ? levels : []).forEach(function (level) {
       if (!Number.isFinite(Number(level.price))) return;
       self.priceLines.push(self.series.createPriceLine({
-        price: Number(level.price), color: level.color || COLORS[level.type] || '#facc15',
-        lineWidth: 2, lineStyle: root.LightweightCharts.LineStyle.Dashed,
-        axisLabelVisible: true, title: String(level.title || level.type || '').toUpperCase()
+        price: Number(level.price),
+        color: level.color || COLORS[level.type] || '#facc15',
+        lineWidth: level.lineWidth || 2,
+        lineStyle: level.solid ? root.LightweightCharts.LineStyle.Solid : root.LightweightCharts.LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: String(level.title || level.type || '').toUpperCase()
+      }));
+    });
+  };
+
+  CandleChart.prototype.setIctLevels = function (levels) {
+    var self = this;
+    this.ictPriceLines.forEach(function (line) { try { self.series.removePriceLine(line); } catch (_) {} });
+    this.ictPriceLines = [];
+    (Array.isArray(levels) ? levels : []).forEach(function (level) {
+      if (!Number.isFinite(Number(level.price))) return;
+      var color = level.type === 'pdh' ? '#f59e0b' : (level.type === 'pdl' ? '#f59e0b' : '#38bdf8');
+      self.ictPriceLines.push(self.series.createPriceLine({
+        price: Number(level.price),
+        color: level.color || color,
+        lineWidth: 1,
+        lineStyle: root.LightweightCharts.LineStyle.Dotted,
+        axisLabelVisible: true,
+        title: String(level.title || '').toUpperCase()
       }));
     });
   };
@@ -1289,6 +1350,7 @@
   CandleChart.prototype.destroy = function () {
     if (this.resizeObserver) this.resizeObserver.disconnect();
     root.removeEventListener('resize', this.renderDrawings);
+    if (this.handleThemeChange) root.removeEventListener('amyfx:theme-change', this.handleThemeChange);
     document.removeEventListener('keydown', this.handleKeyDown);
     this.overlay.removeEventListener('pointerdown', this.handlePointerDown);
     this.overlay.removeEventListener('pointermove', this.handlePointerMove);
