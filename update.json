@@ -8,7 +8,7 @@
     "✦ Journal Pro Ledger: Upgrade navigasi (journal, statistics, habits, notes) dan integrasi Account Sim."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.463/AmyFX-Pro-latest.apk",
-  "enabled": false,
+  "enabled": true,
   "force_update": false,
   "latest_version_code": 950463,
   "latest_version_name": "2.0.0-pro.463",
@@ -22,5 +22,6 @@
     "✦ Journal Pro Ledger: Upgrade navigasi (journal, statistics, habits, notes) dan integrasi Account Sim."
   ],
   "version": "2.0.0-pro.463",
-  "versionCode": 950463
+  "versionCode": 950463,
+  "sha256": "502b10c0f43ac85338795a0d1bc1aa2ef9e433dc62e4e2871943c0891fc167b5"
 }
