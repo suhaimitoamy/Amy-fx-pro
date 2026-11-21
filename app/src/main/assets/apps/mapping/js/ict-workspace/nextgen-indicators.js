@@ -14,7 +14,7 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
       },
       liquidity: { bsl: [], ssl: [], sweeps: [] },
       structure: { events: [], trend: 'NEUTRAL', invalidation: null },
-      poi: { fvg: [], ob: [] }
+      poi: { fvg: [], ob: [], historyFvg: [], historyOb: [], recentBroken: [] }
     };
   }
 
@@ -31,32 +31,50 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
   const pdLow = Math.min(...recentSlice.map(c => c.low));
   const pdEq = Number.isFinite(pdHigh) && Number.isFinite(pdLow) ? (pdHigh + pdLow) / 2 : null;
 
-// New York 17:00 Close (5:00 PM NY) Trading Day Cutoff for XAU/USD
-function getTradingDayKey(timeSec) {
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/New_York',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23'
-    }).formatToParts(new Date(timeSec * 1000));
-    const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
-    const hour = Number(p.hour);
-    const date = new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)));
-    if (hour >= 17) {
-      date.setUTCDate(date.getUTCDate() + 1);
+  // NY local time parts helper (DST-aware for ICT Asia 20:00–00:00 NY & 17:00 NY day rollover)
+  const nyFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  });
+  function getNyParts(timeSec) {
+    try {
+      const parts = nyFormatter.formatToParts(new Date(timeSec * 1000));
+      const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
+      const hour = Number(p.hour);
+      const minute = Number(p.minute);
+      const dateStr = `${p.year}-${p.month}-${p.day}`;
+      const d = new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)));
+      if (hour >= 17) d.setUTCDate(d.getUTCDate() + 1);
+      return {
+        dateStr,
+        tradingDayKey: d.toISOString().slice(0, 10),
+        minuteOfDay: hour * 60 + minute
+      };
+    } catch {
+      const shifted = timeSec + 7 * 3600;
+      const d = new Date(shifted * 1000);
+      return {
+        dateStr: d.toISOString().slice(0, 10),
+        tradingDayKey: d.toISOString().slice(0, 10),
+        minuteOfDay: d.getUTCHours() * 60 + d.getUTCMinutes()
+      };
     }
-    return date.toISOString().slice(0, 10);
-  } catch {
-    const shifted = timeSec + 7 * 3600;
-    return new Date(shifted * 1000).toISOString().slice(0, 10);
   }
-}
 
-  // 2. Calendar groupings for PDH/PDL, PWH/PWL and Asia Session (06:00-14:00 WITA)
+  // Pre-compute baseline scale / ATR estimate for key-level sweep depth guard
+  const sampleRanges = safeCandles.slice(-20).map(c => Math.max(0, c.high - c.low));
+  const avgSampleRange = sampleRanges.length ? (sampleRanges.reduce((a, b) => a + b, 0) / sampleRanges.length) : 2.0;
+  const lastPriceHint = safeCandles[safeCandles.length - 1]?.close || 0;
+  const minKeySweepDepth = lastPriceHint > 100
+    ? Math.max(0.25, avgSampleRange * 0.08)
+    : Math.max(0.01, avgSampleRange * 0.05);
+
+  // 2. Calendar groupings for PDH/PDL, PWH/PWL and ICT Asia Session (20:00-00:00 NY, DST-aware)
   let pdh = null, pdl = null, pdhConsumed = false, pdlConsumed = false;
   let pwh = null, pwl = null, pwhConsumed = false, pwlConsumed = false;
   let asiaHigh = null, asiaLow = null, asiaStart = null, asiaEnd = null;
@@ -69,22 +87,18 @@ function getTradingDayKey(timeSec) {
 
   for (let i = 0; i < safeCandles.length; i++) {
     const c = safeCandles[i];
+    const ny = getNyParts(c.time);
     // Gold trading day bucket (17:00 NY Close cutoff)
-    const tDayStr = getTradingDayKey(c.time);
-
-    // WITA (UTC+8) for local Asia morning session (06:00-14:00 WITA)
-    const witaMs = (c.time + 8 * 3600) * 1000;
-    const witaDate = new Date(witaMs);
-    const minuteOfDay = witaDate.getUTCHours() * 60 + witaDate.getUTCMinutes();
-    const isAsia = minuteOfDay >= 360 && minuteOfDay < 840; // 06:00 - 14:00 WITA
+    const tDayStr = ny.tradingDayKey;
+    // ICT Asia Range: 20:00 - 00:00 America/New_York (matches amy-ict.js & market-session-clock.js)
+    const isAsia = ny.minuteOfDay >= 1200;
 
     if (!dayBuckets.has(tDayStr)) dayBuckets.set(tDayStr, []);
     dayBuckets.get(tDayStr).push(c);
 
     if (isAsia) {
-      const asiaDateStr = witaDate.toISOString().slice(0, 10);
-      if (!asiaBuckets.has(asiaDateStr)) asiaBuckets.set(asiaDateStr, []);
-      asiaBuckets.get(asiaDateStr).push(c);
+      if (!asiaBuckets.has(tDayStr)) asiaBuckets.set(tDayStr, []);
+      asiaBuckets.get(tDayStr).push(c);
     }
 
     // Week bucket: ISO week string
@@ -144,18 +158,20 @@ function getTradingDayKey(timeSec) {
     pdl = localPdl;
   }
 
-  // Check PDH / PDL sweeps and reached status in the latest day
+  // Check PDH / PDL sweeps (require meaningful sweep depth) and consumed status in the latest day
   if (dayKeys.length > 0 && Number.isFinite(pdh) && Number.isFinite(pdl)) {
     const todayCandles = dayBuckets.get(dayKeys[dayKeys.length - 1]) || [];
     for (const c of todayCandles) {
-      if (!pdhConsumed && c.high > pdh && c.close < pdh) {
+      if (!pdhConsumed && c.high >= pdh + minKeySweepDepth && c.close < pdh) {
         sweeps.push({ time: c.time, price: c.high, level: pdh, type: 'PDH_SWEEP', pool: 'PDH', side: 'SELL', reactionSide: 'SELL', symbol: '×', color: '#f97316' });
+        pdhConsumed = true;
       }
-      if (!pdlConsumed && c.low < pdl && c.close > pdl) {
+      if (!pdlConsumed && c.low <= pdl - minKeySweepDepth && c.close > pdl) {
         sweeps.push({ time: c.time, price: c.low, level: pdl, type: 'PDL_SWEEP', pool: 'PDL', side: 'BUY', reactionSide: 'BUY', symbol: '×', color: '#3b82f6' });
+        pdlConsumed = true;
       }
-      if (c.high >= pdh) pdhConsumed = true;
-      if (c.low <= pdl) pdlConsumed = true;
+      if (c.close > pdh || c.high >= pdh + minKeySweepDepth) pdhConsumed = true;
+      if (c.close < pdl || c.low <= pdl - minKeySweepDepth) pdlConsumed = true;
     }
   }
 
@@ -187,22 +203,24 @@ function getTradingDayKey(timeSec) {
     pwl = localPwl;
   }
 
-  // Check PWH / PWL sweeps
+  // Check PWH / PWL sweeps with meaningful depth
   if (weekKeys.length > 0 && Number.isFinite(pwh) && Number.isFinite(pwl)) {
     const currentWeekCandles = weekBuckets.get(weekKeys[weekKeys.length - 1]) || [];
     for (const c of currentWeekCandles) {
-      if (!pwhConsumed && c.high > pwh && c.close < pwh) {
+      if (!pwhConsumed && c.high >= pwh + minKeySweepDepth && c.close < pwh) {
         sweeps.push({ time: c.time, price: c.high, level: pwh, type: 'PWH_SWEEP', pool: 'PWH', side: 'SELL', reactionSide: 'SELL', symbol: '×', color: '#d946ef' });
+        pwhConsumed = true;
       }
-      if (!pwlConsumed && c.low < pwl && c.close > pwl) {
+      if (!pwlConsumed && c.low <= pwl - minKeySweepDepth && c.close > pwl) {
         sweeps.push({ time: c.time, price: c.low, level: pwl, type: 'PWL_SWEEP', pool: 'PWL', side: 'BUY', reactionSide: 'BUY', symbol: '×', color: '#06b6d4' });
+        pwlConsumed = true;
       }
-      if (c.high >= pwh) pwhConsumed = true;
-      if (c.low <= pwl) pwlConsumed = true;
+      if (c.close > pwh || c.high >= pwh + minKeySweepDepth) pwhConsumed = true;
+      if (c.close < pwl || c.low <= pwl - minKeySweepDepth) pwlConsumed = true;
     }
   }
 
-  // Asia Session High / Low (latest available Asia session)
+  // Asia Session High / Low (authoritative locked server Asia or latest local 20:00–00:00 NY session)
   const asiaDayKeys = [...asiaBuckets.keys()];
   if (asiaDayKeys.length > 0) {
     const latestAsiaCandles = asiaBuckets.get(asiaDayKeys[asiaDayKeys.length - 1]);
@@ -210,22 +228,43 @@ function getTradingDayKey(timeSec) {
     asiaLow = Math.min(...latestAsiaCandles.map(c => c.low));
     asiaStart = latestAsiaCandles[0].time;
     asiaEnd = latestAsiaCandles[latestAsiaCandles.length - 1].time;
+    // Prefer authoritative server locked Asia range if close in time and valid
+    if (serverLevels.asiaStatus === 'LOCKED' && Number.isFinite(serverLevels.asiaHigh) && Number.isFinite(serverLevels.asiaLow) && serverLevels.asiaHigh > serverLevels.asiaLow) {
+      asiaHigh = serverLevels.asiaHigh;
+      asiaLow = serverLevels.asiaLow;
+    }
 
     // Check subsequent candles for Asia sweeps
     const afterAsia = safeCandles.filter(c => c.time > asiaEnd);
     for (const c of afterAsia) {
-      if (!asiaHighConsumed && c.high > asiaHigh && c.close < asiaHigh) {
+      if (!asiaHighConsumed && c.high >= asiaHigh + minKeySweepDepth && c.close < asiaHigh) {
         sweeps.push({ time: c.time, price: c.high, level: asiaHigh, type: 'ASIA_HIGH_SWEEP', pool: 'Asia High', side: 'SELL', reactionSide: 'SELL', symbol: '◆', color: '#a855f7' });
+        asiaHighConsumed = true;
       }
-      if (!asiaLowConsumed && c.low < asiaLow && c.close > asiaLow) {
+      if (!asiaLowConsumed && c.low <= asiaLow - minKeySweepDepth && c.close > asiaLow) {
         sweeps.push({ time: c.time, price: c.low, level: asiaLow, type: 'ASIA_LOW_SWEEP', pool: 'Asia Low', side: 'BUY', reactionSide: 'BUY', symbol: '◆', color: '#a855f7' });
+        asiaLowConsumed = true;
       }
-      if (c.high >= asiaHigh) asiaHighConsumed = true;
-      if (c.low <= asiaLow) asiaLowConsumed = true;
+      if (c.close > asiaHigh || c.high >= asiaHigh + minKeySweepDepth) asiaHighConsumed = true;
+      if (c.close < asiaLow || c.low <= asiaLow - minKeySweepDepth) asiaLowConsumed = true;
     }
-  } else if (Number.isFinite(serverLevels.asiaHigh) && Number.isFinite(serverLevels.asiaLow)) {
+  } else if (Number.isFinite(serverLevels.asiaHigh) && Number.isFinite(serverLevels.asiaLow) && serverLevels.asiaHigh > serverLevels.asiaLow) {
     asiaHigh = serverLevels.asiaHigh;
     asiaLow = serverLevels.asiaLow;
+    const minCheckTime = Number(serverLevels.asiaTime || 0) + 4 * 3600;
+    for (const c of safeCandles) {
+      if (minCheckTime > 4 * 3600 && c.time < minCheckTime) continue;
+      if (!asiaHighConsumed && c.high >= asiaHigh + minKeySweepDepth && c.close < asiaHigh) {
+        sweeps.push({ time: c.time, price: c.high, level: asiaHigh, type: 'ASIA_HIGH_SWEEP', pool: 'Asia High', side: 'SELL', reactionSide: 'SELL', symbol: '◆', color: '#a855f7' });
+        asiaHighConsumed = true;
+      }
+      if (!asiaLowConsumed && c.low <= asiaLow - minKeySweepDepth && c.close > asiaLow) {
+        sweeps.push({ time: c.time, price: c.low, level: asiaLow, type: 'ASIA_LOW_SWEEP', pool: 'Asia Low', side: 'BUY', reactionSide: 'BUY', symbol: '◆', color: '#a855f7' });
+        asiaLowConsumed = true;
+      }
+      if (c.close > asiaHigh || c.high >= asiaHigh + minKeySweepDepth) asiaHighConsumed = true;
+      if (c.close < asiaLow || c.low <= asiaLow - minKeySweepDepth) asiaLowConsumed = true;
+    }
   }
 
   // 3. Pivots, BSL / SSL, Market Structure (BOS / MSS), Trend Invalidation, FVG, OB, Sweep & DOL
@@ -341,16 +380,23 @@ function getTradingDayKey(timeSec) {
       }
     }
 
-    // BSL / SSL Sweeps (meaningful wick beyond liquidity + close back inside)
-    if (!bslConsumed && lastHigh != null && c.high >= lastHigh + minSweepDepth && c.close < lastHigh) {
-      bslConsumed = true;
-      for (const l of bslLines) {
-        if (!l.consumed && Math.abs(l.level - lastHigh) < 0.05) l.consumed = true;
+    // Multi-pool BSL / SSL Sweeps: check BOTH latest swing AND any unconsumed older swing pool
+    let sweptBslPool = null;
+    for (const l of bslLines) {
+      if (!l.consumed && c.time > l.confirmedTime && c.high >= l.level + minSweepDepth && c.close < l.level) {
+        l.consumed = true;
+        if (!sweptBslPool || l.level > sweptBslPool.level) sweptBslPool = l;
       }
+    }
+    if (!sweptBslPool && !bslConsumed && lastHigh != null && c.high >= lastHigh + minSweepDepth && c.close < lastHigh) {
+      sweptBslPool = { level: lastHigh };
+    }
+    if (sweptBslPool) {
+      if (lastHigh != null && Math.abs(sweptBslPool.level - lastHigh) < 0.05) bslConsumed = true;
       sweeps.push({
         time: c.time,
         price: c.high,
-        level: lastHigh,
+        level: sweptBslPool.level,
         type: 'BSL_SWEEP',
         pool: 'BSL',
         side: 'SELL',
@@ -359,15 +405,23 @@ function getTradingDayKey(timeSec) {
         color: '#ef4444'
       });
     }
-    if (!sslConsumed && lastLow != null && c.low <= lastLow - minSweepDepth && c.close > lastLow) {
-      sslConsumed = true;
-      for (const l of sslLines) {
-        if (!l.consumed && Math.abs(l.level - lastLow) < 0.05) l.consumed = true;
+
+    let sweptSslPool = null;
+    for (const l of sslLines) {
+      if (!l.consumed && c.time > l.confirmedTime && c.low <= l.level - minSweepDepth && c.close > l.level) {
+        l.consumed = true;
+        if (!sweptSslPool || l.level < sweptSslPool.level) sweptSslPool = l;
       }
+    }
+    if (!sweptSslPool && !sslConsumed && lastLow != null && c.low <= lastLow - minSweepDepth && c.close > lastLow) {
+      sweptSslPool = { level: lastLow };
+    }
+    if (sweptSslPool) {
+      if (lastLow != null && Math.abs(sweptSslPool.level - lastLow) < 0.05) sslConsumed = true;
       sweeps.push({
         time: c.time,
         price: c.low,
-        level: lastLow,
+        level: sweptSslPool.level,
         type: 'SSL_SWEEP',
         pool: 'SSL',
         side: 'BUY',
@@ -463,17 +517,21 @@ function getTradingDayKey(timeSec) {
       for (const l of bslLines) {
         if (!l.consumed && Math.abs(l.level - bullBreakLevel) < 0.05) l.consumed = true;
       }
+      const breakBody = Math.abs(c.close - c.open);
+      const breakDisplaced = breakBody >= (meanBodies[i] || breakBody) * 0.9;
       structureEvents.push({
         type: mssBull || prevTrend === 'BEAR' ? 'MSS' : 'BOS',
         side: 'BULL',
         level: bullBreakLevel,
         startTime: bullBreakTime,
         endTime: c.time,
+        displaced: breakDisplaced,
         color: '#22c55e'
       });
 
-      // Search back for unbroken Origin Order Block (last opposing down candle meeting minObThick before break)
-      for (let offset = 1; offset <= obSearchBars && i - offset >= 0; offset++) {
+      // Search back for unbroken Origin Order Block within the break leg (last opposing down candle meeting minObThick)
+      const obMinIdx = Math.max(0, Math.min(i - 1, originSearchFrom - 2));
+      for (let offset = 1; offset <= obSearchBars && i - offset >= obMinIdx; offset++) {
         const originIdx = i - offset;
         const candidate = safeCandles[originIdx];
         if (candidate.close < candidate.open) {
@@ -490,20 +548,29 @@ function getTradingDayKey(timeSec) {
             if (safeCandles[mid].close < bot) { preBroken = true; break; }
           }
           if (preBroken) continue;
-          obList.push({
-            side: 'BUY',
-            top,
-            bot,
-            ce: (top + bot) / 2,
-            startTime: candidate.time,
-            originIndex: originIdx,
-            formedIndex: i,
-            label: '+OB',
-            color: '#3b82f6',
-            tested: false,
-            mitigated: false,
-            lifecycle: 'FRESH'
-          });
+          const dupOb = obList.find(z => !z.mitigated && z.side === 'BUY' && Math.abs(z.bot - bot) < 0.25 && Math.abs(z.top - top) < 0.25);
+          if (!dupOb) {
+            obList.push({
+              side: 'BUY',
+              top,
+              bot,
+              ce: (top + bot) / 2,
+              startTime: candidate.time,
+              originIndex: originIdx,
+              formedIndex: i,
+              label: '+OB',
+              color: '#3b82f6',
+              tested: false,
+              mitigated: false,
+              ceTouched: false,
+              touchCount: 0,
+              firstTouchTime: null,
+              lastTouchTime: null,
+              touches: [],
+              _inTouch: false,
+              lifecycle: 'FRESH'
+            });
+          }
           break;
         }
       }
@@ -538,17 +605,21 @@ function getTradingDayKey(timeSec) {
       for (const l of sslLines) {
         if (!l.consumed && Math.abs(l.level - bearBreakLevel) < 0.05) l.consumed = true;
       }
+      const breakBody = Math.abs(c.close - c.open);
+      const breakDisplaced = breakBody >= (meanBodies[i] || breakBody) * 0.9;
       structureEvents.push({
         type: mssBear || prevTrend === 'BULL' ? 'MSS' : 'BOS',
         side: 'BEAR',
         level: bearBreakLevel,
         startTime: bearBreakTime,
         endTime: c.time,
+        displaced: breakDisplaced,
         color: '#ef4444'
       });
 
-      // Search back for unbroken Origin Order Block (last opposing up candle meeting minObThick before break)
-      for (let offset = 1; offset <= obSearchBars && i - offset >= 0; offset++) {
+      // Search back for unbroken Origin Order Block within the break leg (last opposing up candle meeting minObThick)
+      const obMinIdx = Math.max(0, Math.min(i - 1, originSearchFrom - 2));
+      for (let offset = 1; offset <= obSearchBars && i - offset >= obMinIdx; offset++) {
         const originIdx = i - offset;
         const candidate = safeCandles[originIdx];
         if (candidate.close > candidate.open) {
@@ -565,26 +636,35 @@ function getTradingDayKey(timeSec) {
             if (safeCandles[mid].close > top) { preBroken = true; break; }
           }
           if (preBroken) continue;
-          obList.push({
-            side: 'SELL',
-            top,
-            bot,
-            ce: (top + bot) / 2,
-            startTime: candidate.time,
-            originIndex: originIdx,
-            formedIndex: i,
-            label: '-OB',
-            color: '#ef4444',
-            tested: false,
-            mitigated: false,
-            lifecycle: 'FRESH'
-          });
+          const dupOb = obList.find(z => !z.mitigated && z.side === 'SELL' && Math.abs(z.bot - bot) < 0.25 && Math.abs(z.top - top) < 0.25);
+          if (!dupOb) {
+            obList.push({
+              side: 'SELL',
+              top,
+              bot,
+              ce: (top + bot) / 2,
+              startTime: candidate.time,
+              originIndex: originIdx,
+              formedIndex: i,
+              label: '-OB',
+              color: '#ef4444',
+              tested: false,
+              mitigated: false,
+              ceTouched: false,
+              touchCount: 0,
+              firstTouchTime: null,
+              lastTouchTime: null,
+              touches: [],
+              _inTouch: false,
+              lifecycle: 'FRESH'
+            });
+          }
           break;
         }
       }
     }
 
-    // Displacement & FVG check (3 strictly contiguous candles + ATR thickness filter)
+    // Displacement & FVG check (3 strictly contiguous candles + ATR thickness filter + dedupe)
     if (i >= 2) {
       const prev2 = safeCandles[i - 2];
       const prev1 = safeCandles[i - 1];
@@ -601,89 +681,120 @@ function getTradingDayKey(timeSec) {
 
         const bullGap = c.low - prev2.high;
         if (dispBull && bullGap >= minFvgThick) {
-          fvgList.push({
-            side: 'BUY',
-            top: c.low,
-            bot: prev2.high,
-            ce: (c.low + prev2.high) / 2,
-            startTime: prev2.time,
-            formedIndex: i,
-            color: '#22c55e',
-            tested: false,
-            mitigated: false,
-            lifecycle: 'FRESH'
-          });
+          const dupFvg = fvgList.find(z => !z.mitigated && z.side === 'BUY' && Math.abs(z.bot - prev2.high) < 0.25 && Math.abs(z.top - c.low) < 0.25);
+          if (!dupFvg) {
+            fvgList.push({
+              side: 'BUY',
+              top: c.low,
+              bot: prev2.high,
+              ce: (c.low + prev2.high) / 2,
+              startTime: prev2.time,
+              formedIndex: i,
+              color: '#22c55e',
+              tested: false,
+              mitigated: false,
+              ceTouched: false,
+              touchCount: 0,
+              firstTouchTime: null,
+              lastTouchTime: null,
+              touches: [],
+              _inTouch: false,
+              lifecycle: 'FRESH'
+            });
+          }
         }
 
         const bearGap = prev2.low - c.high;
         if (dispBear && bearGap >= minFvgThick) {
-          fvgList.push({
-            side: 'SELL',
-            top: prev2.low,
-            bot: c.high,
-            ce: (prev2.low + c.high) / 2,
-            startTime: prev2.time,
-            formedIndex: i,
-            color: '#ef4444',
-            tested: false,
-            mitigated: false,
-            lifecycle: 'FRESH'
+          const dupFvg = fvgList.find(z => !z.mitigated && z.side === 'SELL' && Math.abs(z.bot - c.high) < 0.25 && Math.abs(z.top - prev2.low) < 0.25);
+          if (!dupFvg) {
+            fvgList.push({
+              side: 'SELL',
+              top: prev2.low,
+              bot: c.high,
+              ce: (prev2.low + c.high) / 2,
+              startTime: prev2.time,
+              formedIndex: i,
+              color: '#ef4444',
+              tested: false,
+              mitigated: false,
+              ceTouched: false,
+              touchCount: 0,
+              firstTouchTime: null,
+              lastTouchTime: null,
+              touches: [],
+              _inTouch: false,
+              lifecycle: 'FRESH'
+            });
+          }
+        }
+      }
+    }
+
+    // Track distinct touch episodes, 50% CE taps, and mitigation breaks on every FVG & OB
+    const updateZoneTouches = zone => {
+      if (zone.mitigated || i <= zone.formedIndex) return;
+      const isBuy = zone.side === 'BUY';
+      const overlapsZone = c.low <= zone.top && c.high >= zone.bot;
+      const hitCe = isBuy ? (c.low <= zone.ce) : (c.high >= zone.ce);
+      const brokeZone = isBuy ? (c.close < zone.bot) : (c.close > zone.top);
+
+      if (overlapsZone) {
+        zone.tested = true;
+        if (hitCe) zone.ceTouched = true;
+        const touchPrice = isBuy
+          ? Math.max(zone.bot, Math.min(zone.top, c.low))
+          : Math.min(zone.top, Math.max(zone.bot, c.high));
+
+        if (!zone._inTouch) {
+          zone._inTouch = true;
+          zone.touchCount += 1;
+          if (!zone.firstTouchTime) zone.firstTouchTime = c.time;
+          zone.lastTouchTime = c.time;
+          zone.touches.push({
+            index: zone.touchCount,
+            time: c.time,
+            barIndex: i,
+            price: Number(touchPrice.toFixed(2)),
+            hitCe,
+            broken: brokeZone
+          });
+        } else if (zone.touches.length) {
+          // Same continuous visit: upgrade CE/break flags without inflating touchCount
+          const curTouch = zone.touches[zone.touches.length - 1];
+          if (hitCe && !curTouch.hitCe) {
+            curTouch.hitCe = true;
+            curTouch.price = Number(zone.ce.toFixed(2));
+          }
+          if (brokeZone) curTouch.broken = true;
+          zone.lastTouchTime = c.time;
+        }
+        if (!brokeZone) zone.lifecycle = 'TESTED';
+      } else {
+        zone._inTouch = false;
+      }
+
+      if (brokeZone) {
+        zone.mitigated = true;
+        zone.endTime = c.time;
+        zone.brokenAt = c.time;
+        zone.lifecycle = 'BROKEN';
+        const lastT = zone.touches[zone.touches.length - 1];
+        if (!lastT || lastT.time !== c.time) {
+          zone.touches.push({
+            index: zone.touchCount + (overlapsZone ? 0 : 1),
+            time: c.time,
+            barIndex: i,
+            price: Number((isBuy ? zone.bot : zone.top).toFixed(2)),
+            hitCe: true,
+            broken: true
           });
         }
       }
-    }
+    };
 
-    // Update FVG tested / mitigated state strictly AFTER formation bar (fixes self-mitigation bug)
-    for (const fvg of fvgList) {
-      if (fvg.mitigated || i <= fvg.formedIndex) continue;
-      if (fvg.side === 'BUY') {
-        if (c.low <= fvg.top && c.high >= fvg.bot) {
-          fvg.tested = true;
-          fvg.lifecycle = 'ACTIVE';
-        }
-        if (c.close < fvg.bot) {
-          fvg.mitigated = true;
-          fvg.endTime = c.time;
-          fvg.lifecycle = 'BROKEN';
-        }
-      } else {
-        if (c.high >= fvg.bot && c.low <= fvg.top) {
-          fvg.tested = true;
-          fvg.lifecycle = 'ACTIVE';
-        }
-        if (c.close > fvg.top) {
-          fvg.mitigated = true;
-          fvg.endTime = c.time;
-          fvg.lifecycle = 'BROKEN';
-        }
-      }
-    }
-
-    // Update OB tested / broken state strictly AFTER formation bar
-    for (const ob of obList) {
-      if (ob.mitigated || i <= ob.formedIndex) continue;
-      if (ob.side === 'BUY') {
-        if (c.low <= ob.top && c.high >= ob.bot) {
-          ob.tested = true;
-          ob.lifecycle = 'ACTIVE';
-        }
-        if (c.close < ob.bot) {
-          ob.mitigated = true;
-          ob.endTime = c.time;
-          ob.lifecycle = 'BROKEN';
-        }
-      } else {
-        if (c.high >= ob.bot && c.low <= ob.top) {
-          ob.tested = true;
-          ob.lifecycle = 'ACTIVE';
-        }
-        if (c.close > ob.top) {
-          ob.mitigated = true;
-          ob.endTime = c.time;
-          ob.lifecycle = 'BROKEN';
-        }
-      }
-    }
+    for (const fvg of fvgList) updateZoneTouches(fvg);
+    for (const ob of obList) updateZoneTouches(ob);
   }
 
   // Fallback to context M15 bias only if causal loop remained NEUTRAL
@@ -797,19 +908,35 @@ function getTradingDayKey(timeSec) {
     }
   }
 
-  // TradingView Parity: Active POI selection (unbroken, or recently tested within 1h)
+  // TradingView Parity: Active POI selection (unbroken only for active entry; expose touched/broken history separately)
   const curP = safeCandles.at(-1)?.close || 3940;
   const lastBarTime = safeCandles.at(-1)?.time || 0;
-  const isViablePoi = z => !z.mitigated || (z.tested && (!z.endTime || z.endTime >= lastBarTime - 3600));
-  const viableObs = obList.filter(isViablePoi);
+  const stripInternal = (z, kind) => {
+    const { _inTouch, ...rest } = z;
+    return { ...rest, kind: rest.kind || kind };
+  };
+  const cleanObs = obList.map(z => stripInternal(z, 'OB'));
+  const cleanFvgs = fvgList.map(z => stripInternal(z, 'FVG'));
+
+  const isActivePoi = z => !z.mitigated;
+  const viableObs = cleanObs.filter(isActivePoi);
   const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
   const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
   const activeObs = [nearestBullOb, nearestBearOb].filter(Boolean);
 
-  const viableFvgs = fvgList.filter(isViablePoi);
+  const viableFvgs = cleanFvgs.filter(isActivePoi);
   const nearestBullFvg = viableFvgs.filter(f => f.side === 'BUY' && f.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
   const nearestBearFvg = viableFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
   const activeFvgs = [nearestBullFvg, nearestBearFvg].filter(Boolean);
+
+  // Recent history pools (for Mapping History backfill & Chart Gold touch-history visualization)
+  const historyLookbackSec = expectedInterval * 120; // ~30h on M15, ~10h on M5
+  const historyObs = cleanObs.filter(z => (z.lastTouchTime || z.startTime || 0) >= lastBarTime - historyLookbackSec).slice(-12);
+  const historyFvgs = cleanFvgs.filter(z => (z.lastTouchTime || z.startTime || 0) >= lastBarTime - historyLookbackSec).slice(-12);
+  const recentBroken = [...cleanObs, ...cleanFvgs]
+    .filter(z => z.mitigated && z.endTime && z.endTime >= lastBarTime - expectedInterval * 24)
+    .sort((a, b) => (b.endTime || 0) - (a.endTime || 0))
+    .slice(0, 2);
 
   // Unified Directed Draw on Liquidity (DOL) from unconsumed pools strictly ahead of price
   const dedupePools = list => list.filter((x, idx) => list.findIndex(y => Math.abs(y.level - x.level) < 0.08) === idx);
@@ -966,7 +1093,10 @@ function getTradingDayKey(timeSec) {
     },
     poi: {
       fvg: activeFvgs.length ? activeFvgs : viableFvgs.slice(-2),
-      ob: activeObs.length ? activeObs : viableObs.slice(-2)
+      ob: activeObs.length ? activeObs : viableObs.slice(-2),
+      historyFvg: historyFvgs,
+      historyOb: historyObs,
+      recentBroken
     },
     expansion,
     idm

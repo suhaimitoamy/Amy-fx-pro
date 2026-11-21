@@ -16,7 +16,8 @@
   <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
   <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
   <link rel="stylesheet" href="../shared/amyfx-obsidian-glass.css" data-amyfx-obsidian-glass="v1">
-  <link rel="stylesheet" href="../shared/journal-analytics-pro.css" data-amyfx-journal-pro-css="v1">
+  <link rel="stylesheet" href="../shared/journal-analytics-pro.css?v=20261120-pro2" data-amyfx-journal-pro-css="v1">
+  <link rel="stylesheet" href="./journal-pro-ledger.css?v=20261120-pro2" data-amyfx-journal-ledger-css="v1">
 </head>
   <body class="amyfx-module amyfx-module--journal">
     <div class="app-shell">
@@ -226,18 +227,18 @@
         </section>
 
 
-        <section class="view is-active" id="journalView" aria-labelledby="journalHeading">
-          <div class="section-head">
-            <div>
-              <h2 id="journalHeading">Jurnal Trading</h2>
-              <p id="journalCount">0 trade</p>
+        <section class="view is-active jl-view" id="journalView" aria-labelledby="journalHeading">
+          <div class="jl-page-head">
+            <div class="jl-page-title">
+              <h2 id="journalHeading">Jurnal Trade</h2>
+              <p id="journalCount" class="jp-tabular">0 trade</p>
             </div>
-            <div class="section-actions">
-              <button class="primary-button" id="newJournalBtn" type="button">+ Catat Trade</button>
+            <div class="jl-page-actions">
+              <button class="jl-primary-btn" id="newJournalBtn" type="button">+ Catat Trade</button>
             </div>
           </div>
 
-          <div class="jp-journal-filter-bar" aria-label="Filter daftar trade">
+          <div class="jp-journal-filter-bar jl-filter-bar" aria-label="Filter daftar trade">
             <div class="jp-seg" role="group" aria-label="Filter hasil trade">
               <button type="button" class="jp-seg-btn is-active" data-journal-result-filter="all">Semua</button>
               <button type="button" class="jp-seg-btn" data-journal-result-filter="Win">Win</button>
@@ -248,105 +249,11 @@
             <input id="journalSearchInput" class="jp-search-input" type="search" autocomplete="off" placeholder="Cari setup, pair, kesalahan...">
           </div>
 
-          <form class="journal-form journal-editor" id="journalForm" hidden>
-            <input id="journalId" type="hidden">
-            <div class="form-grid">
-              <label class="field">
-                <span>Tanggal</span>
-                <input id="journalDateInput" type="date" required>
-              </label>
-              <label class="field">
-                <span>Pair</span>
-                <input id="journalMarketInput" type="text" maxlength="24" value="XAU/USD" placeholder="XAU/USD">
-              </label>
-            </div>
-            <div class="form-grid">
-              <label class="field">
-                <span>Arah</span>
-                <select id="journalDirectionInput">
-                  <option value="">Pilih arah</option>
-                  <option value="Buy">Buy (Long)</option>
-                  <option value="Sell">Sell (Short)</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Sesi (WITA)</span>
-                <select id="journalSessionInput">
-                  <option value="">Otomatis (WITA)</option>
-                  <option value="Asia">Asia (07–15)</option>
-                  <option value="London">London (15–20)</option>
-                  <option value="NY AM">NY AM (20–01)</option>
-                  <option value="NY PM">NY PM (01–07)</option>
-                </select>
-              </label>
-            </div>
-            <div class="form-grid">
-              <label class="field">
-                <span>Setup ICT</span>
-                <input id="journalSetupInput" type="text" maxlength="80" placeholder="OB + FVG, Sweep M5, MSS">
-              </label>
-              <label class="field">
-                <span>Hasil</span>
-                <select id="journalResultInput">
-                  <option value="Belum selesai">Belum selesai</option>
-                  <option value="Win">Win</option>
-                  <option value="Loss">Loss</option>
-                  <option value="BE">BE</option>
-                  <option value="Tidak entry">Tidak entry</option>
-                </select>
-              </label>
-            </div>
-            <div class="form-grid">
-              <label class="field">
-                <span>Nominal P/L ($)</span>
-                <input id="journalPnlInput" type="number" inputmode="decimal" step="0.01" placeholder="Contoh: 120 atau -45">
-              </label>
-              <label class="field">
-                <span>R:R (Opsional)</span>
-                <input id="journalRrInput" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Contoh: 2.5">
-              </label>
-            </div>
-            <input id="journalProfitInput" type="hidden">
-            <input id="journalLossInput" type="hidden">
-            <label class="field">
-              <span>Judul (Opsional)</span>
-              <input id="journalTitleInput" type="text" maxlength="100" placeholder="Kosongkan untuk judul otomatis dari Pair + Setup">
-            </label>
-            <label class="field">
-              <span>Catatan Eksekusi</span>
-              <textarea id="journalEvaluationInput" rows="3" maxlength="4800" placeholder="Alasan entry, konfirmasi M5, atau deviasi dari rencana"></textarea>
-            </label>
-            <div class="form-grid">
-              <label class="field">
-                <span>Kesalahan</span>
-                <input id="journalMistakesInput" type="text" maxlength="200" placeholder="FOMO, entry prematur, geser SL">
-              </label>
-              <label class="field">
-                <span>Emosi</span>
-                <input id="journalEmotionInput" type="text" maxlength="120" placeholder="Tenang, ragu, serakah">
-              </label>
-            </div>
-            <label class="field">
-              <span>Pelajaran (Opsional)</span>
-              <input id="journalLessonsInput" type="text" maxlength="240" placeholder="Satu perbaikan untuk trade berikutnya">
-            </label>
-            <label class="file-drop" for="journalFileInput" id="journalFileDropLabel">
-              <span class="file-drop-title">Lampiran screenshot chart</span>
-              <span class="file-drop-meta" id="journalFileMeta">PNG, JPG, WEBP atau PDF</span>
-            </label>
-            <input id="journalFileInput" type="file" multiple accept="image/*,.png,.jpg,.jpeg,.webp,.pdf" hidden>
-            <p class="form-message" id="journalMessage" role="status"></p>
-            <div class="form-actions">
-              <button class="ghost-button" id="resetJournalBtn" type="button">Tutup</button>
-              <button class="primary-button" type="submit">Simpan Trade</button>
-            </div>
-          </form>
-
-          <div class="journal-list" id="journalList"></div>
-          <div class="empty-state" id="journalEmpty" hidden>
-            <div class="empty-mark" aria-hidden="true">+</div>
+          <div class="journal-list jl-ledger-list" id="journalList"></div>
+          <div class="empty-state jl-empty-state" id="journalEmpty" hidden>
             <h3>Belum ada catatan trade</h3>
-            <p>Catat trade XAU/USD pertamamu untuk mulai melacak Equity Curve, Win Rate, dan pola kesalahan.</p>
+            <p>Catat trade XAU/USD pertamamu untuk membangun ledger harian, Equity Curve, dan analisis kebocoran disiplin.</p>
+            <button class="jl-primary-btn" id="emptyNewJournalBtn" type="button">+ Catat Trade Pertama</button>
           </div>
         </section>
 
@@ -445,14 +352,14 @@
         </section>
 
 
-        <section class="view" id="statisticsView" aria-labelledby="statisticsHeading" hidden>
-          <div class="section-head">
-            <div>
-              <h2 id="statisticsHeading">Performa &amp; Analitik</h2>
-              <p id="statisticsCount">Equity Curve, Drawdown &amp; Kalender P/L</p>
+        <section class="view jl-view" id="statisticsView" aria-labelledby="statisticsHeading" hidden>
+          <div class="jl-page-head jl-page-head--compact">
+            <div class="jl-page-title">
+              <h2 id="statisticsHeading">Performa</h2>
+              <p id="statisticsCount">Equity Curve, Kalender P/L &amp; Audit Disiplin</p>
             </div>
           </div>
-          <div class="statistics-page" id="statisticsViewContent"></div>
+          <div class="statistics-page jl-stats-host" id="statisticsViewContent"></div>
         </section>
 
         <section class="view" id="notesView" aria-labelledby="notesHeading" hidden>
@@ -492,114 +399,126 @@
           <div class="journal-list" id="notesList" aria-live="polite"></div>
         </section>
 
-        <!-- Disiplin & Habits Section -->
-        <section class="view" id="habitsView" aria-labelledby="habitsHeading" hidden>
-          <div class="section-head">
-            <div>
-              <h2 id="habitsHeading">Disiplin &amp; Habits</h2>
-              <p id="habitsCount">Rutinitas harian &amp; kalkulator lot XAU/USD</p>
+        <!-- Disiplin & Habits Section (Pro Ledger: Progress Ring + 7-Day Strip + Hairline Checklist) -->
+        <section class="view jl-view" id="habitsView" aria-labelledby="habitsHeading" hidden>
+          <div class="jl-page-head">
+            <div class="jl-page-title">
+              <h2 id="habitsHeading">Disiplin</h2>
+              <p id="habitsCount">Rutinitas trading harian &amp; batas risiko</p>
             </div>
-            <div class="section-actions">
-              <button class="primary-button" id="journalNewHabitBtn" type="button">+ Kebiasaan</button>
+            <div class="jl-page-actions">
+              <button class="jl-primary-btn" id="journalNewHabitBtn" type="button">+ Rutinitas</button>
             </div>
           </div>
 
-          <div id="subpaneHabits">
-            <div class="stats-summary-grid habit-executive-kpi-grid">
-              <article class="stats-card">
-                <p>Streak Disiplin</p>
-                <strong id="kpiHabitStreak" class="jp-tabular">0 Hari</strong>
-              </article>
-              <article class="stats-card">
-                <p>Checklist Hari Ini</p>
-                <strong id="kpiHabitDone" class="jp-tabular">0 / 7 Selesai</strong>
-              </article>
-              <article class="stats-card">
-                <p>Konsistensi 35H</p>
-                <strong id="kpiHabitConsistency" class="jp-tabular">0%</strong>
-              </article>
-              <article class="stats-card">
-                <p>Batas Risiko SL</p>
-                <strong id="kpiHabitRisk" class="jp-tabular">1.5%</strong>
-              </article>
-            </div>
-
-            <div class="habit-date-bar">
-              <div class="habit-date-info">
-                <span id="jHabitMonthLabel">BULAN</span>
-                <h3 id="jHabitDayLabel">Hari Ini</h3>
-              </div>
-              <div class="habit-date-nav">
-                <button type="button" class="icon-button" id="jHabitPrevDay" aria-label="Hari Sebelumnya">‹</button>
-                <button type="button" class="ghost-button compact" id="jHabitTodayBtn">Hari Ini</button>
-                <button type="button" class="icon-button" id="jHabitNextDay" aria-label="Hari Berikutnya">›</button>
-              </div>
-            </div>
-
-            <div class="habit-heatmap-card">
-              <div class="habit-heatmap-head">
-                <div class="heatmap-title-group">
-                  <strong>Matriks Disiplin 35 Hari</strong>
-                  <small id="jHabitMatrixSubtitle">Kepatuhan checklist harian (Senin–Jumat)</small>
+          <div id="subpaneHabits" class="jl-discipline-root">
+            <!-- Hero: Daily Progress Ring + Date Stepper + Inline Metrics -->
+            <section class="jl-disc-hero" aria-label="Ringkasan disiplin harian">
+              <div class="jl-ring-wrap" aria-hidden="true">
+                <svg class="jl-ring-svg" viewBox="0 0 88 88">
+                  <circle class="jl-ring-track" cx="44" cy="44" r="36"></circle>
+                  <circle class="jl-ring-fill" id="jHabitProgressRing" cx="44" cy="44" r="36" stroke-dasharray="226.19" stroke-dashoffset="226.19"></circle>
+                </svg>
+                <div class="jl-ring-center">
+                  <strong id="jHabitProgressPct" class="jp-tabular">0%</strong>
+                  <span id="jHabitProgressFraction" class="jp-tabular">0/0</span>
                 </div>
-                <div class="heatmap-pills-group">
-                  <div class="streak-pill" id="jHabitStreak">
-                    <span id="jHabitStreakText">Streak: 0 Hari</span>
+              </div>
+
+              <div class="jl-disc-hero-body">
+                <div class="jl-disc-date-row">
+                  <div class="jl-disc-date-copy">
+                    <span id="jHabitMonthLabel" class="jl-eyebrow">BULAN</span>
+                    <h3 id="jHabitDayLabel">Hari Ini</h3>
                   </div>
-                  <div class="penalty-pill" id="jHabitPenalty">
-                    <span id="jHabitPenaltyText">0 Penalti</span>
+                  <div class="jl-date-stepper">
+                    <button type="button" class="jl-step-btn" id="jHabitPrevDay" aria-label="Hari Sebelumnya">‹</button>
+                    <button type="button" class="jl-today-btn" id="jHabitTodayBtn">Hari Ini</button>
+                    <button type="button" class="jl-step-btn" id="jHabitNextDay" aria-label="Hari Berikutnya">›</button>
                   </div>
                 </div>
-              </div>
-              <div class="heatmap-days-legend">
-                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-              </div>
-              <div class="heatmap-tiles-grid" id="jHabitHeatmapGrid"></div>
-              <div class="heatmap-bottom-legend">
-                <span class="legend-text">Hijau = Patuh · Merah = Terlewat</span>
-                <div class="legend-scale">
-                  <span class="scale-box lvl-penalty" title="Penalti"></span>
-                  <span class="scale-box lvl-0" title="Netral"></span>
-                  <span class="scale-box lvl-1" title="25%"></span>
-                  <span class="scale-box lvl-2" title="50%"></span>
-                  <span class="scale-box lvl-3" title="75%"></span>
-                  <span class="scale-box lvl-4" title="100%"></span>
+
+                <div class="jl-disc-metrics jp-tabular" aria-label="Statistik disiplin">
+                  <span class="jl-disc-metric">Streak <strong id="kpiHabitStreak">0 Hari</strong></span>
+                  <span class="jl-sep" aria-hidden="true">·</span>
+                  <span class="jl-disc-metric">35H <strong id="kpiHabitConsistency">0%</strong></span>
+                  <span class="jl-sep" aria-hidden="true">·</span>
+                  <span class="jl-disc-metric" id="jHabitPenalty"><strong id="jHabitPenaltyText">0 Penalti</strong></span>
+                  <span id="kpiHabitDone" hidden>0 / 0</span>
+                  <span id="kpiHabitRisk" hidden>1.5%</span>
+                  <span id="jHabitStreakText" hidden>Streak: 0 Hari</span>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div id="jHabitPenaltyBanner" class="habit-penalty-alert" style="display: none;"></div>
+            <!-- 7-Day Compliance Strip -->
+            <section class="jl-week-section" aria-label="Kepatuhan 7 hari terakhir">
+              <div class="jl-week-strip" id="jHabitWeekStrip" role="list"></div>
+              <details class="jl-disclosure jl-matrix-disclosure" id="jHabitMatrixDisclosure">
+                <summary class="jl-disclosure-summary">
+                  <span>Riwayat 35 Hari</span>
+                  <span class="jl-disclosure-meta" id="jHabitMatrixSummaryMeta">Audit kepatuhan Senin–Jumat</span>
+                </summary>
+                <div class="jl-disclosure-body">
+                  <p class="jl-matrix-sub" id="jHabitMatrixSubtitle">Kepatuhan checklist harian (Senin–Jumat)</p>
+                  <div class="heatmap-days-legend">
+                    <span>S</span><span>S</span><span>R</span><span>K</span><span>J</span><span>S</span><span>M</span>
+                  </div>
+                  <div class="heatmap-tiles-grid" id="jHabitHeatmapGrid"></div>
+                  <div class="heatmap-bottom-legend">
+                    <span class="legend-text">Hijau = Patuh · Merah = Terlewat</span>
+                    <div class="legend-scale">
+                      <span class="scale-box lvl-penalty" title="Penalti"></span>
+                      <span class="scale-box lvl-0" title="Netral"></span>
+                      <span class="scale-box lvl-1" title="25%"></span>
+                      <span class="scale-box lvl-2" title="50%"></span>
+                      <span class="scale-box lvl-3" title="75%"></span>
+                      <span class="scale-box lvl-4" title="100%"></span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </section>
 
-            <div class="habit-calc-card">
-              <div class="calc-head">
-                <strong>Kalkulator Lot Cepat XAU/USD</strong>
+            <!-- Penalty Warning Line (only shown for missed past trading day) -->
+            <div id="jHabitPenaltyBanner" class="jl-penalty-line" style="display: none;"></div>
+
+            <!-- Hairline Checklist Rows -->
+            <section class="jl-checklist-section" aria-label="Checklist rutinitas harian">
+              <div class="jl-section-bar">
+                <h3>Checklist Hari Ini</h3>
+                <span id="jHabitProgressText" class="jl-section-meta jp-tabular">0 / 0 Selesai</span>
               </div>
-              <div class="calc-grid">
-                <label class="mini-field">
-                  <span>Modal ($)</span>
-                  <input id="jCalcBal" type="number" value="5000" step="500">
-                </label>
-                <label class="mini-field">
-                  <span>Risiko (%)</span>
-                  <input id="jCalcRisk" type="number" value="1.5" step="0.5">
-                </label>
-                <label class="mini-field">
-                  <span>Jarak SL ($)</span>
-                  <input id="jCalcSL" type="number" value="8" step="1">
-                </label>
-                <div class="calc-output">
-                  <span>Rekomendasi Lot</span>
-                  <strong id="jCalcLotResult" class="jp-tabular">0.09 Lot</strong>
+              <div class="jl-checklist-rows" id="jHabitsCardsList"></div>
+            </section>
+
+            <!-- Collapsible Quick Lot Calculator -->
+            <details class="jl-disclosure jl-calc-disclosure" id="jHabitCalcDisclosure">
+              <summary class="jl-disclosure-summary">
+                <span>Kalkulator Lot XAU/USD</span>
+                <span class="jl-disclosure-meta jp-tabular" id="jCalcSummaryMeta">Risiko 1.5% · 0.09 Lot</span>
+              </summary>
+              <div class="jl-disclosure-body">
+                <div class="jl-calc-grid">
+                  <label class="jl-calc-field">
+                    <span>Modal ($)</span>
+                    <input id="jCalcBal" type="number" inputmode="decimal" value="5000" step="100">
+                  </label>
+                  <label class="jl-calc-field">
+                    <span>Risiko (%)</span>
+                    <input id="jCalcRisk" type="number" inputmode="decimal" value="1.5" step="0.25">
+                  </label>
+                  <label class="jl-calc-field">
+                    <span>Jarak SL ($)</span>
+                    <input id="jCalcSL" type="number" inputmode="decimal" value="8" step="0.5">
+                  </label>
+                  <div class="jl-calc-result">
+                    <span>Ukuran Lot</span>
+                    <strong id="jCalcLotResult" class="jp-tabular">0.09 Lot</strong>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="habits-list-head">
-              <h3>Checklist Rutinitas Hari Ini</h3>
-              <span id="jHabitProgressText" class="badge jp-tabular">0 / 7 Selesai</span>
-            </div>
-
-            <div class="habits-cards-list" id="jHabitsCardsList"></div>
+            </details>
           </div>
         </section>
       </main>
@@ -622,6 +541,141 @@
         </button>
       </nav>
     </div>
+
+    <!-- Bottom-Sheet Modal Input & Edit Trade -->
+    <dialog class="sheet-dialog jl-trade-sheet" id="journalSheetDialog" aria-labelledby="journalSheetTitle">
+      <form class="jl-sheet-form" id="journalForm">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="jl-sheet-head">
+          <div>
+            <span class="jl-eyebrow" id="journalSheetEyebrow">Catat Eksekusi</span>
+            <h2 id="journalSheetTitle">Trade Baru</h2>
+          </div>
+          <button class="jl-sheet-close" id="closeJournalSheetBtn" type="button" aria-label="Tutup form trade">×</button>
+        </div>
+
+        <div class="jl-sheet-body">
+          <input id="journalId" type="hidden">
+          <input id="journalProfitInput" type="hidden">
+          <input id="journalLossInput" type="hidden">
+
+          <!-- Quick Segmented Pickers synced to selects -->
+          <div class="jl-sheet-quick-group">
+            <div class="jl-quick-block">
+              <span class="jl-field-label">Arah</span>
+              <div class="jl-quick-seg" role="group" aria-label="Pilih arah trade">
+                <button type="button" class="jl-quick-btn" data-quick-direction="Buy">BUY</button>
+                <button type="button" class="jl-quick-btn" data-quick-direction="Sell">SELL</button>
+              </div>
+            </div>
+            <div class="jl-quick-block">
+              <span class="jl-field-label">Hasil</span>
+              <div class="jl-quick-seg jl-quick-seg--result" role="group" aria-label="Pilih hasil trade">
+                <button type="button" class="jl-quick-btn" data-quick-result="Win">Win</button>
+                <button type="button" class="jl-quick-btn" data-quick-result="Loss">Loss</button>
+                <button type="button" class="jl-quick-btn" data-quick-result="BE">BE</button>
+                <button type="button" class="jl-quick-btn" data-quick-result="Belum selesai">Open</button>
+                <button type="button" class="jl-quick-btn" data-quick-result="Tidak entry">Skip</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="jl-form-grid">
+            <label class="jl-field">
+              <span>Tanggal</span>
+              <input id="journalDateInput" type="date" required>
+            </label>
+            <label class="jl-field">
+              <span>Pair</span>
+              <input id="journalMarketInput" type="text" maxlength="24" value="XAU/USD" placeholder="XAU/USD">
+            </label>
+          </div>
+
+          <div class="jl-form-grid">
+            <label class="jl-field">
+              <span>Nominal P/L ($)</span>
+              <input id="journalPnlInput" type="number" inputmode="decimal" step="0.01" placeholder="120 atau -45">
+            </label>
+            <label class="jl-field">
+              <span>R:R (Opsional)</span>
+              <input id="journalRrInput" type="number" inputmode="decimal" min="0" step="0.1" placeholder="2.5">
+            </label>
+          </div>
+
+          <div class="jl-form-grid">
+            <label class="jl-field">
+              <span>Setup ICT</span>
+              <input id="journalSetupInput" type="text" maxlength="80" placeholder="OB + FVG, Sweep M5">
+            </label>
+            <label class="jl-field">
+              <span>Sesi (WITA)</span>
+              <select id="journalSessionInput">
+                <option value="">Otomatis (WITA)</option>
+                <option value="Asia">Asia (07–15)</option>
+                <option value="London">London (15–20)</option>
+                <option value="NY AM">NY AM (20–01)</option>
+                <option value="NY PM">NY PM (01–07)</option>
+              </select>
+            </label>
+          </div>
+
+          <!-- Hidden native selects kept 100% synced for backward compatibility -->
+          <select id="journalDirectionInput" hidden aria-hidden="true">
+            <option value="">Pilih arah</option>
+            <option value="Buy">Buy (Long)</option>
+            <option value="Sell">Sell (Short)</option>
+          </select>
+          <select id="journalResultInput" hidden aria-hidden="true">
+            <option value="Belum selesai">Belum selesai</option>
+            <option value="Win">Win</option>
+            <option value="Loss">Loss</option>
+            <option value="BE">BE</option>
+            <option value="Tidak entry">Tidak entry</option>
+          </select>
+
+          <div class="jl-form-divider"><span>Refleksi &amp; Lampiran</span></div>
+
+          <label class="jl-field">
+            <span>Catatan Eksekusi</span>
+            <textarea id="journalEvaluationInput" rows="3" maxlength="4800" placeholder="Alasan entry, konfirmasi M5, atau deviasi dari SOP"></textarea>
+          </label>
+
+          <div class="jl-form-grid">
+            <label class="jl-field">
+              <span>Kesalahan</span>
+              <input id="journalMistakesInput" type="text" maxlength="200" placeholder="FOMO, entry prematur, geser SL">
+            </label>
+            <label class="jl-field">
+              <span>Emosi</span>
+              <input id="journalEmotionInput" type="text" maxlength="120" placeholder="Tenang, ragu, serakah">
+            </label>
+          </div>
+
+          <div class="jl-form-grid">
+            <label class="jl-field">
+              <span>Pelajaran (Opsional)</span>
+              <input id="journalLessonsInput" type="text" maxlength="240" placeholder="Satu perbaikan trade berikutnya">
+            </label>
+            <label class="jl-field">
+              <span>Judul (Opsional)</span>
+              <input id="journalTitleInput" type="text" maxlength="100" placeholder="Otomatis dari Pair + Setup">
+            </label>
+          </div>
+
+          <label class="jl-file-drop" for="journalFileInput" id="journalFileDropLabel">
+            <span class="file-drop-title">Lampiran screenshot chart</span>
+            <span class="file-drop-meta" id="journalFileMeta">PNG, JPG, WEBP atau PDF</span>
+          </label>
+          <input id="journalFileInput" type="file" multiple accept="image/*,.png,.jpg,.jpeg,.webp,.pdf" hidden>
+          <p class="form-message" id="journalMessage" role="status"></p>
+        </div>
+
+        <div class="jl-sheet-foot">
+          <button class="jl-ghost-btn" id="resetJournalBtn" type="button">Batal</button>
+          <button class="jl-primary-btn" type="submit">Simpan Trade</button>
+        </div>
+      </form>
+    </dialog>
 
     <!-- Dialog Modal Tambah Kebiasaan -->
     <dialog class="sheet-dialog" id="jHabitDialog">

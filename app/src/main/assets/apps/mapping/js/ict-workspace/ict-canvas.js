@@ -42,6 +42,7 @@ export function createIctCanvas(element, chart, series) {
 
     const {candles, amy, settings: s = {}, layers = {}, tf} = state;
     const showPoi = layers.poi !== false;
+    const showTouches = layers.touches !== false;
     const showStructure = layers.structure !== false;
     const showLiquidity = layers.liquidity !== false;
     const showAsia = layers.asia === true;
@@ -163,7 +164,94 @@ export function createIctCanvas(element, chart, series) {
       line(kl.asiaLow, `ASIA L ${kl.asiaLow.toFixed(2)}`, '#a855f7', kl.asiaStart, null, true);
     }
 
-    // 3. Time-bounded POI Boxes: FVG & Order Blocks with 50% CE (Layer: poi)
+    // Helper: Draw pinpoint zone touch history markers directly on touched candles (Layer: touches)
+    const drawTouchMarkers = (zone, baseColor) => {
+      if (!showTouches || !Array.isArray(zone?.touches) || !zone.touches.length) return;
+      const ceColor = light ? '#D97706' : '#F5C451';
+      const breakColor = light ? '#DC2626' : '#EF4444';
+      const ringBg = light ? '#FFFFFF' : '#06090F';
+
+      for (const touch of zone.touches) {
+        const tx = x(touch.time);
+        const ty = y(touch.price);
+        if (tx == null || ty == null || tx < 2 || tx > plotRight - 2 || ty < 2 || ty > plotBottom - 2) continue;
+
+        if (touch.broken) {
+          // Crisp crimson ✕ cross for structural zone invalidation / break
+          ctx.save();
+          ctx.fillStyle = breakColor + '26';
+          ctx.beginPath();
+          ctx.arc(tx, ty, 6.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = ringBg;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(tx - 3.6, ty - 3.6);
+          ctx.lineTo(tx + 3.6, ty + 3.6);
+          ctx.moveTo(tx + 3.6, ty - 3.6);
+          ctx.lineTo(tx - 3.6, ty + 3.6);
+          ctx.stroke();
+          ctx.strokeStyle = breakColor;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(tx - 3.6, ty - 3.6);
+          ctx.lineTo(tx + 3.6, ty + 3.6);
+          ctx.moveTo(tx + 3.6, ty - 3.6);
+          ctx.lineTo(tx - 3.6, ty + 3.6);
+          ctx.stroke();
+          ctx.restore();
+          label('✕', Math.max(4, tx - 6), ty - 7, breakColor);
+        } else if (touch.hitCe) {
+          // Gold diamond ◆ for 50% CE touch
+          const r = 4.6;
+          ctx.save();
+          ctx.fillStyle = ceColor + '33';
+          ctx.beginPath();
+          ctx.arc(tx, ty, 7.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(tx, ty - r);
+          ctx.lineTo(tx + r, ty);
+          ctx.lineTo(tx, ty + r);
+          ctx.lineTo(tx - r, ty);
+          ctx.closePath();
+          ctx.fillStyle = ceColor;
+          ctx.fill();
+          ctx.strokeStyle = ringBg;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+          ctx.restore();
+          const tagY = zone.side === 'BUY' ? Math.min(plotBottom - 4, ty + fontSize + 7) : Math.max(fontSize + 6, ty - 7);
+          label(`T${touch.index}·CE`, Math.max(4, tx - 14), tagY, ceColor);
+        } else {
+          // Glowing circle dot for edge touch
+          ctx.save();
+          ctx.fillStyle = baseColor + '33';
+          ctx.beginPath();
+          ctx.arc(tx, ty, 6.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = baseColor;
+          ctx.beginPath();
+          ctx.arc(tx, ty, 3.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = ringBg;
+          ctx.lineWidth = 1.1;
+          ctx.stroke();
+          ctx.restore();
+          const tagY = zone.side === 'BUY' ? Math.min(plotBottom - 4, ty + fontSize + 6) : Math.max(fontSize + 6, ty - 6);
+          label(`T${touch.index}`, Math.max(4, tx - 8), tagY, baseColor);
+        }
+      }
+    };
+
+    const formatZoneStatus = (prefix, z) => {
+      const cnt = Number(z.touchCount) || (z.tested ? 1 : 0);
+      if (z.mitigated || z.lifecycle === 'BROKEN') return `${prefix} · ✕ JEBOL`;
+      if (cnt <= 0) return `${prefix} · FRESH`;
+      return `${prefix} · ${cnt}×${z.ceTouched ? ' CE' : ''}`;
+    };
+
+    // 3. Time-bounded POI Boxes: FVG & Order Blocks with 50% CE + Touch History (Layer: poi)
     if (showPoi) {
       for (const fvg of indicators?.poi?.fvg || []) {
         const xx = leftAt(fvg.startTime);
@@ -172,26 +260,29 @@ export function createIctCanvas(element, chart, series) {
         const end = (fvg.mitigated && !fvg.tested) ? leftAt(fvg.endTime) : lineRight;
         const right = Math.min(plotRight, end ?? lineRight);
         const color = fvg.side === 'BUY' ? (light ? '#059669' : '#00C896') : (light ? '#E11D48' : '#FF4D6A');
+        const isTested = Boolean(fvg.tested || (fvg.touchCount || 0) > 0);
 
-        ctx.fillStyle = color + (light ? '16' : '1E');
+        ctx.fillStyle = color + (light ? (isTested ? '10' : '18') : (isTested ? '15' : '20'));
         ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
-        ctx.strokeStyle = color + 'AA';
+        ctx.strokeStyle = color + (isTested ? '88' : 'BB');
         ctx.lineWidth = s.lineWidth || 1;
-        if (fvg.tested) ctx.setLineDash([3, 3]);
+        if (isTested) ctx.setLineDash([3, 3]);
         ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
         ctx.setLineDash([]);
 
         const ceY = y(fvg.ce);
         if (ceY != null) {
-          ctx.setLineDash([3, 3]);
+          ctx.setLineDash(fvg.ceTouched ? [5, 2] : [3, 3]);
           ctx.strokeStyle = light ? '#D97706' : '#F5C451';
+          ctx.lineWidth = fvg.ceTouched ? 1.35 : 1;
           ctx.beginPath();
           ctx.moveTo(xx, ceY);
           ctx.lineTo(right, ceY);
           ctx.stroke();
           ctx.setLineDash([]);
         }
-        label(`${fvg.side === 'BUY' ? 'Bull' : 'Bear'} FVG · CE`, Math.max(4, xx + 4), top + fontSize + 3, color);
+        label(formatZoneStatus(`${fvg.side === 'BUY' ? 'Bull' : 'Bear'} FVG`, fvg), Math.max(4, xx + 4), top + fontSize + 3, color);
+        drawTouchMarkers(fvg, color);
       }
 
       for (const ob of indicators?.poi?.ob || []) {
@@ -201,26 +292,55 @@ export function createIctCanvas(element, chart, series) {
         const end = (ob.mitigated && !ob.tested) ? leftAt(ob.endTime) : lineRight;
         const right = Math.min(plotRight, end ?? lineRight);
         const color = ob.side === 'BUY' ? (light ? '#2563EB' : '#38BDF8') : (light ? '#DC2626' : '#F87171');
+        const isTested = Boolean(ob.tested || (ob.touchCount || 0) > 0);
 
-        ctx.fillStyle = color + (light ? '18' : '22');
+        ctx.fillStyle = color + (light ? (isTested ? '12' : '1B') : (isTested ? '16' : '24'));
         ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
-        ctx.strokeStyle = color + 'BB';
+        ctx.strokeStyle = color + (isTested ? '88' : 'CC');
         ctx.lineWidth = s.lineWidth || 1;
-        if (ob.tested) ctx.setLineDash([3, 3]);
+        if (isTested) ctx.setLineDash([3, 3]);
         ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
         ctx.setLineDash([]);
 
         const ceY = y(ob.ce);
         if (ceY != null) {
-          ctx.setLineDash([3, 3]);
+          ctx.setLineDash(ob.ceTouched ? [5, 2] : [3, 3]);
           ctx.strokeStyle = light ? '#D97706' : '#F5C451';
+          ctx.lineWidth = ob.ceTouched ? 1.35 : 1;
           ctx.beginPath();
           ctx.moveTo(xx, ceY);
           ctx.lineTo(right, ceY);
           ctx.stroke();
           ctx.setLineDash([]);
         }
-        label(`${ob.label} · CE`, Math.max(4, xx + 4), top + fontSize + 3, color);
+        label(formatZoneStatus(ob.label || (ob.side === 'BUY' ? '+OB' : '-OB'), ob), Math.max(4, xx + 4), top + fontSize + 3, color);
+        drawTouchMarkers(ob, color);
+      }
+
+      // Subtle ghost boxes for recently broken zones (up to 2) when Touch History layer is ON
+      if (showTouches) {
+        for (const brk of (indicators?.poi?.recentBroken || []).slice(-2)) {
+          const xx = leftAt(brk.startTime);
+          const endX = leftAt(brk.endTime);
+          const top = y(brk.top), bottom = y(brk.bot);
+          if (xx == null || endX == null || top == null || bottom == null || xx > plotRight) continue;
+          const right = Math.min(plotRight, Math.max(xx + 8, endX));
+          const ghostColor = light ? '#64748B' : '#94A3B8';
+
+          ctx.fillStyle = ghostColor + (light ? '0E' : '12');
+          ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+          ctx.setLineDash([2, 3]);
+          ctx.strokeStyle = ghostColor + '80';
+          ctx.lineWidth = 0.9;
+          ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+          ctx.setLineDash([]);
+
+          const prefix = brk.kind === 'OB'
+            ? (brk.label || (brk.side === 'BUY' ? '+OB' : '-OB'))
+            : `${brk.side === 'BUY' ? 'Bull' : 'Bear'} FVG`;
+          label(`${prefix} · ✕ JEBOL`, Math.max(4, xx + 4), top + fontSize + 3, ghostColor);
+          drawTouchMarkers(brk, ghostColor);
+        }
       }
     }
 

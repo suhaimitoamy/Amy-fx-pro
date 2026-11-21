@@ -3,6 +3,7 @@ import {calculateNextGenIndicators} from './nextgen-indicators.js';
 
 export const DEFAULT_CHART_LAYERS = Object.freeze({
   poi: true,
+  touches: true,
   structure: true,
   liquidity: true,
   pdhl: true,

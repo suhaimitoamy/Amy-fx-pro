@@ -250,26 +250,31 @@
   color: #ffffff;
 }
 
-/* ─── Full Journal Pro Analytics Layout ────────────────────────────────── */
+/* ─── Full Journal Pro Analytics — Pro Ledger Layout ───────────────────── */
 .jp-pro-root {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+}
+
+.jp-tabular {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .jp-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px 12px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--jp-border);
 }
 
-.jp-title-block h3 {
+.jp-title-block .jp-meta-line {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--jp-text);
+  font-size: 0.76rem;
 }
 
 .jp-controls {
@@ -280,28 +285,24 @@
 }
 
 .jp-brief {
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--jp-surface-soft);
-  border: 1px solid var(--jp-border);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--jp-border);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .jp-brief p {
   margin: 0;
   font-size: 0.84rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--jp-text);
 }
 
-/* ─── Equity Curve & Underwater Drawdown ───────────────────────────────── */
-.jp-chart-card {
-  background: var(--jp-surface-soft);
-  border: 1px solid var(--jp-border);
-  border-radius: 14px;
-  padding: 16px;
+/* ─── Hero Equity Curve & Integrated Underwater Drawdown ───────────────── */
+.jp-hero-equity {
+  padding: 18px 0 16px;
+  border-bottom: 1px solid var(--jp-border);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -318,18 +319,18 @@
 .jp-chart-inspect {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
 .jp-inspect-title {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: var(--jp-text);
 }
 
 .jp-inspect-sub {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   color: var(--jp-muted);
 }
 
@@ -342,8 +343,10 @@
 }
 
 .jp-chart-total strong {
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .jp-chart-total span {
@@ -359,7 +362,7 @@
 
 .jp-eq-svg {
   width: 100%;
-  height: 196px;
+  height: 204px;
   display: block;
   touch-action: pan-y;
   cursor: crosshair;
@@ -397,7 +400,7 @@
 }
 
 .jp-dd-strip {
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid var(--jp-border);
   display: flex;
   flex-direction: column;
@@ -414,37 +417,46 @@
 
 .jp-dd-svg {
   width: 100%;
-  height: 52px;
+  height: 48px;
   display: block;
 }
 
-/* ─── 6-Metric KPI Grid ────────────────────────────────────────────────── */
-.jp-kpi-grid {
+/* ─── 4-KPI Hairline Strip (Zero Nested Boxes) ─────────────────────────── */
+.jp-kpi-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--jp-border);
 }
 
-.jp-kpi {
-  background: var(--jp-surface-soft);
-  border: 1px solid var(--jp-border);
-  border-radius: 12px;
-  padding: 12px 14px;
+.jp-kpi-cell {
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  border-right: 1px solid var(--jp-border);
+}
+
+.jp-kpi-cell:first-child {
+  padding-left: 0;
+}
+
+.jp-kpi-cell:last-child {
+  border-right: none;
+  padding-right: 0;
 }
 
 .jp-kpi-label {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--jp-muted);
+  letter-spacing: 0.02em;
 }
 
 .jp-kpi-val {
-  font-size: 1.08rem;
+  font-size: 1.12rem;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -458,21 +470,72 @@
   text-overflow: ellipsis;
 }
 
-/* ─── Breakdown Panels (Session / Setup / Leak Cost) ───────────────────── */
+/* ─── Sub-Tabs Bar (Kalender | Sesi & Setup | Kebocoran) ───────────────── */
+.jp-subtabs-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  border-bottom: 1px solid var(--jp-border);
+  margin-top: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.jp-subtabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.jp-subtab-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: var(--jp-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 10px 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.16s ease;
+}
+
+.jp-subtab-btn:hover {
+  color: var(--jp-text);
+}
+
+.jp-subtab-btn.is-active {
+  color: var(--jp-text);
+  font-weight: 700;
+}
+
+.jp-subtab-btn.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--jp-accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.jp-subtab-pane {
+  padding-top: 16px;
+}
+
+/* ─── Unboxed Hairline Breakdown Sections ──────────────────────────────── */
 .jp-split-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 24px 32px;
 }
 
-.jp-panel {
-  background: var(--jp-surface-soft);
-  border: 1px solid var(--jp-border);
-  border-radius: 14px;
-  padding: 16px;
+.jp-ledger-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
+  min-width: 0;
 }
 
 .jp-panel-head {
@@ -480,13 +543,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--jp-border);
 }
 
 .jp-panel-head h4 {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--jp-text);
 }
@@ -500,19 +563,24 @@
 .jp-rows {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .jp-rows--leaks {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 18px;
+  column-gap: 28px;
 }
 
 .jp-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--jp-border);
+}
+
+.jp-row:last-child {
+  border-bottom: none;
 }
 
 .jp-row-top {
@@ -523,7 +591,7 @@
 }
 
 .jp-row-title {
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--jp-text);
   overflow: hidden;
@@ -538,7 +606,7 @@
 }
 
 .jp-row-val {
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
@@ -551,10 +619,11 @@
 
 .jp-bar-track {
   width: 100%;
-  height: 5px;
+  height: 3px;
   border-radius: 999px;
   background: var(--jp-border);
   overflow: hidden;
+  margin-top: 2px;
 }
 
 .jp-bar-fill {
@@ -578,10 +647,8 @@
 
 /* ─── Empty State ──────────────────────────────────────────────────────── */
 .jp-empty-card {
-  background: var(--jp-surface-soft);
-  border: 1px solid var(--jp-border);
-  border-radius: 14px;
-  padding: 24px 18px;
+  padding: 28px 12px;
+  border-bottom: 1px solid var(--jp-border);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -591,7 +658,7 @@
 
 .jp-empty-card h4 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
   font-weight: 700;
   color: var(--jp-text);
 }
@@ -600,33 +667,84 @@
 .jp-empty-inline {
   margin: 0;
   font-size: 0.82rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--jp-muted);
   max-width: 48ch;
+  padding: 10px 0;
 }
 
 .jp-empty-actions {
   margin-top: 6px;
 }
 
-/* ─── Mobile Responsive (390px Android WebView) ────────────────────────── */
+/* ─── Mobile Responsive (360px–720px) ──────────────────────────────────── */
 @media (max-width: 720px) {
   .jp-home-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px 12px;
   }
 
-  .jp-kpi-grid {
+  .jp-toolbar {
+    align-items: stretch;
+  }
+
+  .jp-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .jp-controls .jp-amy-btn {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+  }
+
+  .jp-chart-total strong {
+    font-size: 1.25rem;
+  }
+
+  .jp-eq-svg {
+    height: 176px;
+  }
+
+  .jp-kpi-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .jp-kpi-cell {
+    padding: 12px 10px;
+    border-right: none;
+    border-bottom: 1px solid var(--jp-border);
+  }
+
+  .jp-kpi-cell:nth-child(odd) {
+    padding-left: 0;
+    border-right: 1px solid var(--jp-border);
+  }
+
+  .jp-kpi-cell:nth-child(even) {
+    padding-right: 0;
+  }
+
+  .jp-kpi-cell:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+
+  .jp-subtabs-bar {
+    gap: 0;
+    justify-content: space-between;
+  }
+
+  .jp-subtab-btn {
+    flex: 1 1 0;
+    text-align: center;
+    padding: 10px 6px;
   }
 
   .jp-split-grid,
   .jp-rows--leaks {
     grid-template-columns: 1fr;
-  }
-
-  .jp-controls {
-    width: 100%;
+    gap: 20px;
   }
 
   .jp-home-actions .jp-primary-btn,
@@ -638,7 +756,8 @@
 @media (prefers-reduced-motion: reduce) {
   .jp-primary-btn,
   .jp-amy-btn,
-  .jp-seg-btn {
+  .jp-seg-btn,
+  .jp-subtab-btn {
     transition: none;
   }
 }

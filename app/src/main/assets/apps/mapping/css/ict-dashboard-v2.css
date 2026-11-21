@@ -2167,6 +2167,28 @@ html[data-theme="light"] #gold-chart-workspace .manual-drawing-toolbar .draw-btn
   white-space: nowrap;
 }
 
+.history-touch-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-family: var(--ck-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: rgba(148, 163, 184, 0.14);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.history-touch-tag.is-ce {
+  background: rgba(245, 196, 81, 0.16);
+  color: #F5C451;
+  border-color: rgba(245, 196, 81, 0.36);
+}
+
 .history-outcome-badge {
   display: inline-flex;
   align-items: center;
@@ -2327,10 +2349,19 @@ html[data-theme="light"] .history-side-tag.is-cat {
 }
 
 html[data-amyfx-theme="light"] .history-outcome-badge.is-test,
-html[data-theme="light"] .history-outcome-badge.is-test {
+html[data-theme="light"] .history-outcome-badge.is-test,
+html[data-amyfx-theme="light"] .history-touch-tag,
+html[data-theme="light"] .history-touch-tag {
   background: rgba(15, 23, 42, 0.07);
   border-color: rgba(15, 23, 42, 0.16);
   color: #334155;
+}
+
+html[data-amyfx-theme="light"] .history-touch-tag.is-ce,
+html[data-theme="light"] .history-touch-tag.is-ce {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.32);
+  color: #b45309;
 }
 
 @media (max-width: 480px) {

@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.461/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.462/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js agar app.js dapat dimuat sempurna oleh WebView tanpa SyntaxError.",
-    "✦ Chart Gold Safe Dynamic Import: Pemuatan dinamis aman untuk manual-drawing-tool dan details-persistence.",
-    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI, 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
-    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live."
+    "✦ Mapping POI Accuracy & Touch Tracking: Indikator jejak sentuhan zona POI (FRESH, CE, BROKEN), ghost boxes untuk zona jebol, dan filtering DOL likuiditas yang sudah diambil.",
+    "✦ Journal Pro Ledger UI: Desain ledger baru dengan quick pickers, dialog modal modern, dan toolbar analitik yang lebih tajam.",
+    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js dengan layer touches aktif default."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.461/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.462/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950461,
-  "latest_version_name": "2.0.0-pro.461",
+  "latest_version_code": 950462,
+  "latest_version_name": "2.0.0-pro.462",
   "mandatory": false,
-  "releaseDate": "2026-11-20",
+  "releaseDate": "2026-11-21",
   "release_notes": [
-    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js agar app.js dapat dimuat sempurna oleh WebView tanpa SyntaxError.",
-    "✦ Chart Gold Safe Dynamic Import: Pemuatan dinamis aman untuk manual-drawing-tool dan details-persistence.",
-    "✦ Mapping Reaction History & Accuracy Engine: Pelacakan riwayat POI, 5 pilar SSOT arah M15, dan dual-layer scalper POI.",
-    "✦ Rombak Total Academy: Kurikulum 6 Level (30 Pelajaran Inti + 90 Kuis Diagnostik), Zero-Dependency Interactive SVG Diagram Engine, dan integrasi Amy Live."
+    "✦ Mapping POI Accuracy & Touch Tracking: Indikator jejak sentuhan zona POI (FRESH, CE, BROKEN), ghost boxes untuk zona jebol, dan filtering DOL likuiditas yang sudah diambil.",
+    "✦ Journal Pro Ledger UI: Desain ledger baru dengan quick pickers, dialog modal modern, dan toolbar analitik yang lebih tajam.",
+    "✦ Fix Chart Gold Module Linking: Export DEFAULT_CHART_LAYERS di chart-view.js dengan layer touches aktif default."
   ],
-  "version": "2.0.0-pro.461",
-  "versionCode": 950461,
+  "version": "2.0.0-pro.462",
+  "versionCode": 950462,
   "sha256": "558330c7fccf96cc27dacb1e12cc030285ab5fecafcfd4588f8865d2cf3f720e"
 }

@@ -113,6 +113,13 @@ const dom = {
   clearPinBtn: document.querySelector("#clearPinBtn"),
   journalCount: document.querySelector("#journalCount"),
   newJournalBtn: document.querySelector("#newJournalBtn"),
+  emptyNewJournalBtn: document.querySelector("#emptyNewJournalBtn"),
+  journalSheetDialog: document.querySelector("#journalSheetDialog"),
+  closeJournalSheetBtn: document.querySelector("#closeJournalSheetBtn"),
+  journalSheetTitle: document.querySelector("#journalSheetTitle"),
+  journalSheetEyebrow: document.querySelector("#journalSheetEyebrow"),
+  quickDirectionBtns: document.querySelectorAll("[data-quick-direction]"),
+  quickResultBtns: document.querySelectorAll("[data-quick-result]"),
   journalForm: document.querySelector("#journalForm"),
   journalId: document.querySelector("#journalId"),
   journalDateInput: document.querySelector("#journalDateInput"),
@@ -492,6 +499,26 @@ function bindEvents() {
   dom.setPinBtn?.addEventListener("click", setLocalPin);
   dom.clearPinBtn?.addEventListener("click", clearLocalPin);
   dom.newJournalBtn?.addEventListener("click", () => { resetJournalForm(); openJournalEditor("new"); });
+  dom.emptyNewJournalBtn?.addEventListener("click", () => { resetJournalForm(); openJournalEditor("new"); });
+  dom.closeJournalSheetBtn?.addEventListener("click", closeJournalEditor);
+  dom.journalSheetDialog?.addEventListener("click", (event) => {
+    if (event.target === dom.journalSheetDialog) closeJournalEditor();
+  });
+  dom.journalSheetDialog?.addEventListener("cancel", () => {
+    state.journalEditorOpen = false;
+  });
+  dom.quickDirectionBtns?.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (dom.journalDirectionInput) dom.journalDirectionInput.value = btn.dataset.quickDirection || "";
+      syncJournalQuickPickers();
+    });
+  });
+  dom.quickResultBtns?.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (dom.journalResultInput) dom.journalResultInput.value = btn.dataset.quickResult || "Belum selesai";
+      syncJournalQuickPickers();
+    });
+  });
   dom.journalFilterButtons?.forEach((button) => {
     button.addEventListener("click", () => {
       state.journalResultFilter = button.dataset.journalResultFilter || "all";
@@ -1038,19 +1065,23 @@ function renderJournalHabits() {
   const monthLabel = document.getElementById('jHabitMonthLabel');
   const dayLabel = document.getElementById('jHabitDayLabel');
   const heatmapGrid = document.getElementById('jHabitHeatmapGrid');
+  const weekStrip = document.getElementById('jHabitWeekStrip');
   const cardsList = document.getElementById('jHabitsCardsList');
   const progressBadge = document.getElementById('jHabitProgressText');
   const streakText = document.getElementById('jHabitStreakText');
   const penaltyPill = document.getElementById('jHabitPenalty');
   const penaltyText = document.getElementById('jHabitPenaltyText');
   const penaltyBanner = document.getElementById('jHabitPenaltyBanner');
+  const ringEl = document.getElementById('jHabitProgressRing');
+  const ringPctEl = document.getElementById('jHabitProgressPct');
+  const ringFracEl = document.getElementById('jHabitProgressFraction');
 
-  if (!monthLabel || !heatmapGrid || !cardsList) return;
+  if (!monthLabel || !cardsList) return;
 
   const monthYear = jHabitsCurrentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
   const dayDate = jHabitsCurrentDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
   monthLabel.textContent = monthYear;
-  dayLabel.textContent = dayDate;
+  if (dayLabel) dayLabel.textContent = dayDate;
 
   const habits = getStoredJournalHabits();
   const completedMap = getStoredCompletedHabits();
@@ -1062,74 +1093,111 @@ function renderJournalHabits() {
   const effectiveStartDate = getEffectiveDisciplineStartDate();
   let penaltyCount = 0;
 
-  // Render 35-day Heatmap Matrix (murni dari data riil, merah jika hari trading terlewat / penalti)
-  heatmapGrid.innerHTML = '';
-
-  for (let i = 34; i >= 0; i--) {
-    const d = new Date(jHabitsCurrentDate);
-    d.setDate(d.getDate() - i);
+  // Evaluate day discipline status helper (shared by 7-day strip and 35-day audit matrix)
+  const evaluateDayStatus = (d) => {
     const dStr = formatJDate(d);
     const dayOfWeek = d.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isTradingDay = !isWeekend;
     const isPast = dStr < todayStr;
     const isToday = dStr === todayStr;
 
     const dayCompleted = completedMap[dStr] || [];
     const hasJournal = Array.isArray(state?.journals) && state.journals.some(j => j.date === dStr);
     const isFilled = dayCompleted.length > 0 || hasJournal;
-
-    let ratio = 0;
-    if (dayCompleted.length > 0 && habits.length > 0) {
-      ratio = dayCompleted.length / habits.length;
-    }
+    const ratio = (dayCompleted.length > 0 && habits.length > 0) ? (dayCompleted.length / habits.length) : 0;
 
     let lvl = 'lvl-0';
-    let tileTitle = '';
+    let stateKey = 'neutral';
+    let tileTitle = `${dStr}: Belum diisi`;
 
     if (isWeekend) {
       lvl = 'lvl-0 is-weekend';
-      tileTitle = `${dStr}: 🌴 Akhir Pekan (Market Tutup - Bebas Trade)`;
+      stateKey = 'weekend';
+      tileTitle = `${dStr}: Akhir Pekan (Market Tutup)`;
     } else if (isFilled) {
       if (ratio >= 0.85) lvl = 'lvl-4';
       else if (ratio >= 0.6) lvl = 'lvl-3';
       else if (ratio >= 0.4) lvl = 'lvl-2';
       else lvl = 'lvl-1';
-      tileTitle = `${dStr}: ✅ Disiplin (${Math.round(ratio * 100)}% checklist${hasJournal ? ', Jurnal ada' : ''})`;
+      stateKey = ratio >= 0.85 ? 'done' : 'partial';
+      tileTitle = `${dStr}: Disiplin (${Math.round(ratio * 100)}% checklist${hasJournal ? ', Jurnal ada' : ''})`;
     } else if (isPast && dStr >= effectiveStartDate) {
-      // Hari trading di masa lalu sejak pelacakan aktif tapi TIDAK DIISI -> PENALTI (MERAH)!
       lvl = 'lvl-penalty';
-      penaltyCount++;
-      tileTitle = `${dStr}: ⚠️ PENALTI (Hari trading terlewat - Jurnal / Rutinitas tidak diisi!)`;
+      stateKey = 'penalty';
+      tileTitle = `${dStr}: PENALTI (Hari trading terlewat)`;
     } else if (isToday) {
       lvl = 'lvl-0';
-      tileTitle = `${dStr}: ⏳ Hari Ini (Silakan isi jurnal & checklist)`;
-    } else {
-      lvl = 'lvl-0';
-      tileTitle = `${dStr}: Belum diisi`;
+      stateKey = 'today';
+      tileTitle = `${dStr}: Hari Ini`;
     }
 
-    const tile = document.createElement('button');
-    tile.type = 'button';
-    tile.className = `j-heatmap-tile ${lvl} ${dStr === curDateStr ? 'is-active-day' : ''}`;
-    tile.title = tileTitle;
-    tile.onclick = () => {
-      jHabitsCurrentDate = new Date(d);
-      renderJournalHabits();
-    };
-    heatmapGrid.appendChild(tile);
+    return { dStr, isWeekend, isPast, isToday, ratio, lvl, stateKey, tileTitle };
+  };
+
+  // Render 35-day Heatmap Matrix inside collapsible audit disclosure
+  if (heatmapGrid) {
+    heatmapGrid.innerHTML = '';
+    for (let i = 34; i >= 0; i--) {
+      const d = new Date(jHabitsCurrentDate);
+      d.setDate(d.getDate() - i);
+      const info = evaluateDayStatus(d);
+      if (info.stateKey === 'penalty') penaltyCount++;
+
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = `j-heatmap-tile ${info.lvl} ${info.dStr === curDateStr ? 'is-active-day' : ''}`;
+      tile.title = info.tileTitle;
+      tile.onclick = () => {
+        jHabitsCurrentDate = new Date(d);
+        renderJournalHabits();
+      };
+      heatmapGrid.appendChild(tile);
+    }
   }
 
-  // Update Penalty Pill & Counter
+  // Render 7-Day Compliance Strip (ending on today if active date is within last 7 days, else anchored on active date)
+  if (weekStrip) {
+    weekStrip.innerHTML = '';
+    const dayAbbr = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
+    const diffFromToday = Math.round((new Date(todayStr) - new Date(curDateStr)) / 86400000);
+    const anchorDate = (diffFromToday >= 0 && diffFromToday <= 6) ? new Date(today) : new Date(jHabitsCurrentDate);
+
+    for (let offset = 6; offset >= 0; offset--) {
+      const d = new Date(anchorDate);
+      d.setDate(anchorDate.getDate() - offset);
+      const info = evaluateDayStatus(d);
+      const isActive = info.dStr === curDateStr;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `jl-week-day is-${info.stateKey} ${isActive ? 'is-active' : ''}`.trim();
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.title = info.tileTitle;
+      btn.innerHTML = `
+        <span class="jl-week-abbr">${dayAbbr[d.getDay()]}</span>
+        <strong class="jl-week-num jp-tabular">${d.getDate()}</strong>
+        <span class="jl-week-dot" aria-hidden="true"></span>
+      `;
+      btn.onclick = () => {
+        jHabitsCurrentDate = new Date(d);
+        renderJournalHabits();
+      };
+      weekStrip.appendChild(btn);
+    }
+  }
+
+  // Update Penalty Indicator
   if (penaltyText) {
     penaltyText.textContent = `${penaltyCount} Penalti`;
   }
   if (penaltyPill) {
-    if (penaltyCount > 0) {
-      penaltyPill.classList.remove('zero');
-    } else {
-      penaltyPill.classList.add('zero');
-    }
+    penaltyPill.classList.toggle('has-penalty', penaltyCount > 0);
+    penaltyPill.classList.toggle('zero', penaltyCount === 0);
+  }
+
+  const matrixMeta = document.getElementById('jHabitMatrixSummaryMeta');
+  if (matrixMeta) {
+    matrixMeta.textContent = penaltyCount > 0 ? `${penaltyCount} hari terlewat` : 'Bebas penalti';
   }
 
   // Banner Peringatan Penalti jika melihat tanggal hari trading yang terlewat
@@ -1143,9 +1211,8 @@ function renderJournalHabits() {
     if (isCurMissed) {
       penaltyBanner.style.display = 'flex';
       penaltyBanner.innerHTML = `
-        <span style="font-size: 20px;">⚠️</span>
         <div>
-          <strong>Hari Trading Terlewat (Kena Penalti)</strong>: Anda tidak mengisi jurnal atau checklist rutinitas pada hari trading ini (${dayDate}). Silakan centang checklist di bawah ini untuk memulihkan kedisiplinan dan menghapus warna merah penalti!
+          <strong>Hari trading terlewat (${dayDate})</strong> — Belum ada jurnal atau checklist tercatat. Centang rutinitas di bawah untuk memulihkan catatan hari ini.
         </div>
       `;
     } else {
@@ -1157,7 +1224,7 @@ function renderJournalHabits() {
   // Subtitle matriks disiplin dengan tautan reset
   const matrixSubtitle = document.getElementById('jHabitMatrixSubtitle');
   if (matrixSubtitle) {
-    matrixSubtitle.innerHTML = `Tingkat kepatuhan checklist harian (Senin–Jumat) · Pelacakan aktif: <strong>${effectiveStartDate}</strong> · <a href="javascript:void(0)" id="jHabitStartTodayBtn" style="color:var(--info); text-decoration:underline;">Mulai dari Hari Ini</a>`;
+    matrixSubtitle.innerHTML = `Pelacakan aktif sejak <strong>${effectiveStartDate}</strong> · <button type="button" id="jHabitStartTodayBtn" class="jl-inline-link">Mulai dari Hari Ini</button>`;
     const startTodayBtn = document.getElementById('jHabitStartTodayBtn');
     if (startTodayBtn) {
       startTodayBtn.onclick = (e) => {
@@ -1168,7 +1235,7 @@ function renderJournalHabits() {
     }
   }
 
-  // Render Habits Cards List
+  // Render Hairline Checklist Rows (Zero Stacked Boxes)
   cardsList.innerHTML = '';
   let doneCount = 0;
 
@@ -1193,63 +1260,71 @@ function renderJournalHabits() {
       }
     }
 
-    const card = document.createElement('div');
-    card.className = `habit-item-card ${isDone ? 'is-done' : ''}`;
-    card.innerHTML = `
-      <div class="habit-check-circle">
-        ${isDone ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-      </div>
-      <div class="habit-item-info">
-        <h4 class="habit-item-title">${h.title}</h4>
-        ${h.desc ? `<p class="habit-item-desc">${h.desc}</p>` : ''}
-        <div class="habit-item-meta">
-          <span class="meta-target">${h.target}</span>
-          ${habitStreak > 0 ? `<span class="meta-streak">🔥 ${habitStreak}D Streak</span>` : ''}
-        </div>
-      </div>
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = `jl-habit-row ${isDone ? 'is-done' : ''}`;
+    row.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+    row.innerHTML = `
+      <span class="jl-habit-check" aria-hidden="true">
+        ${isDone ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+      </span>
+      <span class="jl-habit-copy">
+        <strong class="jl-habit-title">${escapeHtml(h.title)}</strong>
+        <span class="jl-habit-sub">${escapeHtml([h.target, h.desc].filter(Boolean).join(' · '))}</span>
+      </span>
+      <span class="jl-habit-streak jp-tabular">${habitStreak > 0 ? `${habitStreak}H` : '—'}</span>
     `;
 
-    card.onclick = () => toggleJournalHabit(h.id);
-    cardsList.appendChild(card);
+    row.onclick = () => toggleJournalHabit(h.id);
+    cardsList.appendChild(row);
   });
 
+  // Update Daily Progress Ring & Counters
+  const totalHabits = habits.length;
+  const pct = totalHabits > 0 ? Math.round((doneCount / totalHabits) * 100) : 0;
+  if (ringEl) {
+    const circumference = 2 * Math.PI * 36;
+    const offset = circumference - (pct / 100) * circumference;
+    ringEl.style.strokeDasharray = circumference.toFixed(2);
+    ringEl.style.strokeDashoffset = offset.toFixed(2);
+    ringEl.classList.toggle('is-complete', pct === 100 && totalHabits > 0);
+  }
+  if (ringPctEl) ringPctEl.textContent = `${pct}%`;
+  if (ringFracEl) ringFracEl.textContent = `${doneCount}/${totalHabits}`;
+
   if (progressBadge) {
-    progressBadge.textContent = `${doneCount} / ${habits.length} Selesai`;
-    progressBadge.style.color = doneCount === habits.length ? 'var(--success)' : 'var(--muted)';
+    progressBadge.textContent = `${doneCount} / ${totalHabits} Selesai`;
+    progressBadge.classList.toggle('is-complete', doneCount === totalHabits && totalHabits > 0);
   }
 
-  // Hitung streak riil keseluruhan dari completedMap (Senin–Jumat, Sabtu & Minggu tidak merusak streak)
+  // Hitung streak riil keseluruhan dari completedMap (Senin–Jumat)
   let realStreak = 0;
   for (let i = 0; i < 90; i++) {
     const checkD = new Date(today);
     checkD.setDate(checkD.getDate() - i);
-    const dayOfWeek = checkD.getDay(); // 0 = Minggu, 6 = Sabtu
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Pasar tutup di akhir pekan
+    const dayOfWeek = checkD.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
     const ds = formatJDate(checkD);
     const dayDone = completedMap[ds] || [];
     if (dayDone.length > 0) {
       realStreak++;
     } else {
-      if (i === 0) continue; // Hari trading yang sedang berjalan belum selesai
+      if (i === 0) continue;
       break;
     }
   }
 
-  if (streakText) {
-    streakText.textContent = `Streak: ${realStreak} Hari`;
-  }
+  if (streakText) streakText.textContent = `Streak: ${realStreak} Hari`;
 
-  // Update Executive KPI Stats Strip (matching Dasbor & Statistik UI style)
   const kpiStreak = document.getElementById('kpiHabitStreak');
   const kpiDone = document.getElementById('kpiHabitDone');
   const kpiConsistency = document.getElementById('kpiHabitConsistency');
   const kpiRisk = document.getElementById('kpiHabitRisk');
 
   if (kpiStreak) kpiStreak.textContent = `${realStreak} Hari`;
-  if (kpiDone) kpiDone.textContent = `${doneCount} / ${habits.length} Selesai`;
+  if (kpiDone) kpiDone.textContent = `${doneCount} / ${totalHabits} Selesai`;
 
   if (kpiConsistency) {
-    // Konsistensi 35 hari trading riil (hanya hari Senin–Jumat)
     let tradingDaysCount = 0;
     let habitsDoneCount35D = 0;
     for (let i = 0; i < 60; i++) {
@@ -1263,14 +1338,14 @@ function renderJournalHabits() {
       habitsDoneCount35D += dayDone.length;
       if (tradingDaysCount >= 35) break;
     }
-    const maxPossible = tradingDaysCount * habits.length;
+    const maxPossible = tradingDaysCount * totalHabits;
     const consistencyPct = maxPossible > 0 ? Math.round((habitsDoneCount35D / maxPossible) * 100) : 0;
-    kpiConsistency.textContent = `${consistencyPct}% Konsisten`;
+    kpiConsistency.textContent = `${consistencyPct}%`;
   }
 
   if (kpiRisk) {
     const savedRisk = localStorage.getItem('amy_default_risk') || '1.5';
-    kpiRisk.textContent = `${savedRisk}% SL`;
+    kpiRisk.textContent = `${savedRisk}%`;
   }
 }
 
@@ -1340,16 +1415,25 @@ function initJournalHabitsListeners() {
     renderJournalHabits();
   });
 
-  // Lot Calculator listeners
-  function updateJCalc() {
-    const bal = parseFloat(document.getElementById('jCalcBal')?.value) || 5000;
-    const risk = parseFloat(document.getElementById('jCalcRisk')?.value) || 1.5;
-    const sl = parseFloat(document.getElementById('jCalcSL')?.value) || 8;
+  // Lot Calculator listeners (persists default balance & risk + updates collapsible summary)
+  function updateJCalc(persist = false) {
+    const balEl = document.getElementById('jCalcBal');
+    const riskEl = document.getElementById('jCalcRisk');
+    const slEl = document.getElementById('jCalcSL');
+    const bal = parseFloat(balEl?.value) || 5000;
+    const risk = parseFloat(riskEl?.value) || 1.5;
+    const sl = parseFloat(slEl?.value) || 8;
     const res = document.getElementById('jCalcLotResult');
-    if (!res) return;
+    const summaryMeta = document.getElementById('jCalcSummaryMeta');
     const riskAmt = (bal * risk) / 100;
-    const lot = sl > 0 ? (riskAmt / (sl * 100)).toFixed(2) : 0.01;
-    res.textContent = Math.max(0.01, lot) + ' Lot';
+    const lot = sl > 0 ? Math.max(0.01, Number((riskAmt / (sl * 100)).toFixed(2))) : 0.01;
+    const lotLabel = `${lot.toFixed(2)} Lot`;
+    if (res) res.textContent = lotLabel;
+    if (summaryMeta) summaryMeta.textContent = `Risiko ${risk}% · ${lotLabel}`;
+    if (persist) {
+      if (bal > 0) localStorage.setItem('amy_default_balance', String(bal));
+      if (risk > 0) localStorage.setItem('amy_default_risk', String(risk));
+    }
   }
 
   const savedBal = localStorage.getItem('amy_default_balance');
@@ -1359,10 +1443,10 @@ function initJournalHabitsListeners() {
   if (balInput && savedBal) balInput.value = savedBal;
   if (riskInput && savedRisk) riskInput.value = savedRisk;
 
-  document.getElementById('jCalcBal')?.addEventListener('input', updateJCalc);
-  document.getElementById('jCalcRisk')?.addEventListener('input', updateJCalc);
-  document.getElementById('jCalcSL')?.addEventListener('input', updateJCalc);
-  updateJCalc();
+  balInput?.addEventListener('input', () => updateJCalc(true));
+  riskInput?.addEventListener('input', () => updateJCalc(true));
+  document.getElementById('jCalcSL')?.addEventListener('input', () => updateJCalc(false));
+  updateJCalc(false);
 
   const subtabHabitsBtn = document.getElementById('subtabHabitsBtn');
   const subtabStatsBtn = document.getElementById('subtabStatsBtn');
@@ -1868,37 +1952,49 @@ function makeStatCard(label, value) {
 }
 
 
-function renderStatistics() {
-  const targetContainers = [dom.statisticsViewContent, document.getElementById('statisticsViewContentHabits')].filter(Boolean);
-  if (!targetContainers.length) return;
-
+function buildPerformaCalendarPane() {
   const journalStats = getJournalStatistics();
   const monthInfo = getCurrentMonthInfo();
   const calendarHtml = buildStatisticsCalendar(monthInfo.year, monthInfo.month);
+  const netTone = journalStats.netProfit > 0 ? "is-pos" : journalStats.netProfit < 0 ? "is-neg" : "";
+  const netText = journalStats.monthJournalCount
+    ? `${journalStats.netProfit > 0 ? "+" : ""}${formatTradeAmount(journalStats.netProfit)}`
+    : "$0";
 
-  const statsHtml = `
-    <section class="stats-panel jp-pro-host-panel">
-      <div class="jp-pro-mount" data-jp-pro-mount></div>
-    </section>
-
-    <section class="stats-panel calendar-panel">
-      <div class="calendar-title calendar-title-with-nav">
-        <button type="button" class="calendar-nav-button" data-stats-month-nav="-1" aria-label="Bulan sebelumnya">‹</button>
-        <div>
+  return `
+    <section class="jl-calendar-pane" aria-label="Kalender P/L Bulanan">
+      <div class="jl-cal-toolbar">
+        <button type="button" class="jl-cal-nav-btn" data-stats-month-nav="-1" aria-label="Bulan sebelumnya">‹</button>
+        <div class="jl-cal-heading">
           <h3>${monthInfo.label}</h3>
-          <p>Kalender P/L Bulanan • ${journalStats.monthJournalCount} trade</p>
+          <p class="jp-tabular">
+            <span>${journalStats.monthJournalCount} trade</span>
+            <span aria-hidden="true">·</span>
+            <strong class="${netTone}">${netText}</strong>
+          </p>
         </div>
-        <button type="button" class="calendar-nav-button" data-stats-month-nav="1" aria-label="Bulan berikutnya">›</button>
+        <button type="button" class="jl-cal-nav-btn" data-stats-month-nav="1" aria-label="Bulan berikutnya">›</button>
       </div>
       ${calendarHtml}
     </section>
   `;
+}
+
+function renderStatistics() {
+  const targetContainers = [dom.statisticsViewContent, document.getElementById('statisticsViewContentHabits')].filter(Boolean);
+  if (!targetContainers.length) return;
 
   targetContainers.forEach(container => {
-    container.innerHTML = statsHtml;
-    const proMount = container.querySelector('[data-jp-pro-mount]');
+    let proMount = container.querySelector('[data-jp-pro-mount]');
+    if (!proMount) {
+      container.innerHTML = `<div class="jp-pro-mount" data-jp-pro-mount></div>`;
+      proMount = container.querySelector('[data-jp-pro-mount]');
+    }
+
     if (proMount && window.AmyJournalAnalyticsPro?.mountProAnalytics) {
       window.AmyJournalAnalyticsPro.mountProAnalytics(proMount, state.journals, {
+        renderCalendar: () => buildPerformaCalendarPane(),
+        onBindCalendar: () => bindStatisticsCalendarEvents(),
         onLogFirst: () => {
           setView("journal");
           setTimeout(() => {
@@ -1911,8 +2007,6 @@ function renderStatistics() {
       proMount.innerHTML = window.AmyJournalAnalytics.renderEquitySVG(state.journals);
     }
   });
-
-  bindStatisticsCalendarEvents();
 }
 
 function makeStatisticsCard(label, value, type) {
@@ -2100,13 +2194,24 @@ function buildStatisticsCalendar(year, month) {
 function makeCalendarCell(cell) {
   if (cell.empty) return `<div class="cal-cell is-empty"></div>`;
   const journals = cell.journals || [];
+  const net = journals.reduce((sum, j) => sum + parseTradeAmount(j.profit) - parseTradeAmount(j.loss), 0);
   const hasWin = journals.some((journal) => journal.result === "Win");
   const hasLoss = journals.some((journal) => journal.result === "Loss");
   const hasBe = journals.some((journal) => journal.result === "BE");
-  const cls = hasWin ? "is-win" : hasLoss ? "is-loss" : hasBe ? "is-be" : "";
-  const label = journals.length ? (journals.length > 1 ? `${journals.length} trd` : journals[0].result || "Jurnal") : "—";
-  if (!journals.length) return `<div class="cal-cell ${cls}"><strong>${cell.day}</strong><span>${label}</span></div>`;
-  return `<button type="button" class="cal-cell ${cls} is-clickable" data-journal-date="${cell.date}"><strong>${cell.day}</strong><span>${label}</span></button>`;
+  const cls = net > 0 ? "is-win" : net < 0 ? "is-loss" : hasWin ? "is-win" : hasLoss ? "is-loss" : hasBe ? "is-be" : "";
+  const compactNet = (value) => {
+    const abs = Math.abs(value);
+    const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+    if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+    return `${sign}$${Math.round(abs)}`;
+  };
+  const label = !journals.length
+    ? ""
+    : net !== 0
+      ? compactNet(net)
+      : (journals.length > 1 ? `${journals.length}t` : (journals[0].result === "Belum selesai" ? "Open" : journals[0].result || "1t"));
+  if (!journals.length) return `<div class="cal-cell ${cls}"><strong class="jp-tabular">${cell.day}</strong><span class="jp-tabular"></span></div>`;
+  return `<button type="button" class="cal-cell ${cls} is-clickable" data-journal-date="${cell.date}" title="${cell.date}: ${journals.length} trade (${net >= 0 ? "+" : ""}${formatTradeAmount(net)})"><strong class="jp-tabular">${cell.day}</strong><span class="jp-tabular">${label}</span></button>`;
 }
 
 function bindStatisticsCalendarEvents() {
@@ -5718,6 +5823,21 @@ function normalizeJournals(journals) {
   }));
 }
 
+function syncJournalQuickPickers() {
+  const dir = dom.journalDirectionInput?.value || "";
+  const res = dom.journalResultInput?.value || "Belum selesai";
+  dom.quickDirectionBtns?.forEach((btn) => {
+    const active = btn.dataset.quickDirection === dir;
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  dom.quickResultBtns?.forEach((btn) => {
+    const active = btn.dataset.quickResult === res;
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
 function resetJournalForm() {
   if (!dom.journalForm) return;
   dom.journalForm.reset();
@@ -5733,27 +5853,56 @@ function resetJournalForm() {
   if (dom.journalLossInput) dom.journalLossInput.value = "";
   dom.journalFileMeta.textContent = "PNG, JPG, WEBP atau PDF";
   dom.journalMessage.textContent = "";
-  if (dom.resetJournalBtn) dom.resetJournalBtn.textContent = "Tutup Editor";
+  if (dom.resetJournalBtn) dom.resetJournalBtn.textContent = "Batal";
   state.pendingJournalFiles = [];
+  syncJournalQuickPickers();
 }
 
 function openJournalEditor(mode = "new") {
   if (!dom.journalForm) return;
   state.journalEditorOpen = true;
-  dom.journalForm.hidden = false;
-  dom.journalForm.classList.add("is-open");
-  if (dom.newJournalBtn) dom.newJournalBtn.textContent = mode === "edit" ? "Edit Trade" : "Editor Terbuka";
-  requestAnimationFrame(() => {
-    dom.journalForm.scrollIntoView({ block: "start", behavior: "smooth" });
-    (dom.journalSetupInput || dom.journalTitleInput)?.focus();
-  });
+  if (dom.journalSheetEyebrow) {
+    dom.journalSheetEyebrow.textContent = mode === "edit" ? "Perbarui Eksekusi" : "Catat Eksekusi";
+  }
+  if (dom.journalSheetTitle) {
+    dom.journalSheetTitle.textContent = mode === "edit" ? "Edit Trade" : "Trade Baru";
+  }
+  syncJournalQuickPickers();
+
+  if (dom.journalSheetDialog) {
+    if (!dom.journalSheetDialog.open) {
+      if (typeof dom.journalSheetDialog.showModal === "function") {
+        dom.journalSheetDialog.showModal();
+      } else {
+        dom.journalSheetDialog.setAttribute("open", "");
+      }
+    }
+    const body = dom.journalSheetDialog.querySelector(".jl-sheet-body");
+    if (body) body.scrollTop = 0;
+    requestAnimationFrame(() => {
+      (dom.journalPnlInput || dom.journalSetupInput)?.focus();
+    });
+  } else {
+    dom.journalForm.hidden = false;
+    dom.journalForm.classList.add("is-open");
+  }
 }
 
 function closeJournalEditor() {
   if (!dom.journalForm) return;
   state.journalEditorOpen = false;
-  dom.journalForm.hidden = true;
-  dom.journalForm.classList.remove("is-open");
+  if (dom.journalSheetDialog) {
+    if (dom.journalSheetDialog.open) {
+      if (typeof dom.journalSheetDialog.close === "function") {
+        dom.journalSheetDialog.close();
+      } else {
+        dom.journalSheetDialog.removeAttribute("open");
+      }
+    }
+  } else {
+    dom.journalForm.hidden = true;
+    dom.journalForm.classList.remove("is-open");
+  }
   if (dom.newJournalBtn) dom.newJournalBtn.textContent = "+ Catat Trade";
   state.pendingJournalFiles = [];
   if (dom.journalFileInput) dom.journalFileInput.value = "";
@@ -5996,10 +6145,10 @@ function groupJournalsByDate(journals) {
 }
 
 function createJournalDateGroup(date, journals) {
-  const group = document.createElement("article");
-  group.className = "journal-date-group";
+  const group = document.createElement("section");
+  group.className = "jl-date-group";
   group.dataset.journalDateGroup = date;
-  const isOpen = state.journalOpenDate === date;
+  const isOpen = state.journalOpenDate === date || state.journalOpenDate === "__all__";
   group.classList.toggle("is-open", isOpen);
 
   const win = journals.filter((journal) => journal.result === "Win").length;
@@ -6009,18 +6158,24 @@ function createJournalDateGroup(date, journals) {
 
   const head = document.createElement("button");
   head.type = "button";
-  head.className = "journal-date-head";
+  head.className = "jl-date-head";
+  head.setAttribute("aria-expanded", isOpen ? "true" : "false");
   head.innerHTML = `
-    <span><strong>${formatDate(date)}</strong><small>${journals.length} trade • ${win}W / ${loss}L</small></span>
-    <em class="jp-num ${netTone}">${net > 0 ? "+" : ""}${formatTradeAmount(net)}</em>
-    <i aria-hidden="true"></i>
+    <span class="jl-date-left">
+      <strong>${formatDate(date)}</strong>
+      <small class="jp-tabular">${journals.length} trade · ${win}W/${loss}L</small>
+    </span>
+    <span class="jl-date-right">
+      <em class="jp-tabular ${netTone}">${net > 0 ? "+" : ""}${formatTradeAmount(net)}</em>
+      <span class="jl-chevron" aria-hidden="true">›</span>
+    </span>
   `;
   head.addEventListener("click", () => toggleJournalDateGroup(date));
   group.append(head);
 
   if (isOpen) {
     const body = document.createElement("div");
-    body.className = "journal-date-body";
+    body.className = "jl-date-rows";
     journals.forEach((journal) => body.append(createJournalCard(journal, state.journalOpenId === journal.id)));
     group.append(body);
   }
@@ -6040,61 +6195,128 @@ function toggleJournalDetails(id) {
 }
 
 function createJournalCard(journal, expanded = false) {
-  const card = document.createElement("article");
-  card.className = "journal-card";
-  card.classList.toggle("is-expanded", expanded);
-  card.dataset.id = journal.id;
+  const row = document.createElement("article");
+  row.className = "jl-trade-row";
+  row.classList.toggle("is-expanded", expanded);
+  row.dataset.id = journal.id;
 
-  const head = document.createElement("div");
-  head.className = "journal-card-head";
-  const copy = document.createElement("div");
-  const title = document.createElement("h3");
-  title.textContent = journal.title;
-  const meta = document.createElement("p");
+  const resTone = journal.result === "Win"
+    ? "is-pos"
+    : journal.result === "Loss"
+    ? "is-neg"
+    : journal.result === "BE"
+    ? "is-warn"
+    : "is-flat";
+
+  const pnlText = getJournalProfitLossText(journal);
   const rrText = Number.isFinite(Number(journal.riskReward)) && Number(journal.riskReward) > 0 ? `R:R ${journal.riskReward}` : "";
+  const rightFigure = pnlText || (journal.result === "Belum selesai" ? "Open" : journal.result || "—");
+
+  const head = document.createElement("button");
+  head.type = "button";
+  head.className = "jl-trade-summary";
+  head.setAttribute("aria-expanded", expanded ? "true" : "false");
+
+  const dot = document.createElement("span");
+  dot.className = `jl-status-dot ${resTone}`;
+  dot.setAttribute("aria-hidden", "true");
+
+  const copy = document.createElement("span");
+  copy.className = "jl-trade-copy";
+
+  const title = document.createElement("strong");
+  title.className = "jl-trade-title";
+  title.textContent = journal.title;
+
+  const meta = document.createElement("span");
+  meta.className = "jl-trade-meta jp-tabular";
   meta.textContent = [
     journal.direction ? journal.direction.toUpperCase() : "",
     journal.market,
     journal.session,
     journal.setup,
-    journal.result,
-    getJournalProfitLossText(journal),
     rrText
-  ].filter(Boolean).join(" • ");
+  ].filter(Boolean).join(" · ");
+
   copy.append(title, meta);
 
-  const actions = document.createElement("div");
-  actions.className = "journal-actions";
-  const edit = makeJournalButton("Edit", () => editJournal(journal.id));
-  const analyze = makeJournalButton("Tanya Amy", () => askFromJournal(journal.id));
-  const remove = makeJournalButton("Hapus", () => deleteJournal(journal.id), "danger");
-  [edit, analyze, remove].forEach((button) => button.addEventListener("click", (event) => event.stopPropagation()));
-  actions.append(edit, analyze, remove);
-  copy.addEventListener("click", () => toggleJournalDetails(journal.id));
-  head.append(copy, actions);
+  const figure = document.createElement("span");
+  figure.className = "jl-trade-figure";
+  const amount = document.createElement("strong");
+  amount.className = `jp-tabular ${resTone}`;
+  amount.textContent = rightFigure;
+  const subResult = document.createElement("small");
+  subResult.textContent = pnlText ? (journal.result || "") : ((journal.attachments || []).length ? `${journal.attachments.length} lampiran` : "");
+  figure.append(amount);
+  if (subResult.textContent) figure.append(subResult);
 
-  const body = document.createElement("div");
-  body.className = "journal-body";
-  body.append(makeJournalTextBlock("Catatan Eksekusi", journal.evaluation));
-  body.append(makeJournalTextBlock("Kesalahan", journal.mistakes));
-  body.append(makeJournalTextBlock("Pelajaran", journal.lessons));
-  if (journal.emotion) body.append(makeJournalTextBlock("Emosi", journal.emotion));
-  body.hidden = !expanded;
+  head.append(dot, copy, figure);
+  head.addEventListener("click", () => toggleJournalDetails(journal.id));
 
-  const attachments = document.createElement("div");
-  attachments.className = "journal-attachments";
-  if ((journal.attachments || []).length) {
-    journal.attachments.forEach((attachment) => attachments.append(createJournalAttachment(journal, attachment)));
+  const detail = document.createElement("div");
+  detail.className = "jl-trade-detail";
+  detail.hidden = !expanded;
+
+  if (expanded) {
+    const notesGrid = document.createElement("div");
+    notesGrid.className = "jl-detail-notes";
+    if (journal.evaluation) notesGrid.append(makeJournalTextBlock("Catatan Eksekusi", journal.evaluation));
+    if (journal.mistakes) notesGrid.append(makeJournalTextBlock("Kesalahan", journal.mistakes));
+    if (journal.lessons) notesGrid.append(makeJournalTextBlock("Pelajaran", journal.lessons));
+    if (journal.emotion) notesGrid.append(makeJournalTextBlock("Emosi", journal.emotion));
+    if (!notesGrid.childElementCount) {
+      notesGrid.append(makeJournalTextBlock("Catatan", "Belum ada catatan refleksi untuk trade ini."));
+    }
+    detail.append(notesGrid);
+
+    if ((journal.attachments || []).length) {
+      const attachments = document.createElement("div");
+      attachments.className = "journal-attachments jl-detail-attachments";
+      journal.attachments.forEach((attachment) => attachments.append(createJournalAttachment(journal, attachment)));
+      detail.append(attachments);
+    }
+
+    const foot = document.createElement("div");
+    foot.className = "jl-detail-foot";
+
+    const actions = document.createElement("div");
+    actions.className = "jl-detail-actions";
+    const edit = makeJournalButton("Edit", () => editJournal(journal.id));
+    const analyze = makeJournalButton("Tanya Amy", () => askFromJournal(journal.id));
+    const remove = makeJournalButton("Hapus", (ev) => handleInlineDeleteJournal(ev.currentTarget, journal.id), "danger");
+    actions.append(edit, analyze, remove);
+    foot.append(actions);
+
+    if ((journal.revisionHistory || []).length) {
+      const rev = document.createElement("span");
+      rev.className = "jl-revision-meta jp-tabular";
+      rev.textContent = `${journal.revisionHistory.length} revisi`;
+      foot.append(rev);
+    }
+
+    detail.append(foot);
   }
-  attachments.hidden = !expanded || !(journal.attachments || []).length;
 
-  const rev = document.createElement("p");
-  rev.className = "revision-line";
-  rev.textContent = (journal.revisionHistory || []).length ? `${journal.revisionHistory.length} revisi tersimpan` : "";
-  rev.hidden = !expanded || !(journal.revisionHistory || []).length;
+  row.append(head, detail);
+  return row;
+}
 
-  card.append(head, body, attachments, rev);
-  return card;
+function handleInlineDeleteJournal(button, id) {
+  if (!button) return;
+  if (button.dataset.confirmDelete !== "armed") {
+    button.dataset.confirmDelete = "armed";
+    button.textContent = "Yakin Hapus?";
+    button.classList.add("is-armed");
+    setTimeout(() => {
+      if (button.isConnected && button.dataset.confirmDelete === "armed") {
+        button.dataset.confirmDelete = "";
+        button.textContent = "Hapus";
+        button.classList.remove("is-armed");
+      }
+    }, 3200);
+    return;
+  }
+  deleteJournal(id, { skipConfirm: true });
 }
 
 function makeJournalButton(text, onClick, extraClass = "") {
@@ -6252,10 +6474,12 @@ function editJournal(id) {
   openJournalEditor("edit");
 }
 
-async function deleteJournal(id) {
+async function deleteJournal(id, options = {}) {
   const journal = state.journals.find((entry) => entry.id === id);
   if (!journal) return;
-  if (!window.confirm(`Hapus trade "${journal.title}"?`)) return;
+  if (!options.skipConfirm && typeof window.confirm === "function") {
+    if (!window.confirm(`Hapus trade "${journal.title}"?`)) return;
+  }
   await Promise.all((journal.attachments || []).map((attachment) => deleteFileRecord(attachment.fileId).catch(() => {})));
   state.journals = state.journals.filter((entry) => entry.id !== id);
   saveJournals();

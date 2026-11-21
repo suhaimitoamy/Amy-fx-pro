@@ -143,9 +143,19 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   const touchedAt = touchBar.openTime * 1000;
   if (nowMs - touchedAt > lookbackMs) return null;
 
-  const touchPrice = isSell
-    ? Math.min(Math.max(touchBar.open, lo), hi)
-    : Math.max(Math.min(touchBar.open, hi), lo);
+  // Accurate entry touch price based on direction of approach into [lo, hi]
+  let touchPrice;
+  if (touchBar.open >= lo && touchBar.open <= hi) {
+    touchPrice = touchBar.open;
+  } else if (isSell && touchBar.open < lo) {
+    touchPrice = lo;
+  } else if (!isSell && touchBar.open > hi) {
+    touchPrice = hi;
+  } else {
+    touchPrice = isSell
+      ? Math.min(Math.max(touchBar.open, lo), hi)
+      : Math.max(Math.min(touchBar.open, hi), lo);
+  }
 
   const sl = num(zone.sl) || Number((isSell ? hi + 0.40 : lo - 0.40).toFixed(2));
   const risk = Math.max(1.8, Math.abs(ce - sl));
@@ -155,6 +165,11 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   let status = 'TESTING';
   let resolvedAt = null;
   let maxFavorable = 0;
+  let touchCount = 0;
+  let ceTouched = false;
+  let inZonePrev = false;
+  let lastTouchAt = touchedAt;
+  const touches = [];
 
   for (let i = touchIdx; i < candles.length; i += 1) {
     const c = candles[i];
@@ -162,9 +177,36 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     const fav = isSell ? Math.max(0, ce - c.low) : Math.max(0, c.high - ce);
     if (fav > maxFavorable) maxFavorable = fav;
 
+    const barInZone = isSell
+      ? (c.high >= lo - 0.15 && c.low <= hi + 0.5)
+      : (c.low <= hi + 0.15 && c.high >= lo - 0.5);
+    const barHitCe = isSell ? (c.high >= ce) : (c.low <= ce);
     const hitSl = isSell ? (c.high > sl) : (c.low < sl);
     const hitTp1 = isSell ? (c.low <= tp1) : (c.high >= tp1);
     const hitTp2 = isSell ? (c.low <= tp2) : (c.high >= tp2);
+
+    if (barInZone) {
+      if (barHitCe) ceTouched = true;
+      const touchY = isSell ? Math.min(c.high, hi) : Math.max(c.low, lo);
+      if (!inZonePrev) {
+        touchCount += 1;
+        lastTouchAt = c.openTime * 1000;
+        touches.push({
+          index: touchCount,
+          time: c.openTime,
+          price: Number(touchY.toFixed(2)),
+          hitCe: barHitCe,
+          broken: Boolean(hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT')
+        });
+      } else if (touches.length > 0) {
+        const cur = touches[touches.length - 1];
+        if (barHitCe) cur.hitCe = true;
+        if (hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT') cur.broken = true;
+      }
+      inZonePrev = true;
+    } else {
+      inZonePrev = false;
+    }
 
     // Conservative SL-first when both hit on the same candle (unless TP1 was already secured on an earlier bar)
     if (hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT') {
@@ -197,6 +239,10 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     tp1: Number(tp1.toFixed(2)),
     tp2: Number(tp2.toFixed(2)),
     touchedAt,
+    lastTouchAt,
+    touchCount: Math.max(1, touchCount),
+    ceTouched,
+    touches: touches.slice(-8),
     touchPrice: Number(touchPrice.toFixed(2)),
     maxFavorable: Number(maxFavorable.toFixed(2)),
     status,
@@ -329,23 +375,36 @@ export function backfillFromCandles({
     }
   }
 
-  // 4. POI Touches & Outcomes from M15 & M5 FVG/OB zones
+  // 4. POI Touches & Outcomes from M15 & M5 FVG/OB zones (include historyFvg/historyOb so resolved zones backfill cleanly)
   const evalNgZones = (ng, candles, tf) => {
     if (!ng?.poi || !candles.length) return;
+    const fvgList = Array.isArray(ng.poi.historyFvg) && ng.poi.historyFvg.length
+      ? ng.poi.historyFvg
+      : (Array.isArray(ng.poi.fvg) ? ng.poi.fvg : []);
+    const obList = Array.isArray(ng.poi.historyOb) && ng.poi.historyOb.length
+      ? ng.poi.historyOb
+      : (Array.isArray(ng.poi.ob) ? ng.poi.ob : []);
     const rawZones = [
-      ...(Array.isArray(ng.poi.fvg) ? ng.poi.fvg.map(z => ({ ...z, kind: 'FVG' })) : []),
-      ...(Array.isArray(ng.poi.ob) ? ng.poi.ob.map(z => ({ ...z, kind: 'OB' })) : [])
+      ...fvgList.map(z => ({ ...z, kind: 'FVG' })),
+      ...obList.map(z => ({ ...z, kind: 'OB' }))
     ];
+    const seenKeys = new Set();
     for (const z of rawZones) {
       const sideStr = String(z.side || z.direction || '').toUpperCase();
       const side = (sideStr === 'SELL' || sideStr === 'BEARISH') ? 'SELL' : 'BUY';
+      const loVal = num(z.bot ?? z.low);
+      const hiVal = num(z.top ?? z.high);
+      if (!Number.isFinite(loVal) || !Number.isFinite(hiVal) || hiVal <= loVal) continue;
+      const dedupeKey = `${side}:${z.kind}:${loVal.toFixed(1)}-${hiVal.toFixed(1)}`;
+      if (seenKeys.has(dedupeKey)) continue;
+      seenKeys.add(dedupeKey);
       const evaluated = evaluateZoneLifecycleOnCandles(
         {
           side,
           tf,
           kind: z.kind,
-          low: z.bot ?? z.low,
-          high: z.top ?? z.high,
+          low: loVal,
+          high: hiVal,
           ce: z.ce,
           startTime: z.startTime,
           formedIndex: z.formedIndex
@@ -356,6 +415,9 @@ export function backfillFromCandles({
       );
       if (!evaluated) continue;
       poiRecords.push(evaluated);
+      const touchTag = evaluated.touchCount > 1
+        ? ` · ${evaluated.touchCount}× sentuh${evaluated.ceTouched ? ' (50% CE)' : ''}`
+        : (evaluated.ceTouched ? ' · 50% CE tersentuh' : '');
       pushEvent({
         id: `TOUCH:${evaluated.id}`,
         ts: evaluated.touchedAt,
@@ -363,7 +425,7 @@ export function backfillFromCandles({
         side: evaluated.side,
         tf: evaluated.tf,
         title: `${evaluated.kind} ${evaluated.tf} ${evaluated.side} Disentuh`,
-        detail: `Zona $${fmt(evaluated.low)}–$${fmt(evaluated.high)} tersentuh @ $${fmt(evaluated.touchPrice)}`,
+        detail: `Zona $${fmt(evaluated.low)}–$${fmt(evaluated.high)} tersentuh @ $${fmt(evaluated.touchPrice)}${touchTag}`,
         price: evaluated.touchPrice,
         source: 'BACKFILL'
       });
@@ -426,12 +488,13 @@ export function recordLivePoiProgress({
     const kind = plan.kind || 'FVG';
     const id = makePoiId(plan.side, tf, kind, lo, hi);
     const existing = poiMap.get(id);
+    const ceVal = num(plan.area.ce) || (lo + hi) / 2;
+    const hitCeNow = isSell ? (price >= ceVal) : (price <= ceVal);
     if (!existing) {
-      const ce = num(plan.area.ce) || (lo + hi) / 2;
       const sl = num(plan.sl) || Number((isSell ? hi + 0.40 : lo - 0.40).toFixed(2));
-      const risk = Math.max(1.8, Math.abs(ce - sl));
-      const tp1 = num(plan.tp1) || Number((isSell ? ce - Math.max(risk * 1.6, 5.0) : ce + Math.max(risk * 1.6, 5.0)).toFixed(2));
-      const tp2 = num(plan.tp2) || Number((isSell ? ce - Math.max(risk * 2.8, 9.0) : ce + Math.max(risk * 2.8, 9.0)).toFixed(2));
+      const risk = Math.max(1.8, Math.abs(ceVal - sl));
+      const tp1 = num(plan.tp1) || Number((isSell ? ceVal - Math.max(risk * 1.6, 5.0) : ceVal + Math.max(risk * 1.6, 5.0)).toFixed(2));
+      const tp2 = num(plan.tp2) || Number((isSell ? ceVal - Math.max(risk * 2.8, 9.0) : ceVal + Math.max(risk * 2.8, 9.0)).toFixed(2));
       const rec = {
         id,
         side: plan.side,
@@ -439,11 +502,14 @@ export function recordLivePoiProgress({
         kind,
         low: Number(lo.toFixed(2)),
         high: Number(hi.toFixed(2)),
-        ce: Number(ce.toFixed(2)),
+        ce: Number(ceVal.toFixed(2)),
         sl: Number(sl.toFixed(2)),
         tp1: Number(tp1.toFixed(2)),
         tp2: Number(tp2.toFixed(2)),
         touchedAt: nowMs,
+        lastTouchAt: nowMs,
+        touchCount: 1,
+        ceTouched: hitCeNow,
         touchPrice: Number(price.toFixed(2)),
         maxFavorable: 0,
         status: 'TESTING',
@@ -458,10 +524,14 @@ export function recordLivePoiProgress({
         side: rec.side,
         tf: rec.tf,
         title: `${rec.kind} ${rec.tf} ${rec.side} Disentuh (Live)`,
-        detail: `Zona $${fmt(rec.low)}–$${fmt(rec.high)} tersentuh live @ $${fmt(price)}`,
+        detail: `Zona $${fmt(rec.low)}–$${fmt(rec.high)} tersentuh live @ $${fmt(price)}${hitCeNow ? ' · 50% CE' : ''}`,
         price: Number(price.toFixed(2)),
         source: 'LIVE'
       });
+      changed = true;
+    } else if (hitCeNow && !existing.ceTouched) {
+      existing.ceTouched = true;
+      existing.lastTouchAt = nowMs;
       changed = true;
     }
   }
@@ -562,6 +632,14 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
       merged.resolvedAt = rec.resolvedAt;
     }
     merged.maxFavorable = Math.max(Number(prev.maxFavorable) || 0, Number(rec.maxFavorable) || 0);
+    merged.touchCount = Math.max(Number(prev.touchCount) || 1, Number(rec.touchCount) || 1);
+    merged.ceTouched = Boolean(prev.ceTouched || rec.ceTouched);
+    merged.lastTouchAt = Math.max(Number(prev.lastTouchAt) || 0, Number(rec.lastTouchAt) || 0) || merged.touchedAt;
+    if (Array.isArray(rec.touches) && rec.touches.length >= (Array.isArray(prev.touches) ? prev.touches.length : 0)) {
+      merged.touches = rec.touches;
+    } else if (Array.isArray(prev.touches)) {
+      merged.touches = prev.touches;
+    }
     if (prev.source === 'LIVE') merged.source = 'LIVE';
     poiMap.set(rec.id, merged);
   };

@@ -1,0 +1,1567 @@
+/* Amy FX Pro — Pro Ledger Design System for Journal, Performance & Discipline
+ * Clean hairline-divided editorial ledger. Zero stacked card boxes, zero static pills,
+ * tabular JetBrains Mono figures, thumb-first mobile ergonomics (360x820) + Desktop (1440x900),
+ * full Dark Mode & Light Mode parity.
+ */
+
+/* ─── Design Tokens (Dark Default + Light Mode Parity) ───────────────────── */
+.amyfx-module--journal .jl-view,
+.amyfx-module--journal .jl-trade-sheet,
+.amyfx-module--journal #jHabitDialog {
+  --jl-canvas: #0b111c;
+  --jl-surface: #101827;
+  --jl-surface-hover: rgba(255, 255, 255, 0.035);
+  --jl-surface-subtle: rgba(255, 255, 255, 0.025);
+  --jl-line: rgba(148, 163, 184, 0.16);
+  --jl-line-strong: rgba(148, 163, 184, 0.28);
+  --jl-text: #f8fafc;
+  --jl-text-secondary: #cbd5e1;
+  --jl-muted: #94a3b8;
+  --jl-accent: #d4af37;
+  --jl-accent-ink: #0b111c;
+  --jl-pos: #22c55e;
+  --jl-pos-bg: rgba(34, 197, 94, 0.12);
+  --jl-neg: #f87171;
+  --jl-neg-bg: rgba(248, 113, 113, 0.12);
+  --jl-warn: #f59e0b;
+  --jl-warn-bg: rgba(245, 158, 11, 0.12);
+  --jl-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--jl-text);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+[data-amyfx-theme="light"] .amyfx-module--journal .jl-view,
+[data-amyfx-theme="light"] .amyfx-module--journal .jl-trade-sheet,
+[data-amyfx-theme="light"] .amyfx-module--journal #jHabitDialog,
+[data-theme="light"] .amyfx-module--journal .jl-view,
+[data-theme="light"] .amyfx-module--journal .jl-trade-sheet,
+[data-theme="light"] .amyfx-module--journal #jHabitDialog {
+  --jl-canvas: #f8fafc;
+  --jl-surface: #ffffff;
+  --jl-surface-hover: rgba(15, 23, 42, 0.035);
+  --jl-surface-subtle: rgba(15, 23, 42, 0.028);
+  --jl-line: rgba(15, 23, 42, 0.11);
+  --jl-line-strong: rgba(15, 23, 42, 0.22);
+  --jl-text: #0f172a;
+  --jl-text-secondary: #334155;
+  --jl-muted: #475569;
+  --jl-accent: #b45309;
+  --jl-accent-ink: #ffffff;
+  --jl-pos: #15803d;
+  --jl-pos-bg: rgba(21, 128, 61, 0.1);
+  --jl-neg: #dc2626;
+  --jl-neg-bg: rgba(220, 38, 38, 0.1);
+  --jl-warn: #b45309;
+  --jl-warn-bg: rgba(180, 83, 9, 0.1);
+}
+
+/* Clean canvas alignment for Journal shell without overriding drawer/header */
+.amyfx-module--journal .app-shell {
+  width: min(100%, 1040px);
+  padding: 12px 16px calc(88px + var(--safe-bottom, 0px));
+}
+
+.amyfx-module--journal .app-shell:has(#habitsView.is-active) .control-panel,
+.amyfx-module--journal .app-shell:has(#journalView.is-active) .control-panel,
+.amyfx-module--journal .app-shell:has(#statisticsView.is-active) .control-panel {
+  display: none !important;
+}
+
+.amyfx-module--journal .jl-view {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 4px 0 12px;
+}
+
+.amyfx-module--journal .jl-view[hidden] {
+  display: none !important;
+}
+
+/* ─── Shared Editorial Page Header ───────────────────────────────────────── */
+.jl-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 14px;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-page-head--compact {
+  padding-bottom: 10px;
+  border-bottom: none;
+}
+
+.jl-page-title {
+  min-width: 0;
+}
+
+.jl-page-title h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--jl-text);
+}
+
+.jl-page-title p {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--jl-muted);
+}
+
+.jl-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.jl-primary-btn,
+.jl-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.14s ease, opacity 0.14s ease, border-color 0.14s ease, background-color 0.14s ease;
+}
+
+.jl-primary-btn {
+  background: var(--jl-accent);
+  color: var(--jl-accent-ink);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.jl-primary-btn:hover {
+  opacity: 0.92;
+}
+
+.jl-primary-btn:active,
+.jl-ghost-btn:active {
+  transform: scale(0.98);
+}
+
+.jl-ghost-btn {
+  background: transparent;
+  color: var(--jl-text);
+  border: 1px solid var(--jl-line-strong);
+}
+
+.jl-ghost-btn:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--jl-muted);
+}
+
+/* ─── TAB 1: JURNAL PRO LEDGER ───────────────────────────────────────────── */
+.jl-filter-bar {
+  padding: 12px 0;
+  margin-bottom: 4px !important;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-filter-bar .jp-seg {
+  background: var(--jl-surface-subtle);
+  border: 1px solid var(--jl-line);
+  border-radius: 9px;
+}
+
+.jl-filter-bar .jp-search-input {
+  background: var(--jl-surface-subtle);
+  border: 1px solid var(--jl-line);
+  border-radius: 9px;
+  color: var(--jl-text);
+}
+
+.jl-ledger-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 16px;
+}
+
+.jl-date-group {
+  border-bottom: 1px solid var(--jl-line);
+  background: transparent;
+}
+
+.jl-date-head {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 2px;
+  background: transparent;
+  border: none;
+  color: var(--jl-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.jl-date-head:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-date-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.jl-date-left strong {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--jl-text);
+  letter-spacing: -0.01em;
+}
+
+.jl-date-left small {
+  font-size: 0.72rem;
+  color: var(--jl-muted);
+}
+
+.jl-date-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.jl-date-right em {
+  font-style: normal;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-date-right em.is-pos {
+  color: var(--jl-pos);
+}
+
+.jl-date-right em.is-neg {
+  color: var(--jl-neg);
+}
+
+.jl-chevron {
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--jl-muted);
+  transition: transform 0.18s ease;
+}
+
+.jl-date-group.is-open .jl-chevron {
+  transform: rotate(90deg);
+}
+
+.jl-date-rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--jl-line);
+}
+
+.jl-trade-row {
+  border-bottom: 1px solid var(--jl-line);
+  background: transparent;
+}
+
+.jl-trade-row:last-child {
+  border-bottom: none;
+}
+
+.jl-trade-summary {
+  width: 100%;
+  min-height: 58px;
+  padding: 11px 4px;
+  background: transparent;
+  border: none;
+  color: var(--jl-text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.jl-trade-summary:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--jl-muted);
+}
+
+.jl-status-dot.is-pos {
+  background: var(--jl-pos);
+}
+
+.jl-status-dot.is-neg {
+  background: var(--jl-neg);
+}
+
+.jl-status-dot.is-warn {
+  background: var(--jl-warn);
+}
+
+.jl-trade-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.jl-trade-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--jl-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jl-trade-meta {
+  font-size: 0.72rem;
+  color: var(--jl-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jl-trade-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.jl-trade-figure strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-trade-figure strong.is-pos {
+  color: var(--jl-pos);
+}
+
+.jl-trade-figure strong.is-neg {
+  color: var(--jl-neg);
+}
+
+.jl-trade-figure strong.is-warn {
+  color: var(--jl-warn);
+}
+
+.jl-trade-figure small {
+  font-size: 0.68rem;
+  color: var(--jl-muted);
+}
+
+/* Inline Expandable Trade Detail Drawer */
+.jl-trade-detail {
+  padding: 10px 4px 14px 20px;
+  border-top: 1px dashed var(--jl-line);
+  background: var(--jl-surface-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jl-detail-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+}
+
+.jl-trade-detail .journal-text-block {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.jl-trade-detail .journal-text-block strong {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--jl-muted);
+  margin-bottom: 3px;
+}
+
+.jl-trade-detail .journal-text-block p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--jl-text);
+  white-space: pre-wrap;
+}
+
+.jl-detail-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--jl-line);
+}
+
+.jl-detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jl-detail-actions .small-button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--jl-line-strong);
+  background: transparent;
+  color: var(--jl-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.jl-detail-actions .small-button:hover {
+  background: var(--jl-surface-hover);
+  border-color: var(--jl-accent);
+}
+
+.jl-detail-actions .small-button.danger {
+  color: var(--jl-neg);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.jl-detail-actions .small-button.danger.is-armed {
+  background: var(--jl-neg);
+  color: #ffffff;
+  border-color: var(--jl-neg);
+}
+
+.jl-revision-meta {
+  font-size: 0.72rem;
+  color: var(--jl-muted);
+}
+
+/* Empty State */
+.jl-empty-state {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 40px 16px !important;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.jl-empty-state[hidden] {
+  display: none !important;
+}
+
+.jl-empty-state h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-empty-state p {
+  margin: 0 0 6px;
+  font-size: 0.84rem;
+  color: var(--jl-muted);
+  max-width: 40ch;
+  line-height: 1.5;
+}
+
+/* ─── BOTTOM-SHEET MODAL FOR TRADE ENTRY / EDIT ──────────────────────────── */
+body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet {
+  width: min(100% - 24px, 540px);
+  max-width: 540px;
+  max-height: 90dvh;
+  padding: 0;
+  border: 1px solid var(--jl-line-strong);
+  border-radius: 20px;
+  background: var(--jl-surface);
+  color: var(--jl-text);
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet::backdrop {
+  background: rgba(2, 6, 23, 0.68);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 10030;
+}
+
+.jl-sheet-form {
+  display: flex;
+  flex-direction: column;
+  max-height: 90dvh;
+  width: 100%;
+  background: var(--jl-surface);
+}
+
+.jl-trade-sheet .sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--jl-line-strong);
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+
+.jl-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 20px 14px;
+  border-bottom: 1px solid var(--jl-line);
+  flex-shrink: 0;
+}
+
+.jl-sheet-head h2 {
+  margin: 2px 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--jl-text);
+}
+
+.jl-sheet-close {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--jl-line);
+  background: transparent;
+  color: var(--jl-text);
+  font-size: 1.35rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.jl-sheet-close:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-sheet-body {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jl-sheet-quick-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.jl-quick-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jl-field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--jl-muted);
+}
+
+.jl-quick-seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.jl-quick-seg--result {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.jl-quick-btn {
+  min-height: 40px;
+  padding: 0 6px;
+  border-radius: 9px;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-surface-subtle);
+  color: var(--jl-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.jl-quick-btn.is-active {
+  color: var(--jl-text);
+  border-color: var(--jl-accent);
+  background: rgba(212, 175, 55, 0.16);
+}
+
+.jl-quick-btn[data-quick-direction="Buy"].is-active,
+.jl-quick-btn[data-quick-result="Win"].is-active {
+  color: var(--jl-pos);
+  border-color: var(--jl-pos);
+  background: var(--jl-pos-bg);
+}
+
+.jl-quick-btn[data-quick-direction="Sell"].is-active,
+.jl-quick-btn[data-quick-result="Loss"].is-active {
+  color: var(--jl-neg);
+  border-color: var(--jl-neg);
+  background: var(--jl-neg-bg);
+}
+
+.jl-quick-btn[data-quick-result="BE"].is-active {
+  color: var(--jl-warn);
+  border-color: var(--jl-warn);
+  background: var(--jl-warn-bg);
+}
+
+.jl-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.jl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.jl-field span {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+}
+
+.jl-field input,
+.jl-field select,
+.jl-field textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-canvas);
+  color: var(--jl-text);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.14s ease;
+}
+
+.jl-field textarea {
+  min-height: 78px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.jl-field input:focus,
+.jl-field select:focus,
+.jl-field textarea:focus {
+  border-color: var(--jl-accent);
+}
+
+.jl-form-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.jl-form-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--jl-line);
+}
+
+.jl-form-divider span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--jl-muted);
+}
+
+.jl-file-drop {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px dashed var(--jl-line-strong);
+  background: var(--jl-surface-subtle);
+  cursor: pointer;
+}
+
+.jl-file-drop .file-drop-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--jl-text);
+}
+
+.jl-file-drop .file-drop-meta {
+  font-size: 0.74rem;
+  color: var(--jl-muted);
+}
+
+.jl-sheet-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--jl-line);
+  background: var(--jl-surface);
+  flex-shrink: 0;
+}
+
+/* ─── TAB 2: PERFORMA CALENDAR PANE (CLEAN HAIRLINE) ─────────────────────── */
+.jl-stats-host {
+  display: block !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.jl-calendar-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jl-cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.jl-cal-heading {
+  text-align: center;
+}
+
+.jl-cal-heading h3 {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-cal-heading p {
+  margin: 2px 0 0;
+  font-size: 0.76rem;
+  color: var(--jl-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jl-cal-heading strong.is-pos {
+  color: var(--jl-pos);
+}
+
+.jl-cal-heading strong.is-neg {
+  color: var(--jl-neg);
+}
+
+.jl-cal-nav-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--jl-line-strong);
+  background: transparent;
+  color: var(--jl-text);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.jl-cal-nav-btn:hover {
+  background: var(--jl-surface-hover);
+  border-color: var(--jl-accent);
+}
+
+.jl-calendar-pane .statistics-calendar {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--jl-line);
+  border-left: 1px solid var(--jl-line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.jl-calendar-pane .cal-head {
+  padding: 8px 2px;
+  text-align: center;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--jl-muted);
+  background: var(--jl-surface-subtle);
+  border-right: 1px solid var(--jl-line);
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-calendar-pane .cal-cell {
+  min-height: 54px;
+  padding: 6px 3px;
+  border: none;
+  border-right: 1px solid var(--jl-line);
+  border-bottom: 1px solid var(--jl-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--jl-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  box-shadow: none;
+}
+
+.jl-calendar-pane .cal-cell.is-empty {
+  background: var(--jl-surface-subtle);
+  opacity: 0.45;
+}
+
+.jl-calendar-pane .cal-cell strong {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--jl-text);
+  line-height: 1;
+}
+
+.jl-calendar-pane .cal-cell span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-win {
+  background: var(--jl-pos-bg);
+  border-color: var(--jl-line);
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-win strong,
+.jl-calendar-pane .statistics-calendar .cal-cell.is-loss strong,
+.jl-calendar-pane .statistics-calendar .cal-cell.is-be strong {
+  color: var(--jl-text);
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-win span,
+.jl-calendar-pane .statistics-calendar .cal-cell.cal-week.is-win {
+  color: var(--jl-pos);
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-loss {
+  background: var(--jl-neg-bg);
+  border-color: var(--jl-line);
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-loss span,
+.jl-calendar-pane .statistics-calendar .cal-cell.cal-week.is-loss {
+  color: var(--jl-neg);
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-be {
+  background: var(--jl-warn-bg);
+  border-color: var(--jl-line);
+}
+
+.jl-calendar-pane .statistics-calendar .cal-cell.is-be span {
+  color: var(--jl-warn);
+}
+
+.jl-calendar-pane .cal-cell.is-clickable {
+  cursor: pointer;
+  transition: filter 0.14s ease;
+}
+
+.jl-calendar-pane .cal-cell.is-clickable:hover {
+  filter: brightness(1.12);
+}
+
+.jl-calendar-pane .cal-cell.cal-week {
+  background: var(--jl-surface-subtle);
+  font-family: var(--jl-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--jl-muted);
+}
+
+/* ─── TAB 3: DISIPLIN (RING + 7-DAY STRIP + HAIRLINE CHECKLIST) ──────────── */
+.jl-discipline-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.jl-disc-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0 16px;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-ring-wrap {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+}
+
+.jl-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.jl-ring-track {
+  fill: none;
+  stroke: var(--jl-line);
+  stroke-width: 6;
+}
+
+.jl-ring-fill {
+  fill: none;
+  stroke: var(--jl-accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.25s ease;
+}
+
+.jl-ring-fill.is-complete {
+  stroke: var(--jl-pos);
+}
+
+.jl-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.jl-ring-center strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--jl-text);
+}
+
+.jl-ring-center span {
+  font-size: 0.68rem;
+  color: var(--jl-muted);
+}
+
+.jl-disc-hero-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jl-disc-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jl-disc-date-copy h3 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-date-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--jl-line-strong);
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--jl-surface-subtle);
+}
+
+.jl-step-btn,
+.jl-today-btn {
+  min-height: 36px;
+  background: transparent;
+  border: none;
+  color: var(--jl-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.jl-step-btn {
+  width: 36px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.jl-today-btn {
+  padding: 0 10px;
+  font-size: 0.74rem;
+  border-left: 1px solid var(--jl-line);
+  border-right: 1px solid var(--jl-line);
+}
+
+.jl-step-btn:hover,
+.jl-today-btn:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-disc-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--jl-muted);
+}
+
+.jl-disc-metric strong {
+  color: var(--jl-text);
+  font-weight: 700;
+}
+
+.jl-disc-metric.has-penalty strong {
+  color: var(--jl-neg);
+}
+
+.jl-disc-metric.zero strong {
+  color: var(--jl-pos);
+}
+
+.jl-sep {
+  opacity: 0.5;
+}
+
+/* 7-Day Compliance Strip */
+.jl-week-section {
+  padding: 14px 0 0;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  padding-bottom: 12px;
+}
+
+.jl-week-day {
+  min-height: 58px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--jl-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background-color 0.14s ease, border-color 0.14s ease;
+}
+
+.jl-week-day:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-week-day.is-weekend {
+  opacity: 0.55;
+}
+
+.jl-week-day.is-active {
+  background: var(--jl-text);
+  color: var(--jl-canvas);
+  border-color: var(--jl-text);
+}
+
+.jl-week-abbr {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--jl-muted);
+}
+
+.jl-week-day.is-active .jl-week-abbr {
+  color: var(--jl-canvas);
+  opacity: 0.75;
+}
+
+.jl-week-num {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.jl-week-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--jl-line-strong);
+}
+
+.jl-week-day.is-done .jl-week-dot {
+  background: var(--jl-pos);
+}
+
+.jl-week-day.is-partial .jl-week-dot {
+  background: var(--jl-accent);
+}
+
+.jl-week-day.is-penalty .jl-week-dot {
+  background: var(--jl-neg);
+}
+
+.jl-week-day.is-weekend .jl-week-dot {
+  background: transparent;
+}
+
+/* Penalty Warning Line */
+.jl-penalty-line {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--jl-line);
+  color: var(--jl-neg);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.jl-penalty-line strong {
+  font-weight: 700;
+}
+
+/* Hairline Checklist Rows */
+.jl-checklist-section {
+  padding: 16px 0 8px;
+}
+
+.jl-section-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-section-bar h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-section-meta {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+}
+
+.jl-section-meta.is-complete {
+  color: var(--jl-pos);
+}
+
+.jl-checklist-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.jl-habit-row {
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--jl-line);
+  color: var(--jl-text);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.jl-habit-row:hover {
+  background: var(--jl-surface-hover);
+}
+
+.jl-habit-check {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  border: 1.8px solid var(--jl-line-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
+}
+
+.jl-habit-row.is-done .jl-habit-check {
+  background: var(--jl-pos);
+  border-color: var(--jl-pos);
+}
+
+.jl-habit-row:active .jl-habit-check {
+  transform: scale(0.92);
+}
+
+.jl-habit-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jl-habit-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--jl-text);
+  line-height: 1.3;
+}
+
+.jl-habit-row.is-done .jl-habit-title {
+  color: var(--jl-muted);
+  text-decoration: line-through;
+}
+
+.jl-habit-sub {
+  font-size: 0.74rem;
+  color: var(--jl-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jl-habit-streak {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--jl-muted);
+  flex-shrink: 0;
+}
+
+.jl-habit-row.is-done .jl-habit-streak {
+  color: var(--jl-pos);
+}
+
+/* Collapsible Disclosures (35-Day Audit & Quick Lot Calculator) */
+.jl-disclosure {
+  border-top: 1px solid var(--jl-line);
+}
+
+.jl-calc-disclosure {
+  margin-top: 4px;
+  border-top: none;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-disclosure-summary {
+  list-style: none;
+  min-height: 46px;
+  padding: 12px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--jl-text);
+}
+
+.jl-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+.jl-disclosure-meta {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jl-disclosure-meta::after {
+  content: "›";
+  font-size: 1rem;
+  transition: transform 0.16s ease;
+}
+
+.jl-disclosure[open] .jl-disclosure-meta::after {
+  transform: rotate(90deg);
+}
+
+.jl-disclosure-body {
+  padding: 4px 0 16px;
+}
+
+.jl-matrix-sub {
+  margin: 0 0 10px;
+  font-size: 0.76rem;
+  color: var(--jl-muted);
+}
+
+.jl-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--jl-accent);
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Quick Lot Calculator Inside Collapsible Drawer */
+.jl-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.jl-calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jl-calc-field span,
+.jl-calc-result span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+}
+
+.jl-calc-field input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-surface-subtle);
+  color: var(--jl-text);
+  font-family: var(--jl-mono);
+  font-size: 0.86rem;
+}
+
+.jl-calc-result {
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.jl-calc-result strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--jl-accent);
+}
+
+[data-amyfx-theme="light"] .jl-matrix-disclosure .j-heatmap-tile.lvl-0,
+[data-amyfx-theme="light"] .jl-matrix-disclosure .scale-box.lvl-0,
+[data-theme="light"] .jl-matrix-disclosure .j-heatmap-tile.lvl-0,
+[data-theme="light"] .jl-matrix-disclosure .scale-box.lvl-0 {
+  background: rgba(15, 23, 42, 0.07) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+/* ─── Mobile Ergonomics (360×820 Phone Viewport) ─────────────────────────── */
+@media (max-width: 720px) {
+  .amyfx-module--journal .app-shell {
+    padding: 8px 14px calc(84px + var(--safe-bottom, 0px));
+  }
+
+  .jl-page-head {
+    padding: 6px 0 12px;
+  }
+
+  .jl-page-title h2 {
+    font-size: 1.22rem;
+  }
+
+  .jl-primary-btn {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 0.8rem;
+  }
+
+  .jl-detail-notes {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* True Bottom-Sheet on Mobile */
+  body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet,
+  body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
+    width: 100%;
+    max-width: 100%;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto 0 0 0;
+    border-radius: 24px 24px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    max-height: 92dvh;
+  }
+
+  .jl-sheet-head {
+    padding: 6px 16px 12px;
+  }
+
+  .jl-sheet-body {
+    padding: 14px 16px 16px;
+  }
+
+  .jl-sheet-foot {
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .jl-sheet-foot .jl-ghost-btn,
+  .jl-sheet-foot .jl-primary-btn {
+    flex: 1 1 0;
+    min-height: 46px;
+  }
+
+  .jl-disc-hero {
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .jl-ring-wrap {
+    width: 74px;
+    height: 74px;
+  }
+
+  .jl-ring-center strong {
+    font-size: 0.96rem;
+  }
+
+  .jl-week-strip {
+    gap: 4px;
+  }
+
+  .jl-week-day {
+    min-height: 54px;
+    padding: 6px 2px;
+  }
+
+  .jl-calc-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .jl-calc-result {
+    align-items: flex-start;
+    padding-left: 2px;
+  }
+
+  .jl-calendar-pane .cal-cell {
+    min-height: 46px;
+    padding: 4px 1px;
+  }
+
+  .jl-calendar-pane .cal-cell strong {
+    font-size: 0.72rem;
+  }
+
+  .jl-calendar-pane .cal-cell span {
+    font-size: 0.58rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jl-primary-btn,
+  .jl-ghost-btn,
+  .jl-ring-fill,
+  .jl-chevron,
+  .jl-habit-check {
+    transition: none;
+  }
+}

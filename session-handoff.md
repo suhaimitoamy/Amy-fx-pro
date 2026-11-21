@@ -1,29 +1,32 @@
 # Amy FX Pro — Session Handoff
 
 ## 1. Verified Now (Status Terverifikasi Saat Ini)
-- **Versi Rilis:** `2.0.0-pro.461` (code `950461`) — Perbaikan syntax export `DEFAULT_CHART_LAYERS` pada `chart-view.js` dan linking aman modul Chart Gold di Android WebView.
-- **Baseline Verification:** Script `./init.sh` lulus bersih (0 error, 34/34 targeted test pass).
+- **Versi Rilis:** `2.0.0-pro.462` (code `950462`) — Integrasi fitur POI Accuracy & Touch Tracking, Journal Pro Ledger UI, and SSOT alignment dari Google AI Studio.
+- **Baseline Verification:** Script `./init.sh` lulus bersih (0 error, 34/34 targeted test pass) + 2 suite pengujian baru (`journal-pro-ledger.test.mjs`, `mapping-poi-audit.test.mjs` total 11/11 pass).
 - **Fitur Baru Terpasang dari AI Studio:**
-  - **Fix Chart Gold Linking (app.js):** Menambahkan `export` pada `DEFAULT_CHART_LAYERS` di `chart-view.js`. Menghilangkan `SyntaxError` pemblokir runtime pada WebView sehingga sesi pill, harga kanan, timer candle, dan chart canvas render normal.
-  - **Mapping Reaction History Engine:** Tracking POI touch/outcome (auto-backfill 30j + live persistence 7 hari di localStorage, scorecard Respect%).
-  - **Mapping Accuracy & SSOT M15:** 5 pilar resolusi arah tunggal, dual-layer scalper POI (M5/M15 continuation), dan perbaikan zero-height OB.
-  - **Amy FX Academy Reborn:** 6 Level kurikulum (30 Pelajaran + 90 Kuis Diagnostik), Zero-Dependency SVG Diagram Engine (`diagram-engine.js`), dan sinkronisasi pengetahuan Amy Live.
-  - **Kalibrasi Mobile 360x820px:** Fix overflow lot calculator, padding kalender bulanan, dan layout jurnal responsif.
-  - **Jurnal Diet & Unified P/L:** Penghapusan bloat modul non-trading dengan 100% kompatibilitas data lama.
+  - **Mapping POI Accuracy & Touch Tracking:**
+    - Pelacakan sentuhan zona FVG & OB (FRESH, CE Touched, BROKEN) dengan jejak visual pinpoint langsung di candlestick.
+    - Ghost box dan penanda silang merah halus untuk zona yang ter-invalidasi/jebol.
+    - Filtering DOL (Draw on Liquidity) pintar yang mengecualikan level likuiditas yang sudah tersapu/taken (PDH/PDL/Asia High-Low).
+  - **Journal Pro Ledger UI:**
+    - Perombakan total CSS & DOM tabel trade: quick direction/result pickers, dialog modal sheet responsif, dan layout compact mobile-friendly.
+    - Toolbar analitik jurnal dengan filter rentang dan toggle unit ($ vs R).
+  - **Backend Engine Alignment:**
+    - Sinkronisasi `lib/scalper-engine/amy-ict.mjs` dengan `amy-ict.js` (100% byte-identical).
+    - Lapisan toggle indikator ke-6: `Jejak Sentuhan POI` di popover Chart Gold.
 
 ## 2. Changed This Session
-- Memperbaiki `chart-view.js`: `export const DEFAULT_CHART_LAYERS = Object.freeze({...})`.
-- Memperbaiki `tests/home-price-chart.test.mjs` test runner context.
-- Sinkronisasi kedua repositori (`Amy-fx-pro` & `Amy-fx-ai-studio`).
-- Bump versi ke `2.0.0-pro.461` / `950461`.
+- Sinkronisasi borongan 20 berkas dari commit `4162125` repo Google AI Studio (`Amy-fx-ai-studio`).
+- Penambahan 2 test suite baru: `tests/journal-pro-ledger.test.mjs` dan `tests/mapping-poi-audit.test.mjs`.
+- Bump versi ke `2.0.0-pro.462` / `950462`.
 
 ## 3. Broken Or Unverified Risks
-- Tidak ada blocker kritis yang aktif.
-- Semua 34 targeted baseline test lolos 100%.
+- Tidak ada blocker aktif.
+- Seluruh 45 unit test (34 baseline + 11 new) lolos 100%.
 
 ## 4. Next Best Actions
-- Pantau CI/CD GitHub Actions release pipeline untuk APK `2.0.0-pro.461`.
-- Lanjutkan pengawalan chart live XAU/USD.
+- Pantau CI/CD GitHub Actions release pipeline untuk APK `2.0.0-pro.462`.
+- Lanjutkan verifikasi visual dan chart live XAU/USD.
 
 ## 5. Standard Commands
 - Inisialisasi & verifikasi cepat: `./init.sh`

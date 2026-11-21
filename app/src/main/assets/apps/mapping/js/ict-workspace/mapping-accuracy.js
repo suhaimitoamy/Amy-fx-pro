@@ -120,27 +120,47 @@ export function resolveSsotTelemetry(ctx, ng, livePrice) {
   const effectiveDolDir = m15Dir || (dashboard?.dolDir || 0) || freshSweepDir || (ngIsM15 ? (ng?.dol?.dir || 0) : 0);
   const priceRef = num(livePrice) || num(ctx?.price) || num(dashboard?.candle?.close) || 0;
 
-  const rawAbove = [
+  const klState = ngIsM15 ? (ng?.keyLevels || {}) : {};
+  const takenLabels = new Set(
+    (Array.isArray(ctx?.liquidity) ? ctx.liquidity : [])
+      .filter(l => String(l?.status || '').toUpperCase() === 'TAKEN')
+      .map(l => String(l?.label || '').toUpperCase())
+  );
+  const isConsumedKey = (flag, labelKey) => Boolean(flag) || takenLabels.has(labelKey);
+  const pdhAvailable = !isConsumedKey(klState.pdhConsumed, 'PDH');
+  const pdlAvailable = !isConsumedKey(klState.pdlConsumed, 'PDL');
+  const asiaHighAvailable = !isConsumedKey(klState.asiaHighConsumed, 'ASIA HIGH');
+  const asiaLowAvailable = !isConsumedKey(klState.asiaLowConsumed, 'ASIA LOW');
+
+  const dedupePools = list => {
+    const out = [];
+    for (const p of list) {
+      if (!out.some(x => Math.abs(x.level - p.level) < 0.08)) out.push(p);
+    }
+    return out;
+  };
+
+  const rawAbove = dedupePools([
     ...(dashboard?.dolDir === 1 && Number.isFinite(num(dashboard?.dolTarget)) ? [{ name: 'BSL M15', level: num(dashboard.dolTarget) }] : []),
     ...(Number.isFinite(num(dashboard?.bsl)) ? [{ name: 'BSL M15', level: num(dashboard.bsl) }] : []),
-    ...(Number.isFinite(num(amy?.levels?.asiaHigh)) ? [{ name: 'Asia High', level: num(amy.levels.asiaHigh) }] : []),
-    ...(Number.isFinite(num(amy?.levels?.pdh)) ? [{ name: 'PDH', level: num(amy.levels.pdh) }] : []),
+    ...(asiaHighAvailable && Number.isFinite(num(amy?.levels?.asiaHigh)) ? [{ name: 'Asia High', level: num(amy.levels.asiaHigh) }] : []),
+    ...(pdhAvailable && Number.isFinite(num(amy?.levels?.pdh)) ? [{ name: 'PDH', level: num(amy.levels.pdh) }] : []),
     ...(Number.isFinite(num(amy?.levels?.bsl)) ? [{ name: 'BSL Swing', level: num(amy.levels.bsl) }] : []),
     ...(ngIsM15 && Array.isArray(ng?.dol?.poolsAbove) ? ng.dol.poolsAbove.map(p => ({ name: p.name || 'BSL', level: num(p.level ?? p.price) })) : []),
     ...(Array.isArray(ctx?.liquidity) ? ctx.liquidity.filter(l => l.side === 'BUY' && l.status !== 'TAKEN').map(l => ({ name: l.label || 'BSL', level: num(l.level) })) : [])
   ].filter(p => Number.isFinite(p.level) && (!priceRef || p.level > priceRef + 0.15))
-    .sort((a, b) => a.level - b.level);
+    .sort((a, b) => a.level - b.level));
 
-  const rawBelow = [
+  const rawBelow = dedupePools([
     ...(dashboard?.dolDir === -1 && Number.isFinite(num(dashboard?.dolTarget)) ? [{ name: 'SSL M15', level: num(dashboard.dolTarget) }] : []),
     ...(Number.isFinite(num(dashboard?.ssl)) ? [{ name: 'SSL M15', level: num(dashboard.ssl) }] : []),
-    ...(Number.isFinite(num(amy?.levels?.asiaLow)) ? [{ name: 'Asia Low', level: num(amy.levels.asiaLow) }] : []),
-    ...(Number.isFinite(num(amy?.levels?.pdl)) ? [{ name: 'PDL', level: num(amy.levels.pdl) }] : []),
+    ...(asiaLowAvailable && Number.isFinite(num(amy?.levels?.asiaLow)) ? [{ name: 'Asia Low', level: num(amy.levels.asiaLow) }] : []),
+    ...(pdlAvailable && Number.isFinite(num(amy?.levels?.pdl)) ? [{ name: 'PDL', level: num(amy.levels.pdl) }] : []),
     ...(Number.isFinite(num(amy?.levels?.ssl)) ? [{ name: 'SSL Swing', level: num(amy.levels.ssl) }] : []),
     ...(ngIsM15 && Array.isArray(ng?.dol?.poolsBelow) ? ng.dol.poolsBelow.map(p => ({ name: p.name || 'SSL', level: num(p.level ?? p.price) })) : []),
     ...(Array.isArray(ctx?.liquidity) ? ctx.liquidity.filter(l => l.side === 'SELL' && l.status !== 'TAKEN').map(l => ({ name: l.label || 'SSL', level: num(l.level) })) : [])
   ].filter(p => Number.isFinite(p.level) && (!priceRef || p.level < priceRef - 0.15))
-    .sort((a, b) => b.level - a.level);
+    .sort((a, b) => b.level - a.level));
 
   let dolText = 'Menunggu arah DOL';
   let dolTone = 'is-gold';
@@ -212,12 +232,36 @@ export function selectScalperDualLayerPoi({
       const hi = num(z.hi ?? z.high ?? z.top ?? z.gapHigh ?? z.zoneHigh);
       if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi - lo < 0.05) return null;
       const ce = num(z.ce ?? z.meanThreshold) || (lo + hi) / 2;
-      const fresh = kind === 'OB'
-        ? (z.raw?.lifecycle === 'FRESH' || z.lifecycle === 'FRESH' || z.raw?.tested === false || z.tested === false)
-        : (z.tested === false || z.lifecycle === 'FRESH');
+      const rawTouchCount = Number(z.touchCount ?? z.raw?.touchCount);
+      const testedFlag = Boolean(z.tested ?? z.raw?.tested);
+      const touchCount = Number.isFinite(rawTouchCount) && rawTouchCount >= 0
+        ? rawTouchCount
+        : (testedFlag ? 1 : 0);
+      const ceTouched = Boolean(z.ceTouched ?? z.raw?.ceTouched);
+      const lastTouchTime = Number(z.lastTouchTime ?? z.raw?.lastTouchTime) || null;
+      const touches = Array.isArray(z.touches) ? z.touches : (Array.isArray(z.raw?.touches) ? z.raw.touches : []);
+      const lifecycle = String(z.lifecycle || z.raw?.lifecycle || (touchCount > 0 ? 'TESTED' : 'FRESH')).toUpperCase();
+      const fresh = touchCount === 0 && (
+        kind === 'OB'
+          ? (z.raw?.lifecycle === 'FRESH' || z.lifecycle === 'FRESH' || z.raw?.tested === false || z.tested === false)
+          : (z.tested === false || z.lifecycle === 'FRESH')
+      );
       const baseLabel = z.label || `${isSell ? 'Bearish' : 'Bullish'} ${kind} #${idx + 1}`;
       const label = baseLabel.includes(tf) ? baseLabel : `${baseLabel} (${tf})`;
-      return { low: lo, high: hi, ce, kind, tf, fresh: Boolean(fresh), label };
+      return {
+        low: lo,
+        high: hi,
+        ce,
+        kind,
+        tf,
+        fresh: Boolean(fresh),
+        touchCount,
+        ceTouched,
+        lastTouchTime,
+        touches,
+        lifecycle,
+        label
+      };
     })
     .filter(Boolean);
 
@@ -298,6 +342,8 @@ export function selectScalperDualLayerPoi({
   const scoreZone = z => {
     let score = z.dist;
     if (z.fresh) score -= 3.0;
+    if (z.touchCount >= 2) score += 1.5;
+    if (z.touchCount >= 3) score += 2.0;
     if (z.tf === 'M15') score -= 1.8; // Slight structural preference at equal distance, never overrides $10+ proximity gap
     if (z.inOte) score -= 2.5;
     if (z.inRightHalf) score -= 1.5;
@@ -398,16 +444,21 @@ export function evaluateScalperPoiVerdict({
             ? (zone.tf === 'M5' ? 'Retest Impuls M5' : 'Continuation M15')
             : 'Lokasi Lemah';
 
-  // 3. POI Quality (shows explicit M5 / M15 source tag)
+  // 3. POI Quality (shows explicit M5 / M15 source tag & touch count)
   const poiPass = Boolean(zone && !zone.breached && !zone.outsideInvalidation && !isSlHit);
   const tfSuffix = zone?.tf ? ` ${zone.tf}` : '';
+  const touchCnt = Number(zone?.touchCount) || 0;
   const poiLabel = !zone
     ? 'Belum Ada POI'
     : zone.breached || isSlHit
       ? 'Zona Jebol'
       : zone.outsideInvalidation
         ? 'Di Luar Invalid'
-        : (zone.fresh ? `Fresh ${zone.kind}${tfSuffix}` : `${zone.kind}${tfSuffix} Aktif`);
+        : zone.fresh
+          ? `Fresh ${zone.kind}${tfSuffix}`
+          : touchCnt > 0
+            ? `${zone.kind}${tfSuffix} · ${touchCnt}×${zone.ceTouched ? ' CE' : ''}`
+            : `${zone.kind}${tfSuffix} Aktif`;
 
   // 4. M5 Confirmation
   const m5Pass = isM5Aligned;

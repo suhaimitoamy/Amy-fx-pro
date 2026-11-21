@@ -739,7 +739,12 @@
     const defaultBalance = Number(options.defaultBalance ?? (typeof localStorage !== "undefined" ? localStorage.getItem("amy_default_balance") : 0)) || 0;
     const defaultRisk = Number(options.defaultRisk ?? (typeof localStorage !== "undefined" ? localStorage.getItem("amy_default_risk") : 0)) || 0;
 
-    const uiState = container.__jpState || { range: "all", unit: "auto" };
+    const hasCalendar = typeof options.renderCalendar === "function";
+    const defaultSubtab = options.initialSubtab || (hasCalendar ? "calendar" : "breakdown");
+    const uiState = container.__jpState || { range: "all", unit: "auto", subtab: defaultSubtab };
+    if (!hasCalendar && uiState.subtab === "calendar") {
+      uiState.subtab = "breakdown";
+    }
     container.__jpState = uiState;
 
     const renderView = () => {
@@ -763,12 +768,11 @@
       const toolbarHtml = `
         <div class="jp-toolbar">
           <div class="jp-title-block">
-            <h3>Analitik Jurnal Pro</h3>
             <p class="jp-meta-line jp-tabular">
               <span>${s.closedCount} trade tertutup</span>
               <span aria-hidden="true">·</span>
-              <span>${s.openCount} terbuka/no-entry</span>
-              ${s.sampleWarning ? `<span aria-hidden="true">·</span><span class="jp-warn-text">Sampel awal (&lt;5 trade)</span>` : ""}
+              <span>${s.openCount} terbuka</span>
+              ${s.sampleWarning ? `<span aria-hidden="true">·</span><span class="jp-warn-text">Sampel awal (&lt;5)</span>` : ""}
             </p>
           </div>
           <div class="jp-controls">
@@ -776,27 +780,30 @@
               ${rangeOptions.map((opt) => `<button type="button" class="jp-seg-btn ${uiState.range === opt.id ? "is-active" : ""}" data-jp-range="${opt.id}">${opt.label}</button>`).join("")}
             </div>
             <div class="jp-seg" role="group" aria-label="Satuan kurva">
-              <button type="button" class="jp-seg-btn ${activeUnit === "money" ? "is-active" : ""}" data-jp-unit="money">Nominal $</button>
-              <button type="button" class="jp-seg-btn ${activeUnit === "r" ? "is-active" : ""}" data-jp-unit="r">R-Multiple</button>
+              <button type="button" class="jp-seg-btn ${activeUnit === "money" ? "is-active" : ""}" data-jp-unit="money">$</button>
+              <button type="button" class="jp-seg-btn ${activeUnit === "r" ? "is-active" : ""}" data-jp-unit="r">R</button>
             </div>
-            <button type="button" class="jp-amy-btn" data-jp-ask-amy>Evaluasi bareng Amy</button>
+            <button type="button" class="jp-amy-btn" data-jp-ask-amy>Evaluasi Amy</button>
           </div>
         </div>
       `;
 
+      const calendarPaneHtml = hasCalendar ? options.renderCalendar() : "";
+
       if (s.closedCount === 0) {
         container.innerHTML = `
-          <div class="jp-pro-root">
+          <div class="jp-pro-root jp-pro-ledger">
             ${toolbarHtml}
             <div class="jp-empty-card">
               <h4>Belum ada trade tertutup pada rentang ini</h4>
-              <p>${s.totalAllTime > 0 ? "Coba pilih rentang waktu Semua untuk melihat riwayat trade sebelumnya." : "Catat hasil trade (Win, Loss, atau BE) lengkap dengan profit/loss dan kesalahan agar Equity Curve, Drawdown, dan Leak Cost muncul otomatis."}</p>
+              <p>${s.totalAllTime > 0 ? "Pilih rentang Semua untuk melihat riwayat trade sebelumnya." : "Catat hasil trade (Win, Loss, atau BE) agar Equity Curve, Drawdown, dan Kebocoran muncul otomatis."}</p>
               <div class="jp-empty-actions">
                 ${s.totalAllTime > 0
-                  ? `<button type="button" class="jp-primary-btn" data-jp-range="all">Tampilkan Semua Rentang</button>`
+                  ? `<button type="button" class="jp-primary-btn" data-jp-range="all">Tampilkan Semua</button>`
                   : `<button type="button" class="jp-primary-btn" data-jp-log-first>Catat Trade Pertama</button>`}
               </div>
             </div>
+            ${hasCalendar ? `<section class="jp-subtab-pane" data-jp-pane="calendar">${calendarPaneHtml}</section>` : ""}
           </div>
         `;
         bindEvents(data);
@@ -806,8 +813,18 @@
       const lastPt = data.equitySeries[data.equitySeries.length - 1];
       const netTone = s.netValue > 0 ? "is-pos" : s.netValue < 0 ? "is-neg" : "is-flat";
       const pfTone = s.profitFactor === Infinity || s.profitFactor >= 1.5 ? "is-pos" : s.profitFactor >= 1 ? "is-flat" : "is-neg";
-      const expTone = s.expectancy > 0 ? "is-pos" : s.expectancy < 0 ? "is-neg" : "is-flat";
-      const streakTone = s.currentStreak.type === "Win" ? "is-pos" : s.currentStreak.type === "Loss" ? "is-neg" : "is-flat";
+      const expLabel = `Exp ${formatValue(s.expectancy, unit)}/trd`;
+      const streakLabel = `Streak ${formatStreak(s.currentStreak)}`;
+
+      const subtabDefs = [
+        ...(hasCalendar ? [{ id: "calendar", label: "Kalender" }] : []),
+        { id: "breakdown", label: "Sesi & Setup" },
+        { id: "leaks", label: "Kebocoran" }
+      ];
+
+      if (!subtabDefs.some((t) => t.id === uiState.subtab)) {
+        uiState.subtab = subtabDefs[0].id;
+      }
 
       const briefHtml = data.executionBrief.bullets.length
         ? `<div class="jp-brief" aria-label="Sorotan eksekusi">
@@ -815,12 +832,57 @@
            </div>`
         : "";
 
-      container.innerHTML = `
-        <div class="jp-pro-root">
-          ${toolbarHtml}
-          ${briefHtml}
+      let activePaneHtml = "";
+      if (uiState.subtab === "calendar" && hasCalendar) {
+        activePaneHtml = `<div class="jp-subtab-pane" data-jp-pane="calendar">${calendarPaneHtml}</div>`;
+      } else if (uiState.subtab === "leaks") {
+        activePaneHtml = `
+          <div class="jp-subtab-pane" data-jp-pane="leaks">
+            ${briefHtml}
+            <div class="jp-ledger-section">
+              <div class="jp-panel-head">
+                <h4>Detektor Kebocoran &amp; Psikologi</h4>
+                <span>Biaya kesalahan disiplin</span>
+              </div>
+              <div class="jp-rows jp-rows--leaks">
+                ${renderLeakRows(data.breakdowns.byLeak, unit)}
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        activePaneHtml = `
+          <div class="jp-subtab-pane" data-jp-pane="breakdown">
+            <div class="jp-split-grid">
+              <div class="jp-ledger-section">
+                <div class="jp-panel-head">
+                  <h4>Performa per Sesi (WITA)</h4>
+                  <span>Edge waktu eksekusi</span>
+                </div>
+                <div class="jp-rows">
+                  ${renderBreakdownRows(data.breakdowns.bySession, unit, "Belum ada data sesi.")}
+                </div>
+              </div>
 
-          <div class="jp-chart-card">
+              <div class="jp-ledger-section">
+                <div class="jp-panel-head">
+                  <h4>Performa per Setup ICT</h4>
+                  <span>Konsistensi pola entry</span>
+                </div>
+                <div class="jp-rows">
+                  ${renderBreakdownRows(data.breakdowns.bySetup, unit, "Isi kolom Setup saat mencatat trade.")}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="jp-pro-root jp-pro-ledger">
+          ${toolbarHtml}
+
+          <section class="jp-hero-equity" aria-label="Grafik pertumbuhan ekuitas">
             <div class="jp-chart-head">
               <div class="jp-chart-inspect" data-jp-inspect>
                 <span class="jp-inspect-title">Trade #${lastPt.index} · ${escapeHtml(formatDateShort(lastPt.dateLabel))} · ${escapeHtml(lastPt.pair)}</span>
@@ -832,72 +894,44 @@
               </div>
             </div>
             ${buildEquityChartMarkup(data, false)}
-          </div>
+          </section>
 
-          <div class="jp-kpi-grid">
-            <article class="jp-kpi">
+          <section class="jp-kpi-strip" aria-label="4 Indikator Utama Performa">
+            <article class="jp-kpi-cell">
               <span class="jp-kpi-label">Net P/L</span>
               <strong class="jp-kpi-val jp-tabular ${netTone}">${escapeHtml(formatValue(s.netValue, unit))}</strong>
               <span class="jp-kpi-sub jp-tabular">${s.returnPct != null && unit === "money" ? `${s.returnPct >= 0 ? "+" : ""}${s.returnPct}% modal` : `${formatSignedR(s.netR)} total`}</span>
             </article>
-            <article class="jp-kpi">
+            <article class="jp-kpi-cell">
               <span class="jp-kpi-label">Win Rate</span>
               <strong class="jp-kpi-val jp-tabular">${s.winRate}%</strong>
               <span class="jp-kpi-sub jp-tabular">${s.wins}W · ${s.losses}L · ${s.breakevens}BE</span>
             </article>
-            <article class="jp-kpi">
+            <article class="jp-kpi-cell">
               <span class="jp-kpi-label">Profit Factor</span>
               <strong class="jp-kpi-val jp-tabular ${pfTone}">${escapeHtml(formatProfitFactor(s.profitFactor))}</strong>
-              <span class="jp-kpi-sub jp-tabular">Avg ${escapeHtml(formatAbsValue(s.avgWin, unit))} / ${escapeHtml(formatAbsValue(s.avgLoss, unit))}</span>
+              <span class="jp-kpi-sub jp-tabular">${escapeHtml(expLabel)}</span>
             </article>
-            <article class="jp-kpi">
-              <span class="jp-kpi-label">Expectancy</span>
-              <strong class="jp-kpi-val jp-tabular ${expTone}">${escapeHtml(formatValue(s.expectancy, unit))}</strong>
-              <span class="jp-kpi-sub jp-tabular">Rata-rata per trade</span>
-            </article>
-            <article class="jp-kpi">
+            <article class="jp-kpi-cell">
               <span class="jp-kpi-label">Max Drawdown</span>
               <strong class="jp-kpi-val jp-tabular ${s.maxDrawdown > 0 ? "is-neg" : "is-pos"}">-${escapeHtml(formatAbsValue(s.maxDrawdown, unit))}</strong>
-              <span class="jp-kpi-sub jp-tabular">${s.currentDrawdown > 0 ? `Aktif -${formatAbsValue(s.currentDrawdown, unit)}` : "Pulih di puncak"}</span>
+              <span class="jp-kpi-sub jp-tabular">${escapeHtml(streakLabel)}</span>
             </article>
-            <article class="jp-kpi">
-              <span class="jp-kpi-label">Streak Saat Ini</span>
-              <strong class="jp-kpi-val jp-tabular ${streakTone}">${escapeHtml(formatStreak(s.currentStreak))}</strong>
-              <span class="jp-kpi-sub jp-tabular">Rekor +${s.bestWinStreak}W / -${s.worstLossStreak}L</span>
-            </article>
+          </section>
+
+          <div class="jp-subtabs-bar" role="tablist" aria-label="Detail Analitik Performa">
+            ${subtabDefs.map((tab) => `
+              <button
+                type="button"
+                role="tab"
+                aria-selected="${uiState.subtab === tab.id ? "true" : "false"}"
+                class="jp-subtab-btn ${uiState.subtab === tab.id ? "is-active" : ""}"
+                data-jp-subtab="${tab.id}"
+              >${tab.label}</button>
+            `).join("")}
           </div>
 
-          <div class="jp-split-grid">
-            <div class="jp-panel">
-              <div class="jp-panel-head">
-                <h4>Performa per Sesi (WITA)</h4>
-                <span>Edge waktu eksekusi</span>
-              </div>
-              <div class="jp-rows">
-                ${renderBreakdownRows(data.breakdowns.bySession, unit, "Belum ada data sesi.")}
-              </div>
-            </div>
-
-            <div class="jp-panel">
-              <div class="jp-panel-head">
-                <h4>Performa per Setup ICT</h4>
-                <span>Konsistensi pola entry</span>
-              </div>
-              <div class="jp-rows">
-                ${renderBreakdownRows(data.breakdowns.bySetup, unit, "Isi kolom Setup saat mencatat trade.")}
-              </div>
-            </div>
-          </div>
-
-          <div class="jp-panel jp-panel--full">
-            <div class="jp-panel-head">
-              <h4>Detektor Kebocoran Profit &amp; Psikologi</h4>
-              <span>Biaya nyata dari kesalahan disiplin</span>
-            </div>
-            <div class="jp-rows jp-rows--leaks">
-              ${renderLeakRows(data.breakdowns.byLeak, unit)}
-            </div>
-          </div>
+          ${activePaneHtml}
         </div>
       `;
 
@@ -918,6 +952,17 @@
           renderView();
         });
       });
+
+      container.querySelectorAll("[data-jp-subtab]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          uiState.subtab = btn.getAttribute("data-jp-subtab") || defaultSubtab;
+          renderView();
+        });
+      });
+
+      if (typeof options.onBindCalendar === "function") {
+        options.onBindCalendar(container);
+      }
 
       container.querySelector("[data-jp-ask-amy]")?.addEventListener("click", () => {
         const rangeLabel = { "7d": "7 hari terakhir", "30d": "30 hari terakhir", "90d": "90 hari terakhir", all: "keseluruhan" }[data.range] || "keseluruhan";
@@ -997,7 +1042,6 @@
         const rect = eqSvg.getBoundingClientRect();
         if (!rect.width) return;
         const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-        // eqValues has index 0 = start(0), 1..N = trades
         const eqIdx = Math.round(ratio * data.equitySeries.length);
         const tradeIdx = Math.max(0, Math.min(data.equitySeries.length - 1, eqIdx - 1));
         showPoint(tradeIdx);

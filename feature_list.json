@@ -1,7 +1,7 @@
 {
   "project": "Amy FX Pro",
-  "version": "2.0.0-pro.461",
-  "last_updated": "2026-11-20",
+  "version": "2.0.0-pro.462",
+  "last_updated": "2026-11-21",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,

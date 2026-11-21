@@ -472,6 +472,8 @@ import {
           const tp2Part = Number.isFinite(Number(rec.tp2)) && Number(rec.tp2) > 0 ? ` · TP2 $${fmt(rec.tp2)}` : '';
           const maxFav = Number(rec.maxFavorable) || 0;
           const favPart = maxFav > 0 ? `Maks +$${maxFav.toFixed(1)}` : `Sentuh $${fmt(rec.touchPrice)}`;
+          const tCount = Number(rec.touchCount) || 1;
+          const touchBadgeText = `${tCount}×${rec.ceTouched ? ' · CE' : ''}`;
           return `
             <div class="history-item ${sideCls}">
               <div class="history-item-top">
@@ -480,6 +482,7 @@ import {
                   <span class="history-item-title">${esc(rec.kind)} ${esc(rec.tf)} · $${fmt(rec.low)}–$${fmt(rec.high)}</span>
                 </div>
                 <div class="history-item-left">
+                  <span class="history-touch-tag${rec.ceTouched ? ' is-ce' : ''}" title="Riwayat sentuhan zona">${esc(touchBadgeText)}</span>
                   <span class="history-outcome-badge ${badge.cls}">${esc(badge.text)}</span>
                   <span class="history-item-time">${esc(clock)}</span>
                 </div>
@@ -1170,10 +1173,10 @@ import {
       }
     }
 
-    // Helper validasi zona aktif (hanya buang BROKEN/INVALIDATED/FAILED)
+    // Helper validasi zona aktif (ketat: buang BROKEN, INVALIDATED, FAILED, mitigated, breaker, removed, status=4)
     const isActiveZone = z => {
       if (!z) return false;
-      if (z.mitigated === true && String(z.lifecycle || z.status || '').toUpperCase() === 'BROKEN') return false;
+      if (z.mitigated === true || z.breaker === true || z.removed === true || z.status === 4) return false;
       const lc = String(z.lifecycle || z.status || '').toUpperCase();
       return lc !== 'BROKEN' && lc !== 'INVALIDATED' && lc !== 'FAILED';
     };
@@ -1189,7 +1192,18 @@ import {
       const lo = num(f.bot ?? f.low ?? f.gapLow ?? f.zoneLow);
       const hi = num(f.top ?? f.high ?? f.gapHigh ?? f.zoneHigh);
       const ce = num(f.ce ?? f.consequentEncroachment) || (lo + hi) / 2;
-      return { lo, hi, ce, tested: Boolean(f.tested) };
+      const touchCount = Number.isFinite(Number(f.touchCount)) ? Number(f.touchCount) : (f.tested ? 1 : 0);
+      return {
+        lo,
+        hi,
+        ce,
+        tested: Boolean(f.tested || touchCount > 0),
+        touchCount,
+        ceTouched: Boolean(f.ceTouched),
+        lastTouchTime: Number(f.lastTouchTime) || null,
+        touches: Array.isArray(f.touches) ? f.touches : [],
+        lifecycle: String(f.lifecycle || (touchCount > 0 ? 'TESTED' : 'FRESH')).toUpperCase()
+      };
     };
     const dedupeZones = arr => arr.filter((z, i) => arr.findIndex(y => Math.abs(y.lo - z.lo) < 0.25 && Math.abs(y.hi - z.hi) < 0.25) === i);
 
@@ -1249,7 +1263,20 @@ import {
       const ce = num(o.ce ?? o.meanThreshold) || (lo + hi) / 2;
       const sideUpper = String(o.side || o.direction || o.type || '').toUpperCase();
       const label = o.label || ((sideUpper === 'BUY' || sideUpper === 'BULLISH') ? '+OB Demand M15' : '-OB Supply M15');
-      return { lo, hi, ce, label, raw: o };
+      const touchCount = Number.isFinite(Number(o.touchCount)) ? Number(o.touchCount) : (o.tested ? 1 : 0);
+      return {
+        lo,
+        hi,
+        ce,
+        label,
+        tested: Boolean(o.tested || touchCount > 0),
+        touchCount,
+        ceTouched: Boolean(o.ceTouched),
+        lastTouchTime: Number(o.lastTouchTime) || null,
+        touches: Array.isArray(o.touches) ? o.touches : [],
+        lifecycle: String(o.lifecycle || (touchCount > 0 ? 'TESTED' : 'FRESH')).toUpperCase(),
+        raw: o
+      };
     };
 
     const isBearOb = o => {
@@ -1357,6 +1384,16 @@ import {
       }
     }
 
+    const takenKeyLabels = new Set(
+      (Array.isArray(ctx?.liquidity) ? ctx.liquidity : [])
+        .filter(l => String(l?.status || '').toUpperCase() === 'TAKEN')
+        .map(l => String(l?.label || '').toUpperCase())
+    );
+    const pdhFresh = !ngKey.pdhConsumed && !takenKeyLabels.has('PDH');
+    const pdlFresh = !ngKey.pdlConsumed && !takenKeyLabels.has('PDL');
+    const asiaHighFresh = !ngKey.asiaHighConsumed && !takenKeyLabels.has('ASIA HIGH');
+    const asiaLowFresh = !ngKey.asiaLowConsumed && !takenKeyLabels.has('ASIA LOW');
+
     const liqCandidates = [
       ...ngPoolsAbove,
       ...ngPoolsBelow,
@@ -1364,14 +1401,14 @@ import {
       { name: 'BSL M15', k: 'H', v: num(dashboard?.bsl) },
       { name: 'Range High M15', k: 'H', v: num(rHigh) },
       { name: 'BSL Swing', k: 'H', v: num(amy?.levels?.bsl) },
-      { name: 'PDH', k: 'H', v: num(amy?.levels?.pdh ?? ngKey.pdh) },
-      { name: 'Asia High', k: 'H', v: num(amy?.levels?.asiaHigh ?? ngKey.asiaHigh) },
+      ...(pdhFresh ? [{ name: 'PDH', k: 'H', v: num(amy?.levels?.pdh ?? ngKey.pdh) }] : []),
+      ...(asiaHighFresh ? [{ name: 'Asia High', k: 'H', v: num(amy?.levels?.asiaHigh ?? ngKey.asiaHigh) }] : []),
       { name: 'Protected Low M15', k: 'L', v: protectedLow },
       { name: 'SSL M15', k: 'L', v: num(dashboard?.ssl) },
       { name: 'Range Low M15', k: 'L', v: num(rLow) },
       { name: 'SSL Swing', k: 'L', v: num(amy?.levels?.ssl) },
-      { name: 'PDL', k: 'L', v: num(amy?.levels?.pdl ?? ngKey.pdl) },
-      { name: 'Asia Low', k: 'L', v: num(amy?.levels?.asiaLow ?? ngKey.asiaLow) }
+      ...(pdlFresh ? [{ name: 'PDL', k: 'L', v: num(amy?.levels?.pdl ?? ngKey.pdl) }] : []),
+      ...(asiaLowFresh ? [{ name: 'Asia Low', k: 'L', v: num(amy?.levels?.asiaLow ?? ngKey.asiaLow) }] : [])
     ].filter(x => Number.isFinite(x.v));
 
     const dedupeLiq = arr => arr.filter((x, i) => arr.findIndex(y => Math.abs(y.v - x.v) < 0.08) === i);
@@ -1674,12 +1711,17 @@ import {
     if (sellEntrySubEl) {
       const tfTag = primarySellZone?.tf ? ` ${primarySellZone.tf}` : '';
       const oteTag = primarySellZone?.inOte ? ' · OTE' : '';
-      const freshTag = primarySellZone?.fresh ? 'Fresh ' : '';
+      const sTouchCnt = Number(primarySellZone?.touchCount) || 0;
+      const touchTag = primarySellZone
+        ? (sTouchCnt > 0
+            ? ` · Sentuh ${sTouchCnt}×${primarySellZone.ceTouched ? ' CE' : ''}`
+            : (primarySellZone.fresh ? ' · Fresh' : ''))
+        : '';
       const distTag = (primarySellZone && Number.isFinite(sellVerdict.zoneDist) && sellVerdict.zoneDist >= 0.5)
         ? ` · +$${sellVerdict.zoneDist.toFixed(1)}`
         : (primarySellZone && Number.isFinite(sellVerdict.zoneDist) ? ' · Di Zona' : '');
       sellEntrySubEl.textContent = primarySellZone
-        ? `${freshTag}${primarySellZone.kind || 'OB'}${tfTag}${oteTag} · CE $${fmt(primarySellZone.ce)}${distTag}`
+        ? `${primarySellZone.kind || 'OB'}${tfTag}${touchTag}${oteTag} · CE $${fmt(primarySellZone.ce)}${distTag}`
         : 'Tunggu Supply/OB di atas harga';
     }
     const sellTpValEl = $('sell-tp-val');
@@ -1718,13 +1760,17 @@ import {
     if (sellTbody) {
       const sellRows = [];
       if (primarySellZone) {
+        const sTouchCnt = Number(primarySellZone.touchCount) || 0;
+        const sTouchMeta = sTouchCnt > 0
+          ? ` · Disentuh ${sTouchCnt}×${primarySellZone.ceTouched ? ' (50% CE)' : ''}${primarySellZone.lastTouchTime ? ` @ ${formatWitaClock(primarySellZone.lastTouchTime * 1000)}` : ''}`
+          : ' · Zona Fresh (belum tersentuh)';
         const trigNote = primarySellZone.breached
           ? `Harga ($${fmt(livePrice)}) menembus atas zona — jangan paksa entry`
           : isSellTesting
-            ? `Sedang diuji ($${fmt(livePrice)}) — tunggu candle rejection/MSS M5`
+            ? `Sedang diuji ($${fmt(livePrice)}) — tunggu candle rejection/MSS M5${sTouchMeta}`
             : isSellReacting
-              ? `Reaksi dari $${fmt(activeSellSession?.triggeredPrice || primarySellZone.low)} · Bergerak -$${fmt(Math.max(0, (activeSellSession?.triggeredPrice || primarySellZone.low) - livePrice))}`
-              : `50% CE: $${fmt(primarySellZone.ce)}${primarySellZone.inOte ? ' · Area OTE 62%–79%' : ''} — jemputan Sell`;
+              ? `Reaksi dari $${fmt(activeSellSession?.triggeredPrice || primarySellZone.low)} · Bergerak -$${fmt(Math.max(0, (activeSellSession?.triggeredPrice || primarySellZone.low) - livePrice))}${sTouchMeta}`
+              : `50% CE: $${fmt(primarySellZone.ce)}${primarySellZone.inOte ? ' · Area OTE 62%–79%' : ''}${sTouchMeta}`;
         sellRows.push({
           poi: `${isSellInPlay ? '[Aktif] ' : ''}Entry [${primarySellZone.kind || 'OB'} ${primarySellZone.tf || 'M15'}] · ${primarySellZone.label}`,
           level: fmtRange(primarySellZone.low, primarySellZone.high),
@@ -1926,12 +1972,17 @@ import {
     if (buyEntrySubEl) {
       const tfTag = primaryBuyZone?.tf ? ` ${primaryBuyZone.tf}` : '';
       const oteTag = primaryBuyZone?.inOte ? ' · OTE' : '';
-      const freshTag = primaryBuyZone?.fresh ? 'Fresh ' : '';
+      const bTouchCnt = Number(primaryBuyZone?.touchCount) || 0;
+      const touchTag = primaryBuyZone
+        ? (bTouchCnt > 0
+            ? ` · Sentuh ${bTouchCnt}×${primaryBuyZone.ceTouched ? ' CE' : ''}`
+            : (primaryBuyZone.fresh ? ' · Fresh' : ''))
+        : '';
       const distTag = (primaryBuyZone && Number.isFinite(buyVerdict.zoneDist) && buyVerdict.zoneDist >= 0.5)
         ? ` · -$${buyVerdict.zoneDist.toFixed(1)}`
         : (primaryBuyZone && Number.isFinite(buyVerdict.zoneDist) ? ' · Di Zona' : '');
       buyEntrySubEl.textContent = primaryBuyZone
-        ? `${freshTag}${primaryBuyZone.kind || 'OB'}${tfTag}${oteTag} · CE $${fmt(primaryBuyZone.ce)}${distTag}`
+        ? `${primaryBuyZone.kind || 'OB'}${tfTag}${touchTag}${oteTag} · CE $${fmt(primaryBuyZone.ce)}${distTag}`
         : 'Tunggu Demand/OB di bawah harga';
     }
     const buyTpValEl = $('buy-tp-val');
@@ -1970,13 +2021,17 @@ import {
     if (buyTbody) {
       const buyRows = [];
       if (primaryBuyZone) {
+        const bTouchCnt = Number(primaryBuyZone.touchCount) || 0;
+        const bTouchMeta = bTouchCnt > 0
+          ? ` · Disentuh ${bTouchCnt}×${primaryBuyZone.ceTouched ? ' (50% CE)' : ''}${primaryBuyZone.lastTouchTime ? ` @ ${formatWitaClock(primaryBuyZone.lastTouchTime * 1000)}` : ''}`
+          : ' · Zona Fresh (belum tersentuh)';
         const trigNote = primaryBuyZone.breached
           ? `Harga ($${fmt(livePrice)}) menembus bawah zona — dilarang Buy`
           : isBuyTesting
-            ? `Sedang diuji ($${fmt(livePrice)}) — wajib tunggu candle rejection/MSS M5`
+            ? `Sedang diuji ($${fmt(livePrice)}) — wajib tunggu candle rejection/MSS M5${bTouchMeta}`
             : isBuyReacting
-              ? `Reaksi dari $${fmt(activeBuySession?.triggeredPrice || primaryBuyZone.high)} · Bergerak +$${fmt(Math.max(0, livePrice - (activeBuySession?.triggeredPrice || primaryBuyZone.high)))}`
-              : `50% CE: $${fmt(primaryBuyZone.ce)}${primaryBuyZone.inOte ? ' · Area OTE 62%–79%' : ''} — jemputan Buy`;
+              ? `Reaksi dari $${fmt(activeBuySession?.triggeredPrice || primaryBuyZone.high)} · Bergerak +$${fmt(Math.max(0, livePrice - (activeBuySession?.triggeredPrice || primaryBuyZone.high)))}${bTouchMeta}`
+              : `50% CE: $${fmt(primaryBuyZone.ce)}${primaryBuyZone.inOte ? ' · Area OTE 62%–79%' : ''}${bTouchMeta}`;
         buyRows.push({
           poi: `${isBuyInPlay ? '[Aktif] ' : ''}Entry [${primaryBuyZone.kind || 'OB'} ${primaryBuyZone.tf || 'M15'}] · ${primaryBuyZone.label}`,
           level: fmtRange(primaryBuyZone.low, primaryBuyZone.high),
