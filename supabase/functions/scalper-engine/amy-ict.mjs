@@ -68,11 +68,34 @@ export function pivotAt(candles,end,left=3,right=left){
   const p={index:idx,time:c.open_time,confirmedAt:candles[end].close_time};
   return {high:high?{...p,level:c.high}:null,low:low?{...p,level:c.low}:null};
 }
-function zone(kind,side,low,high,c,index){return {id:`${kind}:${side}:${c.open_time}`,kind,side,low,high,ce:(low+high)/2,formedAt:c.close_time,time:c.open_time,formedIndex:index,status:1,lifecycle:'FRESH'};}
+function zone(kind,side,low,high,c,index){return {id:`${kind}:${side}:${c.open_time}`,kind,side,low,high,ce:(low+high)/2,formedAt:c.close_time,time:c.open_time,formedIndex:index,status:1,lifecycle:'FRESH',touchCount:0,ceTouched:false,firstTouchTime:null,lastTouchTime:null,touches:[],_inTouch:false};}
 function advanceZone(z,c,newThisBar=false){
   if(!z||z.status===4||newThisBar)return;
-  if(z.side==='BUY'?c.close<z.low:c.close>z.high)z.status=4;
-  else if(overlaps(c,z))z.status=2;
+  const isBuy=z.side==='BUY';
+  const broke=isBuy?c.close<z.low:c.close>z.high;
+  const hit=overlaps(c,z);
+  const hitCe=isBuy?c.low<=z.ce:c.high>=z.ce;
+  if(hit){
+    if(hitCe)z.ceTouched=true;
+    const tPrice=isBuy?Math.max(z.low,Math.min(z.high,c.low)):Math.min(z.high,Math.max(z.low,c.high));
+    if(!z._inTouch){
+      z._inTouch=true;
+      z.touchCount=(z.touchCount||0)+1;
+      if(!z.firstTouchTime)z.firstTouchTime=c.open_time;
+      z.lastTouchTime=c.open_time;
+      z.touches=z.touches||[];
+      z.touches.push({index:z.touchCount,time:c.open_time,price:round(tPrice),hitCe,broken:broke});
+    }else if(z.touches?.length){
+      const cur=z.touches[z.touches.length-1];
+      if(hitCe&&!cur.hitCe){cur.hitCe=true;cur.price=round(z.ce);}
+      if(broke)cur.broken=true;
+      z.lastTouchTime=c.open_time;
+    }
+  }else{
+    z._inTouch=false;
+  }
+  if(broke)z.status=4;
+  else if(hit)z.status=2;
   else if(z.status===2)z.status=3;
   z.lifecycle=['NONE','FRESH','ACTIVE','MITIGATED','FAILED'][z.status];
 }
@@ -84,8 +107,9 @@ export function dashboardEngine(candles,options={}){
   const findOriginOb=(index,side,minThick)=>{
     const maxBack=Math.max(2,s.obLength||10);
     for(let off=1;off<=maxBack&&index-off>=0;off++){
-      const cur=candles[index-off];
-      if(!pair(cur,candles[index-off+1]))break;
+      const originIdx=index-off;
+      const cur=candles[originIdx];
+      if(!pair(cur,candles[originIdx+1]))break;
       const isOpp=side==='BUY'?cur.close<cur.open:cur.close>cur.open;
       if(!isOpp)continue;
       const bodyLo=Math.min(cur.open,cur.close),bodyHi=Math.max(cur.open,cur.close);
@@ -93,7 +117,12 @@ export function dashboardEngine(candles,options={}){
       if(fullThick<minThick)continue;
       const lo=bodyThick>=minThick?bodyLo:cur.low;
       const hi=bodyThick>=minThick?bodyHi:cur.high;
-      return zone('OB',side,lo,hi,cur,index-off);
+      let preBroken=false;
+      for(let mid=originIdx+1;mid<=index;mid++){
+        if(side==='BUY'?candles[mid].close<lo:candles[mid].close>hi){preBroken=true;break;}
+      }
+      if(preBroken)continue;
+      return zone('OB',side,lo,hi,cur,originIdx);
     }
     return null;
   };
@@ -197,21 +226,37 @@ export function dashboardEngine(candles,options={}){
       lastBreak=ev;
     }
 
-    // Mark broken/swept liquidity pools as consumed
+    // Multi-pool BSL / SSL sweep scan BEFORE consuming close-breaks
+    if(changed)sweep=null;
+    let sweptBsl=null;
+    for(const pHigh of bslPool){
+      if(!pHigh.consumed&&c.high>=pHigh.level+minSweep&&c.close<pHigh.level){
+        pHigh.consumed=true;
+        if(!sweptBsl||pHigh.level>sweptBsl.level)sweptBsl=pHigh;
+      }
+    }
+    if(!sweptBsl&&ph&&c.high>=ph.level+minSweep&&c.close<ph.level)sweptBsl=ph;
+
+    let sweptSsl=null;
+    for(const pLow of sslPool){
+      if(!pLow.consumed&&c.low<=pLow.level-minSweep&&c.close>pLow.level){
+        pLow.consumed=true;
+        if(!sweptSsl||pLow.level<sweptSsl.level)sweptSsl=pLow;
+      }
+    }
+    if(!sweptSsl&&pl&&c.low<=pl.level-minSweep&&c.close>pl.level)sweptSsl=pl;
+
+    if(sweptSsl&&!sweptBsl){
+      sweep={dir:1,reactionSide:'BUY',pool:'SSL',index:i,time:c.close_time,price:sweptSsl.level,extreme:c.low};
+      for(const pLow of sslPool)if(Math.abs(pLow.level-sweptSsl.level)<s.tick*5)pLow.consumed=true;
+    }
+    if(sweptBsl&&!sweptSsl){
+      sweep={dir:-1,reactionSide:'SELL',pool:'BSL',index:i,time:c.close_time,price:sweptBsl.level,extreme:c.high};
+      for(const pHigh of bslPool)if(Math.abs(pHigh.level-sweptBsl.level)<s.tick*5)pHigh.consumed=true;
+    }
+    // Mark broken liquidity pools as consumed
     for(const pHigh of bslPool){if(!pHigh.consumed&&c.high>=pHigh.level+minSweep*0.5&&c.close>pHigh.level)pHigh.consumed=true;}
     for(const pLow of sslPool){if(!pLow.consumed&&c.low<=pLow.level-minSweep*0.5&&c.close<pLow.level)pLow.consumed=true;}
-
-    if(changed)sweep=null;
-    const bslSweep=ph&&c.high>=ph.level+minSweep&&c.close<ph.level;
-    const sslSweep=pl&&c.low<=pl.level-minSweep&&c.close>pl.level;
-    if(sslSweep&&!bslSweep){
-      sweep={dir:1,reactionSide:'BUY',pool:'SSL',index:i,time:c.close_time,price:pl.level,extreme:c.low};
-      for(const pLow of sslPool)if(Math.abs(pLow.level-pl.level)<s.tick*5)pLow.consumed=true;
-    }
-    if(bslSweep&&!sslSweep){
-      sweep={dir:-1,reactionSide:'SELL',pool:'BSL',index:i,time:c.close_time,price:ph.level,extreme:c.high};
-      for(const pHigh of bslPool)if(Math.abs(pHigh.level-ph.level)<s.tick*5)pHigh.consumed=true;
-    }
     const sweepInvalid=sweep&&(sweep.dir===1?c.close<sweep.price:c.close>sweep.price);
     const invalidSweep=sweepInvalid?{...sweep}:null;if(sweepInvalid)sweep=null;
     const sweepStatus=sweep?(i-sweep.index<=s.freshBars?1:2):sweepInvalid?3:0;
@@ -961,7 +1006,8 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
 export function analyzeAmy({h1=[],m15=[],m5=[],m1=[],d1=[],nowSeconds,settings={}}){
   const H=clean(h1,nowSeconds,3600),M=clean(m15,nowSeconds,900),T=clean(m5,nowSeconds,300),I=clean(m1,nowSeconds,60),D=clean(d1,nowSeconds);
   const executionT=T.length>=15?T:M;
-  const dashboard=dashboardEngine(M,settings),trigger=triggerEngine(executionT,settings),levels=keyLevels({m1:I,m5:T,d1:D,m15:M,nowSeconds});
+  const levels=keyLevels({m1:I,m5:T,d1:D,m15:M,nowSeconds});
+  const dashboard=dashboardEngine(M,{...settings,keyLevels:levels}),trigger=triggerEngine(executionT,settings);
   const pivots=pivotSources(D,nowSeconds);
   const keySource=I.length?I:(T.length>=48?T:M);
   const keyTol=Math.max(900,keySource[0]?(keySource[0].close_time-keySource[0].open_time)*2+300:900);
@@ -1043,7 +1089,7 @@ export function baseVisuals(candles,options={}){
     for(const [swing,dir] of [[top,1],[btm,-1]])if(swing&&!swing.crossed&&(dir===1?c.close>swing.level:c.close<swing.level)){
       swing.crossed=true;const search=candles.slice(swing.index+1,i);if(search.length){const origin=search.reduce((x,y)=>dir===1?(min(y)<=min(x)?y:x):(max(y)>=max(x)?y:x));
         const z=zone('OB',dir===1?'BUY':'SELL',min(origin),max(origin),c,i);z.time=origin.open_time;z.breaker=false;ob.push(z);}}
-    for(const z of ob){if(z.formedIndex>=i||z.removed)continue;if(!z.breaker&&(z.side==='BUY'?Math.min(c.open,c.close)<z.low:Math.max(c.open,c.close)>z.high)){z.breaker=true;z.breakTime=c.close_time;}
+    for(const z of ob){if(z.formedIndex>=i||z.removed)continue;if(!z.breaker&&(z.side==='BUY'?Math.min(c.open,c.close)<z.low:Math.max(c.open,c.close)>z.high)){z.breaker=true;z.lifecycle='BROKEN';z.status=4;z.breakTime=c.close_time;}
       else if(z.breaker&&(z.side==='BUY'?c.close>z.high:c.close<z.low))z.removed=true;}
     for(const z of [...fvg,...implied,...vi])if(z.formedIndex<i&&z.status!==4){if(z.side==='BUY'?c.low<z.low:c.high>z.high){z.status=4;z.lifecycle='BROKEN';z.end=c.close_time;}else if(overlaps(c,z)){z.status=2;z.lifecycle='TOUCHED';}}
     for(const z of gaps)if(z.formedIndex<i&&z.status!==4){if(z.side==='BUY'?c.low<z.low:c.high>z.high){z.status=4;z.lifecycle='BROKEN';z.end=c.close_time;}else if(overlaps(c,z)){z.status=2;z.lifecycle='TOUCHED';}}
