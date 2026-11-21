@@ -11,7 +11,7 @@ test('data-provider.js scanZip yields 16ms between entries to prevent UI freeze 
   const scanBody = scanMatch[0];
 
   // Verify m1Entries > 1 loop contains chunking yield with 16ms delay
-  const m1LoopPattern = /for\s*\(\s*var m\s*=\s*0;\s*m\s*<\s*m1Entries\.length;\s*m\s*\+=\s*1\s*\)\s*\{[\s\S]*?setTimeout\s*\(\s*resolve\s*,\s*16\s*\)/;
+  const m1LoopPattern = /for\s*\(\s*var m\s*=\s*0;\s*m\s*<\s*(?:m1Entries|csvEntries)\.length;\s*m\s*\+=\s*1\s*\)\s*\{[\s\S]*?setTimeout\s*\(\s*resolve\s*,\s*16\s*\)/;
   assert.match(scanBody, m1LoopPattern, 'm1Entries extraction loop must yield 16ms (1 frame @ 60fps) after each file');
 
   // Verify nested zip extraction loop yields 16ms

@@ -310,7 +310,7 @@
     const s = document.createElement("script");
     s.src = tipSrc;
     s.defer = true;
-    (document.head || document.documentElement).appendChild(s);
+    (document.head || document.documentElement)?.appendChild?.(s);
   }
 
   function decorateDocument() {

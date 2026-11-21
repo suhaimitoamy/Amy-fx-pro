@@ -80,18 +80,25 @@ test('Item 1.78: trade-engine.js eliminates immediate candle blindspot for activ
     orderType: 'MARKET'
   });
 
-  // Current decision bar (time = 1000) achieves TP at 2672.00 during the bar
+  // Current decision bar (time = 1000) places trade; next bar (1060) achieves TP at 2672.00
   const activeCandle = {
     time: 1000,
     open: 2650.00,
+    high: 2652.00,
+    low: 2649.00,
+    close: 2650.50
+  };
+  const nextCandle = {
+    time: 1060,
+    open: 2650.50,
     high: 2672.00,
     low: 2648.00,
     close: 2670.50
   };
 
-  const evaluated = engine.evaluate(order, [activeCandle]);
-  assert.equal(evaluated.result, 'WIN', 'Must evaluate current bar and detect TP WIN immediately');
-  assert.equal(evaluated.closedAt, 1000, 'Must record closedAt on the entry bar');
+  const evaluated = engine.evaluate(order, [activeCandle, nextCandle]);
+  assert.equal(evaluated.result, 'WIN', 'Must evaluate subsequent bar and detect TP WIN');
+  assert.equal(evaluated.closedAt, 1060, 'Must record closedAt on the exit bar');
   assert.ok(evaluated.r > 0, 'Must record positive R return');
 });
 

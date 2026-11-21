@@ -8,14 +8,14 @@ const appSource = fs.readFileSync(appPath, 'utf8');
 const stylesPath = new URL('../app/src/main/assets/apps/market-intel/styles.css', import.meta.url);
 const stylesSource = fs.readFileSync(stylesPath, 'utf8');
 
-test('fundamental briefing contains macro event analyzer and institutional briefing sections', () => {
+test('fundamental briefing contains macro event analyzer and 5 institutional sections', () => {
   assert.match(appSource, /function parseCalendarNumber/);
   assert.match(appSource, /function analyzeMacroEvent/);
-  assert.match(appSource, /briefing-card card-primary card-conclusion/);
-  assert.match(appSource, /3 Faktor Penggerak Utama/);
-  assert.match(appSource, /Rincian 3 Faktor Dominan/);
-  assert.match(appSource, /Risk Sentiment/);
-  assert.match(appSource, /safe haven/i);
+  assert.match(appSource, /Faktor Utama: USD &amp; The Fed/);
+  assert.match(appSource, /Faktor Safe Haven \(Penahan Penurunan\)/);
+  assert.match(appSource, /Sentimen Pasar Hari Ini/);
+  assert.match(appSource, /News yang Perlu Diperhatikan/);
+  assert.match(appSource, /Kesimpulan Fundamental/);
 });
 
 test('macro analyzer correctly evaluates Unemployment Claims and inflation metrics', () => {

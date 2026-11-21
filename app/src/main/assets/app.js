@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       contentHTML = `
         <div class="empty-state-card slide-up" style="text-align:center; padding:36px 20px; border-radius:20px; background:var(--surface-color); border:1px solid var(--border-color); margin-top:10px;">
           <div style="font-size:36px; margin-bottom:10px;">🎬</div>
-          <strong style="display:block; font-size:15px; margin-bottom:14px; color:var(--text-main);">Belum ada media tersimpan <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda." aria-label="Info media" aria-expanded="false">i</button></strong>
+          <strong style="display:block; font-size:15px; margin-bottom:14px; color:var(--text-main);">Belum ada item tersimpan <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda." aria-label="Info media" aria-expanded="false">i</button></strong>
           <button type="button" id="rootEmptyUploadMediaBtn" class="media-upload-btn" style="padding:10px 20px; font-size:13px;">+ Upload Media</button>
         </div>
       `;
@@ -1849,7 +1849,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <section class="profile-panel slide-up">
             <div class="profile-switch-row">
               <div class="profile-switch-copy">
-                <strong>Pengingat Belajar</strong>
+                <strong>Pengingat Belajar &amp; Skill</strong>
+                <small class="profile-subtle">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</small>
               </div>
               <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
                 <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
