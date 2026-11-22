@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `Tidak ditemukan media untuk "${escapeHtml(currentMediaSearch)}".`
           : currentMediaFilter === 'Belum'
             ? (hasAnyVideo ? 'Semua video sudah ditonton.' : 'Belum ada video tersimpan')
-            : 'Belum ada media tersimpan';
+            : 'Belum ada item tersimpan';
         return `
           <div class="empty-state-card media-empty-clean slide-up">
             <strong class="media-empty-title">${emptyMsg} <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda. Semua fitur Video Reel, Timer Tidur, dan Scan HP tetap aktif." aria-label="Info media" aria-expanded="false">i</button></strong>
