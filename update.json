@@ -8,7 +8,7 @@
     "✦ Replay Lab Enhancements: Bookmark momen setup, banner lanjut bulan berikutnya, antrean eksekusi bebas race condition."
   ],
   "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.464/AmyFX-Pro-latest.apk",
-  "enabled": false,
+  "enabled": true,
   "force_update": false,
   "latest_version_code": 950464,
   "latest_version_name": "2.0.0-pro.464",
@@ -22,5 +22,6 @@
     "✦ Replay Lab Enhancements: Bookmark momen setup, banner lanjut bulan berikutnya, antrean eksekusi bebas race condition."
   ],
   "version": "2.0.0-pro.464",
-  "versionCode": 950464
+  "versionCode": 950464,
+  "sha256": "c2b005ade458af14c1dd87ca30a8a6172ef776cea286f73355b4e458954b170d"
 }
