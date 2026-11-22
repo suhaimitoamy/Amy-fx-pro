@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1795338278448,
+  "updatedAt": 1795352074464,
   "description": "Offline fallback market snapshot for XAU/USD (TwelveData 429 mitigasi)",
   "snapshots": {
     "XAU_USD_1min": [

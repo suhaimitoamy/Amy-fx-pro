@@ -505,6 +505,12 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
      - Optimasi kredit API: cache TTL 180s pada `scalper-setups.js`, sintesis candle D1 dari H1 (menghapus panggilan D1 berulang), dan cache sharing lintas outputsize.
   4. *Integritas & Versi:* Targeted test suites (`journal-analytics-pro.test.mjs`, `twelvedata-key-pool.test.mjs`, `profile-version-update-regression.test.mjs`) lolos 100%. Versi dinaikkan ke `2.0.0-pro.458` (code `950458`).
 
+## 15. GitHub Private Cloud Sync (Data Pribadi Sayang)
+- **Repository:** `suhaimitoamy/amyfx-private-sync` (Private)
+- **Token Config:** `/root/.amyfx_cloud_sync_config.json` (Fine-Grained PAT, Scope `Contents: Read and write` terkunci hanya untuk `amyfx-private-sync`).
+- **Target File:** `amyfx-cloud-sync.json` (Jurnal, Catatan Pribadi, Profil, Daily Loss Guard, Bookmark Academy).
+
+
 
 
 

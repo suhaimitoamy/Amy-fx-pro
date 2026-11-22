@@ -2081,5 +2081,305 @@ html[data-amyfx-theme="light"] .amy-guard-cfg-btn { color: #334155; border-color
 html[data-amyfx-theme="light"] .amy-guard-editor { background: #ffffff; border-color: rgba(50, 80, 130, 0.16); }
 html[data-amyfx-theme="light"] .amy-guard-editor input[type="number"] { background: #f8fafc; color: #16233a; border-color: rgba(50, 80, 130, 0.2); }
 
+/* ─── CLOUD SYNC (GITHUB PRIVATE REPO) IN PENGATURAN ─────────────────────── */
+.gh-sync-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gh-sync-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gh-sync-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gh-sync-title-wrap strong {
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: var(--amy-text, #f5f8fc);
+}
+
+.gh-sync-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gh-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.14));
+  background: var(--amy-surface-soft, rgba(255, 255, 255, 0.05));
+  color: var(--amy-text-secondary, #94a3b8);
+  font-variant-numeric: tabular-nums;
+}
+
+.gh-sync-badge[hidden] {
+  display: none !important;
+}
+
+.gh-sync-badge.is-ok {
+  border-color: rgba(34, 197, 94, 0.36);
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.gh-sync-badge.is-warn {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+}
+
+.gh-sync-badge.is-private {
+  border-color: rgba(105, 183, 255, 0.35);
+  background: rgba(105, 183, 255, 0.11);
+  color: #7cc4ff;
+}
+
+.gh-sync-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  gap: 8px;
+}
+
+.gh-sync-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.gh-sync-field label {
+  font-size: 0.74rem;
+  font-weight: 650;
+  color: var(--amy-text-secondary, #94a3b8);
+}
+
+.gh-sync-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.14));
+  background: rgba(5, 10, 20, 0.36);
+  color: var(--amy-text, #f5f8fc);
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gh-sync-input:focus {
+  border-color: var(--amy-accent, #69b7ff);
+  box-shadow: 0 0 0 2px rgba(105, 183, 255, 0.18);
+}
+
+.gh-sync-token-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gh-sync-token-wrap .gh-sync-input {
+  padding-right: 44px;
+}
+
+.gh-sync-eye-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--amy-text-secondary, #94a3b8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.gh-sync-eye-btn:hover {
+  color: var(--amy-text, #f5f8fc);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.gh-sync-feedback {
+  margin: 0;
+  font-size: 0.77rem;
+  line-height: 1.4;
+  color: var(--amy-text-secondary, #94a3b8);
+}
+
+.gh-sync-feedback:empty {
+  display: none;
+}
+
+.gh-sync-feedback.is-error {
+  color: #f87171;
+}
+
+.gh-sync-feedback.is-ok {
+  color: #4ade80;
+}
+
+.gh-sync-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gh-sync-actions-grid button {
+  width: 100%;
+  min-height: 40px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-sync-conflict {
+  padding: 11px 12px;
+  border-radius: 11px;
+  border: 1px solid rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.gh-sync-conflict[hidden] {
+  display: none !important;
+}
+
+.gh-sync-conflict p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.42;
+  color: #fde68a;
+}
+
+.gh-sync-disconnect-btn {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 2px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.06);
+  color: #f87171;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.gh-sync-disconnect-btn.is-armed,
+.profile-btn-ghost.is-armed {
+  border-color: rgba(239, 68, 68, 0.65) !important;
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fca5a5 !important;
+}
+
+/* Light Mode Parity for Cloud Sync */
+html[data-amyfx-theme="light"] .gh-sync-title-wrap strong {
+  color: #111a25 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-field label,
+html[data-amyfx-theme="light"] .gh-sync-feedback {
+  color: #52637c !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-feedback.is-ok {
+  color: #15803d !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-feedback.is-error {
+  color: #dc2626 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-input {
+  background: #f8fafc !important;
+  color: #111a25 !important;
+  border-color: rgba(50, 80, 130, 0.2) !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-eye-btn {
+  color: #475569 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-eye-btn:hover {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-badge {
+  background: #f1f5f9 !important;
+  border-color: rgba(50, 80, 130, 0.16) !important;
+  color: #475569 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-badge.is-ok {
+  background: #dcfce7 !important;
+  border-color: rgba(22, 163, 74, 0.35) !important;
+  color: #15803d !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-badge.is-warn {
+  background: #fef3c7 !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+  color: #b45309 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-badge.is-private {
+  background: #e0f2fe !important;
+  border-color: rgba(2, 132, 199, 0.3) !important;
+  color: #0369a1 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-conflict {
+  background: #fffbeb !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-conflict p {
+  color: #92400e !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-disconnect-btn {
+  background: #fef2f2 !important;
+  border-color: rgba(220, 38, 38, 0.28) !important;
+  color: #dc2626 !important;
+}
+
+html[data-amyfx-theme="light"] .gh-sync-disconnect-btn.is-armed,
+html[data-amyfx-theme="light"] .profile-btn-ghost.is-armed {
+  background: #fee2e2 !important;
+  border-color: rgba(220, 38, 38, 0.55) !important;
+  color: #b91c1c !important;
+}
+
+
 
 

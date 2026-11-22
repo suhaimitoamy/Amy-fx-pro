@@ -6043,6 +6043,9 @@ async function saveJournals(journals = state.journals, options = {}) {
   try {
     window.dispatchEvent(new CustomEvent("amyfx:journal-state-change", { detail: { count: Array.isArray(journals) ? journals.length : 0 } }));
   } catch (_) {}
+  try {
+    window.AmyGitHubSync?.scheduleAutoSync?.("journal");
+  } catch (_) {}
   if (state.view === "statistics") {
     renderStatistics();
   } else if (state.view === "habits") {
@@ -8680,6 +8683,9 @@ function loadNotes() {
 
 function saveNotes(notes = state.personalNotes) {
   localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+  try {
+    window.AmyGitHubSync?.scheduleAutoSync?.("notes");
+  } catch (_) {}
 }
 
 function openNoteForm(note = null) {

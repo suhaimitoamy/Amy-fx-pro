@@ -1,3 +1,11 @@
+## 2.0.0-pro.465
+
+- feat(sync): Cloud Sync via GitHub Private Repo (`apps/shared/github-cloud-sync.js`) untuk backup & restore Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, progres Academy, & Bookmark Replay.
+- feat(security): Eksklusi ketat token PAT & media blob biner dari payload snapshot JSON, validasi format repo/branch, dan penanganan token lokal terisolasi.
+- feat(sync): Conflict Guard anti-timpa data lintas perangkat dengan pengecekan `updatedAt` & `deviceId`, serta auto-sync latar belakang dengan debounce 5 detik.
+- feat(ui): Grup pengaturan vertikal baru "Cloud Sync (GitHub)" di halaman Pengaturan selaras Dark & Light mode.
+- test(sync): Unit test lengkap 6/6 suite di `tests/github-cloud-sync.test.mjs`.
+
 ## 2.0.0-pro.373
 
 - feat(mapping): Implementasi logika displacement FVG murni TradingView ICT Concepts [amygmgo] dengan filter ketebalan minimum (celah mikro < 0.8 point otomatis ditolak) dan kalkulasi 50% Consequent Encroachment (CE).

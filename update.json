@@ -1,27 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.464/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.465/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Hardening Lintas Modul: Isolasi Backtest di Jurnal SIM (tidak memengaruhi saldo/loss guard live).",
-    "✦ Trader Insights Engine: Evaluasi status sesi market real-time (fail-safe) dan Daily Loss Guard terpadu.",
-    "✦ Pemisahan Profil & Pengaturan: Profil fokus akun trader; ikon gerigi untuk pengaturan vertikal HP.",
-    "✦ Academy & Media Upgrade: Bookmark materi favorit, Lanjut Baca 1-ketuk, dan filter riwayat tontonan video.",
-    "✦ Replay Lab Enhancements: Bookmark momen setup, banner lanjut bulan berikutnya, antrean eksekusi bebas race condition."
+    "✦ Cloud Sync (GitHub Private Repo): Cadangkan & pulihkan Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, & Bookmark Academy ke repo privat GitHub gratis selamanya.",
+    "✦ Anti-Timpa & Auto-Sync: Conflict Guard cerdas mendeteksi revisi terbaru lintas perangkat dan auto-sync background hemat bandwidth.",
+    "✦ Keamanan Terisolasi: Token PAT disimpan murni di perangkat lokal; blob media video & foto tetap terisolasi di HP."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.464/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.465/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950464,
-  "latest_version_name": "2.0.0-pro.464",
+  "latest_version_code": 950465,
+  "latest_version_name": "2.0.0-pro.465",
   "mandatory": false,
   "releaseDate": "2026-11-22",
   "release_notes": [
-    "✦ Hardening Lintas Modul: Isolasi Backtest di Jurnal SIM (tidak memengaruhi saldo/loss guard live).",
-    "✦ Trader Insights Engine: Evaluasi status sesi market real-time (fail-safe) dan Daily Loss Guard terpadu.",
-    "✦ Pemisahan Profil & Pengaturan: Profil fokus akun trader; ikon gerigi untuk pengaturan vertikal HP.",
-    "✦ Academy & Media Upgrade: Bookmark materi favorit, Lanjut Baca 1-ketuk, dan filter riwayat tontonan video.",
-    "✦ Replay Lab Enhancements: Bookmark momen setup, banner lanjut bulan berikutnya, antrean eksekusi bebas race condition."
+    "✦ Cloud Sync (GitHub Private Repo): Cadangkan & pulihkan Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, & Bookmark Academy ke repo privat GitHub gratis selamanya.",
+    "✦ Anti-Timpa & Auto-Sync: Conflict Guard cerdas mendeteksi revisi terbaru lintas perangkat dan auto-sync background hemat bandwidth.",
+    "✦ Keamanan Terisolasi: Token PAT disimpan murni di perangkat lokal; blob media video & foto tetap terisolasi di HP."
   ],
-  "version": "2.0.0-pro.464",
-  "versionCode": 950464,
+  "version": "2.0.0-pro.465",
+  "versionCode": 950465,
   "sha256": "c2b005ade458af14c1dd87ca30a8a6172ef776cea286f73355b4e458954b170d"
 }

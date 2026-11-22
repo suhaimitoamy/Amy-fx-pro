@@ -1,7 +1,7 @@
 {
   "project": "Amy FX Pro",
-  "version": "2.0.0-pro.464",
-  "last_updated": "2026-11-21",
+  "version": "2.0.0-pro.465",
+  "last_updated": "2026-11-22",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -77,8 +77,24 @@
         "Sintaks valid & prompt aturan format angka mutlak aktif"
       ],
       "notes": "Memperbaiki isu ejaan kata pada Screenshot 20261120-085205"
+    },
+    {
+      "id": "github-cloud-sync-001",
+      "priority": 5,
+      "area": "settings",
+      "title": "Cloud Sync via GitHub Private Repo",
+      "user_visible_behavior": "Pengaturan memiliki grup Cloud Sync (GitHub) dengan dukungan tes koneksi, auto-sync debounced 5 detik, push/pull snapshot JSON aman ke repo privat suhaimitoamy/amyfx-private-sync.",
+      "status": "passing",
+      "verification": [
+        "node --test tests/github-cloud-sync.test.mjs",
+        "node --check app/src/main/assets/apps/shared/github-cloud-sync.js"
+      ],
+      "evidence": [
+        "tests/github-cloud-sync.test.mjs passed 6/6"
+      ],
+      "notes": "Data media blob & token PAT dikecualikan dari snapshot sync"
     }
   ],
-  "currentVersion": "2.0.0-pro.464",
-  "versionCode": 950464
+  "currentVersion": "2.0.0-pro.465",
+  "versionCode": 950465
 }

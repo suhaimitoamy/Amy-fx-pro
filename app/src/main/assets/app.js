@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `Tidak ditemukan media untuk "${escapeHtml(currentMediaSearch)}".`
           : currentMediaFilter === 'Belum'
             ? (hasAnyVideo ? 'Semua video sudah ditonton.' : 'Belum ada video tersimpan')
-            : 'Belum ada item tersimpan';
+            : 'Belum ada media tersimpan';
         return `
           <div class="empty-state-card media-empty-clean slide-up">
             <strong class="media-empty-title">${emptyMsg} <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda. Semua fitur Video Reel, Timer Tidur, dan Scan HP tetap aktif." aria-label="Info media" aria-expanded="false">i</button></strong>
@@ -2092,6 +2092,29 @@ document.addEventListener('DOMContentLoaded', () => {
       : { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 68 };
     const opacityVal = themeColors.opacity !== undefined ? Number(themeColors.opacity) : themeDefaults.opacity;
 
+    const ghSyncApi = window.AmyGitHubSync;
+    const ghCfg = ghSyncApi?.loadConfig?.() || {
+      repo: 'suhaimitoamy/amyfx-private-sync',
+      branch: 'main',
+      token: '',
+      autoSync: false,
+      connected: false,
+      isPrivate: null,
+      lastSyncAt: ''
+    };
+    const ghLastSyncText = ghCfg.lastSyncAt && ghSyncApi?.formatSyncTimestamp
+      ? ghSyncApi.formatSyncTimestamp(ghCfg.lastSyncAt)
+      : '';
+    const ghStatusLabel = ghCfg.connected
+      ? (ghLastSyncText ? `Tersinkron · ${ghLastSyncText}` : 'Terhubung')
+      : (ghCfg.token ? 'Belum diuji' : 'Belum terhubung');
+    const ghStatusClass = ghCfg.connected ? 'is-ok' : (ghCfg.token ? 'is-warn' : '');
+    const ghPrivacyMarkup = ghCfg.connected
+      ? (ghCfg.isPrivate === false
+        ? '<span id="ghSyncPrivacyBadge" class="gh-sync-badge is-warn">Publik!</span>'
+        : '<span id="ghSyncPrivacyBadge" class="gh-sync-badge is-private">Private</span>')
+      : '<span id="ghSyncPrivacyBadge" class="gh-sync-badge" hidden></span>';
+
     mainContent.innerHTML = `
       <div class="profile-page profile-page--clean settings-page">
         <div class="settings-topbar">
@@ -2216,8 +2239,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <section class="profile-panel slide-up">
             <div class="profile-switch-row">
               <div class="profile-switch-copy">
-                <strong>Pengingat Belajar &amp; Skill <button type="button" class="amy-info-btn" data-info-tip="Notifikasi jadwal belajar &amp; evaluasi harian pada perangkat ini." aria-label="Info pengingat belajar" aria-expanded="false">i</button></strong>
-                <small class="profile-subtle">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</small>
+                <strong>Pengingat Belajar <button type="button" class="amy-info-btn" data-info-tip="Notifikasi jadwal belajar &amp; evaluasi harian pada perangkat ini." aria-label="Info pengingat belajar" aria-expanded="false">i</button></strong>
               </div>
               <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
                 <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
@@ -2270,7 +2292,75 @@ document.addEventListener('DOMContentLoaded', () => {
           </section>
         </div>
 
-        <!-- GRUP 3: DATA & APLIKASI -->
+        <!-- GRUP 3: CLOUD SYNC (GITHUB) -->
+        <div class="settings-group">
+          <span class="settings-group-label">Cloud Sync (GitHub)</span>
+          <section class="profile-panel gh-sync-panel slide-up" aria-label="Sinkronisasi Cloud GitHub">
+            <div class="gh-sync-head">
+              <div class="gh-sync-title-wrap">
+                <strong>GitHub Private Repo</strong>
+                <button type="button" class="amy-info-btn" data-info-tip="Sinkronisasi gratis Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, progres Academy, dan Bookmark Replay ke repo privat GitHub Anda. File video besar &amp; Token PAT tidak pernah diunggah." aria-label="Info Cloud Sync GitHub" aria-expanded="false">i</button>
+              </div>
+              <div class="gh-sync-badges">
+                <span id="ghSyncStatusBadge" class="gh-sync-badge ${ghStatusClass}">${escapeHtml(ghStatusLabel)}</span>
+                ${ghPrivacyMarkup}
+              </div>
+            </div>
+
+            <div class="gh-sync-grid">
+              <div class="gh-sync-field">
+                <label for="ghSyncRepoInput">Repositori (owner/repo)</label>
+                <input type="text" id="ghSyncRepoInput" class="gh-sync-input" value="${escapeHtml(ghCfg.repo || 'suhaimitoamy/amyfx-private-sync')}" placeholder="suhaimitoamy/amyfx-private-sync" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="gh-sync-field">
+                <label for="ghSyncBranchInput">Branch</label>
+                <input type="text" id="ghSyncBranchInput" class="gh-sync-input" value="${escapeHtml(ghCfg.branch || 'main')}" placeholder="main" autocomplete="off" spellcheck="false">
+              </div>
+            </div>
+
+            <div class="gh-sync-field">
+              <label for="ghSyncTokenInput">Token PAT (Fine-Grained · Contents R/W)</label>
+              <div class="gh-sync-token-wrap">
+                <input type="password" id="ghSyncTokenInput" class="gh-sync-input" value="${escapeHtml(ghCfg.token || '')}" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+                <button type="button" id="ghSyncTokenToggleBtn" class="gh-sync-eye-btn" aria-label="Tampilkan token" aria-pressed="false">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="button" id="ghSyncTestBtn" class="profile-btn-primary">Simpan &amp; Tes Koneksi</button>
+            <p id="ghSyncFeedback" class="gh-sync-feedback" role="status" aria-live="polite"></p>
+
+            <div class="profile-divider" style="padding-top:12px;">
+              <div class="profile-switch-row">
+                <div class="profile-switch-copy">
+                  <strong>Auto-Sync <button type="button" class="amy-info-btn" data-info-tip="Otomatis mengirim perubahan Jurnal &amp; Catatan ke GitHub 5 detik setelah disimpan (saat online). Default nonaktif agar kontrol penuh tetap di tangan Anda." aria-label="Info Auto-Sync" aria-expanded="false">i</button></strong>
+                </div>
+                <label class="profile-switch" aria-label="Aktifkan Auto-Sync GitHub">
+                  <input type="checkbox" id="ghSyncAutoToggle" ${ghCfg.autoSync ? 'checked' : ''}>
+                  <span class="profile-switch-track"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="gh-sync-actions-grid">
+              <button type="button" id="ghSyncPushBtn" class="profile-btn-ghost">Kirim ke Cloud (Push)</button>
+              <button type="button" id="ghSyncPullBtn" class="profile-btn-ghost" data-confirm-arm="0">Ambil dari Cloud (Pull)</button>
+            </div>
+
+            <div id="ghSyncConflictBox" class="gh-sync-conflict" hidden>
+              <p id="ghSyncConflictMsg">Data di GitHub Cloud lebih baru dari perangkat lain.</p>
+              <div class="gh-sync-actions-grid">
+                <button type="button" id="ghSyncConflictPullBtn" class="profile-btn-primary">Ambil Versi Cloud</button>
+                <button type="button" id="ghSyncConflictForcePushBtn" class="profile-btn-ghost">Timpa Paksa</button>
+              </div>
+            </div>
+
+            <button type="button" id="ghSyncDisconnectBtn" class="gh-sync-disconnect-btn" data-confirm-arm="0" ${ghCfg.token || ghCfg.connected ? '' : 'hidden'}>Putuskan Cloud</button>
+          </section>
+        </div>
+
+        <!-- GRUP 4: DATA & APLIKASI -->
         <div class="settings-group">
           <span class="settings-group-label">Data &amp; Aplikasi</span>
           <section class="profile-list profile-system-list" aria-label="Data dan Aplikasi">
@@ -2389,6 +2479,265 @@ document.addEventListener('DOMContentLoaded', () => {
         window.Android.triggerLearningReminderNotification();
       }
       showToast('Notifikasi pengingat belajar dikirim!');
+    });
+
+    // GitHub Cloud Sync handlers
+    const ghRepoInput = document.getElementById('ghSyncRepoInput');
+    const ghBranchInput = document.getElementById('ghSyncBranchInput');
+    const ghTokenInput = document.getElementById('ghSyncTokenInput');
+    const ghTokenToggleBtn = document.getElementById('ghSyncTokenToggleBtn');
+    const ghTestBtn = document.getElementById('ghSyncTestBtn');
+    const ghStatusBadge = document.getElementById('ghSyncStatusBadge');
+    const ghPrivacyBadge = document.getElementById('ghSyncPrivacyBadge');
+    const ghFeedback = document.getElementById('ghSyncFeedback');
+    const ghAutoToggle = document.getElementById('ghSyncAutoToggle');
+    const ghPushBtn = document.getElementById('ghSyncPushBtn');
+    const ghPullBtn = document.getElementById('ghSyncPullBtn');
+    const ghConflictBox = document.getElementById('ghSyncConflictBox');
+    const ghConflictMsg = document.getElementById('ghSyncConflictMsg');
+    const ghConflictPullBtn = document.getElementById('ghSyncConflictPullBtn');
+    const ghConflictForcePushBtn = document.getElementById('ghSyncConflictForcePushBtn');
+    const ghDisconnectBtn = document.getElementById('ghSyncDisconnectBtn');
+
+    function setGhFeedback(msg, tone = '') {
+      if (!ghFeedback) return;
+      ghFeedback.textContent = msg || '';
+      ghFeedback.classList.remove('is-ok', 'is-error');
+      if (tone) ghFeedback.classList.add(tone);
+    }
+
+    function refreshGhBadges(cfgOverride) {
+      const cfg = cfgOverride || ghSyncApi?.loadConfig?.();
+      if (!cfg) return;
+      const syncText = cfg.lastSyncAt && ghSyncApi?.formatSyncTimestamp
+        ? ghSyncApi.formatSyncTimestamp(cfg.lastSyncAt)
+        : '';
+      if (ghStatusBadge) {
+        ghStatusBadge.classList.remove('is-ok', 'is-warn');
+        if (cfg.connected) {
+          ghStatusBadge.textContent = syncText ? `Tersinkron · ${syncText}` : 'Terhubung';
+          ghStatusBadge.classList.add('is-ok');
+        } else if (cfg.token) {
+          ghStatusBadge.textContent = 'Belum diuji';
+          ghStatusBadge.classList.add('is-warn');
+        } else {
+          ghStatusBadge.textContent = 'Belum terhubung';
+        }
+      }
+      if (ghPrivacyBadge) {
+        ghPrivacyBadge.classList.remove('is-private', 'is-warn');
+        if (cfg.connected) {
+          ghPrivacyBadge.hidden = false;
+          if (cfg.isPrivate === false) {
+            ghPrivacyBadge.textContent = 'Publik!';
+            ghPrivacyBadge.classList.add('is-warn');
+          } else {
+            ghPrivacyBadge.textContent = 'Private';
+            ghPrivacyBadge.classList.add('is-private');
+          }
+        } else {
+          ghPrivacyBadge.hidden = true;
+          ghPrivacyBadge.textContent = '';
+        }
+      }
+      if (ghDisconnectBtn) {
+        ghDisconnectBtn.hidden = !(cfg.token || cfg.connected);
+      }
+    }
+
+    function setGhBusy(isBusy) {
+      [ghTestBtn, ghPushBtn, ghPullBtn, ghConflictPullBtn, ghConflictForcePushBtn].forEach((btn) => {
+        if (btn) btn.disabled = Boolean(isBusy);
+      });
+    }
+
+    ghTokenToggleBtn?.addEventListener('click', () => {
+      if (!ghTokenInput) return;
+      const showing = ghTokenInput.type === 'text';
+      ghTokenInput.type = showing ? 'password' : 'text';
+      ghTokenToggleBtn.setAttribute('aria-pressed', showing ? 'false' : 'true');
+      ghTokenToggleBtn.setAttribute('aria-label', showing ? 'Tampilkan token' : 'Sembunyikan token');
+      ghTokenToggleBtn.innerHTML = showing
+        ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+        : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    });
+
+    ghTestBtn?.addEventListener('click', async () => {
+      if (!ghSyncApi) {
+        showToast('Modul Cloud Sync belum siap.');
+        return;
+      }
+      if (ghConflictBox) ghConflictBox.hidden = true;
+      setGhBusy(true);
+      setGhFeedback('Menguji koneksi ke GitHub...');
+      try {
+        const res = await ghSyncApi.testConnection({
+          repo: ghRepoInput?.value || '',
+          branch: ghBranchInput?.value || 'main',
+          token: ghTokenInput?.value || ''
+        });
+        refreshGhBadges();
+        if (res.ok) {
+          setGhFeedback(res.message, res.isPrivate ? 'is-ok' : 'is-error');
+          showToast(res.message);
+        } else {
+          setGhFeedback(res.error || 'Koneksi gagal.', 'is-error');
+          showToast(res.error || 'Koneksi GitHub gagal.');
+        }
+      } finally {
+        setGhBusy(false);
+      }
+    });
+
+    ghAutoToggle?.addEventListener('change', () => {
+      if (!ghSyncApi) return;
+      const wantOn = Boolean(ghAutoToggle.checked);
+      const current = ghSyncApi.loadConfig();
+      const tokenNow = String(ghTokenInput?.value || current.token || '').trim();
+      if (wantOn && !tokenNow) {
+        ghAutoToggle.checked = false;
+        setGhFeedback('Isi Token PAT dan tes koneksi dulu sebelum mengaktifkan Auto-Sync.', 'is-error');
+        showToast('Isi Token PAT dan tes koneksi dulu.');
+        return;
+      }
+      ghSyncApi.saveConfig({
+        repo: ghRepoInput?.value || current.repo,
+        branch: ghBranchInput?.value || current.branch,
+        token: tokenNow,
+        autoSync: wantOn
+      });
+      if (!wantOn) ghSyncApi.cancelAutoSync?.();
+      setGhFeedback(wantOn ? 'Auto-Sync aktif (jeda 5 detik setelah perubahan Jurnal/Catatan).' : 'Auto-Sync nonaktif.', wantOn ? 'is-ok' : '');
+      showToast(wantOn ? 'Auto-Sync GitHub diaktifkan.' : 'Auto-Sync GitHub dinonaktifkan.');
+    });
+
+    async function runGhPush(force = false) {
+      if (!ghSyncApi) return;
+      const current = ghSyncApi.loadConfig();
+      const tokenNow = String(ghTokenInput?.value || current.token || '').trim();
+      if (!tokenNow) {
+        setGhFeedback('Tempelkan Token PAT GitHub terlebih dahulu.', 'is-error');
+        showToast('Token PAT belum diisi.');
+        return;
+      }
+      ghSyncApi.saveConfig({
+        repo: ghRepoInput?.value || current.repo,
+        branch: ghBranchInput?.value || current.branch,
+        token: tokenNow
+      });
+      setGhBusy(true);
+      if (ghConflictBox) ghConflictBox.hidden = true;
+      setGhFeedback(force ? 'Menimpa cadangan di GitHub...' : 'Mengirim data ke GitHub Cloud...');
+      try {
+        const res = await ghSyncApi.pushToCloud({ force, reason: force ? 'manual-force' : 'manual' });
+        refreshGhBadges();
+        if (res.ok) {
+          const summary = `Terkirim ke Cloud (${res.journalCount} jurnal · ${res.noteCount} catatan).`;
+          setGhFeedback(summary, 'is-ok');
+          showToast(summary);
+        } else if (res.conflict) {
+          const when = res.remoteUpdatedAt ? ghSyncApi.formatSyncTimestamp(res.remoteUpdatedAt) : '';
+          if (ghConflictMsg) {
+            ghConflictMsg.textContent = `Data di GitHub Cloud lebih baru${when ? ` (${when})` : ''} dari perangkat lain. Ambil versi Cloud dulu agar tidak hilang, atau timpa paksa.`;
+          }
+          if (ghConflictBox) ghConflictBox.hidden = false;
+          setGhFeedback('Push ditahan: ditemukan data Cloud yang lebih baru.', 'is-error');
+          showToast('Data Cloud lebih baru — periksa peringatan konflik.');
+        } else {
+          setGhFeedback(res.error || 'Gagal mengirim ke Cloud.', 'is-error');
+          showToast(res.error || 'Gagal mengirim ke Cloud.');
+        }
+      } finally {
+        setGhBusy(false);
+      }
+    }
+
+    async function runGhPull() {
+      if (!ghSyncApi) return;
+      const current = ghSyncApi.loadConfig();
+      const tokenNow = String(ghTokenInput?.value || current.token || '').trim();
+      if (!tokenNow) {
+        setGhFeedback('Tempelkan Token PAT GitHub terlebih dahulu.', 'is-error');
+        showToast('Token PAT belum diisi.');
+        return;
+      }
+      ghSyncApi.saveConfig({
+        repo: ghRepoInput?.value || current.repo,
+        branch: ghBranchInput?.value || current.branch,
+        token: tokenNow
+      });
+      setGhBusy(true);
+      if (ghConflictBox) ghConflictBox.hidden = true;
+      setGhFeedback('Mengambil data dari GitHub Cloud...');
+      try {
+        const res = await ghSyncApi.pullFromCloud();
+        refreshGhBadges();
+        if (res.ok) {
+          const summary = `Dipulihkan dari Cloud (${res.journalCount} jurnal · ${res.noteCount} catatan).`;
+          setGhFeedback(summary, 'is-ok');
+          showToast(summary);
+        } else {
+          setGhFeedback(res.error || 'Gagal mengambil dari Cloud.', 'is-error');
+          showToast(res.error || 'Gagal mengambil dari Cloud.');
+        }
+      } finally {
+        setGhBusy(false);
+      }
+    }
+
+    ghPushBtn?.addEventListener('click', () => runGhPush(false));
+
+    ghPullBtn?.addEventListener('click', () => {
+      if (ghPullBtn.dataset.confirmArm !== '1') {
+        ghPullBtn.dataset.confirmArm = '1';
+        ghPullBtn.classList.add('is-armed');
+        ghPullBtn.textContent = 'Ketuk Lagi: Timpa Lokal?';
+        clearTimeout(ghPullBtn._armTimer);
+        ghPullBtn._armTimer = setTimeout(() => {
+          ghPullBtn.dataset.confirmArm = '0';
+          ghPullBtn.classList.remove('is-armed');
+          ghPullBtn.textContent = 'Ambil dari Cloud (Pull)';
+        }, 4000);
+        return;
+      }
+      clearTimeout(ghPullBtn._armTimer);
+      ghPullBtn.dataset.confirmArm = '0';
+      ghPullBtn.classList.remove('is-armed');
+      ghPullBtn.textContent = 'Ambil dari Cloud (Pull)';
+      runGhPull();
+    });
+
+    ghConflictPullBtn?.addEventListener('click', () => runGhPull());
+    ghConflictForcePushBtn?.addEventListener('click', () => runGhPush(true));
+
+    ghDisconnectBtn?.addEventListener('click', () => {
+      if (!ghSyncApi) return;
+      if (ghDisconnectBtn.dataset.confirmArm !== '1') {
+        ghDisconnectBtn.dataset.confirmArm = '1';
+        ghDisconnectBtn.classList.add('is-armed');
+        ghDisconnectBtn.textContent = 'Ketuk Lagi: Hapus Token Lokal?';
+        clearTimeout(ghDisconnectBtn._armTimer);
+        ghDisconnectBtn._armTimer = setTimeout(() => {
+          ghDisconnectBtn.dataset.confirmArm = '0';
+          ghDisconnectBtn.classList.remove('is-armed');
+          ghDisconnectBtn.textContent = 'Putuskan Cloud';
+        }, 4000);
+        return;
+      }
+      clearTimeout(ghDisconnectBtn._armTimer);
+      ghDisconnectBtn.dataset.confirmArm = '0';
+      ghDisconnectBtn.classList.remove('is-armed');
+      ghDisconnectBtn.textContent = 'Putuskan Cloud';
+      const cleared = ghSyncApi.disconnectConfig();
+      if (ghTokenInput) {
+        ghTokenInput.value = '';
+        ghTokenInput.type = 'password';
+      }
+      if (ghAutoToggle) ghAutoToggle.checked = false;
+      if (ghConflictBox) ghConflictBox.hidden = true;
+      refreshGhBadges(cleared);
+      setGhFeedback('Koneksi Cloud diputus. Token PAT lokal telah dihapus.');
+      showToast('Koneksi Cloud GitHub diputus.');
     });
 
     async function openJournalLibraryDbV2() {
@@ -2907,6 +3256,18 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}
   if (initialTab === 'koleksi' || initialTab === 'media') initialTab = 'video';
   navigate(['beranda', 'proyek', 'video', 'media', 'profil', 'pengaturan'].includes(initialTab) ? initialTab : 'beranda');
+
+  // Non-blocking startup Cloud Sync check when Auto-Sync is enabled
+  setTimeout(async () => {
+    try {
+      const cfg = window.AmyGitHubSync?.loadConfig?.();
+      if (!cfg?.autoSync || !cfg?.connected || !cfg?.token) return;
+      const check = await window.AmyGitHubSync.checkRemoteUpdate();
+      if (check?.ok && check?.hasUpdate) {
+        showToast('Pembaruan data tersedia di Cloud (Pengaturan → Cloud Sync).');
+      }
+    } catch (_) {}
+  }, 2500);
 });
 
 
