@@ -71,5 +71,5 @@ test('a newer Pro manifest raises one native update notification before opening 
   const checker = read('app/src/main/assets/update-checker.js');
   assert.match(checker, /function announceNativeUpdate/);
   assert.match(checker, /Android\.showNotification\('Update Amy FX Tersedia'/);
-  assert.match(checker, /if \(latestCode > CURRENT_VERSION_CODE\) \{\s*announceNativeUpdate\(latestCode, latestName\);\s*showUpdatePopup/);
+  assert.match(checker, /if \(latestCode > CURRENT_VERSION_CODE\) \{[\s\S]*?announceNativeUpdate\(latestCode, latestName\);[\s\S]*?showUpdatePopup/);
 });

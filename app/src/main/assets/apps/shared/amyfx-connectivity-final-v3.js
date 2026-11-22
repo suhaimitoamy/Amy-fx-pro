@@ -288,6 +288,14 @@
         }
         return;
       }
+
+      const clear = event.target.closest?.("[data-profile-action='clear']");
+      if (!clear) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!window.confirm("Bersihkan cache sementara? Jurnal, Library, riwayat Mapping, lisensi, dan API key tidak akan dihapus.")) return;
+      clearEphemeralCache();
+      window.showToast?.("Cache sementara sudah dibersihkan. Data utama tetap aman.");
     }, true);
   }
 
