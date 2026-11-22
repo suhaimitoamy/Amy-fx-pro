@@ -2239,7 +2239,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <section class="profile-panel slide-up">
             <div class="profile-switch-row">
               <div class="profile-switch-copy">
-                <strong>Pengingat Belajar <button type="button" class="amy-info-btn" data-info-tip="Notifikasi jadwal belajar &amp; evaluasi harian pada perangkat ini." aria-label="Info pengingat belajar" aria-expanded="false">i</button></strong>
+                <strong>Pengingat Belajar &amp; Skill <button type="button" class="amy-info-btn" data-info-tip="Notifikasi jadwal belajar &amp; evaluasi harian pada perangkat ini." aria-label="Info pengingat belajar" aria-expanded="false">i</button></strong>
+                <small class="profile-subtle">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</small>
               </div>
               <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
                 <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
