@@ -12,7 +12,7 @@
   "latest_version_code": 950467,
   "latest_version_name": "2.0.0-pro.467",
   "mandatory": false,
-  "releaseDate": "2026-11-23",
+  "releaseDate": "2026-11-22",
   "release_notes": [
     "✦ MT5 OCR Direct Vision & File Picker Fix: Perbaikan aktivasi pemilih screenshot Android & fallback engine Gemini Vision langsung di HP.",
     "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
@@ -21,5 +21,5 @@
   ],
   "version": "2.0.0-pro.467",
   "versionCode": 950467,
-  "sha256": ""
+  "sha256": "c78c4ddfd79a2e6823ebed9ab5993b629b0741f2fa462ef8fc3aa5f065ebc77f"
 }
