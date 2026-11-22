@@ -884,7 +884,7 @@
         z-index: 2147483640 !important;
         pointer-events: auto !important;
       }
-      #amy-local-panel { pointer-events: auto !important; }
+      #amy-local-panel { pointer-events: auto !important; overscroll-behavior: none !important; }
       #amy-local-panel.amy-bubble-fullscreen {
         position: fixed !important;
         inset: 0 !important;
@@ -931,8 +931,54 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         width: 100%;
         box-sizing: border-box;
+        transition: padding 0.2s ease, gap 0.2s ease;
       }
       #amy-local-panel.amy-bubble-fullscreen #amy-orb-hero { display: flex; }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact #amy-orb-hero {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        padding: 8px 14px !important;
+        text-align: left !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-bubble-stage {
+        width: 40px !important;
+        height: 40px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-bubble-halo {
+        inset: -4px !important;
+        filter: blur(8px) !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-bubble-core {
+        width: 34px !important;
+        height: 34px !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-bubble-core .orb-spark {
+        font-size: 14px !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-orb-title {
+        flex: 1 !important;
+        min-width: 0 !important;
+        margin-top: 0 !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-vu-wrap {
+        display: none !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-orb-controls {
+        margin-top: 0 !important;
+        flex-shrink: 0 !important;
+      }
+      #amy-local-panel.amy-bubble-fullscreen.amy-orb-compact .amy-orb-btn {
+        padding: 6px 11px !important;
+        font-size: 11px !important;
+      }
       .amy-bubble-stage {
         position: relative;
         width: 122px;
@@ -1069,6 +1115,14 @@
 
       /* Messages */
       #amy-local-messages {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain !important;
+        overscroll-behavior-y: contain !important;
+        touch-action: pan-y !important;
         padding: 12px 14px !important;
         display: flex;
         flex-direction: column;
@@ -1524,6 +1578,37 @@
       }
     }
 
+    let compactToggleCooldownUntil = 0;
+    function isMessagesNearBottom(threshold = 96) {
+      const dist = messages.scrollHeight - messages.scrollTop - messages.clientHeight;
+      return dist <= threshold;
+    }
+    function scrollMessagesToBottom(force = false) {
+      if (force || isMessagesNearBottom(96)) {
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+    function setCompactOrb(compact) {
+      const next = Boolean(compact && isBubbleFullscreen);
+      if (panel.classList.contains('amy-orb-compact') === next) return;
+      compactToggleCooldownUntil = Date.now() + 340;
+      panel.classList.toggle('amy-orb-compact', next);
+    }
+    messages.addEventListener('scroll', () => {
+      if (!isBubbleFullscreen || Date.now() < compactToggleCooldownUntil) return;
+      const overflow = messages.scrollHeight - messages.clientHeight;
+      if (overflow <= 64) {
+        if (panel.classList.contains('amy-orb-compact')) setCompactOrb(false);
+        return;
+      }
+      const distFromBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight;
+      if (distFromBottom > 48) {
+        setCompactOrb(true);
+      } else if (distFromBottom <= 8) {
+        setCompactOrb(false);
+      }
+    }, { passive: true });
+
     function setBubbleFullscreen(enabled) {
       isBubbleFullscreen = Boolean(enabled);
       panel.classList.remove('amy-minimized');
@@ -1537,10 +1622,12 @@
           }
         });
         panel.classList.add('amy-bubble-fullscreen');
+        window.AmyScrollGuard?.lock?.('amy-live');
       } else {
         panel.classList.remove('amy-bubble-fullscreen');
+        panel.classList.remove('amy-orb-compact');
       }
-      setTimeout(() => { messages.scrollTop = messages.scrollHeight; }, 60);
+      setTimeout(() => { scrollMessagesToBottom(true); }, 60);
     }
 
     fullBubbleBtn.onclick = () => setBubbleFullscreen(!isBubbleFullscreen);
@@ -1548,10 +1635,16 @@
       setBubbleFullscreen(false);
       panel.hidden = true;
       fab.hidden = false;
+      window.AmyScrollGuard?.unlock?.('amy-live');
     };
     minBtn.onclick = () => {
       if (isBubbleFullscreen) setBubbleFullscreen(false);
       panel.classList.toggle('amy-minimized');
+      if (panel.classList.contains('amy-minimized')) {
+        window.AmyScrollGuard?.unlock?.('amy-live');
+      } else {
+        window.AmyScrollGuard?.lock?.('amy-live');
+      }
     };
 
     // Clean, non-spammy action links strictly aligned with user intent & existing routes
@@ -1589,8 +1682,9 @@
       const p = document.createElement('p');
       p.className = 'amy-msg-ai amy-typing-bubble';
       p.innerHTML = `<span class="amy-typing-dots"><span></span><span></span><span></span></span><span>AMY sedang menganalisa…</span>`;
+      const wasNearBottom = isMessagesNearBottom(96);
       messages.appendChild(p);
-      messages.scrollTop = messages.scrollHeight;
+      if (wasNearBottom) messages.scrollTop = messages.scrollHeight;
       typingBubbleEl = p;
     }
     function removeTypingIndicator() {
@@ -1601,6 +1695,9 @@
     }
 
     function renderBubble(role, text, opts = {}) {
+      const shouldAutoScroll = opts.forceScroll !== undefined
+        ? Boolean(opts.forceScroll)
+        : (role === 'user' || isMessagesNearBottom(96));
       const p = document.createElement('p');
       p.className = role === 'user' ? 'amy-msg-user' : 'amy-msg-ai';
 
@@ -1685,23 +1782,24 @@
 
       messages.appendChild(p);
       while (messages.children.length > 40) messages.firstChild.remove();
-      messages.scrollTop = messages.scrollHeight;
+      if (shouldAutoScroll) messages.scrollTop = messages.scrollHeight;
       return body;
     }
 
     function restoreSavedChat() {
       messages.innerHTML = '';
+      setCompactOrb(false);
       const saved = loadHistory();
       if (!saved.length) {
         renderBubble(
           'model',
           'Halo Sayang! Saya **✦ AMY**, asisten khusus trading **XAU/USD** yang terhubung langsung ke **Chart Gold**, **Berita & Kalender**, **Jurnal & Habits**, **Hitung Lot**, dan **Practice**.\nMau cek apa hari ini?',
-          { hideCopy: true }
+          { hideCopy: true, forceScroll: true }
         );
         return;
       }
       for (const item of saved) {
-        renderBubble(item.role, item.text);
+        renderBubble(item.role, item.text, { forceScroll: true });
       }
     }
 
@@ -2429,10 +2527,11 @@
                 if (!currentLiveUserBubble) {
                   currentLiveUserBubble = renderBubble('user', t, { plainText: true });
                 } else {
+                  const wasNearBottom = isMessagesNearBottom(96);
                   const prev = currentLiveUserBubble.textContent || '';
                   const needsSpace = prev.length > 0 && !/\s$/.test(prev) && !/^\s/.test(t) && /[a-zA-Z0-9.,!?]$/.test(prev) && /^[a-zA-Z0-9]/.test(t);
                   currentLiveUserBubble.textContent += (needsSpace ? ' ' : '') + t;
-                  messages.scrollTop = messages.scrollHeight;
+                  if (wasNearBottom) messages.scrollTop = messages.scrollHeight;
                 }
               }
 
@@ -2441,10 +2540,11 @@
                 if (!currentLiveAiBubble) {
                   currentLiveAiBubble = renderBubble('model', t, { plainText: true });
                 } else {
+                  const wasNearBottom = isMessagesNearBottom(96);
                   const prev = currentLiveAiBubble.textContent || '';
                   const needsSpace = prev.length > 0 && !/\s$/.test(prev) && !/^\s/.test(t) && /[a-zA-Z0-9.,!?]$/.test(prev) && /^[a-zA-Z0-9]/.test(t);
                   currentLiveAiBubble.textContent += (needsSpace ? ' ' : '') + t;
-                  messages.scrollTop = messages.scrollHeight;
+                  if (wasNearBottom) messages.scrollTop = messages.scrollHeight;
                 }
               }
 

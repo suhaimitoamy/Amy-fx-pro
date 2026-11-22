@@ -2110,8 +2110,8 @@ html[data-amyfx-custom-bg] body::before {
 /* ─── Reel feed: swipe vertikal ala Jurnal Trading ─── */
 html.is-reel-open,
 body.is-reel-open {
-  overflow: hidden !important;
   overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
 }
 html.is-reel-open .bottom-nav,
 body.is-reel-open .bottom-nav,

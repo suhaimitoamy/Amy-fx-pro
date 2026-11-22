@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
   <link rel="stylesheet" href="../shared/amyfx-obsidian-glass.css" data-amyfx-obsidian-glass="v1">
   <link rel="stylesheet" href="../shared/journal-analytics-pro.css?v=20261120-pro2" data-amyfx-journal-pro-css="v1">
-  <link rel="stylesheet" href="./journal-pro-ledger.css?v=20261120-pro2" data-amyfx-journal-ledger-css="v1">
+  <link rel="stylesheet" href="./journal-pro-ledger.css?v=20261122-v1" data-amyfx-journal-ledger-css="v1">
 </head>
   <body class="amyfx-module amyfx-module--journal">
     <div class="app-shell">
@@ -236,6 +236,10 @@
               <p id="journalCount" class="jp-tabular">0 trade</p>
             </div>
             <div class="jl-page-actions">
+              <button class="jl-ghost-btn jl-btn-compact jl-mt5-trigger" id="scanMt5Btn" type="button" title="Scan 1 atau banyak trade dari screenshot MT5">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <span>Scan MT5</span>
+              </button>
               <button class="jl-primary-btn" id="newJournalBtn" type="button">+ Trade</button>
             </div>
           </div>
@@ -627,7 +631,10 @@
             <span class="jl-eyebrow" id="journalSheetEyebrow">Catat Eksekusi</span>
             <h2 id="journalSheetTitle">Trade Baru</h2>
           </div>
-          <button class="jl-sheet-close" id="closeJournalSheetBtn" type="button" aria-label="Tutup form trade">×</button>
+          <div class="jl-sheet-head-actions">
+            <button class="jl-ghost-btn jl-btn-xs" id="journalFormScanMt5Btn" type="button" title="Isi otomatis dari screenshot MT5">Scan SS MT5</button>
+            <button class="jl-sheet-close" id="closeJournalSheetBtn" type="button" aria-label="Tutup form trade">×</button>
+          </div>
         </div>
 
         <div class="jl-sheet-body">
@@ -773,6 +780,96 @@
           <button class="jl-primary-btn" type="submit">Simpan Trade</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- Bottom-Sheet Modal Scan Screenshot MT5 (Single & Multi-Trade Batch) -->
+    <dialog class="sheet-dialog jl-mt5-sheet" id="mt5ScanDialog" aria-labelledby="mt5ScanTitle">
+      <div class="jl-sheet-form jl-mt5-form">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="jl-sheet-head">
+          <div>
+            <span class="jl-eyebrow">AI Vision OCR · Multi-Trade</span>
+            <h2 id="mt5ScanTitle">Scan Screenshot MT5</h2>
+          </div>
+          <button class="jl-sheet-close" id="closeMt5ScanBtn" type="button" aria-label="Tutup scan MT5">×</button>
+        </div>
+
+        <div class="jl-sheet-body jl-mt5-body">
+          <div class="jl-mt5-controls">
+            <div class="jl-mt5-control-row">
+              <div class="jl-quick-block">
+                <span class="jl-field-label">Sekat Akun</span>
+                <div class="jl-quick-seg" role="group" aria-label="Pilih sekat akun hasil scan">
+                  <button type="button" class="jl-quick-btn is-active" data-mt5-account-mode="REAL">Real</button>
+                  <button type="button" class="jl-quick-btn" data-mt5-account-mode="SIM">Simulasi</button>
+                </div>
+              </div>
+              <label class="jl-field jl-mt5-offset-field">
+                <span>Jam Broker → WITA</span>
+                <select id="mt5OffsetSelect">
+                  <option value="5">+5 jam (GMT+3 · Umum)</option>
+                  <option value="6">+6 jam (GMT+2 · Winter)</option>
+                  <option value="8">+8 jam (UTC / GMT+0)</option>
+                  <option value="1">+1 jam (WIB)</option>
+                  <option value="0">0 jam (Sudah WITA)</option>
+                </select>
+              </label>
+            </div>
+            <div class="jl-mt5-toggles">
+              <label class="jl-mt5-checkline">
+                <input id="mt5CentToggle" type="checkbox">
+                <span>Akun Cent (USC ÷ 100)</span>
+              </label>
+              <label class="jl-mt5-checkline">
+                <input id="mt5AttachToggle" type="checkbox">
+                <span>Lampirkan SS ke trade</span>
+              </label>
+            </div>
+          </div>
+
+          <label class="jl-file-drop jl-mt5-drop" for="mt5FileInput" id="mt5DropLabel">
+            <span class="file-drop-title">Pilih Screenshot History MT5</span>
+            <span class="file-drop-meta" id="mt5DropMeta">Pilih 1 atau banyak SS History MT5 sekaligus (PNG, JPG, WEBP)</span>
+          </label>
+          <input id="mt5FileInput" type="file" multiple accept="image/*,.png,.jpg,.jpeg,.webp" hidden>
+
+          <div class="jl-mt5-thumbs" id="mt5ThumbStrip" hidden></div>
+
+          <button class="jl-primary-btn jl-mt5-scan-cta" id="mt5StartScanBtn" type="button" disabled>Scan Semua Trade (AI)</button>
+
+          <p class="jl-mt5-status" id="mt5ScanStatus" role="status" aria-live="polite" hidden></p>
+
+          <section class="jl-mt5-review" id="mt5ReviewSection" hidden>
+            <div class="jl-mt5-review-head">
+              <div class="jl-mt5-review-summary" id="mt5ReviewSummary"></div>
+              <button class="jl-ghost-btn jl-btn-xs" id="mt5ToggleAllBtn" type="button">Batal Semua</button>
+            </div>
+
+            <div class="jl-mt5-global-bar">
+              <div class="jl-mt5-global-setup">
+                <input id="mt5GlobalSetupInput" type="text" maxlength="80" placeholder="Terapkan Setup ke semua terpilih (opsional)">
+                <button class="jl-ghost-btn jl-btn-xs" id="mt5ApplyGlobalBtn" type="button">Terapkan</button>
+              </div>
+              <div class="jl-mistake-chips" id="mt5GlobalChips" role="group" aria-label="Tag disiplin massal">
+                <button type="button" class="jl-mistake-chip is-good" data-global-chip="Sesuai Plan">Sesuai Plan</button>
+                <button type="button" class="jl-mistake-chip" data-global-chip="FOMO">FOMO</button>
+                <button type="button" class="jl-mistake-chip" data-global-chip="Entry Kepagian">Entry Kepagian</button>
+                <button type="button" class="jl-mistake-chip" data-global-chip="Geser SL">Geser SL</button>
+                <button type="button" class="jl-mistake-chip" data-global-chip="Overtrade">Overtrade</button>
+                <button type="button" class="jl-mistake-chip" data-global-chip="Revenge Trade">Revenge</button>
+              </div>
+            </div>
+
+            <div class="jl-mt5-list" id="mt5ReviewList"></div>
+          </section>
+        </div>
+
+        <div class="jl-sheet-foot jl-mt5-foot">
+          <button class="jl-ghost-btn" id="mt5CancelBtn" type="button">Tutup</button>
+          <button class="jl-ghost-btn" id="mt5OpenSingleFormBtn" type="button" hidden>Isi Form</button>
+          <button class="jl-primary-btn" id="mt5SaveBatchBtn" type="button" hidden disabled>Simpan Terpilih (0)</button>
+        </div>
+      </div>
     </dialog>
 
     <!-- Dialog Modal Tambah Kebiasaan -->
@@ -975,9 +1072,11 @@
     <script src="../shared/account-sim-engine.js?v=20261121-sim1" defer></script>
     <script src="../shared/trader-insights-engine.js?v=20261121-v1" defer></script>
     <script src="../shared/github-cloud-sync.js?v=20261122-v1" defer></script>
+    <script src="../shared/mt5-ocr-parser.js?v=20261122-v1" defer></script>
     <script src="../shared/journal-analytics-pro.js?v=20261121-sim1" defer></script>
     <script src="./journal-analytics.js?v=20261120-1" defer></script>
     <script src="./app.js?v=20261121-sim1" defer></script>
+    <script src="./mt5-scan-ui.js?v=20261122-v1" defer></script>
     <script src="./background-video.js?v=20260725-bg1" defer></script>
     <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
 <script>

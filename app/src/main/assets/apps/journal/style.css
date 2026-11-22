@@ -1379,7 +1379,6 @@ html.is-video-feed-open,
 body.is-video-feed-open {
   overscroll-behavior: none !important;
   overscroll-behavior-y: none !important;
-  overflow: hidden !important;
 }
 
 .fullscreen-dialog[open].is-video-feed {

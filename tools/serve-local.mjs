@@ -12,7 +12,7 @@ const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = parseInt(process.env.PORT || '8080', 10);
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 const ANDROID_ASSETS_DIR = path.resolve(__dirname, '../app/src/main/assets');
 const REPO_ROOT_DIR = path.resolve(__dirname, '..');
@@ -866,13 +866,15 @@ const requestHandler = async (req, res) => {
       }
     }
 
-    // --- AMY FX PRO GEMINI AI BRIDGE (/api/gemini-config & /api/gemini-chat — single source of truth) ---
-    if (pathname === '/api/gemini-config' || pathname === '/api/gemini-chat') {
+    // --- AMY FX PRO GEMINI AI BRIDGE (/api/gemini-config, /api/gemini-chat, /api/mt5-scan — single source of truth) ---
+    if (pathname === '/api/gemini-config' || pathname === '/api/gemini-chat' || pathname === '/api/mt5-scan') {
       const dispatchGemini = async (rawBody = '') => {
         try {
           const handlerModule = pathname === '/api/gemini-config'
             ? '../api/gemini-config.js'
-            : '../api/gemini-chat.js';
+            : pathname === '/api/mt5-scan'
+              ? '../api/mt5-scan.js'
+              : '../api/gemini-chat.js';
           const handler = (await import(handlerModule)).default;
           let statusCode = 200;
           const outHeaders = {
@@ -914,8 +916,20 @@ const requestHandler = async (req, res) => {
 
       if (req.method === 'POST') {
         let body = '';
-        req.on('data', chunk => { body += chunk; });
-        req.on('end', () => { dispatchGemini(body); });
+        let tooLarge = false;
+        const MAX_BODY_BYTES = 7 * 1024 * 1024;
+        req.on('data', chunk => {
+          if (tooLarge) return;
+          body += chunk;
+          if (body.length > MAX_BODY_BYTES) {
+            tooLarge = true;
+            res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: false, error: 'Ukuran payload melebihi batas 7 MB.' }));
+          }
+        });
+        req.on('end', () => {
+          if (!tooLarge) dispatchGemini(body);
+        });
       } else {
         await dispatchGemini('');
       }

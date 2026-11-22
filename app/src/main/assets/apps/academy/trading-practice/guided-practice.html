@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#070b12">
-  <title>Latihan Soal 60 Kasus — Amy FX Backtest Lab</title>
+  <title>Latihan Soal 100 Kasus ICT — Amy FX Backtest Lab</title>
   <script src="../../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
   <link rel="stylesheet" href="assets/css/practice.css">
 </head>
@@ -35,27 +35,52 @@
 
   <main class="bt-container">
     <div class="bt-page-head">
-      <h1>Latihan 60 Kasus</h1>
+      <div>
+        <h1>Latihan 100 Kasus ICT</h1>
+        <p class="bt-page-sub" id="masteryHeadline">8 Pilar XAU/USD · 4 Pilihan Menantang · Before → After</p>
+      </div>
       <div class="bt-toolbar-group bt-filter-bar">
+        <select id="exerciseTopic" class="bt-select" aria-label="Pilih pilar ICT">
+          <option value="ALL">Semua Pilar · 8</option>
+          <option value="inducement">1. Inducement &amp; Jebakan · 12</option>
+          <option value="killzone">2. Killzone Sisi Kanan · 12</option>
+          <option value="dealing-range">3. Dealing Range &amp; NO TRADE · 12</option>
+          <option value="market-structure">4. BOS, MSS &amp; CISD · 14</option>
+          <option value="pd-array">5. OB, Breaker &amp; Unicorn · 14</option>
+          <option value="entry-playbook">6. Silver Bullet, 2022 &amp; PO3 · 12</option>
+          <option value="risk-sl-rr">7. SL Invalidation &amp; RR · 12</option>
+          <option value="psychology-execution">8. Psikologi Eksekusi · 12</option>
+        </select>
         <select id="exerciseCategory" class="bt-select" aria-label="Tingkat kesulitan">
-          <option value="ALL">Semua · 60</option>
-          <option value="mudah">Mudah · 20</option>
-          <option value="sedang">Sedang · 20</option>
-          <option value="advanced">Advanced · 20</option>
+          <option value="ALL">Semua Level · 100</option>
+          <option value="mudah">Mudah · 30</option>
+          <option value="sedang">Sedang · 40</option>
+          <option value="advanced">Advanced · 30</option>
         </select>
         <select id="sessionLength" class="bt-select" aria-label="Panjang sesi">
           <option value="10">10 soal</option>
           <option value="20">20 soal</option>
-          <option value="60">60 soal</option>
+          <option value="30">30 soal</option>
+          <option value="50">50 soal</option>
+          <option value="100">100 soal</option>
         </select>
         <button id="startSession" type="button" class="bt-btn bt-btn-primary" disabled>Mulai</button>
+        <button id="drillMistakesBtn" type="button" class="bt-btn bt-btn-warn" hidden>Ulangi Salah</button>
         <button id="lastSummary" type="button" class="bt-btn" hidden>Rangkuman</button>
       </div>
     </div>
 
+    <details class="bt-mastery-box" id="pillarMasteryBox">
+      <summary class="bt-mastery-summary">
+        <span>Peta Penguasaan 8 Pilar</span>
+        <span id="masteryOverallBadge" class="bt-tag bt-tag-be">0 / 100 dikuasai</span>
+      </summary>
+      <div id="pillarMasteryGrid" class="bt-mastery-grid"></div>
+    </details>
+
     <div class="bt-guided-grid" id="guidedWorkspace">
-      <section class="bt-chart-stage">
-        <div class="bt-ohlc-bar">
+      <section class="bt-chart-stage" id="guidedChartStage">
+        <div class="bt-ohlc-bar bt-guided-chart-bar">
           <div class="bt-ohlc-vals">
             <span id="ohlcTime">—</span>
             <span><b>O</b><span id="ohlcOpen">—</span></span>
@@ -63,9 +88,42 @@
             <span><b>L</b><span id="ohlcLow">—</span></span>
             <span><b>C</b><span id="ohlcClose">—</span></span>
           </div>
-          <span class="bt-tag bt-tag-be" id="exerciseTimeframe">—</span>
+          <div class="bt-guided-chart-tools">
+            <span class="bt-tag bt-tag-be" id="exerciseTimeframe">M15</span>
+            <button type="button" id="toggleBlindMode" class="bt-btn-xs" title="Sembunyikan atau tampilkan garis bantu level">👁️ Polos</button>
+            <button type="button" id="toggleChartFullscreen" class="bt-btn-xs" title="Perbesar chart layar penuh">⛶ Fullscreen</button>
+          </div>
         </div>
+
+        <div id="scenarioCard" class="bt-scenario-card" hidden>
+          <div class="bt-scenario-head">
+            <span class="bt-scenario-badge">SITUASI MEJA TRADING</span>
+            <span id="scenarioSession" class="bt-scenario-session">—</span>
+          </div>
+          <div class="bt-scenario-grid">
+            <div class="bt-scenario-cell">
+              <small>Status Akun</small>
+              <strong id="scenarioPnl">—</strong>
+            </div>
+            <div class="bt-scenario-cell">
+              <small>Kondisi / Streak</small>
+              <strong id="scenarioStreak">—</strong>
+            </div>
+            <div class="bt-scenario-cell">
+              <small>Frekuensi Hari Ini</small>
+              <strong id="scenarioTrades">—</strong>
+            </div>
+          </div>
+          <p class="bt-scenario-trigger" id="scenarioTrigger">—</p>
+        </div>
+
         <div id="chart" class="practice-chart-shell"></div>
+
+        <div id="afterMarketBar" class="bt-after-bar" hidden>
+          <button type="button" id="playAfterCandles" class="bt-btn bt-btn-primary bt-after-btn">▶ Lihat Kelanjutan Market (+8 Candle)</button>
+          <p id="outcomeBanner" class="bt-outcome-banner" hidden></p>
+        </div>
+
         <p id="chartGuide" class="bt-chart-guide"></p>
       </section>
 
@@ -73,6 +131,7 @@
         <section class="bt-card">
           <div class="bt-card-head bt-card-head-tight">
             <span class="bt-card-title" id="exerciseLabel">SOAL 1</span>
+            <span class="bt-tag bt-tag-be" id="exercisePillarTag">—</span>
           </div>
           <div class="bt-progress-track">
             <div class="bt-progress-fill" id="guidedProgress"></div>
@@ -81,18 +140,18 @@
           <p id="exercisePrompt" class="bt-exercise-prompt"></p>
 
           <div id="exerciseChoices" class="bt-choices"></div>
-          <p id="guidedStatus" class="bt-status-line" role="status" aria-live="polite">Pilih jawaban terbaik.</p>
+          <p id="guidedStatus" class="bt-status-line" role="status" aria-live="polite">Amati chart dan konteks sesi dengan cermat, lalu pilih 1 dari 4 jawaban.</p>
 
           <div class="bt-toolbar-group bt-exercise-actions">
-            <button id="nextExercise" type="button" class="bt-btn bt-btn-primary" hidden>Lanjut</button>
+            <button id="nextExercise" type="button" class="bt-btn bt-btn-primary" hidden>Soal berikutnya →</button>
             <button id="endSession" type="button" class="bt-btn">Selesai</button>
           </div>
           <p id="saveNotice" class="bt-status-line" role="status"></p>
         </section>
 
         <section class="bt-card">
-          <h3 class="bt-card-title bt-card-title-mb">Prinsip &amp; Materi</h3>
-          <div class="bt-principle-box" id="exercisePrinciple">Jawab untuk membuka penjelasan &amp; materi terkait.</div>
+          <h3 class="bt-card-title bt-card-title-mb">Prinsip ICT &amp; Materi</h3>
+          <div class="bt-principle-box" id="exercisePrinciple">Jawab satu kali untuk membuka zona bukti ICT, kelanjutan market, dan materi Academy terkait.</div>
           <a id="exerciseLesson" class="bt-btn bt-btn-primary" href="../index.html" hidden>Materi →</a>
         </section>
       </aside>
@@ -105,6 +164,7 @@
           <p id="summaryScore" class="bt-summary-score tabular"></p>
         </div>
         <div class="bt-toolbar-group">
+          <button id="drillSessionMistakes" type="button" class="bt-btn bt-btn-warn" hidden>Latih Ulang Soal Salah</button>
           <button id="restartSession" type="button" class="bt-btn bt-btn-primary">Ulangi Acak</button>
           <a class="bt-btn" href="../index.html">Tutorial →</a>
         </div>

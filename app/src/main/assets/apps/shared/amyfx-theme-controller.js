@@ -313,11 +313,24 @@
     (document.head || document.documentElement)?.appendChild?.(s);
   }
 
+  function ensureScrollGuardScript() {
+    if (window.AmyScrollGuard || document.querySelector('script[src*="amyfx-scroll-guard.js"]')) return;
+    const baseSrc = currentScriptSrc || document.querySelector('script[src*="amyfx-theme-controller.js"]')?.getAttribute("src") || "";
+    const guardSrc = baseSrc
+      ? baseSrc.replace(/amyfx-theme-controller\.js(?:\?.*)?$/i, "amyfx-scroll-guard.js")
+      : "apps/shared/amyfx-scroll-guard.js";
+    const s = document.createElement("script");
+    s.src = guardSrc;
+    s.defer = true;
+    (document.head || document.documentElement)?.appendChild?.(s);
+  }
+
   function decorateDocument() {
     const name = moduleName();
     document.body?.classList.add("amyfx-module", `amyfx-module--${name}`);
     document.body?.setAttribute("data-amyfx-module", name);
     ensureInfoTipScript();
+    ensureScrollGuardScript();
     syncControls();
   }
 

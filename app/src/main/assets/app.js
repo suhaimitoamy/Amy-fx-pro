@@ -1004,6 +1004,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.documentElement.classList.remove('is-reel-open');
     document.body.classList.remove('is-reel-open');
+    window.AmyScrollGuard?.unlock?.('video-reel');
     if (reelState.pushedHistory && !fromPopState && history.state?.amyReel) history.back();
     reelState.pushedHistory = false;
     if (currentRootView === 'video') {
@@ -1443,6 +1444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reelState.open = true;
     document.documentElement.classList.add('is-reel-open');
     document.body.classList.add('is-reel-open');
+    window.AmyScrollGuard?.lock?.('video-reel');
     if (!dialog.hasAttribute('open')) {
       dialog.setAttribute('open', '');
       if (typeof dialog.show === 'function' && !dialog.open) {

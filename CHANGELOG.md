@@ -1,3 +1,9 @@
+## 2.0.0-pro.466
+
+- feat(journal): MT5 Screenshot OCR Auto-Import (`api/mt5-scan.js`, `apps/journal/mt5-scan-ui.js`, `apps/shared/mt5-ocr-parser.js`) melalui Gemini Vision API dengan konversi pips XAU/USD, Cent USC handling, shift jam broker ke WITA, dan deduplikasi cerdas.
+- feat(scroll): Global Android Pull-to-Refresh Scroll Guard (`apps/shared/amyfx-scroll-guard.js`) dimuat otomatis via theme controller untuk mengamankan dialog, overlay, dan chart tanpa mengganggu Chart Gold di Mapping.
+- feat(practice): Guided Practice 100 Kasus (`guided-exercises.json`, `guided-practice.js`, `guided-session.js`) lengkap dengan kalkulasi penguasaan pilar ICT dan validasi bebas bocoran masa depan.
+
 ## 2.0.0-pro.465
 
 - feat(sync): Cloud Sync via GitHub Private Repo (`apps/shared/github-cloud-sync.js`) untuk backup & restore Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, progres Academy, & Bookmark Replay.

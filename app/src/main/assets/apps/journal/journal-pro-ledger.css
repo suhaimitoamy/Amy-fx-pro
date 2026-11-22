@@ -7,6 +7,7 @@
 /* ─── Design Tokens (Dark Default + Light Mode Parity) ───────────────────── */
 .amyfx-module--journal .jl-view,
 .amyfx-module--journal .jl-trade-sheet,
+.amyfx-module--journal .jl-mt5-sheet,
 .amyfx-module--journal #jHabitDialog {
   --jl-canvas: #0b111c;
   --jl-surface: #101827;
@@ -32,9 +33,11 @@
 
 [data-amyfx-theme="light"] .amyfx-module--journal .jl-view,
 [data-amyfx-theme="light"] .amyfx-module--journal .jl-trade-sheet,
+[data-amyfx-theme="light"] .amyfx-module--journal .jl-mt5-sheet,
 [data-amyfx-theme="light"] .amyfx-module--journal #jHabitDialog,
 [data-theme="light"] .amyfx-module--journal .jl-view,
 [data-theme="light"] .amyfx-module--journal .jl-trade-sheet,
+[data-theme="light"] .amyfx-module--journal .jl-mt5-sheet,
 [data-theme="light"] .amyfx-module--journal #jHabitDialog {
   --jl-canvas: #f8fafc;
   --jl-surface: #ffffff;
@@ -515,9 +518,10 @@
 }
 
 /* ─── BOTTOM-SHEET MODAL FOR TRADE ENTRY / EDIT ──────────────────────────── */
-body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet {
-  width: min(100% - 24px, 540px);
-  max-width: 540px;
+body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet,
+body.amyfx-module--journal dialog.sheet-dialog.jl-mt5-sheet {
+  width: min(100% - 24px, 560px);
+  max-width: 560px;
   max-height: 90dvh;
   padding: 0;
   border: 1px solid var(--jl-line-strong);
@@ -528,13 +532,15 @@ body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
 }
 
-body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet::backdrop {
+body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet::backdrop,
+body.amyfx-module--journal dialog.sheet-dialog.jl-mt5-sheet::backdrop {
   background: rgba(2, 6, 23, 0.68);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
 
-body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
+body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open],
+body.amyfx-module--journal dialog.sheet-dialog.jl-mt5-sheet[open] {
   position: fixed;
   inset: 0;
   margin: auto;
@@ -551,7 +557,8 @@ body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
   background: var(--jl-surface);
 }
 
-.jl-trade-sheet .sheet-handle {
+.jl-trade-sheet .sheet-handle,
+.jl-mt5-sheet .sheet-handle {
   width: 40px;
   height: 4px;
   border-radius: 999px;
@@ -1484,7 +1491,9 @@ body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
 
   /* True Bottom-Sheet on Mobile */
   body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet,
-  body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open] {
+  body.amyfx-module--journal dialog.sheet-dialog.jl-trade-sheet[open],
+  body.amyfx-module--journal dialog.sheet-dialog.jl-mt5-sheet,
+  body.amyfx-module--journal dialog.sheet-dialog.jl-mt5-sheet[open] {
     width: 100%;
     max-width: 100%;
     top: auto;
@@ -2136,6 +2145,495 @@ body.amyfx-module--journal article.jl-note-row {
 
 .jp-weekly-row strong.is-neg {
   color: var(--jl-neg);
+}
+
+/* ─── MT5 AI Vision OCR Scanner & Batch Review Modal ─────────────────────── */
+.amyfx-module--journal .jl-mt5-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--jl-text);
+}
+
+.jl-mt5-trigger svg {
+  flex-shrink: 0;
+  color: var(--jl-accent);
+}
+
+.jl-sheet-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.jl-btn-xs {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.amyfx-module--journal .jl-mt5-sheet .jl-sheet-head h2,
+.amyfx-module--journal .jl-trade-sheet .jl-sheet-head h2 {
+  color: var(--jl-text);
+}
+
+body.amyfx-module--journal .jl-mt5-sheet input:not([type="checkbox"]),
+body.amyfx-module--journal .jl-mt5-sheet select,
+body.amyfx-module--journal .jl-mt5-sheet textarea,
+body.amyfx-module--journal .jl-trade-sheet input:not([type="checkbox"]),
+body.amyfx-module--journal .jl-trade-sheet select,
+body.amyfx-module--journal .jl-trade-sheet textarea {
+  background: var(--jl-canvas) !important;
+  border: 1px solid var(--jl-line-strong) !important;
+  color: var(--jl-text) !important;
+  border-radius: 10px !important;
+}
+
+body.amyfx-module--journal .jl-mt5-sheet input[type="checkbox"] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+}
+
+.amyfx-module--journal .jl-mt5-sheet .jl-field select option,
+.amyfx-module--journal .jl-trade-sheet .jl-field select option {
+  background: var(--jl-surface);
+  color: var(--jl-text);
+}
+
+.jl-mt5-body {
+  gap: 12px;
+}
+
+.jl-mt5-body > * {
+  flex-shrink: 0;
+}
+
+.jl-mt5-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-mt5-control-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.jl-mt5-offset-field {
+  margin: 0;
+}
+
+.jl-mt5-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.jl-mt5-checkline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--jl-text-secondary);
+  cursor: pointer;
+  min-height: 30px;
+  user-select: none;
+}
+
+.jl-mt5-checkline input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--jl-accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+.jl-mt5-drop {
+  margin: 0;
+}
+
+.jl-mt5-thumbs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  min-height: 76px;
+  padding: 2px 0 4px;
+  scrollbar-width: thin;
+}
+
+.jl-mt5-thumbs[hidden] {
+  display: none !important;
+}
+
+.jl-mt5-thumb {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-canvas);
+}
+
+.jl-mt5-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.jl-mt5-thumb-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  min-height: 22px !important;
+  padding: 0 !important;
+  border-radius: 999px;
+  border: none;
+  background: rgba(2, 6, 23, 0.84);
+  color: #f8fafc;
+  font-size: 0.88rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.jl-mt5-scan-cta {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.jl-mt5-scan-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.jl-mt5-status {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--jl-line);
+  background: var(--jl-surface-subtle);
+  color: var(--jl-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.jl-mt5-status[hidden] {
+  display: none !important;
+}
+
+.jl-mt5-status.is-error {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: var(--jl-neg-bg);
+  color: var(--jl-neg);
+}
+
+.jl-mt5-status.is-success {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: var(--jl-pos-bg);
+  color: var(--jl-pos);
+}
+
+.jl-mt5-review {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--jl-line);
+}
+
+.jl-mt5-review[hidden] {
+  display: none !important;
+}
+
+.jl-mt5-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.jl-mt5-review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  font-size: 0.78rem;
+  color: var(--jl-muted);
+  min-width: 0;
+}
+
+.jl-mt5-review-summary strong {
+  color: var(--jl-text);
+  font-weight: 800;
+}
+
+.jl-mt5-review-summary strong.is-pos {
+  color: var(--jl-pos);
+  font-family: var(--jl-mono);
+}
+
+.jl-mt5-review-summary strong.is-neg {
+  color: var(--jl-neg);
+  font-family: var(--jl-mono);
+}
+
+.jl-mt5-dup-note {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--jl-warn);
+}
+
+.jl-mt5-global-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--jl-line);
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-mt5-global-setup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jl-mt5-global-setup input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--jl-line);
+  background: var(--jl-canvas);
+  color: var(--jl-text);
+  font-size: 0.8rem;
+}
+
+.jl-mt5-global-setup input::placeholder {
+  color: var(--jl-muted);
+}
+
+.jl-mt5-global-setup input:focus {
+  outline: none;
+  border-color: var(--jl-accent);
+}
+
+.jl-mt5-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.jl-mt5-row {
+  border-bottom: 1px solid var(--jl-line);
+  transition: opacity 0.15s ease;
+}
+
+.jl-mt5-row:last-child {
+  border-bottom: none;
+}
+
+.jl-mt5-row.is-dim {
+  opacity: 0.56;
+}
+
+.jl-mt5-row-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.jl-mt5-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 32px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.jl-mt5-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--jl-accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+.jl-mt5-row-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: var(--jl-text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.jl-mt5-row-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.jl-mt5-dir {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.jl-mt5-dir.is-buy {
+  background: var(--jl-pos-bg);
+  color: var(--jl-pos);
+}
+
+.jl-mt5-dir.is-sell {
+  background: var(--jl-neg-bg);
+  color: var(--jl-neg);
+}
+
+.jl-mt5-pair {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--jl-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jl-mt5-dup-badge {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--jl-warn);
+  background: var(--jl-warn-bg);
+  padding: 2px 6px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.jl-mt5-pnl {
+  margin-left: auto;
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-family: var(--jl-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.jl-mt5-pnl.is-pos {
+  color: var(--jl-pos);
+}
+
+.jl-mt5-pnl.is-neg {
+  color: var(--jl-neg);
+}
+
+.jl-mt5-pnl.is-be {
+  color: var(--jl-muted);
+}
+
+.jl-mt5-row-sub {
+  font-size: 0.74rem;
+  font-family: var(--jl-mono);
+  color: var(--jl-text-secondary);
+  line-height: 1.38;
+  word-break: break-word;
+}
+
+.jl-mt5-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+  font-size: 0.72rem;
+  color: var(--jl-muted);
+}
+
+.jl-mt5-tag-inline {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--jl-accent);
+  border-left: 1px solid var(--jl-line-strong);
+  padding-left: 7px;
+}
+
+.jl-mt5-row-editor {
+  padding: 8px 0 12px 38px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jl-mt5-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.jl-mt5-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.jl-mt5-foot {
+  gap: 8px;
+}
+
+.jl-mt5-foot [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 460px) {
+  .jl-mt5-control-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .jl-mt5-row-editor {
+    padding-left: 0;
+  }
+
+  .jl-page-actions {
+    gap: 6px;
+  }
+
+  .jl-mt5-trigger {
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
 }
 
 

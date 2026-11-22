@@ -1,23 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.465/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.466/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Cloud Sync (GitHub Private Repo): Cadangkan & pulihkan Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, & Bookmark Academy ke repo privat GitHub gratis selamanya.",
-    "✦ Anti-Timpa & Auto-Sync: Conflict Guard cerdas mendeteksi revisi terbaru lintas perangkat dan auto-sync background hemat bandwidth.",
-    "✦ Keamanan Terisolasi: Token PAT disimpan murni di perangkat lokal; blob media video & foto tetap terisolasi di HP."
+    "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
+    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay.",
+    "✦ Guided Practice 100 Kasus: Penambahan 100 soal latihan interaktif ICT across 8 pilar materi komprehensif."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.465/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.466/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950465,
-  "latest_version_name": "2.0.0-pro.465",
+  "latest_version_code": 950466,
+  "latest_version_name": "2.0.0-pro.466",
   "mandatory": false,
   "releaseDate": "2026-11-22",
   "release_notes": [
-    "✦ Cloud Sync (GitHub Private Repo): Cadangkan & pulihkan Jurnal, Catatan Pribadi, Profil Simulasi, Daily Loss Guard, & Bookmark Academy ke repo privat GitHub gratis selamanya.",
-    "✦ Anti-Timpa & Auto-Sync: Conflict Guard cerdas mendeteksi revisi terbaru lintas perangkat dan auto-sync background hemat bandwidth.",
-    "✦ Keamanan Terisolasi: Token PAT disimpan murni di perangkat lokal; blob media video & foto tetap terisolasi di HP."
+    "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
+    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay.",
+    "✦ Guided Practice 100 Kasus: Penambahan 100 soal latihan interaktif ICT across 8 pilar materi komprehensif."
   ],
-  "version": "2.0.0-pro.465",
-  "versionCode": 950465,
+  "version": "2.0.0-pro.466",
+  "versionCode": 950466,
   "sha256": "7f5388998add224e6f1fa1b1bd5df13af56e850af7874f34a040db2bc81d55d0"
 }

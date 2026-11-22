@@ -336,6 +336,19 @@
     });
   };
 
+  CandleChart.prototype.fitStudyRange = function (count) {
+    var total = Number(count || this.candles.length || 0);
+    if (!total || !this.chart) return;
+    var scale = this.chart.timeScale();
+    if (scale && typeof scale.setVisibleLogicalRange === 'function') {
+      scale.setVisibleLogicalRange({ from: -0.8, to: total + 0.8 });
+    } else if (scale && typeof scale.fitContent === 'function') {
+      scale.fitContent();
+    }
+    this.syncOverlaySize();
+    this.renderDrawings();
+  };
+
   CandleChart.prototype.flushPendingCandles = function () {
     var pending = this.pendingCandles;
     this.pendingCandles = null;
@@ -1206,23 +1219,21 @@
             x1: boxLeft, y1: ceY, x2: boxLeft + boxWidth, y2: ceY,
             stroke: '#facc15', 'stroke-width': 1.3, 'stroke-dasharray': '5 3'
           }));
-          this.appendLabel(group, boxLeft + boxWidth - 110, ceY, '50% CE ' + Number(zone.cePrice).toFixed(2), {
-            stroke: '#facc15', color: '#fef08a', background: 'rgba(15, 23, 42, 0.92)'
-          });
+          if (boxHeight >= 18) {
+            this.appendLabel(group, Math.max(4, boxLeft + boxWidth - 102), ceY, '50% CE ' + Number(zone.cePrice).toFixed(2), {
+              stroke: '#facc15', color: '#fef08a', background: 'rgba(15, 23, 42, 0.92)'
+            });
+          }
         }
       }
 
-      // 3. Main FVG Title Badge
+      // 3. Main FVG Title Badge neatly above box (zero collision with CE line or candles)
       var titleText = zone.title || (isBull ? 'FVG (Bullish) · BISI' : 'FVG (Bearish) · SIBI');
-      this.appendLabel(group, boxLeft + 8, Math.max(14, boxTop + 14), titleText, {
+      var titleX = Math.max(4, Math.min(boxLeft, width - 160));
+      var titleY = boxTop > 22 ? boxTop - 11 : Math.min(this.plotHeight() - 12, boxTop + boxHeight + 12);
+      this.appendLabel(group, titleX, titleY, titleText, {
         stroke: color, color: color, background: badgeBg
       });
-
-      // 4. Bound prices on edges
-      if (boxHeight > 34) {
-        this.appendLabel(group, boxLeft + boxWidth - 75, boxTop + 12, Number(zone.topPrice).toFixed(2), { stroke: color, color: '#e2e8f0' });
-        this.appendLabel(group, boxLeft + boxWidth - 75, boxTop + boxHeight - 12, Number(zone.bottomPrice).toFixed(2), { stroke: color, color: '#e2e8f0' });
-      }
     } else if (zone.type === 'sweep') {
       var levelY = this.series.priceToCoordinate(zone.level);
       if (levelY != null) {
@@ -1320,7 +1331,9 @@
           x: startX, y: targetTop, width: boxWidth, height: targetH, rx: 4,
           fill: 'rgba(34, 197, 94, 0.18)', stroke: '#22c55e', 'stroke-width': 1.4
         }));
-        this.appendLabel(group, startX + 8, targetTop + 14, 'TARGET (TP) · +2.0R', {
+        var riskDist = Math.abs(Number(zone.entryPrice) - Number(zone.stopPrice)) || 1;
+        var rrRatio = (Math.abs(Number(zone.targetPrice) - Number(zone.entryPrice)) / riskDist).toFixed(1);
+        this.appendLabel(group, startX + 8, targetTop + 14, 'TARGET (TP) · +' + rrRatio + 'R', {
           stroke: '#22c55e', color: '#bbf7d0', background: 'rgba(5, 46, 22, 0.92)'
         });
         
@@ -1340,6 +1353,47 @@
         }));
         this.appendLabel(group, startX + boxWidth - 85, entryY, 'ENTRY · ' + Number(zone.entryPrice).toFixed(2), {
           stroke: '#facc15', color: '#fef08a', background: 'rgba(15, 23, 42, 0.94)'
+        });
+      }
+    } else if (zone.type === 'ob') {
+      var obTopY = this.series.priceToCoordinate(zone.topPrice);
+      var obBotY = this.series.priceToCoordinate(zone.bottomPrice);
+      if (obTopY != null && obBotY != null) {
+        var obStartX = zone.startTime ? this.timeToX(zone.startTime) : null;
+        var obLeft = obStartX != null ? Math.max(0, obStartX - 6) : 10;
+        var obRight = width - 6;
+        var obWidth = Math.max(36, obRight - obLeft);
+        var obBoxTop = Math.min(obTopY, obBotY);
+        var obBoxH = Math.max(4, Math.abs(obBotY - obTopY));
+        var isBullOb = zone.direction === 'bullish';
+        var obColor = isBullOb ? '#a78bfa' : '#f472b6';
+        var obFill = isBullOb ? 'rgba(167, 139, 250, 0.16)' : 'rgba(244, 114, 182, 0.16)';
+        var obBg = isBullOb ? 'rgba(30, 20, 62, 0.92)' : 'rgba(62, 16, 42, 0.92)';
+
+        group.appendChild(this.svgElement('rect', {
+          x: obLeft, y: obBoxTop, width: obWidth, height: obBoxH, rx: 4,
+          fill: obFill, stroke: obColor, 'stroke-width': 1.5
+        }));
+
+        if (Number.isFinite(zone.midPrice)) {
+          var mtY = this.series.priceToCoordinate(zone.midPrice);
+          if (mtY != null) {
+            group.appendChild(this.svgElement('line', {
+              x1: obLeft, y1: mtY, x2: obLeft + obWidth, y2: mtY,
+              stroke: '#facc15', 'stroke-width': 1.3, 'stroke-dasharray': '5 3'
+            }));
+            if (obBoxH >= 18) {
+              this.appendLabel(group, Math.max(4, obLeft + obWidth - 104), mtY, '50% MT ' + Number(zone.midPrice).toFixed(2), {
+                stroke: '#facc15', color: '#fef08a', background: 'rgba(15, 23, 42, 0.92)'
+              });
+            }
+          }
+        }
+
+        var obTitleX = Math.max(4, Math.min(obLeft, width - 160));
+        var obTitleY = obBoxTop > 22 ? obBoxTop - 11 : Math.min(this.plotHeight() - 12, obBoxTop + obBoxH + 12);
+        this.appendLabel(group, obTitleX, obTitleY, zone.title || (isBullOb ? 'Valid Bullish OB' : 'Valid Bearish OB'), {
+          stroke: obColor, color: obColor, background: obBg
         });
       }
     }

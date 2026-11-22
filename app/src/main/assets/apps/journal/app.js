@@ -6172,7 +6172,7 @@ function closeJournalEditor() {
     dom.journalForm.hidden = true;
     dom.journalForm.classList.remove("is-open");
   }
-  if (dom.newJournalBtn) dom.newJournalBtn.textContent = "+ Catat Trade";
+  if (dom.newJournalBtn) dom.newJournalBtn.textContent = "+ Trade";
   state.pendingJournalFiles = [];
   if (dom.journalFileInput) dom.journalFileInput.value = "";
   if (dom.journalMessage) dom.journalMessage.textContent = "";
@@ -6367,6 +6367,107 @@ async function saveJournalForm(event) {
     dom.journalMessage.textContent = "Jurnal belum tersimpan.";
   }
 }
+
+window.AmyJournalBridge = {
+  getActiveAccountMode() {
+    return state.journalAccountFilter === "SIM" ? "SIM" : "REAL";
+  },
+  getExistingJournals() {
+    return Array.isArray(state.journals) ? state.journals : [];
+  },
+  closeJournalEditor() {
+    closeJournalEditor();
+  },
+  async prefillJournalForm(entry, optionalFile) {
+    if (!entry) return;
+    resetJournalForm();
+    if (dom.journalAccountModeInput) dom.journalAccountModeInput.value = entry.accountMode === "SIM" ? "SIM" : "REAL";
+    if (dom.journalDateInput) dom.journalDateInput.value = entry.date || new Date().toISOString().slice(0, 10);
+    if (dom.journalMarketInput) dom.journalMarketInput.value = entry.market || "XAU/USD";
+    if (dom.journalDirectionInput) dom.journalDirectionInput.value = entry.direction || "Buy";
+    if (dom.journalResultInput) dom.journalResultInput.value = entry.result || "Belum selesai";
+    if (dom.journalPnlInput) dom.journalPnlInput.value = entry.pnlMoney != null ? String(entry.pnlMoney) : "";
+    if (dom.journalRrInput) dom.journalRrInput.value = entry.riskReward != null ? String(entry.riskReward) : "";
+    if (dom.journalSetupInput) dom.journalSetupInput.value = entry.setup || "";
+    if (dom.journalSessionInput) dom.journalSessionInput.value = entry.session || "";
+    if (dom.journalEvaluationInput) dom.journalEvaluationInput.value = entry.evaluation || "";
+    if (dom.journalMistakesInput) dom.journalMistakesInput.value = entry.mistakes || "";
+    if (dom.journalEmotionInput) dom.journalEmotionInput.value = entry.emotion || "";
+    if (dom.journalTitleInput) dom.journalTitleInput.value = entry.title || "";
+    syncJournalQuickPickers();
+    if (typeof syncMistakeChipStates === "function") syncMistakeChipStates();
+
+    if (optionalFile) {
+      try {
+        const media = await makePendingMedia(optionalFile, { compressImage: true });
+        if (media) {
+          state.pendingJournalFiles = [media];
+          if (dom.journalFileMeta) dom.journalFileMeta.textContent = `${media.name} • ${formatBytes(media.size)}`;
+        }
+      } catch (_) {}
+    }
+
+    openJournalEditor("new");
+    if (dom.journalMessage) dom.journalMessage.textContent = "Terisi otomatis dari Scan MT5 — cek singkat lalu simpan.";
+  },
+  async saveBatchTrades(entries, optionalFiles = []) {
+    if (!Array.isArray(entries) || !entries.length) return [];
+    const createdFileIds = [];
+    const normalizedBatch = [];
+    try {
+      for (let i = 0; i < entries.length; i += 1) {
+        const raw = entries[i];
+        const journal = normalizeJournals([{ ...raw, id: raw.id || createId() }])[0];
+        const file = Array.isArray(optionalFiles) ? optionalFiles[i] : null;
+        if (file) {
+          const media = await makePendingMedia(file, { compressImage: true });
+          if (media) {
+            const fileId = createId();
+            await putFileRecord({
+              id: fileId,
+              itemId: journal.id,
+              blob: media.file,
+              name: media.name,
+              type: media.type,
+              size: media.size,
+              kind: media.kind,
+              documentType: media.documentType || "",
+              documentText: media.documentText || "",
+              fileHash: media.fileHash || "",
+              uploadedAt: new Date().toISOString()
+            });
+            createdFileIds.push(fileId);
+            journal.attachments.push({
+              fileId,
+              name: media.name,
+              type: media.type,
+              size: media.size,
+              kind: media.kind,
+              documentType: media.documentType || "",
+              documentText: media.documentText || "",
+              uploadedAt: new Date().toISOString()
+            });
+          }
+        }
+        normalizedBatch.push(journal);
+      }
+
+      state.journals = [...normalizedBatch, ...state.journals];
+      const newestDate = normalizedBatch.map((j) => j.date).filter(Boolean).sort().reverse()[0];
+      if (newestDate) state.journalOpenDate = newestDate;
+      const targetMode = normalizedBatch[0]?.accountMode;
+      if (targetMode && state.journalAccountFilter !== "all" && state.journalAccountFilter !== targetMode) {
+        state.journalAccountFilter = targetMode;
+      }
+      await saveJournals(state.journals, { throwOnError: true });
+      render();
+      return normalizedBatch;
+    } catch (err) {
+      await Promise.all(createdFileIds.map((fileId) => deleteFileRecord(fileId).catch(() => {})));
+      throw err;
+    }
+  }
+};
 
 function getFilteredJournals() {
   const resultFilter = state.journalResultFilter || "all";

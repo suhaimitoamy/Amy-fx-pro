@@ -5,7 +5,11 @@ import vm from 'node:vm';
 import path from 'node:path';
 
 const ROOT = process.cwd();
-const TP_DIR = path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'trading-practice');
+const candidateTpDirs = [
+  path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'trading-practice'),
+  path.join(ROOT, 'apps', 'academy', 'trading-practice')
+];
+const TP_DIR = candidateTpDirs.find((d) => fs.existsSync(d)) || candidateTpDirs[0];
 
 function loadBrowserModules(files) {
   const sandbox = {
@@ -201,13 +205,16 @@ test('practice-analytics: word-boundary OB regex, null-R guard, and equity/drawd
   assert.equal(stats.equityCurve.length, 5); // Awal + 4 closed trades
 });
 
-test('guided-exercises.json: all 60 exercises map to valid Academy 6-Level lesson IDs', () => {
+test('guided-exercises.json: all 100 exercises map to valid Academy 6-Level lesson IDs', () => {
   const guided = JSON.parse(fs.readFileSync(path.join(TP_DIR, 'assets', 'data', 'guided-exercises.json'), 'utf8'));
-  assert.equal(guided.exercises.length, 60);
+  assert.equal(guided.exercises.length, 100);
 
   const validIds = new Set();
+  const academyDataDir = fs.existsSync(path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'data'))
+    ? path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'data')
+    : path.join(ROOT, 'apps', 'academy', 'data');
   for (const f of ['levels-1-2.js', 'levels-3-4.js', 'levels-5-6.js']) {
-    const src = fs.readFileSync(path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'data', f), 'utf8');
+    const src = fs.readFileSync(path.join(academyDataDir, f), 'utf8');
     for (const m of src.matchAll(/id:\s*'([^']+)'/g)) validIds.add(m[1]);
   }
 
@@ -259,7 +266,12 @@ function loadStorageEnv(initialStore = {}) {
     const code = fs.readFileSync(path.join(TP_DIR, 'assets', 'js', rel), 'utf8');
     vm.runInContext(code, sandbox, { filename: rel });
   }
-  const simCode = fs.readFileSync(path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'shared', 'account-sim-engine.js'), 'utf8');
+  const candidateSimPaths = [
+    path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'shared', 'account-sim-engine.js'),
+    path.join(ROOT, 'apps', 'shared', 'account-sim-engine.js')
+  ];
+  const simPath = candidateSimPaths.find((p) => fs.existsSync(p)) || candidateSimPaths[0];
+  const simCode = fs.readFileSync(simPath, 'utf8');
   vm.runInContext(simCode, sandbox, { filename: 'account-sim-engine.js' });
   return { sandbox, store };
 }

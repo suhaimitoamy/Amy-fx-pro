@@ -1,7 +1,7 @@
 {
   "project": "Amy FX Pro",
-  "version": "2.0.0-pro.465",
-  "last_updated": "2026-11-22",
+  "version": "2.0.0-pro.466",
+  "last_updated": "2026-11-23",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -93,8 +93,41 @@
         "tests/github-cloud-sync.test.mjs passed 6/6"
       ],
       "notes": "Data media blob & token PAT dikecualikan dari snapshot sync"
+    },
+    {
+      "id": "mt5-ocr-scan-001",
+      "priority": 6,
+      "area": "journal",
+      "title": "MT5 Screenshot OCR Auto-Import",
+      "user_visible_behavior": "Jurnal Trading memiliki dialog scan screenshot MT5 dengan parsing Gemini Vision, konversi pips/Cent USC, dan deduplikasi batch.",
+      "status": "passing",
+      "verification": [
+        "node --test tests/mt5-ocr-parser.test.mjs",
+        "node --check api/mt5-scan.js",
+        "node --check app/src/main/assets/apps/journal/mt5-scan-ui.js"
+      ],
+      "evidence": [
+        "tests/mt5-ocr-parser.test.mjs passed 6/6"
+      ],
+      "notes": "Mendukung shift jam broker ke WITA secara presisi"
+    },
+    {
+      "id": "scroll-guard-001",
+      "priority": 7,
+      "area": "shared",
+      "title": "Global Android Pull-to-Refresh Scroll Guard",
+      "user_visible_behavior": "Mencegah trigger PTR Android tidak disengaja saat berinteraksi di dialog, overlay, dan chart dengan scrollY offset guard.",
+      "status": "passing",
+      "verification": [
+        "node --test tests/amyfx-scroll-guard.test.mjs",
+        "node --check app/src/main/assets/apps/shared/amyfx-scroll-guard.js"
+      ],
+      "evidence": [
+        "tests/amyfx-scroll-guard.test.mjs passed 8/8"
+      ],
+      "notes": "Exempts Chart Gold di apps/mapping/"
     }
   ],
-  "currentVersion": "2.0.0-pro.465",
-  "versionCode": 950465
+  "currentVersion": "2.0.0-pro.466",
+  "versionCode": 950466
 }

@@ -251,7 +251,7 @@
     if (!host) return;
     if (!allGuided.length) {
       if (statEl) statEl.textContent = '0 soal';
-      host.innerHTML = '<tr><td colspan="4"><div class="bt-empty-inline">Belum ada riwayat Latihan Soal. <a href="guided-practice.html" style="color:var(--bt-gold);font-weight:700">Mulai Latihan 60 Kasus →</a></div></td></tr>';
+      host.innerHTML = '<tr><td colspan="4"><div class="bt-empty-inline">Belum ada riwayat Latihan Soal. <a href="guided-practice.html" style="color:var(--bt-gold);font-weight:700">Mulai Latihan 100 Kasus →</a></div></td></tr>';
       return;
     }
     var correct = allGuided.filter(function (g) { return g && g.correct; }).length;

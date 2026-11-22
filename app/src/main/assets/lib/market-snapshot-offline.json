@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1795352074464,
+  "updatedAt": 1795360321451,
   "description": "Offline fallback market snapshot for XAU/USD (TwelveData 429 mitigasi)",
   "snapshots": {
     "XAU_USD_1min": [
@@ -1208,6 +1208,18 @@
       {
         "symbol": "XAU/USD",
         "timeframe": "M5",
+        "open_time": 1795356900,
+        "close_time": 1795357200,
+        "open": 3537.28618,
+        "high": 3538.23952,
+        "low": 3537.23435,
+        "close": 3538.14886,
+        "volume_tick": 0,
+        "is_closed": true
+      },
+      {
+        "symbol": "XAU/USD",
+        "timeframe": "M5",
         "open_time": 1795306200,
         "close_time": 1795306500,
         "open": 3536.61814,
@@ -2392,21 +2404,21 @@
         "close": 3569.00377,
         "volume_tick": 0,
         "is_closed": true
-      },
-      {
-        "symbol": "XAU/USD",
-        "timeframe": "M5",
-        "open_time": 1795184400,
-        "close_time": 1795184700,
-        "open": 3577.68879,
-        "high": 3581.53361,
-        "low": 3576.91863,
-        "close": 3577.44339,
-        "volume_tick": 0,
-        "is_closed": true
       }
     ],
     "XAU_USD_15min": [
+      {
+        "symbol": "XAU/USD",
+        "timeframe": "M15",
+        "open_time": 1795356900,
+        "close_time": 1795357800,
+        "open": 3537.28618,
+        "high": 3538.32254,
+        "low": 3537.23435,
+        "close": 3538.22253,
+        "volume_tick": 0,
+        "is_closed": true
+      },
       {
         "symbol": "XAU/USD",
         "timeframe": "M15",
@@ -3594,21 +3606,21 @@
         "close": 3628.32681,
         "volume_tick": 0,
         "is_closed": true
-      },
-      {
-        "symbol": "XAU/USD",
-        "timeframe": "M15",
-        "open_time": 1795127400,
-        "close_time": 1795128300,
-        "open": 3625.96803,
-        "high": 3627.39408,
-        "low": 3625.96803,
-        "close": 3627.01695,
-        "volume_tick": 0,
-        "is_closed": true
       }
     ],
     "XAU_USD_1h": [
+      {
+        "symbol": "XAU/USD",
+        "timeframe": "H1",
+        "open_time": 1795356000,
+        "close_time": 1795359600,
+        "open": 3537.28618,
+        "high": 3538.3227,
+        "low": 3537.23435,
+        "close": 3538.16341,
+        "volume_tick": 0,
+        "is_closed": true
+      },
       {
         "symbol": "XAU/USD",
         "timeframe": "H1",
@@ -4794,18 +4806,6 @@
         "high": 3871.78127,
         "low": 3843.63931,
         "close": 3865.40018,
-        "volume_tick": 0,
-        "is_closed": true
-      },
-      {
-        "symbol": "XAU/USD",
-        "timeframe": "H1",
-        "open_time": 1794873600,
-        "close_time": 1794877200,
-        "open": 3863.12486,
-        "high": 3863.36884,
-        "low": 3852.52533,
-        "close": 3854.12639,
         "volume_tick": 0,
         "is_closed": true
       }
