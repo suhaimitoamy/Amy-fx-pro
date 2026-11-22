@@ -1,5 +1,11 @@
 import fs from 'node:fs';
-import { isValidGeminiApiKey } from '../lib/amy-assistant-engine.mjs';
+
+export function isValidGeminiApiKey(rawKey) {
+  const k = String(rawKey || '').trim();
+  if (!k || k.length < 20) return false;
+  if (/MY_GEMINI|YOUR_API|PLACEHOLDER|REPLACE_ME|EXAMPLE/i.test(k)) return false;
+  return k.startsWith('AIza') || k.startsWith('AQ.');
+}
 
 const ENCODED_KEYS = [
   'QVEuQWI4Uk42TEx4QWtUM2E2cHNmQkJJNVI0TmNtMDVySVdRcy01WGo5R3ROM1B2TW52V1E=',
@@ -161,7 +167,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const modelsToTry = ['gemini-4-hydrogen', 'gemini-3.1-flash-lite'];
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite'];
     let parsedJson = null;
     let usedModel = '';
     let lastStatus = 0;

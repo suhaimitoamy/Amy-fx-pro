@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.466/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.467/AmyFX-Pro-latest.apk",
   "changelog": [
+    "✦ MT5 OCR Direct Vision & File Picker Fix: Perbaikan aktivasi pemilih screenshot Android & fallback engine Gemini Vision langsung di HP.",
     "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
     "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay.",
     "✦ Guided Practice 100 Kasus: Penambahan 100 soal latihan interaktif ICT across 8 pilar materi komprehensif."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.466/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.467/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950466,
-  "latest_version_name": "2.0.0-pro.466",
+  "latest_version_code": 950467,
+  "latest_version_name": "2.0.0-pro.467",
   "mandatory": false,
-  "releaseDate": "2026-11-22",
+  "releaseDate": "2026-11-23",
   "release_notes": [
+    "✦ MT5 OCR Direct Vision & File Picker Fix: Perbaikan aktivasi pemilih screenshot Android & fallback engine Gemini Vision langsung di HP.",
     "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
     "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay.",
     "✦ Guided Practice 100 Kasus: Penambahan 100 soal latihan interaktif ICT across 8 pilar materi komprehensif."
   ],
-  "version": "2.0.0-pro.466",
-  "versionCode": 950466,
-  "sha256": "4e6753c1d72f9ec7b4c7626618e5bb14498740ef05d67ec8658846008764f5a9"
+  "version": "2.0.0-pro.467",
+  "versionCode": 950467,
+  "sha256": ""
 }

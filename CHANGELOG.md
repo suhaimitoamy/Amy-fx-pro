@@ -1,3 +1,9 @@
+## 2.0.0-pro.467
+
+- fix(journal-ocr): Perbaikan aktivasi file picker screenshot MT5 pada Android WebView dengan menambahkan click listener langsung pada `mt5DropLabel` dan clipboard paste handler.
+- feat(journal-ocr): Direct Client-Side Gemini Vision Engine dengan rotasi multi-key (`gemini-2.5-flash`, `gemini-flash-latest`) untuk memproses OCR MT5 langsung dari HP tanpa dependensi Vercel proxy.
+- fix(api): Perbaikan model name pada `/api/mt5-scan` ke model resmi Gemini 2.5 Flash serta sinkronisasi endpoint ke repo Vercel `Amy-fx`.
+
 ## 2.0.0-pro.466
 
 - feat(journal): MT5 Screenshot OCR Auto-Import (`api/mt5-scan.js`, `apps/journal/mt5-scan-ui.js`, `apps/shared/mt5-ocr-parser.js`) melalui Gemini Vision API dengan konversi pips XAU/USD, Cent USC handling, shift jam broker ke WITA, dan deduplikasi cerdas.
