@@ -22,10 +22,22 @@
 
   var sessionTrades = [];
   var ictOverlayEnabled = false;
-  var tapTarget = 'entry'; // 'entry' | 'stopLoss' | 'takeProfit'
+  var tapTarget = null; // null | 'entry' | 'stopLoss' | 'takeProfit' (OFF by default)
+  var slTpPinnedByUser = false;
+  var sessionDialogMode = 'create'; // 'create' | 'edit'
+  var tradeQueue = Promise.resolve();
   var pendingDeleteTradeId = null;
   var pendingResetSession = false;
   var resetTimer = null;
+  var nextMonthCandidate = null;
+  var cachedCloudManifest = null;
+  var replayBookmarks = [];
+
+  function enqueueTradeTask(taskFn) {
+    var next = tradeQueue.then(taskFn, taskFn);
+    tradeQueue = next.catch(function () {});
+    return next;
+  }
 
   function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
@@ -46,6 +58,18 @@
     return bar ? Number(bar.close) : null;
   }
 
+  function isTradeOnCurrentSource(t) {
+    if (!t) return false;
+    if (!t.sourceId || !replay || !replay.sourceId) return true;
+    return t.sourceId === replay.sourceId;
+  }
+
+  function isTradeAfterCursor(t) {
+    if (!t || !replay || replay.cursor == null) return false;
+    var ts = Number(t.tradeTime);
+    return Number.isFinite(ts) && ts > Number(replay.cursor);
+  }
+
   function openTradesInSession() {
     return sessionTrades.filter(function (t) {
       return t && t.result === 'OPEN' && t.bias !== 'WAIT';
@@ -62,29 +86,67 @@
     return stats;
   }
 
+  function syncOrderTypeButtons(val) {
+    var form = ui.byId('tradeForm');
+    if (form && form.elements.orderType) form.elements.orderType.value = val;
+    var orderSeg = ui.byId('orderTypeSeg');
+    if (orderSeg) {
+      orderSeg.querySelectorAll('button[data-order-type]').forEach(function (b) {
+        b.classList.toggle('is-active', b.dataset.orderType === val);
+      });
+    }
+  }
+
+  function syncTapChips() {
+    document.querySelectorAll('[data-tap-target]').forEach(function (c) {
+      var active = tapTarget !== null && c.dataset.tapTarget === tapTarget;
+      c.classList.toggle('is-active', active);
+      c.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
   function renderAccountBar() {
+    var initBal = activeSession ? Number(activeSession.initialBalanceUsd || 5000) : 5000;
     var stats = getSessionStats();
     var px = currentPrice();
     var openList = openTradesInSession();
+    var activeOnChartCount = 0;
     var floatUsd = 0;
     var floatR = 0;
 
     openList.forEach(function (t) {
+      if (!isTradeOnCurrentSource(t) || isTradeAfterCursor(t)) return;
       var fl = tradesApi.computeFloatingPnl(t, px);
       if (fl) {
-        floatUsd += fl.totalUsd;
-        floatR += fl.totalR;
+        activeOnChartCount += 1;
+        // Unrealized PnL of remaining lot only (stats.currentBalanceUsd already includes realized partials!)
+        floatUsd += fl.floatingUsd;
+        floatR += fl.floatingR;
       }
     });
+
+    var equityUsd = Math.round((stats.currentBalanceUsd + floatUsd) * 100) / 100;
+
+    var eqEl = ui.byId('accEquity');
+    if (eqEl) {
+      eqEl.textContent = fmtMoney(equityUsd, false);
+      eqEl.classList.toggle('is-pos', equityUsd > initBal + 0.005);
+      eqEl.classList.toggle('is-neg', equityUsd < initBal - 0.005);
+      eqEl.classList.toggle('is-gold', Math.abs(equityUsd - initBal) <= 0.005);
+    }
 
     var balEl = ui.byId('accBalance');
     if (balEl) {
       balEl.textContent = fmtMoney(stats.currentBalanceUsd, false);
+      balEl.classList.toggle('is-pos', stats.currentBalanceUsd > initBal + 0.005);
+      balEl.classList.toggle('is-neg', stats.currentBalanceUsd < initBal - 0.005);
     }
 
     var floatEl = ui.byId('accFloating');
     if (floatEl) {
-      floatEl.textContent = openList.length ? (fmtMoney(floatUsd, true) + ' (' + (floatR >= 0 ? '+' : '') + floatR.toFixed(2) + 'R)') : fmtMoney(0, false);
+      floatEl.textContent = activeOnChartCount
+        ? (fmtMoney(floatUsd, true) + ' (' + (floatR >= 0 ? '+' : '') + floatR.toFixed(2) + 'R)')
+        : fmtMoney(0, false);
       floatEl.classList.toggle('is-pos', floatUsd > 0);
       floatEl.classList.toggle('is-neg', floatUsd < 0);
     }
@@ -133,7 +195,9 @@
   function syncChartTradeLevels() {
     if (!chart) return;
     var levels = [];
-    var openList = openTradesInSession();
+    var openList = openTradesInSession().filter(function (t) {
+      return isTradeOnCurrentSource(t) && !isTradeAfterCursor(t);
+    });
 
     openList.forEach(function (t, idx) {
       var tag = openList.length > 1 ? (' #' + (idx + 1)) : '';
@@ -211,22 +275,33 @@
     host.innerHTML = openList.map(function (t) {
       var isBuy = t.bias === 'BUY';
       var isActive = t.entryStatus === 'ACTIVE';
-      var fl = isActive ? tradesApi.computeFloatingPnl(t, px) : null;
+      var sameSource = isTradeOnCurrentSource(t);
+      var preEntry = isTradeAfterCursor(t);
+      var canManageLive = isActive && sameSource && !preEntry;
+      var fl = canManageLive ? tradesApi.computeFloatingPnl(t, px) : null;
       var entryPx = Number.isFinite(Number(t.fillPrice)) ? Number(t.fillPrice) : Number(t.entry);
-      var inProfit = isActive && px != null && (isBuy ? px > entryPx : px < entryPx);
-      var canBe = isActive && inProfit && !t.breakevenMoved;
-      var canPartial = isActive && Number(t.remainingFraction != null ? t.remainingFraction : 1) > 0.15;
+      var inProfit = canManageLive && px != null && (isBuy ? px > entryPx : px < entryPx);
+      var remLot = Number(t.remainingLot != null ? t.remainingLot : (t.lot || 0.01));
+      var canBe = canManageLive && inProfit && !t.breakevenMoved;
+      var canPartial = canManageLive && Number(t.remainingFraction != null ? t.remainingFraction : 1) > 0.15 && remLot >= 0.02;
 
-      var pnlHtml = isActive && fl
-        ? '<span class="bt-pos-pnl ' + (fl.totalUsd >= 0 ? 'is-pos' : 'is-neg') + '">' + fmtMoney(fl.totalUsd, true) + '<small>' + (fl.totalR >= 0 ? '+' : '') + fl.totalR.toFixed(2) + 'R</small></span>'
-        : '<span class="bt-tag bt-tag-wait">LIMIT WAIT</span>';
+      var pnlHtml;
+      if (!sameSource) {
+        pnlHtml = '<span class="bt-tag bt-tag-wait">PACK LAIN</span>';
+      } else if (preEntry) {
+        pnlHtml = '<span class="bt-tag bt-tag-wait">PRA-ENTRY</span>';
+      } else if (isActive && fl) {
+        pnlHtml = '<span class="bt-pos-pnl ' + (fl.floatingUsd >= 0 ? 'is-pos' : 'is-neg') + '">' + fmtMoney(fl.floatingUsd, true) + '<small>' + (fl.floatingR >= 0 ? '+' : '') + fl.floatingR.toFixed(2) + 'R</small></span>';
+      } else {
+        pnlHtml = '<span class="bt-tag bt-tag-wait">LIMIT WAIT</span>';
+      }
       var shortType = t.orderType === 'LIMIT' ? 'LMT' : 'MKT';
 
       return '<div class="bt-pos-card ' + (isBuy ? 'is-buy' : 'is-sell') + '">' +
         '<div class="bt-pos-top">' +
           '<div class="bt-pos-title">' +
             '<span class="bt-tag ' + (isBuy ? 'bt-tag-buy' : 'bt-tag-sell') + '">' + escapeHtml(t.bias + ' ' + shortType) + '</span>' +
-            '<span class="tabular">' + Number(t.remainingLot || t.lot || 0.01).toFixed(2) + 'L</span>' +
+            '<span class="tabular">' + remLot.toFixed(2) + 'L</span>' +
             (t.breakevenMoved ? '<span class="bt-tag bt-tag-be">BE</span>' : '') +
           '</div>' +
           pnlHtml +
@@ -240,7 +315,7 @@
         '<div class="bt-pos-actions">' +
           (isActive ? '<button type="button" class="bt-btn-sm" data-pos-be="' + escapeHtml(t.id) + '"' + (canBe ? '' : ' disabled') + '>Set BE</button>' : '') +
           (isActive ? '<button type="button" class="bt-btn-sm" data-pos-partial="' + escapeHtml(t.id) + '"' + (canPartial ? '' : ' disabled') + '>Partial 50%</button>' : '') +
-          '<button type="button" class="bt-btn-sm bt-btn-danger" data-pos-close="' + escapeHtml(t.id) + '">' + (isActive ? 'Tutup Manual' : 'Batal Limit') + '</button>' +
+          '<button type="button" class="bt-btn-sm bt-btn-danger" data-pos-close="' + escapeHtml(t.id) + '"' + (isActive && !canManageLive ? ' disabled' : '') + '>' + (isActive ? 'Tutup Manual' : 'Batal Limit') + '</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -286,7 +361,7 @@
     }).join('');
   }
 
-  async function refreshTradesAndEvaluate() {
+  async function runRefreshTradesAndEvaluate() {
     var sid = activeSession ? activeSession.id : storage.getActiveSessionId();
     sessionTrades = await storage.listTrades(sid);
 
@@ -295,7 +370,8 @@
       for (var i = 0; i < sessionTrades.length; i += 1) {
         var t = sessionTrades[i];
         if (!t || t.result !== 'OPEN' || !['BUY', 'SELL'].includes(t.bias)) continue;
-        // Evaluate only against candles from same source or matching time span
+        // Strictly scope evaluation to candles from the same dataset pack and after trade creation
+        if (!isTradeOnCurrentSource(t) || isTradeAfterCursor(t)) continue;
         var updated = tradesApi.evaluate(t, visibleCandles);
         if (updated.result !== t.result || updated.entryStatus !== t.entryStatus || updated.r !== t.r) {
           await storage.saveTrade(updated);
@@ -305,6 +381,8 @@
             ui.status('tradeStatus', 'Posisi ' + updated.bias + ' selesai: ' + updated.result + ' (' + (updated.r >= 0 ? '+' : '') + Number(updated.r).toFixed(2) + 'R · ' + fmtMoney(updated.pnlUsd, true) + ').', updated.result === 'LOSS', updated.result === 'WIN');
           } else if (updated.result === 'MISSED') {
             ui.status('tradeStatus', 'Limit order ' + updated.bias + ' MISSED (harga mencapai TP sebelum fill).', false, false);
+          } else if (updated.result === 'CANCELLED') {
+            ui.status('tradeStatus', 'Limit order ' + updated.bias + ' dibatalkan otomatis (harga menyentuh SL sebelum entry ter-fill).', true, false);
           } else if (updated.entryStatus === 'ACTIVE' && t.entryStatus !== 'ACTIVE') {
             ui.status('tradeStatus', 'Limit order ' + updated.bias + ' TER-FILL di ' + core.price(updated.fillPrice || updated.entry) + '!', false, true);
           }
@@ -319,6 +397,31 @@
     renderActivePositions();
     renderSessionTradesTable();
     syncChartTradeLevels();
+  }
+
+  function refreshTradesAndEvaluate() {
+    return enqueueTradeTask(runRefreshTradesAndEvaluate);
+  }
+
+  function syncMarketOrderPrices(px) {
+    var form = ui.byId('tradeForm');
+    if (!form || px == null || !Number.isFinite(Number(px))) return;
+    var bias = form.elements.bias ? form.elements.bias.value : 'BUY';
+    var orderType = form.elements.orderType ? form.elements.orderType.value : 'MARKET';
+    if (orderType !== 'MARKET' || bias === 'WAIT') return;
+
+    var prevEntry = core.finite(form.elements.entry && form.elements.entry.value);
+    var prevSl = core.finite(form.elements.stopLoss && form.elements.stopLoss.value);
+    var prevTp = core.finite(form.elements.takeProfit && form.elements.takeProfit.value);
+    var slDist = (prevEntry != null && prevSl != null && Math.abs(prevEntry - prevSl) >= 0.5) ? Math.abs(prevEntry - prevSl) : 5;
+    var tpDist = (prevEntry != null && prevTp != null && Math.abs(prevTp - prevEntry) >= 0.5) ? Math.abs(prevTp - prevEntry) : 10;
+
+    form.elements.entry.value = Number(px).toFixed(2);
+    if (!slTpPinnedByUser) {
+      form.elements.stopLoss.value = (bias === 'BUY' ? (px - slDist) : (px + slDist)).toFixed(2);
+      form.elements.takeProfit.value = (bias === 'BUY' ? (px + tpDist) : (px - tpDist)).toFixed(2);
+      autoCalculateLot();
+    }
   }
 
   function updateOrderPreview() {
@@ -349,8 +452,18 @@
     var tp = core.finite(form.elements.takeProfit.value);
     var lot = core.finite(form.elements.lot.value);
 
-    var rr = (entry != null && sl != null && tp != null) ? tradesApi.plannedR(bias, entry, sl, tp) : null;
-    ui.text('orderRrPreview', rr != null ? ('R:R 1 : ' + rr.toFixed(2)) : 'Isi SL & TP');
+    var validGeometry = entry != null && sl != null && tp != null && (
+      (bias === 'BUY' && sl < entry && entry < tp) ||
+      (bias === 'SELL' && tp < entry && entry < sl)
+    );
+    var rr = validGeometry ? tradesApi.plannedR(bias, entry, sl, tp) : null;
+    if (rr != null) {
+      ui.text('orderRrPreview', 'R:R 1 : ' + rr.toFixed(2));
+    } else if (entry != null && sl != null && tp != null) {
+      ui.text('orderRrPreview', 'SL/TP terlewati harga');
+    } else {
+      ui.text('orderRrPreview', 'Isi SL & TP');
+    }
 
     if (entry != null && sl != null && lot != null && lot > 0) {
       var riskUsd = Math.abs(entry - sl) * lot * tradesApi.CONTRACT_OZ;
@@ -389,6 +502,7 @@
     var dist = Math.abs(entry - sl);
     var tp = bias === 'BUY' ? (entry + dist * multiplier) : (entry - dist * multiplier);
     form.elements.takeProfit.value = tp.toFixed(2);
+    slTpPinnedByUser = true;
     autoCalculateLot();
     updateOrderPreview();
   }
@@ -436,6 +550,250 @@
     btn.classList.toggle('bt-btn-primary', !playing);
   }
 
+  function loadReplayBookmarks() {
+    var insights = window.AmyTraderInsights;
+    var key = (insights && insights.REPLAY_BOOKMARKS_KEY) || 'amy_replay_bookmarks_v1';
+    try {
+      var raw = localStorage.getItem(key);
+      var parsed = raw ? JSON.parse(raw) : [];
+      replayBookmarks = insights && insights.sortReplayBookmarks
+        ? insights.sortReplayBookmarks(parsed)
+        : (Array.isArray(parsed) ? parsed : []);
+    } catch (_) {
+      replayBookmarks = [];
+    }
+    return replayBookmarks;
+  }
+
+  function saveReplayBookmarks() {
+    var insights = window.AmyTraderInsights;
+    var key = (insights && insights.REPLAY_BOOKMARKS_KEY) || 'amy_replay_bookmarks_v1';
+    try {
+      localStorage.setItem(key, JSON.stringify(replayBookmarks));
+    } catch (_) {}
+  }
+
+  function renderReplayBookmarks() {
+    var countEl = ui.byId('bookmarkCount');
+    var listEl = ui.byId('bookmarkList');
+    if (countEl) countEl.textContent = String(replayBookmarks.length);
+    if (!listEl) return;
+
+    if (!replayBookmarks.length) {
+      listEl.innerHTML = '<div class="bt-bm-empty">Belum ada momen tersimpan. Ketuk ★ Simpan saat menemukan setup A+.</div>';
+      return;
+    }
+
+    listEl.innerHTML = replayBookmarks.slice(0, 25).map(function (bm) {
+      var pxStr = bm.price != null ? ('$' + core.price(bm.price)) : '';
+      return '<div class="bt-bm-row">' +
+        '<button type="button" class="bt-bm-jump" data-bm-jump="' + escapeHtml(bm.id) + '">' +
+          '<strong>' + escapeHtml(bm.note || 'Momen Setup') + '</strong>' +
+          '<span class="tabular">' + escapeHtml(bm.timeLabel || '') + ' · ' + escapeHtml(bm.timeframe) + (pxStr ? ' · ' + pxStr : '') + '</span>' +
+        '</button>' +
+        '<button type="button" class="bt-bm-del" data-bm-del="' + escapeHtml(bm.id) + '" aria-label="Hapus bookmark">×</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function bindBookmarkControls() {
+    loadReplayBookmarks();
+    renderReplayBookmarks();
+
+    var saveBtn = ui.byId('bookmarkMomentBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var bar = currentBar();
+        if (!bar || !replay || replay.cursor == null) {
+          ui.status('replayStatus', 'Tunggu data candle dimuat untuk menyimpan bookmark.', true);
+          return;
+        }
+        var insights = window.AmyTraderInsights;
+        var sess = core.classifyIctSession(replay.cursor);
+        var sourceLabel = ui.byId('replaySourceBadge') ? ui.byId('replaySourceBadge').textContent : replay.sourceId;
+        var rawBm = {
+          id: 'bm_' + Date.now().toString(36),
+          packId: replay.sourceId,
+          sourceLabel: sourceLabel,
+          timeframe: replay.timeframe,
+          timestamp: replay.cursor,
+          timeLabel: core.formatWita(replay.cursor, true),
+          price: Number(bar.close),
+          note: sess + ' · ' + replay.timeframe + ' · $' + core.price(bar.close),
+          createdAt: Date.now()
+        };
+        var normalized = insights && insights.normalizeReplayBookmark ? insights.normalizeReplayBookmark(rawBm) : rawBm;
+        if (!normalized) return;
+        replayBookmarks = [normalized].concat(replayBookmarks.filter(function (item) {
+          return !(item.packId === normalized.packId && item.timestamp === normalized.timestamp && item.timeframe === normalized.timeframe);
+        })).slice(0, 40);
+        saveReplayBookmarks();
+        renderReplayBookmarks();
+        ui.status('replayStatus', 'Momen setup tersimpan: ' + normalized.timeLabel + ' (' + normalized.timeframe + ').', false, true);
+      });
+    }
+
+    var listEl = ui.byId('bookmarkList');
+    if (listEl) {
+      listEl.addEventListener('click', async function (evt) {
+        var delBtn = evt.target.closest('[data-bm-del]');
+        if (delBtn) {
+          var delId = delBtn.dataset.bmDel;
+          replayBookmarks = replayBookmarks.filter(function (b) { return b.id !== delId; });
+          saveReplayBookmarks();
+          renderReplayBookmarks();
+          return;
+        }
+        var jumpBtn = evt.target.closest('[data-bm-jump]');
+        if (!jumpBtn || !replay) return;
+        var bmId = jumpBtn.dataset.bmJump;
+        var bm = replayBookmarks.find(function (b) { return b.id === bmId; });
+        if (!bm) return;
+
+        var drawer = ui.byId('bookmarkDrawer');
+        if (drawer) drawer.open = false;
+        replay.pause();
+        setPlayButtonLabel(false);
+
+        try {
+          if (bm.packId && bm.packId !== replay.sourceId) {
+            var sources = await data.listSources('XAUUSD');
+            if (sources.some(function (s) { return s.id === bm.packId; })) {
+              await populateSources(bm.packId);
+              await replay.setSource(bm.packId, bm.timestamp);
+            } else {
+              ui.status('replayStatus', 'Pack "' + bm.sourceLabel + '" belum terpasang. Unduh di Data Cloud terlebih dahulu.', true);
+              return;
+            }
+          }
+          if (bm.timeframe && bm.timeframe !== replay.timeframe) {
+            syncTimeframeButtons(bm.timeframe);
+            await replay.setTimeframe(bm.timeframe);
+          }
+          await replay.seek(bm.timestamp);
+          ui.status('replayStatus', 'Melompat ke bookmark: ' + (bm.timeLabel || bm.note), false, true);
+        } catch (err) {
+          ui.status('replayStatus', err && err.message || 'Gagal melompat ke bookmark.', true);
+        }
+      });
+    }
+  }
+
+  function hideNextMonthBanner() {
+    var banner = ui.byId('nextMonthBanner');
+    if (banner) banner.hidden = true;
+    nextMonthCandidate = null;
+  }
+
+  async function showNextMonthHandoff() {
+    var banner = ui.byId('nextMonthBanner');
+    var textEl = ui.byId('nextMonthText');
+    var btnEl = ui.byId('loadNextMonthBtn');
+    var insights = window.AmyTraderInsights;
+    if (!banner || !textEl || !btnEl || !insights || typeof insights.resolveNextMonthPack !== 'function') return;
+
+    var bar = currentBar();
+    var barYm = bar && bar.time ? new Date(Number(bar.time) * 1000).toISOString().slice(0, 7) : '';
+    var badgeTxt = ui.byId('replaySourceBadge') ? ui.byId('replaySourceBadge').textContent : '';
+    var hintSource = (replay && replay.sourceId && insights.parseYearMonth(replay.sourceId))
+      ? replay.sourceId
+      : (insights.parseYearMonth(badgeTxt) ? badgeTxt : barYm);
+
+    var sources = await data.listSources('XAUUSD');
+    var installedPacks = sources.filter(function (s) { return s.kind === 'pack'; }).map(function (s) {
+      var startYm = s.start ? new Date(Number(s.start) * 1000).toISOString().slice(0, 7) : '';
+      return { id: s.id, month: startYm, label: s.fileName || s.label || startYm };
+    });
+
+    if (!cachedCloudManifest) {
+      try { cachedCloudManifest = await data.loadCloudManifest(); } catch (_) { cachedCloudManifest = null; }
+    }
+    var catalogItems = [];
+    if (cachedCloudManifest && typeof cachedCloudManifest === 'object') {
+      Object.keys(cachedCloudManifest).forEach(function (yr) {
+        var list = cachedCloudManifest[yr];
+        if (!Array.isArray(list)) return;
+        list.forEach(function (item) {
+          catalogItems.push({
+            id: item.file,
+            file: item.file,
+            year: Number(yr),
+            month: item.file,
+            label: item.label
+          });
+        });
+      });
+    }
+
+    var resolved = insights.resolveNextMonthPack(hintSource, catalogItems, installedPacks);
+    nextMonthCandidate = resolved;
+
+    if (!resolved) {
+      textEl.textContent = 'Akhir bulan tercapai. Pilih dataset bulan lain di Data Cloud.';
+      btnEl.textContent = 'Buka Data Cloud';
+      banner.hidden = false;
+      return;
+    }
+
+    if (resolved.installedPack) {
+      textEl.textContent = 'Akhir ' + resolved.currentYm + ' tercapai · ' + resolved.label + ' sudah terpasang.';
+      btnEl.textContent = 'Lanjut ke ' + resolved.label;
+    } else if (resolved.cloudItem) {
+      textEl.textContent = 'Akhir ' + resolved.currentYm + ' tercapai · Lanjut otomatis ke ' + resolved.label + '.';
+      btnEl.textContent = 'Unduh & Buka ' + resolved.label;
+    } else {
+      textEl.textContent = 'Akhir ' + resolved.currentYm + ' tercapai · Pilih bulan lain di Data Cloud.';
+      btnEl.textContent = 'Buka Data Cloud';
+    }
+    banner.hidden = false;
+  }
+
+  function bindNextMonthButton() {
+    var btnEl = ui.byId('loadNextMonthBtn');
+    if (!btnEl) return;
+    btnEl.addEventListener('click', async function () {
+      if (!nextMonthCandidate) {
+        if (cloudUi) cloudUi.open();
+        return;
+      }
+      if (nextMonthCandidate.installedPack) {
+        var nextId = nextMonthCandidate.installedPack.id;
+        hideNextMonthBanner();
+        await populateSources(nextId);
+        await replay.setSource(nextId, null);
+        ui.status('replayStatus', 'Berpindah otomatis ke bulan berikutnya.', false, true);
+        return;
+      }
+      if (nextMonthCandidate.cloudItem) {
+        var origLabel = btnEl.textContent;
+        btnEl.disabled = true;
+        btnEl.textContent = 'Mengunduh…';
+        try {
+          var results = await data.installCloudPack(
+            String(nextMonthCandidate.nextYear),
+            nextMonthCandidate.cloudItem.file,
+            function (prog) {
+              if (prog && prog.message) ui.status('replayStatus', prog.message);
+            }
+          );
+          if (cloudUi && cloudUi.refresh) await cloudUi.refresh();
+          var targetId = results && results[0] ? results[0].id : null;
+          hideNextMonthBanner();
+          var selected = await populateSources(targetId);
+          await replay.setSource(selected, null);
+          ui.status('replayStatus', 'Bulan berikutnya berhasil diunduh & dibuka.', false, true);
+        } catch (err) {
+          ui.status('replayStatus', 'Gagal mengunduh bulan berikutnya: ' + (err && err.message || 'cek koneksi'), true);
+        } finally {
+          btnEl.disabled = false;
+          btnEl.textContent = origLabel;
+        }
+        return;
+      }
+      if (cloudUi) cloudUi.open();
+    });
+  }
+
   function bindFormControls() {
     var form = ui.byId('tradeForm');
     if (!form) return;
@@ -451,14 +809,19 @@
         biasSeg.querySelectorAll('button[data-bias]').forEach(function (b) {
           b.classList.toggle('is-active', b.dataset.bias === val);
         });
-        // Auto-suggest sensible SL/TP distance when switching BUY/SELL
+        // Reset pinned SL/TP and suggest clean SL/TP geometry for chosen direction
         var px = currentPrice();
         if (px != null && val !== 'WAIT') {
+          slTpPinnedByUser = false;
           if (form.elements.orderType.value === 'MARKET') form.elements.entry.value = px.toFixed(2);
           var entry = core.finite(form.elements.entry.value) || px;
           var sl = core.finite(form.elements.stopLoss.value);
-          var validSl = sl != null && ((val === 'BUY' && sl < entry) || (val === 'SELL' && sl > entry));
-          if (!validSl) {
+          var tp = core.finite(form.elements.takeProfit.value);
+          var validGeom = sl != null && tp != null && (
+            (val === 'BUY' && sl < entry && entry < tp) ||
+            (val === 'SELL' && tp < entry && entry < sl)
+          );
+          if (!validGeom) {
             form.elements.stopLoss.value = (val === 'BUY' ? entry - 5 : entry + 5).toFixed(2);
             form.elements.takeProfit.value = (val === 'BUY' ? entry + 10 : entry - 10).toFixed(2);
             autoCalculateLot();
@@ -475,31 +838,39 @@
         var btn = evt.target.closest('button[data-order-type]');
         if (!btn) return;
         var val = btn.dataset.orderType;
-        form.elements.orderType.value = val;
-        orderSeg.querySelectorAll('button[data-order-type]').forEach(function (b) {
-          b.classList.toggle('is-active', b.dataset.orderType === val);
-        });
-        if (val === 'MARKET' && currentPrice() != null) {
-          form.elements.entry.value = currentPrice().toFixed(2);
+        syncOrderTypeButtons(val);
+        var px = currentPrice();
+        if (val === 'MARKET' && px != null) {
+          slTpPinnedByUser = false;
+          syncMarketOrderPrices(px);
         }
         updateOrderPreview();
       });
     }
 
-    // Tap target selector for clicking chart
+    // Tap target selector for clicking chart (explicit toggle ON/OFF, never stuck ON by default)
     document.querySelectorAll('[data-tap-target]').forEach(function (chip) {
       chip.addEventListener('click', function () {
-        tapTarget = chip.dataset.tapTarget;
-        document.querySelectorAll('[data-tap-target]').forEach(function (c) {
-          c.classList.toggle('is-active', c.dataset.tapTarget === tapTarget);
-        });
-        ui.status('tradeStatus', 'Ketuk chart untuk mengisi harga ' + tapTarget.toUpperCase() + ' (saat mode Geser).');
+        var target = chip.dataset.tapTarget;
+        tapTarget = tapTarget === target ? null : target;
+        syncTapChips();
+        if (tapTarget) {
+          ui.status('tradeStatus', 'Mode Tap aktif: ketuk chart untuk mengisi ' + tapTarget.toUpperCase() + '.');
+        } else {
+          ui.status('tradeStatus', 'Mode Tap dimatikan.');
+        }
       });
     });
 
     ['entry', 'stopLoss', 'takeProfit', 'lot'].forEach(function (name) {
       if (!form.elements[name]) return;
       form.elements[name].addEventListener('input', function () {
+        if (name === 'entry' && form.elements.orderType.value === 'MARKET') {
+          syncOrderTypeButtons('LIMIT');
+        }
+        if (name === 'stopLoss' || name === 'takeProfit') {
+          slTpPinnedByUser = true;
+        }
         if (name === 'stopLoss' || name === 'entry') autoCalculateLot();
         else updateOrderPreview();
       });
@@ -512,96 +883,110 @@
     var rr3Btn = ui.byId('quickRr3');
     if (rr3Btn) rr3Btn.addEventListener('click', function () { applyQuickRr(3); });
 
-    form.addEventListener('submit', async function (evt) {
+    form.addEventListener('submit', function (evt) {
       evt.preventDefault();
       var bar = currentBar();
       if (!bar || !replay || replay.cursor == null) {
         ui.status('tradeStatus', 'Tunggu hingga data candle selesai dimuat.', true);
         return;
       }
-      try {
-        var stats = getSessionStats();
-        var record = await ui.saveTrade(form, {
-          sessionId: activeSession ? activeSession.id : storage.getActiveSessionId(),
-          symbol: 'XAUUSD',
-          timeframe: replay.timeframe,
-          sourceId: replay.sourceId,
-          replayStartTime: replay.startTime || replay.cursor,
-          tradeTime: replay.cursor,
-          currentPrice: bar.close,
-          currentCandle: bar,
-          spreadUsd: spreadUsd,
-          balanceUsd: stats.currentBalanceUsd,
-          riskPercent: activeSession ? activeSession.riskPercent : 1,
-          nonce: Date.now().toString(36)
-        });
-        ui.status('tradeStatus', record.bias === 'WAIT'
-          ? 'Catatan observasi WAIT tersimpan di riwayat sesi.'
-          : (record.bias + ' ' + record.orderType + ' ' + record.lot.toFixed(2) + ' lot dieksekusi di ' + core.price(record.fillPrice || record.entry) + '.'), false, true);
-        if (form.elements.notes) form.elements.notes.value = '';
-        await refreshTradesAndEvaluate();
-      } catch (err) {
-        ui.status('tradeStatus', err && err.message || 'Gagal mencatat eksekusi.', true);
-      }
+      enqueueTradeTask(async function () {
+        try {
+          var liveBar = currentBar() || bar;
+          var stats = getSessionStats();
+          var record = await ui.saveTrade(form, {
+            sessionId: activeSession ? activeSession.id : storage.getActiveSessionId(),
+            symbol: 'XAUUSD',
+            timeframe: replay.timeframe,
+            sourceId: replay.sourceId,
+            replayStartTime: replay.startTime || replay.cursor,
+            tradeTime: replay.cursor,
+            currentPrice: liveBar.close,
+            currentCandle: liveBar,
+            spreadUsd: spreadUsd,
+            balanceUsd: stats.currentBalanceUsd,
+            riskPercent: activeSession ? activeSession.riskPercent : 1,
+            nonce: Date.now().toString(36)
+          });
+          slTpPinnedByUser = false;
+          ui.status('tradeStatus', record.bias === 'WAIT'
+            ? 'Catatan observasi WAIT tersimpan di riwayat sesi.'
+            : (record.bias + ' ' + record.orderType + ' ' + record.lot.toFixed(2) + ' lot dieksekusi di ' + core.price(record.fillPrice || record.entry) + '.'), false, true);
+          if (form.elements.notes) form.elements.notes.value = '';
+          await runRefreshTradesAndEvaluate();
+        } catch (err) {
+          ui.status('tradeStatus', err && err.message || 'Gagal mencatat eksekusi.', true);
+        }
+      });
     });
   }
 
   function bindActivePositionActions() {
     var host = ui.byId('activePositionsList');
     if (!host) return;
-    host.addEventListener('click', async function (evt) {
-      var bar = currentBar();
-      var px = bar ? bar.close : null;
-      var ts = replay ? replay.cursor : Math.floor(Date.now() / 1000);
-
+    host.addEventListener('click', function (evt) {
       var beBtn = evt.target.closest('[data-pos-be]');
       if (beBtn) {
         var idBe = beBtn.dataset.posBe;
-        var trBe = sessionTrades.find(function (t) { return t.id === idBe; });
-        if (!trBe) return;
-        try {
-          var updatedBe = tradesApi.moveStopToBreakeven(trBe, px);
-          await storage.saveTrade(updatedBe);
-          ui.status('tradeStatus', 'Stop Loss digeser ke Breakeven (' + core.price(updatedBe.stopLoss) + ').', false, true);
-          await refreshTradesAndEvaluate();
-        } catch (err) {
-          ui.status('tradeStatus', err && err.message || 'Gagal memindahkan ke BE.', true);
-        }
+        enqueueTradeTask(async function () {
+          var bar = currentBar();
+          var px = bar ? bar.close : null;
+          var trBe = sessionTrades.find(function (t) { return t.id === idBe; });
+          if (!trBe) return;
+          try {
+            var updatedBe = tradesApi.moveStopToBreakeven(trBe, px);
+            await storage.saveTrade(updatedBe);
+            ui.status('tradeStatus', 'Stop Loss digeser ke Breakeven (' + core.price(updatedBe.stopLoss) + ').', false, true);
+            await runRefreshTradesAndEvaluate();
+          } catch (err) {
+            ui.status('tradeStatus', err && err.message || 'Gagal memindahkan ke BE.', true);
+          }
+        });
         return;
       }
 
       var partBtn = evt.target.closest('[data-pos-partial]');
       if (partBtn) {
         var idP = partBtn.dataset.posPartial;
-        var trP = sessionTrades.find(function (t) { return t.id === idP; });
-        if (!trP) return;
-        try {
-          var updatedP = tradesApi.closePartial(trP, px, 0.5, ts);
-          await storage.saveTrade(updatedP);
-          var lastPart = updatedP.partials[updatedP.partials.length - 1];
-          ui.status('tradeStatus', 'Partial 50% dikunci: ' + fmtMoney(lastPart.pnlUsd, true) + ' (' + (lastPart.r >= 0 ? '+' : '') + lastPart.r.toFixed(2) + 'R).', false, true);
-          await refreshTradesAndEvaluate();
-        } catch (err) {
-          ui.status('tradeStatus', err && err.message || 'Gagal partial close.', true);
-        }
+        enqueueTradeTask(async function () {
+          var bar = currentBar();
+          var px = bar ? bar.close : null;
+          var ts = replay ? replay.cursor : Math.floor(Date.now() / 1000);
+          var trP = sessionTrades.find(function (t) { return t.id === idP; });
+          if (!trP) return;
+          try {
+            var updatedP = tradesApi.closePartial(trP, px, 0.5, ts);
+            await storage.saveTrade(updatedP);
+            var lastPart = updatedP.partials[updatedP.partials.length - 1];
+            ui.status('tradeStatus', 'Partial 50% dikunci ke Saldo: ' + fmtMoney(lastPart.pnlUsd, true) + ' (' + (lastPart.r >= 0 ? '+' : '') + lastPart.r.toFixed(2) + 'R).', false, true);
+            await runRefreshTradesAndEvaluate();
+          } catch (err) {
+            ui.status('tradeStatus', err && err.message || 'Gagal partial close.', true);
+          }
+        });
         return;
       }
 
       var closeBtn = evt.target.closest('[data-pos-close]');
       if (closeBtn) {
         var idC = closeBtn.dataset.posClose;
-        var trC = sessionTrades.find(function (t) { return t.id === idC; });
-        if (!trC) return;
-        try {
-          var updatedC = tradesApi.closeManual(trC, px, ts);
-          await storage.saveTrade(updatedC);
-          ui.status('tradeStatus', updatedC.result === 'CANCELLED'
-            ? 'Limit order dibatalkan.'
-            : ('Posisi ditutup manual di ' + core.price(updatedC.exitPrice) + ' · ' + fmtMoney(updatedC.pnlUsd, true) + ' (' + (updatedC.r >= 0 ? '+' : '') + Number(updatedC.r).toFixed(2) + 'R).'), updatedC.result === 'LOSS', updatedC.result === 'WIN');
-          await refreshTradesAndEvaluate();
-        } catch (err) {
-          ui.status('tradeStatus', err && err.message || 'Gagal menutup posisi.', true);
-        }
+        enqueueTradeTask(async function () {
+          var bar = currentBar();
+          var px = bar ? bar.close : null;
+          var ts = replay ? replay.cursor : Math.floor(Date.now() / 1000);
+          var trC = sessionTrades.find(function (t) { return t.id === idC; });
+          if (!trC) return;
+          try {
+            var updatedC = tradesApi.closeManual(trC, px, ts);
+            await storage.saveTrade(updatedC);
+            ui.status('tradeStatus', updatedC.result === 'CANCELLED'
+              ? 'Limit order dibatalkan.'
+              : ('Posisi ditutup manual di ' + core.price(updatedC.exitPrice) + ' · ' + fmtMoney(updatedC.pnlUsd, true) + ' (' + (updatedC.r >= 0 ? '+' : '') + Number(updatedC.r).toFixed(2) + 'R).'), updatedC.result === 'LOSS', updatedC.result === 'WIN');
+            await runRefreshTradesAndEvaluate();
+          } catch (err) {
+            ui.status('tradeStatus', err && err.message || 'Gagal menutup posisi.', true);
+          }
+        });
       }
     });
   }
@@ -609,7 +994,7 @@
   function bindTradesTableActions() {
     var tbody = ui.byId('replayTradesBody');
     if (!tbody) return;
-    tbody.addEventListener('click', async function (evt) {
+    tbody.addEventListener('click', function (evt) {
       var expBtn = evt.target.closest('[data-export-journal]');
       if (expBtn) {
         var tid = expBtn.dataset.exportJournal;
@@ -635,8 +1020,10 @@
           return;
         }
         pendingDeleteTradeId = null;
-        await storage.deleteTrade(delId);
-        await refreshTradesAndEvaluate();
+        enqueueTradeTask(async function () {
+          await storage.deleteTrade(delId);
+          await runRefreshTradesAndEvaluate();
+        });
       }
     });
   }
@@ -644,11 +1031,14 @@
   function bindSessionControls() {
     var sel = ui.byId('sessionSelect');
     if (sel) {
-      sel.addEventListener('change', async function () {
-        storage.setActiveSessionId(sel.value);
-        activeSession = storage.getActiveSession();
-        pendingDeleteTradeId = null;
-        await refreshTradesAndEvaluate();
+      sel.addEventListener('change', function () {
+        enqueueTradeTask(async function () {
+          storage.setActiveSessionId(sel.value);
+          activeSession = storage.getActiveSession();
+          pendingDeleteTradeId = null;
+          await runRefreshTradesAndEvaluate();
+          autoCalculateLot();
+        });
       });
     }
 
@@ -657,7 +1047,7 @@
       currWrap.addEventListener('click', function (evt) {
         var btn = evt.target.closest('button[data-currency]');
         if (!btn) return;
-        displayCurrency = btn.dataset.currency;
+        displayCurrency = storage.saveDisplayCurrency ? storage.saveDisplayCurrency(btn.dataset.currency) : btn.dataset.currency;
         syncCurrencyButtons();
         renderSessionSelect();
         renderAccountBar();
@@ -669,7 +1059,7 @@
 
     var resetBtn = ui.byId('resetSessionBtn');
     if (resetBtn) {
-      resetBtn.addEventListener('click', async function () {
+      resetBtn.addEventListener('click', function () {
         if (!pendingResetSession) {
           pendingResetSession = true;
           resetBtn.textContent = 'Yakin Reset?';
@@ -686,54 +1076,124 @@
         pendingResetSession = false;
         resetBtn.textContent = 'Reset';
         resetBtn.classList.remove('is-confirm');
-        await storage.resetSessionTrades(activeSession ? activeSession.id : 'default');
-        ui.status('tradeStatus', 'Riwayat trade pada sesi ini telah di-reset ke saldo awal.', false, true);
-        await refreshTradesAndEvaluate();
+        enqueueTradeTask(async function () {
+          await storage.resetSessionTrades(activeSession ? activeSession.id : 'default');
+          ui.status('tradeStatus', 'Riwayat trade pada sesi ini telah di-reset ke saldo awal.', false, true);
+          await runRefreshTradesAndEvaluate();
+          autoCalculateLot();
+        });
       });
     }
 
+    var editBtn = ui.byId('editSessionBtn');
     var newBtn = ui.byId('newSessionBtn');
     var dlg = ui.byId('sessionDialog');
     var closeDlg = ui.byId('closeSessionDialog');
     var sessForm = ui.byId('newSessionForm');
+
+    function openSessionDialog(mode) {
+      if (!dlg || !sessForm) return;
+      sessionDialogMode = mode === 'edit' ? 'edit' : 'create';
+      var prof = storage.readProfileAccountParams();
+      usdIdrRate = prof.usdIdrRate || usdIdrRate;
+      var curSess = storage.getActiveSession();
+      var titleEl = ui.byId('sessionDialogTitle');
+      var nameField = ui.byId('sessionNameField');
+      var balLabel = ui.byId('sessionBalLabel');
+      var submitBtn = ui.byId('sessionSubmitBtn');
+      var isIdr = displayCurrency === 'IDR';
+
+      if (titleEl) titleEl.textContent = sessionDialogMode === 'edit' ? ('Atur Modal · ' + curSess.name) : 'Sesi Baru';
+      if (nameField) nameField.hidden = sessionDialogMode === 'edit';
+      if (sessForm.elements.sessionName) {
+        sessForm.elements.sessionName.required = sessionDialogMode !== 'edit';
+        sessForm.elements.sessionName.value = sessionDialogMode === 'edit' ? curSess.name : '';
+      }
+      if (balLabel) balLabel.textContent = isIdr ? 'Modal (Rp)' : 'Modal ($)';
+      if (submitBtn) submitBtn.textContent = sessionDialogMode === 'edit' ? 'Simpan Modal & Risiko' : 'Simpan Sesi';
+
+      var baseUsd = sessionDialogMode === 'edit' ? Number(curSess.initialBalanceUsd || prof.balanceUsd) : Number(prof.balanceUsd);
+      var baseRisk = sessionDialogMode === 'edit' ? Number(curSess.riskPercent || prof.riskPercent) : Number(prof.riskPercent);
+      if (sessForm.elements.sessionBalance) {
+        sessForm.elements.sessionBalance.value = isIdr ? String(Math.round(baseUsd * usdIdrRate)) : String(Math.round(baseUsd * 100) / 100);
+      }
+      if (sessForm.elements.sessionRisk) {
+        sessForm.elements.sessionRisk.value = String(baseRisk);
+      }
+      ui.status('sessionDialogStatus', '');
+      if (typeof dlg.showModal === 'function' && !dlg.open) dlg.showModal();
+      else dlg.setAttribute('open', '');
+    }
+
+    if (editBtn && dlg) {
+      editBtn.addEventListener('click', function () { openSessionDialog('edit'); });
+    }
     if (newBtn && dlg) {
-      newBtn.addEventListener('click', function () {
-        var prof = storage.readProfileAccountParams();
-        if (sessForm) {
-          if (sessForm.elements.sessionName) sessForm.elements.sessionName.value = '';
-          if (sessForm.elements.sessionBalance) sessForm.elements.sessionBalance.value = String(prof.balanceUsd);
-          if (sessForm.elements.sessionRisk) sessForm.elements.sessionRisk.value = String(prof.riskPercent);
-        }
-        if (typeof dlg.showModal === 'function' && !dlg.open) dlg.showModal();
-        else dlg.setAttribute('open', '');
-      });
+      newBtn.addEventListener('click', function () { openSessionDialog('create'); });
     }
     if (closeDlg && dlg) {
       closeDlg.addEventListener('click', function () { if (dlg.open) dlg.close(); });
     }
     if (sessForm && dlg) {
-      sessForm.addEventListener('submit', async function (evt) {
+      sessForm.addEventListener('submit', function (evt) {
         evt.preventDefault();
-        try {
-          storage.createSession(
-            sessForm.elements.sessionName.value,
-            Number(sessForm.elements.sessionBalance.value),
-            Number(sessForm.elements.sessionRisk.value)
-          );
-          if (dlg.open) dlg.close();
-          renderSessionSelect();
-          await refreshTradesAndEvaluate();
-          ui.status('tradeStatus', 'Sesi backtest baru dibuat & aktif.', false, true);
-        } catch (err) {
-          ui.status('sessionDialogStatus', err && err.message || 'Gagal membuat sesi.', true);
-        }
+        enqueueTradeTask(async function () {
+          try {
+            var rawInputBal = Number(sessForm.elements.sessionBalance.value);
+            var riskVal = Number(sessForm.elements.sessionRisk.value);
+            if (!Number.isFinite(rawInputBal) || rawInputBal <= 0) {
+              throw new Error('Modal harus berupa angka lebih besar dari 0.');
+            }
+            var balUsd = displayCurrency === 'IDR' ? (rawInputBal / usdIdrRate) : rawInputBal;
+            if (balUsd < 10) {
+              throw new Error(displayCurrency === 'IDR'
+                ? ('Modal minimal ' + fmtMoney(10, false) + '.')
+                : 'Modal minimal $10.');
+            }
+            if (sessionDialogMode === 'edit') {
+              storage.updateSessionParams(activeSession ? activeSession.id : 'default', balUsd, riskVal);
+              if (dlg.open) dlg.close();
+              profileParams = storage.readProfileAccountParams();
+              renderSessionSelect();
+              await runRefreshTradesAndEvaluate();
+              autoCalculateLot();
+              ui.status('tradeStatus', 'Modal simulasi diperbarui menjadi ' + fmtMoney(activeSession.initialBalanceUsd, false) + ' (Risiko ' + activeSession.riskPercent + '%).', false, true);
+            } else {
+              storage.createSession(sessForm.elements.sessionName.value, balUsd, riskVal);
+              if (dlg.open) dlg.close();
+              renderSessionSelect();
+              await runRefreshTradesAndEvaluate();
+              autoCalculateLot();
+              ui.status('tradeStatus', 'Sesi backtest baru dibuat & aktif.', false, true);
+            }
+          } catch (err) {
+            ui.status('sessionDialogStatus', err && err.message || 'Gagal menyimpan sesi.', true);
+          }
+        });
       });
     }
+
+    // Live-sync if Profile parameters change in another tab/page
+    window.addEventListener('storage', function (evt) {
+      if (!evt || !evt.key || /^(amy_default_|amy_account_|amy_usd_idr_rate|amy_sim_cashflows_v1|amy\.backtest\.)/.test(evt.key)) {
+        profileParams = storage.readProfileAccountParams();
+        displayCurrency = profileParams.currency || displayCurrency;
+        usdIdrRate = profileParams.usdIdrRate || usdIdrRate;
+        spreadUsd = profileParams.spreadUsd != null ? profileParams.spreadUsd : spreadUsd;
+        syncCurrencyButtons();
+        renderSessionSelect();
+        renderAccountBar();
+        renderActivePositions();
+        renderSessionTradesTable();
+        autoCalculateLot();
+      }
+    });
   }
 
   async function init() {
     renderSessionSelect();
     syncCurrencyButtons();
+    syncTapChips();
 
     var chartEl = ui.byId('chart');
     chart = new window.AmyCandleChart.CandleChart(chartEl, {
@@ -749,24 +1209,26 @@
         }
       },
       onChartTap: function (pt) {
+        // Only populate form when user explicitly enabled a Tap chip (never hijack casual chart taps!)
+        if (!tapTarget) return;
         var form = ui.byId('tradeForm');
         if (!form || !pt || !Number.isFinite(pt.price)) return;
         if (form.elements.bias.value === 'WAIT') return;
-        if (tapTarget === 'entry' && form.elements.orderType.value === 'MARKET') {
-          // Switch to LIMIT automatically if tapping chart for entry
-          form.elements.orderType.value = 'LIMIT';
-          var orderSeg = ui.byId('orderTypeSeg');
-          if (orderSeg) {
-            orderSeg.querySelectorAll('button[data-order-type]').forEach(function (b) {
-              b.classList.toggle('is-active', b.dataset.orderType === 'LIMIT');
-            });
-          }
+        var field = tapTarget;
+        if (field === 'entry' && form.elements.orderType.value === 'MARKET') {
+          syncOrderTypeButtons('LIMIT');
         }
-        if (form.elements[tapTarget]) {
-          form.elements[tapTarget].value = pt.price.toFixed(2);
-          if (tapTarget === 'stopLoss' || tapTarget === 'entry') autoCalculateLot();
+        if (field === 'stopLoss' || field === 'takeProfit') {
+          slTpPinnedByUser = true;
+        }
+        if (form.elements[field]) {
+          form.elements[field].value = pt.price.toFixed(2);
+          if (field === 'stopLoss' || field === 'entry') autoCalculateLot();
           else updateOrderPreview();
+          ui.status('tradeStatus', 'Harga ' + field.toUpperCase() + ' diisi dari chart: ' + pt.price.toFixed(2) + '.');
         }
+        tapTarget = null;
+        syncTapChips();
       }
     });
     chart.setTool(null);
@@ -796,7 +1258,8 @@
       speedMs: Number(ui.byId('speedSelect') ? ui.byId('speedSelect').value : 700),
       onEnd: function () {
         setPlayButtonLabel(false);
-        ui.status('replayStatus', 'Akhir pack tercapai. Buka Kelola Data Cloud untuk bulan lain.');
+        ui.status('replayStatus', 'Akhir pack tercapai. Lanjut ke bulan berikutnya di bawah atau buka Data Cloud.');
+        showNextMonthHandoff();
       },
       onChange: async function (payload) {
         if (!payload) return;
@@ -812,10 +1275,15 @@
         ui.text('replaySourceBadge', payload.sampleOnly ? 'Sample · Jan 2025' : payload.source);
         ui.status('replayStatus', payload.timeframe + ' · ' + visibleCandles.length.toLocaleString('id-ID') + ' candle terlihat · Sesi ' + sess);
 
-        // Auto-sync MARKET entry input to current close
-        var form = ui.byId('tradeForm');
-        if (form && bar && form.elements.orderType && form.elements.orderType.value === 'MARKET' && form.elements.bias.value !== 'WAIT') {
-          form.elements.entry.value = Number(bar.close).toFixed(2);
+        if (payload.atEnd || (payload.endTime && payload.cursor >= payload.endTime)) {
+          showNextMonthHandoff();
+        } else {
+          hideNextMonthBanner();
+        }
+
+        // Auto-sync MARKET entry (and unpinned SL/TP distance) to current close
+        if (bar) {
+          syncMarketOrderPrices(Number(bar.close));
         }
 
         persistReplayCursor();
@@ -929,6 +1397,8 @@
     bindFormControls();
     bindActivePositionActions();
     bindTradesTableActions();
+    bindBookmarkControls();
+    bindNextMonthButton();
 
     try {
       var startTs = (savedState && savedState.sourceId === initialSourceId) ? savedState.cursor : null;

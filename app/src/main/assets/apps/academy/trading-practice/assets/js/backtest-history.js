@@ -227,6 +227,7 @@
       var rStr = t.r != null ? ((Number(t.r) >= 0 ? '+' : '') + Number(t.r).toFixed(2) + 'R') : (t.plannedR != null ? ('Plan ' + Number(t.plannedR).toFixed(2) + 'R') : '—');
       var usdStr = t.pnlUsd != null ? fmtMoney(t.pnlUsd, true) : '—';
       var isConfirm = pendingDeleteId === t.id;
+      var isExported = Boolean(isClosed && storage.isTradeExportedToJournal && storage.isTradeExportedToJournal(t.id));
 
       return '<tr>' +
         '<td class="tabular">' + escapeHtml(core.formatWita(t.tradeTime, true)) + '</td>' +
@@ -237,7 +238,7 @@
         '<td><span class="bt-tag ' + resultTagClass(t.result) + '">' + escapeHtml(t.result || 'OPEN') + '</span></td>' +
         '<td class="num ' + (Number(t.r || 0) > 0 ? 'is-pos' : (Number(t.r || 0) < 0 ? 'is-neg' : '')) + '">' + escapeHtml(rStr) + '<br><span style="font-size:11px;color:var(--bt-text-muted)">' + escapeHtml(usdStr) + '</span></td>' +
         '<td><div class="bt-row-actions">' +
-          (isClosed ? '<button type="button" class="bt-btn-sm" data-export-journal="' + escapeHtml(t.id) + '">Kirim Jurnal</button>' : '') +
+          (isClosed ? '<button type="button" class="bt-btn-sm" data-export-journal="' + escapeHtml(t.id) + '"' + (isExported ? ' disabled' : '') + '>' + (isExported ? '✓ Di Jurnal' : 'Kirim Jurnal') + '</button>' : '') +
           '<button type="button" class="bt-btn-sm bt-btn-danger' + (isConfirm ? ' is-confirm' : '') + '" data-delete-trade="' + escapeHtml(t.id) + '">' + (isConfirm ? 'Yakin?' : 'Hapus') + '</button>' +
         '</div></td>' +
       '</tr>';
@@ -342,13 +343,28 @@
       currWrap.addEventListener('click', function (evt) {
         var btn = evt.target.closest('button[data-currency]');
         if (!btn) return;
-        displayCurrency = btn.dataset.currency;
+        displayCurrency = storage.saveDisplayCurrency ? storage.saveDisplayCurrency(btn.dataset.currency) : btn.dataset.currency;
         currWrap.querySelectorAll('button[data-currency]').forEach(function (b) {
           b.classList.toggle('is-active', b.dataset.currency === displayCurrency);
         });
         renderAll();
       });
     }
+
+    window.addEventListener('storage', function (evt) {
+      if (!evt || !evt.key || /^(amy_default_|amy_account_|amy_usd_idr_rate|amy_sim_cashflows_v1|amy\.backtest\.)/.test(evt.key)) {
+        profileParams = storage.readProfileAccountParams();
+        displayCurrency = profileParams.currency || displayCurrency;
+        usdIdrRate = profileParams.usdIdrRate || usdIdrRate;
+        if (currWrap) {
+          currWrap.querySelectorAll('button[data-currency]').forEach(function (b) {
+            b.classList.toggle('is-active', b.dataset.currency === displayCurrency);
+          });
+        }
+        renderSessionFilter();
+        renderAll();
+      }
+    });
 
     var modeWrap = ui.byId('curveModeToggle');
     if (modeWrap) {
@@ -385,7 +401,11 @@
           var rec = allTrades.find(function (t) { return t.id === id; });
           if (!rec) return;
           try {
-            storage.exportTradeToJournal(rec);
+            if (storage.exportTradeToJournalAsync) {
+              await storage.exportTradeToJournalAsync(rec);
+            } else {
+              storage.exportTradeToJournal(rec);
+            }
             expBtn.textContent = '✓ Di Jurnal';
             expBtn.disabled = true;
             ui.status('historyStatus', 'Trade berhasil dikirim ke Jurnal Trading (Mode SIM · Backtest Lab).', false, true);

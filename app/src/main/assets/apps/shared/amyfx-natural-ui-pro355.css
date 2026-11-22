@@ -1679,3 +1679,407 @@ html[data-amyfx-theme="light"] .profile-tab.is-active {
   color: #1656b8 !important;
 }
 
+/* ─── PENGATURAN (NATIVE MOBILE SETTINGS VERTICAL LAYOUT) ────────────────── */
+.app-header__action.is-active {
+  color: var(--primary-gold, #f5c451) !important;
+  border-color: color-mix(in srgb, var(--primary-gold, #f5c451) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--primary-gold, #f5c451) 14%, transparent) !important;
+}
+
+.settings-page {
+  gap: 18px !important;
+  padding-bottom: 72px !important;
+}
+
+body.amyfx-module--home .settings-page .profile-system-list .profile-row {
+  min-height: 52px !important;
+  padding: 10px 14px !important;
+  grid-template-columns: 34px 1fr 14px !important;
+}
+
+body.amyfx-module--home .settings-page .profile-system-list .profile-row .tool-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+}
+
+.settings-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 2px 4px;
+}
+
+.settings-topbar h1 {
+  margin: 0;
+  font-size: 1.24rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--amy-text, #f8fafc);
+}
+
+.settings-back-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.12));
+  background: var(--amy-surface-soft, rgba(255, 255, 255, 0.05));
+  color: var(--amy-text, #f8fafc);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-back-btn:hover {
+  border-color: var(--amy-accent, #69b7ff);
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-group-label {
+  display: block;
+  padding: 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amy-text-muted, #94a3b8);
+}
+
+.profile-row.danger-row.is-armed {
+  background: rgba(239, 68, 68, 0.16) !important;
+}
+
+.profile-row.danger-row.is-armed strong {
+  color: #f87171 !important;
+}
+
+html[data-amyfx-theme="light"] .settings-topbar h1 {
+  color: #111a25 !important;
+}
+
+html[data-amyfx-theme="light"] .settings-back-btn {
+  background: #ffffff !important;
+  border-color: rgba(50, 80, 130, 0.16) !important;
+  color: #16233a !important;
+}
+
+html[data-amyfx-theme="light"] .settings-group-label {
+  color: #556680 !important;
+}
+
+html[data-amyfx-theme="light"] .app-header__action.is-active {
+  color: #1656b8 !important;
+  border-color: rgba(33, 107, 219, 0.32) !important;
+  background: rgba(33, 107, 219, 0.1) !important;
+}
+
+/* ─── VIDEO & MEDIA HUB POLISH (ZERO FEATURE REMOVAL) ───────────────────── */
+.media-section-head--clean {
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.media-section-head--clean h2 {
+  margin: 0;
+  font-size: 1.24rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.media-count-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--amy-text-secondary, #94a3b8);
+  font-variant-numeric: tabular-nums;
+}
+
+.media-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.media-toolbar-clean {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.media-toolbar-clean .media-filter-pills {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.media-toolbar-clean .media-filter-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.media-toolbar-clean .media-filter-pills > button {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  padding: 7px 13px !important;
+  font-size: 0.78rem !important;
+  line-height: 1.2 !important;
+}
+
+.media-search-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.12));
+  background: var(--amy-surface-soft, rgba(255, 255, 255, 0.04));
+  color: var(--amy-text, #f5f8fc);
+  font-size: 0.86rem;
+  font-weight: 500;
+  box-sizing: border-box;
+}
+
+.media-search-input:focus {
+  outline: none;
+  border-color: var(--amy-accent, #69b7ff);
+}
+
+.media-empty-clean {
+  text-align: center;
+  padding: 28px 18px;
+  border-radius: 16px;
+  background: var(--amy-surface-solid, #131c2b);
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.1));
+  margin-top: 6px;
+}
+
+.media-empty-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--amy-text, #f5f8fc);
+  margin-bottom: 14px;
+}
+
+.media-card--clean .media-card-meta-line {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--amy-text-secondary, #94a3b8);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-card--clean.is-watched .media-card-title {
+  opacity: 0.82;
+}
+
+.media-watched-tag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.88);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.media-watch-btn {
+  flex: 0 0 auto !important;
+  min-width: 36px;
+  padding: 0 10px !important;
+}
+
+.media-watch-btn.is-watched {
+  color: #22c55e !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+}
+
+.media-card-btn.danger-btn.is-armed {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: rgba(239, 68, 68, 0.55) !important;
+  color: #fca5a5 !important;
+}
+
+.media-journal-shortcut--clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 13px 16px !important;
+  border-radius: 14px !important;
+}
+
+.media-journal-shortcut--clean strong {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--amy-text, #f5f8fc);
+}
+
+html[data-amyfx-theme="light"] .media-search-input {
+  background: #ffffff !important;
+  border-color: rgba(50, 80, 130, 0.16) !important;
+  color: #16233a !important;
+}
+
+html[data-amyfx-theme="light"] .media-empty-clean {
+  background: #ffffff !important;
+  border-color: rgba(50, 80, 130, 0.12) !important;
+}
+
+html[data-amyfx-theme="light"] .media-empty-title,
+html[data-amyfx-theme="light"] .media-journal-shortcut--clean strong {
+  color: #16233a !important;
+}
+
+html[data-amyfx-theme="light"] .media-card-btn.danger-btn.is-armed {
+  background: rgba(220, 38, 38, 0.12) !important;
+  color: #b91c1c !important;
+}
+
+/* ─── DAILY LOSS GUARD BANNER (AKUN PRO SIMULASI & JURNAL) ──────────────── */
+.amy-guard-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.1));
+  background: var(--amy-surface-soft, rgba(255, 255, 255, 0.03));
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+}
+
+.amy-guard-bar.is-warning {
+  border-color: rgba(245, 158, 11, 0.36);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.amy-guard-bar.is-locked {
+  border-color: rgba(239, 68, 68, 0.42);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.amy-guard-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.amy-guard-title {
+  display: block;
+  font-weight: 700;
+  color: var(--amy-text, #f5f8fc);
+  line-height: 1.3;
+}
+
+.amy-guard-bar.is-warning .amy-guard-title { color: #fbbf24; }
+.amy-guard-bar.is-locked .amy-guard-title { color: #f87171; }
+
+.amy-guard-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.74rem;
+  color: var(--amy-text-secondary, #94a3b8);
+  font-variant-numeric: tabular-nums;
+}
+
+.amy-guard-cfg-btn {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.14));
+  background: transparent;
+  color: var(--amy-text-secondary, #cbd5e1);
+  font-size: 0.74rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.amy-guard-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.1));
+  background: var(--amy-surface-soft, rgba(255, 255, 255, 0.03));
+  margin-bottom: 12px;
+  font-size: 0.76rem;
+}
+
+.amy-guard-editor label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--amy-text-secondary, #94a3b8);
+  font-weight: 600;
+}
+
+.amy-guard-editor input[type="number"] {
+  width: 58px;
+  min-height: 32px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.16));
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--amy-text, #f5f8fc);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+html[data-amyfx-theme="light"] .amy-guard-bar {
+  background: #f8fafc;
+  border-color: rgba(50, 80, 130, 0.14);
+}
+html[data-amyfx-theme="light"] .amy-guard-bar.is-warning {
+  background: #fffbeb;
+  border-color: rgba(217, 119, 6, 0.32);
+}
+html[data-amyfx-theme="light"] .amy-guard-bar.is-locked {
+  background: #fef2f2;
+  border-color: rgba(220, 38, 38, 0.32);
+}
+html[data-amyfx-theme="light"] .amy-guard-title { color: #16233a; }
+html[data-amyfx-theme="light"] .amy-guard-bar.is-warning .amy-guard-title { color: #b45309; }
+html[data-amyfx-theme="light"] .amy-guard-bar.is-locked .amy-guard-title { color: #dc2626; }
+html[data-amyfx-theme="light"] .amy-guard-sub { color: #52637c; }
+html[data-amyfx-theme="light"] .amy-guard-cfg-btn { color: #334155; border-color: rgba(50, 80, 130, 0.18); }
+html[data-amyfx-theme="light"] .amy-guard-editor { background: #ffffff; border-color: rgba(50, 80, 130, 0.16); }
+html[data-amyfx-theme="light"] .amy-guard-editor input[type="number"] { background: #f8fafc; color: #16233a; border-color: rgba(50, 80, 130, 0.2); }
+
+
+

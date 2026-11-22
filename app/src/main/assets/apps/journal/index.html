@@ -248,6 +248,8 @@
             </div>
           </div>
 
+          <div id="journalDailyGuardSlot" class="jl-guard-slot" aria-live="polite"></div>
+
           <div class="jp-journal-filter-bar jl-filter-bar" aria-label="Filter daftar trade">
             <div class="jp-seg" role="group" aria-label="Filter hasil trade">
               <button type="button" class="jp-seg-btn is-active" data-journal-result-filter="all">Semua</button>
@@ -382,6 +384,7 @@
               <p id="notesCount" class="jp-tabular">0 catatan</p>
             </div>
             <div class="jl-page-actions">
+              <button class="jl-ghost-btn jl-btn-compact" id="newSessionPlanBtn" type="button" title="Buat Rencana Sesi Harian">+ Rencana</button>
               <button class="jl-ghost-btn jl-btn-compact" id="syncNotesObsidianBtn" type="button" title="Sinkron ke Obsidian">Obsidian</button>
               <button class="jl-primary-btn" id="newNoteBtn" type="button">+ Tulis</button>
             </div>
@@ -390,6 +393,54 @@
           <div class="jl-notes-search-bar">
             <input id="notesSearchInput" class="jp-search-input" type="search" autocomplete="off" placeholder="Cari catatan...">
           </div>
+
+          <form class="jl-note-editor jl-session-plan-form" id="sessionPlanForm" hidden>
+            <div class="jl-note-editor-head">
+              <strong>Rencana Sesi Harian</strong>
+              <button class="jl-sheet-close jl-note-close" id="closeSessionPlanBtn" type="button" aria-label="Tutup rencana sesi">×</button>
+            </div>
+            <div class="jl-form-grid">
+              <label class="jl-field">
+                <span>Sesi Fokus</span>
+                <select id="planSessionInput">
+                  <option value="Asia">Asia</option>
+                  <option value="London">London</option>
+                  <option value="NY AM" selected>NY AM</option>
+                  <option value="NY PM">NY PM</option>
+                </select>
+              </label>
+              <label class="jl-field">
+                <span>Bias HTF</span>
+                <select id="planBiasInput">
+                  <option value="Bullish">Bullish</option>
+                  <option value="Bearish">Bearish</option>
+                  <option value="Netral" selected>Netral</option>
+                </select>
+              </label>
+            </div>
+            <div class="jl-form-grid">
+              <label class="jl-field">
+                <span>Level Kunci (PDH / PDL / Asia)</span>
+                <input id="planLevelsInput" type="text" maxlength="160" placeholder="PDH 2658 · PDL 2628 · Asia Low 2636">
+              </label>
+              <label class="jl-field">
+                <span>Batas Risiko Hari Ini</span>
+                <input id="planMaxLossInput" type="text" maxlength="80" value="Maks 2 SL / -3% modal">
+              </label>
+            </div>
+            <label class="jl-field">
+              <span>Area POI &amp; Skenario Entry</span>
+              <input id="planPoiInput" type="text" maxlength="240" placeholder="Tunggu sweep Asia Low lalu MSS M5 di FVG">
+            </label>
+            <label class="jl-field">
+              <span>Catatan Berita USD</span>
+              <input id="planNewsInput" type="text" maxlength="180" placeholder="CPI 20:30 WITA — hindari entry 15 mnt sebelum rilis">
+            </label>
+            <div class="jl-note-editor-foot">
+              <button class="jl-ghost-btn jl-btn-compact" id="cancelSessionPlanBtn" type="button">Batal</button>
+              <button class="jl-primary-btn jl-btn-compact" type="submit">Simpan ke Catatan</button>
+            </div>
+          </form>
 
           <form class="jl-note-editor" id="noteForm" hidden>
             <input id="noteId" type="hidden">
@@ -675,6 +726,18 @@
             <textarea id="journalEvaluationInput" rows="2" maxlength="4800" placeholder="Alasan entry atau catatan..."></textarea>
           </label>
 
+          <div class="jl-quick-block">
+            <span class="jl-field-label">Tag Disiplin (1-Tap)</span>
+            <div class="jl-mistake-chips" id="journalMistakeChips" role="group" aria-label="Pilih tag disiplin cepat">
+              <button type="button" class="jl-mistake-chip is-good" data-mistake-chip="Sesuai Plan">Sesuai Plan</button>
+              <button type="button" class="jl-mistake-chip" data-mistake-chip="FOMO">FOMO</button>
+              <button type="button" class="jl-mistake-chip" data-mistake-chip="Entry Kepagian">Entry Kepagian</button>
+              <button type="button" class="jl-mistake-chip" data-mistake-chip="Geser SL">Geser SL</button>
+              <button type="button" class="jl-mistake-chip" data-mistake-chip="Overtrade">Overtrade</button>
+              <button type="button" class="jl-mistake-chip" data-mistake-chip="Revenge Trade">Revenge</button>
+            </div>
+          </div>
+
           <div class="jl-form-grid">
             <label class="jl-field">
               <span>Kesalahan</span>
@@ -910,6 +973,7 @@
 
     <script src="./jszip.min.js?v=20260623" defer></script>
     <script src="../shared/account-sim-engine.js?v=20261121-sim1" defer></script>
+    <script src="../shared/trader-insights-engine.js?v=20261121-v1" defer></script>
     <script src="../shared/journal-analytics-pro.js?v=20261121-sim1" defer></script>
     <script src="./journal-analytics.js?v=20261120-1" defer></script>
     <script src="./app.js?v=20261121-sim1" defer></script>

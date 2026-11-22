@@ -38,6 +38,14 @@
       </button>
     </header>
 
+    <div id="intelSessionStrip" class="intel-session-strip is-safe" role="status" aria-live="polite">
+      <div class="intel-session-strip__copy">
+        <span class="intel-session-strip__tag" id="intelSessionBadge">SESI AMAN</span>
+        <strong class="intel-session-strip__title" id="intelSessionTitle">Memeriksa jadwal berita USD hari ini…</strong>
+      </div>
+      <button type="button" class="intel-session-strip__btn" id="intelSessionJumpBtn">Kalender</button>
+    </div>
+
     <nav class="intel-tabs" role="tablist" aria-label="Navigasi Market Intel">
       <button class="intel-tab active" data-tab="sentiment">Kompas Fundamental</button>
       <button class="intel-tab" data-tab="news">Berita</button>
@@ -87,6 +95,7 @@
   <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
   <script src="../shared/amyfx-market-state-contract-v1.js" data-amyfx-market-contract="v2"></script>
   <script src="../shared/market-intelligence.js"></script>
+  <script src="../shared/trader-insights-engine.js" data-amyfx-trader-insights="v1"></script>
   <script src="app.js"></script>
   <script type="module" src="ict-intel.js"></script>
   <script src="../shared/amyfx-blueprint-hotfix-v1.js" data-amyfx-blueprint-hotfix="v1"></script>

@@ -1878,3 +1878,264 @@ body.amyfx-module--journal article.jl-note-row {
   }
 }
 
+/* ─── DAILY LOSS GUARD (PRO LEDGER HAIRLINE) ─────────────────────────────── */
+.jl-guard-slot {
+  border-bottom: 1px solid var(--jl-line);
+}
+
+.jl-guard-slot:empty {
+  display: none;
+  border-bottom: none;
+}
+
+.jl-guard-slot .amy-guard-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 2px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.jl-guard-slot .amy-guard-bar.is-warning {
+  padding: 10px 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.32);
+  background: var(--jl-warn-bg);
+}
+
+.jl-guard-slot .amy-guard-bar.is-locked {
+  padding: 10px 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  background: var(--jl-neg-bg);
+}
+
+.jl-guard-slot .amy-guard-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.jl-guard-slot .amy-guard-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--jl-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.jl-guard-slot .amy-guard-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--jl-pos);
+}
+
+.jl-guard-slot .amy-guard-bar.is-warning .amy-guard-dot {
+  background: var(--jl-warn);
+}
+
+.jl-guard-slot .amy-guard-bar.is-locked .amy-guard-dot {
+  background: var(--jl-neg);
+}
+
+.jl-guard-slot .amy-guard-bar.is-locked .amy-guard-title {
+  color: var(--jl-neg);
+}
+
+.jl-guard-slot .amy-guard-sub {
+  font-size: 0.72rem;
+  color: var(--jl-muted);
+  line-height: 1.35;
+}
+
+.jl-guard-slot .amy-guard-cfg-btn {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--jl-line-strong);
+  background: transparent;
+  color: var(--jl-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.jl-guard-slot .amy-guard-cfg-btn:hover {
+  color: var(--jl-text);
+  border-color: var(--jl-accent);
+}
+
+.jl-guard-slot .amy-guard-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 10px 0 12px;
+  border-top: 1px dashed var(--jl-line);
+}
+
+.jl-guard-slot .amy-guard-editor[hidden] {
+  display: none !important;
+}
+
+.jl-guard-slot .amy-guard-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--jl-muted);
+}
+
+.jl-guard-slot .amy-guard-editor input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-surface);
+  color: var(--jl-text);
+  font-family: var(--jl-mono);
+  font-size: 0.82rem;
+}
+
+/* ─── 1-TAP MISTAKE / DISCIPLINE CHIPS IN TRADE SHEET ────────────────────── */
+.jl-mistake-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.jl-mistake-chip {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--jl-line-strong);
+  background: var(--jl-surface-subtle);
+  color: var(--jl-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background-color 0.14s ease, color 0.14s ease;
+}
+
+.jl-mistake-chip:hover {
+  border-color: var(--jl-accent);
+  color: var(--jl-text);
+}
+
+.jl-mistake-chip.is-active {
+  border-color: var(--jl-neg);
+  background: var(--jl-neg-bg);
+  color: var(--jl-neg);
+  font-weight: 700;
+}
+
+.jl-mistake-chip.is-good.is-active {
+  border-color: var(--jl-pos);
+  background: var(--jl-pos-bg);
+  color: var(--jl-pos);
+}
+
+/* ─── EVALUASI MINGGUAN (WEEKLY REVIEW) IN PERFORMA ──────────────────────── */
+.jp-weekly-review {
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--jl-line);
+  margin-bottom: 12px;
+}
+
+.jp-weekly-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.jp-weekly-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--jl-muted);
+  margin-bottom: 2px;
+}
+
+.jp-weekly-head strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.jp-weekly-head strong.is-pos {
+  color: var(--jl-pos);
+}
+
+.jp-weekly-head strong.is-neg {
+  color: var(--jl-neg);
+}
+
+.jp-weekly-meta {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--jl-muted);
+}
+
+.jp-weekly-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--jl-line);
+}
+
+.jp-weekly-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--jl-line);
+  font-size: 0.8rem;
+}
+
+.jp-weekly-row:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.jp-weekly-row span {
+  color: var(--jl-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.jp-weekly-row strong {
+  color: var(--jl-text);
+  font-weight: 700;
+  text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-weekly-row strong.is-pos {
+  color: var(--jl-pos);
+}
+
+.jp-weekly-row strong.is-neg {
+  color: var(--jl-neg);
+}
+
+

@@ -16,6 +16,7 @@
   let orderDialog = null;
   let orderSide = "BUY";
   let autoCloseBusy = false;
+  let guardEditorOpen = false;
 
   function engine() {
     return window.AmyAccountSimEngine;
@@ -132,7 +133,7 @@
         const req = tx.objectStore(META_STORE).get(JOURNALS_RECORD);
         req.onsuccess = () => {
           const val = req.result?.value;
-          finish(Array.isArray(val) && val.length ? val : legacy);
+          finish(Array.isArray(val) ? val : legacy);
         };
         req.onerror = () => finish(legacy);
         tx.onerror = () => finish(legacy);
@@ -432,6 +433,42 @@
     const netPipsDisplay = sim.formatPips(snap.netPipsTotal, { signed: true });
     const winRateDisplay = snap.closedCount > 0 ? `${snap.winRate}%` : "—";
 
+    const guardApi = window.AmyTraderInsights;
+    const simClosedToday = cachedJournals.filter(
+      (e) => sim.getEntryAccountMode(e) === "SIM" && !(sim.isBacktestJournal && sim.isBacktestJournal(e))
+    );
+    const guardState = guardApi
+      ? guardApi.evaluateDailyLossGuard(simClosedToday, {
+          balanceUsd: snap.initialCapitalUsd || snap.balanceUsd,
+          config: guardApi.readDailyGuardConfig()
+        })
+      : null;
+
+    const guardToneClass = guardState?.status === "LOCKED"
+      ? "is-locked"
+      : guardState?.status === "WARNING"
+      ? "is-warning"
+      : "";
+
+    const guardHtml = guardState
+      ? `
+        <div class="amy-guard-bar ${guardToneClass}" data-acc-guard-bar>
+          <div class="amy-guard-copy">
+            <strong class="amy-guard-title">${escapeHtml(guardState.headline)}</strong>
+            <span class="amy-guard-sub">${escapeHtml(guardState.detail || `Batas: ${guardState.config.maxDailySl} SL · -${guardState.config.maxDailyLossPct}%`)}</span>
+          </div>
+          <button type="button" class="amy-guard-cfg-btn" data-acc-guard-toggle>${guardEditorOpen ? "Tutup" : "Batas"}</button>
+        </div>
+        ${guardEditorOpen ? `
+          <div class="amy-guard-editor" data-acc-guard-editor>
+            <label>Maks SL <input type="number" min="1" max="10" step="1" data-acc-guard-sl value="${guardState.config.maxDailySl}"></label>
+            <label>Maks Rugi % <input type="number" min="0.5" max="25" step="0.5" data-acc-guard-pct value="${guardState.config.maxDailyLossPct}"></label>
+            <button type="button" class="amy-guard-cfg-btn" data-acc-guard-save>Simpan</button>
+          </div>
+        ` : ""}
+      `
+      : "";
+
     slot.innerHTML = `
       <section class="acc-cockpit" data-testid="account-pro-cockpit" aria-label="Cockpit Akun Simulasi Pro">
         <div class="acc-head">
@@ -466,6 +503,8 @@
             <strong class="acc-hero-today-val acc-tabular ${todayValClass}" data-acc-today>${escapeHtml(todayValText)}</strong>
           </div>
         </div>
+
+        ${guardHtml}
 
         <div class="acc-positions">
           ${positionsHtml}
@@ -557,6 +596,22 @@
 
     slot.querySelector("[data-acc-close-all]")?.addEventListener("click", () => {
       closeAllPositions();
+    });
+
+    slot.querySelector("[data-acc-guard-toggle]")?.addEventListener("click", () => {
+      guardEditorOpen = !guardEditorOpen;
+      renderCockpit();
+    });
+
+    slot.querySelector("[data-acc-guard-save]")?.addEventListener("click", () => {
+      const guardApi = window.AmyTraderInsights;
+      if (!guardApi) return;
+      const maxSl = Number(slot.querySelector("[data-acc-guard-sl]")?.value);
+      const maxPct = Number(slot.querySelector("[data-acc-guard-pct]")?.value);
+      guardApi.saveDailyGuardConfig({ enabled: true, maxDailySl: maxSl, maxDailyLossPct: maxPct });
+      guardEditorOpen = false;
+      window.showToast?.("Batas risiko harian diperbarui.");
+      renderCockpit();
     });
   }
 

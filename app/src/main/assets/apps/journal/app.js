@@ -489,11 +489,9 @@ function bindEvents() {
       const msg = res.target === 'native'
         ? `Berhasil disinkronkan ke Obsidian (${res.count} item)!`
         : `Markdown tersimpan (${res.count} item)!`;
-      if (typeof window.showToast === 'function') window.showToast(msg);
-      else alert(msg);
+      window.showToast?.(msg);
     } else {
-      if (typeof window.showToast === 'function') window.showToast(res.message || "Gagal sinkronisasi.");
-      else alert(res.message || "Gagal sinkronisasi.");
+      window.showToast?.(res.message || "Gagal sinkronisasi.");
     }
   };
 
@@ -576,7 +574,14 @@ function bindEvents() {
     renderJournals();
   }, 140);
   dom.journalSearchInput?.addEventListener("input", debouncedJournalSearch);
-  dom.newNoteBtn?.addEventListener("click", () => openNoteForm(null));
+  dom.newNoteBtn?.addEventListener("click", () => {
+    closeSessionPlanForm();
+    openNoteForm(null);
+  });
+  document.getElementById("newSessionPlanBtn")?.addEventListener("click", openSessionPlanForm);
+  document.getElementById("closeSessionPlanBtn")?.addEventListener("click", closeSessionPlanForm);
+  document.getElementById("cancelSessionPlanBtn")?.addEventListener("click", closeSessionPlanForm);
+  document.getElementById("sessionPlanForm")?.addEventListener("submit", saveSessionPlanForm);
   dom.cancelNoteBtn?.addEventListener("click", closeNoteForm);
   document.getElementById("closeNoteFormBtn")?.addEventListener("click", closeNoteForm);
   document.getElementById("notesSearchInput")?.addEventListener("input", (e) => {
@@ -585,6 +590,9 @@ function bindEvents() {
   });
   dom.noteForm?.addEventListener("submit", saveNote);
   dom.notesList?.addEventListener("click", handleNoteActions);
+  document.getElementById("journalMistakeChips")?.addEventListener("click", handleMistakeChipClick);
+  dom.journalMistakesInput?.addEventListener("input", syncMistakeChipsUi);
+  dom.journalEmotionInput?.addEventListener("input", syncMistakeChipsUi);
   dom.resetJournalBtn?.addEventListener("click", closeJournalEditor);
   dom.journalForm?.addEventListener("submit", saveJournalForm);
   dom.journalFileInput?.addEventListener("change", handleJournalFilePick);
@@ -681,10 +689,25 @@ function bindEvents() {
 }
 
 
+function syncSidebarInertState() {
+  if (!dom.sideDrawer) return;
+  const isDesktop = window.innerWidth >= 1024;
+  const isOpen = dom.sideDrawer.classList.contains("is-open");
+  const shouldHide = !isDesktop && !isOpen;
+  dom.sideDrawer.setAttribute("aria-hidden", shouldHide ? "true" : "false");
+  if ("inert" in dom.sideDrawer) {
+    dom.sideDrawer.inert = shouldHide;
+  } else if (shouldHide) {
+    dom.sideDrawer.setAttribute("inert", "");
+  } else {
+    dom.sideDrawer.removeAttribute("inert");
+  }
+}
+
 function openSidebar() {
   if (!dom.sideDrawer || !dom.sidebarBackdrop) return;
   dom.sideDrawer.classList.add("is-open");
-  dom.sideDrawer.setAttribute("aria-hidden", "false");
+  syncSidebarInertState();
   dom.sidebarBackdrop.hidden = false;
   document.body.classList.add("sidebar-open");
 }
@@ -692,9 +715,114 @@ function openSidebar() {
 function closeSidebar() {
   if (!dom.sideDrawer || !dom.sidebarBackdrop) return;
   dom.sideDrawer.classList.remove("is-open");
-  dom.sideDrawer.setAttribute("aria-hidden", "true");
+  syncSidebarInertState();
   dom.sidebarBackdrop.hidden = true;
   document.body.classList.remove("sidebar-open");
+}
+
+window.addEventListener("resize", syncSidebarInertState);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", syncSidebarInertState, { once: true });
+} else {
+  setTimeout(syncSidebarInertState, 0);
+}
+
+function openJournalConfirmDialog({ title = "Konfirmasi", message = "", confirmLabel = "Hapus", danger = true } = {}) {
+  return new Promise((resolve) => {
+    let dialog = document.getElementById("journalInlineConfirmDialog");
+    if (!dialog) {
+      dialog = document.createElement("dialog");
+      dialog.id = "journalInlineConfirmDialog";
+      Object.assign(dialog.style, {
+        width: "min(92vw, 360px)",
+        padding: "0",
+        borderRadius: "18px",
+        border: "1px solid var(--amy-border-strong, rgba(168,198,232,0.24))",
+        background: "var(--amy-surface-strong, #111b2a)",
+        color: "var(--amy-text, #f3f7fc)",
+        boxShadow: "0 20px 56px rgba(0,0,0,0.45)"
+      });
+      document.body.appendChild(dialog);
+    }
+    dialog.innerHTML = `
+      <div style="padding:18px 18px 16px; display:flex; flex-direction:column; gap:12px;">
+        <strong style="font-size:16px; color:var(--amy-text, #f3f7fc);">${escapeHtml(title)}</strong>
+        <p style="margin:0; font-size:13.5px; line-height:1.5; color:var(--amy-text-muted, #9eb0c7);">${escapeHtml(message)}</p>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px;">
+          <button type="button" data-confirm-cancel style="padding:9px 14px; border-radius:12px; border:1px solid var(--amy-border, rgba(148,163,184,0.25)); background:var(--amy-surface-soft, rgba(255,255,255,0.06)); color:var(--amy-text, #f3f7fc); font-weight:700; cursor:pointer;">Batal</button>
+          <button type="button" data-confirm-ok style="padding:9px 14px; border-radius:12px; border:0; background:${danger ? "#e05252" : "var(--amy-accent, #69b7ff)"}; color:${danger ? "#ffffff" : "#07111d"}; font-weight:800; cursor:pointer;">${escapeHtml(confirmLabel)}</button>
+        </div>
+      </div>
+    `;
+    let settled = false;
+    const finish = (val) => {
+      if (settled) return;
+      settled = true;
+      try { if (dialog.open) dialog.close(); } catch (_) { dialog.removeAttribute("open"); }
+      resolve(val);
+    };
+    dialog.querySelector("[data-confirm-cancel]")?.addEventListener("click", () => finish(false));
+    dialog.querySelector("[data-confirm-ok]")?.addEventListener("click", () => finish(true));
+    dialog.oncancel = (e) => { e.preventDefault(); finish(false); };
+    dialog.onclick = (e) => { if (e.target === dialog) finish(false); };
+    if (typeof dialog.showModal === "function") {
+      try { dialog.showModal(); } catch (_) { dialog.setAttribute("open", ""); }
+    } else {
+      dialog.setAttribute("open", "");
+    }
+  });
+}
+
+function openJournalPinDialog({ title = "PIN Jurnal", placeholder = "Minimal 4 angka", submitLabel = "Simpan" } = {}) {
+  return new Promise((resolve) => {
+    let dialog = document.getElementById("journalInlinePinDialog");
+    if (!dialog) {
+      dialog = document.createElement("dialog");
+      dialog.id = "journalInlinePinDialog";
+      Object.assign(dialog.style, {
+        width: "min(92vw, 350px)",
+        padding: "0",
+        borderRadius: "18px",
+        border: "1px solid var(--amy-border-strong, rgba(168,198,232,0.24))",
+        background: "var(--amy-surface-strong, #111b2a)",
+        color: "var(--amy-text, #f3f7fc)",
+        boxShadow: "0 20px 56px rgba(0,0,0,0.45)"
+      });
+      document.body.appendChild(dialog);
+    }
+    dialog.innerHTML = `
+      <form method="dialog" style="padding:18px 18px 16px; display:flex; flex-direction:column; gap:12px;">
+        <strong style="font-size:16px; color:var(--amy-text, #f3f7fc);">${escapeHtml(title)}</strong>
+        <input type="password" inputmode="numeric" autocomplete="one-time-code" data-pin-input placeholder="${escapeHtml(placeholder)}" style="width:100%; box-sizing:border-box; padding:11px 12px; border-radius:12px; border:1px solid var(--amy-border, rgba(148,163,184,0.28)); background:var(--amy-surface-soft, rgba(255,255,255,0.06)); color:var(--amy-text, #f3f7fc); font-size:15px;">
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px;">
+          <button type="button" data-pin-cancel style="padding:9px 14px; border-radius:12px; border:1px solid var(--amy-border, rgba(148,163,184,0.25)); background:var(--amy-surface-soft, rgba(255,255,255,0.06)); color:var(--amy-text, #f3f7fc); font-weight:700; cursor:pointer;">Batal</button>
+          <button type="submit" style="padding:9px 14px; border-radius:12px; border:0; background:var(--amy-accent, #69b7ff); color:#07111d; font-weight:800; cursor:pointer;">${escapeHtml(submitLabel)}</button>
+        </div>
+      </form>
+    `;
+    const form = dialog.querySelector("form");
+    const input = dialog.querySelector("[data-pin-input]");
+    let settled = false;
+    const finish = (val) => {
+      if (settled) return;
+      settled = true;
+      try { if (dialog.open) dialog.close(); } catch (_) { dialog.removeAttribute("open"); }
+      resolve(val);
+    };
+    dialog.querySelector("[data-pin-cancel]")?.addEventListener("click", () => finish(null));
+    form?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      finish(String(input?.value || "").trim());
+    });
+    dialog.oncancel = (e) => { e.preventDefault(); finish(null); };
+    dialog.onclick = (e) => { if (e.target === dialog) finish(null); };
+    if (typeof dialog.showModal === "function") {
+      try { dialog.showModal(); } catch (_) { dialog.setAttribute("open", ""); }
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    setTimeout(() => input?.focus(), 30);
+  });
 }
 
 function initBackGuard() {
@@ -1704,7 +1832,11 @@ function syncSelectControls() {
 async function deleteSelectedItems() {
   const ids = [...state.selectedIds];
   if (!ids.length) return;
-  const confirmed = window.confirm(`Hapus ${ids.length} item terpilih?`);
+  const confirmed = await openJournalConfirmDialog({
+    title: "Hapus Item Terpilih",
+    message: `Hapus ${ids.length} item terpilih dari aplikasi?`,
+    confirmLabel: "Hapus"
+  });
   if (!confirmed) return;
 
   const deleted = await deleteItemsByIds(ids);
@@ -3315,7 +3447,11 @@ async function deleteItem(id, options = {}) {
   const item = state.items.find((entry) => entry.id === id);
   if (!item) return false;
   if (!options.skipConfirm) {
-    const confirmed = window.confirm(`Hapus "${item.title}" dari aplikasi?`);
+    const confirmed = await openJournalConfirmDialog({
+      title: "Hapus Item",
+      message: `Hapus "${item.title}" dari aplikasi?`,
+      confirmLabel: "Hapus"
+    });
     if (!confirmed) return false;
   }
   return deleteItemsByIds([id]);
@@ -3450,7 +3586,11 @@ function closeFullscreenViewer() {
 async function deleteActiveFullscreenItem() {
   const item = state.activeFullscreenItem;
   if (!item?.id) return;
-  const confirmed = window.confirm(`Hapus "${item.title || item.mediaName || "file ini"}" dari aplikasi?`);
+  const confirmed = await openJournalConfirmDialog({
+    title: "Hapus File",
+    message: `Hapus "${item.title || item.mediaName || "file ini"}" dari aplikasi?`,
+    confirmLabel: "Hapus"
+  });
   if (!confirmed) return;
 
   if (item.isJournalAttachment || item.journalId || String(item.id).includes(":")) {
@@ -4389,18 +4529,15 @@ function makeFullscreenLoading() {
 }
 
 async function openFullscreenItemInNewTab(item) {
-  const popup = window.open("", "_blank");
-  if (popup) popup.opener = null;
   const source = await getFullscreenSource(item);
-  if (!source) {
-    if (popup) popup.close();
-    return;
-  }
-  if (popup) {
-    popup.location.href = source;
-  } else {
-    window.open(source, "_blank", "noopener");
-  }
+  if (!source) return;
+  const link = document.createElement("a");
+  link.href = source;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.append(link);
+  link.click();
+  link.remove();
 }
 
 async function downloadFullscreenItem(item) {
@@ -4429,18 +4566,15 @@ function closeDocumentDialog() {
 async function openActiveDocumentInNewTab() {
   const item = state.activeDocument;
   if (!item) return;
-  const popup = window.open("", "_blank");
-  if (popup) popup.opener = null;
   const source = await getDocumentOpenSource(item);
-  if (!source) {
-    if (popup) popup.close();
-    return;
-  }
-  if (popup) {
-    popup.location.href = source;
-  } else {
-    window.open(source, "_blank", "noopener");
-  }
+  if (!source) return;
+  const link = document.createElement("a");
+  link.href = source;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.append(link);
+  link.click();
+  link.remove();
 }
 
 async function downloadActiveDocument() {
@@ -5767,7 +5901,11 @@ function sanitizeFileName(value) {
 }
 
 async function setLocalPin() {
-  const pin = window.prompt("Masukkan PIN baru minimal 4 angka:");
+  const pin = await openJournalPinDialog({
+    title: "Pasang PIN Jurnal",
+    placeholder: "Masukkan PIN baru (min. 4 angka)",
+    submitLabel: "Aktifkan"
+  });
   if (!pin) return;
   if (!/^\d{4,}$/.test(pin)) return window.showToast("PIN minimal 4 angka.");
   localStorage.setItem(PIN_KEY, await hashText(pin));
@@ -5775,8 +5913,12 @@ async function setLocalPin() {
 }
 
 async function clearLocalPin() {
-  if (!localStorage.getItem(PIN_KEY)) return;
-  const pin = window.prompt("Masukkan PIN lama untuk menghapus:");
+  if (!localStorage.getItem(PIN_KEY)) return window.showToast("Belum ada PIN aktif.");
+  const pin = await openJournalPinDialog({
+    title: "Hapus PIN Jurnal",
+    placeholder: "Masukkan PIN lama untuk konfirmasi",
+    submitLabel: "Hapus PIN"
+  });
   if (!pin) return;
   if (await hashText(pin) !== localStorage.getItem(PIN_KEY)) return window.showToast("PIN salah.");
   localStorage.removeItem(PIN_KEY);
@@ -6114,13 +6256,18 @@ function getJournalFormData() {
   const draft = {
     ...(existing ? {
       source: existing.source,
+      positionId: existing.positionId,
+      pair: existing.pair,
       lot: existing.lot,
       entryPrice: existing.entryPrice,
       exitPrice: existing.exitPrice,
       sl: existing.sl,
       tp: existing.tp,
       pnlPips: existing.pnlPips,
+      riskMoney: existing.riskMoney,
       closeReason: existing.closeReason,
+      entryTime: existing.entryTime,
+      exitTime: existing.exitTime,
       openedAt: existing.openedAt,
       closedAt: existing.closedAt
     } : {}),
@@ -6259,10 +6406,10 @@ function renderJournals() {
       if (emptyText) emptyText.textContent = "Coba ubah filter hasil atau kata kunci pencarian.";
     } else if (state.journalAccountFilter === "SIM") {
       if (emptyTitle) emptyTitle.textContent = "Belum ada riwayat Simulasi";
-      if (emptyText) emptyText.textContent = "Buka & tutup posisi di Cockpit Akun Pro Beranda (atau klik + Catat Trade mode Simulasi) agar tercatat otomatis di sini.";
+      if (emptyText) emptyText.textContent = "Buka & tutup posisi di Cockpit Akun Pro di Profil (atau klik + Catat Trade mode Simulasi) agar tercatat otomatis di sini.";
     } else {
       if (emptyTitle) emptyTitle.textContent = "Belum ada trade Real tercatat";
-      if (emptyText) emptyText.textContent = "Klik + Catat Trade untuk mulai merekam eksekusi XAU/USD Real. Trade simulasi dari Beranda dipisahkan di tab Simulasi.";
+      if (emptyText) emptyText.textContent = "Klik + Catat Trade untuk mulai merekam eksekusi XAU/USD Real. Trade simulasi dari Profil dipisahkan di tab Simulasi.";
     }
   }
   const modeSuffix = state.journalAccountFilter === "SIM" ? " (Simulasi)" : state.journalAccountFilter === "REAL" ? " (Real)" : "";
@@ -6276,6 +6423,142 @@ function renderJournals() {
   const fragment = document.createDocumentFragment();
   grouped.forEach(([date, rows]) => fragment.append(createJournalDateGroup(date, rows)));
   dom.journalList.append(fragment);
+  renderJournalDailyGuard(modeScoped);
+}
+
+function renderJournalDailyGuard(entries) {
+  const slot = document.getElementById("journalDailyGuardSlot");
+  const insights = window.AmyTraderInsights;
+  if (!slot || !insights || typeof insights.evaluateDailyLossGuard !== "function") return;
+
+  const cfg = insights.readDailyGuardConfig();
+  const simApi = window.AmyAccountSimEngine;
+  const simParams = simApi?.readParams ? simApi.readParams() : null;
+  const profileBal = Number(localStorage.getItem("amy_default_balance")) || Number(simParams?.baseBalanceUsd) || 5000;
+  let balanceUsd = profileBal;
+  if (state.journalAccountFilter === "SIM" && simApi?.computeAccountSnapshot) {
+    const snap = simApi.computeAccountSnapshot({
+      params: simParams || undefined,
+      cashflows: simApi.readCashflows ? simApi.readCashflows() : [],
+      journals: state.journals
+    });
+    balanceUsd = Number(snap?.initialCapitalUsd || snap?.balanceUsd || profileBal || 5000);
+  }
+
+  const todayKey = typeof insights.toWitaDateKey === "function"
+    ? insights.toWitaDateKey(Date.now())
+    : new Date().toISOString().slice(0, 10);
+
+  const guardEntries = state.journalAccountFilter === "SIM" && simApi?.isBacktestJournal
+    ? entries.filter((e) => !simApi.isBacktestJournal(e))
+    : entries;
+
+  const guard = insights.evaluateDailyLossGuard(guardEntries, {
+    config: cfg,
+    balanceUsd,
+    todayKey
+  });
+
+  const toneClass = guard.status === "LOCKED"
+    ? "is-locked"
+    : guard.status === "WARNING"
+    ? "is-warning"
+    : "is-safe";
+
+  const wasOpen = slot.dataset.editorOpen === "1";
+
+  slot.innerHTML = `
+    <div class="amy-guard-bar ${toneClass}">
+      <div class="amy-guard-copy">
+        <span class="amy-guard-title">
+          <span class="amy-guard-dot" aria-hidden="true"></span>
+          ${escapeHtml(guard.headline)}
+        </span>
+        ${guard.detail ? `<span class="amy-guard-sub jp-tabular">${escapeHtml(guard.detail)}</span>` : ""}
+      </div>
+      <button type="button" class="amy-guard-cfg-btn" data-jl-guard-toggle aria-expanded="${wasOpen ? "true" : "false"}">${wasOpen ? "Tutup" : "Batas"}</button>
+    </div>
+    <form class="amy-guard-editor" data-jl-guard-form ${wasOpen ? "" : "hidden"}>
+      <label>
+        <span>Maks SL / Hari</span>
+        <input type="number" name="maxDailySl" min="1" max="10" step="1" value="${cfg.maxDailySl}">
+      </label>
+      <label>
+        <span>Maks Rugi (%)</span>
+        <input type="number" name="maxDailyLossPct" min="0.5" max="25" step="0.5" value="${cfg.maxDailyLossPct}">
+      </label>
+      <button type="submit" class="jl-primary-btn jl-btn-compact">Simpan</button>
+    </form>
+  `;
+
+  const toggleBtn = slot.querySelector("[data-jl-guard-toggle]");
+  const formEl = slot.querySelector("[data-jl-guard-form]");
+  toggleBtn?.addEventListener("click", () => {
+    const nextOpen = slot.dataset.editorOpen !== "1";
+    slot.dataset.editorOpen = nextOpen ? "1" : "0";
+    if (formEl) formEl.hidden = !nextOpen;
+    toggleBtn.textContent = nextOpen ? "Tutup" : "Batas";
+    toggleBtn.setAttribute("aria-expanded", nextOpen ? "true" : "false");
+  });
+
+  formEl?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const maxDailySl = Number(formEl.elements.maxDailySl?.value);
+    const maxDailyLossPct = Number(formEl.elements.maxDailyLossPct?.value);
+    insights.saveDailyGuardConfig({ enabled: true, maxDailySl, maxDailyLossPct });
+    slot.dataset.editorOpen = "0";
+    renderJournalDailyGuard(entries);
+    if (typeof showToast === "function") showToast("Batas risiko harian diperbarui");
+  });
+}
+
+function syncMistakeChipsUi() {
+  const wrap = document.getElementById("journalMistakeChips");
+  if (!wrap) return;
+  const mistakeText = String(dom.journalMistakesInput?.value || "").toLowerCase();
+  const emotionText = String(dom.journalEmotionInput?.value || "").toLowerCase();
+  wrap.querySelectorAll("[data-mistake-chip]").forEach((btn) => {
+    const tag = btn.dataset.mistakeChip || "";
+    const low = tag.toLowerCase();
+    const active = tag === "Sesuai Plan"
+      ? (!mistakeText.trim() && (emotionText.includes("sesuai plan") || emotionText.includes("disiplin")))
+      : mistakeText.includes(low);
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
+function handleMistakeChipClick(event) {
+  const btn = event.target.closest("[data-mistake-chip]");
+  if (!btn || !dom.journalMistakesInput) return;
+  const tag = btn.dataset.mistakeChip || "";
+  if (!tag) return;
+
+  if (tag === "Sesuai Plan") {
+    const isAlready = btn.classList.contains("is-active");
+    dom.journalMistakesInput.value = "";
+    if (dom.journalEmotionInput) {
+      dom.journalEmotionInput.value = isAlready ? "" : "Disiplin · Sesuai Plan";
+    }
+    syncMistakeChipsUi();
+    return;
+  }
+
+  const parts = String(dom.journalMistakesInput.value || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const idx = parts.findIndex((p) => p.toLowerCase() === tag.toLowerCase());
+  if (idx >= 0) {
+    parts.splice(idx, 1);
+  } else {
+    parts.push(tag);
+  }
+  dom.journalMistakesInput.value = parts.join(", ");
+  if (dom.journalEmotionInput && /sesuai plan/i.test(dom.journalEmotionInput.value)) {
+    dom.journalEmotionInput.value = "";
+  }
+  syncMistakeChipsUi();
 }
 
 function groupJournalsByDate(journals) {
@@ -6557,7 +6840,11 @@ async function removeJournalAttachment(journalId, fileId, options = {}) {
   const attachment = (journal.attachments || []).find((entry) => entry.fileId === fileId);
   if (!attachment) return false;
   if (!options.skipConfirm) {
-    const confirmed = window.confirm(`Hapus lampiran "${attachment.name || "jurnal"}"?`);
+    const confirmed = await openJournalConfirmDialog({
+      title: "Hapus Lampiran",
+      message: `Hapus lampiran "${attachment.name || "jurnal"}"?`,
+      confirmLabel: "Hapus"
+    });
     if (!confirmed) return false;
   }
   await deleteFileRecord(fileId).catch(() => {});
@@ -6627,6 +6914,7 @@ function editJournal(id) {
   dom.journalMistakesInput.value = journal.mistakes || "";
   dom.journalLessonsInput.value = journal.lessons || "";
   dom.journalEmotionInput.value = journal.emotion || "";
+  syncMistakeChipsUi();
   dom.journalFileMeta.textContent = "Tambah screenshot baru bila perlu";
   dom.journalMessage.textContent = "Mode edit trade aktif.";
   if (dom.resetJournalBtn) dom.resetJournalBtn.textContent = "Batal Edit";
@@ -6637,8 +6925,13 @@ function editJournal(id) {
 async function deleteJournal(id, options = {}) {
   const journal = state.journals.find((entry) => entry.id === id);
   if (!journal) return;
-  if (!options.skipConfirm && typeof window.confirm === "function") {
-    if (!window.confirm(`Hapus trade "${journal.title}"?`)) return;
+  if (!options.skipConfirm) {
+    const confirmed = await openJournalConfirmDialog({
+      title: "Hapus Trade",
+      message: `Hapus trade "${journal.title}" dari jurnal?`,
+      confirmLabel: "Hapus"
+    });
+    if (!confirmed) return;
   }
   await Promise.all((journal.attachments || []).map((attachment) => deleteFileRecord(attachment.fileId).catch(() => {})));
   state.journals = state.journals.filter((entry) => entry.id !== id);
@@ -8426,6 +8719,67 @@ function closeNoteForm() {
   const submitBtn = dom.noteForm.querySelector('button[type="submit"]');
   if (submitBtn) submitBtn.textContent = "Simpan";
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function openSessionPlanForm() {
+  const form = document.getElementById("sessionPlanForm");
+  if (!form) return;
+  if (dom.noteForm && !dom.noteForm.hidden) {
+    dom.noteForm.hidden = true;
+  }
+  form.hidden = false;
+  const maxLossEl = document.getElementById("planMaxLossInput");
+  if (maxLossEl && window.AmyTraderInsights?.readDailyGuardConfig) {
+    const cfg = window.AmyTraderInsights.readDailyGuardConfig();
+    maxLossEl.value = `Maks ${cfg.maxDailySl} SL / -${cfg.maxDailyLossPct}% modal`;
+  }
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => document.getElementById("planLevelsInput")?.focus(), 120);
+}
+
+function closeSessionPlanForm() {
+  const form = document.getElementById("sessionPlanForm");
+  if (!form) return;
+  form.hidden = true;
+  form.reset();
+}
+
+function saveSessionPlanForm(e) {
+  e.preventDefault();
+  const insights = window.AmyTraderInsights;
+  const now = new Date();
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const planInput = {
+    dateLabel: todayIso,
+    session: document.getElementById("planSessionInput")?.value || "NY AM",
+    bias: document.getElementById("planBiasInput")?.value || "Netral",
+    keyLevels: document.getElementById("planLevelsInput")?.value || "",
+    poiPlan: document.getElementById("planPoiInput")?.value || "",
+    maxLoss: document.getElementById("planMaxLossInput")?.value || "Maks 2 SL / -3% modal",
+    newsNote: document.getElementById("planNewsInput")?.value || ""
+  };
+  const built = insights && typeof insights.buildSessionPlanNote === "function"
+    ? insights.buildSessionPlanNote(planInput)
+    : {
+        title: `Rencana Sesi ${planInput.session} · ${todayIso} (${planInput.bias})`,
+        content: `Bias HTF: ${planInput.bias}\nLevel Kunci: ${planInput.keyLevels || "-"}\nArea POI: ${planInput.poiPlan || "-"}\nBatas Risiko: ${planInput.maxLoss}\nBerita USD: ${planInput.newsNote || "-"}`
+      };
+
+  const id = typeof createId === "function" ? createId() : `plan-${Date.now()}`;
+  state.personalNotes.push({
+    id,
+    date: todayIso,
+    title: built.title,
+    content: built.content,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  state.personalNotes = sortNotes(state.personalNotes);
+  state.expandedNoteId = String(id);
+  saveNotes();
+  closeSessionPlanForm();
+  renderNotes();
+  showToast("Rencana sesi disimpan ke Catatan");
 }
 
 function saveNote(e) {

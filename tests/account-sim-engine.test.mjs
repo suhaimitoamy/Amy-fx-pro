@@ -173,3 +173,22 @@ test("suggestAutoLot compounds with updated live balance and formatMoney renders
   const usdNeg = sim.formatMoney(-61.18, { currency: "USD", signed: true });
   assert.equal(usdNeg, "-$61.18");
 });
+
+test("computeAccountSnapshot excludes backtest-lab historical exports from live SIM balance", () => {
+  const nowMs = Date.UTC(2026, 10, 20, 14, 0, 0);
+  const journals = [
+    { id: "sim-live-1", accountMode: "SIM", source: "sim-cockpit", date: "2026-11-20", result: "Win", profit: 100, loss: 0, pnlMoney: 100 },
+    { id: "bt-journal-tr-1", accountMode: "SIM", source: "backtest-lab", date: "2024-03-10", result: "Win", profit: 950, loss: 0, pnlMoney: 950 }
+  ];
+  assert.equal(sim.isBacktestJournal(journals[1]), true);
+  assert.equal(sim.isBacktestJournal(journals[0]), false);
+  const snap = sim.computeAccountSnapshot({
+    params: { baseBalanceUsd: 5000, riskPct: 1, currency: "USD" },
+    journals,
+    nowMs
+  });
+  assert.equal(snap.realizedAllUsd, 100);
+  assert.equal(snap.balanceUsd, 5100);
+  assert.equal(snap.closedCount, 1);
+});
+

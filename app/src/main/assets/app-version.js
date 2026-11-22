@@ -1,6 +1,6 @@
 // Amy FX Pro — Gold market context; manual execution only.
 (function () {
-  const VERSION = Object.freeze({ name: '2.0.0-pro.463', code: 950463 });
+  const VERSION = Object.freeze({ name: '2.0.0-pro.464', code: 950464 });
   window.AmyFXAppVersion = VERSION;
   window.AmyFXUpdateManifestUrl = 'https://raw.githubusercontent.com/suhaimitoamy/Amy-fx-pro/main/update.json';
   function displayVersionName(name) {

@@ -26,6 +26,7 @@
     this.startTime = null;
     this.timeline = [];
     this.playTimer = null;
+    this.playSessionId = 0;
     this.requestSequence = 0;
     this.movePending = false;
     this.speedMs = Number(options.speedMs || 900);
@@ -88,9 +89,12 @@
     return this.start(timestamp == null ? null : timestamp);
   };
 
-  ReplayController.prototype.move = async function (count) {
+  ReplayController.prototype.move = async function (count, opts) {
+    opts = opts || {};
+    var autoplayToken = opts.autoplayToken != null ? opts.autoplayToken : null;
     this.isDefaultInitial = false;
     if (!this.timeline.length) await this.loadTimeline();
+    if (autoplayToken != null && autoplayToken !== this.playSessionId) return null;
     var previous = this.cursor;
     var insertion = lowerBound(this.timeline, this.cursor == null ? this.timeline[0] : this.cursor);
     var currentIndex = this.timeline[insertion] === this.cursor ? insertion : insertion - 1;
@@ -99,8 +103,9 @@
     if (targetIndex === this.timeline.length - 1 && Number(count || 0) > 0) {
       this.pause();
       this.onEnd();
+      return this.emit(count < 0 ? 'previous' : 'advance', previous, null);
     }
-    return this.emit(count < 0 ? 'previous' : 'advance', previous);
+    return this.emit(count < 0 ? 'previous' : 'advance', previous, autoplayToken);
   };
 
   ReplayController.prototype.seek = async function (timestamp) {
@@ -125,7 +130,7 @@
     return this.seek(nextTs);
   };
 
-  ReplayController.prototype.emit = async function (reason, previousCursor) {
+  ReplayController.prototype.emit = async function (reason, previousCursor, autoplayToken) {
     var sequence = ++this.requestSequence;
     var cursor = this.cursor;
     var timeframe = this.timeframe;
@@ -137,6 +142,11 @@
       sourceId: sourceId,
       cursor: cursor
     });
+
+    if (autoplayToken != null && autoplayToken !== this.playSessionId) {
+      if (previousCursor != null && this.cursor === cursor) this.cursor = previousCursor;
+      return null;
+    }
 
     if (sequence !== this.requestSequence || cursor !== this.cursor || timeframe !== this.timeframe || sourceId !== this.sourceId) {
       return null;
@@ -150,6 +160,7 @@
       }
     }
 
+    var endTime = this.timeline.length ? this.timeline[this.timeline.length - 1] : null;
     var payload = {
       reason: reason,
       sourceId: this.sourceId,
@@ -158,6 +169,8 @@
       cursor: this.cursor,
       previousCursor: previousCursor,
       startTime: this.startTime,
+      endTime: endTime,
+      atEnd: endTime != null && this.cursor >= endTime,
       source: result.source,
       sampleOnly: result.sampleOnly,
       candles: result.candles
@@ -169,18 +182,29 @@
   ReplayController.prototype.play = function () {
     var self = this;
     if (self.playTimer) return;
+    var token = ++self.playSessionId;
     self.playTimer = setInterval(function () {
-      if (self.movePending) return;
+      if (self.movePending || token !== self.playSessionId) return;
       self.movePending = true;
-      self.move(1).catch(function () { self.pause(); self.onEnd(); }).finally(function () {
+      self.move(1, { autoplayToken: token }).catch(function () {
+        if (token === self.playSessionId) {
+          self.pause();
+          self.onEnd();
+        }
+      }).finally(function () {
         self.movePending = false;
       });
     }, self.speedMs);
   };
 
   ReplayController.prototype.pause = function () {
+    this.playSessionId += 1;
     if (this.playTimer) clearInterval(this.playTimer);
     this.playTimer = null;
+  };
+
+  ReplayController.prototype.isPlaying = function () {
+    return Boolean(this.playTimer);
   };
 
   ReplayController.prototype.setSpeed = function (milliseconds) {

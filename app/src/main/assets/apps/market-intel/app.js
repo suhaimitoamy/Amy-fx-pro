@@ -2371,7 +2371,43 @@ function computeEventCountdown(eventTimeMs) {
   return { text: '⏳ Terjadwal', className: 'future' };
 }
 
+function updateSessionReadinessStrip() {
+  const strip = document.getElementById('intelSessionStrip');
+  const badgeEl = document.getElementById('intelSessionBadge');
+  const titleEl = document.getElementById('intelSessionTitle');
+  const jumpBtn = document.getElementById('intelSessionJumpBtn');
+  if (!strip || !badgeEl || !titleEl) return;
+
+  if (jumpBtn && !jumpBtn.dataset.bound) {
+    jumpBtn.dataset.bound = '1';
+    jumpBtn.addEventListener('click', () => {
+      document.querySelector('.intel-tab[data-tab="calendar"]')?.click();
+    });
+  }
+
+  const engine = window.AmyTraderInsights;
+  if (!engine || typeof engine.evaluateMarketSessionStatus !== 'function') return;
+  const normalized = (calendarEvents || []).map(ev => ({
+    currency: ev.currency || ev.country || '',
+    impact: ev.impact || '',
+    title: ev.title || ev.event || '',
+    timestampMs: ev.timestampMs || (ev.date ? Date.parse(ev.date) : NaN)
+  }));
+  const cached = getCachedCalendar();
+  const cacheAgeMs = cached?.savedAt ? Date.now() - cached.savedAt : 0;
+  const isStale = !isCalendarLive && Boolean(cached?.savedAt) && cacheAgeMs > 24 * 60 * 60 * 1000;
+  const res = engine.evaluateMarketSessionStatus(normalized, Date.now(), {
+    allowEmptyAsSafe: false,
+    isStale
+  });
+  strip.classList.remove('is-safe', 'is-caution', 'is-danger');
+  strip.classList.add(res.tone === 'DANGER' ? 'is-danger' : res.tone === 'CAUTION' ? 'is-caution' : 'is-safe');
+  badgeEl.textContent = res.badge;
+  titleEl.textContent = res.headline;
+}
+
 function renderCalendar() {
+  updateSessionReadinessStrip();
   const list = document.getElementById('calendar-list');
   const status = document.getElementById('calendar-status');
   if (!list) return;

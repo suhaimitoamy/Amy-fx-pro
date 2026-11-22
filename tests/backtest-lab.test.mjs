@@ -239,3 +239,200 @@ test('backtest hygiene: zero legacy 404 assets, zero confirm(), zero Aktifkan Li
     assert.ok(!/\balert\s*\(/.test(content), `${file} uses native alert()`);
   }
 });
+
+function loadStorageEnv(initialStore = {}) {
+  const store = new Map(Object.entries(initialStore));
+  const localStorage = {
+    getItem(k) { return store.has(k) ? store.get(k) : null; },
+    setItem(k, v) { store.set(k, String(v)); },
+    removeItem(k) { store.delete(k); },
+    clear() { store.clear(); }
+  };
+  const sandbox = {
+    console, Date, Math, Number, String, Array, Object, Map, Set, RegExp, JSON, Intl, Error, Promise,
+    setTimeout, clearTimeout, setInterval, clearInterval, localStorage
+  };
+  sandbox.window = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  for (const rel of ['practice-core.js', 'practice-analytics.js', 'storage.js']) {
+    const code = fs.readFileSync(path.join(TP_DIR, 'assets', 'js', rel), 'utf8');
+    vm.runInContext(code, sandbox, { filename: rel });
+  }
+  const simCode = fs.readFileSync(path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'shared', 'account-sim-engine.js'), 'utf8');
+  vm.runInContext(simCode, sandbox, { filename: 'account-sim-engine.js' });
+  return { sandbox, store };
+}
+
+test('storage: readProfileAccountParams syncs real Profile keys, cashflows, currency persistence, and updateSessionParams', () => {
+  const { sandbox, store } = loadStorageEnv({
+    amy_default_balance: '1000',
+    amy_sim_cashflows_v1: JSON.stringify([{ amountUsd: 250 }]),
+    amy_default_risk: '2.5',
+    amy_account_currency: 'USD',
+    amy_usd_idr_rate: '17000',
+    amy_account_spread: '0.40'
+  });
+  const storage = sandbox.AmyPracticeStorage;
+  const params = storage.readProfileAccountParams();
+  assert.equal(params.balanceUsd, 1250);
+  assert.equal(params.baseBalanceUsd, 1000);
+  assert.equal(params.cashflowTotalUsd, 250);
+  assert.equal(params.riskPercent, 2.5);
+  assert.equal(params.currency, 'USD');
+  assert.equal(params.usdIdrRate, 17000);
+  assert.equal(params.spreadUsd, 0.4);
+
+  // Create a custom session then change Profile balance — default session in listSessions() must stay live-synced
+  storage.createSession('NY Test', 2000, 1);
+  store.set('amy_default_balance', '3000');
+  const sessions = storage.listSessions();
+  const def = sessions.find((s) => s.id === 'default');
+  assert.equal(def.initialBalanceUsd, 3250);
+
+  // Persist currency toggle
+  assert.equal(storage.saveDisplayCurrency('IDR'), 'IDR');
+  assert.equal(store.get('amy_account_currency'), 'IDR');
+
+  // Update active custom session modal & risk
+  const active = storage.getActiveSession();
+  const updated = storage.updateSessionParams(active.id, 4500, 1.5);
+  assert.equal(updated.initialBalanceUsd, 4500);
+  assert.equal(updated.riskPercent, 1.5);
+});
+
+test('practice-analytics: partial close on OPEN trade immediately updates Saldo & Net R without double counting', () => {
+  const openWithPartial = {
+    id: 'p1',
+    bias: 'BUY',
+    result: 'OPEN',
+    entryStatus: 'ACTIVE',
+    realizedUsd: 120,
+    realizedR: 1.2,
+    tradeTime: 1735754400
+  };
+  const stats = analytics.computeStats([openWithPartial], { initialBalanceUsd: 5000, defaultRiskUsd: 100 });
+  assert.equal(stats.currentBalanceUsd, 5120);
+  assert.equal(stats.totalRealizedUsd, 120);
+  assert.equal(stats.totalRealizedR, 1.2);
+  assert.equal(stats.open, 1);
+  assert.equal(stats.closedTrades, 0);
+});
+
+test('trade-engine: gap-through BUY LIMIT fills at gap open, BUY STOP above market does not false-fill, and min 0.01 lot partial guard works', () => {
+  const t0 = 1735754400;
+  // True BUY LIMIT placed below market (market 2655, limit 2650, SL 2645, TP 2665)
+  const limitTrade = trades.create({
+    bias: 'BUY',
+    orderType: 'LIMIT',
+    entry: 2650,
+    stopLoss: 2645,
+    takeProfit: 2665,
+    tradeTime: t0,
+    currentPrice: 2655,
+    spreadUsd: 0,
+    slippageFactor: 0,
+    lot: 0.1
+  });
+  // Next candle gaps down and opens at 2648 (below limit 2650, above SL 2645), high 2649 (never re-touches 2650)
+  const gapDownBar = { time: t0 + 900, open: 2648, high: 2649, low: 2647, close: 2648.5 };
+  const filled = trades.evaluate(limitTrade, [gapDownBar]);
+  assert.equal(filled.entryStatus, 'ACTIVE');
+  assert.equal(filled.fillPrice, 2648);
+  assert.equal(filled.result, 'OPEN');
+
+  // Pending BUY STOP placed above market (market 2655, entry 2660, SL 2650, TP 2675) must NOT fill at 2655!
+  const stopTrade = trades.create({
+    bias: 'BUY',
+    orderType: 'LIMIT',
+    entry: 2660,
+    stopLoss: 2650,
+    takeProfit: 2675,
+    tradeTime: t0,
+    currentPrice: 2655,
+    spreadUsd: 0,
+    slippageFactor: 0,
+    lot: 0.1
+  });
+  const waitBar = { time: t0 + 900, open: 2655, high: 2658, low: 2653, close: 2656 };
+  const stillWaiting = trades.evaluate(stopTrade, [waitBar]);
+  assert.equal(stillWaiting.entryStatus, 'WAITING_FILL');
+
+  // Minimum lot 0.01 partial close throws clear guard error
+  const tiny = trades.create({
+    bias: 'BUY', orderType: 'MARKET', entry: 2650, stopLoss: 2645, takeProfit: 2660,
+    tradeTime: t0, currentPrice: 2650, spreadUsd: 0, slippageFactor: 0, lot: 0.01
+  });
+  assert.throws(() => trades.closePartial(tiny, 2655, 0.5, t0 + 60), /Sisa lot terlalu kecil/);
+});
+
+test('replay-engine: pause() aborts in-flight autoplay advance and preserves cursor', async () => {
+  let resolveCandles;
+  const provider = {
+    async getTimeline() { return [1000, 1900, 2800, 3700]; },
+    getCandles({ cursor }) {
+      if (cursor === 1900) {
+        return new Promise((res) => {
+          resolveCandles = () => res({ sourceId: 's1', source: 'Test', sampleOnly: true, candles: [{ time: 1000, open: 1, high: 2, low: 1, close: 2 }, { time: 1900, open: 2, high: 3, low: 2, close: 3 }] });
+        });
+      }
+      return Promise.resolve({ sourceId: 's1', source: 'Test', sampleOnly: true, candles: [{ time: cursor, open: 1, high: 2, low: 1, close: 2 }] });
+    }
+  };
+  let emittedCursors = [];
+  const rc = new env.AmyReplayEngine.ReplayController({
+    provider,
+    onChange(payload) { emittedCursors.push(payload.cursor); }
+  });
+  await rc.start(1000);
+  assert.equal(rc.cursor, 1000);
+
+  // Start autoplay step with token, then pause BEFORE getCandles resolves
+  const token = ++rc.playSessionId;
+  const pendingMove = rc.move(1, { autoplayToken: token });
+  await new Promise((r) => setTimeout(r, 10));
+  rc.pause();
+  resolveCandles();
+  const res = await pendingMove;
+  assert.equal(res, null);
+  assert.equal(rc.cursor, 1000);
+  assert.deepEqual(emittedCursors, [1000]);
+});
+
+test('storage: exportTradeToJournal produces schema compatible with AmyAccountSimEngine', () => {
+  const { sandbox } = loadStorageEnv();
+  const storage = sandbox.AmyPracticeStorage;
+  const sim = sandbox.AmyAccountSimEngine;
+
+  const entry = storage.exportTradeToJournal({
+    id: 'tr-101',
+    bias: 'BUY',
+    result: 'WIN',
+    pnlUsd: 150,
+    r: 2.5,
+    lot: 0.15,
+    fillPrice: 2650,
+    exitPrice: 2660,
+    stopLoss: 2646,
+    takeProfit: 2660,
+    riskUsd: 60,
+    timeframe: 'M15',
+    tradeTime: 1735754400,
+    closedAt: 1735758000,
+    setupType: 'FVG',
+    notes: 'Reaksi FVG NY'
+  });
+
+  assert.equal(entry.accountMode, 'SIM');
+  assert.equal(entry.pnlMoney, 150);
+  assert.equal(entry.profit, 150);
+  assert.equal(entry.loss, 0);
+  assert.equal(entry.pnlPips, 100);
+  assert.equal(entry.sl, 2646);
+  assert.equal(entry.tp, 2660);
+  assert.equal(sim.resolveJournalNetUsd(entry), 150);
+  assert.equal(storage.isTradeExportedToJournal('tr-101'), true);
+  assert.equal(storage.isTradeExportedToJournal('tr-unknown'), false);
+});
+
+

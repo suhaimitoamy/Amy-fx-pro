@@ -432,6 +432,10 @@
     };
   }
 
+  function isBacktestJournal(entry) {
+    return String(entry?.source || "").trim().toLowerCase() === "backtest-lab";
+  }
+
   function computeAccountSnapshot({
     params = DEFAULT_PARAMS,
     cashflows = [],
@@ -448,7 +452,7 @@
     );
     const initialCapitalUsd = Math.max(0, round2(safeParams.baseBalanceUsd + cashflowTotalUsd));
 
-    const simJournals = filterJournalsByMode(journals, "SIM");
+    const simJournals = filterJournalsByMode(journals, "SIM").filter((e) => !isBacktestJournal(e));
     const closedSim = simJournals.filter(isClosedJournal);
 
     let realizedAllUsd = 0;
@@ -587,6 +591,7 @@
     saveCashflows,
     addCashflow,
     getEntryAccountMode,
+    isBacktestJournal,
     filterJournalsByMode,
     resolveJournalNetUsd,
     isClosedJournal,

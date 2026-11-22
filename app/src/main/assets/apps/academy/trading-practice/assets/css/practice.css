@@ -1545,8 +1545,8 @@ body.replay-fullscreen {
   .bt-account-metrics {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
   }
 
   .bt-account-controls {
@@ -1673,6 +1673,11 @@ body.replay-fullscreen {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px 12px;
   }
+  .bt-metric--equity {
+    grid-column: 1 / -1;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--bt-border);
+  }
 }
 
 @media (max-width: 420px) {
@@ -1702,3 +1707,122 @@ body.replay-fullscreen {
     font-size: 10px;
   }
 }
+
+/* ── Setup Bookmarks Popover & Next-Month Handoff Bar ── */
+.bt-bm-pop summary {
+  gap: 0;
+}
+
+.bt-bm-pop .bt-bm-body {
+  position: absolute;
+  right: 0;
+  bottom: 38px;
+  z-index: 40;
+  width: min(300px, calc(100vw - 28px));
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--bt-radius);
+  border: 1px solid var(--bt-border);
+  background: var(--bt-surface);
+  box-shadow: var(--bt-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bt-bm-empty {
+  padding: 12px 10px;
+  font-size: 11.5px;
+  color: var(--bt-text-muted);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.bt-bm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--bt-border);
+  padding: 4px 2px;
+}
+
+.bt-bm-row:last-child {
+  border-bottom: none;
+}
+
+.bt-bm-jump {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--bt-text);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bt-bm-jump:hover {
+  background: var(--bt-surface-2);
+}
+
+.bt-bm-jump strong {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bt-bm-jump span {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bt-bm-del {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid var(--bt-border);
+  background: transparent;
+  color: var(--bt-text-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bt-bm-del:hover {
+  color: var(--bt-red);
+  border-color: var(--bt-red);
+}
+
+.bt-next-month-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 9px 12px;
+  border-radius: var(--bt-radius-sm);
+  border: 1px solid var(--bt-gold);
+  background: var(--bt-gold-soft);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bt-text);
+}
+
+.bt-next-month-bar[hidden] {
+  display: none !important;
+}
+

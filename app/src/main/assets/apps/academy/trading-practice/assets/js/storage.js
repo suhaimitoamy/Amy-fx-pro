@@ -10,6 +10,11 @@
   var SESSIONS_KEY = 'amy.backtest.sessions.v1';
   var ACTIVE_SESSION_KEY = 'amy.backtest.active_session.v1';
   var JOURNAL_LOCAL_KEY = 'tradingLibraryManager.journals.v1';
+  var EXPORTED_JOURNAL_IDS_KEY = 'amy.backtest.exportedJournalIds.v1';
+  var JOURNAL_IDB_NAME = 'tradingLibraryManager.files';
+  var JOURNAL_IDB_VERSION = 2;
+  var JOURNAL_META_STORE = 'metadata';
+  var JOURNAL_META_RECORD = 'journals.v2';
   var STORES = Object.freeze({
     datasets: 'datasets',
     trades: 'trades',
@@ -261,34 +266,72 @@
 
   // Read live Akun Pro settings from Profile -> Parameter Trading & AccountSimEngine
   function readProfileAccountParams() {
-    var balanceUsd = 5000;
+    var baseBalanceUsd = 5000;
+    var cashflowTotalUsd = 0;
     var riskPercent = 1;
     var currency = 'IDR';
     var usdIdrRate = 16500;
     var spreadUsd = 0.25;
     try {
       var rawBal = Number(localStorage.getItem('amy_default_balance'));
-      if (Number.isFinite(rawBal) && rawBal > 0) balanceUsd = rawBal;
+      if (Number.isFinite(rawBal) && rawBal > 0) baseBalanceUsd = rawBal;
+
+      var rawCashflows = JSON.parse(localStorage.getItem('amy_sim_cashflows_v1') || '[]');
+      if (Array.isArray(rawCashflows)) {
+        cashflowTotalUsd = rawCashflows.reduce(function (acc, item) {
+          var amt = Number(item && item.amountUsd);
+          return acc + (Number.isFinite(amt) ? amt : 0);
+        }, 0);
+      }
+
       var rawRisk = Number(localStorage.getItem('amy_default_risk'));
       if (Number.isFinite(rawRisk) && rawRisk > 0) riskPercent = rawRisk;
+
+      var rawCurrency = String(localStorage.getItem('amy_account_currency') || '').toUpperCase();
+      if (rawCurrency === 'USD' || rawCurrency === 'IDR') currency = rawCurrency;
+
+      var rawRate = Number(localStorage.getItem('amy_usd_idr_rate'));
+      if (Number.isFinite(rawRate) && rawRate >= 1000) usdIdrRate = Math.round(rawRate);
+
+      var rawSpreadStr = localStorage.getItem('amy_account_spread');
+      if (rawSpreadStr !== null && String(rawSpreadStr).trim() !== '') {
+        var rawSpread = Number(rawSpreadStr);
+        if (Number.isFinite(rawSpread) && rawSpread >= 0 && rawSpread <= 5) spreadUsd = rawSpread;
+      }
+
+      // Legacy fallback only when modern keys are absent
       var rawSim = JSON.parse(localStorage.getItem('amyfx.account_sim.v1') || 'null');
       if (rawSim && rawSim.params) {
-        if (rawSim.params.currency === 'USD' || rawSim.params.currency === 'IDR') currency = rawSim.params.currency;
-        if (Number.isFinite(Number(rawSim.params.usdIdrRate)) && Number(rawSim.params.usdIdrRate) >= 1000) {
+        if (!rawCurrency && (rawSim.params.currency === 'USD' || rawSim.params.currency === 'IDR')) {
+          currency = rawSim.params.currency;
+        }
+        if (!(Number.isFinite(rawRate) && rawRate >= 1000) && Number.isFinite(Number(rawSim.params.usdIdrRate)) && Number(rawSim.params.usdIdrRate) >= 1000) {
           usdIdrRate = Number(rawSim.params.usdIdrRate);
         }
-        if (Number.isFinite(Number(rawSim.params.spreadUsd)) && Number(rawSim.params.spreadUsd) >= 0) {
+        if (rawSpreadStr === null && Number.isFinite(Number(rawSim.params.spreadUsd)) && Number(rawSim.params.spreadUsd) >= 0) {
           spreadUsd = Number(rawSim.params.spreadUsd);
         }
       }
     } catch (_) {}
+
+    var effectiveBalanceUsd = Math.round((baseBalanceUsd + cashflowTotalUsd) * 100) / 100;
+    var balanceUsd = effectiveBalanceUsd > 0 ? effectiveBalanceUsd : baseBalanceUsd;
+
     return {
       balanceUsd: balanceUsd,
+      baseBalanceUsd: baseBalanceUsd,
+      cashflowTotalUsd: Math.round(cashflowTotalUsd * 100) / 100,
       riskPercent: riskPercent,
       currency: currency,
       usdIdrRate: usdIdrRate,
       spreadUsd: spreadUsd
     };
+  }
+
+  function saveDisplayCurrency(currency) {
+    var next = String(currency || 'IDR').toUpperCase() === 'USD' ? 'USD' : 'IDR';
+    try { localStorage.setItem('amy_account_currency', next); } catch (_) {}
+    return next;
   }
 
   function formatMoney(usdAmount, currency, usdIdrRate, options) {
@@ -318,8 +361,17 @@
     try {
       var stored = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]');
       if (!Array.isArray(stored) || !stored.length) return [def];
-      var hasDef = stored.some(function (s) { return s && s.id === 'default'; });
-      return hasDef ? stored : [def].concat(stored);
+      var mapped = stored.filter(Boolean).map(function (s) {
+        if (s.id === 'default') {
+          return Object.assign({}, s, {
+            initialBalanceUsd: profile.balanceUsd,
+            riskPercent: profile.riskPercent
+          });
+        }
+        return s;
+      });
+      var hasDef = mapped.some(function (s) { return s && s.id === 'default'; });
+      return hasDef ? mapped : [def].concat(mapped);
     } catch (_) {
       return [def];
     }
@@ -354,17 +406,56 @@
     var cleanName = String(name || '').trim();
     if (!cleanName) throw new Error('Nama sesi backtest wajib diisi.');
     var prof = readProfileAccountParams();
+    var bal = Number(initialBalanceUsd);
+    var risk = Number(riskPercent);
     var sess = {
       id: identifier('sess'),
       name: cleanName.slice(0, 60),
-      initialBalanceUsd: Number.isFinite(Number(initialBalanceUsd)) && Number(initialBalanceUsd) > 0 ? Number(initialBalanceUsd) : prof.balanceUsd,
-      riskPercent: Number.isFinite(Number(riskPercent)) && Number(riskPercent) > 0 ? Number(riskPercent) : prof.riskPercent,
+      initialBalanceUsd: Number.isFinite(bal) && bal > 0 ? Math.round(bal * 100) / 100 : prof.balanceUsd,
+      riskPercent: Number.isFinite(risk) && risk > 0 ? Math.min(25, Math.max(0.1, Math.round(risk * 100) / 100)) : prof.riskPercent,
       createdAt: Date.now()
     };
     var list = listSessions().concat([sess]);
     saveSessions(list);
     setActiveSessionId(sess.id);
     return sess;
+  }
+
+  function updateSessionParams(sessionId, initialBalanceUsd, riskPercent) {
+    var targetId = String(sessionId || getActiveSessionId() || 'default');
+    var bal = Number(initialBalanceUsd);
+    var risk = Number(riskPercent);
+    if (!Number.isFinite(bal) || bal <= 0) throw new Error('Modal awal harus lebih besar dari 0.');
+    if (!Number.isFinite(risk) || risk < 0.1 || risk > 25) throw new Error('Risiko harus antara 0.1% hingga 25%.');
+    var cleanBal = Math.round(bal * 100) / 100;
+    var cleanRisk = Math.round(risk * 100) / 100;
+
+    if (targetId === 'default') {
+      var prof = readProfileAccountParams();
+      var adjustedBase = Math.round((cleanBal - prof.cashflowTotalUsd) * 100) / 100;
+      try {
+        if (adjustedBase > 0) {
+          localStorage.setItem('amy_default_balance', String(adjustedBase));
+        } else {
+          localStorage.setItem('amy_default_balance', String(cleanBal));
+          localStorage.setItem('amy_sim_cashflows_v1', '[]');
+        }
+        localStorage.setItem('amy_default_risk', String(cleanRisk));
+      } catch (_) {}
+      return getActiveSession();
+    }
+
+    var list = listSessions().map(function (s) {
+      if (s && s.id === targetId) {
+        return Object.assign({}, s, {
+          initialBalanceUsd: cleanBal,
+          riskPercent: cleanRisk
+        });
+      }
+      return s;
+    });
+    saveSessions(list);
+    return list.find(function (s) { return s && s.id === targetId; }) || getActiveSession();
   }
 
   async function deleteSession(id) {
@@ -376,34 +467,160 @@
     return true;
   }
 
-  // Export closed backtest trade safely into main Journal storage tagged as SIM + source: "backtest-lab"
-  function exportTradeToJournal(trade) {
+  function readExportedJournalIds() {
+    try {
+      var parsed = JSON.parse(localStorage.getItem(EXPORTED_JOURNAL_IDS_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch (_) { return []; }
+  }
+
+  function isTradeExportedToJournal(tradeId) {
+    if (!tradeId) return false;
+    var key = String(tradeId);
+    if (readExportedJournalIds().indexOf(key) >= 0) return true;
+    try {
+      var existing = JSON.parse(localStorage.getItem(JOURNAL_LOCAL_KEY) || '[]');
+      if (Array.isArray(existing)) {
+        var targetId = 'bt-journal-' + key;
+        return existing.some(function (item) { return item && item.id === targetId; });
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function markTradeExportedToJournal(tradeId) {
+    if (!tradeId) return;
+    var key = String(tradeId);
+    var ids = readExportedJournalIds();
+    if (ids.indexOf(key) < 0) {
+      ids.push(key);
+      try { localStorage.setItem(EXPORTED_JOURNAL_IDS_KEY, JSON.stringify(ids.slice(-500))); } catch (_) {}
+    }
+  }
+
+  function upsertJournalIntoIndexedDb(entry, fallbackList) {
+    if (!root.indexedDB) return Promise.resolve(false);
+    return new Promise(function (resolve) {
+      var settled = false;
+      var finish = function (ok) {
+        if (!settled) { settled = true; resolve(ok); }
+      };
+      try {
+        var req = root.indexedDB.open(JOURNAL_IDB_NAME, JOURNAL_IDB_VERSION);
+        req.onupgradeneeded = function () {
+          var db = req.result;
+          if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'id' });
+          if (!db.objectStoreNames.contains(JOURNAL_META_STORE)) db.createObjectStore(JOURNAL_META_STORE, { keyPath: 'id' });
+        };
+        req.onsuccess = function () {
+          var db = req.result;
+          if (!db || !db.objectStoreNames.contains(JOURNAL_META_STORE)) {
+            try { db && db.close(); } catch (_) {}
+            finish(false);
+            return;
+          }
+          try {
+            var tx = db.transaction(JOURNAL_META_STORE, 'readwrite');
+            var store = tx.objectStore(JOURNAL_META_STORE);
+            var getReq = store.get(JOURNAL_META_RECORD);
+            getReq.onsuccess = function () {
+              var current = Array.isArray(getReq.result && getReq.result.value)
+                ? getReq.result.value.slice()
+                : (Array.isArray(fallbackList) ? fallbackList.slice() : []);
+              var idx = current.findIndex(function (item) { return item && item.id === entry.id; });
+              if (idx >= 0) current[idx] = entry;
+              else current.unshift(entry);
+              store.put({
+                id: JOURNAL_META_RECORD,
+                value: current,
+                updatedAt: new Date().toISOString()
+              });
+            };
+            tx.oncomplete = function () {
+              try { db.close(); } catch (_) {}
+              finish(true);
+            };
+            tx.onerror = function () {
+              try { db.close(); } catch (_) {}
+              finish(false);
+            };
+            tx.onabort = function () {
+              try { db.close(); } catch (_) {}
+              finish(false);
+            };
+          } catch (_) {
+            try { db.close(); } catch (_) {}
+            finish(false);
+          }
+        };
+        req.onerror = function () { finish(false); };
+        setTimeout(function () { finish(false); }, 2500);
+      } catch (_) {
+        finish(false);
+      }
+    });
+  }
+
+  function exportTradeInternal(trade) {
     if (!trade || !['WIN', 'LOSS', 'BE'].includes(trade.result)) {
       throw new Error('Hanya trade tertutup (WIN / LOSS / BE) yang dapat dikirim ke Jurnal.');
     }
-    var dt = new Date(Number(trade.tradeTime || trade.createdAt || Date.now()) * (Number(trade.tradeTime) < 1e12 ? 1000 : 1));
+    var rawTs = Number(trade.tradeTime || trade.createdAt || Date.now());
+    var tradeMs = rawTs < 1e12 ? rawTs * 1000 : rawTs;
+    var dt = new Date(tradeMs);
     var dateStr = dt.toISOString().slice(0, 10);
+    var closeRaw = Number(trade.closedAt || rawTs);
+    var closeMs = closeRaw < 1e12 ? closeRaw * 1000 : closeRaw;
     var resultLabel = trade.result === 'WIN' ? 'Win' : (trade.result === 'LOSS' ? 'Loss' : 'BE');
+    var pnlUsd = Math.round(Number(trade.pnlUsd != null ? trade.pnlUsd : 0) * 100) / 100;
+    var rVal = Math.round(Number(trade.r != null ? trade.r : 0) * 100) / 100;
+    var entryPx = Number(trade.fillPrice || trade.entry || 0);
+    var exitPx = Number(trade.exitPrice || entryPx || 0);
+    var slPx = Number(trade.stopLoss || 0);
+    var tpPx = Number(trade.takeProfit || 0);
+    var dirSign = trade.bias === 'SELL' ? -1 : 1;
+    var pnlPips = Math.round((exitPx - entryPx) * dirSign * 10 * 10) / 10;
+    var riskMoney = Number(trade.riskUsd || 0);
+    var setupLabel = (root.AmyPracticeAnalytics && root.AmyPracticeAnalytics.classifySetup(trade.notes, trade.reason, trade.setupType))
+      || trade.setupType || 'Backtest ICT';
+    var sessionLabel = (root.AmyPracticeAnalytics && root.AmyPracticeAnalytics.classifySession(trade.tradeTime)) || 'Other';
+    var nowIso = new Date().toISOString();
+    var noteText = '[Backtest ' + (trade.timeframe || 'M15') + '] ' + (trade.notes || 'Eksekusi Replay Lab');
+
     var entry = {
       id: 'bt-journal-' + String(trade.id),
       accountMode: 'SIM',
       source: 'backtest-lab',
       date: dateStr,
+      title: (trade.bias === 'SELL' ? 'SELL' : 'BUY') + ' XAU/USD · ' + setupLabel + ' (' + resultLabel + ')',
+      market: 'XAU/USD',
       pair: 'XAU/USD',
-      direction: trade.bias === 'SELL' ? 'SELL' : 'BUY',
+      direction: trade.bias === 'SELL' ? 'Sell' : 'Buy',
       result: resultLabel,
-      pnl: Number(trade.pnlUsd != null ? trade.pnlUsd : 0),
-      rMultiple: Number(trade.r != null ? trade.r : 0),
+      profit: pnlUsd > 0 ? pnlUsd : 0,
+      loss: pnlUsd < 0 ? Math.abs(pnlUsd) : 0,
+      pnlMoney: pnlUsd,
+      pnl: pnlUsd,
+      pnlPips: pnlPips,
+      riskMoney: riskMoney > 0 ? riskMoney : undefined,
+      riskReward: (rVal >= 0 ? '+' : '') + rVal.toFixed(2) + 'R',
+      rMultiple: rVal,
       lot: Number(trade.lot || 0.01),
-      entryPrice: Number(trade.fillPrice || trade.entry || 0),
-      slPrice: Number(trade.stopLoss || 0),
-      tpPrice: Number(trade.takeProfit || 0),
-      exitPrice: Number(trade.exitPrice || 0),
-      setup: trade.setupType || 'Backtest ICT',
-      session: (root.AmyPracticeAnalytics && root.AmyPracticeAnalytics.classifySession(trade.tradeTime)) || 'Other',
-      notes: '[Backtest ' + (trade.timeframe || 'M15') + '] ' + (trade.notes || 'Eksekusi Replay Lab'),
+      entryPrice: entryPx,
+      sl: slPx,
+      tp: tpPx,
+      slPrice: slPx,
+      tpPrice: tpPx,
+      exitPrice: exitPx,
+      setup: setupLabel,
+      session: sessionLabel,
+      evaluation: noteText,
+      notes: noteText,
       tags: ['Backtest', trade.timeframe || 'M15', 'SIM'],
-      createdAt: new Date().toISOString()
+      entryTime: new Date(tradeMs).toISOString(),
+      exitTime: new Date(closeMs).toISOString(),
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
 
     var existing = [];
@@ -412,25 +629,27 @@
     var idx = existing.findIndex(function (item) { return item && item.id === entry.id; });
     if (idx >= 0) existing[idx] = entry;
     else existing.unshift(entry);
-    localStorage.setItem(JOURNAL_LOCAL_KEY, JSON.stringify(existing));
+    try { localStorage.setItem(JOURNAL_LOCAL_KEY, JSON.stringify(existing)); } catch (_) {}
+    markTradeExportedToJournal(trade.id);
 
-    // Also mirror into IndexedDB tradingLibraryManagerV1 / journals if available
-    if (root.indexedDB) {
+    var idbPromise = upsertJournalIntoIndexedDb(entry, existing).then(function (ok) {
       try {
-        var req = indexedDB.open('tradingLibraryManagerV1');
-        req.onsuccess = function () {
-          var db = req.result;
-          if (db && db.objectStoreNames.contains('journals')) {
-            try {
-              var tx = db.transaction('journals', 'readwrite');
-              tx.objectStore('journals').put(entry);
-            } catch (_) {}
-          }
-          try { db.close(); } catch (_) {}
-        };
+        if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
+          root.dispatchEvent(new root.CustomEvent('amyfx:journal-state-change', { detail: { source: 'backtest-lab', id: entry.id } }));
+        }
       } catch (_) {}
-    }
-    return entry;
+      return ok;
+    });
+    return { entry: entry, promise: idbPromise };
+  }
+
+  function exportTradeToJournal(trade) {
+    return exportTradeInternal(trade).entry;
+  }
+
+  function exportTradeToJournalAsync(trade) {
+    var out = exportTradeInternal(trade);
+    return out.promise.then(function () { return out.entry; });
   }
 
   root.AmyPracticeStorage = Object.freeze({
@@ -449,14 +668,18 @@
     saveReplayState: saveReplayState,
     loadReplayState: loadReplayState,
     readProfileAccountParams: readProfileAccountParams,
+    saveDisplayCurrency: saveDisplayCurrency,
     formatMoney: formatMoney,
     listSessions: listSessions,
     getActiveSessionId: getActiveSessionId,
     setActiveSessionId: setActiveSessionId,
     getActiveSession: getActiveSession,
     createSession: createSession,
+    updateSessionParams: updateSessionParams,
     deleteSession: deleteSession,
+    isTradeExportedToJournal: isTradeExportedToJournal,
     exportTradeToJournal: exportTradeToJournal,
+    exportTradeToJournalAsync: exportTradeToJournalAsync,
     identifier: identifier
   });
 })(typeof window !== 'undefined' ? window : globalThis);

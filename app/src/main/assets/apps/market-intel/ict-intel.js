@@ -56,7 +56,8 @@ function paint() {
   const status=valid?(fresh?'Candle terkini':'Referensi lama'):'Menunggu Mapping';
   const strip=$('market-command-strip');
   if(strip)strip.innerHTML=`<div class="amy-command-main"><span>XAU/USD · MAPPING ${escape(snapshot?.tf||'M15')}</span><strong>${price(close)}</strong></div><div class="amy-command-metric"><small>BSL TERDEKAT</small><b class="red">${price(levels.bsl)}</b></div><div class="amy-command-metric"><small>SSL TERDEKAT</small><b class="green">${price(levels.ssl)}</b></div><div class="ict-source"><span>${status} · ${time(snapshot?.sourceTime)}</span><button type="button" data-ict-refresh ${request?'disabled':''}>${request?'Memperbarui…':'Perbarui'}</button></div>`;
-  $('intel-briefing').innerHTML=`<div class="amy-briefing-title">Peta likuiditas Mapping</div><p>${valid?'Level swing terkonfirmasi yang belum tersentuh. BSL berada di atas referensi harga; SSL di bawahnya.':'Belum ada data Mapping yang dapat ditampilkan.'}</p>${failed?'<small>Pembaruan gagal. Data terakhir tetap ditandai sebagai referensi lama.</small> ':''}<a href="../mapping/index.html#Analyze">Lihat bukti Mapping →</a>`;
+  const brief=$('intel-briefing');
+  if(brief)brief.innerHTML=`<div class="amy-briefing-title">Peta likuiditas Mapping</div><p>${valid?'Level swing terkonfirmasi yang belum tersentuh. BSL berada di atas referensi harga; SSL di bawahnya.':'Belum ada data Mapping yang dapat ditampilkan.'}</p>${failed?'<small>Pembaruan gagal. Data terakhir tetap ditandai sebagai referensi lama.</small> ':''}<a href="../mapping/index.html#Analyze">Lihat bukti Mapping →</a>`;
   const hp=$('heatmap-price');if(hp)hp.textContent=`XAU/USD ${price(close)} · ${status}`;
   const count=bands.reduce((n,b)=>n+b.levels.length,0);
   for(const id of ['heatmap-status','liquidity-status']){const el=$(id);if(el)el.textContent=`${status} · ${count} level · ${bands.length} zona · ${time(snapshot?.sourceTime)}`;}

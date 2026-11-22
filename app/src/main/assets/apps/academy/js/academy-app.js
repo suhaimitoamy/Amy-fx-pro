@@ -9,6 +9,8 @@
   const D = root.AmyAcademyDiagrams;
   if (!C || !D) return;
 
+  const BOOKMARKS_KEY = 'amy_academy_bookmarks_v1';
+
   const state = {
     view: 'overview', // 'overview' | 'lesson'
     activeLessonId: null,
@@ -17,7 +19,8 @@
     diagramStageIndex: 0,
     quizAnswers: {}, // { [lessonId]: { [qIndex]: selectedOptionIndex } }
     drawerOpen: false,
-    progress: C.createEmptyProgress()
+    progress: C.createEmptyProgress(),
+    bookmarks: []
   };
 
   function esc(str) {
@@ -35,6 +38,30 @@
     } catch {
       state.progress = C.createEmptyProgress();
     }
+    try {
+      const bRaw = root.localStorage.getItem(BOOKMARKS_KEY);
+      const parsed = bRaw ? JSON.parse(bRaw) : [];
+      state.bookmarks = Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      state.bookmarks = [];
+    }
+  }
+
+  function saveBookmarks() {
+    try {
+      root.localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(state.bookmarks));
+    } catch {
+      // Ignore storage quota errors
+    }
+  }
+
+  function toggleBookmark(lessonId) {
+    if (!lessonId) return;
+    const id = String(lessonId);
+    const idx = state.bookmarks.indexOf(id);
+    if (idx >= 0) state.bookmarks.splice(idx, 1);
+    else state.bookmarks.unshift(id);
+    saveBookmarks();
   }
 
   function saveProgress() {
@@ -116,22 +143,32 @@
   function renderOverview() {
     const stats = C.computeProgressStats(state.progress);
     const completedSet = new Set(state.progress.completedIds);
-    const filtered = C.filterLessons({
-      levelId: state.filterLevel,
+    const bookmarkSet = new Set(state.bookmarks);
+    const isBookmarksFilter = state.filterLevel === 'saved';
+
+    const baseFiltered = C.filterLessons({
+      levelId: isBookmarksFilter ? 'all' : state.filterLevel,
       query: state.searchQuery,
       completedIds: state.progress.completedIds
     });
+    const filtered = isBookmarksFilter
+      ? baseFiltered.filter(l => bookmarkSet.has(String(l.id)))
+      : baseFiltered;
 
-    const primaryLesson = stats.nextRecommendedLesson || C.LESSONS[0];
-    const primaryCtaLabel = stats.completedCount > 0
-      ? `Lanjutkan: Pelajaran ${String(primaryLesson.number).padStart(2, '0')}`
-      : 'Mulai Pelajaran 01';
+    const lastOpenedLesson = state.progress.lastLessonId ? C.getLessonById(state.progress.lastLessonId) : null;
+    const primaryLesson = lastOpenedLesson || stats.nextRecommendedLesson || C.LESSONS[0];
+    const primaryCtaLabel = lastOpenedLesson
+      ? `Lanjut Baca · Bab ${String(lastOpenedLesson.number).padStart(2, '0')}`
+      : stats.completedCount > 0
+        ? `Lanjutkan · Bab ${String(primaryLesson.number).padStart(2, '0')}`
+        : 'Mulai Pelajaran 01';
 
     const levelTabsHtml = [
       `<button type="button" class="acd-tab-btn ${state.filterLevel === 'all' ? 'is-active' : ''}" data-filter-level="all">Semua (30)</button>`,
+      `<button type="button" class="acd-tab-btn ${isBookmarksFilter ? 'is-active' : ''}" data-filter-level="saved">Tersimpan (${state.bookmarks.length})</button>`,
       ...C.LEVELS.map(lvl => {
         const active = String(state.filterLevel) === String(lvl.id);
-        return `<button type="button" class="acd-tab-btn ${active ? 'is-active' : ''}" data-filter-level="${lvl.id}">Level ${lvl.id}</button>`;
+        return `<button type="button" class="acd-tab-btn ${active ? 'is-active' : ''}" data-filter-level="${lvl.id}">Lv ${lvl.id}</button>`;
       })
     ].join('');
 
@@ -139,40 +176,51 @@
       const items = filtered.filter(l => l.levelId === level.id);
       if (items.length === 0) return '';
       const lvlStat = stats.byLevel.find(b => b.levelId === level.id);
+      const lvlPct = lvlStat && lvlStat.total ? Math.round((lvlStat.completed / lvlStat.total) * 100) : 0;
 
       const rowsHtml = items.map(lesson => {
         const isDone = completedSet.has(lesson.id);
+        const isSaved = bookmarkSet.has(String(lesson.id));
         const quizRec = state.progress.quizScores[lesson.id];
         const numStr = String(lesson.number).padStart(2, '0');
         const quizTag = quizRec
           ? `<span class="acd-quiz-tag">Kuis ${quizRec.correct}/${quizRec.total}</span>`
           : `<span>${lesson.readMinutes} mnt</span>`;
 
-        return `<button type="button" class="acd-lesson-row ${isDone ? 'is-done' : ''}" data-open-lesson="${esc(lesson.id)}">
-          <span class="acd-lesson-num" aria-hidden="true">${isDone ? '✓' : numStr}</span>
-          <div>
-            <p class="acd-lesson-row-title">${numStr}. ${esc(lesson.title)}</p>
-            <p class="acd-lesson-row-meta">${esc(lesson.summary)}</p>
-          </div>
-          <span class="acd-lesson-row-right">${quizTag} <span aria-hidden="true">›</span></span>
-        </button>`;
+        return `<div class="acd-lesson-row-wrap ${isDone ? 'is-done' : ''}">
+          <button type="button" class="acd-lesson-row ${isDone ? 'is-done' : ''}" data-open-lesson="${esc(lesson.id)}">
+            <span class="acd-lesson-num" aria-hidden="true">${isDone ? '✓' : numStr}</span>
+            <div class="acd-lesson-copy">
+              <p class="acd-lesson-row-title">${numStr}. ${esc(lesson.title)}</p>
+              <p class="acd-lesson-row-meta">${esc(lesson.summary)}</p>
+            </div>
+            <span class="acd-lesson-row-right">${quizTag} <span aria-hidden="true">›</span></span>
+          </button>
+          <button type="button" class="acd-bookmark-icon-btn ${isSaved ? 'is-saved' : ''}" data-toggle-bookmark="${esc(lesson.id)}" aria-label="${isSaved ? 'Hapus bookmark' : 'Simpan ke favorit'}" aria-pressed="${isSaved ? 'true' : 'false'}" title="${isSaved ? 'Tersimpan' : 'Simpan bab'}">${isSaved ? '★' : '☆'}</button>
+        </div>`;
       }).join('');
 
       return `<section class="acd-level-section" aria-labelledby="lvl-heading-${level.id}">
         <div class="acd-level-head">
-          <div>
-            <span class="acd-level-code">${esc(level.code)}</span>
-            <h2 id="lvl-heading-${level.id}">${esc(level.title)} <button type="button" class="amy-info-btn" data-info-tip="${esc(level.tagline)}" aria-label="Info ${esc(level.code)}" aria-expanded="false">i</button></h2>
+          <div class="acd-level-head-top">
+            <div>
+              <span class="acd-level-code">${esc(level.code)}</span>
+              <h2 id="lvl-heading-${level.id}">${esc(level.title)} <button type="button" class="amy-info-btn" data-info-tip="${esc(level.tagline)}" aria-label="Info ${esc(level.code)}" aria-expanded="false">i</button></h2>
+            </div>
+            <span class="acd-level-progress acd-nums">${lvlStat ? `${lvlStat.completed}/${lvlStat.total}` : ''}</span>
           </div>
-          <span class="acd-level-progress acd-nums">${lvlStat ? `${lvlStat.completed} / ${lvlStat.total} selesai` : ''}</span>
+          <div class="acd-level-bar" aria-hidden="true"><span style="width:${lvlPct}%"></span></div>
         </div>
         <div class="acd-lesson-list">${rowsHtml}</div>
       </section>`;
     }).filter(Boolean).join('');
 
+    const emptyMsg = isBookmarksFilter && !state.searchQuery
+      ? 'Belum ada bab favorit tersimpan. Ketuk ikon bintang (☆) di bab mana saja untuk menandainya.'
+      : `Tidak ada pelajaran yang cocok dengan "${esc(state.searchQuery)}".`;
     const emptyHtml = `<div class="acd-empty-state">
-      <p style="margin:0 0 12px; font-weight:700; color:var(--acd-ink);">Tidak ada pelajaran yang cocok dengan pencarian "${esc(state.searchQuery)}".</p>
-      <button type="button" class="acd-btn-secondary" id="acdResetFilterBtn">Reset Filter &amp; Pencarian</button>
+      <p style="margin:0 0 12px; font-weight:700; color:var(--acd-ink);">${emptyMsg}</p>
+      <button type="button" class="acd-btn-secondary" id="acdResetFilterBtn">Tampilkan Semua Bab</button>
     </div>`;
 
     return `<div class="acd-overview">
@@ -180,12 +228,13 @@
         <div>
           <p class="acd-hero-kicker">6 Level · 30 Pelajaran · XAU/USD (WITA)</p>
           <h1>Zero to Scalper Academy <button type="button" class="amy-info-btn" data-info-tip="6 Level terstruktur berisi 30 pelajaran inti: anatomi candlestick, peta likuiditas, 4 model entry A+ (Sweep-FVG, OB, IFVG, Turtle Soup), Killzone WITA, hingga protokol 100 sample." aria-label="Info kurikulum" aria-expanded="false">i</button></h1>
+          ${lastOpenedLesson ? `<p class="acd-hero-resume-meta">Terakhir dibaca: <strong>${String(lastOpenedLesson.number).padStart(2, '0')}. ${esc(lastOpenedLesson.title)}</strong></p>` : ''}
         </div>
         <div class="acd-hero-right">
           <div class="acd-hero-stats">
             <div class="acd-hero-stats-row">
               <span>Progres Belajar</span>
-              <strong class="acd-nums">${stats.completedCount} / ${stats.totalLessons} Pelajaran · ${stats.percent}%</strong>
+              <strong class="acd-nums">${stats.completedCount} / ${stats.totalLessons} · ${stats.percent}%</strong>
             </div>
             <div class="acd-progress-bar-lg" role="progressbar" aria-valuenow="${stats.percent}" aria-valuemin="0" aria-valuemax="100">
               <span style="width:${stats.percent}%"></span>
@@ -403,6 +452,9 @@
               <button type="button" class="acd-btn-secondary ${isDone ? 'is-done' : ''}" id="acdToggleCompleteBtn">
                 ${isDone ? '✓ Selesai Dipelajari' : 'Tandai Selesai'}
               </button>
+              <button type="button" class="acd-btn-secondary ${state.bookmarks.includes(String(lesson.id)) ? 'is-saved' : ''}" id="acdToggleBookmarkBtn">
+                ${state.bookmarks.includes(String(lesson.id)) ? '★ Tersimpan' : '☆ Simpan Bab'}
+              </button>
               <button type="button" class="acd-btn-primary" id="acdAskAmyBtn">
                 ✦ Tanya Amy Tentang Bab Ini
               </button>
@@ -513,6 +565,26 @@
         render();
       });
     }
+
+    const toggleBookmarkBtn = document.getElementById('acdToggleBookmarkBtn');
+    if (toggleBookmarkBtn) {
+      toggleBookmarkBtn.addEventListener('click', () => {
+        if (!state.activeLessonId) return;
+        toggleBookmark(state.activeLessonId);
+        render();
+      });
+    }
+
+    mount.querySelectorAll('[data-toggle-bookmark]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-toggle-bookmark');
+        if (id) {
+          toggleBookmark(id);
+          render();
+        }
+      });
+    });
 
     const askAmyBtn = document.getElementById('acdAskAmyBtn');
     if (askAmyBtn) {

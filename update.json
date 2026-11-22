@@ -1,27 +1,26 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.463/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.464/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Backtest Lab Overhaul: Candle Replay baru dengan Cloud Library, Practice Analytics, Trade Engine dengan spread/lot/SL/TP presisi, dan Guided Exercises 60 soal.",
-    "✦ Account Sim Engine: Simulasi akun trading virtual (SIM) dengan Balance, Equity, Margin, Auto-Lot, dan catatan jurnal terpisah REAL vs SIM.",
-    "✦ Home Account Cockpit: Dashboard ringkasan akun di Beranda dengan Balance live, Equity Curve mini, dan Open Position monitor.",
-    "✦ Info Tooltips (amyfx-info-tip): Tooltip edukasi interaktif untuk setiap metrik dan tombol kunci di seluruh aplikasi.",
-    "✦ Journal Pro Ledger: Upgrade navigasi (journal, statistics, habits, notes) dan integrasi Account Sim."
+    "✦ Hardening Lintas Modul: Isolasi Backtest di Jurnal SIM (tidak memengaruhi saldo/loss guard live).",
+    "✦ Trader Insights Engine: Evaluasi status sesi market real-time (fail-safe) dan Daily Loss Guard terpadu.",
+    "✦ Pemisahan Profil & Pengaturan: Profil fokus akun trader; ikon gerigi untuk pengaturan vertikal HP.",
+    "✦ Academy & Media Upgrade: Bookmark materi favorit, Lanjut Baca 1-ketuk, dan filter riwayat tontonan video.",
+    "✦ Replay Lab Enhancements: Bookmark momen setup, banner lanjut bulan berikutnya, antrean eksekusi bebas race condition."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.463/AmyFX-Pro-latest.apk",
-  "enabled": true,
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.464/AmyFX-Pro-latest.apk",
+  "enabled": false,
   "force_update": false,
-  "latest_version_code": 950463,
-  "latest_version_name": "2.0.0-pro.463",
+  "latest_version_code": 950464,
+  "latest_version_name": "2.0.0-pro.464",
   "mandatory": false,
-  "releaseDate": "2026-11-21",
+  "releaseDate": "2026-11-22",
   "release_notes": [
-    "✦ Backtest Lab Overhaul: Candle Replay baru dengan Cloud Library, Practice Analytics, Trade Engine dengan spread/lot/SL/TP presisi, dan Guided Exercises 60 soal.",
-    "✦ Account Sim Engine: Simulasi akun trading virtual (SIM) dengan Balance, Equity, Margin, Auto-Lot, dan catatan jurnal terpisah REAL vs SIM.",
-    "✦ Home Account Cockpit: Dashboard ringkasan akun di Beranda dengan Balance live, Equity Curve mini, dan Open Position monitor.",
-    "✦ Info Tooltips (amyfx-info-tip): Tooltip edukasi interaktif untuk setiap metrik dan tombol kunci di seluruh aplikasi.",
-    "✦ Journal Pro Ledger: Upgrade navigasi (journal, statistics, habits, notes) dan integrasi Account Sim."
+    "✦ Hardening Lintas Modul: Isolasi Backtest di Jurnal SIM (tidak memengaruhi saldo/loss guard live).",
+    "✦ Trader Insights Engine: Evaluasi status sesi market real-time (fail-safe) dan Daily Loss Guard terpadu.",
+    "✦ Pemisahan Profil & Pengaturan: Profil fokus akun trader; ikon gerigi untuk pengaturan vertikal HP.",
+    "✦ Academy & Media Upgrade: Bookmark materi favorit, Lanjut Baca 1-ketuk, dan filter riwayat tontonan video.",
+    "✦ Replay Lab Enhancements: Bookmark momen setup, banner lanjut bulan berikutnya, antrean eksekusi bebas race condition."
   ],
-  "version": "2.0.0-pro.463",
-  "versionCode": 950463,
-  "sha256": "502b10c0f43ac85338795a0d1bc1aa2ef9e433dc62e4e2871943c0891fc167b5"
+  "version": "2.0.0-pro.464",
+  "versionCode": 950464
 }

@@ -96,9 +96,22 @@ document.addEventListener('DOMContentLoaded', () => {
       'amy_mapping_logs', 'amy_mapping_analyses', 'amy_mapping_setups',
       'amy_mapping_lifecycle_v4', 'amy_mapping_active_pointer_v4',
       'amy_entry_watch_state_v3', 'amy_recent_projects', 'amy_saved_code',
-      'amy_journal_entries', 'amy_mapping_notified'
+      'amy_journal_entries', 'amy_mapping_notified', 'amy_indicator_favorites',
+      'tradingLibraryManager.journals.v1', 'tradingLibraryManager.notes.v1',
+      'tradingLibraryManager.items.v1', 'amy_sim_positions_v1',
+      'amy_sim_cashflows_v1', 'amy_daily_loss_guard_v1',
+      'amy_media_watched_v1', 'amy_replay_bookmarks_v1',
+      'amy_academy_bookmarks_v1', 'amy_academy_progress_v2',
+      'amy_media_items', 'amy.backtest.exportedJournalIds.v1'
     ];
     keys.forEach(key => { try { localStorage.removeItem(key); } catch (_) {} });
+    if (mediaDbPromise) {
+      try {
+        const db = await mediaDbPromise;
+        db?.close?.();
+      } catch (_) {}
+      mediaDbPromise = null;
+    }
     return deleteIndexedDatabase('tradingLibraryManager.files');
   }
 
@@ -182,13 +195,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let disposeHomeChart=null;
+  let currentRootView = 'beranda';
+  let lastMainTab = 'beranda';
   function setActive(target) {
     disposeHomeChart?.();disposeHomeChart=null;
+    currentRootView = target;
+    if (target !== 'pengaturan') {
+      lastMainTab = target;
+    }
     const isVideo = t => t === 'video' || t === 'media';
     navBtns.forEach(btn => {
       const match = btn.dataset.target === target || (isVideo(target) && isVideo(btn.dataset.target));
       btn.classList.toggle('active', Boolean(match));
     });
+    const gearBtn = document.getElementById('openSettingsBtn');
+    if (gearBtn) {
+      const isSettings = target === 'pengaturan';
+      gearBtn.classList.toggle('is-active', isSettings);
+      gearBtn.setAttribute('aria-pressed', isSettings ? 'true' : 'false');
+    }
     try { localStorage.setItem('amy_root_tab', target); } catch (_) {}
   }
 
@@ -346,10 +371,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (_) {}
 
-    // 4. Video attachments dari Jurnal Trading & Notes
+    // 4. Video attachments dari Jurnal Trading (IndexedDB journals.v2 + fallback localStorage)
     try {
-      const journalsRaw = localStorage.getItem('tradingLibraryManager.journals.v1') || localStorage.getItem('amy_journal_entries') || '[]';
-      const journals = JSON.parse(journalsRaw);
+      let journals = [];
+      try {
+        const idbJournals = await getMediaMetadataRecord('journals.v2');
+        if (Array.isArray(idbJournals?.value)) journals = idbJournals.value;
+      } catch (_) {}
+      if (!journals.length) {
+        const journalsRaw = localStorage.getItem('tradingLibraryManager.journals.v1') || localStorage.getItem('amy_journal_entries') || '[]';
+        const parsed = JSON.parse(journalsRaw);
+        if (Array.isArray(parsed)) journals = parsed;
+      }
       if (Array.isArray(journals)) {
         journals.forEach(j => {
           (j?.attachments || []).forEach(att => {
@@ -359,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (!itemMap.has(attId)) {
                 itemMap.set(attId, {
                   id: attId,
+                  journalId: j.id || '',
                   title: att.name || j.title || 'Video Jurnal Trading',
                   type: 'Video Pembelajaran',
                   category: 'Video',
@@ -404,12 +438,46 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let currentMediaFilter = 'Semua';
+  let currentMediaSearch = '';
+  const MEDIA_WATCHED_STORAGE_KEY = 'amy_media_watched_v1';
+
+  function getWatchedMediaSet() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(MEDIA_WATCHED_STORAGE_KEY) || '[]');
+      return new Set(Array.isArray(raw) ? raw.map(String) : []);
+    } catch (_) {
+      return new Set();
+    }
+  }
+
+  function saveWatchedMediaSet(set) {
+    try {
+      localStorage.setItem(MEDIA_WATCHED_STORAGE_KEY, JSON.stringify(Array.from(set).slice(-300)));
+    } catch (_) {}
+  }
+
+  function markMediaWatched(itemId, watched = true) {
+    if (!itemId) return;
+    const set = getWatchedMediaSet();
+    if (watched) set.add(String(itemId));
+    else set.delete(String(itemId));
+    saveWatchedMediaSet(set);
+  }
+
+  const activeMediaThumbUrls = new Set();
+  let mediaSearchDebounceTimer = null;
+
+  function revokeActiveMediaThumbUrls() {
+    activeMediaThumbUrls.forEach((url) => {
+      try { URL.revokeObjectURL(url); } catch (_) {}
+    });
+    activeMediaThumbUrls.clear();
+  }
 
   async function renderMedia(options = {}) {
     setActive('video');
     const allItems = await loadAllMediaItems();
-    const hasSavedCode = Boolean(localStorage.getItem('amy_saved_code'));
-    const favoriteIndicators = readJsonArray('amy_indicator_favorites');
+    const watchedSet = getWatchedMediaSet();
 
     const isMediaItem = item => {
       return item.mediaKind === 'image' || item.mediaKind === 'video' || item.mediaKind === 'audio' ||
@@ -421,52 +489,71 @@ document.addEventListener('DOMContentLoaded', () => {
       return item.mediaKind === 'document' || item.type === 'Dokumen' || Boolean(item.documentType);
     };
 
-    let filteredItems = [];
-    if (currentMediaFilter === 'Video') {
-      filteredItems = allItems.filter(it => it.mediaKind === 'video' || it.type === 'Video Pembelajaran' || (it.mediaType && it.mediaType.startsWith('video/')));
-    } else if (currentMediaFilter === 'Gambar') {
-      filteredItems = allItems.filter(it => it.mediaKind === 'image' || it.type === 'Gambar Chart' || (it.mediaType && it.mediaType.startsWith('image/')));
-    } else if (currentMediaFilter === 'Dokumen') {
-      filteredItems = allItems.filter(isDocItem);
-    } else {
-      // 'Semua'
-      filteredItems = allItems.filter(it => isMediaItem(it) || isDocItem(it));
+    const baseLibrary = allItems.filter(it => isMediaItem(it) || isDocItem(it));
+    const hasAnyVideo = baseLibrary.some(isVideoMediaItem);
+
+    function computeFiltered(list) {
+      let filtered = list;
+      if (currentMediaFilter === 'Video') {
+        filtered = list.filter(it => it.mediaKind === 'video' || it.type === 'Video Pembelajaran' || (it.mediaType && it.mediaType.startsWith('video/')));
+      } else if (currentMediaFilter === 'Belum') {
+        filtered = list.filter(it => isVideoMediaItem(it) && !watchedSet.has(String(it.id)));
+      } else if (currentMediaFilter === 'Gambar') {
+        filtered = list.filter(it => it.mediaKind === 'image' || it.type === 'Gambar Chart' || (it.mediaType && it.mediaType.startsWith('image/')));
+      } else if (currentMediaFilter === 'Dokumen') {
+        filtered = list.filter(isDocItem);
+      }
+
+      const q = String(currentMediaSearch || '').trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(it =>
+          String(it.title || '').toLowerCase().includes(q) ||
+          String(it.category || '').toLowerCase().includes(q) ||
+          String(it.notes || '').toLowerCase().includes(q)
+        );
+      }
+      return { filtered, q };
     }
 
-    const totalMediaCount = allItems.filter(it => isMediaItem(it) || isDocItem(it)).length;
-    const countLabel = totalMediaCount > 0 ? `${totalMediaCount} video &amp; media tersimpan` : 'Belum ada video tersimpan';
+    function buildResultsHtml(filtered, q) {
+      if (filtered.length === 0) {
+        const emptyMsg = q
+          ? `Tidak ditemukan media untuk "${escapeHtml(currentMediaSearch)}".`
+          : currentMediaFilter === 'Belum'
+            ? (hasAnyVideo ? 'Semua video sudah ditonton.' : 'Belum ada video tersimpan')
+            : 'Belum ada item tersimpan';
+        return `
+          <div class="empty-state-card media-empty-clean slide-up">
+            <strong class="media-empty-title">${emptyMsg} <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda. Semua fitur Video Reel, Timer Tidur, dan Scan HP tetap aktif." aria-label="Info media" aria-expanded="false">i</button></strong>
+            ${q || currentMediaFilter !== 'Semua'
+              ? `<button type="button" id="rootResetMediaFilterBtn" class="media-upload-btn">Tampilkan Semua</button>`
+              : `<button type="button" id="rootEmptyUploadMediaBtn" class="media-upload-btn">+ Upload Media</button>`}
+          </div>
+        `;
+      }
 
-    const pillsHTML = [
-      { id: 'Semua', label: `Semua (${totalMediaCount})` },
-      { id: 'Video', label: 'Video Replay' },
-      { id: 'Gambar', label: 'Gambar & Chart' },
-      { id: 'Dokumen', label: 'Dokumen PDF' }
-    ].map(p => `
-      <button class="pill ${currentMediaFilter === p.id ? 'active' : ''}" data-media-filter="${p.id}" type="button">${p.label}</button>
-    `).join('');
-
-    let contentHTML = '';
-
-    if (filteredItems.length === 0) {
-      contentHTML = `
-        <div class="empty-state-card slide-up" style="text-align:center; padding:36px 20px; border-radius:20px; background:var(--surface-color); border:1px solid var(--border-color); margin-top:10px;">
-          <div style="font-size:36px; margin-bottom:10px;">🎬</div>
-          <strong style="display:block; font-size:15px; margin-bottom:14px; color:var(--text-main);">Belum ada item tersimpan <button type="button" class="amy-info-btn" data-info-tip="Simpan rekaman video replay setup XAU/USD, video materi, screenshot chart, atau dokumen trading Anda." aria-label="Info media" aria-expanded="false">i</button></strong>
-          <button type="button" id="rootEmptyUploadMediaBtn" class="media-upload-btn" style="padding:10px 20px; font-size:13px;">+ Upload Media</button>
-        </div>
-      `;
-    } else {
-      const cardsHTML = filteredItems.map(item => {
-        const isVid = item.mediaKind === 'video' || item.type === 'Video Pembelajaran' || (item.mediaType && item.mediaType.startsWith('video/'));
+      const cardsHTML = filtered.map(item => {
+        const isVid = isVideoMediaItem(item);
         const isDoc = isDocItem(item);
+        const isAudio = item.mediaKind === 'audio' || (item.mediaType && item.mediaType.startsWith('audio/'));
+        const isWatched = watchedSet.has(String(item.id));
         const itemSize = formatBytes(item.mediaSize || item.fileSize || 0);
+        const metaParts = [item.category || item.type || 'Media', itemSize];
+        if (isVid && isWatched) metaParts.push('Ditonton');
 
         let thumbMarkup = '';
         if (isVid) {
           thumbMarkup = `
             <div class="media-video-thumb is-loading" data-video-thumb-id="${escapeHtml(item.id)}" aria-hidden="true"></div>
             <div class="media-play-overlay" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg></div>
-            <span class="media-video-badge">▶ Video</span>
+            ${isWatched ? '<span class="media-watched-tag">✓ Ditonton</span>' : '<span class="media-video-badge">▶ Video</span>'}
+          `;
+        } else if (isAudio) {
+          thumbMarkup = `
+            <div class="media-doc-box">
+              <strong style="font-size:22px;">🎵</strong>
+              <strong style="font-size:11px; letter-spacing:0.05em;">AUDIO</strong>
+            </div>
           `;
         } else if (isDoc) {
           const docLabel = (item.documentType || (item.mediaName ? item.mediaName.split('.').pop() : 'DOC')).toUpperCase();
@@ -481,22 +568,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return `
-          <article class="media-card slide-up" data-item-id="${escapeHtml(item.id)}">
+          <article class="media-card media-card--clean slide-up ${isWatched ? 'is-watched' : ''}" data-item-id="${escapeHtml(item.id)}">
             <div class="media-thumb-box" data-view-media="${escapeHtml(item.id)}">
               ${thumbMarkup}
             </div>
             <div class="media-card-body">
-              <div class="media-card-meta">
-                <span class="media-card-badge">${escapeHtml(item.category || item.type || 'Media')}</span>
-                <span>${itemSize}</span>
-              </div>
+              <div class="media-card-meta-line">${escapeHtml(metaParts.join(' · '))}</div>
               <strong class="media-card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</strong>
               <div class="media-card-actions">
                 <button type="button" class="media-card-btn${isVid ? ' is-video-action' : ''}" data-view-media="${escapeHtml(item.id)}">
-                  <span>${isVid ? '▶ Putar Video' : 'Lihat Full'}</span>
+                  <span>${isVid ? '▶ Putar' : (isAudio ? '▶ Audio' : 'Buka')}</span>
                 </button>
-                <button type="button" class="media-card-btn danger-btn" data-delete-media="${escapeHtml(item.id)}" title="Hapus Media">
-                  <span>🗑️</span>
+                ${isVid ? `<button type="button" class="media-card-btn media-watch-btn ${isWatched ? 'is-watched' : ''}" data-toggle-watched="${escapeHtml(item.id)}" title="${isWatched ? 'Tandai belum ditonton' : 'Tandai sudah ditonton'}" aria-label="${isWatched ? 'Tandai belum ditonton' : 'Tandai sudah ditonton'}">${isWatched ? '✓' : '○'}</button>` : ''}
+                <button type="button" class="media-card-btn danger-btn" data-delete-media="${escapeHtml(item.id)}" data-confirm-arm="0" title="Hapus Media" aria-label="Hapus Media">
+                  <span>Hapus</span>
                 </button>
               </div>
             </div>
@@ -504,72 +589,106 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-      contentHTML = `<div class="media-grid">${cardsHTML}</div>`;
+      return `<div class="media-grid">${cardsHTML}</div>`;
     }
 
+    function hydrateResultsHost(host, filtered) {
+      revokeActiveMediaThumbUrls();
+      if (!host) return;
+      host.querySelectorAll('[data-media-thumb]').forEach(async img => {
+        const fileId = img.dataset.mediaThumb;
+        if (!fileId) return;
+        const fileRec = await getMediaFileRecord(fileId);
+        if (fileRec?.blob && img.isConnected) {
+          const url = URL.createObjectURL(fileRec.blob);
+          activeMediaThumbUrls.add(url);
+          img.src = url;
+        }
+      });
+      host.querySelectorAll('[data-video-thumb-id]').forEach(el => {
+        const item = filtered.find(it => it.id === el.dataset.videoThumbId);
+        const cached = item ? getCachedVideoThumb(item) : '';
+        if (cached) applyVideoThumbToEl(el, cached);
+        else getVideoThumbObserver().observe(el);
+      });
+      host.querySelector('#rootResetMediaFilterBtn')?.addEventListener('click', () => {
+        currentMediaFilter = 'Semua';
+        currentMediaSearch = '';
+        renderMedia({ autoPlay: false });
+      });
+    }
+
+    const { filtered: filteredItems, q } = computeFiltered(baseLibrary);
+    const totalMediaCount = baseLibrary.length;
+    const watchedCount = baseLibrary.filter(it => watchedSet.has(String(it.id))).length;
+    const countLabel = totalMediaCount > 0
+      ? `${totalMediaCount} item${watchedCount > 0 ? ` · ${watchedCount} ditonton` : ''}`
+      : 'Belum ada media tersimpan';
+
+    const pillsHTML = [
+      { id: 'Semua', label: `Semua (${totalMediaCount})` },
+      { id: 'Video', label: 'Video' },
+      { id: 'Belum', label: 'Belum Ditonton' },
+      { id: 'Gambar', label: 'Gambar' },
+      { id: 'Dokumen', label: 'Dokumen' }
+    ].map(p => `
+      <button class="pill ${currentMediaFilter === p.id ? 'active' : ''}" data-media-filter="${p.id}" type="button">${p.label}</button>
+    `).join('');
+
+    revokeActiveMediaThumbUrls();
+
     mainContent.innerHTML = `
-      <div class="media-section-head">
+      <div class="media-section-head media-section-head--clean">
         <div class="page-title-group">
-          <span class="section-kicker">GALERI &amp; VIDEO TRADING</span>
-          <h2>Video</h2>
-          <small style="color:var(--text-muted); font-size:12px; font-weight:600;">${countLabel}</small>
+          <h2>Video &amp; Media <button type="button" class="amy-info-btn" data-info-tip="Putar video dalam mode Reel layar penuh lengkap dengan Auto-Next/Loop dan Timer Tidur, atau simpan chart &amp; PDF trading lokal." aria-label="Info video" aria-expanded="false">i</button></h2>
+          <small class="media-count-meta">${countLabel}</small>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input type="file" id="rootMediaFileInput" multiple accept="video/*,image/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.txt" style="display:none;">
+        <div class="media-head-actions">
+          <input type="file" id="rootMediaFileInput" multiple accept="video/*,image/*,audio/*,.mp4,.mkv,.webm,.ogg,.mov,.m4v,.png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.txt" style="display:none;">
           <button type="button" id="rootUploadMediaBtn" class="media-upload-btn">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            <span>+ Upload Video</span>
+            <span>Upload</span>
           </button>
         </div>
       </div>
 
-      <div class="media-filter-pills">${pillsHTML}</div>
+      <div class="media-toolbar-clean">
+        <input type="search" id="rootMediaSearchInput" class="media-search-input" placeholder="Cari video, chart, atau dokumen..." value="${escapeHtml(currentMediaSearch)}" autocomplete="off" aria-label="Cari media">
+        <div class="media-filter-pills">${pillsHTML}</div>
+      </div>
 
-      ${contentHTML}
+      <div id="rootMediaResultsHost">${buildResultsHtml(filteredItems, q)}</div>
 
-      <a href="apps/journal/index.html" class="media-journal-shortcut" style="margin-top:18px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="font-size:18px;">📖</span>
-          <div>
-            <strong style="display:block; color:var(--text-main); font-size:13px;">Buka Jurnal Trading &amp; Habits Lengkap</strong>
-            <small style="color:var(--text-muted); font-size:11px;">Analisis performa, win rate, dan catatan disiplin trading harian</small>
-          </div>
-        </div>
+      <a href="apps/journal/index.html" class="media-journal-shortcut media-journal-shortcut--clean">
+        <strong>Jurnal Trading &amp; Disiplin</strong>
         <span class="chevron" aria-hidden="true">›</span>
       </a>
     `;
 
-    // Asynchronously load actual blob contents for image cards
-    const thumbImgs = mainContent.querySelectorAll('[data-media-thumb]');
-    thumbImgs.forEach(async img => {
-      const fileId = img.dataset.mediaThumb;
-      if (!fileId) return;
-      const fileRec = await getMediaFileRecord(fileId);
-      if (fileRec?.blob) {
-        img.src = URL.createObjectURL(fileRec.blob);
-      }
-    });
+    const resultsHost = document.getElementById('rootMediaResultsHost');
+    hydrateResultsHost(resultsHost, filteredItems);
 
-    // Video: pakai thumbnail tersimpan (videoThumb dari Jurnal / native scanner), atau capture 1 frame secara lazy
-    mainContent.querySelectorAll('[data-video-thumb-id]').forEach(el => {
-      const item = filteredItems.find(it => it.id === el.dataset.videoThumbId);
-      const cached = item ? getCachedVideoThumb(item) : '';
-      if (cached) applyVideoThumbToEl(el, cached);
-      else getVideoThumbObserver().observe(el);
-    });
-
-    // Bind file input handler
     const fileInput = document.getElementById('rootMediaFileInput');
     fileInput?.addEventListener('change', handleRootMediaUpload);
 
-    // Saat klik menu utama Video: langsung putar video pertama ala TikTok!
+    const searchInput = document.getElementById('rootMediaSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', e => {
+        currentMediaSearch = e.target.value || '';
+        clearTimeout(mediaSearchDebounceTimer);
+        mediaSearchDebounceTimer = setTimeout(() => {
+          const host = document.getElementById('rootMediaResultsHost');
+          if (!host) return;
+          const next = computeFiltered(baseLibrary);
+          host.innerHTML = buildResultsHtml(next.filtered, next.q);
+          hydrateResultsHost(host, next.filtered);
+        }, 120);
+      });
+    }
+
     const videoItems = allItems.filter(isVideoMediaItem);
-    if (options.autoPlay && !reelState.open) {
-      if (videoItems.length > 0) {
-        openVideoReel(videoItems[0]);
-      } else {
-        showToast('Belum ada video tersimpan. Silakan upload video pertama Anda.');
-      }
+    if (options.autoPlay && !reelState.open && videoItems.length > 0) {
+      openVideoReel(videoItems[0]);
     }
   }
 
@@ -887,12 +1006,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('is-reel-open');
     if (reelState.pushedHistory && !fromPopState && history.state?.amyReel) history.back();
     reelState.pushedHistory = false;
+    if (currentRootView === 'video') {
+      renderMedia({ autoPlay: false });
+    }
   }
   window.AmyFXCloseVideoReel = closeVideoReel;
 
   window.addEventListener('popstate', () => { if (reelState.open) closeVideoReel(true); });
 
   async function openVideoReel(activeItem) {
+    if (activeItem?.id) markMediaWatched(activeItem.id, true);
     const all = await loadAllMediaItems();
     const others = shuffleMedia(all.filter(it => isVideoMediaItem(it) && it.id !== activeItem.id)).slice(0, 20);
     const feedItems = [activeItem, ...others];
@@ -1344,7 +1467,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (entry.isIntersecting) {
           panel.dataset.isActive = '1';
           activeIndex = idx;
-          if (item) setHeader(item);
+          if (item) {
+            setHeader(item);
+            if (item.id) markMediaWatched(item.id, true);
+          }
           if (video) {
             video.loop = (reelState.sleepTimerMode === 'end_of_video') ? false : (currentPlayMode === 'loop');
           }
@@ -1370,20 +1496,35 @@ document.addEventListener('DOMContentLoaded', () => {
       dialog.className = 'media-fullscreen-dialog';
       document.body.appendChild(dialog);
     }
+    if (dialog._activeBlobUrl) {
+      try { URL.revokeObjectURL(dialog._activeBlobUrl); } catch (_) {}
+      dialog._activeBlobUrl = '';
+    }
     const fileRec = item.fileId ? await getMediaFileRecord(item.fileId) : null;
-    let blobUrl = fileRec?.blob ? URL.createObjectURL(fileRec.blob) : (item.mediaUrl || '');
+    const createdBlobUrl = fileRec?.blob ? URL.createObjectURL(fileRec.blob) : '';
+    if (createdBlobUrl) dialog._activeBlobUrl = createdBlobUrl;
+    const blobUrl = createdBlobUrl || (item.mediaUrl || '');
 
     const isVid = item.mediaKind === 'video' || item.type === 'Video Pembelajaran' || (item.mediaType && item.mediaType.startsWith('video/')) || (fileRec?.blob?.type || '').startsWith('video/');
+    const isAudio = item.mediaKind === 'audio' || (item.mediaType && item.mediaType.startsWith('audio/')) || (fileRec?.blob?.type || '').startsWith('audio/');
     const isDoc = item.mediaKind === 'document' || item.type === 'Dokumen';
 
     let stageContent = '';
     if (isVid) {
       stageContent = `<video src="${blobUrl}" controls autoplay playsinline style="max-width:100%; max-height:80vh; border-radius:12px;"></video>`;
+    } else if (isAudio) {
+      stageContent = `
+        <div style="text-align:center; padding:32px 20px; background:var(--surface-color); border-radius:20px; border:1px solid var(--border-color); max-width:420px; width:100%; margin:auto;">
+          <div style="font-size:48px; margin-bottom:12px;">🎵</div>
+          <h3 style="color:var(--text-main, var(--amy-text, #f5f8fc)); margin-bottom:14px; font-size:16px;">${escapeHtml(item.title)}</h3>
+          ${blobUrl ? `<audio src="${blobUrl}" controls autoplay style="width:100%;"></audio>` : '<p style="color:var(--text-muted); font-size:12px;">File audio tidak ditemukan.</p>'}
+        </div>
+      `;
     } else if (isDoc) {
       stageContent = `
         <div style="text-align:center; padding:32px 20px; background:var(--surface-color); border-radius:20px; border:1px solid var(--border-color); max-width:400px; margin:auto;">
           <div style="font-size:52px; margin-bottom:12px;">📄</div>
-          <h3 style="color:#fff; margin-bottom:8px; font-size:16px;">${escapeHtml(item.title)}</h3>
+          <h3 style="color:var(--text-main, var(--amy-text, #f5f8fc)); margin-bottom:8px; font-size:16px;">${escapeHtml(item.title)}</h3>
           <p style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">${escapeHtml(item.mediaName || item.title)} • ${formatBytes(item.mediaSize || fileRec?.size)}</p>
           ${blobUrl ? `<a href="${blobUrl}" download="${escapeHtml(item.mediaName || item.title)}" class="media-upload-btn" style="text-decoration:none; display:inline-flex;">💾 Unduh / Buka Dokumen</a>` : ''}
         </div>
@@ -1419,13 +1560,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       dialog.removeAttribute('open');
       dialog.style.display = 'none';
-      const vid = dialog.querySelector('video');
-      if (vid) { vid.pause(); vid.src = ''; }
+      const mediaEl = dialog.querySelector('video, audio');
+      if (mediaEl) { mediaEl.pause(); mediaEl.removeAttribute('src'); try { mediaEl.load(); } catch (_) {} }
+      if (dialog._activeBlobUrl) {
+        try { URL.revokeObjectURL(dialog._activeBlobUrl); } catch (_) {}
+        dialog._activeBlobUrl = '';
+      }
     };
-    closeBtn?.addEventListener('click', closeDialog);
-    dialog.addEventListener('click', e => {
+    if (closeBtn) closeBtn.onclick = closeDialog;
+    dialog.onclick = e => {
       if (e.target === dialog) closeDialog();
-    });
+    };
   }
 
   async function handleRootMediaUpload(event) {
@@ -1435,74 +1580,78 @@ document.addEventListener('DOMContentLoaded', () => {
     let uploadedCount = 0;
     const now = new Date().toISOString();
 
-    for (const file of files) {
-      if (file.size > 200 * 1024 * 1024) {
-        showToast(`File "${file.name}" terlalu besar (>200MB).`);
-        continue;
+    try {
+      for (const file of files) {
+        if (file.size > 200 * 1024 * 1024) {
+          showToast(`File "${file.name}" terlalu besar (>200MB).`);
+          continue;
+        }
+        let kind = 'document';
+        let itemType = 'Dokumen';
+        if (file.type.startsWith('image/')) {
+          kind = 'image';
+          itemType = 'Gambar Chart';
+        } else if (file.type.startsWith('video/')) {
+          kind = 'video';
+          itemType = 'Video Pembelajaran';
+        } else if (file.type.startsWith('audio/')) {
+          kind = 'audio';
+          itemType = 'Audio';
+        }
+
+        const id = 'media_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        const title = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+
+        const item = {
+          id,
+          title,
+          type: itemType,
+          category: 'Setup XAU',
+          status: 'Selesai dibaca',
+          collection: 'Media',
+          tags: [itemType.toLowerCase(), 'media'],
+          notes: `File ${file.name} diupload ke Media Utama.`,
+          checklist: [],
+          code: '',
+          mediaUrl: '',
+          fileId,
+          mediaKind: kind,
+          mediaName: file.name,
+          mediaType: file.type,
+          mediaSize: file.size,
+          documentType: kind === 'document' ? (file.name.split('.').pop() || 'doc').toUpperCase() : '',
+          documentText: '',
+          favorite: false,
+          archived: false,
+          revisionHistory: [],
+          uploadedAt: now,
+          createdAt: now,
+          updatedAt: now
+        };
+
+        await putMediaFileRecord({
+          id: fileId,
+          itemId: id,
+          blob: file,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          kind,
+          uploadedAt: now
+        });
+
+        const currentItems = await loadAllMediaItems();
+        await saveAllMediaItems([item, ...currentItems]);
+        uploadedCount++;
       }
-      let kind = 'document';
-      let itemType = 'Dokumen';
-      if (file.type.startsWith('image/')) {
-        kind = 'image';
-        itemType = 'Gambar Chart';
-      } else if (file.type.startsWith('video/')) {
-        kind = 'video';
-        itemType = 'Video Pembelajaran';
-      } else if (file.type.startsWith('audio/')) {
-        kind = 'audio';
-        itemType = 'Audio';
+
+      if (uploadedCount > 0) {
+        showToast(`${uploadedCount} media berhasil ditambahkan!`);
+        renderMedia({ autoPlay: false });
       }
-
-      const id = 'media_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-      const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-      const title = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-
-      const item = {
-        id,
-        title,
-        type: itemType,
-        category: 'Setup XAU',
-        status: 'Selesai dibaca',
-        collection: 'Media',
-        tags: [itemType.toLowerCase(), 'media'],
-        notes: `File ${file.name} diupload ke Media Utama.`,
-        checklist: [],
-        code: '',
-        mediaUrl: '',
-        fileId,
-        mediaKind: kind,
-        mediaName: file.name,
-        mediaType: file.type,
-        mediaSize: file.size,
-        documentType: kind === 'document' ? (file.name.split('.').pop() || 'doc').toUpperCase() : '',
-        documentText: '',
-        favorite: false,
-        archived: false,
-        revisionHistory: [],
-        uploadedAt: now,
-        createdAt: now,
-        updatedAt: now
-      };
-
-      await putMediaFileRecord({
-        id: fileId,
-        itemId: id,
-        blob: file,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        kind,
-        uploadedAt: now
-      });
-
-      const currentItems = await loadAllMediaItems();
-      await saveAllMediaItems([item, ...currentItems]);
-      uploadedCount++;
-    }
-
-    if (uploadedCount > 0) {
-      showToast(`${uploadedCount} media berhasil ditambahkan!`);
-      renderMedia();
+    } finally {
+      if (event.target) event.target.value = '';
     }
   }
 
@@ -1510,15 +1659,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const allItems = await loadAllMediaItems();
     const item = allItems.find(it => it.id === itemId);
     if (!item) return;
-    if (!window.confirm(`Hapus media "${item.title}" dari perangkat?`)) return;
 
     if (item.fileId) {
       await deleteMediaFileRecord(item.fileId);
     }
-    const updated = allItems.filter(it => it.id !== itemId);
+    if (item.collection === 'Jurnal' && (item.fileId || item.journalId)) {
+      try {
+        const meta = await getMediaMetadataRecord('journals.v2');
+        const list = Array.isArray(meta?.value) ? meta.value : readJsonArray('tradingLibraryManager.journals.v1');
+        if (Array.isArray(list) && list.length) {
+          const nextJournals = list.map(j => {
+            if (item.journalId && j.id !== item.journalId) return j;
+            const atts = Array.isArray(j.attachments) ? j.attachments : [];
+            const filtered = atts.filter(a => (a.fileId && a.fileId !== item.fileId) && (a.id !== item.id));
+            return filtered.length === atts.length ? j : { ...j, attachments: filtered, updatedAt: new Date().toISOString() };
+          });
+          await putMediaMetadataRecord({ id: 'journals.v2', value: nextJournals, updatedAt: new Date().toISOString() });
+          try { localStorage.setItem('tradingLibraryManager.journals.v1', JSON.stringify(nextJournals)); } catch (_) {}
+        }
+      } catch (_) {}
+    }
+    const updated = allItems.filter(it => it.id !== itemId && it.collection !== 'Jurnal');
     await saveAllMediaItems(updated);
-    showToast(`Media "${item.title}" berhasil dihapus.`);
-    renderMedia();
+    markMediaWatched(itemId, false);
+    showToast(`Media "${item.title}" dihapus.`);
+    renderMedia({ autoPlay: false });
   }
 
   function renderKoleksi() {
@@ -1541,17 +1706,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     const userBalance = String(simParams.baseBalanceUsd);
     const userRisk = String(simParams.riskPct);
-    const reminderConfig = window.AmyLearningReminder ? window.AmyLearningReminder.getConfig() : {
-      enabled: localStorage.getItem('amy_learning_reminder_enabled') !== 'false',
-      time: localStorage.getItem('amy_learning_reminder_time') || '20:00',
-      lastTitle: localStorage.getItem('amy_last_opened_title') || 'Fondasi ICT & Market Structure Dasar',
-      lastTimeText: 'Belum ada riwayat belajar'
-    };
-    const reminderSlots = reminderConfig.slots || {
-      morning: { enabled: true, time: '08:00', label: 'Pagi' },
-      afternoon: { enabled: true, time: '13:00', label: 'Siang' },
-      night: { enabled: true, time: reminderConfig.time || '20:00', label: 'Malam' }
-    };
 
     const getInitials = (name) => {
       const parts = String(name || 'TR').trim().split(/\s+/).filter(Boolean);
@@ -1593,27 +1747,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return `Risiko $${riskUsd.toFixed(2)} (${riskIdrText}) / trade`;
     };
 
-    const customBgData = window.AmyFXTheme?.customBg;
-    const hasCustomBg = Boolean(customBgData && customBgData.image);
-    const customBgDim = customBgData?.dim ?? 50;
-    const customBgBlur = customBgData?.blur ?? 20;
-
-    const themeColors = window.AmyFXTheme?.colors || {};
-    const isLightResolved = window.AmyFXTheme?.resolved === 'light';
-    const themeDefaults = isLightResolved
-      ? { background: '#eef4fa', surface: '#ffffff', text: '#111a25', accent: '#216bdb', opacity: 80 }
-      : { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 68 };
-    const opacityVal = themeColors.opacity !== undefined ? Number(themeColors.opacity) : themeDefaults.opacity;
-
-    const savedTab = (() => {
-      try {
-        const t = sessionStorage.getItem('amy_profile_tab');
-        return ['akun', 'tampilan', 'sistem'].includes(t) ? t : 'akun';
-      } catch (_) {
-        return 'akun';
-      }
-    })();
-
     mainContent.innerHTML = `
       <div class="profile-page profile-page--clean">
         <!-- Identitas Trader Ringkas -->
@@ -1645,20 +1778,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </form>
         </section>
 
-        <!-- Navigasi Segmen Profil -->
-        <div class="profile-tabs" role="tablist" aria-label="Kategori profil">
-          <button type="button" role="tab" class="profile-tab ${savedTab === 'akun' ? 'is-active' : ''}" data-profile-tab="akun" aria-selected="${savedTab === 'akun' ? 'true' : 'false'}" aria-controls="profileTabAkun">Akun</button>
-          <button type="button" role="tab" class="profile-tab ${savedTab === 'tampilan' ? 'is-active' : ''}" data-profile-tab="tampilan" aria-selected="${savedTab === 'tampilan' ? 'true' : 'false'}" aria-controls="profileTabTampilan">Tampilan</button>
-          <button type="button" role="tab" class="profile-tab ${savedTab === 'sistem' ? 'is-active' : ''}" data-profile-tab="sistem" aria-selected="${savedTab === 'sistem' ? 'true' : 'false'}" aria-controls="profileTabSistem">Sistem</button>
-        </div>
-
-        <!-- TAB 1: AKUN & SIMULASI -->
-        <div class="profile-tab-panel profile-akun-layout" id="profileTabAkun" role="tabpanel" data-profile-panel="akun" ${savedTab === 'akun' ? '' : 'hidden'}>
+        <!-- Akun Pro Simulasi & Parameter Modal -->
+        <div class="profile-akun-layout">
           <section id="home-account-cockpit-slot" class="home-account-cockpit-slot profile-cockpit-slot" aria-label="Cockpit Akun Simulasi Pro"></section>
 
           <section class="profile-panel slide-up" id="profileTradingParamsPanel" aria-label="Parameter Modal dan Risiko">
             <div class="profile-label-row">
-              <span class="profile-label" style="margin-bottom:0;">Parameter Modal</span>
+              <span class="profile-label" style="margin-bottom:0;">Parameter Modal <button type="button" class="amy-info-btn" data-info-tip="Dipakai otomatis oleh Akun Pro Simulasi, Backtest Replay Lab, dan Kalkulator Lot Jurnal." aria-label="Info parameter modal" aria-expanded="false">i</button></span>
               <span class="profile-section-meta">Pro · 100 oz</span>
             </div>
 
@@ -1673,7 +1799,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="profile-field">
                 <label for="profileRisk">Risiko</label>
                 <div class="profile-input-wrap">
-                  <input type="number" step="0.25" min="0.1" max="10" id="profileRisk" class="profile-input profile-input-num" value="${escapeHtml(userRisk)}">
+                  <input type="number" step="0.25" min="0.1" max="25" id="profileRisk" class="profile-input profile-input-num" value="${escapeHtml(userRisk)}">
                   <span class="profile-input-affix">%</span>
                 </div>
               </div>
@@ -1735,245 +1861,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </details>
           </section>
         </div>
-
-        <!-- TAB 2: TAMPILAN -->
-        <div class="profile-tab-panel" id="profileTabTampilan" role="tabpanel" data-profile-panel="tampilan" ${savedTab === 'tampilan' ? '' : 'hidden'}>
-          <section class="profile-panel slide-up" data-amyfx-unified-appearance="true" data-amyfx-color-settings="true">
-            <div class="profile-block">
-              <div class="profile-label-row">
-                <span class="profile-label" style="margin-bottom:0;">Mode</span>
-                <button type="button" class="profile-link-action" data-theme-colors-reset aria-label="Kembalikan warna bawaan">Reset</button>
-              </div>
-              <div class="theme-selector profile-segmented" role="group" aria-label="Pilih tema aplikasi">
-                <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
-                  <span>Sistem</span>
-                </button>
-                <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-                  <span>Terang</span>
-                </button>
-                <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
-                  <span>Gelap</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="profile-block profile-divider">
-              <span class="profile-label">Tema Kaca</span>
-              <div class="profile-presets-grid" data-glass-presets-grid></div>
-            </div>
-
-            <div class="profile-block profile-divider">
-              <div class="profile-wallpaper-row">
-                <div>
-                  <span class="profile-label" style="margin-bottom:2px;">Wallpaper</span>
-                  <span id="customBgBadge" class="profile-inline-status ${hasCustomBg ? 'is-active' : ''}">${hasCustomBg ? 'Foto aktif' : 'Default'}</span>
-                </div>
-                <div class="profile-wallpaper-actions">
-                  <input type="file" id="customBgFileInput" accept="image/*" hidden>
-                  <button type="button" id="uploadCustomBgBtn" class="profile-btn-ghost profile-btn-sm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Pilih Foto</span>
-                  </button>
-                  <button type="button" id="removeCustomBgBtn" class="profile-btn-danger-ghost profile-btn-sm" style="${hasCustomBg ? '' : 'display:none;'}">
-                    Hapus
-                  </button>
-                </div>
-              </div>
-
-              <div id="customBgControls" class="profile-wallpaper-sliders" style="${hasCustomBg ? '' : 'display:none;'}">
-                <div class="profile-subblock">
-                  <div class="profile-slider-head">
-                    <span class="profile-sublabel">Redup</span>
-                    <span class="profile-slider-value" id="customBgDimVal">${customBgDim}%</span>
-                  </div>
-                  <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="profile-range">
-                </div>
-                <div class="profile-subblock">
-                  <div class="profile-slider-head">
-                    <span class="profile-sublabel">Blur</span>
-                    <span class="profile-slider-value" id="customBgBlurVal">${customBgBlur}px</span>
-                  </div>
-                  <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="profile-range">
-                </div>
-              </div>
-            </div>
-
-            <details class="profile-accordion profile-divider">
-              <summary class="profile-accordion-summary">
-                <span>Warna &amp; Transparansi</span>
-                <svg class="profile-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </summary>
-              <div class="profile-accordion-body">
-                <div class="profile-subblock">
-                  <div class="profile-color-grid">
-                    ${[
-                      ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
-                    ].map(([key, label]) => {
-                      const val = themeColors[key] || themeDefaults[key];
-                      return `
-                      <div class="profile-color-item" data-color-cell="${key}">
-                        <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
-                        <span class="profile-color-name">${label}</span>
-                        <span class="profile-color-hex" data-hex-for="${key}">${val.toUpperCase()}</span>
-                      </div>
-                    `;}).join('')}
-                  </div>
-                </div>
-
-                <div class="profile-subblock">
-                  <div class="profile-slider-head">
-                    <span class="profile-sublabel">Transparansi</span>
-                    <span class="profile-slider-value" id="glass-opacity-val">${opacityVal}%</span>
-                  </div>
-                  <div class="profile-slider-wrap">
-                    <span class="profile-slider-edge">Bening</span>
-                    <input type="range" min="15" max="95" value="${opacityVal}" class="profile-range" data-theme-glass-opacity aria-label="Tingkat transparansi kaca">
-                    <span class="profile-slider-edge">Pekat</span>
-                  </div>
-                  <div class="profile-quick-row">
-                    <button type="button" class="profile-quick-btn" data-quick-opacity="30">30%</button>
-                    <button type="button" class="profile-quick-btn" data-quick-opacity="65">65%</button>
-                    <button type="button" class="profile-quick-btn" data-quick-opacity="90">90%</button>
-                  </div>
-                </div>
-              </div>
-            </details>
-          </section>
-        </div>
-
-        <!-- TAB 3: SISTEM & PENGINGAT -->
-        <div class="profile-tab-panel profile-sistem-stack" id="profileTabSistem" role="tabpanel" data-profile-panel="sistem" ${savedTab === 'sistem' ? '' : 'hidden'}>
-          <section class="profile-panel slide-up">
-            <div class="profile-switch-row">
-              <div class="profile-switch-copy">
-                <strong>Pengingat Belajar &amp; Skill</strong>
-                <small class="profile-subtle">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</small>
-              </div>
-              <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
-                <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
-                <span class="profile-switch-track"></span>
-              </label>
-            </div>
-
-            <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
-              <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
-
-              <div class="profile-reminder-list">
-                <div class="profile-reminder-row">
-                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi pagi">
-                    <input type="checkbox" id="reminderMorningEnabled" ${reminderSlots.morning?.enabled ? 'checked' : ''}>
-                    <span class="profile-switch-track"></span>
-                  </label>
-                  <div class="profile-reminder-copy"><strong>Pagi</strong></div>
-                  <input type="time" id="reminderMorningTime" class="profile-time-input" aria-label="Jam sesi pagi" value="${escapeHtml(reminderSlots.morning?.time || '08:00')}">
-                </div>
-
-                <div class="profile-reminder-row">
-                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi siang">
-                    <input type="checkbox" id="reminderAfternoonEnabled" ${reminderSlots.afternoon?.enabled ? 'checked' : ''}>
-                    <span class="profile-switch-track"></span>
-                  </label>
-                  <div class="profile-reminder-copy"><strong>Siang</strong></div>
-                  <input type="time" id="reminderAfternoonTime" class="profile-time-input" aria-label="Jam sesi siang" value="${escapeHtml(reminderSlots.afternoon?.time || '13:00')}">
-                </div>
-
-                <div class="profile-reminder-row">
-                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi malam">
-                    <input type="checkbox" id="reminderNightEnabled" ${reminderSlots.night?.enabled ? 'checked' : ''}>
-                    <span class="profile-switch-track"></span>
-                  </label>
-                  <div class="profile-reminder-copy"><strong>Malam</strong></div>
-                  <input type="time" id="reminderNightTime" class="profile-time-input" aria-label="Jam sesi malam" value="${escapeHtml(reminderSlots.night?.time || '20:00')}">
-                </div>
-              </div>
-
-              <div class="profile-last-lesson profile-last-lesson--compact">
-                <div id="learningReminderLastTitle" class="profile-last-lesson-title">${escapeHtml(reminderConfig.lastTitle)}</div>
-                <small id="learningReminderLastTime" class="profile-last-lesson-time">${escapeHtml(reminderConfig.lastTimeText)}</small>
-              </div>
-
-              <div class="profile-actions-row">
-                <button type="button" id="saveLearningReminderBtn" class="profile-btn-primary">Simpan</button>
-                <button type="button" id="testLearningReminderBtn" class="profile-btn-ghost">Uji</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="profile-list profile-system-list" aria-label="Data dan Aplikasi">
-            <button class="profile-row profile-row--compact" id="profileClearCacheBtn" type="button">
-              <span class="tool-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
-              </span>
-              <span><strong>Bersihkan Cache</strong></span>
-              <span class="chevron" aria-hidden="true">›</span>
-            </button>
-            <button class="profile-row profile-row--compact" id="profileExportBtn" type="button">
-              <span class="tool-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              </span>
-              <span><strong>Ekspor Cadangan</strong></span>
-              <span class="chevron" aria-hidden="true">›</span>
-            </button>
-            <button class="profile-row profile-row--compact" id="profileImportBtn" type="button">
-              <span class="tool-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              </span>
-              <span><strong>Pulihkan Cadangan</strong></span>
-              <span class="chevron" aria-hidden="true">›</span>
-            </button>
-            <input type="file" id="profileImportFileInput" accept="application/json" hidden>
-            <button class="profile-row profile-row--compact danger-row" data-profile-action="clear" type="button">
-              <span class="tool-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-              </span>
-              <span><strong>Hapus Data Lokal</strong></span>
-              <span class="chevron" aria-hidden="true">›</span>
-            </button>
-          </section>
-        </div>
       </div>
     `;
-
-    // Profile segmented tab switcher
-    const profileTabBtns = mainContent.querySelectorAll('[data-profile-tab]');
-    const profileTabPanels = mainContent.querySelectorAll('[data-profile-panel]');
-    profileTabBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.profileTab || 'akun';
-        profileTabBtns.forEach((b) => {
-          const act = b.dataset.profileTab === target;
-          b.classList.toggle('is-active', act);
-          b.setAttribute('aria-selected', act ? 'true' : 'false');
-        });
-        profileTabPanels.forEach((panel) => {
-          panel.hidden = panel.dataset.profilePanel !== target;
-        });
-        try { sessionStorage.setItem('amy_profile_tab', target); } catch (_) {}
-      });
-    });
-
-    // Sync unified appearance presets & sliders
-    window.AmyFXProfileSettings?.sync?.();
-
-    // Event bindings for profile features
-    document.getElementById('profileClearCacheBtn')?.addEventListener('click', () => {
-      let freedMb = '0.0';
-      if (typeof window.Android?.clearAppCache === 'function') {
-        freedMb = window.Android.clearAppCache();
-      } else {
-        try {
-          const keys = Object.keys(sessionStorage);
-          for (const k of keys) {
-            if (k.startsWith('amy_cache_') || k.startsWith('temp_')) sessionStorage.removeItem(k);
-          }
-        } catch (_) {}
-        freedMb = '1.5';
-        showToast(`Berhasil membebaskan ${freedMb} MB ruang penyimpanan!`);
-      }
-    });
 
     const editNameBtn = document.getElementById('editTraderNameBtn');
     const nameEditor = document.getElementById('traderNameEditor');
@@ -2112,11 +2001,27 @@ document.addEventListener('DOMContentLoaded', () => {
         cashflowInput?.focus();
         return;
       }
+      const liveSnap = window.AmyHomeAccountCockpit?.getSnapshot?.();
+      const currentBal = Number.isFinite(Number(liveSnap?.balanceUsd))
+        ? Number(liveSnap.balanceUsd)
+        : Number(balanceInput?.value || simParams.baseBalanceUsd || 0);
+      if (type === 'withdraw' && amount > currentBal) {
+        showToast('Saldo tidak mencukupi untuk penarikan tersebut.');
+        cashflowInput?.focus();
+        return;
+      }
       if (simEngine?.addCashflow) {
         simEngine.addCashflow({ type, amountUsd: amount, note: type === 'deposit' ? 'Top Up Profil' : 'Tarik Dana Profil' });
       }
       if (cashflowInput) cashflowInput.value = '';
       try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
+      const updatedSnap = window.AmyHomeAccountCockpit?.getSnapshot?.();
+      if (identityMetaEl && updatedSnap) {
+        const effBal = Number.isFinite(Number(updatedSnap.initialCapitalUsd)) ? updatedSnap.initialCapitalUsd : Number(balanceInput?.value || simParams.baseBalanceUsd);
+        const rateVal = Number(rateInput?.value || simParams.usdIdrRate);
+        const riskVal = Number(riskInput?.value || simParams.riskPct);
+        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(effBal, selectedCurrency, rateVal))}</span><span aria-hidden="true">·</span><span>${escapeHtml(riskVal)}%</span>`;
+      }
       const label = type === 'deposit' ? 'Top Up' : 'Penarikan';
       const idrText = formatIdrQuick(amount, Number(rateInput?.value || simParams.usdIdrRate));
       showToast(`${label} simulasi $${formatMoney(amount)} (${idrText}) tercatat.`);
@@ -2129,19 +2034,19 @@ document.addEventListener('DOMContentLoaded', () => {
     resetSimBtn?.addEventListener('click', async () => {
       if (resetSimBtn.dataset.confirmArm !== '1') {
         resetSimBtn.dataset.confirmArm = '1';
-        resetSimBtn.textContent = 'Ketuk Lagi: Konfirmasi Reset SIM';
+        resetSimBtn.textContent = 'Ketuk Lagi: Yakin?';
         resetSimBtn.classList.add('is-armed');
         clearTimeout(resetSimTimer);
         resetSimTimer = setTimeout(() => {
           resetSimBtn.dataset.confirmArm = '0';
-          resetSimBtn.textContent = 'Reset Simulasi';
+          resetSimBtn.textContent = 'Reset';
           resetSimBtn.classList.remove('is-armed');
-        }, 5000);
+        }, 4000);
         return;
       }
       clearTimeout(resetSimTimer);
       resetSimBtn.dataset.confirmArm = '0';
-      resetSimBtn.textContent = 'Reset Simulasi';
+      resetSimBtn.textContent = 'Reset';
       resetSimBtn.classList.remove('is-armed');
       if (typeof window.AmyHomeAccountCockpit?.resetSimulationAccount === 'function') {
         const res = await window.AmyHomeAccountCockpit.resetSimulationAccount();
@@ -2152,6 +2057,279 @@ document.addEventListener('DOMContentLoaded', () => {
         try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
         showToast('Akun Simulasi direset. Jurnal REAL tetap aman.');
       }
+    });
+
+    if (typeof window.AmyHomeAccountCockpit?.render === 'function') {
+      window.AmyHomeAccountCockpit.render();
+    }
+    try { window.dispatchEvent(new CustomEvent('amyfx:profile-rendered')); } catch (_) {}
+  }
+
+  function renderSettings() {
+    setActive('pengaturan');
+
+    const reminderConfig = window.AmyLearningReminder ? window.AmyLearningReminder.getConfig() : {
+      enabled: localStorage.getItem('amy_learning_reminder_enabled') !== 'false',
+      time: localStorage.getItem('amy_learning_reminder_time') || '20:00',
+      lastTitle: localStorage.getItem('amy_last_opened_title') || 'Fondasi ICT & Market Structure Dasar',
+      lastTimeText: 'Belum ada riwayat belajar'
+    };
+    const reminderSlots = reminderConfig.slots || {
+      morning: { enabled: true, time: '08:00', label: 'Pagi' },
+      afternoon: { enabled: true, time: '13:00', label: 'Siang' },
+      night: { enabled: true, time: reminderConfig.time || '20:00', label: 'Malam' }
+    };
+
+    const customBgData = window.AmyFXTheme?.customBg;
+    const hasCustomBg = Boolean(customBgData && customBgData.image);
+    const customBgDim = customBgData?.dim ?? 50;
+    const customBgBlur = customBgData?.blur ?? 20;
+
+    const themeColors = window.AmyFXTheme?.colors || {};
+    const isLightResolved = window.AmyFXTheme?.resolved === 'light';
+    const themeDefaults = isLightResolved
+      ? { background: '#eef4fa', surface: '#ffffff', text: '#111a25', accent: '#216bdb', opacity: 80 }
+      : { background: '#070b12', surface: '#111c29', text: '#f5f8fc', accent: '#69b7ff', opacity: 68 };
+    const opacityVal = themeColors.opacity !== undefined ? Number(themeColors.opacity) : themeDefaults.opacity;
+
+    mainContent.innerHTML = `
+      <div class="profile-page profile-page--clean settings-page">
+        <div class="settings-topbar">
+          <button type="button" class="settings-back-btn" data-nav="back-from-settings" aria-label="Kembali">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <h1>Pengaturan</h1>
+        </div>
+
+        <!-- GRUP 1: TAMPILAN -->
+        <div class="settings-group">
+          <span class="settings-group-label">Tampilan</span>
+          <section class="profile-panel slide-up" data-amyfx-unified-appearance="true" data-amyfx-color-settings="true">
+            <div class="profile-block">
+              <div class="profile-label-row">
+                <span class="profile-label" style="margin-bottom:0;">Mode</span>
+                <button type="button" class="profile-link-action" data-theme-colors-reset aria-label="Kembalikan warna bawaan">Reset</button>
+              </div>
+              <div class="theme-selector profile-segmented" role="group" aria-label="Pilih tema aplikasi">
+                <button class="theme-choice" type="button" data-amyfx-theme-choice="system">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
+                  <span>Sistem</span>
+                </button>
+                <button class="theme-choice" type="button" data-amyfx-theme-choice="light">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                  <span>Terang</span>
+                </button>
+                <button class="theme-choice" type="button" data-amyfx-theme-choice="dark">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2z"></path></svg>
+                  <span>Gelap</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="profile-block profile-divider">
+              <span class="profile-label">Tema Kaca</span>
+              <div class="profile-presets-grid" data-glass-presets-grid></div>
+            </div>
+
+            <div class="profile-block profile-divider">
+              <div class="profile-wallpaper-row">
+                <div>
+                  <span class="profile-label" style="margin-bottom:2px;">Wallpaper</span>
+                  <span id="customBgBadge" class="profile-inline-status ${hasCustomBg ? 'is-active' : ''}">${hasCustomBg ? 'Foto aktif' : 'Default'}</span>
+                </div>
+                <div class="profile-wallpaper-actions">
+                  <input type="file" id="customBgFileInput" accept="image/*" hidden>
+                  <button type="button" id="uploadCustomBgBtn" class="profile-btn-ghost profile-btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <span>Pilih Foto</span>
+                  </button>
+                  <button type="button" id="removeCustomBgBtn" class="profile-btn-danger-ghost profile-btn-sm" style="${hasCustomBg ? '' : 'display:none;'}">
+                    Hapus
+                  </button>
+                </div>
+              </div>
+
+              <div id="customBgControls" class="profile-wallpaper-sliders" style="${hasCustomBg ? '' : 'display:none;'}">
+                <div class="profile-subblock">
+                  <div class="profile-slider-head">
+                    <span class="profile-sublabel">Redup</span>
+                    <span class="profile-slider-value" id="customBgDimVal">${customBgDim}%</span>
+                  </div>
+                  <input type="range" id="customBgDimSlider" min="0" max="100" value="${customBgDim}" class="profile-range">
+                </div>
+                <div class="profile-subblock">
+                  <div class="profile-slider-head">
+                    <span class="profile-sublabel">Blur</span>
+                    <span class="profile-slider-value" id="customBgBlurVal">${customBgBlur}px</span>
+                  </div>
+                  <input type="range" id="customBgBlurSlider" min="0" max="25" value="${customBgBlur}" class="profile-range">
+                </div>
+              </div>
+            </div>
+
+            <details class="profile-accordion profile-divider">
+              <summary class="profile-accordion-summary">
+                <span>Warna &amp; Transparansi</span>
+                <svg class="profile-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </summary>
+              <div class="profile-accordion-body">
+                <div class="profile-subblock">
+                  <div class="profile-color-grid">
+                    ${[
+                      ['background', 'Latar'], ['surface', 'Kaca'], ['text', 'Teks'], ['accent', 'Aksen']
+                    ].map(([key, label]) => {
+                      const val = themeColors[key] || themeDefaults[key];
+                      return `
+                      <div class="profile-color-item" data-color-cell="${key}">
+                        <input type="color" data-theme-color="${key}" value="${val}" aria-label="Warna ${label.toLowerCase()}">
+                        <span class="profile-color-name">${label}</span>
+                        <span class="profile-color-hex" data-hex-for="${key}">${val.toUpperCase()}</span>
+                      </div>
+                    `;}).join('')}
+                  </div>
+                </div>
+
+                <div class="profile-subblock">
+                  <div class="profile-slider-head">
+                    <span class="profile-sublabel">Transparansi</span>
+                    <span class="profile-slider-value" id="glass-opacity-val">${opacityVal}%</span>
+                  </div>
+                  <div class="profile-slider-wrap">
+                    <span class="profile-slider-edge">Bening</span>
+                    <input type="range" min="15" max="95" value="${opacityVal}" class="profile-range" data-theme-glass-opacity aria-label="Tingkat transparansi kaca">
+                    <span class="profile-slider-edge">Pekat</span>
+                  </div>
+                  <div class="profile-quick-row">
+                    <button type="button" class="profile-quick-btn" data-quick-opacity="30">30%</button>
+                    <button type="button" class="profile-quick-btn" data-quick-opacity="65">65%</button>
+                    <button type="button" class="profile-quick-btn" data-quick-opacity="90">90%</button>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </section>
+        </div>
+
+        <!-- GRUP 2: NOTIFIKASI -->
+        <div class="settings-group">
+          <span class="settings-group-label">Notifikasi</span>
+          <section class="profile-panel slide-up">
+            <div class="profile-switch-row">
+              <div class="profile-switch-copy">
+                <strong>Pengingat Belajar &amp; Skill <button type="button" class="amy-info-btn" data-info-tip="Notifikasi jadwal belajar &amp; evaluasi harian pada perangkat ini." aria-label="Info pengingat belajar" aria-expanded="false">i</button></strong>
+                <small class="profile-subtle">Jadwal Sesi Belajar Harian (Pagi, Siang, Malam)</small>
+              </div>
+              <label class="profile-switch" aria-label="Aktifkan notifikasi pengingat belajar">
+                <input type="checkbox" id="learningReminderEnabled" ${reminderConfig.enabled ? 'checked' : ''}>
+                <span class="profile-switch-track"></span>
+              </label>
+            </div>
+
+            <div id="learningReminderSettingsWrap" class="profile-reminder-body" style="${reminderConfig.enabled ? '' : 'display:none;'}">
+              <input type="hidden" id="learningReminderTimeInput" value="${escapeHtml(reminderConfig.time)}">
+
+              <div class="profile-reminder-list">
+                <div class="profile-reminder-row">
+                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi pagi">
+                    <input type="checkbox" id="reminderMorningEnabled" ${reminderSlots.morning?.enabled ? 'checked' : ''}>
+                    <span class="profile-switch-track"></span>
+                  </label>
+                  <div class="profile-reminder-copy"><strong>Pagi</strong></div>
+                  <input type="time" id="reminderMorningTime" class="profile-time-input" aria-label="Jam sesi pagi" value="${escapeHtml(reminderSlots.morning?.time || '08:00')}">
+                </div>
+
+                <div class="profile-reminder-row">
+                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi siang">
+                    <input type="checkbox" id="reminderAfternoonEnabled" ${reminderSlots.afternoon?.enabled ? 'checked' : ''}>
+                    <span class="profile-switch-track"></span>
+                  </label>
+                  <div class="profile-reminder-copy"><strong>Siang</strong></div>
+                  <input type="time" id="reminderAfternoonTime" class="profile-time-input" aria-label="Jam sesi siang" value="${escapeHtml(reminderSlots.afternoon?.time || '13:00')}">
+                </div>
+
+                <div class="profile-reminder-row">
+                  <label class="profile-switch profile-switch--sm" aria-label="Aktifkan sesi malam">
+                    <input type="checkbox" id="reminderNightEnabled" ${reminderSlots.night?.enabled ? 'checked' : ''}>
+                    <span class="profile-switch-track"></span>
+                  </label>
+                  <div class="profile-reminder-copy"><strong>Malam</strong></div>
+                  <input type="time" id="reminderNightTime" class="profile-time-input" aria-label="Jam sesi malam" value="${escapeHtml(reminderSlots.night?.time || '20:00')}">
+                </div>
+              </div>
+
+              <div class="profile-last-lesson profile-last-lesson--compact">
+                <div id="learningReminderLastTitle" class="profile-last-lesson-title">${escapeHtml(reminderConfig.lastTitle)}</div>
+                <small id="learningReminderLastTime" class="profile-last-lesson-time">${escapeHtml(reminderConfig.lastTimeText)}</small>
+              </div>
+
+              <div class="profile-actions-row">
+                <button type="button" id="saveLearningReminderBtn" class="profile-btn-primary">Simpan</button>
+                <button type="button" id="testLearningReminderBtn" class="profile-btn-ghost">Uji</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- GRUP 3: DATA & APLIKASI -->
+        <div class="settings-group">
+          <span class="settings-group-label">Data &amp; Aplikasi</span>
+          <section class="profile-list profile-system-list" aria-label="Data dan Aplikasi">
+            <button class="profile-row profile-row--compact" id="profileClearCacheBtn" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+              </span>
+              <span><strong>Bersihkan Cache</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="profile-row profile-row--compact" id="profileExportBtn" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </span>
+              <span><strong>Ekspor Cadangan</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="profile-row profile-row--compact" id="profileImportBtn" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </span>
+              <span><strong>Pulihkan Cadangan</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+            <input type="file" id="profileImportFileInput" accept="application/json" hidden>
+            <button class="profile-row profile-row--compact danger-row" data-profile-action="clear" data-confirm-arm="0" type="button">
+              <span class="tool-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+              </span>
+              <span><strong data-clear-label>Hapus Data Lokal</strong></span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </button>
+          </section>
+        </div>
+      </div>
+    `;
+
+    // Sync unified appearance presets & sliders
+    window.AmyFXProfileSettings?.sync?.();
+
+    document.getElementById('profileClearCacheBtn')?.addEventListener('click', () => {
+      if (typeof window.Android?.clearAppCache === 'function') {
+        const freedMb = window.Android.clearAppCache();
+        showToast(`Berhasil membebaskan ${freedMb || '0'} MB cache aplikasi.`);
+        return;
+      }
+      let clearedCount = 0;
+      try {
+        const keys = Object.keys(sessionStorage);
+        for (const k of keys) {
+          if (k.startsWith('amy_cache_') || k.startsWith('temp_')) {
+            sessionStorage.removeItem(k);
+            clearedCount += 1;
+          }
+        }
+      } catch (_) {}
+      showToast(clearedCount > 0
+        ? `Cache sementara dibersihkan (${clearedCount} item).`
+        : 'Cache sementara sudah bersih.');
     });
 
     // Learning Reminder event bindings
@@ -2213,26 +2391,38 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Notifikasi pengingat belajar dikirim!');
     });
 
+    async function openJournalLibraryDbV2() {
+      if (!('indexedDB' in window)) return null;
+      return new Promise((res, rej) => {
+        const req = indexedDB.open('tradingLibraryManager.files', 2);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'id' });
+          if (!db.objectStoreNames.contains('metadata')) db.createObjectStore('metadata', { keyPath: 'id' });
+        };
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+    }
+
     async function loadJournalsForBackup() {
       let journals = [];
+      let notes = [];
       try {
-        if ('indexedDB' in window) {
-          const db = await new Promise((res, rej) => {
-            const req = indexedDB.open('tradingLibraryManager.files');
-            req.onsuccess = () => res(req.result);
-            req.onerror = () => rej(req.error);
+        const db = await openJournalLibraryDbV2();
+        if (db && db.objectStoreNames.contains('metadata')) {
+          const readRec = (key) => new Promise((res) => {
+            const tx = db.transaction('metadata', 'readonly');
+            const req = tx.objectStore('metadata').get(key);
+            req.onsuccess = () => res(req.result?.value || []);
+            req.onerror = () => res([]);
           });
-          if (db.objectStoreNames.contains('metadata')) {
-            const row = await new Promise((res) => {
-              const tx = db.transaction('metadata', 'readonly');
-              const req = tx.objectStore('metadata').get('journals.v2');
-              req.onsuccess = () => res(req.result?.value || []);
-              req.onerror = () => res([]);
-            });
-            if (Array.isArray(row) && row.length) journals = row;
-          }
-          db.close();
+          const jRow = await readRec('journals.v2');
+          if (Array.isArray(jRow) && jRow.length) journals = jRow;
+          const nRow = await readRec('notes.v2');
+          if (Array.isArray(nRow) && nRow.length) notes = nRow;
         }
+        db?.close();
       } catch (_) {}
 
       if (!journals.length) {
@@ -2244,17 +2434,15 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } catch (_) {}
       }
+      if (!journals.length) journals = readJsonArray('amy_journal_entries');
+      if (!notes.length) notes = readJsonArray('tradingLibraryManager.notes.v1');
 
-      if (!journals.length) {
-        journals = readJsonArray('amy_journal_entries');
-      }
-
-      return journals;
+      return { journals, notes };
     }
 
     document.getElementById('profileExportBtn')?.addEventListener('click', async () => {
       showToast('Menyiapkan file cadangan profil & data...');
-      const journalsList = await loadJournalsForBackup();
+      const { journals: journalsList, notes: personalNotes } = await loadJournalsForBackup();
       const backupData = {
         app: 'Amy FX Pro',
         exportedAt: new Date().toISOString(),
@@ -2269,8 +2457,14 @@ document.addEventListener('DOMContentLoaded', () => {
           positions: readJsonSafe('amy_sim_positions_v1', []),
           cashflows: readJsonSafe('amy_sim_cashflows_v1', [])
         },
+        dailyLossGuard: readJsonSafe('amy_daily_loss_guard_v1', null),
+        academyProgress: readJsonSafe('amy_academy_progress_v2', null),
+        academyBookmarks: readJsonSafe('amy_academy_bookmarks_v1', []),
+        replayBookmarks: readJsonSafe('amy_replay_bookmarks_v1', []),
+        mediaWatched: readJsonSafe('amy_media_watched_v1', []),
         habits: readJsonSafe('amy_habits_v2', []),
         completedHabits: readJsonSafe('amy_completed_dates_v2', {}),
+        personalNotes,
         journals: journalsList
       };
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -2280,7 +2474,7 @@ document.addEventListener('DOMContentLoaded', () => {
       a.download = `amyfx-pro-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast(`Cadangan berhasil diunduh (${journalsList.length} jurnal disertakan).`);
+      showToast(`Cadangan diunduh (${journalsList.length} jurnal · ${personalNotes.length} catatan).`);
     });
 
     const importFileInput = document.getElementById('profileImportFileInput');
@@ -2307,43 +2501,55 @@ document.addEventListener('DOMContentLoaded', () => {
           if (Array.isArray(data.accountSim.positions)) localStorage.setItem('amy_sim_positions_v1', JSON.stringify(data.accountSim.positions));
           if (Array.isArray(data.accountSim.cashflows)) localStorage.setItem('amy_sim_cashflows_v1', JSON.stringify(data.accountSim.cashflows));
         }
+        if (data.dailyLossGuard && typeof data.dailyLossGuard === 'object') {
+          localStorage.setItem('amy_daily_loss_guard_v1', JSON.stringify(data.dailyLossGuard));
+        }
+        if (data.academyProgress && typeof data.academyProgress === 'object') {
+          localStorage.setItem('amy_academy_progress_v2', JSON.stringify(data.academyProgress));
+        }
+        if (Array.isArray(data.academyBookmarks)) localStorage.setItem('amy_academy_bookmarks_v1', JSON.stringify(data.academyBookmarks));
+        if (Array.isArray(data.replayBookmarks)) localStorage.setItem('amy_replay_bookmarks_v1', JSON.stringify(data.replayBookmarks));
+        if (Array.isArray(data.mediaWatched)) localStorage.setItem('amy_media_watched_v1', JSON.stringify(data.mediaWatched));
         if (Array.isArray(data.habits)) localStorage.setItem('amy_habits_v2', JSON.stringify(data.habits));
         if (data.completedHabits && typeof data.completedHabits === 'object') {
           localStorage.setItem('amy_completed_dates_v2', JSON.stringify(data.completedHabits));
         }
 
         let journalCount = 0;
-        if (Array.isArray(data.journals) && data.journals.length) {
+        let noteCount = 0;
+        const hasJournals = Array.isArray(data.journals) && data.journals.length > 0;
+        const hasNotes = Array.isArray(data.personalNotes) && data.personalNotes.length > 0;
+
+        if (hasJournals) {
           journalCount = data.journals.length;
           localStorage.setItem('tradingLibraryManager.journals.v1', JSON.stringify(data.journals));
           localStorage.setItem('amy_journal_entries', JSON.stringify(data.journals));
+        }
+        if (hasNotes) {
+          noteCount = data.personalNotes.length;
+          localStorage.setItem('tradingLibraryManager.notes.v1', JSON.stringify(data.personalNotes));
+        }
 
+        if (hasJournals || hasNotes) {
           try {
-            if ('indexedDB' in window) {
-              const db = await new Promise((res, rej) => {
-                const req = indexedDB.open('tradingLibraryManager.files');
-                req.onsuccess = () => res(req.result);
-                req.onerror = () => rej(req.error);
+            const db = await openJournalLibraryDbV2();
+            if (db && db.objectStoreNames.contains('metadata')) {
+              await new Promise((res) => {
+                const tx = db.transaction('metadata', 'readwrite');
+                const store = tx.objectStore('metadata');
+                const nowIso = new Date().toISOString();
+                if (hasJournals) store.put({ id: 'journals.v2', value: data.journals, updatedAt: nowIso });
+                if (hasNotes) store.put({ id: 'notes.v2', value: data.personalNotes, updatedAt: nowIso });
+                tx.oncomplete = () => res();
+                tx.onerror = () => res();
               });
-              if (db.objectStoreNames.contains('metadata')) {
-                await new Promise((res) => {
-                  const tx = db.transaction('metadata', 'readwrite');
-                  tx.objectStore('metadata').put({
-                    id: 'journals.v2',
-                    value: data.journals,
-                    updatedAt: new Date().toISOString()
-                  });
-                  tx.oncomplete = () => res();
-                  tx.onerror = () => res();
-                });
-              }
-              db.close();
             }
+            db?.close();
           } catch (_) {}
         }
 
-        showToast(`Cadangan data berhasil dipulihkan! (${journalCount} jurnal dipulihkan).`);
-        renderProfile();
+        showToast(`Cadangan dipulihkan (${journalCount} jurnal · ${noteCount} catatan).`);
+        renderSettings();
       } catch (err) {
         showToast('Gagal memulihkan cadangan: ' + (err.message || 'File rusak'));
       } finally {
@@ -2409,8 +2615,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (controls) controls.style.display = 'block';
           if (removeBtn) removeBtn.style.display = 'inline-flex';
           if (badge) {
-            badge.textContent = '● Foto Kustom Aktif';
-            badge.style.color = '#10b981';
+            badge.textContent = 'Foto aktif';
+            badge.classList.add('is-active');
           }
           showToast('Wallpaper kustom berhasil dipasang!');
         };
@@ -2449,8 +2655,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (controls) controls.style.display = 'none';
       if (removeBtn) removeBtn.style.display = 'none';
       if (badge) {
-        badge.textContent = 'Default Gradien';
-        badge.style.color = 'var(--text-muted)';
+        badge.textContent = 'Default';
+        badge.classList.remove('is-active');
       }
       if (fileInput) fileInput.value = '';
       showToast('Wallpaper kustom dihapus.');
@@ -2462,10 +2668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.AmyFXTheme?.apply?.();
-    if (typeof window.AmyHomeAccountCockpit?.render === 'function') {
-      window.AmyHomeAccountCockpit.render();
-    }
-    try { window.dispatchEvent(new CustomEvent('amyfx:profile-rendered')); } catch (_) {}
+    try { window.dispatchEvent(new CustomEvent('amyfx:settings-rendered')); } catch (_) {}
   }
 
   function handleKoleksi(action) {
@@ -2535,6 +2738,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (target === 'proyek' || target === 'backtest') renderProjectList('Backtest');
     if (target === 'video' || target === 'media' || target === 'koleksi') renderMedia(options);
     if (target === 'profil') renderProfile();
+    if (target === 'pengaturan' || target === 'settings') renderSettings();
+    if (target === 'back-from-settings') {
+      const dest = ['beranda', 'proyek', 'video', 'profil'].includes(lastMainTab) ? lastMainTab : 'beranda';
+      navigate(dest);
+    }
   }
 
 
@@ -2578,6 +2786,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (openBtn) openProject(openBtn.dataset.open);
     if (navBtn) {
       const target = navBtn.dataset.nav;
+      if (target === 'pengaturan' && currentRootView === 'pengaturan') {
+        navigate('back-from-settings');
+        return;
+      }
       if (target === 'video' || target === 'media') {
         setActive('video');
         const all = await loadAllMediaItems();
@@ -2585,8 +2797,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await renderMedia({ autoPlay: false });
         if (vids.length > 0) {
           openVideoReel(vids[0]);
-        } else {
-          showToast('Belum ada video tersimpan. Silakan upload video pertama Anda.');
         }
         return;
       }
@@ -2615,19 +2825,54 @@ document.addEventListener('DOMContentLoaded', () => {
         else showMediaFullscreen(targetItem);
       }
     }
+    const toggleWatchedBtn = event.target.closest('[data-toggle-watched]');
+    if (toggleWatchedBtn) {
+      event.stopPropagation();
+      const id = toggleWatchedBtn.dataset.toggleWatched;
+      const wasWatched = getWatchedMediaSet().has(String(id));
+      markMediaWatched(id, !wasWatched);
+      renderMedia({ autoPlay: false });
+      return;
+    }
     if (deleteMediaBtn) {
       event.stopPropagation();
-      await handleRootMediaDelete(deleteMediaBtn.dataset.deleteMedia);
+      if (deleteMediaBtn.dataset.confirmArm === '1') {
+        await handleRootMediaDelete(deleteMediaBtn.dataset.deleteMedia);
+      } else {
+        deleteMediaBtn.dataset.confirmArm = '1';
+        deleteMediaBtn.classList.add('is-armed');
+        const lbl = deleteMediaBtn.querySelector('span');
+        if (lbl) lbl.textContent = 'Yakin?';
+        setTimeout(() => {
+          if (deleteMediaBtn.dataset.confirmArm === '1') {
+            deleteMediaBtn.dataset.confirmArm = '0';
+            deleteMediaBtn.classList.remove('is-armed');
+            if (lbl) lbl.textContent = 'Hapus';
+          }
+        }, 3500);
+      }
     }
     if (uploadMediaBtn) {
       document.getElementById('rootMediaFileInput')?.click();
     }
     if (profileBtn && profileBtn.dataset.profileAction === 'clear') {
-      if (window.confirm('Hapus riwayat analisis, jurnal, library, dan koleksi lokal? API key tidak ikut dihapus.')) {
-        await clearPersonalLocalData();
-        showToast('Data lokal sudah dibersihkan. API key tetap tersimpan.');
-        renderProfile();
+      const labelEl = profileBtn.querySelector('[data-clear-label]');
+      if (profileBtn.dataset.confirmArm !== '1') {
+        profileBtn.dataset.confirmArm = '1';
+        profileBtn.classList.add('is-armed');
+        if (labelEl) labelEl.textContent = 'Ketuk Lagi: Hapus Semua Data Lokal?';
+        clearTimeout(profileBtn._clearArmTimer);
+        profileBtn._clearArmTimer = setTimeout(() => {
+          profileBtn.dataset.confirmArm = '0';
+          profileBtn.classList.remove('is-armed');
+          if (labelEl) labelEl.textContent = 'Hapus Data Lokal';
+        }, 4000);
+        return;
       }
+      clearTimeout(profileBtn._clearArmTimer);
+      await clearPersonalLocalData();
+      showToast('Data lokal sudah dibersihkan. API key tetap tersimpan.');
+      renderSettings();
     }
     if (copyKoleksiBtn) {
       const ok = await copyTextSafe(localStorage.getItem('amy_saved_code') || '');
@@ -2653,8 +2898,6 @@ document.addEventListener('DOMContentLoaded', () => {
       await renderMedia({ autoPlay: false });
       if (vids.length > 0) {
         openVideoReel(vids[0]);
-      } else {
-        showToast('Belum ada video tersimpan. Silakan upload video pertama Anda.');
       }
       return;
     }
@@ -2663,20 +2906,58 @@ document.addEventListener('DOMContentLoaded', () => {
   let initialTab = 'beranda';
   try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}
   if (initialTab === 'koleksi' || initialTab === 'media') initialTab = 'video';
-  navigate(['beranda', 'proyek', 'video', 'media', 'profil'].includes(initialTab) ? initialTab : 'beranda');
+  navigate(['beranda', 'proyek', 'video', 'media', 'profil', 'pengaturan'].includes(initialTab) ? initialTab : 'beranda');
 });
 
 
 // GLOBAL AMY FX JS SYSTEM
 window.showToast = function(msg) {
-  // Use native Android Toast instead of Web Toast
+  const plainMsg = String(msg ?? '').replace(/<[^>]*>?/gm, '').trim();
+  if (!plainMsg) return;
   if (window.Android && window.Android.showAppToast) {
-    // Strip HTML tags if any, because Android Toast doesn't support HTML easily
-    const plainMsg = msg.replace(/<[^>]*>?/gm, '');
     window.Android.showAppToast(plainMsg);
-  } else {
-    console.log("Toast:", msg);
+    return;
   }
+  if (typeof document === 'undefined' || !document.body) return;
+  let toast = document.getElementById('amyfx-web-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'amyfx-web-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    Object.assign(toast.style, {
+      position: 'fixed',
+      left: '50%',
+      bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))',
+      transform: 'translate(-50%, 10px)',
+      maxWidth: 'min(92vw, 380px)',
+      padding: '10px 16px',
+      borderRadius: '14px',
+      background: 'var(--amy-surface-strong, #142132)',
+      color: 'var(--amy-text, #f5f8fc)',
+      border: '1px solid var(--amy-border-strong, rgba(168, 198, 232, 0.28))',
+      boxShadow: '0 12px 32px rgba(0, 0, 0, 0.32)',
+      fontSize: '13px',
+      fontWeight: '600',
+      lineHeight: '1.4',
+      textAlign: 'center',
+      zIndex: '2147483000',
+      pointerEvents: 'none',
+      opacity: '0',
+      transition: 'opacity 180ms ease, transform 180ms ease'
+    });
+    document.body.appendChild(toast);
+  }
+  toast.textContent = plainMsg;
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translate(-50%, 0)';
+  });
+  clearTimeout(window.__amyWebToastTimer);
+  window.__amyWebToastTimer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, 10px)';
+  }, 2800);
 };
 
 window.triggerHaptic = function(pattern) {

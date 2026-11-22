@@ -858,12 +858,65 @@
            </div>`
         : "";
 
+      const defaultRiskMoney = defaultBalance > 0 && defaultRisk > 0 ? (defaultBalance * defaultRisk) / 100 : 0;
+      const weeklyReview = (root.AmyTraderInsights && typeof root.AmyTraderInsights.computeWeeklyReview === "function")
+        ? root.AmyTraderInsights.computeWeeklyReview(entries, { days: 7, defaultRiskMoney })
+        : null;
+
+      let weeklyReviewHtml = "";
+      if (weeklyReview && !weeklyReview.empty) {
+        const wNetVal = unit === "money" && data.hasAnyMoney
+          ? formatSignedMoney(weeklyReview.netMoney, fmtOpts)
+          : formatSignedR(weeklyReview.netR);
+        const wNetTone = (unit === "money" && data.hasAnyMoney ? weeklyReview.netMoney : weeklyReview.netR) > 0
+          ? "is-pos"
+          : (unit === "money" && data.hasAnyMoney ? weeklyReview.netMoney : weeklyReview.netR) < 0
+          ? "is-neg"
+          : "is-flat";
+        const bestTradeTxt = weeklyReview.bestTrade
+          ? `${weeklyReview.bestTrade.pair} · ${weeklyReview.bestTrade.setup} (${unit === "money" && data.hasAnyMoney ? formatSignedMoney(weeklyReview.bestTrade.money, fmtOpts) : formatSignedR(weeklyReview.bestTrade.rVal)})`
+          : "—";
+        const bestSessTxt = weeklyReview.bestSession
+          ? `${weeklyReview.bestSession.session} (${weeklyReview.bestSession.wins}/${weeklyReview.bestSession.count} W)`
+          : "—";
+        const leakTxt = weeklyReview.costliestLeak
+          ? `${weeklyReview.costliestLeak.tag} (${weeklyReview.costliestLeak.count}x · ${unit === "money" && data.hasAnyMoney ? formatSignedMoney(weeklyReview.costliestLeak.totalMoney, fmtOpts) : formatSignedR(weeklyReview.costliestLeak.totalR)})`
+          : "Nihil — eksekusi disiplin";
+
+        weeklyReviewHtml = `
+          <section class="jp-weekly-review" aria-label="Evaluasi Mingguan 7 Hari Terakhir">
+            <div class="jp-weekly-head">
+              <div>
+                <span class="jp-weekly-eyebrow">Evaluasi 7 Hari Terakhir</span>
+                <strong class="jp-tabular ${wNetTone}">${escapeHtml(wNetVal)}</strong>
+              </div>
+              <span class="jp-weekly-meta jp-tabular">${weeklyReview.tradeCount} trade · ${weeklyReview.winRate}% WR (${weeklyReview.wins}W/${weeklyReview.losses}L)</span>
+            </div>
+            <div class="jp-weekly-grid">
+              <div class="jp-weekly-row">
+                <span>Trade Terbaik</span>
+                <strong class="jp-tabular">${escapeHtml(bestTradeTxt)}</strong>
+              </div>
+              <div class="jp-weekly-row">
+                <span>Sesi Terkuat</span>
+                <strong class="jp-tabular">${escapeHtml(bestSessTxt)}</strong>
+              </div>
+              <div class="jp-weekly-row">
+                <span>Kebocoran Utama</span>
+                <strong class="jp-tabular ${weeklyReview.costliestLeak ? "is-neg" : "is-pos"}">${escapeHtml(leakTxt)}</strong>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
       let activePaneHtml = "";
       if (uiState.subtab === "calendar" && hasCalendar) {
         activePaneHtml = `<div class="jp-subtab-pane" data-jp-pane="calendar">${calendarPaneHtml}</div>`;
       } else if (uiState.subtab === "leaks") {
         activePaneHtml = `
           <div class="jp-subtab-pane" data-jp-pane="leaks">
+            ${weeklyReviewHtml}
             ${briefHtml}
             <div class="jp-ledger-section">
               <div class="jp-panel-head">

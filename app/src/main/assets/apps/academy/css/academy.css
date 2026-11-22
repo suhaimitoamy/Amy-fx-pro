@@ -1378,3 +1378,101 @@ html, body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Bookmarks, Resume & Per-Level Thin Progress Bar ─────────────────── */
+.acd-hero-resume-meta {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--acd-muted);
+  line-height: 1.45;
+}
+
+.acd-hero-resume-meta strong {
+  color: var(--acd-ink);
+  font-weight: 650;
+}
+
+.acd-level-head {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+
+.acd-level-head-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.acd-level-bar {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--acd-border) 85%, transparent);
+  overflow: hidden;
+}
+
+.acd-level-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--acd-gold);
+  transition: width 0.24s ease;
+}
+
+.acd-lesson-row-wrap {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--acd-border);
+}
+
+.acd-lesson-row-wrap:first-child {
+  border-top: 0;
+}
+
+.acd-lesson-row-wrap .acd-lesson-row {
+  flex: 1;
+  min-width: 0;
+  border-top: 0 !important;
+}
+
+.acd-lesson-copy {
+  min-width: 0;
+}
+
+.acd-lesson-row-meta {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.acd-bookmark-icon-btn {
+  flex: 0 0 auto;
+  width: 44px;
+  min-height: 44px;
+  margin-right: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--acd-muted);
+  font-size: 17px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.14s ease, background-color 0.14s ease;
+}
+
+.acd-bookmark-icon-btn:hover {
+  background: var(--acd-surface-hover);
+  color: var(--acd-gold);
+}
+
+.acd-bookmark-icon-btn.is-saved,
+.acd-btn-secondary.is-saved {
+  color: var(--acd-gold);
+  border-color: color-mix(in srgb, var(--acd-gold) 45%, var(--acd-border));
+}
+

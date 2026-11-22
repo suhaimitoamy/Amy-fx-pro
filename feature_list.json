@@ -1,6 +1,6 @@
 {
   "project": "Amy FX Pro",
-  "version": "2.0.0-pro.463",
+  "version": "2.0.0-pro.464",
   "last_updated": "2026-11-21",
   "rules": {
     "single_active_feature": true,
@@ -79,6 +79,6 @@
       "notes": "Memperbaiki isu ejaan kata pada Screenshot 20261120-085205"
     }
   ],
-  "currentVersion": "2.0.0-pro.463",
-  "versionCode": 950463
+  "currentVersion": "2.0.0-pro.464",
+  "versionCode": 950464
 }

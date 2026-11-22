@@ -163,6 +163,20 @@
       });
     }
 
+    // Credit realized partial close PnL/R from still-OPEN positions immediately to account balance
+    for (var p = 0; p < open.length; p += 1) {
+      var openTrade = open[p];
+      var partUsd = Number(openTrade.realizedUsd || 0);
+      var partR = Number(openTrade.realizedR || 0);
+      if (Number.isFinite(partUsd) && partUsd !== 0) {
+        totalUsd += partUsd;
+        currentEquityUsd += partUsd;
+      }
+      if (Number.isFinite(partR) && partR !== 0) {
+        totalR += partR;
+      }
+    }
+
     var profitFactor = grossLossR > 0
       ? round2(grossWinR / grossLossR)
       : (grossWinR > 0 ? 99.99 : 0);

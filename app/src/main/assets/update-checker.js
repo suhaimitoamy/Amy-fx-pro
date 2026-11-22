@@ -14,10 +14,15 @@
   let checkingPromise = null;
   let nativeUi = null;
 
-  try {
-    localStorage.removeItem('amy_fx_update_dismissed_version');
-    localStorage.removeItem('amy_fx_update_last_check');
-  } catch (_) {}
+  const DISMISSED_VERSION_KEY = 'amy_fx_update_dismissed_version';
+
+  function getDismissedVersion() {
+    try { return Number(localStorage.getItem(DISMISSED_VERSION_KEY) || '0'); } catch (_) { return 0; }
+  }
+
+  function setDismissedVersion(code) {
+    try { localStorage.setItem(DISMISSED_VERSION_KEY, String(code || 0)); } catch (_) {}
+  }
 
   function css(el, styles) {
     Object.keys(styles).forEach(key => el.style[key] = styles[key]);
@@ -195,13 +200,13 @@
 
     box.innerHTML = `
       <div style="color:var(--amy-accent, #69B7FF);font-weight:850;font-size:20px;margin-bottom:8px;flex-shrink:0;">Pembaruan Amy FX Tersedia</div>
-      <div style="color:#ddd;line-height:1.5;margin-bottom:12px;flex-shrink:0;font-size:13px;">
-        Versi kamu: <b>${escapeHtml(displayVersionName(CURRENT_VERSION_NAME))}</b> (${CURRENT_VERSION_CODE})<br>
-        Versi terbaru: <b>${escapeHtml(displayVersionName(latestName || latestCode))}</b> (${latestCode})
+      <div style="color:var(--amy-text-muted, #9fb0c6);line-height:1.5;margin-bottom:12px;flex-shrink:0;font-size:13px;">
+        Versi kamu: <b style="color:var(--amy-text, #eef4fc);">${escapeHtml(displayVersionName(CURRENT_VERSION_NAME))}</b> (${CURRENT_VERSION_CODE})<br>
+        Versi terbaru: <b style="color:var(--amy-text, #eef4fc);">${escapeHtml(displayVersionName(latestName || latestCode))}</b> (${latestCode})
       </div>
-      <div style="background:var(--amy-surface-soft, #162131);border:1px solid var(--amy-border, rgba(255,255,255,.08));border-radius:14px;padding:12px;margin-bottom:12px;overflow-y:auto;max-height:160px;-webkit-overflow-scrolling:touch;flex-shrink:1;">
-        <div style="font-weight:900;margin-bottom:6px;font-size:13px;">Perubahan:</div>
-        ${notes.length ? '<ul style="margin:0;padding-left:18px;color:#ddd;line-height:1.5;font-size:12.5px;">' + notes.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>' : '<div style="color:#aaa;font-size:12px;">Tidak ada catatan perubahan.</div>'}
+      <div style="background:var(--amy-surface-soft, #162131);border:1px solid var(--amy-border, rgba(148,163,184,.2));border-radius:14px;padding:12px;margin-bottom:12px;overflow-y:auto;max-height:160px;-webkit-overflow-scrolling:touch;flex-shrink:1;">
+        <div style="font-weight:900;margin-bottom:6px;font-size:13px;color:var(--amy-text, #eef4fc);">Perubahan:</div>
+        ${notes.length ? '<ul style="margin:0;padding-left:18px;color:var(--amy-text-muted, #9fb0c6);line-height:1.5;font-size:12.5px;">' + notes.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>' : '<div style="color:var(--amy-text-muted, #9fb0c6);font-size:12px;">Tidak ada catatan perubahan.</div>'}
       </div>`;
 
     const progressWrap = document.createElement('div');
@@ -215,14 +220,14 @@
     });
     const status = document.createElement('div');
     status.textContent = 'Menunggu unduhan...';
-    css(status, { color: '#ddd', fontWeight: '800', marginBottom: '9px', lineHeight: '1.4' });
+    css(status, { color: 'var(--amy-text, #eef4fc)', fontWeight: '800', marginBottom: '9px', lineHeight: '1.4' });
     const track = document.createElement('div');
-    css(track, { height: '10px', background: '#2a2a2a', borderRadius: '999px', overflow: 'hidden' });
+    css(track, { height: '10px', background: 'var(--amy-border, rgba(148,163,184,.25))', borderRadius: '999px', overflow: 'hidden' });
     const bar = document.createElement('div');
     css(bar, { width: '0%', height: '100%', background: 'var(--amy-accent, #69B7FF)', borderRadius: '999px', transition: 'width .18s ease' });
     track.appendChild(bar);
     const details = document.createElement('div');
-    css(details, { display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '8px', color: '#aaa', fontSize: '12px' });
+    css(details, { display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '8px', color: 'var(--amy-text-muted, #9fb0c6)', fontSize: '12px' });
     const bytes = document.createElement('span');
     bytes.textContent = '0 MB';
     const percent = document.createElement('strong');
@@ -238,8 +243,8 @@
     const note = document.createElement('div');
     note.textContent = hasNativeUpdater()
       ? 'APK diunduh ke cache Amy FX, diverifikasi, lalu Android meminta konfirmasi instalasi. File tidak menumpuk di folder Download.'
-      : 'Versi Amy FX ini masih memakai unduhan browser. Setelah pembaruan terpasang, update berikutnya akan berlangsung di dalam aplikasi.';
-    css(note, { color: '#aaa', fontSize: '11px', lineHeight: '1.4', marginBottom: '14px', flexShrink: '0' });
+      : 'Versi Amy FX ini berjalan di browser. Gunakan APK Android untuk pembaruan otomatis di dalam aplikasi.';
+    css(note, { color: 'var(--amy-text-muted, #9fb0c6)', fontSize: '11px', lineHeight: '1.4', marginBottom: '14px', flexShrink: '0' });
     box.appendChild(note);
 
     const row = document.createElement('div');
@@ -256,7 +261,7 @@
 
     function startDownload() {
       const downloadUrl = data.apk_url || data.downloadUrl || 'https://github.com/suhaimitoamy/Amy-fx/releases/latest';
-      status.style.color = '#ddd';
+      status.style.color = 'var(--amy-text, #eef4fc)';
       if (hasNativeUpdater()) {
         nativeUi = {
           overlay,
@@ -297,6 +302,7 @@
       if (nativeUi?.overlay === overlay && nativeUi.downloading && window.Android?.cancelAppUpdate) {
         try { window.Android.cancelAppUpdate(); } catch (_) {}
       }
+      if (!forceUpdate) setDismissedVersion(latestCode);
       closePopup();
     };
     row.appendChild(updateBtn);
@@ -311,6 +317,7 @@
     const announce = Boolean(options.announce);
     const now = Date.now();
 
+    if (!force && !hasNativeUpdater()) return { status: 'web_skipped' };
     if (checkingPromise) return checkingPromise;
     if (!force && now - lastCheckAt < 10000) return { status: 'throttled' };
     lastCheckAt = now;
@@ -325,8 +332,12 @@
         const data = await res.json();
         const latestCode = Number(data.latest_version_code ?? data.versionCode ?? 0);
         const latestName = data.latest_version_name ?? data.version ?? latestCode;
+        const forceUpdate = Boolean(data.force_update ?? data.mandatory);
 
         if (latestCode > CURRENT_VERSION_CODE) {
+          if (!force && !forceUpdate && getDismissedVersion() >= latestCode) {
+            return { status: 'dismissed', latestCode, latestName };
+          }
           announceNativeUpdate(latestCode, latestName);
           showUpdatePopup(data, latestCode, latestName);
           return { status: 'update_available', latestCode, latestName };
@@ -347,6 +358,7 @@
   }
 
   function scheduleCheck() {
+    if (!hasNativeUpdater()) return;
     if ('requestIdleCallback' in window) {
       window.requestIdleCallback(() => checkUpdate(), { timeout: 5000 });
     } else {
@@ -361,6 +373,7 @@
   };
 
   document.addEventListener('visibilitychange', () => {
+    if (!hasNativeUpdater()) return;
     if (document.hidden) {
       hiddenAt = Date.now();
       return;
@@ -374,6 +387,7 @@
   });
 
   window.addEventListener('pageshow', event => {
+    if (!hasNativeUpdater()) return;
     const now = Date.now();
     if (event.persisted && now - lastCheckAt > RESUME_COOLDOWN) {
       setTimeout(() => checkUpdate({ force: false }), RESUME_DELAY_MS);

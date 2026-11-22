@@ -140,6 +140,7 @@
       tradeTime: tradeTime,
       decisionCandleTime: tradeTime,
       orderType: requestedType === 'LIMIT' ? 'LIMIT' : (activeAtSave ? 'MARKET' : 'LIMIT'),
+      placedAtPrice: currentPrice != null ? currentPrice : null,
       sourceId: String(input.sourceId || ''),
       locked: Boolean(input.lockDecision),
       lockedAt: input.lockDecision ? Number(input.lockedAt || Date.now()) : null,
@@ -273,10 +274,11 @@
     var frac = Math.max(0.1, Math.min(0.9, Number(fraction) || 0.5));
     var remFrac = record.remainingFraction != null ? Number(record.remainingFraction) : 1;
     var remLot = record.remainingLot != null ? Number(record.remainingLot) : (Number(record.lot) || 0.01);
-    if (remFrac <= 0.15) throw new Error('Sisa posisi terlalu kecil untuk partial close lagi.');
+    if (remFrac <= 0.15 || remLot < 0.02) throw new Error('Sisa lot terlalu kecil untuk partial close (gunakan Tutup Manual).');
 
-    var closeFrac = round2(remFrac * frac);
-    var closeLot = round2(remLot * frac);
+    var closeLot = Math.min(round2(remLot - 0.01), Math.max(0.01, round2(remLot * frac)));
+    var actualFrac = remLot > 0 ? (closeLot / remLot) : frac;
+    var closeFrac = round2(remFrac * actualFrac);
     var entryPx = Number.isFinite(Number(record.fillPrice)) ? Number(record.fillPrice) : Number(record.entry);
     var diff = directionalPriceDiff(record.bias, entryPx, px);
     var riskDist = initialRiskDist(record);
@@ -356,9 +358,25 @@
 
       if (next.entryStatus !== 'ACTIVE') {
         var entryHit = touched(candle, next.entry);
-        if (entryHit) {
+        var gapFillPrice = null;
+        if (!entryHit && next.placedAtPrice != null && Number.isFinite(Number(next.placedAtPrice))) {
+          var placed = Number(next.placedAtPrice);
+          var openPx = Number(candle.open);
+          var entryVal = Number(next.entry);
+          var slVal = Number(next.stopLoss);
+          var tpVal = Number(next.takeProfit);
+          if (next.bias === 'BUY') {
+            if (placed > entryVal && openPx <= entryVal && openPx > slVal) gapFillPrice = openPx;
+            else if (placed < entryVal && openPx >= entryVal && openPx < tpVal) gapFillPrice = openPx;
+          } else if (next.bias === 'SELL') {
+            if (placed < entryVal && openPx >= entryVal && openPx < slVal) gapFillPrice = openPx;
+            else if (placed > entryVal && openPx <= entryVal && openPx > tpVal) gapFillPrice = openPx;
+          }
+        }
+        if (entryHit || gapFillPrice != null) {
           next.entryStatus = 'ACTIVE';
           next.entryActivatedAt = candle.time;
+          if (gapFillPrice != null) next.fillPrice = round2(gapFillPrice);
           // Evaluate SL/TP on fill candle conservatively (SL checked first)
         } else {
           var targetHitBeforeEntry =
