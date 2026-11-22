@@ -2314,7 +2314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profileClearCacheBtn')?.addEventListener('click', () => {
       if (typeof window.Android?.clearAppCache === 'function') {
         const freedMb = window.Android.clearAppCache();
-        showToast(`Berhasil membebaskan ${freedMb || '0'} MB cache aplikasi.`);
+        showToast(`Berhasil membebaskan ${freedMb || '0'} MB ruang penyimpanan.`);
         return;
       }
       let clearedCount = 0;
