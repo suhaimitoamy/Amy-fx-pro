@@ -420,6 +420,25 @@ class DriverSetupSyncWorker(
         }
     }
 
+    private fun computeDynamicTpString(entryPrice: Double, tp1Price: Double, tp2Price: Double): String {
+        val tp1Pips = Math.abs(tp1Price - entryPrice) * 10.0
+        val tpTargetStr = if (tp2Price > 0.0) {
+            val tp2Pips = Math.abs(tp2Price - entryPrice) * 10.0
+            String.format(
+                java.util.Locale.US,
+                "TP1: $%.2f (+%.0f Pips) | TP2: $%.2f (+%.0f Pips)",
+                tp1Price, tp1Pips, tp2Price, tp2Pips
+            )
+        } else {
+            String.format(
+                java.util.Locale.US,
+                "TP1: $%.2f (+%.0f Pips)",
+                tp1Price, tp1Pips
+            )
+        }
+        return tpTargetStr
+    }
+
     private data class SweepDetails(
         val name: String,
         val level: Double,
