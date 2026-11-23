@@ -27,9 +27,9 @@ test('Market Intel: resolveApiBase dynamically switches between local and Vercel
 test('Market Intel: calendar rendering sorts events in chronological ascending order (Item 1.37)', () => {
   // Verify chronological ascending sort implementation in renderCalendar
   assert.match(code, /filtered\.sort\(\(a,\s*b\)\s*=>/);
-  assert.match(code, /const timeA = new Date\(a\.date\)\.getTime\(\) \|\| 0;/);
-  assert.match(code, /const timeB = new Date\(b\.date\)\.getTime\(\) \|\| 0;/);
-  assert.match(code, /return timeA - timeB;/);
+  const hasMultiLine = /const timeA = new Date\(a\.date\)\.getTime\(\) \|\| 0;[\s\S]*?const timeB = new Date\(b\.date\)\.getTime\(\) \|\| 0;[\s\S]*?return timeA - timeB;/.test(code);
+  const hasInline = /\(new Date\(a\.date\)\.getTime\(\) \|\| 0\)\s*-\s*\(new Date\(b\.date\)\.getTime\(\) \|\| 0\)/.test(code);
+  assert.ok(hasMultiLine || hasInline, 'calendar must sort chronologically ascending by date');
 
   // Test sorting logic on simulated events
   const events = [

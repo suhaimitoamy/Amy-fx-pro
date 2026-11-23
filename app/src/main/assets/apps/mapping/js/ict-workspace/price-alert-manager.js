@@ -58,7 +58,7 @@ function formatWitaTime(ts) {
 
 /* ── Scoped Glass Cockpit Styles (Dark & Light Parity) ── */
 function ensureAlertStyles() {
-  if (typeof document === 'undefined' || !document.head) return;
+  if (typeof document === 'undefined' || !document.head || typeof document.getElementById !== 'function') return;
   if (document.getElementById(STYLE_ID)) return;
 
   const style = document.createElement('style');
@@ -807,23 +807,24 @@ export function unlockAlertAudio() {
 const HOME_ALARM_ICON_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
 
 export function syncAlertButtonBadges() {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
   ensureAlertStyles();
   const activeCount = getAlerts().filter(a => a.status === 'ACTIVE').length;
   const targets = [
-    { id: 'btn-chart-custom-price-alert', baseHtml: `${HOME_ALARM_ICON_SVG}<span>Alarm</span>`, isHtml: true },
-    { id: 'home-chart-alert', baseHtml: `${HOME_ALARM_ICON_SVG}<span>Alarm</span>`, isHtml: true }
+    { id: 'btn-chart-custom-price-alert', baseHtml: `${HOME_ALARM_ICON_SVG}<span>Alarm</span>`, baseText: 'Pasang Alarm', isHtml: true },
+    { id: 'home-chart-alert', baseHtml: `${HOME_ALARM_ICON_SVG}<span>Alarm</span>`, baseText: '🔔 Pasang Alarm', isHtml: true }
   ];
-  for (const { id, baseHtml, isHtml } of targets) {
+  for (const { id, baseHtml, baseText, isHtml } of targets) {
     const btn = document.getElementById(id);
     if (!btn) continue;
     btn.setAttribute('data-active-alerts', String(activeCount));
+    const label = isHtml && baseHtml ? baseHtml : baseText;
     if (activeCount > 0) {
-      btn.innerHTML = `${baseHtml}<span class="amyfx-alarm-btn-count" aria-label="${activeCount} alarm aktif">${activeCount}</span>`;
-    } else if (isHtml) {
+      btn.innerHTML = `${label}<span class="amyfx-alarm-btn-count" aria-label="${activeCount} alarm aktif">${activeCount}</span>`;
+    } else if (isHtml && baseHtml) {
       btn.innerHTML = baseHtml;
     } else {
-      btn.textContent = baseHtml;
+      btn.textContent = baseText;
     }
   }
 }
@@ -1060,15 +1061,15 @@ export function notifyTriggeredAlert(alert, currentPrice) {
   const isIctSweep = noteStr.includes('SSL') || noteStr.includes('BSL') || noteStr.includes('Sweep');
   const isPoi = noteStr.includes('POI') || noteStr.includes('Zone');
 
-  let title = `Alarm Harga: XAU/USD $${priceStr}`;
-  let message = `Target harga $${targetStr} telah tercapai. Pantau aksi harga di chart.`;
+  let title = `🔔 Alarm Harga: XAU/USD Menyentuh ${priceStr}`;
+  let message = `Target harga ${targetStr} telah tercapai! Pantau aksi harga di chart.`;
 
   if (alert.isTest) {
     title = `Tes Alarm Harga: XAU/USD $${priceStr}`;
     message = 'Notifikasi visual, suara chime, dan getar berfungsi normal.';
   } else if (isIctSweep) {
     title = `${noteStr.split('(')[0].trim()}: XAU/USD $${priceStr}`;
-    message = `Level Likuiditas $${targetStr} telah tersapu (Sweep). Pantau reaksi konfirmasi di chart.`;
+    message = `Level Likuiditas ${targetStr} telah tersapu (Sweep)! Pantau reaksi konfirmasi di chart.`;
   } else if (isPoi) {
     title = `${noteStr.split('(')[0].trim()}: XAU/USD $${priceStr}`;
     message = `Harga menyentuh area POI $${targetStr}. Cek konfirmasi entry.`;
@@ -1340,7 +1341,23 @@ export function renderAlertList(target) {
   registeredContainers.add(container);
   const alerts = getAlerts();
   const currentPrice = getCurrentLivePrice();
-  container.innerHTML = buildAlertListMarkup(alerts, currentPrice, { showEmptyCta: false });
+  const activeCount = alerts.filter(a => a.status === 'ACTIVE').length;
+  const listMarkup = buildAlertListMarkup(alerts, currentPrice, { showEmptyCta: false });
+  container.innerHTML = `
+    <div class="price-alert-widget-box" style="margin-top:14px; padding:14px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <strong style="font-size:13px; color:#fff; display:flex; align-items:center; gap:6px;">
+            <span>🔔</span> Alarm Target Harga
+          </strong>
+          <span style="font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; background:${activeCount > 0 ? 'rgba(245,196,81,0.2)' : 'rgba(255,255,255,0.08)'}; color:${activeCount > 0 ? '#F5C451' : 'var(--muted,#94A3B8)'};">
+            ${activeCount} Aktif
+          </span>
+        </div>
+      </div>
+      ${listMarkup}
+    </div>
+  `;
   bindAlertListActions(container);
 }
 
@@ -1361,7 +1378,7 @@ export function getAvailableIctLevels() {
   const levels = [];
   const pushLevel = item => {
     if (!Number.isFinite(item.price) || item.price <= 0) return;
-    if (levels.some(x => Math.abs(x.price - item.price) < 0.1)) return;
+    if (levels.some(x => x.id === item.id)) return;
     levels.push({ ...item, price: Math.round(item.price * 100) / 100 });
   };
 
@@ -1372,7 +1389,7 @@ export function getAvailableIctLevels() {
       if (s) sslVal = Number(s.level);
     }
     if (!sslVal && Number.isFinite(Number(ctx.amy?.dashboard?.ssl))) sslVal = Number(ctx.amy.dashboard.ssl);
-    if (sslVal) pushLevel({ id: 'ssl', label: 'SSL Sweep', price: sslVal, direction: 'CROSS_BELOW', note: 'SSL Sweep (Likuiditas Bawah)' });
+    if (sslVal) pushLevel({ id: 'ssl', label: '⚡ SSL Sweep', price: sslVal, direction: 'CROSS_BELOW', note: '⚡ SSL Sweep (Likuiditas Bawah)' });
 
     let bslVal = null;
     if (Array.isArray(ctx.liquidity)) {
@@ -1380,7 +1397,7 @@ export function getAvailableIctLevels() {
       if (b) bslVal = Number(b.level);
     }
     if (!bslVal && Number.isFinite(Number(ctx.amy?.dashboard?.bsl))) bslVal = Number(ctx.amy.dashboard.bsl);
-    if (bslVal) pushLevel({ id: 'bsl', label: 'BSL Sweep', price: bslVal, direction: 'CROSS_ABOVE', note: 'BSL Sweep (Likuiditas Atas)' });
+    if (bslVal) pushLevel({ id: 'bsl', label: '⚡ BSL Sweep', price: bslVal, direction: 'CROSS_ABOVE', note: '⚡ BSL Sweep (Likuiditas Atas)' });
 
     const sp = typeof window !== 'undefined' ? window.amyfxScalperPlan : null;
     const poi = sp?.area ? { high: sp.area.high, low: sp.area.low, ce: sp.area.ce, kind: sp.kind || 'OB', label: `${sp.side} ${sp.label || 'POI'}` } : (ctx.m15?.poi || ctx.amy?.dashboard?.poi);
@@ -1388,19 +1405,43 @@ export function getAvailableIctLevels() {
       const ce = Number(poi.ce);
       const poiPrice = Number.isFinite(ce) && ce > 0 ? ce : (Number(poi.high) + Number(poi.low)) / 2;
       if (Number.isFinite(poiPrice) && poiPrice > 0) {
-        pushLevel({ id: 'poi', label: `POI ${poi.kind || 'M15'}`, price: poiPrice, direction: 'AUTO', note: `Area POI M15 (${poi.label || poi.kind || 'Zone'})` });
+        pushLevel({ id: 'poi', label: `🎯 POI: ${poi.label || poi.kind || 'M15'}`, price: poiPrice, direction: 'AUTO', note: `🎯 Area POI M15 (${poi.label || poi.kind || 'Zone'})` });
       }
     }
 
-    let pdhVal = Number(ctx.amy?.levels?.pdh || ng?.keyLevels?.pdh || ctx.amy?.dashboard?.pdh);
-    let pdlVal = Number(ctx.amy?.levels?.pdl || ng?.keyLevels?.pdl || ctx.amy?.dashboard?.pdl);
-    if (Number.isFinite(pdhVal) && pdhVal > 0) pushLevel({ id: 'pdh', label: 'PDH', price: pdhVal, direction: 'CROSS_ABOVE', note: 'Break PDH (High Kemarin)' });
-    if (Number.isFinite(pdlVal) && pdlVal > 0) pushLevel({ id: 'pdl', label: 'PDL', price: pdlVal, direction: 'CROSS_BELOW', note: 'Break PDL (Low Kemarin)' });
+    let pdhVal = null, pdlVal = null;
+    if (Array.isArray(ctx.liquidity)) {
+      const h = ctx.liquidity.find(l => l.label === 'PDH' && Number.isFinite(Number(l.level)));
+      if (h) pdhVal = Number(h.level);
+      const l = ctx.liquidity.find(l => l.label === 'PDL' && Number.isFinite(Number(l.level)));
+      if (l) pdlVal = Number(l.level);
+    }
+    if (!pdhVal) pdhVal = Number(ctx.amy?.levels?.pdh || ng?.keyLevels?.pdh || ctx.amy?.dashboard?.pdh);
+    if (!pdlVal) pdlVal = Number(ctx.amy?.levels?.pdl || ng?.keyLevels?.pdl || ctx.amy?.dashboard?.pdl);
+    if (Number.isFinite(pdhVal) && pdhVal > 0) pushLevel({ id: 'pdh', label: '📅 PDH (High Kemarin)', price: pdhVal, direction: 'CROSS_ABOVE', note: '📅 Break PDH (High Kemarin)' });
+    if (Number.isFinite(pdlVal) && pdlVal > 0) pushLevel({ id: 'pdl', label: '📅 PDL (Low Kemarin)', price: pdlVal, direction: 'CROSS_BELOW', note: '📅 Break PDL (Low Kemarin)' });
 
-    const asiaH = Number(ctx.amy?.levels?.asiaHigh || ng?.keyLevels?.asiaHigh);
-    const asiaL = Number(ctx.amy?.levels?.asiaLow || ng?.keyLevels?.asiaLow);
+    let asiaH = null, asiaL = null;
+    if (Array.isArray(ctx.liquidity)) {
+      const ah = ctx.liquidity.find(l => (l.label === 'ASIA H' || l.label === 'ASIA HIGH') && Number.isFinite(Number(l.level)));
+      if (ah) asiaH = Number(ah.level);
+      const al = ctx.liquidity.find(l => (l.label === 'ASIA L' || l.label === 'ASIA LOW') && Number.isFinite(Number(l.level)));
+      if (al) asiaL = Number(al.level);
+    }
+    if (!asiaH) asiaH = Number(ctx.amy?.levels?.asiaHigh || ng?.keyLevels?.asiaHigh);
+    if (!asiaL) asiaL = Number(ctx.amy?.levels?.asiaLow || ng?.keyLevels?.asiaLow);
     if (Number.isFinite(asiaH) && asiaH > 0) pushLevel({ id: 'asiah', label: 'Asia High', price: asiaH, direction: 'CROSS_ABOVE', note: 'Asia High Sweep' });
     if (Number.isFinite(asiaL) && asiaL > 0) pushLevel({ id: 'asial', label: 'Asia Low', price: asiaL, direction: 'CROSS_BELOW', note: 'Asia Low Sweep' });
+
+    if (ctx.plan && Number.isFinite(Number(ctx.plan.entry))) {
+      pushLevel({
+        id: 'plan_entry',
+        label: `🎯 Entry: ${ctx.plan.signalName || 'Plan'}`,
+        price: Number(ctx.plan.entry),
+        direction: 'AUTO',
+        note: `🎯 Jemputan Entry Plan ($${Number(ctx.plan.entry).toFixed(2)})`
+      });
+    }
   }
 
   return levels;
