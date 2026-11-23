@@ -178,17 +178,28 @@ class MainActivity : Activity() {
                 fileUploadCallback?.onReceiveValue(null)
                 fileUploadCallback = filePathCallback
 
-                val intent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply {
+                val baseIntent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "*/*"
+                    type = "image/*"
+                }
+
+                val chooser = Intent.createChooser(baseIntent, "Pilih Screenshot MT5").apply {
+                    if (baseIntent.hasExtra(Intent.EXTRA_ALLOW_MULTIPLE)) {
+                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                    }
                 }
 
                 try {
-                    startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE)
+                    startActivityForResult(chooser, FILE_CHOOSER_REQUEST_CODE)
                 } catch (e: ActivityNotFoundException) {
-                    fileUploadCallback = null
-                    Toast.makeText(this@MainActivity, "Cannot Open File Chooser", Toast.LENGTH_LONG).show()
-                    return false
+                    try {
+                        startActivityForResult(baseIntent, FILE_CHOOSER_REQUEST_CODE)
+                    } catch (e2: Exception) {
+                        fileUploadCallback?.onReceiveValue(null)
+                        fileUploadCallback = null
+                        Toast.makeText(this@MainActivity, "Cannot Open File Chooser", Toast.LENGTH_LONG).show()
+                        return false
+                    }
                 }
                 return true
             }
@@ -739,8 +750,19 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
             if (fileUploadCallback == null) return
-            val result = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
-            fileUploadCallback?.onReceiveValue(result)
+            var results: Array<Uri>? = null
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                results = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+                if (results == null) {
+                    if (data.data != null) {
+                        results = arrayOf(data.data!!)
+                    } else if (data.clipData != null) {
+                        val clip = data.clipData!!
+                        results = Array(clip.itemCount) { i -> clip.getItemAt(i).uri }
+                    }
+                }
+            }
+            fileUploadCallback?.onReceiveValue(results)
             fileUploadCallback = null
         } else {
             super.onActivityResult(requestCode, resultCode, data)

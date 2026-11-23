@@ -1,3 +1,7 @@
+## 2.0.0-pro.469
+
+- fix(android-filechooser): Penyempurnaan `onShowFileChooser` di `MainActivity.kt` dengan wrapper `Intent.createChooser`, toleransi ekstraksi URI `clipData` & `data.data`, perbaikan CSS overlay `font-size: 100px` (mencegah shadow DOM button 0x0 di WebView), dan pemisahan role button `mt5DropLabel` untuk responsivitas sentuh instan di Android.
+
 ## 2.0.0-pro.468
 
 - fix(journal-ocr): Adopsi pemilih file touch overlay dari AI Studio (`.jl-mt5-file-overlay` mengisi penuh label dengan `inset: 0`) & toleransi MIME type gambar Android MediaStore/DocumentsContract (`application/octet-stream` atau MIME kosong).

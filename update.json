@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.468/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.469/AmyFX-Pro-latest.apk",
   "changelog": [
+    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus.",
     "✦ MT5 OCR Touch Overlay & Direct Vision: Perbaikan pemilih file Android WebView overlay penuh & engine Gemini Vision mandiri langsung di HP.",
     "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
-    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay.",
-    "✦ Guided Practice 100 Kasus: Penambahan 100 soal latihan interaktif ICT across 8 pilar materi komprehensif."
+    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.468/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.469/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950468,
-  "latest_version_name": "2.0.0-pro.468",
+  "latest_version_code": 950469,
+  "latest_version_name": "2.0.0-pro.469",
   "mandatory": false,
   "releaseDate": "2026-11-23",
   "release_notes": [
+    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus.",
     "✦ MT5 OCR Touch Overlay & Direct Vision: Perbaikan pemilih file Android WebView overlay penuh & engine Gemini Vision mandiri langsung di HP.",
     "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
-    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay.",
-    "✦ Guided Practice 100 Kasus: Penambahan 100 soal latihan interaktif ICT across 8 pilar materi komprehensif."
+    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay."
   ],
-  "version": "2.0.0-pro.468",
-  "versionCode": 950468,
-  "sha256": "40b97168fddcfd44b601e101a3db8bd5efbbfec45e275ab6fda1793a814ca89a"
+  "version": "2.0.0-pro.469",
+  "versionCode": 950469,
+  "sha256": ""
 }

@@ -156,6 +156,10 @@
 
   function resetScanState(keepSettings) {
     revokeFileUrls();
+    var fileInput = byId("mt5FileInput");
+    if (fileInput) {
+      try { fileInput.value = ""; } catch (_) {}
+    }
     var ocr = getOcr();
     var saved = keepSettings ? {
       brokerOffsetHours: scanState.brokerOffsetHours,
@@ -541,9 +545,11 @@
         entry.compressedDataUrl = dataUrl;
         if (!entry.url && dataUrl) {
           entry.url = dataUrl;
-          renderFileThumbs();
         }
-      }).catch(function () {});
+        renderFileThumbs();
+      }).catch(function () {
+        renderFileThumbs();
+      });
     });
 
     setStatus("", "");
@@ -863,15 +869,41 @@
       });
     }
 
+    var dropLabel = byId("mt5DropLabel");
+    if (dropLabel && fileInput) {
+      dropLabel.addEventListener("click", function (ev) {
+        if (ev.target !== fileInput) {
+          fileInput.click();
+        }
+      });
+      dropLabel.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          fileInput.click();
+        }
+      });
+      dropLabel.addEventListener("dragover", function (ev) {
+        ev.preventDefault();
+        dropLabel.classList.add("is-dragover");
+      });
+      dropLabel.addEventListener("dragleave", function () {
+        dropLabel.classList.remove("is-dragover");
+      });
+      dropLabel.addEventListener("drop", function (ev) {
+        ev.preventDefault();
+        dropLabel.classList.remove("is-dragover");
+        if (ev.dataTransfer && ev.dataTransfer.files) {
+          handleFileSelection(ev.dataTransfer.files);
+        }
+      });
+    }
+
     if (fileInput) {
       fileInput.addEventListener("change", function () {
         var picked = fileInput.files ? Array.from(fileInput.files) : [];
         if (picked.length) {
           handleFileSelection(picked);
         }
-        setTimeout(function () {
-          try { fileInput.value = ""; } catch (_) {}
-        }, 120);
       });
     }
 

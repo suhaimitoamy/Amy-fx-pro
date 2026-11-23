@@ -2264,6 +2264,7 @@ body.amyfx-module--journal .jl-mt5-sheet input[type="checkbox"] {
   margin: 0;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 body.amyfx-module--journal .jl-mt5-sheet input.jl-mt5-file-overlay {
@@ -2277,8 +2278,8 @@ body.amyfx-module--journal .jl-mt5-sheet input.jl-mt5-file-overlay {
   border: none !important;
   background: transparent !important;
   cursor: pointer;
-  z-index: 2;
-  font-size: 0;
+  z-index: 5;
+  font-size: 100px !important;
 }
 
 .jl-mt5-thumbs {
