@@ -191,7 +191,12 @@ class DriverSetupSyncWorker(
             notifTitle = "🛡️ Asisten Amy: NEWS LOCK Aktif"
             notifBody = news?.optString("note", "Pasar sangat liar dan rawan slippage. Jangan entry sebelum volatilitas stabil.").orEmpty()
             notify = true
-        } else if (isAPlus && isPlanFresh) {
+        } else {
+            // Evaluasi POI M5 & M15 (FVG & OB) sesuai sistem Mapping Cockpit
+            processPoiAlerts(contextObj, amy, currentPrice, cHigh, cLow)
+        }
+
+        if (isAPlus && isPlanFresh) {
             badge = "PELURU_UTAMA_A_PLUS"
             val sideStr = if (biasDir == 1) "BUY" else if (biasDir == -1) "SELL" else "ENTRY"
             val score = entry?.optInt("score", 85) ?: 85
@@ -204,62 +209,6 @@ class DriverSetupSyncWorker(
             val dolStr = if (dolTgt > 0.0) String.format(java.util.Locale.US, " · DOL $%.2f", dolTgt) else ""
             notifBody = "👑 Grade A+ $sideStr Confluence $score/100 ($grade). Area $areaStr$dolStr. Target 100 Pips!"
             notify = true
-        } else if ((assistant?.optString("status") == "READY" || execution?.optBoolean("entryReady", false) == true || event?.optString("key", "")?.contains("ENTRY_SIGNAL") == true) && plan != null && isPlanFresh) {
-            val sigType = assistant?.optInt("signalType", 0) ?: 0
-            val sigName = assistant?.optString("signalName", "ENTRY SIGNAL").orEmpty().ifBlank { "ENTRY SIGNAL" }
-            val isPullback = Math.abs(sigType) == 2 || sigName.contains("PULLBACK", ignoreCase = true)
-            if (isPullback) {
-                android.util.Log.d("AmyFX-DriverWorker", "Pullback alert ($sigName) suppressed by policy (focus on trend & POI only).")
-                return
-            }
-            val isBuy = sigType == 1 || sigType == 2 || (plan.optString("direction").equals("BUY", ignoreCase = true))
-            val entryPrice = plan.optDouble("entry", 0.0)
-            val slPrice = plan.optDouble("sl", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("stopLoss", 0.0)
-            val tp1Price = plan.optDouble("tp1", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("target1", 0.0)
-            val tp2Price = plan.optDouble("tp2", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("target2", 0.0)
-            val mathZone = assistant?.optString("mathZone", "").orEmpty()
-            val zoneStr = if (mathZone.isNotBlank()) " · Zona $mathZone" else ""
-            if (entryPrice > 0.0 && slPrice > 0.0 && tp1Price > 0.0) {
-                // Anti-stale entry guard: cek jarak harga running saat ini ke level entry
-                val priceDrift = if (currentPrice > 0.0) Math.abs(currentPrice - entryPrice) else 0.0
-                if (priceDrift > 6.0) { // Lebih dari $6 (60 pips) -> harga sudah lari jauh, jangan broadcast sebagai entry ready!
-                    android.util.Log.d("AmyFX-DriverWorker", "Entry price drifted ($priceDrift points away from current $currentPrice), skipping stale execution alert.")
-                    return
-                }
-
-                // Disiplin risiko Gold Scalper Sayang: normalisasi SL jika ada anomali jarak (>40 pips / $4.0)
-                val safeSlPrice = if (isBuy) {
-                    if (slPrice < entryPrice - 4.0 || slPrice >= entryPrice) Math.round((entryPrice - 3.5) * 100.0) / 100.0 else slPrice
-                } else {
-                    if (slPrice > entryPrice + 4.0 || slPrice <= entryPrice) Math.round((entryPrice + 3.5) * 100.0) / 100.0 else slPrice
-                }
-
-                badge = if (isBuy) "ENTRY_BUY_READY" else "ENTRY_SELL_READY"
-                val icon = if (isBuy) "🟢" else "🔴"
-                notifTitle = "$icon Asisten Amy: $sigName"
-                val spreadNote = if (!isBuy) " (TP Ask +5 Pips)" else ""
-                val tp1Pips = Math.abs(tp1Price - entryPrice) * 10.0
-                val tpTargetStr = if (tp2Price > 0.0) {
-                    val tp2Pips = Math.abs(tp2Price - entryPrice) * 10.0
-                    String.format(
-                        java.util.Locale.US,
-                        "TP1: $%.2f (+%.0f Pips) | TP2: $%.2f (+%.0f Pips)",
-                        tp1Price, tp1Pips, tp2Price, tp2Pips
-                    )
-                } else {
-                    String.format(
-                        java.util.Locale.US,
-                        "TP1: $%.2f (+%.0f Pips)",
-                        tp1Price, tp1Pips
-                    )
-                }
-                notifBody = String.format(
-                    java.util.Locale.US,
-                    "%s Entry: $%.2f | SL: $%.2f | %s%s%s. Siapkan eksekusi!",
-                    icon, entryPrice, safeSlPrice, tpTargetStr, spreadNote, zoneStr
-                )
-                notify = true
-            }
         } else if (invalidStatus == 2 && isBreakFresh) {
             badge = "SETUP_BATAL"
             notifTitle = "⚠️ Asisten Amy: Setup Batal (Invalid)"
@@ -321,17 +270,6 @@ class DriverSetupSyncWorker(
                 notifBody = "$primary $sub"
                 notify = true
             }
-        } else if (ENABLE_POI_ALERTS && inPoi) {
-            badge = "DI_AREA_POI"
-            val low = poi?.optDouble("low", 0.0) ?: 0.0
-            val high = poi?.optDouble("high", 0.0) ?: 0.0
-            val rangeStr = if (high > 0.0 && low > 0.0) String.format(java.util.Locale.US, "(%.2f – %.2f)", high, low) else ""
-            val curStr = if (curPriceStr.isNotBlank()) " @ $curPriceStr" else ""
-            notifTitle = "📍 Asisten Amy: Area POI Tersentuh"
-            val primary = "📍 ${if (poiSide.isNotBlank()) "$poiSide " else ""}$poiKind Tersentuh"
-            val sub = "Harga berada di zona kritis$curStr. Pantau pembentukan candle rejection atau break M5 (Target 100 Pips)."
-            notifBody = "$primary $rangeStr. $sub"
-            notify = true
         } else if (ENABLE_DOL_ALERTS && dolStatus == 2) {
             val dolTarget = dashboard?.optDouble("dolTarget", 0.0) ?: 0.0
             val dolStr = if (dolTarget > 0.0) String.format(java.util.Locale.US, " ($%.2f)", dolTarget) else ""
@@ -369,6 +307,117 @@ class DriverSetupSyncWorker(
 
         showDriverNotification(notifTitle, notifBody, cacheKey)
         prefs.edit().putLong(cacheKey, System.currentTimeMillis()).apply()
+    }
+
+    private fun processPoiAlerts(
+        contextObj: JSONObject,
+        amy: JSONObject,
+        currentPrice: Double,
+        cHigh: Double,
+        cLow: Double
+    ) {
+        if (currentPrice <= 0.0) return
+
+        val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val rawList = contextObj.optJSONArray("poiList") ?: amy.optJSONArray("poiList")
+        val poiList = org.json.JSONArray()
+        if (rawList != null && rawList.length() > 0) {
+            for (i in 0 until rawList.length()) {
+                val item = rawList.optJSONObject(i)
+                if (item != null) poiList.put(item)
+            }
+        } else {
+            val dPoi = amy.optJSONObject("dashboard")?.optJSONObject("poi")
+            if (dPoi != null && dPoi.optDouble("high", 0.0) > dPoi.optDouble("low", 0.0)) {
+                poiList.put(dPoi)
+            }
+        }
+
+        val effHigh = if (cHigh > 0.0) cHigh else currentPrice
+        val effLow = if (cLow > 0.0) cLow else currentPrice
+
+        for (i in 0 until poiList.length()) {
+            val z = poiList.optJSONObject(i) ?: continue
+            val side = z.optString("side", "").uppercase(java.util.Locale.US)
+            if (side != "BUY" && side != "SELL") continue
+            val isSell = side == "SELL"
+            val kind = z.optString("kind", "FVG").uppercase(java.util.Locale.US)
+            val tf = z.optString("tf", "M15").uppercase(java.util.Locale.US)
+            val low = z.optDouble("low", 0.0).takeIf { it > 0.0 } ?: z.optDouble("bot", 0.0)
+            val high = z.optDouble("high", 0.0).takeIf { it > 0.0 } ?: z.optDouble("top", 0.0)
+            if (low <= 0.0 || high <= 0.0 || high <= low) continue
+
+            val ce = z.optDouble("ce", 0.0).takeIf { it > 0.0 } ?: ((low + high) / 2.0)
+            val slRaw = z.optDouble("sl", 0.0).takeIf { it > 0.0 } ?: (if (isSell) high + 0.40 else low - 0.40)
+            // Disiplin risiko: cap SL buffer max $3.50 (35 pips)
+            val sl = if (isSell) {
+                if (slRaw > ce + 3.50) Math.round((ce + 3.50) * 100.0) / 100.0 else slRaw
+            } else {
+                if (slRaw < ce - 3.50) Math.round((ce - 3.50) * 100.0) / 100.0 else slRaw
+            }
+            val risk = Math.max(1.8, Math.abs(ce - sl))
+            val tp1 = z.optDouble("tp1", 0.0).takeIf { it > 0.0 }
+                ?: (if (isSell) ce - Math.max(risk * 1.6, 5.0) else ce + Math.max(risk * 1.6, 5.0))
+            val tp2 = z.optDouble("tp2", 0.0).takeIf { it > 0.0 }
+                ?: (if (isSell) ce - Math.max(risk * 2.8, 10.0) else ce + Math.max(risk * 2.8, 10.0))
+
+            val zoneId = z.optString("id", String.format(java.util.Locale.US, "POI_%s_%s_%s_%.2f_%.2f", side, tf, kind, low, high))
+            val icon = if (isSell) "🔴" else "🟢"
+            val rangeStr = String.format(java.util.Locale.US, "$%.2f–$%.2f", low, high)
+            val bodyStr = String.format(java.util.Locale.US, "CE $%.2f | SL $%.2f | TP1 $%.2f | TP2 $%.2f", ce, sl, tp1, tp2)
+
+            val inZone = if (isSell) {
+                (currentPrice in (low - 0.20)..(high + 0.50)) || (effHigh >= low - 0.15 && effLow <= high + 0.50)
+            } else {
+                (currentPrice in (low - 0.50)..(high + 0.20)) || (effLow <= high + 0.15 && effHigh >= low - 0.50)
+            }
+            val hitCe = if (isSell) {
+                (currentPrice >= ce || effHigh >= ce)
+            } else {
+                (currentPrice <= ce || effLow <= ce)
+            }
+
+            val touchKey = "poi_touch_${zoneId}"
+            val tp1Key = "poi_outcome_${zoneId}_TP1"
+            val tp2Key = "poi_outcome_${zoneId}_TP2"
+            val slKey = "poi_outcome_${zoneId}_SL"
+
+            // 1. Alert Masuk Zona / Sentuh CE (hanya 1x per zone)
+            if (inZone && !prefs.contains(touchKey)) {
+                val title = if (hitCe) {
+                    "$icon $side $kind $tf · Sentuh 50% CE ($rangeStr)"
+                } else {
+                    "$icon $side $kind $tf · Disentuh ($rangeStr)"
+                }
+                showDriverNotification(title, bodyStr, touchKey)
+                prefs.edit().putLong(touchKey, System.currentTimeMillis()).apply()
+            }
+
+            // 2. Alert Hasil Akhir (Opsi 2B: TP1 BEP ✓, 👑 TP2 DOL ★, 🛡️ Jebol SL ✕)
+            // Hanya dievaluasi jika zona sudah pernah tersentuh / touchKey ada
+            if (prefs.contains(touchKey)) {
+                val hitSl = if (isSell) (currentPrice > sl || effHigh > sl) else (currentPrice < sl || effLow < sl)
+                val hitTp2 = if (isSell) (currentPrice <= tp2 || effLow <= tp2) else (currentPrice >= tp2 || effHigh >= tp2)
+                val hitTp1 = if (isSell) (currentPrice <= tp1 || effLow <= tp1) else (currentPrice >= tp1 || effHigh >= tp1)
+
+                if (hitTp2 && !prefs.contains(tp2Key)) {
+                    val title = "👑 TP2 DOL ★ · $side $kind $tf ($rangeStr)"
+                    val body = String.format(java.util.Locale.US, "Target penuh $%.2f tercapai (+100 Pips). Posisi selesai, selamat Sayang!", tp2)
+                    showDriverNotification(title, body, tp2Key)
+                    prefs.edit().putLong(tp2Key, System.currentTimeMillis()).apply()
+                } else if (hitTp1 && !prefs.contains(tp1Key)) {
+                    val title = "🎯 TP1 BEP ✓ · $side $kind $tf ($rangeStr)"
+                    val body = String.format(java.util.Locale.US, "Target 1 $%.2f tercapai. Amankan posisi & pasang BEP!", tp1)
+                    showDriverNotification(title, body, tp1Key)
+                    prefs.edit().putLong(tp1Key, System.currentTimeMillis()).apply()
+                } else if (hitSl && !prefs.contains(slKey) && !prefs.contains(tp1Key) && !prefs.contains(tp2Key)) {
+                    val title = "🛡️ Jebol SL ✕ · $side $kind $tf ($rangeStr)"
+                    val body = String.format(java.util.Locale.US, "Batas risiko $%.2f tersentuh. Disiplin risiko terjaga, jangan revenge trade.", sl)
+                    showDriverNotification(title, body, slKey)
+                    prefs.edit().putLong(slKey, System.currentTimeMillis()).apply()
+                }
+            }
+        }
     }
 
     private data class SweepDetails(
@@ -567,14 +616,16 @@ class DriverSetupSyncWorker(
         if (!canPostNotifications()) return
 
         val gateKey = "driver_worker|$targetId|$title"
-        if (!ENABLE_SWEEP_ALERTS && (title.contains("Swept", ignoreCase = true) || targetId.contains("SWEPT", ignoreCase = true))) {
-            return
-        }
-        if (!ENABLE_POI_ALERTS && (title.contains("Area POI", ignoreCase = true) || targetId.contains("DI_AREA_POI", ignoreCase = true))) {
-            return
-        }
-        if (!ENABLE_DOL_ALERTS && (title.contains("Target DOL", ignoreCase = true) || targetId.contains("TARGET_DOL", ignoreCase = true))) {
-            return
+        if (!targetId.startsWith("poi_")) {
+            if (!ENABLE_SWEEP_ALERTS && (title.contains("Swept", ignoreCase = true) || targetId.contains("SWEPT", ignoreCase = true))) {
+                return
+            }
+            if (!ENABLE_POI_ALERTS && (title.contains("Area POI", ignoreCase = true) || targetId.contains("DI_AREA_POI", ignoreCase = true))) {
+                return
+            }
+            if (!ENABLE_DOL_ALERTS && (title.contains("Target DOL", ignoreCase = true) || targetId.contains("TARGET_DOL", ignoreCase = true))) {
+                return
+            }
         }
         if (!AmyFxNotificationGate.shouldNotify(applicationContext, gateKey, System.currentTimeMillis())) {
             return
@@ -600,7 +651,11 @@ class DriverSetupSyncWorker(
             body.contains("Grade A+", ignoreCase = true) ||
             body.contains("A+ Setup", ignoreCase = true) ||
             title.contains("Peluru Utama", ignoreCase = true) ||
-            title.contains("ENTRY", ignoreCase = true)
+            title.contains("ENTRY", ignoreCase = true) ||
+            title.contains("Sentuh", ignoreCase = true) ||
+            title.contains("Disentuh", ignoreCase = true) ||
+            title.contains("TP1", ignoreCase = true) ||
+            title.contains("TP2", ignoreCase = true)
         val channelId = if (isAPlus) AmyFxApplication.GOLD_SIGNAL_CHANNEL_ID else AmyFxApplication.MARKET_CONTEXT_CHANNEL_ID
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)

@@ -519,22 +519,25 @@ export function recordLivePoiProgress({
         maxFavorable: 0,
         status: 'TESTING',
         resolvedAt: null,
+        notifiedTouch: true,
         notifiedCe: Boolean(hitCeNow),
         notifiedTp1: false,
         notifiedTp2: false,
         notifiedSl: false,
         source: 'LIVE'
       };
-      if (hitCeNow) {
-        const icon = rec.side === 'BUY' ? '🟢' : '🔴';
-        alerts.push({
-          type: 'CE_TOUCH',
-          poiId: rec.id,
-          title: `${icon} Asisten Amy: ${rec.side} ${rec.kind} ${rec.tf} (Sentuh CE)`,
-          body: `📍 Entry CE: $${fmt(rec.ce)} | SL: $${fmt(rec.sl)} | TP1: $${fmt(rec.tp1)}${rec.tp2 ? ` · TP2: $${fmt(rec.tp2)}` : ''} · Siapkan eksekusi!`,
-          sound: 'gold'
-        });
-      }
+      const icon = rec.side === 'BUY' ? '🟢' : '🔴';
+      const touchTitle = hitCeNow
+        ? `${icon} ${rec.side} ${rec.kind} ${rec.tf} · Sentuh 50% CE ($${fmt(rec.low)}–$${fmt(rec.high)})`
+        : `${icon} ${rec.side} ${rec.kind} ${rec.tf} · Disentuh ($${fmt(rec.low)}–$${fmt(rec.high)})`;
+      const tp2BodyStr = rec.tp2 ? ` | TP2 $${fmt(rec.tp2)}` : '';
+      alerts.push({
+        type: hitCeNow ? 'CE_TOUCH' : 'ZONE_TOUCH',
+        poiId: rec.id,
+        title: touchTitle,
+        body: `CE $${fmt(rec.ce)} | SL $${fmt(rec.sl)} | TP1 $${fmt(rec.tp1)}${tp2BodyStr}`,
+        sound: 'gold'
+      });
       poiMap.set(id, rec);
       evMap.set(`TOUCH:${id}`, {
         id: `TOUCH:${id}`,
@@ -554,11 +557,12 @@ export function recordLivePoiProgress({
       if (!existing.notifiedCe) {
         existing.notifiedCe = true;
         const icon = existing.side === 'BUY' ? '🟢' : '🔴';
+        const tp2BodyStr = existing.tp2 ? ` | TP2 $${fmt(existing.tp2)}` : '';
         alerts.push({
           type: 'CE_TOUCH',
           poiId: existing.id,
-          title: `${icon} Asisten Amy: ${existing.side} ${existing.kind} ${existing.tf} (Sentuh CE)`,
-          body: `📍 Entry CE: $${fmt(existing.ce)} | SL: $${fmt(existing.sl)} | TP1: $${fmt(existing.tp1)}${existing.tp2 ? ` · TP2: $${fmt(existing.tp2)}` : ''} · Siapkan eksekusi!`,
+          title: `${icon} ${existing.side} ${existing.kind} ${existing.tf} · Sentuh 50% CE ($${fmt(existing.low)}–$${fmt(existing.high)})`,
+          body: `CE $${fmt(existing.ce)} | SL $${fmt(existing.sl)} | TP1 $${fmt(existing.tp1)}${tp2BodyStr}`,
           sound: 'gold'
         });
       }
@@ -605,8 +609,8 @@ export function recordLivePoiProgress({
           alerts.push({
             type: 'TP1_HIT',
             poiId: rec.id,
-            title: `🎯 Asisten Amy: TP1 TERCAPAI ($${fmt(rec.tp1)})!`,
-            body: `${rec.side} ${rec.kind} ${rec.tf} menyentuh target 1. Amankan posisi & pasang BEP (Break Even Point)!`,
+            title: `🎯 TP1 BEP ✓ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
+            body: `Target 1 $${fmt(rec.tp1)} tercapai${rec.maxFavorable ? ` (Maks +$${fmt(rec.maxFavorable)})` : ''}. Amankan posisi & pasang BEP!`,
             sound: 'gold'
           });
         }
@@ -616,8 +620,8 @@ export function recordLivePoiProgress({
           alerts.push({
             type: 'TP2_HIT',
             poiId: rec.id,
-            title: `👑 Asisten Amy: TP2 DOL SELESAI ($${fmt(rec.tp2)})!`,
-            body: `${rec.side} ${rec.kind} ${rec.tf} mencapai target penuh (+100 Pips). Posisi selesai, selamat Sayang!`,
+            title: `👑 TP2 DOL ★ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
+            body: `Target penuh $${fmt(rec.tp2)} tercapai (+100 Pips). Posisi selesai, selamat Sayang!`,
             sound: 'gold'
           });
         }
@@ -627,8 +631,8 @@ export function recordLivePoiProgress({
           alerts.push({
             type: 'SL_HIT',
             poiId: rec.id,
-            title: `🛡️ Asisten Amy: Batas SL Tertembus ($${fmt(rec.sl)})`,
-            body: `${rec.side} ${rec.kind} ${rec.tf} terkena batas risiko. Disiplin risiko terjaga, jangan revenge trade.`,
+            title: `🛡️ Jebol SL ✕ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
+            body: `Batas risiko $${fmt(rec.sl)} tersentuh. Disiplin risiko terjaga, jangan revenge trade.`,
             sound: 'default'
           });
         }

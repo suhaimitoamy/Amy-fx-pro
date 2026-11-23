@@ -1,3 +1,12 @@
+## 2.0.0-pro.472
+
+- feat(notification): Penggantian menyeluruh notifikasi HP Android & foreground Web Amy FX Pro ke sistem POI Mapping Cockpit (M5 & M15 FVG & OB).
+- feat(notification): Format notifikasi presisi terstandarisasi:
+  * Disentuh / Sentuh 50% CE: `[🔴/🟢] [BUY/SELL] [FVG/OB] [M5/M15] · [Disentuh / Sentuh 50% CE] ($low–$high)` dengan detail `CE | SL | TP1 | TP2`.
+  * Update hasil siklus penuh: `🎯 TP1 BEP ✓`, `👑 TP2 DOL ★` (+100 Pips), dan `🛡️ Jebol SL ✕` lengkap dengan rentang zona & maks gerak.
+- fix(notification): Menonaktifkan total sinyal engine lama (`PULLBACK SELL/BUY CISD` dan `amy_entry_v3`) agar tidak bentrok.
+- feat(anti-spam): Deduplikasi ketat per `zoneId + eventType` (1 zona POI hanya kirim 1x saat disentuh/sentuh CE, dan 1x saat outcome resolusi). Tetap mematuhi filter pasar tutup akhir pekan (`isWeekendClosure`) dan perlindungan `🛡️ NEWS LOCK`.
+
 ## 2.0.0-pro.471
 
 - fix(notification): Filter anti-spam background Android & web menonaktifkan alert counter-trend pullback (PULLBACK SELL/BUY CISD) agar notifikasi hanya murni berfokus pada sinyal Trend Utama, Peluru Utama Grade A+, dan siklus POI FVG/OB M5 (CE, TP1 BEP, TP2 DOL, SL).

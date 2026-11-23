@@ -49,7 +49,9 @@ import {
   let latestBuyPlan = null;
   let latestSellPlan = null;
   let latestBuyOverlay = null;
+  let backupBuyOverlay = null;
   let latestSellOverlay = null;
+  let backupSellOverlay = null;
   let lastPublishedPlanSig = '';
   const dualLayerCache = { m15Key: '', m15Ng: null, m5Key: '', m5Ng: null };
 
@@ -577,7 +579,7 @@ import {
       stateChanged = true;
     }
 
-    const activePlans = [latestBuyOverlay, latestSellOverlay].filter(Boolean);
+    const activePlans = [latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay].filter(Boolean);
     if (Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
       const liveRes = recordLivePoiProgress({
         state: mappingHistoryState,
@@ -624,7 +626,7 @@ import {
 
   function tickMappingHistory(livePrice) {
     if (!Number.isFinite(livePrice) || livePrice <= 0) return;
-    const activePlans = [latestBuyOverlay, latestSellOverlay].filter(Boolean);
+    const activePlans = [latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay].filter(Boolean);
     const liveRes = recordLivePoiProgress({
       state: mappingHistoryState,
       plans: activePlans,
@@ -1722,6 +1724,24 @@ import {
           sl: sellSlVal
         }
       : null;
+    backupSellOverlay = backupSellZone && !backupSellZone.breached
+      ? {
+          scalper: true,
+          side: 'SELL',
+          tf: backupSellZone.tf || 'M5',
+          kind: backupSellZone.kind || 'FVG',
+          label: backupSellZone.label || backupSellZone.kind || 'POI',
+          alarmPrice: Number(backupSellZone.low.toFixed(2)),
+          area: {
+            low: Number(backupSellZone.low.toFixed(2)),
+            high: Number(backupSellZone.high.toFixed(2)),
+            ce: Number(backupSellZone.ce.toFixed(2))
+          },
+          tp1: Number.isFinite(sellTpVal) ? Number(sellTpVal.toFixed(2)) : NaN,
+          tp2: tpCandSell2 ? Number(tpCandSell2.v.toFixed(2)) : NaN,
+          sl: sellSlVal
+        }
+      : null;
 
     // Render 5-Poin Scalper Verdict (SELL)
     const sellVerdict = evaluateAndRenderVerdict('SELL', {
@@ -1977,6 +1997,24 @@ import {
             low: Number(primaryBuyZone.low.toFixed(2)),
             high: Number(primaryBuyZone.high.toFixed(2)),
             ce: Number(primaryBuyZone.ce.toFixed(2))
+          },
+          tp1: Number.isFinite(buyTpVal) ? Number(buyTpVal.toFixed(2)) : NaN,
+          tp2: tpCandBuy2 ? Number(tpCandBuy2.v.toFixed(2)) : NaN,
+          sl: buySlVal
+        }
+      : null;
+    backupBuyOverlay = backupBuyZone && !backupBuyZone.breached
+      ? {
+          scalper: true,
+          side: 'BUY',
+          tf: backupBuyZone.tf || 'M5',
+          kind: backupBuyZone.kind || 'FVG',
+          label: backupBuyZone.label || backupBuyZone.kind || 'POI',
+          alarmPrice: Number(backupBuyZone.high.toFixed(2)),
+          area: {
+            low: Number(backupBuyZone.low.toFixed(2)),
+            high: Number(backupBuyZone.high.toFixed(2)),
+            ce: Number(backupBuyZone.ce.toFixed(2))
           },
           tp1: Number.isFinite(buyTpVal) ? Number(buyTpVal.toFixed(2)) : NaN,
           tp2: tpCandBuy2 ? Number(tpCandBuy2.v.toFixed(2)) : NaN,

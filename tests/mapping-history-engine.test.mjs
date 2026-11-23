@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-import {
+const engineRelPath = existsSync(resolve(import.meta.dirname, '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js'))
+  ? '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js'
+  : '../apps/mapping/js/ict-workspace/mapping-history-engine.js';
+
+const {
   HISTORY_STORAGE_KEY,
   MAX_RETENTION_MS,
   witaDateKey,
@@ -15,7 +21,7 @@ import {
   mergeHistoryState,
   filterByRange,
   summarizePoiStats
-} from '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js';
+} = await import(engineRelPath);
 
 const BASE_SEC = Math.floor(Date.UTC(2026, 3, 15, 4, 0, 0) / 1000); // 12:00 WITA
 const NOW_MS = (BASE_SEC + 10 * 900) * 1000;
@@ -319,8 +325,8 @@ test('recordLivePoiProgress: dispatches notifications on CE touch, TP1, TP2, and
   assert.equal(r.changed, true);
   assert.equal(r.alerts.length, 1);
   assert.equal(r.alerts[0].type, 'CE_TOUCH');
-  assert.match(r.alerts[0].title, /🔴 Asisten Amy: SELL FVG M5 \(Sentuh CE\)/);
-  assert.match(r.alerts[0].body, /Entry CE: \$3596.50/);
+  assert.match(r.alerts[0].title, /🔴 SELL FVG M5 · Sentuh 50% CE/);
+  assert.match(r.alerts[0].body, /CE \$3596\.50 \| SL \$3601\.50 \| TP1 \$3588\.50 \| TP2 \$3582\.50/);
   assert.equal(r.alerts[0].sound, 'gold');
   state = r.state;
 
@@ -332,7 +338,7 @@ test('recordLivePoiProgress: dispatches notifications on CE touch, TP1, TP2, and
   r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3588.0, nowMs: NOW_MS + 10000 });
   assert.equal(r.alerts.length, 1);
   assert.equal(r.alerts[0].type, 'TP1_HIT');
-  assert.match(r.alerts[0].title, /TP1 TERCAPAI/);
+  assert.match(r.alerts[0].title, /🎯 TP1 BEP ✓ · SELL FVG M5/);
   assert.match(r.alerts[0].body, /BEP/);
   state = r.state;
 
@@ -344,6 +350,6 @@ test('recordLivePoiProgress: dispatches notifications on CE touch, TP1, TP2, and
   r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3582.0, nowMs: NOW_MS + 25000 });
   assert.equal(r.alerts.length, 1);
   assert.equal(r.alerts[0].type, 'TP2_HIT');
-  assert.match(r.alerts[0].title, /TP2 DOL SELESAI/);
+  assert.match(r.alerts[0].title, /👑 TP2 DOL ★ · SELL FVG M5/);
   assert.match(r.alerts[0].body, /100 Pips/);
 });

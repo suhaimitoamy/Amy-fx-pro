@@ -1,5 +1,6 @@
 import { buildMarketContext, isGoldMarketOpen, synthesizeD1FromH1 } from '../lib/scalper-engine/market-context.mjs';
 import { evaluateSixDrivers, SIX_ENGINE_VERSION } from '../lib/scalper-engine/six-drivers.mjs';
+import { baseVisuals } from '../lib/scalper-engine/amy-ict.mjs';
 
 let cachePayload = null;
 let cacheTime = 0;
@@ -58,6 +59,81 @@ async function fetchWithAbort(url, timeoutMs = 10000) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function extractActivePoiList(context, m15Candles, m5Candles) {
+  const list = [];
+  const seen = new Set();
+
+  function addZone(z, tf) {
+    if (!z) return;
+    const side = String(z.side || '').toUpperCase();
+    if (side !== 'BUY' && side !== 'SELL') return;
+    const kind = String(z.kind || 'FVG').toUpperCase();
+    const low = Number(z.low ?? z.bot);
+    const high = Number(z.high ?? z.top);
+    if (!Number.isFinite(low) || !Number.isFinite(high) || high <= low) return;
+    if (z.status === 4 || z.lifecycle === 'BROKEN') return;
+
+    const id = `POI_${side}_${tf}_${kind}_${low.toFixed(2)}_${high.toFixed(2)}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+
+    const isSell = side === 'SELL';
+    const ce = Number((z.ce ?? ((low + high) / 2)).toFixed(2));
+    const sl = Number((isSell ? high + 0.40 : low - 0.40).toFixed(2));
+    const risk = Math.max(1.8, Math.abs(ce - sl));
+    const tp1 = Number((isSell ? ce - Math.max(risk * 1.6, 5.0) : ce + Math.max(risk * 1.6, 5.0)).toFixed(2));
+    const tp2 = Number((isSell ? ce - Math.max(risk * 2.8, 10.0) : ce + Math.max(risk * 2.8, 10.0)).toFixed(2));
+
+    list.push({
+      id,
+      side,
+      tf,
+      kind,
+      low: Number(low.toFixed(2)),
+      high: Number(high.toFixed(2)),
+      ce,
+      sl,
+      tp1,
+      tp2
+    });
+  }
+
+  if (context?.amy?.dashboard?.poi) {
+    addZone(context.amy.dashboard.poi, 'M15');
+  }
+
+  const m15Zones = context?.amy?.dashboard?.zones;
+  if (m15Zones) {
+    for (const k of ['bullFvg', 'bearFvg', 'bullOb', 'bearOb']) {
+      if (m15Zones[k]) addZone(m15Zones[k], 'M15');
+    }
+  }
+
+  const m15Vis = context?.amy?.visuals;
+  if (m15Vis) {
+    if (Array.isArray(m15Vis.fvg)) {
+      for (const z of m15Vis.fvg.slice(-6)) addZone(z, 'M15');
+    }
+    if (Array.isArray(m15Vis.ob)) {
+      for (const z of m15Vis.ob.slice(-6)) addZone(z, 'M15');
+    }
+  }
+
+  try {
+    if (Array.isArray(m5Candles) && m5Candles.length >= 20) {
+      const m5Vis = baseVisuals(m5Candles);
+      if (Array.isArray(m5Vis.fvg)) {
+        for (const z of m5Vis.fvg.slice(-6)) addZone(z, 'M5');
+      }
+      if (Array.isArray(m5Vis.ob)) {
+        for (const z of m5Vis.ob.slice(-6)) addZone(z, 'M5');
+      }
+    }
+  } catch (_) {}
+
+  return list;
 }
 
 export default async function handler(req, res) {
@@ -126,52 +202,15 @@ export default async function handler(req, res) {
     const context = buildMarketContext({ h1, m15, m5, d1, calendar, nowSeconds: nowSec });
     const driverEvaluation = evaluateSixDrivers({ m15, m5, h1, d1, context, nowSeconds: nowSec });
 
+    const poiList = extractActivePoiList(context, m15, m5);
+    context.poiList = poiList;
+    if (context.amy) context.amy.poiList = poiList;
+
     const isMarketClosed = context.session === 'PASAR TUTUP' || !isGoldMarketOpen(nowSec);
     const active = [];
     if (!isMarketClosed) {
-      // 1. Evaluasi AMY Entry Assistant V3 (Prioritas Utama / item terdepan di active)
-      const v3Plan = context.plan || context.amy?.plan;
-      const validV3Signals = [1, -1]; // BUY ENTRY, SELL ENTRY (Pullback [2, -2] dinonaktifkan permanen untuk eliminasi alert noise)
-      const isV3Signal = v3Plan && validV3Signals.includes(v3Plan.signalType);
-      const isV3Ready = isV3Signal && (v3Plan.status === 'READY' || v3Plan.status === 'ACTIVE' || context.execution?.entryReady);
-
-      if (isV3Ready) {
-        const formedAtSec = v3Plan.formedAt ? Math.floor(new Date(v3Plan.formedAt).getTime() / 1000) : (m15.at(-1)?.close_time || m15[0]?.close_time || nowSec);
-        const p = {
-          signalType: v3Plan.signalType,
-          signalName: v3Plan.signalName || (v3Plan.signalType === 1 ? 'BUY ENTRY (Trend Buy)' : v3Plan.signalType === -1 ? 'SELL ENTRY (Trend Sell)' : v3Plan.signalType === -2 ? 'PULLBACK SELL (CISD Pucuk Premium)' : 'PULLBACK BUY (CISD Dasar Diskon)'),
-          direction: v3Plan.direction || v3Plan.side || (v3Plan.signalType > 0 ? 'BUY' : 'SELL'),
-          entry: v3Plan.entry,
-          stopLoss: v3Plan.stopLoss ?? v3Plan.sl,
-          target1: v3Plan.target1 ?? v3Plan.tp1 ?? v3Plan.target,
-          target2: v3Plan.target2 ?? v3Plan.tp2,
-          risk: v3Plan.risk ?? (v3Plan.entry && (v3Plan.stopLoss ?? v3Plan.sl) ? Math.abs(v3Plan.entry - (v3Plan.stopLoss ?? v3Plan.sl)) : 1.5),
-          reason: v3Plan.reason,
-          formedAt: v3Plan.formedAt || new Date(formedAtSec * 1000).toISOString()
-        };
-
-        active.push({
-          id: `amy_v3_${p.signalType}_${formedAtSec}`,
-          engineVersion: 'amy-entry-assistant-v3',
-          schemaVersion: 3,
-          model: 'AMY_ENTRY_ASSISTANT_V3',
-          driverId: 'amy_entry_v3',
-          driverName: `AMY V3: ${p.signalName}`,
-          timeframe: 'M15',
-          symbol: 'XAU/USD',
-          direction: p.direction,
-          status: 'ACTIVE',
-          recommendationStatus: 'VALID',
-          entry: p.entry,
-          stopLoss: p.stopLoss,
-          target: p.target1,
-          target2: p.target2,
-          risk: p.risk,
-          priority: 1,
-          reason: p.reason,
-          createdAt: p.formedAt || new Date(formedAtSec * 1000).toISOString()
-        });
-      }
+      // 1. Sinyal engine legacy (amy_entry_v3 / Pullback CISD) dinonaktifkan permanen
+      // Sistem notifikasi kini 100% didedikasikan untuk siklus POI M5 & M15 (FVG & OB)
 
       // 2. Evaluasi Six Drivers Turnamen
       for (const driver of driverEvaluation.drivers || []) {

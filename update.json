@@ -1,23 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.471/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.472/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Anti-Spam Pullback Filter: Menonaktifkan notifikasi counter-trend pullback (PULLBACK SELL/BUY CISD) di background Android & web.",
-    "✦ Fokus Sniper Murni: Notifikasi hanya terbit untuk sinyal Trend Utama, Peluru Utama Grade A+, dan siklus POI Mapping FVG/OB M5 (CE/TP1/TP2/SL).",
-    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL."
+    "✦ Notifikasi POI Mapping Cockpit (M5 & M15): Ganti seluruh notifikasi sinyal engine lama dengan event POI FVG & OB (M5 + M15) murni.",
+    "✦ Format Presisi: Menampilkan arah (BUY/SELL), kind (FVG/OB), timeframe (M5/M15), rentang harga zona, CE 50%, SL, TP1, dan TP2.",
+    "✦ Pengawalan Siklus Hasil Penuh: Update otomatis untuk 🎯 TP1 BEP ✓, 👑 TP2 DOL ★ (+100 Pips), dan 🛡️ Jebol SL ✕.",
+    "✦ Deduplikasi Ketat & Anti-Spam: 1 zona POI hanya mengirim 1x saat disentuh/sentuh CE dan 1x saat hasil akhir."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.471/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.472/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950471,
-  "latest_version_name": "2.0.0-pro.471",
+  "latest_version_code": 950472,
+  "latest_version_name": "2.0.0-pro.472",
   "mandatory": false,
   "releaseDate": "2026-11-23",
   "release_notes": [
-    "✦ Anti-Spam Pullback Filter: Menonaktifkan notifikasi counter-trend pullback (PULLBACK SELL/BUY CISD) di background Android & web.",
-    "✦ Fokus Sniper Murni: Notifikasi hanya terbit untuk sinyal Trend Utama, Peluru Utama Grade A+, dan siklus POI Mapping FVG/OB M5 (CE/TP1/TP2/SL).",
-    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL."
+    "✦ Notifikasi POI Mapping Cockpit (M5 & M15): Ganti seluruh notifikasi sinyal engine lama dengan event POI FVG & OB (M5 + M15) murni.",
+    "✦ Format Presisi: Menampilkan arah (BUY/SELL), kind (FVG/OB), timeframe (M5/M15), rentang harga zona, CE 50%, SL, TP1, dan TP2.",
+    "✦ Pengawalan Siklus Hasil Penuh: Update otomatis untuk 🎯 TP1 BEP ✓, 👑 TP2 DOL ★ (+100 Pips), dan 🛡️ Jebol SL ✕.",
+    "✦ Deduplikasi Ketat & Anti-Spam: 1 zona POI hanya mengirim 1x saat disentuh/sentuh CE dan 1x saat hasil akhir."
   ],
-  "version": "2.0.0-pro.471",
-  "versionCode": 950471,
+  "version": "2.0.0-pro.472",
+  "versionCode": 950472,
   "sha256": "2df79939c3a3f1b0a609fc70222d133d6178816cdb9ad3ac6fd5f237a8e0c496"
 }
