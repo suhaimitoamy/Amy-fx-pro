@@ -2055,3 +2055,265 @@ body.amyfx-module--intel #intel-briefing {
   border-color: rgba(15, 23, 42, 0.16);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   MARKET INTEL UI CLEANUP — BERANDA PARITY & ZERO-PILL CLARITY
+   ═══════════════════════════════════════════════════════════════════ */
+body.amyfx-module--intel .intel-header__kicker {
+  display: none !important;
+}
+
+body.amyfx-module--intel .intel-header__title {
+  font-size: 1.08rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--amy-text, #f8fafc) !important;
+}
+
+/* Single-row Segmented Tabs (Beranda Parity) */
+body.amyfx-module--intel .intel-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 3px !important;
+  padding: 3px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  margin-bottom: 10px !important;
+}
+
+body.amyfx-module--intel .intel-tab {
+  min-height: 36px !important;
+  padding: 6px 8px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: var(--amy-text-secondary, #94a3b8) !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+}
+
+html body.amyfx-module--intel .intel-tabs .intel-tab.active {
+  background: rgba(255, 255, 255, 0.13) !important;
+  color: #f8fafc !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+}
+
+/* Clean Unboxed Status Bar + Compact SVG Refresh Button */
+body.amyfx-module--intel .intel-status-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  padding: 0 2px !important;
+}
+
+body.amyfx-module--intel .intel-status-row .status-bar {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 11.5px !important;
+  color: var(--amy-text-secondary, #94a3b8) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.amyfx-module--intel .intel-refresh-btn {
+  flex: 0 0 auto !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--amy-text, #f1f5f9) !important;
+  box-shadow: none !important;
+}
+
+@keyframes amyIntelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+body.amyfx-module--intel .intel-refresh-btn.is-loading svg {
+  animation: amyIntelSpin 0.8s linear infinite;
+}
+
+/* Single-Row Scrollable Filter Chips (Berita & Kalender) */
+body.amyfx-module--intel .calendar-filters,
+body.amyfx-module--intel .news-filters {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+  padding-bottom: 2px !important;
+}
+
+body.amyfx-module--intel .calendar-filters::-webkit-scrollbar,
+body.amyfx-module--intel .news-filters::-webkit-scrollbar {
+  display: none;
+}
+
+body.amyfx-module--intel .news-filter,
+body.amyfx-module--intel .cal-filter {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* Unbox Static Metadata Pills in Kompas Fundamental */
+html body.amyfx-module--intel .briefing-card,
+html body.amyfx-module--intel .briefing-card.card-primary {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  padding: 15px !important;
+}
+
+html body.amyfx-module--intel .briefing-card .briefing-sync-badge,
+html body.amyfx-module--intel .briefing-card .sync-badge,
+html body.amyfx-module--intel .briefing-card .bias-pill,
+html body.amyfx-module--intel .kompas-horizon-pill {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+}
+
+body.amyfx-module--intel .kompas-horizon-pill {
+  color: var(--amy-text-secondary, #94a3b8) !important;
+  text-transform: none !important;
+}
+
+body.amyfx-module--intel .kompas-horizon-pill strong {
+  color: var(--amy-text, #f8fafc) !important;
+}
+
+body.amyfx-module--intel .editorial-narrative-box {
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 12px 0 !important;
+  margin: 10px 0 12px !important;
+}
+
+/* Compact 2x2 Hairline Macro Grid (Replaces 4 Giant Stacked Boxes) */
+body.amyfx-module--intel .scorecard-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+body.amyfx-module--intel .scorecard-item {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 10px 11px !important;
+  box-shadow: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+body.amyfx-module--intel .scorecard-item:nth-child(odd) {
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.amyfx-module--intel .scorecard-item:nth-child(1),
+body.amyfx-module--intel .scorecard-item:nth-child(2) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.amyfx-module--intel .score-label {
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  color: var(--amy-text-secondary, #94a3b8) !important;
+  letter-spacing: 0.02em !important;
+}
+
+body.amyfx-module--intel .score-value {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  color: var(--amy-text, #f8fafc) !important;
+}
+
+body.amyfx-module--intel .news-item {
+  border-left-width: 1px !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 14px !important;
+}
+
+/* Light Mode Parity for Market Intel Cleanup */
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .intel-header__title,
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .kompas-horizon-pill strong,
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .score-value {
+  color: #0f172a !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .intel-tabs {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .intel-tab {
+  color: #64748b !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .intel-tab.active {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .intel-refresh-btn {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #1e293b !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .editorial-narrative-box,
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .scorecard-grid,
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .scorecard-item:nth-child(odd),
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .scorecard-item:nth-child(1),
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .scorecard-item:nth-child(2),
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .news-item {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--intel .scorecard-grid {
+  background: #f8fafc !important;
+}
+
+

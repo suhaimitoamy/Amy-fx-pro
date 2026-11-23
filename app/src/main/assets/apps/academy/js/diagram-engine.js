@@ -63,10 +63,263 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════════
-   * 30 DIAGRAM BLUEPRINTS (Level 1 → Level 6)
+   * 36 DIAGRAM BLUEPRINTS (Level 0 Pemula → Level 6 ICT)
    * Every candle tuple: [xPct, open, high, low, close, optHighlight]
    * ═══════════════════════════════════════════════════════════════════════ */
   const BLUEPRINTS = {
+    // ── LEVEL 0 (PRA-TRADING & DASAR MT5) ────────────────────────────────
+    'zero-account-types': {
+      title: 'Peran Broker & Perbandingan Akun Demo, Cent (USC) & Standard',
+      pairTag: 'LEVEL 00 · FONDASI AKUN',
+      priceLabels: ['Besar', 'Sedang', 'Aman'],
+      stages: [
+        {
+          label: 'Demo vs Cent vs Standard',
+          caption: 'Mulai dari Akun Demo (risiko $0), naik ke Akun Cent ($10 = 1.000 USC, rugi latihan hanya sen), baru ke Standard setelah konsisten.',
+          bars: [
+            { x1: 6, x2: 32, y1: 12, y2: 46, tone: 'cyan', label: 'Akun Demo', sub: 'Virtual · Risiko $0' },
+            { x1: 37, x2: 63, y1: 12, y2: 72, tone: 'bull', label: 'Akun Cent (USC)', sub: '$10 = 1.000 USC' },
+            { x1: 68, x2: 94, y1: 12, y2: 92, tone: 'gold', label: 'Akun Standard', sub: '100% USD · Pro' }
+          ],
+          arrows: [
+            { x1: 28, y1: 52, x2: 42, y2: 74, tone: 'bull', label: 'Lancar MT5' },
+            { x1: 60, y1: 76, x2: 74, y2: 92, tone: 'gold', label: 'Jurnal Stabil' }
+          ],
+          callouts: [
+            { x: 50, y: 6, text: 'Naik bertahap: Demo → Cent → Standard', tone: 'gold' }
+          ]
+        },
+        {
+          label: 'Dampak Rugi -$5 di 0.01 Lot',
+          caption: 'Dengan modal $20, gerak berlawanan -$5 di Standard memangkas 25% modal, sedangkan di Akun Cent hanya -5 USC ($0,05 / 0,25% modal).',
+          bars: [
+            { x1: 8, x2: 34, y1: 12, y2: 30, tone: 'cyan', label: 'Demo (0.01)', sub: '-$5 Virtual (Aman)' },
+            { x1: 38, x2: 64, y1: 12, y2: 38, tone: 'bull', label: 'Cent (0.01)', sub: '-$0,05 (0,25% Modal)' },
+            { x1: 68, x2: 94, y1: 12, y2: 78, tone: 'danger', label: 'Standard (0.01)', sub: '-$5,00 (25% Modal!)' }
+          ],
+          callouts: [
+            { x: 36, y: 93, text: 'Akun Cent melindungi mental & modal pemula', tone: 'bull' }
+          ]
+        }
+      ]
+    },
+
+    'zero-bid-ask-spread': {
+      title: 'Cara Kerja Garis Bid vs Ask, Spread & Satuan Pips Gold',
+      pairTag: 'XAU/USD · BID / ASK / PIPS',
+      priceLabels: ['2.655', '2.652', '2.649'],
+      stages: [
+        {
+          label: 'Bid vs Ask & Spread',
+          caption: 'BUY dibuka di garis ASK (atas) dan ditutup di BID (bawah), sehingga posisi baru langsung minus tipis sebesar Spread ($0,30).',
+          zones: [
+            { x1: 10, x2: 90, y1: 48, y2: 62, tone: 'sweep', label: 'SPREAD ($0.30 / 3 PIPS)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 8, x2: 92, y1: 62, y2: 62, style: 'solid', tone: 'bear', label: 'ASK 2.650,30 (Buka BUY / Tutup SELL)', labelSide: 'left' },
+            { x1: 8, x2: 92, y1: 48, y2: 48, style: 'solid', tone: 'bull', label: 'BID 2.650,00 (Buka SELL / Tutup BUY)', labelSide: 'left' }
+          ],
+          candles: [
+            [18, 36, 46, 32, 44], [30, 44, 52, 40, 48, 'gold'], [42, 48, 56, 45, 52],
+            [56, 52, 72, 50, 68], [70, 68, 82, 65, 78]
+          ],
+          callouts: [
+            { x: 50, y: 16, text: 'Aktifkan Ask Price Line di MT5 agar SL Sell tidak mengejutkan', tone: 'gold' }
+          ]
+        },
+        {
+          label: 'Hitung Pips & Point Gold',
+          caption: 'Di XAU/USD, perubahan $1,00 = 10 Pips = 100 Points. Naik $5,00 (2.650,00 → 2.655,00) = 50 Pips (500 Points).',
+          zones: [
+            { x1: 24, x2: 84, y1: 28, y2: 78, tone: 'tp', label: '+$5,00 = 50 PIPS (500 POINTS)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 10, x2: 90, y1: 78, y2: 78, style: 'dashed', tone: 'bull', label: '2.655,00 (Target)', labelSide: 'left' },
+            { x1: 10, x2: 90, y1: 38, y2: 38, style: 'dotted', tone: 'cyan', label: '2.651,00 (+$1 = 10 Pips)', labelSide: 'right' },
+            { x1: 10, x2: 90, y1: 28, y2: 28, style: 'solid', tone: 'gold', label: '2.650,00 (Entry)', labelSide: 'left' }
+          ],
+          candles: [
+            [20, 24, 30, 20, 28], [32, 28, 40, 26, 38, 'bull'], [46, 38, 54, 36, 52],
+            [60, 52, 66, 49, 64], [74, 64, 80, 62, 78, 'bull']
+          ],
+          callouts: [
+            { x: 48, y: 12, text: 'Hafalkan: $1,00 di Gold = 10 Pips = 100 Points', tone: 'bull' }
+          ]
+        }
+      ]
+    },
+
+    'zero-lot-margin-meter': {
+      title: 'Nilai Lot XAU/USD, Balance vs Equity & Batas Margin Call',
+      pairTag: 'XAU/USD · LOT & MARGIN',
+      priceLabels: ['Risiko', 'Aman', 'Kecil'],
+      stages: [
+        {
+          label: 'Nilai Gerak $1 per Lot',
+          caption: 'Di Akun Standard Gold: 0.01 lot = $1 per gerak $1; 0.05 lot = $5; 0.10 lot = $10. Modal $100 memakai 0.10 lot sangat rawan habis.',
+          bars: [
+            { x1: 6, x2: 26, y1: 10, y2: 32, tone: 'cyan', label: '0.01 Cent', sub: '$0,01 / $1 gerak' },
+            { x1: 29, x2: 50, y1: 10, y2: 48, tone: 'bull', label: '0.01 Std', sub: '$1 / $1 gerak' },
+            { x1: 53, x2: 73, y1: 10, y2: 66, tone: 'sweep', label: '0.05 Std', sub: '$5 / $1 gerak' },
+            { x1: 76, x2: 96, y1: 10, y2: 82, tone: 'danger', label: '0.10 Std', sub: '$10 / $1 gerak' }
+          ],
+          callouts: [
+            { x: 35, y: 94, text: 'Selalu hitung lot dengan Kalkulator sebelum klik', tone: 'gold' }
+          ]
+        },
+        {
+          label: 'Balance vs Equity vs MC',
+          caption: 'Balance ($100) adalah saldo tertutup. Jika floating minus -$30, Equity nyata tinggal $70. Jika Equity jatuh ke batas Stop Out = Margin Call!',
+          bars: [
+            { x1: 8, x2: 34, y1: 12, y2: 78, tone: 'cyan', label: 'Balance', sub: '$100 (Tercatat)' },
+            { x1: 38, x2: 64, y1: 12, y2: 58, tone: 'gold', label: 'Equity', sub: '$70 (Nyata -30)' },
+            { x1: 68, x2: 94, y1: 12, y2: 28, tone: 'danger', label: 'Stop Out', sub: 'Tutup Paksa (MC)' }
+          ],
+          lines: [
+            { x1: 6, x2: 96, y1: 32, y2: 32, style: 'dashed', tone: 'bear', label: 'ZONA BAHAYA MARGIN CALL', labelSide: 'right' }
+          ],
+          callouts: [
+            { x: 50, y: 94, text: 'Pasang SL + risiko 1%–2% membuat akun kebal MC', tone: 'bull' }
+          ]
+        }
+      ]
+    },
+
+    'zero-mt5-order-types': {
+      title: 'Peta 5 Jenis Order MT5: Market Execution vs Limit & Stop',
+      pairTag: 'MT5 · 5 JENIS ORDER',
+      priceLabels: ['2.665', '2.655', '2.645'],
+      stages: [
+        {
+          label: 'Buy Limit & Sell Limit',
+          caption: 'LIMIT = tunggu harga menjemput lebih bagus lalu MEMANTUL. Buy Limit dipasang DI BAWAH harga sekarang; Sell Limit DI ATAS harga sekarang.',
+          lines: [
+            { x1: 8, x2: 92, y1: 78, y2: 78, style: 'dashed', tone: 'bear', label: 'SELL LIMIT (Di Atas)', labelSide: 'left' },
+            { x1: 8, x2: 92, y1: 48, y2: 48, style: 'solid', tone: 'gold', label: 'HARGA SEKARANG 2.655', labelSide: 'left' },
+            { x1: 8, x2: 92, y1: 18, y2: 18, style: 'dashed', tone: 'bull', label: 'BUY LIMIT (Di Bawah)', labelSide: 'left' }
+          ],
+          candles: [
+            [14, 44, 50, 40, 48], [22, 48, 52, 44, 48, 'gold']
+          ],
+          arrows: [
+            { x1: 46, y1: 50, x2: 64, y2: 76, tone: 'muted', label: 'Naik' },
+            { x1: 66, y1: 76, x2: 88, y2: 56, tone: 'bear', label: 'Pantul Sell' },
+            { x1: 46, y1: 46, x2: 64, y2: 20, tone: 'muted', label: 'Turun' },
+            { x1: 66, y1: 20, x2: 88, y2: 40, tone: 'bull', label: 'Pantul Buy' }
+          ],
+          callouts: [
+            { x: 52, y: 94, text: 'LIMIT = tunggu harga menjemput lalu memantul', tone: 'cyan' }
+          ]
+        },
+        {
+          label: 'Buy Stop & Sell Stop',
+          caption: 'STOP = ikut searah TEMBUSAN (breakout). Buy Stop dipasang DI ATAS harga sekarang; Sell Stop DI BAWAH harga sekarang.',
+          lines: [
+            { x1: 8, x2: 92, y1: 72, y2: 72, style: 'dashed', tone: 'bull', label: 'BUY STOP (Tembus Atas)', labelSide: 'left' },
+            { x1: 8, x2: 92, y1: 48, y2: 48, style: 'solid', tone: 'gold', label: 'HARGA SEKARANG', labelSide: 'left' },
+            { x1: 8, x2: 92, y1: 24, y2: 24, style: 'dashed', tone: 'bear', label: 'SELL STOP (Tembus Bawah)', labelSide: 'left' }
+          ],
+          candles: [
+            [14, 44, 52, 42, 48], [22, 48, 51, 45, 48, 'gold']
+          ],
+          arrows: [
+            { x1: 46, y1: 50, x2: 84, y2: 84, tone: 'bull', label: 'Tembus → Buy' },
+            { x1: 46, y1: 46, x2: 84, y2: 12, tone: 'bear', label: 'Tembus → Sell' }
+          ],
+          callouts: [
+            { x: 52, y: 95, text: 'Selalu lengkapi order dengan SL dan TP sebelum Place', tone: 'gold' }
+          ]
+        }
+      ]
+    },
+
+    'zero-ohlc-timeframe': {
+      title: '4 Titik Harga Candlestick (OHLC) & Pecahan Timeframe',
+      pairTag: 'LEVEL 00 · CHART & TIMEFRAME',
+      priceLabels: ['High', 'Mid', 'Low'],
+      stages: [
+        {
+          label: '4 Titik Harga (OHLC)',
+          caption: 'Lilin Hijau = harga tutup (Close) lebih tinggi dari buka (Open). Lilin Merah = tutup lebih rendah dari buka. Garis tipis = High & Low.',
+          candles: [
+            [28, 30, 86, 16, 72, 'bull'],
+            [70, 72, 86, 16, 30, 'bear']
+          ],
+          lines: [
+            { x1: 10, x2: 28, y1: 86, y2: 86, style: 'dotted', tone: 'muted', label: 'HIGH (Tertinggi)', labelSide: 'left' },
+            { x1: 10, x2: 28, y1: 72, y2: 72, style: 'dashed', tone: 'bull', label: 'CLOSE (Tutup)', labelSide: 'left' },
+            { x1: 10, x2: 28, y1: 30, y2: 30, style: 'dashed', tone: 'gold', label: 'OPEN (Buka)', labelSide: 'left' },
+            { x1: 10, x2: 28, y1: 16, y2: 16, style: 'dotted', tone: 'muted', label: 'LOW (Terendah)', labelSide: 'left' },
+            { x1: 70, x2: 90, y1: 72, y2: 72, style: 'dashed', tone: 'gold', label: 'OPEN (Buka)', labelSide: 'right' },
+            { x1: 70, x2: 90, y1: 30, y2: 30, style: 'dashed', tone: 'bear', label: 'CLOSE (Tutup)', labelSide: 'right' }
+          ],
+          callouts: [
+            { x: 28, y: 95, text: 'HIJAU = Naik (Bullish)', tone: 'bull' },
+            { x: 70, y: 95, text: 'MERAH = Turun (Bearish)', tone: 'bear' }
+          ]
+        },
+        {
+          label: '1 Lilin H1 = 4 Lilin M15',
+          caption: 'Timeframe besar (H1) merangkum perjalanan 4 batang lilin M15 (atau 12 lilin M5) di dalamnya. Lihat H1 untuk arah, M15/M5 untuk detail.',
+          zones: [
+            { x1: 8, x2: 32, y1: 14, y2: 86, tone: 'gold', label: '1 LILIN H1 (60 MNT)', labelPos: 'tl' },
+            { x1: 42, x2: 92, y1: 14, y2: 86, tone: 'cyan', label: 'ISI DI M15 (4 × 15 MNT)', labelPos: 'tl' }
+          ],
+          candles: [
+            [20, 26, 78, 20, 72, 'gold'],
+            [50, 26, 44, 20, 42],
+            [62, 42, 48, 34, 38],
+            [74, 38, 62, 36, 58],
+            [86, 58, 78, 56, 72]
+          ],
+          arrows: [
+            { x1: 32, y1: 50, x2: 42, y2: 50, tone: 'gold', label: 'Zoom' }
+          ],
+          callouts: [
+            { x: 50, y: 7, text: 'Harga Open & Close tetap sama — cuma beda tingkat zoom waktu', tone: 'cyan' }
+          ]
+        }
+      ]
+    },
+
+    'zero-trend-sr-roadmap': {
+      title: 'Support (Lantai), Resistance (Atap) & Peta Latihan 14 Hari',
+      pairTag: 'LEVEL 00 · TREN & ROADMAP',
+      priceLabels: ['Atap', 'Tengah', 'Lantai'],
+      stages: [
+        {
+          label: 'Support & Resistance Dasar',
+          caption: 'Support (lantai) adalah area pantulan bawah; Resistance (atap) adalah batas atas. Ikuti arah tangga utama dan selalu pasang SL.',
+          zones: [
+            { x1: 8, x2: 92, y1: 74, y2: 86, tone: 'bear', label: 'RESISTANCE (ATAP)', labelPos: 'tr' },
+            { x1: 8, x2: 92, y1: 16, y2: 28, tone: 'bull', label: 'SUPPORT (LANTAI)', labelPos: 'tr' }
+          ],
+          candles: [
+            [14, 40, 44, 22, 26], [22, 26, 48, 24, 46, 'bull'], [30, 46, 68, 44, 66],
+            [38, 66, 80, 62, 74], [46, 74, 78, 56, 58, 'bear'], [54, 58, 60, 34, 36],
+            [62, 36, 38, 22, 28, 'bull'], [70, 28, 54, 27, 52], [78, 52, 76, 50, 74],
+            [86, 74, 82, 60, 62]
+          ],
+          callouts: [
+            { x: 30, y: 10, text: 'Harga sering memantul di Lantai & tertahan di Atap', tone: 'gold' }
+          ]
+        },
+        {
+          label: 'Peta Latihan Aman 14 Hari',
+          caption: 'Jangan buru-buru deposit besar: selesaikan Level 0–1, latih baca chart + Kalkulator Lot di Simulasi/Replay, lalu catat di Jurnal.',
+          bars: [
+            { x1: 5, x2: 26, y1: 10, y2: 42, tone: 'cyan', label: 'Hari 1–4', sub: 'Level 0 & Level 1' },
+            { x1: 29, x2: 51, y1: 10, y2: 56, tone: 'gold', label: 'Hari 5–10', sub: 'Replay + Hitung Lot' },
+            { x1: 54, x2: 75, y1: 10, y2: 68, tone: 'bull', label: 'Hari 11–14', sub: '15 Trade Jurnal' },
+            { x1: 78, x2: 96, y1: 10, y2: 80, tone: 'killzone', label: 'Siap ICT!', sub: 'Lanjut Level 01–06' }
+          ],
+          callouts: [
+            { x: 44, y: 94, text: 'Cek Market Intel setiap hari · Hindari jam berita merah USD', tone: 'sweep' }
+          ]
+        }
+      ]
+    },
+
     // ── LEVEL 1 ──────────────────────────────────────────────────────────
     'two-way-probability': {
       title: 'Trading Dua Arah & Keunggulan R:R 1:2',

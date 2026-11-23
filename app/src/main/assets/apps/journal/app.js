@@ -357,6 +357,55 @@ async function boot() {
       setView("journal");
       setTimeout(() => dom.newJournalBtn?.click(), 60);
     }
+    const prefillMode = String(urlParams.get("prefill") || "").trim().toLowerCase();
+    if (prefillMode === "mapping" || prefillMode === "1") {
+      let prefillEntry = null;
+      try {
+        const rawMap = localStorage.getItem("amy_mapping_journal_prefill_v1");
+        if (rawMap) {
+          prefillEntry = JSON.parse(rawMap);
+          localStorage.removeItem("amy_mapping_journal_prefill_v1");
+        } else {
+          const rawLegacy = localStorage.getItem("amy_pretrade_selected_setup");
+          if (rawLegacy) {
+            const parsed = JSON.parse(rawLegacy);
+            localStorage.removeItem("amy_pretrade_selected_setup");
+            if (parsed?.plan) {
+              const p = parsed.plan;
+              const isSell = String(p.direction || p.side || "").toUpperCase().includes("SELL");
+              prefillEntry = {
+                source: "mapping-poi",
+                accountMode: "REAL",
+                date: new Date().toISOString().slice(0, 10),
+                market: "XAU/USD",
+                direction: isSell ? "Sell" : "Buy",
+                result: "Belum selesai",
+                setup: p.signalName || "ICT Mapping Setup",
+                title: `${isSell ? "SELL" : "BUY"} XAU/USD · ${p.signalName || "Mapping Setup"}`,
+                evaluation: `Entry $${p.entry ?? "—"} | SL $${p.sl ?? "—"} | TP1 $${p.tp1 ?? "—"}`
+              };
+            }
+          }
+        }
+      } catch (_) {}
+
+      if (prefillEntry && window.AmyJournalBridge?.prefillJournalForm) {
+        setView("journal");
+        setTimeout(() => {
+          window.AmyJournalBridge.prefillJournalForm(
+            prefillEntry,
+            null,
+            "Terisi otomatis dari Rencana POI Mapping — cek singkat lalu simpan."
+          );
+        }, 80);
+      }
+
+      try {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("prefill");
+        window.history.replaceState({}, "", cleanUrl.toString());
+      } catch (_) {}
+    }
   } catch (_) {}
   initBackGuard();
   await migrateLegacyFiles();
@@ -5479,7 +5528,12 @@ async function exportBackup() {
   if (!window.JSZip) return window.showToast("JSZip belum termuat.");
   try {
     const zip = new window.JSZip();
-    zip.file("data.json", JSON.stringify({ version: BACKUP_VERSION, exportedAt: new Date().toISOString(), items: state.items, journals: state.journals, notes: state.personalNotes, insightCache: state.insightCache }, null, 2));
+    let mappingReactionHistory = null;
+    try {
+      const rawMapHist = localStorage.getItem("amyfx.mapping.reaction_history.v1");
+      if (rawMapHist) mappingReactionHistory = JSON.parse(rawMapHist);
+    } catch (_) {}
+    zip.file("data.json", JSON.stringify({ version: BACKUP_VERSION, exportedAt: new Date().toISOString(), items: state.items, journals: state.journals, notes: state.personalNotes, insightCache: state.insightCache, mappingReactionHistory }, null, 2));
     const folder = zip.folder("files");
     for (const item of state.items) {
       if (!item.fileId) continue;
@@ -5822,6 +5876,18 @@ async function importBackup(event) {
       saveNotes();
       renderNotes();
       restoredNotesCount = incomingNotes.length;
+    }
+
+    if (payload.mappingReactionHistory && typeof payload.mappingReactionHistory === 'object') {
+      try {
+        const key = 'amyfx.mapping.reaction_history.v1';
+        const localRaw = localStorage.getItem(key);
+        const localHist = localRaw ? JSON.parse(localRaw) : null;
+        const mergedHist = (window.AmyGitHubSync && typeof window.AmyGitHubSync.mergeMappingHistorySnapshots === 'function')
+          ? window.AmyGitHubSync.mergeMappingHistorySnapshots(localHist, payload.mappingReactionHistory)
+          : payload.mappingReactionHistory;
+        localStorage.setItem(key, JSON.stringify(mergedHist));
+      } catch (_) {}
     }
 
     render();
@@ -6378,7 +6444,7 @@ window.AmyJournalBridge = {
   closeJournalEditor() {
     closeJournalEditor();
   },
-  async prefillJournalForm(entry, optionalFile) {
+  async prefillJournalForm(entry, optionalFile, customMessage) {
     if (!entry) return;
     resetJournalForm();
     if (dom.journalAccountModeInput) dom.journalAccountModeInput.value = entry.accountMode === "SIM" ? "SIM" : "REAL";
@@ -6408,7 +6474,9 @@ window.AmyJournalBridge = {
     }
 
     openJournalEditor("new");
-    if (dom.journalMessage) dom.journalMessage.textContent = "Terisi otomatis dari Scan MT5 — cek singkat lalu simpan.";
+    if (dom.journalMessage) {
+      dom.journalMessage.textContent = customMessage || "Terisi otomatis dari Scan MT5 — cek singkat lalu simpan.";
+    }
   },
   async saveBatchTrades(entries, optionalFiles = []) {
     if (!Array.isArray(entries) || !entries.length) return [];
@@ -6571,14 +6639,15 @@ function renderJournalDailyGuard(entries) {
 
   const wasOpen = slot.dataset.editorOpen === "1";
 
+  const compactGuardDetail = guard.status === "SAFE"
+    ? `Maks ${cfg.maxDailySl} SL · -${cfg.maxDailyLossPct}%/hari`
+    : (guard.detail || "");
+
   slot.innerHTML = `
     <div class="amy-guard-bar ${toneClass}">
       <div class="amy-guard-copy">
-        <span class="amy-guard-title">
-          <span class="amy-guard-dot" aria-hidden="true"></span>
-          ${escapeHtml(guard.headline)}
-        </span>
-        ${guard.detail ? `<span class="amy-guard-sub jp-tabular">${escapeHtml(guard.detail)}</span>` : ""}
+        <span class="amy-guard-title">${escapeHtml(guard.headline)}</span>
+        ${compactGuardDetail ? `<span class="amy-guard-sub">${escapeHtml(compactGuardDetail)}</span>` : ""}
       </div>
       <button type="button" class="amy-guard-cfg-btn" data-jl-guard-toggle aria-expanded="${wasOpen ? "true" : "false"}">${wasOpen ? "Tutup" : "Batas"}</button>
     </div>

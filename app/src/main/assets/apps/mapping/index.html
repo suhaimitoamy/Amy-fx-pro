@@ -53,18 +53,41 @@
          ══════════════════════════════════════ -->
     <article class="price-map gold-price-panel">
       <section id="gold-chart-workspace" aria-label="Chart Gold XAU/USD">
-        <div class="section-heading chart-heading">
-          <h2>Chart Gold · XAU/USD</h2>
-          <div class="chart-price-wrap" style="display:flex; align-items:center; gap:8px;">
-            <span id="chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM · 50%</span>
+        <div class="section-heading chart-heading gold-price-head">
+          <div class="gold-price-title">
+            <div class="gold-price-pair">
+              <h2>XAU/USD</h2>
+              <span class="gold-price-subtitle">Chart Gold</span>
+            </div>
+            <div class="gold-price-meta">
+              <span id="chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM · 50%</span>
+              <span class="gold-meta-sep" aria-hidden="true">·</span>
+              <span id="source" role="status">Memuat…</span>
+            </div>
+          </div>
+          <div class="chart-price-wrap gold-price-value">
             <strong id="chart-price">—</strong>
           </div>
         </div>
         <div class="gold-chart-controls">
-          <label>Timeframe <select id="timeframe"><option value="H1">H1</option><option value="M15" selected>M15</option><option value="M5">M5</option></select></label>
-          <button type="button" id="refresh">Perbarui</button>
-          <button type="button" id="btn-chart-custom-price-alert" title="Pasang Alarm Target Harga">🔔 Pasang Alarm</button>
-          <button type="button" id="chart-fullscreen" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">Fullscreen</button>
+          <div class="gold-tf-seg" role="group" aria-label="Timeframe chart">
+            <select id="timeframe" class="gold-tf-native" aria-label="Timeframe chart" tabindex="-1"><option value="H1">H1</option><option value="M15" selected>M15</option><option value="M5">M5</option></select>
+            <button type="button" class="gold-tf-btn" data-gold-tf="H1" aria-pressed="false">H1</button>
+            <button type="button" class="gold-tf-btn is-active" data-gold-tf="M15" aria-pressed="true">M15</button>
+            <button type="button" class="gold-tf-btn" data-gold-tf="M5" aria-pressed="false">M5</button>
+          </div>
+          <div class="gold-chart-actions">
+            <button type="button" id="btn-chart-custom-price-alert" class="gold-ctrl-btn gold-ctrl-btn--alarm" title="Pasang Alarm Target Harga" aria-label="Pasang Alarm Harga">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span>Alarm</span>
+            </button>
+            <button type="button" id="refresh" class="gold-ctrl-btn gold-ctrl-btn--icon" title="Perbarui chart" aria-label="Perbarui chart">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+            <button type="button" id="chart-fullscreen" class="gold-ctrl-btn gold-ctrl-btn--icon" title="Fullscreen Chart Gold" aria-label="Buka fullscreen Chart Gold" aria-pressed="false">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
         </div>
 
         <!-- Mini Utility Strip: Toggle Layer ICT · Gambar Manual · Reset Skala · Candle Countdown -->
@@ -84,7 +107,7 @@
               <span>Reset</span>
             </button>
           </div>
-          <span id="chart-candle-countdown" class="chart-countdown-text" title="Sisa waktu penutupan candle aktif">Tutup M15 · --:--</span>
+          <span id="chart-candle-countdown" class="chart-countdown-text" title="Sisa waktu penutupan candle aktif">M15 · --:--</span>
         </div>
 
         <!-- Popover Toggle Layer ICT -->
@@ -112,7 +135,7 @@
           </div>
         </div>
 
-        <p id="source" role="status">Memuat candle tertutup…</p><p id="chart-error" role="alert"></p>
+        <p id="chart-error" role="alert"></p>
         <div class="gold-chart-stage">
           <div id="chart-ohlc-hud" class="chart-ohlc-hud" aria-live="off"></div>
           <div id="chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
@@ -266,6 +289,12 @@
         </div>
       </div>
 
+      <div id="poi-news-lock-banner" class="poi-news-lock-banner" role="status" aria-live="polite" hidden>
+        <span class="poi-news-lock-tag" id="poi-news-lock-tag">NEWS LOCK</span>
+        <span class="poi-news-lock-msg" id="poi-news-lock-msg"></span>
+        <a class="poi-news-lock-link" href="../market-intel/index.html#kalender">Kalender →</a>
+      </div>
+
       <!-- TAB PANEL: BUY SETUP -->
       <section id="card-poi-buy" class="poi-tab-panel" role="tabpanel" aria-labelledby="tab-poi-buy">
         <div class="poi-panel-status-row">
@@ -278,6 +307,10 @@
             <button type="button" class="cockpit-lot-btn" id="btn-lot-buy">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="11" x2="10" y2="11"></line><line x1="14" y1="11" x2="16" y2="11"></line><line x1="8" y1="16" x2="10" y2="16"></line><line x1="14" y1="16" x2="16" y2="16"></line></svg>
               <span>Hitung Lot</span>
+            </button>
+            <button type="button" class="cockpit-journal-btn" id="btn-journal-buy" title="Catat setup BUY ini ke Jurnal Trading (otomatis terisi)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span>Catat</span>
             </button>
           </div>
         </div>
@@ -364,6 +397,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="11" x2="10" y2="11"></line><line x1="14" y1="11" x2="16" y2="11"></line><line x1="8" y1="16" x2="10" y2="16"></line><line x1="14" y1="16" x2="16" y2="16"></line></svg>
               <span>Hitung Lot</span>
             </button>
+            <button type="button" class="cockpit-journal-btn" id="btn-journal-sell" title="Catat setup SELL ini ke Jurnal Trading (otomatis terisi)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span>Catat</span>
+            </button>
           </div>
         </div>
 
@@ -448,22 +485,26 @@
               <circle cx="12" cy="12" r="9"></circle>
               <polyline points="12 7 12 12 15.5 14"></polyline>
             </svg>
-            <h3>Riwayat Reaksi &amp; POI <button type="button" class="amy-info-btn" data-info-tip="Rekap otomatis 30 jam terakhir dari candle tertutup M15/M5 + pelacakan live lokal 7 hari (evaluasi TP1/TP2/SL konservatif)." aria-label="Info riwayat POI" aria-expanded="false">i</button></h3>
+            <h3>Riwayat Reaksi &amp; POI <button type="button" class="amy-info-btn" data-info-tip="Rekap otomatis 30 jam terakhir dari candle tertutup M15/M5 + arsip detail 180 hari, ringkasan kalender permanen, dan sinkronisasi GitHub Cloud Sync." aria-label="Info riwayat POI" aria-expanded="false">i</button></h3>
           </div>
-          <div class="history-range-switch" role="group" aria-label="Filter rentang waktu riwayat">
+          <div class="history-range-switch" id="history-range-switch" role="group" aria-label="Filter rentang waktu riwayat">
             <button type="button" class="history-range-btn is-active" id="history-range-today" data-history-range="TODAY" aria-pressed="true">Hari Ini</button>
             <button type="button" class="history-range-btn" id="history-range-7d" data-history-range="7D" aria-pressed="false">7 Hari</button>
           </div>
         </div>
 
-        <div class="history-segmented" role="tablist" aria-label="Pilih tampilan riwayat Mapping">
+        <div class="history-segmented history-segmented--three" role="tablist" aria-label="Pilih tampilan riwayat Mapping">
           <button type="button" role="tab" id="tab-history-poi" class="history-tab-btn is-active" data-history-tab="POI" aria-selected="true" aria-controls="panel-history-poi">
             <span>Hasil POI</span>
             <span class="history-tab-count" id="history-poi-count">0</span>
           </button>
           <button type="button" role="tab" id="tab-history-timeline" class="history-tab-btn" data-history-tab="TIMELINE" aria-selected="false" aria-controls="panel-history-timeline">
-            <span>Timeline Market</span>
+            <span>Timeline</span>
             <span class="history-tab-count" id="history-timeline-count">0</span>
+          </button>
+          <button type="button" role="tab" id="tab-history-calendar" class="history-tab-btn" data-history-tab="CALENDAR" aria-selected="false" aria-controls="panel-history-calendar">
+            <span>Kalender</span>
+            <span class="history-tab-count" id="history-calendar-count">0</span>
           </button>
         </div>
       </div>
@@ -486,6 +527,25 @@
         <div class="history-list" id="history-timeline-list">
           <div class="history-empty">Memuat jejak kejadian market…</div>
         </div>
+      </section>
+
+      <!-- Panel 3: Kalender Reaksi & POI Bulanan -->
+      <section id="panel-history-calendar" class="history-panel" role="tabpanel" aria-labelledby="tab-history-calendar" hidden>
+        <div class="poi-cal-nav">
+          <button type="button" class="poi-cal-nav-btn" id="btn-poi-cal-prev" aria-label="Bulan sebelumnya">‹</button>
+          <div class="poi-cal-title-wrap">
+            <strong class="poi-cal-month-label" id="poi-cal-month-label">—</strong>
+            <span class="poi-cal-sub-meta" id="poi-cal-sub-meta">Arsip 180 hari detail · ringkasan permanen</span>
+          </div>
+          <button type="button" class="poi-cal-nav-btn" id="btn-poi-cal-next" aria-label="Bulan berikutnya">›</button>
+        </div>
+        <div class="poi-cal-grid-wrap" id="poi-cal-grid-wrap"></div>
+        <div class="poi-cal-legend" aria-label="Keterangan warna kalender">
+          <span class="poi-cal-legend-item is-win">Respect &ge;60%</span>
+          <span class="poi-cal-legend-item is-neutral">50–59% / Aktif</span>
+          <span class="poi-cal-legend-item is-loss">SL Dominan (&lt;50%)</span>
+        </div>
+        <div class="poi-cal-day-detail" id="poi-cal-day-detail"></div>
       </section>
 
       <div class="history-footer-row" id="history-footer-row" hidden>
@@ -581,6 +641,7 @@
 <script type="module" src="js/ict-workspace/lot-calculator.js"></script>
 <script type="module" src="js/ict-workspace/app.js"></script>
 <script type="module" src="js/ict-workspace/context-panel.js"></script>
+<script src="../shared/github-cloud-sync.js"></script>
 <script src="../shared/amy-local-assistant.js"></script>
 <script src="../shared/amyfx-universal-nav.js"></script>
 

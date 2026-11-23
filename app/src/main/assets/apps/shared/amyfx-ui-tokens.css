@@ -106,8 +106,28 @@
   --amy-os-good: var(--amy-buy);
   --amy-os-bad: var(--amy-sell);
   --amy-os-warn: var(--amy-wait);
+
+  /* Unified Institutional UI Tokens (Dark Default) */
+  --amy-seg-track: rgba(255, 255, 255, 0.04);
+  --amy-seg-active: rgba(255, 255, 255, 0.14);
+  --amy-seg-border: rgba(255, 255, 255, 0.08);
+  --amy-hairline: rgba(255, 255, 255, 0.08);
+  --amy-fab-clearance: 84px;
+}
+
+html[data-amyfx-theme="light"],
+html[data-theme="light"] {
+  --amy-seg-track: #f1f5f9;
+  --amy-seg-active: #ffffff;
+  --amy-seg-border: rgba(15, 23, 42, 0.09);
+  --amy-hairline: rgba(15, 23, 42, 0.09);
 }
 
 @media (min-width: 540px) {
   :root { --amy-page-padding: 20px; }
+}
+
+.intel-container,
+.acd-shell {
+  padding-bottom: var(--amy-fab-clearance, 84px);
 }

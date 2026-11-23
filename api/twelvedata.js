@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCandles, marketStoreInfo } from '../lib/market-candle-store.mjs';
+import { inspectProviderPayload } from '../lib/provider-error-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -197,6 +198,13 @@ export default async function handler(req, res) {
 
   try {
     const rawData = await request;
+    const inspected = inspectProviderPayload(rawData);
+    if (!inspected.ok && inspected.code >= 400) {
+      const providerErr = new Error(inspected.message);
+      providerErr.status = inspected.code;
+      providerErr.providerData = rawData;
+      throw providerErr;
+    }
     const data = clientCompatibleData(rawData);
     if (!/stale/i.test(`${data.source || ''} ${data.amyfxCacheState || ''}`)) writeCache(key, data, ttl);
     const cacheState = data.amyfxCacheState || 'PROVIDER_MISS';

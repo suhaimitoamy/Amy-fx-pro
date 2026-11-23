@@ -2654,4 +2654,155 @@ body.amyfx-module--journal .jl-mt5-sheet input.jl-mt5-file-overlay {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   JURNAL UI CLEANUP — BERANDA PARITY & CLEAN EDITORIAL LEDGER
+   ═══════════════════════════════════════════════════════════════════ */
+body.amyfx-module--journal .app-header .add-button {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: var(--amy-text, #f8fafc) !important;
+  box-shadow: none !important;
+  font-size: 1.25rem !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+body.amyfx-module--journal .app-header .add-button:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+body.amyfx-module--journal .jl-count-sub {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem !important;
+  color: var(--jl-muted) !important;
+}
+
+/* Harmonized Segmented Controls (Beranda Parity) */
+body.amyfx-module--journal .jp-seg {
+  padding: 3px !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  gap: 2px !important;
+}
+
+body.amyfx-module--journal .jp-seg-btn {
+  border-radius: 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--jl-muted) !important;
+  font-weight: 650 !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+body.amyfx-module--journal .jp-seg-btn.is-active {
+  background: rgba(255, 255, 255, 0.13) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Restrained Daily Loss Guard Row */
+body.amyfx-module--journal .amy-guard-bar {
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  border: 1px solid var(--jl-line) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+body.amyfx-module--journal .amy-guard-bar.is-safe {
+  border-color: rgba(34, 197, 94, 0.24) !important;
+  background: rgba(34, 197, 94, 0.05) !important;
+}
+
+body.amyfx-module--journal .amy-guard-bar.is-warning {
+  border-color: rgba(245, 158, 11, 0.34) !important;
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+body.amyfx-module--journal .amy-guard-bar.is-locked {
+  border-color: rgba(248, 113, 113, 0.4) !important;
+  background: rgba(248, 113, 113, 0.09) !important;
+}
+
+body.amyfx-module--journal .amy-guard-title {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+}
+
+body.amyfx-module--journal .amy-guard-sub {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.74rem !important;
+  color: var(--jl-muted) !important;
+}
+
+body.amyfx-module--journal .amy-guard-cfg-btn {
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 650 !important;
+}
+
+body.amyfx-module--journal .jl-primary-btn {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 10px !important;
+  font-size: 0.8rem !important;
+}
+
+body.amyfx-module--journal .jl-ghost-btn {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+  font-size: 0.78rem !important;
+}
+
+/* Light Mode Parity for Jurnal Cleanup */
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .app-header .add-button {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .jp-seg {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .jp-seg-btn {
+  color: #64748b !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .jp-seg-btn.is-active {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .amy-guard-bar.is-safe {
+  background: #f0fdf4 !important;
+  border-color: rgba(22, 163, 74, 0.24) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .amy-guard-bar.is-warning {
+  background: #fffbeb !important;
+  border-color: rgba(217, 119, 6, 0.3) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--journal .amy-guard-bar.is-locked {
+  background: #fef2f2 !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+
 

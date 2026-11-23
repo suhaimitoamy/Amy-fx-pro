@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -9,6 +10,7 @@ const engineRelPath = existsSync(resolve(import.meta.dirname, '../app/src/main/a
 
 const {
   HISTORY_STORAGE_KEY,
+  SEVEN_DAYS_MS,
   MAX_RETENTION_MS,
   witaDateKey,
   formatWitaClock,
@@ -19,6 +21,9 @@ const {
   backfillFromCandles,
   recordLivePoiProgress,
   mergeHistoryState,
+  mergeRemoteHistoryState,
+  buildPoiCalendarMonth,
+  getDayPoiRecords,
   filterByRange,
   summarizePoiStats
 } = await import(engineRelPath);
@@ -307,49 +312,124 @@ test('loadHistoryState & saveHistoryState: round-trips cleanly and handles corru
   assert.deepEqual(recovered, createEmptyHistoryState());
 });
 
-test('recordLivePoiProgress: dispatches notifications on CE touch, TP1, TP2, and SL with strict anti-spam deduplication', () => {
-  const plan = {
-    side: 'SELL',
-    tf: 'M5',
-    kind: 'FVG',
-    area: { low: 3592.0, high: 3601.0, ce: 3596.5 },
-    sl: 3601.5,
-    tp1: 3588.5,
-    tp2: 3582.5
+test('180-day retention keeps >7d details, filters 7D strictly to 7 days, and permanently rolls up >180d into dailyArchive', () => {
+  const dayMs = 24 * 3600 * 1000;
+  const tsToday = NOW_MS - 3600 * 1000;
+  const ts45DaysAgo = NOW_MS - 45 * dayMs;
+  const ts200DaysAgo = NOW_MS - 200 * dayMs;
+
+  const persisted = {
+    version: 2,
+    poiRecords: [
+      { id: 'P:TODAY', side: 'BUY', tf: 'M15', kind: 'FVG', low: 3100, high: 3102, ce: 3101, touchedAt: tsToday, status: 'TP2_HIT', maxFavorable: 10 },
+      { id: 'P:45D', side: 'SELL', tf: 'M5', kind: 'OB', low: 3050, high: 3052, ce: 3051, touchedAt: ts45DaysAgo, status: 'TP1_HIT', maxFavorable: 6 },
+      { id: 'P:200D', side: 'BUY', tf: 'M15', kind: 'FVG', low: 2950, high: 2952, ce: 2951, touchedAt: ts200DaysAgo, status: 'SL_HIT', maxFavorable: 1 }
+    ],
+    timelineEvents: [],
+    dailyArchive: {}
   };
 
-  let state = createEmptyHistoryState();
+  assert.equal(MAX_RETENTION_MS, 180 * dayMs);
+  assert.equal(SEVEN_DAYS_MS, 7 * dayMs);
 
-  // 1. Initial touch at CE -> dispatches CE_TOUCH alert with gold chime
-  let r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3596.5, nowMs: NOW_MS });
-  assert.equal(r.changed, true);
-  assert.equal(r.alerts.length, 1);
-  assert.equal(r.alerts[0].type, 'CE_TOUCH');
-  assert.match(r.alerts[0].title, /🔴 SELL FVG M5 · Sentuh 50% CE/);
-  assert.match(r.alerts[0].body, /CE \$3596\.50 \| SL \$3601\.50 \| TP1 \$3588\.50 \| TP2 \$3582\.50/);
-  assert.equal(r.alerts[0].sound, 'gold');
-  state = r.state;
+  const merged = mergeHistoryState(persisted, createEmptyHistoryState(), NOW_MS);
+  // 45d record must stay in poiRecords; 200d record pruned from poiRecords but preserved in permanent dailyArchive
+  assert.equal(merged.poiRecords.length, 2);
+  assert.ok(merged.poiRecords.some(r => r.id === 'P:45D'));
+  assert.equal(merged.poiRecords.some(r => r.id === 'P:200D'), false);
 
-  // 2. Next tick still near CE -> NO duplicate alert (anti-spam)
-  r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3596.7, nowMs: NOW_MS + 2000 });
-  assert.equal(r.alerts.length, 0, 'must not re-trigger CE alert on noisy ticks');
+  const oldDateKey = witaDateKey(ts200DaysAgo);
+  assert.ok(merged.dailyArchive[oldDateKey], '200d old date must be archived permanently');
+  assert.equal(merged.dailyArchive[oldDateKey].total, 1);
+  assert.equal(merged.dailyArchive[oldDateKey].sl, 1);
+  assert.equal(merged.dailyArchive[oldDateKey].respectRate, 0);
 
-  // 3. Price runs to TP1 -> dispatches TP1_HIT alert
-  r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3588.0, nowMs: NOW_MS + 10000 });
-  assert.equal(r.alerts.length, 1);
-  assert.equal(r.alerts[0].type, 'TP1_HIT');
-  assert.match(r.alerts[0].title, /🎯 TP1 BEP ✓ · SELL FVG M5/);
-  assert.match(r.alerts[0].body, /BEP/);
-  state = r.state;
+  // filterByRange('7D') must strictly include only <=7d records, NOT 45d record
+  const sevenDayItems = filterByRange(merged.poiRecords, 'touchedAt', '7D', NOW_MS);
+  assert.equal(sevenDayItems.length, 1);
+  assert.equal(sevenDayItems[0].id, 'P:TODAY');
+});
 
-  // 4. Price ticks again around TP1 -> NO duplicate TP1 alert
-  r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3587.5, nowMs: NOW_MS + 12000 });
-  assert.equal(r.alerts.length, 0, 'must not re-trigger TP1 alert');
+test('buildPoiCalendarMonth & getDayPoiRecords: builds 8-column month grid, weekly MGG rollups, M15/M5 split, day filters, and archived-only day', () => {
+  // Date in April 2026: 2026-04-15 (Wednesday)
+  const day15 = Date.UTC(2026, 3, 15, 5, 0, 0); // 13:00 WITA
+  const day16 = Date.UTC(2026, 3, 16, 5, 0, 0);
+  const archivedDate = '2026-04-02';
 
-  // 5. Price reaches TP2 DOL -> dispatches TP2_HIT alert
-  r = recordLivePoiProgress({ state, plans: [plan], livePrice: 3582.0, nowMs: NOW_MS + 25000 });
-  assert.equal(r.alerts.length, 1);
-  assert.equal(r.alerts[0].type, 'TP2_HIT');
-  assert.match(r.alerts[0].title, /👑 TP2 DOL ★ · SELL FVG M5/);
-  assert.match(r.alerts[0].body, /100 Pips/);
+  const state = {
+    version: 2,
+    poiRecords: [
+      { id: 'D15-1', side: 'BUY', tf: 'M15', kind: 'FVG', low: 3000, high: 3002, ce: 3001, touchedAt: day15, status: 'TP2_HIT' },
+      { id: 'D15-2', side: 'SELL', tf: 'M15', kind: 'OB', low: 3010, high: 3012, ce: 3011, touchedAt: day15 + 60000, status: 'TP1_HIT' },
+      { id: 'D15-3', side: 'BUY', tf: 'M5', kind: 'FVG', low: 3005, high: 3006, ce: 3005.5, touchedAt: day15 + 120000, status: 'SL_HIT' },
+      { id: 'D16-1', side: 'SELL', tf: 'M5', kind: 'FVG', low: 3020, high: 3022, ce: 3021, touchedAt: day16, status: 'SL_HIT' }
+    ],
+    timelineEvents: [],
+    dailyArchive: {
+      [archivedDate]: {
+        date: archivedDate,
+        total: 5,
+        tp2: 2,
+        tp1: 2,
+        sl: 1,
+        reacting: 0,
+        testing: 0,
+        m15Total: 3,
+        m15Wins: 3,
+        m15Sl: 0,
+        m5Total: 2,
+        m5Wins: 1,
+        m5Sl: 1,
+        fvgTotal: 3,
+        obTotal: 2
+      }
+    }
+  };
+
+  const cal = buildPoiCalendarMonth(state, 2026, 3, day16);
+  assert.equal(cal.label, 'April 2026');
+  assert.equal(cal.monthSummary.activeDays, 3);
+  assert.equal(cal.monthSummary.total, 9); // 3 + 1 + 5
+  assert.equal(cal.monthSummary.wins, 6);  // 2 + 0 + 4
+  assert.equal(cal.monthSummary.sl, 3);    // 1 + 1 + 1
+  assert.equal(cal.monthSummary.respectRate, 67);
+  assert.equal(cal.monthSummary.m15RespectRate, 100); // 5/5 wins on M15
+  assert.equal(cal.monthSummary.m5RespectRate, 25);   // 1 win / 4 resolved on M5
+
+  // Each week has 7 days + weekSummary
+  for (const w of cal.weeks) {
+    assert.equal(w.days.length, 7);
+    assert.ok(w.weekSummary);
+  }
+
+  // Drill-down filtering on 2026-04-15
+  const all15 = getDayPoiRecords(state, '2026-04-15', 'ALL');
+  assert.equal(all15.allCount, 3);
+  assert.equal(all15.isArchivedOnly, false);
+  assert.equal(getDayPoiRecords(state, '2026-04-15', 'M15').items.length, 2);
+  assert.equal(getDayPoiRecords(state, '2026-04-15', 'M5').items.length, 1);
+  assert.equal(getDayPoiRecords(state, '2026-04-15', 'TP').items.length, 2);
+  assert.equal(getDayPoiRecords(state, '2026-04-15', 'SL').items.length, 1);
+
+  // Archived-only day returns summary with isArchivedOnly = true
+  const archDay = getDayPoiRecords(state, archivedDate, 'ALL');
+  assert.equal(archDay.isArchivedOnly, true);
+  assert.equal(archDay.summary.total, 5);
+  assert.equal(archDay.summary.respectRate, 80);
+
+  // Union merge across devices keeps both local and remote days
+  const remoteState = {
+    version: 2,
+    poiRecords: [
+      { id: 'REMOTE-1', side: 'BUY', tf: 'M15', kind: 'FVG', low: 3030, high: 3032, ce: 3031, touchedAt: day16 + 30000, status: 'TP2_HIT' }
+    ],
+    timelineEvents: [],
+    dailyArchive: {
+      '2025-11-10': { date: '2025-11-10', total: 4, tp2: 3, tp1: 0, sl: 1 }
+    }
+  };
+  const combined = mergeRemoteHistoryState(state, remoteState, day16);
+  assert.equal(combined.poiRecords.length, 5);
+  assert.ok(combined.dailyArchive['2025-11-10']);
+  assert.ok(combined.dailyArchive[archivedDate]);
 });

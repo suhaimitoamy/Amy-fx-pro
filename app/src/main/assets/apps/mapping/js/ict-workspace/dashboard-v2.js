@@ -25,9 +25,17 @@ import {
   mergeHistoryState,
   filterByRange,
   summarizePoiStats,
+  buildPoiCalendarMonth,
+  getDayPoiRecords,
+  getWitaYearMonth,
+  witaDateKey,
   formatWitaClock,
   createEmptyHistoryState
 } from './mapping-history-engine.js';
+import {
+  buildMappingJournalPrefill,
+  evaluateMappingNewsLock
+} from '../engine/cockpit-bridge-helpers.js';
 
 (function () {
   'use strict';
@@ -55,7 +63,7 @@ import {
   let lastPublishedPlanSig = '';
   const dualLayerCache = { m15Key: '', m15Ng: null, m5Key: '', m5Ng: null };
 
-  /* ── Riwayat Reaksi & Hasil POI State (Persisted 7 Hari di localStorage) ── */
+  /* ── Riwayat Reaksi & Hasil POI State (180 Hari Detail + Arsip Kalender Permanen + Cloud Sync) ── */
   const historyStorage = typeof window !== 'undefined' ? window.localStorage : null;
   let mappingHistoryState = loadHistoryState(historyStorage);
   let activeHistoryTab = 'POI';
@@ -63,6 +71,14 @@ import {
   let historyShowAll = false;
   let lastHistoryBackfillKey = '';
   let historyResetFloorMs = 0;
+  const initialYm = getWitaYearMonth(Date.now());
+  let historyCalendarYear = initialYm.year;
+  let historyCalendarMonth = initialYm.month;
+  let selectedCalendarDate = witaDateKey(Date.now());
+  let calendarDayFilter = 'ALL';
+  let calendarDayShowAll = false;
+  let historyClearArmedUntil = 0;
+  let historyClearArmTimer = null;
 
   function toNgCandles(rows) {
     if (!Array.isArray(rows) || rows.length < 15) return [];
@@ -292,6 +308,85 @@ import {
     const btnAlarmSell = $('btn-alarm-sell');
     if (btnAlarmSell) btnAlarmSell.addEventListener('click', () => triggerQuickEntryAlarm('SELL'));
 
+    const triggerQuickJournal = side => {
+      const isSell = side === 'SELL';
+      const plan = isSell ? latestSellPlan : latestBuyPlan;
+      const overlay = isSell ? latestSellOverlay : latestBuyOverlay;
+      const gradeEl = $(isSell ? 'sell-verdict-grade' : 'buy-verdict-grade');
+      const biasEl = $('hero-bias-pill');
+      const sessionEl = $('cockpit-session-pill');
+      const payload = buildMappingJournalPrefill(
+        plan || { side },
+        overlay,
+        {
+          side,
+          grade: gradeEl?.textContent?.trim() || '',
+          bias: biasEl?.textContent?.trim() || '',
+          session: sessionEl?.textContent?.trim() || '',
+          nowMs: Date.now()
+        }
+      );
+      try {
+        localStorage.setItem('amy_mapping_journal_prefill_v1', JSON.stringify(payload));
+        if (window.Android?.triggerHaptic) window.Android.triggerHaptic(35);
+      } catch (_) {}
+      window.location.href = '../journal/index.html?prefill=mapping';
+    };
+
+    const btnJournalBuy = $('btn-journal-buy');
+    if (btnJournalBuy) btnJournalBuy.addEventListener('click', () => triggerQuickJournal('BUY'));
+
+    const btnJournalSell = $('btn-journal-sell');
+    if (btnJournalSell) btnJournalSell.addEventListener('click', () => triggerQuickJournal('SELL'));
+
+    // News Lock banner synced with Market Intel USD High-Impact calendar
+    const applyNewsLockBanner = events => {
+      const banner = $('poi-news-lock-banner');
+      const tagEl = $('poi-news-lock-tag');
+      const msgEl = $('poi-news-lock-msg');
+      if (!banner || !tagEl || !msgEl) return;
+      const status = evaluateMappingNewsLock(events, Date.now());
+      if (status.level === 'SAFE') {
+        banner.hidden = true;
+        banner.classList.remove('is-lock', 'is-warn');
+        return;
+      }
+      banner.hidden = false;
+      banner.classList.toggle('is-lock', status.level === 'LOCK');
+      banner.classList.toggle('is-warn', status.level === 'WARN');
+      tagEl.textContent = status.level === 'LOCK' ? 'NEWS LOCK' : 'WASPADA BERITA';
+      msgEl.textContent = status.message;
+    };
+
+    const refreshNewsLockStatus = async () => {
+      try {
+        const raw = localStorage.getItem('amy_economic_calendar_v1');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed?.events) && parsed.events.length) {
+            applyNewsLockBanner(parsed.events);
+          }
+        }
+      } catch (_) {}
+
+      try {
+        if (typeof location !== 'undefined' && location.origin && !location.origin.startsWith('file:')) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 4500);
+          const res = await fetch(`${location.origin}/api/calendar`, { signal: controller.signal, cache: 'no-store' });
+          clearTimeout(timer);
+          if (res.ok) {
+            const data = await res.json();
+            const list = Array.isArray(data?.events) ? data.events : (Array.isArray(data) ? data : []);
+            if (list.length) applyNewsLockBanner(list);
+          }
+        }
+      } catch (_) {}
+    };
+
+    void refreshNewsLockStatus();
+    setInterval(() => void refreshNewsLockStatus(), 60_000);
+
     // Riwayat Reaksi & Hasil POI interactions
     document.querySelectorAll('[data-history-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -318,36 +413,92 @@ import {
     const btnHistoryClear = $('btn-history-clear');
     if (btnHistoryClear) {
       btnHistoryClear.addEventListener('click', () => {
-        historyResetFloorMs = Date.now();
+        const now = Date.now();
+        if (now > historyClearArmedUntil) {
+          historyClearArmedUntil = now + 4500;
+          btnHistoryClear.textContent = 'Ketuk lagi untuk hapus';
+          btnHistoryClear.classList.add('is-armed');
+          if (historyClearArmTimer) clearTimeout(historyClearArmTimer);
+          historyClearArmTimer = setTimeout(() => {
+            historyClearArmedUntil = 0;
+            btnHistoryClear.textContent = 'Reset Riwayat';
+            btnHistoryClear.classList.remove('is-armed');
+          }, 4600);
+          return;
+        }
+        if (historyClearArmTimer) clearTimeout(historyClearArmTimer);
+        historyClearArmedUntil = 0;
+        btnHistoryClear.textContent = 'Reset Riwayat';
+        btnHistoryClear.classList.remove('is-armed');
+        historyResetFloorMs = now;
         historyShowAll = false;
+        calendarDayShowAll = false;
+        selectedCalendarDate = '';
         mappingHistoryState = createEmptyHistoryState();
         saveHistoryState(historyStorage, mappingHistoryState);
         renderMappingHistory();
       });
     }
+
+    const btnCalPrev = $('btn-poi-cal-prev');
+    if (btnCalPrev) {
+      btnCalPrev.addEventListener('click', () => shiftHistoryCalendarMonth(-1));
+    }
+    const btnCalNext = $('btn-poi-cal-next');
+    if (btnCalNext) {
+      btnCalNext.addEventListener('click', () => shiftHistoryCalendarMonth(1));
+    }
+
+    // Reload local POI history whenever GitHub Cloud Sync pulls fresh data
+    window.addEventListener('amyfx:cloud-sync-pulled', () => {
+      mappingHistoryState = loadHistoryState(historyStorage);
+      renderMappingHistory();
+    });
+  }
+
+  function shiftHistoryCalendarMonth(offset) {
+    const next = new Date(Date.UTC(historyCalendarYear, historyCalendarMonth + offset, 1));
+    historyCalendarYear = next.getUTCFullYear();
+    historyCalendarMonth = next.getUTCMonth();
+    calendarDayFilter = 'ALL';
+    calendarDayShowAll = false;
+    selectedCalendarDate = '';
+    renderMappingHistory();
   }
 
   /* ── Riwayat Reaksi & Hasil POI Rendering & Sync ── */
   function setActiveHistoryTab(tab) {
-    activeHistoryTab = String(tab).toUpperCase() === 'TIMELINE' ? 'TIMELINE' : 'POI';
+    const upper = String(tab).toUpperCase();
+    activeHistoryTab = upper === 'TIMELINE' ? 'TIMELINE' : (upper === 'CALENDAR' ? 'CALENDAR' : 'POI');
     historyShowAll = false;
     const isPoi = activeHistoryTab === 'POI';
+    const isTl = activeHistoryTab === 'TIMELINE';
+    const isCal = activeHistoryTab === 'CALENDAR';
 
     const tabPoi = $('tab-history-poi');
     const tabTl = $('tab-history-timeline');
+    const tabCal = $('tab-history-calendar');
     const panelPoi = $('panel-history-poi');
     const panelTl = $('panel-history-timeline');
+    const panelCal = $('panel-history-calendar');
+    const rangeSwitch = $('history-range-switch');
 
     if (tabPoi) {
       tabPoi.classList.toggle('is-active', isPoi);
       tabPoi.setAttribute('aria-selected', isPoi ? 'true' : 'false');
     }
     if (tabTl) {
-      tabTl.classList.toggle('is-active', !isPoi);
-      tabTl.setAttribute('aria-selected', !isPoi ? 'true' : 'false');
+      tabTl.classList.toggle('is-active', isTl);
+      tabTl.setAttribute('aria-selected', isTl ? 'true' : 'false');
+    }
+    if (tabCal) {
+      tabCal.classList.toggle('is-active', isCal);
+      tabCal.setAttribute('aria-selected', isCal ? 'true' : 'false');
     }
     if (panelPoi) panelPoi.hidden = !isPoi;
-    if (panelTl) panelTl.hidden = isPoi;
+    if (panelTl) panelTl.hidden = !isTl;
+    if (panelCal) panelCal.hidden = !isCal;
+    if (rangeSwitch) rangeSwitch.hidden = isCal;
 
     renderMappingHistory();
   }
@@ -408,6 +559,244 @@ import {
     }
   }
 
+  function renderPoiRecordCard(rec, includeDate = false) {
+    const isSell = rec.side === 'SELL';
+    const sideCls = isSell ? 'is-sell' : 'is-buy';
+    const badge = formatPoiOutcomeBadge(rec);
+    const clock = formatWitaClock(rec.touchedAt, includeDate);
+    const tp2Part = Number.isFinite(Number(rec.tp2)) && Number(rec.tp2) > 0 ? ` · TP2 $${fmt(rec.tp2)}` : '';
+    const maxFav = Number(rec.maxFavorable) || 0;
+    const favPart = maxFav > 0 ? `Maks +$${maxFav.toFixed(1)}` : `Sentuh $${fmt(rec.touchPrice)}`;
+    const tCount = Number(rec.touchCount) || 1;
+    const touchBadgeText = `${tCount}×${rec.ceTouched ? ' · CE' : ''}`;
+    return `
+      <div class="history-item ${sideCls}">
+        <div class="history-item-top">
+          <div class="history-item-left">
+            <span class="history-side-tag ${sideCls}">${esc(rec.side)}</span>
+            <span class="history-item-title">${esc(rec.kind)} ${esc(rec.tf)} · $${fmt(rec.low)}–$${fmt(rec.high)}</span>
+          </div>
+          <div class="history-item-left">
+            <span class="history-touch-tag${rec.ceTouched ? ' is-ce' : ''}" title="Riwayat sentuhan zona">${esc(touchBadgeText)}</span>
+            <span class="history-outcome-badge ${badge.cls}">${esc(badge.text)}</span>
+            <span class="history-item-time">${esc(clock)}</span>
+          </div>
+        </div>
+        <div class="history-item-meta">
+          <span>CE $${fmt(rec.ce)} · SL $${fmt(rec.sl)} · TP1 $${fmt(rec.tp1)}${tp2Part}</span>
+          <span>${esc(favPart)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPoiCalendarPanel(calData) {
+    const labelEl = $('poi-cal-month-label');
+    const subMetaEl = $('poi-cal-sub-meta');
+    const gridWrapEl = $('poi-cal-grid-wrap');
+    const detailEl = $('poi-cal-day-detail');
+    if (!gridWrapEl || !detailEl) return;
+
+    const ms = calData.monthSummary;
+    if (labelEl) labelEl.textContent = calData.label;
+    if (subMetaEl) {
+      const zoneSplit = (ms.fvgTotal > 0 || ms.obTotal > 0) ? ` · FVG ${ms.fvgTotal} · OB ${ms.obTotal}` : '';
+      subMetaEl.textContent = ms.activeDays > 0
+        ? `${ms.activeDays} hari aktif${zoneSplit}`
+        : 'Belum ada data bulan ini · arsip 180 hari detail';
+    }
+
+    // Auto-select a sensible date in the active month if none selected or outside current month
+    const monthActiveCells = calData.weeks
+      .flatMap(w => w.days)
+      .filter(c => !c.empty && c.hasData);
+    const hasSelectedInMonth = Boolean(
+      selectedCalendarDate &&
+      selectedCalendarDate.startsWith(calData.monthPrefix) &&
+      monthActiveCells.some(c => c.date === selectedCalendarDate)
+    );
+    if (!hasSelectedInMonth) {
+      const todayCell = monthActiveCells.find(c => c.isToday);
+      selectedCalendarDate = todayCell
+        ? todayCell.date
+        : (monthActiveCells.length > 0 ? monthActiveCells[monthActiveCells.length - 1].date : '');
+    }
+
+    const dayLabels = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MGG'];
+    const headerHtml = dayLabels.map(lbl => `<div class="poi-cal-head">${lbl}</div>`).join('');
+    const rowsHtml = calData.weeks.map(week => {
+      const cellsHtml = week.days.map(cell => {
+        if (cell.empty) return '<div class="poi-cal-cell is-empty" aria-hidden="true"></div>';
+        if (!cell.hasData) {
+          const emptyCls = [
+            'poi-cal-cell',
+            cell.isWeekend ? 'is-weekend' : 'is-nodata',
+            cell.isToday ? 'is-today' : ''
+          ].filter(Boolean).join(' ');
+          return `<div class="${emptyCls}"><strong class="poi-cal-day-num">${cell.day}</strong><span class="poi-cal-rate"></span></div>`;
+        }
+        const s = cell.summary;
+        const toneCls = s.resolved > 0
+          ? (s.respectRate >= 60 ? 'is-win' : (s.respectRate < 50 ? 'is-loss' : 'is-neutral'))
+          : 'is-neutral';
+        const isSelected = cell.date === selectedCalendarDate;
+        const rateTxt = s.respectRate !== null ? `${s.respectRate}%` : `${s.total}p`;
+        const subTxt = s.resolved > 0 ? `${s.wins}/${s.sl}` : `${s.total}p`;
+        const ariaText = `${cell.date}: ${s.total} POI, Respect ${rateTxt}, ${s.wins} TP, ${s.sl} SL`;
+        return `
+          <button type="button"
+            class="poi-cal-cell ${toneCls} is-clickable${cell.isToday ? ' is-today' : ''}${isSelected ? ' is-selected' : ''}"
+            data-poi-cal-date="${esc(cell.date)}"
+            aria-pressed="${isSelected ? 'true' : 'false'}"
+            aria-label="${esc(ariaText)}"
+            title="${esc(ariaText)}">
+            <strong class="poi-cal-day-num">${cell.day}</strong>
+            <span class="poi-cal-rate">${esc(rateTxt)}</span>
+            <span class="poi-cal-sub">${esc(subTxt)}</span>
+          </button>
+        `;
+      }).join('');
+
+      const ws = week.weekSummary;
+      const wToneCls = ws.tone === 'win' ? 'is-win' : (ws.tone === 'loss' ? 'is-loss' : (ws.tone === 'neutral' ? 'is-neutral' : ''));
+      const wRateTxt = ws.total > 0 && ws.respectRate !== null ? `${ws.respectRate}%` : '—';
+      const wSubTxt = ws.total > 0 ? `${ws.wins}/${ws.sl}` : '';
+      const weekCellHtml = `
+        <div class="poi-cal-cell poi-cal-week ${wToneCls}" title="Rekap mingguan: ${ws.total} POI (${ws.wins} TP / ${ws.sl} SL)">
+          <span class="poi-cal-week-rate">${esc(wRateTxt)}</span>
+          ${wSubTxt ? `<span class="poi-cal-week-sub">${esc(wSubTxt)}</span>` : ''}
+        </div>
+      `;
+      return cellsHtml + weekCellHtml;
+    }).join('');
+
+    gridWrapEl.innerHTML = `<div class="poi-cal-grid" role="grid" aria-label="Kalender bulanan hasil POI">${headerHtml}${rowsHtml}</div>`;
+
+    gridWrapEl.querySelectorAll('[data-poi-cal-date]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const picked = btn.getAttribute('data-poi-cal-date') || '';
+        if (!picked) return;
+        selectedCalendarDate = picked;
+        calendarDayFilter = 'ALL';
+        calendarDayShowAll = false;
+        renderMappingHistory();
+      });
+    });
+
+    // Day Drill-Down
+    if (!selectedCalendarDate) {
+      const archiveDates = Object.keys(mappingHistoryState.dailyArchive || {}).sort();
+      const latestDate = archiveDates.length > 0 ? archiveDates[archiveDates.length - 1] : '';
+      const jumpBtnHtml = latestDate && !latestDate.startsWith(calData.monthPrefix)
+        ? `<button type="button" class="poi-cal-jump-btn" id="btn-poi-cal-jump-latest" data-jump-date="${esc(latestDate)}">Lihat bulan terakhir berdata (${esc(latestDate.slice(0, 7))})</button>`
+        : '';
+      detailEl.innerHTML = `
+        <div class="history-empty poi-cal-empty">
+          <div>Belum ada catatan POI pada ${esc(calData.label)}. Data terekam otomatis setiap hari saat Mapping Cockpit dibuka dan tersinkron ke Cloud Sync.</div>
+          ${jumpBtnHtml}
+        </div>
+      `;
+      const jumpBtn = $('btn-poi-cal-jump-latest');
+      if (jumpBtn) {
+        jumpBtn.addEventListener('click', () => {
+          const dt = jumpBtn.getAttribute('data-jump-date') || '';
+          const parts = dt.split('-').map(Number);
+          if (parts.length === 3 && Number.isFinite(parts[0]) && Number.isFinite(parts[1])) {
+            historyCalendarYear = parts[0];
+            historyCalendarMonth = parts[1] - 1;
+            selectedCalendarDate = dt;
+            calendarDayFilter = 'ALL';
+            calendarDayShowAll = false;
+            renderMappingHistory();
+          }
+        });
+      }
+      return;
+    }
+
+    const dayData = getDayPoiRecords(mappingHistoryState, selectedCalendarDate, calendarDayFilter);
+    const sum = dayData.summary;
+    const rateTxt = sum && sum.respectRate !== null ? `Respect ${sum.respectRate}%` : 'Belum selesai';
+    const metaLine = sum
+      ? `${sum.total} POI · ${rateTxt} · ${sum.wins} TP · ${sum.sl} SL${(sum.reacting + sum.testing) > 0 ? ` · ${sum.reacting + sum.testing} Aktif` : ''}`
+      : 'Tidak ada data';
+
+    const filters = [
+      { id: 'ALL', label: `Semua (${dayData.allCount})` },
+      { id: 'M15', label: 'M15' },
+      { id: 'M5', label: 'M5' },
+      { id: 'TP', label: 'TP' },
+      { id: 'SL', label: 'SL' }
+    ];
+
+    const filterBarHtml = !dayData.isArchivedOnly && dayData.allCount > 0
+      ? `
+        <div class="poi-cal-filter-row" role="group" aria-label="Filter POI harian">
+          ${filters.map(f => `
+            <button type="button" class="poi-cal-filter-btn${calendarDayFilter === f.id ? ' is-active' : ''}" data-cal-day-filter="${f.id}" aria-pressed="${calendarDayFilter === f.id ? 'true' : 'false'}">${esc(f.label)}</button>
+          `).join('')}
+        </div>
+      `
+      : '';
+
+    let bodyHtml = '';
+    if (dayData.isArchivedOnly && sum) {
+      const m15Res = sum.m15Wins + sum.m15Sl;
+      const m15Pct = m15Res > 0 ? `${Math.round((sum.m15Wins / m15Res) * 100)}%` : '—';
+      const m5Res = sum.m5Wins + sum.m5Sl;
+      const m5Pct = m5Res > 0 ? `${Math.round((sum.m5Wins / m5Res) * 100)}%` : '—';
+      bodyHtml = `
+        <div class="poi-cal-archive-card">
+          <div class="poi-cal-archive-note">Arsip ringkasan harian permanen (detail kartu penuh disimpan untuk 180 hari terakhir).</div>
+          <div class="poi-cal-archive-grid">
+            <div class="poi-cal-archive-stat"><span>Total POI</span><strong>${sum.total}</strong></div>
+            <div class="poi-cal-archive-stat"><span>Respect</span><strong>${sum.respectRate !== null ? `${sum.respectRate}%` : '—'}</strong></div>
+            <div class="poi-cal-archive-stat"><span>TP2 / TP1</span><strong>${sum.tp2} / ${sum.tp1}</strong></div>
+            <div class="poi-cal-archive-stat"><span>Jebol SL</span><strong>${sum.sl}</strong></div>
+            <div class="poi-cal-archive-stat"><span>M15 (${sum.m15Total})</span><strong>${m15Pct}</strong></div>
+            <div class="poi-cal-archive-stat"><span>M5 (${sum.m5Total})</span><strong>${m5Pct}</strong></div>
+          </div>
+          <div class="poi-cal-archive-foot">Komposisi zona: FVG ${sum.fvgTotal} · OB ${sum.obTotal}</div>
+        </div>
+      `;
+    } else if (dayData.items.length === 0) {
+      bodyHtml = `<div class="history-empty">Tidak ada POI yang cocok dengan filter <strong>${esc(calendarDayFilter)}</strong> pada tanggal ini.</div>`;
+    } else {
+      const visible = calendarDayShowAll ? dayData.items : dayData.items.slice(0, 6);
+      const moreHtml = dayData.items.length > 6
+        ? `<button type="button" class="history-more-btn poi-cal-more-btn" id="btn-poi-cal-day-more">${calendarDayShowAll ? 'Ringkas (6)' : `Tampilkan semua (${dayData.items.length})`}</button>`
+        : '';
+      bodyHtml = `<div class="history-list">${visible.map(rec => renderPoiRecordCard(rec, false)).join('')}</div>${moreHtml}`;
+    }
+
+    detailEl.innerHTML = `
+      <div class="poi-cal-detail-head">
+        <div class="poi-cal-detail-title-group">
+          <strong class="poi-cal-detail-date">${esc(dayData.dateLabel)}</strong>
+          <span class="poi-cal-detail-meta">${esc(metaLine)}</span>
+        </div>
+        ${filterBarHtml}
+      </div>
+      ${bodyHtml}
+    `;
+
+    detailEl.querySelectorAll('[data-cal-day-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        calendarDayFilter = btn.getAttribute('data-cal-day-filter') || 'ALL';
+        calendarDayShowAll = false;
+        renderMappingHistory();
+      });
+    });
+
+    const dayMoreBtn = $('btn-poi-cal-day-more');
+    if (dayMoreBtn) {
+      dayMoreBtn.addEventListener('click', () => {
+        calendarDayShowAll = !calendarDayShowAll;
+        renderMappingHistory();
+      });
+    }
+  }
+
   function renderMappingHistory() {
     const nowMs = Date.now();
     const includeDate = activeHistoryRange === '7D';
@@ -415,11 +804,14 @@ import {
 
     const poiStats = summarizePoiStats(mappingHistoryState.poiRecords, activeHistoryRange, nowMs);
     const timelineItems = filterByRange(mappingHistoryState.timelineEvents, 'ts', activeHistoryRange, nowMs);
+    const calData = buildPoiCalendarMonth(mappingHistoryState, historyCalendarYear, historyCalendarMonth, nowMs);
 
     const poiCountEl = $('history-poi-count');
     const tlCountEl = $('history-timeline-count');
+    const calCountEl = $('history-calendar-count');
     if (poiCountEl) poiCountEl.textContent = String(poiStats.total);
     if (tlCountEl) tlCountEl.textContent = String(timelineItems.length);
+    if (calCountEl) calCountEl.textContent = String(calData.totalRecordedDays);
 
     // Scorecard bar
     const scoreMainEl = $('history-score-main');
@@ -439,7 +831,7 @@ import {
           ];
           scoreChipsEl.innerHTML = chips.join('');
         }
-      } else {
+      } else if (activeHistoryTab === 'TIMELINE') {
         if (timelineItems.length === 0) {
           scoreMainEl.textContent = `Belum ada jejak kejadian market (${scopeLabel.toLowerCase()}).`;
           scoreChipsEl.innerHTML = '';
@@ -456,6 +848,25 @@ import {
           if (levelEv > 0) chips.push(`<span class="history-chip">Level: ${levelEv}</span>`);
           scoreChipsEl.innerHTML = chips.join('');
         }
+      } else {
+        const ms = calData.monthSummary;
+        if (ms.total === 0) {
+          scoreMainEl.textContent = `${calData.label}: Belum ada POI tercatat`;
+          scoreChipsEl.innerHTML = '';
+        } else {
+          const rateTxt = ms.respectRate !== null ? ` · Respect ${ms.respectRate}%` : '';
+          scoreMainEl.textContent = `${calData.label}: ${ms.total} POI${rateTxt}`;
+          const chips = [
+            `<span class="history-chip is-respect">TP1/TP2: ${ms.wins}</span>`,
+            `<span class="history-chip is-sl">Jebol SL: ${ms.sl}</span>`
+          ];
+          if (ms.m15Total > 0 || ms.m5Total > 0) {
+            const m15Txt = ms.m15RespectRate !== null ? `M15 ${ms.m15RespectRate}%` : `M15 ${ms.m15Total}`;
+            const m5Txt = ms.m5RespectRate !== null ? `M5 ${ms.m5RespectRate}%` : `M5 ${ms.m5Total}`;
+            chips.push(`<span class="history-chip">${m15Txt} · ${m5Txt}</span>`);
+          }
+          scoreChipsEl.innerHTML = chips.join('');
+        }
       }
     }
 
@@ -466,36 +877,7 @@ import {
         poiListEl.innerHTML = `<div class="history-empty">Belum ada POI yang disentuh pada rentang ${esc(scopeLabel.toLowerCase())}. Saat harga menyentuh zona Demand/Supply aktif, status dan hasilnya tercatat otomatis di sini.</div>`;
       } else {
         const visible = historyShowAll ? poiStats.items : poiStats.items.slice(0, 5);
-        poiListEl.innerHTML = visible.map(rec => {
-          const isSell = rec.side === 'SELL';
-          const sideCls = isSell ? 'is-sell' : 'is-buy';
-          const badge = formatPoiOutcomeBadge(rec);
-          const clock = formatWitaClock(rec.touchedAt, includeDate);
-          const tp2Part = Number.isFinite(Number(rec.tp2)) && Number(rec.tp2) > 0 ? ` · TP2 $${fmt(rec.tp2)}` : '';
-          const maxFav = Number(rec.maxFavorable) || 0;
-          const favPart = maxFav > 0 ? `Maks +$${maxFav.toFixed(1)}` : `Sentuh $${fmt(rec.touchPrice)}`;
-          const tCount = Number(rec.touchCount) || 1;
-          const touchBadgeText = `${tCount}×${rec.ceTouched ? ' · CE' : ''}`;
-          return `
-            <div class="history-item ${sideCls}">
-              <div class="history-item-top">
-                <div class="history-item-left">
-                  <span class="history-side-tag ${sideCls}">${esc(rec.side)}</span>
-                  <span class="history-item-title">${esc(rec.kind)} ${esc(rec.tf)} · $${fmt(rec.low)}–$${fmt(rec.high)}</span>
-                </div>
-                <div class="history-item-left">
-                  <span class="history-touch-tag${rec.ceTouched ? ' is-ce' : ''}" title="Riwayat sentuhan zona">${esc(touchBadgeText)}</span>
-                  <span class="history-outcome-badge ${badge.cls}">${esc(badge.text)}</span>
-                  <span class="history-item-time">${esc(clock)}</span>
-                </div>
-              </div>
-              <div class="history-item-meta">
-                <span>CE $${fmt(rec.ce)} · SL $${fmt(rec.sl)} · TP1 $${fmt(rec.tp1)}${tp2Part}</span>
-                <span>${esc(favPart)}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
+        poiListEl.innerHTML = visible.map(rec => renderPoiRecordCard(rec, includeDate)).join('');
       }
     }
 
@@ -529,16 +911,23 @@ import {
       }
     }
 
+    // Panel 3: Kalender Reaksi & POI Bulanan
+    if (activeHistoryTab === 'CALENDAR') {
+      renderPoiCalendarPanel(calData);
+    }
+
     // Footer controls (Expand/Collapse + Reset)
-    const activeList = activeHistoryTab === 'POI' ? poiStats.items : timelineItems;
-    const totalStored = (mappingHistoryState.poiRecords?.length || 0) + (mappingHistoryState.timelineEvents?.length || 0);
+    const activeList = activeHistoryTab === 'POI' ? poiStats.items : (activeHistoryTab === 'TIMELINE' ? timelineItems : []);
+    const totalStored = (mappingHistoryState.poiRecords?.length || 0)
+      + (mappingHistoryState.timelineEvents?.length || 0)
+      + Object.keys(mappingHistoryState.dailyArchive || {}).length;
     const footerEl = $('history-footer-row');
     const moreBtn = $('btn-history-toggle-all');
     if (footerEl) {
       footerEl.hidden = activeList.length === 0 && totalStored === 0;
     }
     if (moreBtn) {
-      if (activeList.length > 5) {
+      if (activeHistoryTab !== 'CALENDAR' && activeList.length > 5) {
         moreBtn.hidden = false;
         moreBtn.textContent = historyShowAll ? 'Ringkas (5)' : `Tampilkan semua (${activeList.length})`;
       } else {
@@ -598,6 +987,9 @@ import {
 
     if (stateChanged) {
       saveHistoryState(historyStorage, mappingHistoryState);
+      try {
+        window.AmyGitHubSync?.scheduleAutoSync?.('mapping-history', { delayMs: 15000 });
+      } catch (_) {}
     }
     renderMappingHistory();
   }
@@ -2299,6 +2691,73 @@ import {
     publishActiveScalperPlan();
     syncEntryAlarmButtons();
     syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice);
+
+    // Publish read-only Cockpit Snapshot untuk AMY Live Chat & Voice agar 100% sinkron dengan layar Mapping
+    try {
+      const packPoi = (z, backup, verdict, slVal, tp1Val, tp1Obj, tp2Obj, rr1, state) => ({
+        zone: z ? {
+          low: Number(z.low.toFixed(2)),
+          high: Number(z.high.toFixed(2)),
+          ce: Number(z.ce.toFixed(2)),
+          tf: z.tf || 'M15',
+          kind: z.kind || 'OB',
+          label: z.label || '',
+          touchCount: Number(z.touchCount) || 0,
+          ceTouched: Boolean(z.ceTouched),
+          fresh: Boolean(z.fresh),
+          breached: Boolean(z.breached),
+          inOte: Boolean(z.inOte)
+        } : null,
+        backup: backup ? {
+          low: Number(backup.low.toFixed(2)),
+          high: Number(backup.high.toFixed(2)),
+          ce: Number(backup.ce.toFixed(2)),
+          tf: backup.tf || 'M15',
+          kind: backup.kind || 'OB'
+        } : null,
+        verdict: verdict ? {
+          grade: verdict.grade || 'WAIT',
+          score: Number(verdict.score || 0),
+          skip: Boolean(verdict.skip)
+        } : null,
+        sl: Number.isFinite(slVal) ? Number(slVal.toFixed(2)) : null,
+        tp1: Number.isFinite(tp1Val) ? Number(tp1Val.toFixed(2)) : null,
+        tp1Name: tp1Obj?.name || null,
+        tp2: tp2Obj && Number.isFinite(tp2Obj.v) ? Number(tp2Obj.v.toFixed(2)) : null,
+        tp2Name: tp2Obj?.name || null,
+        rr1: Number.isFinite(rr1) ? Number(rr1.toFixed(2)) : null,
+        state
+      });
+      const dirLabel = d => (d === 1 ? 'BULLISH' : d === -1 ? 'BEARISH' : 'NETRAL');
+      const cockpitSnapshot = {
+        version: 1,
+        updatedAt: Date.now(),
+        livePrice: Number.isFinite(livePrice) && livePrice > 0 ? Number(livePrice.toFixed(2)) : null,
+        prioritySide: sellPriority && !buyPriority ? 'SELL' : (buyPriority && !sellPriority ? 'BUY' : 'NETRAL'),
+        dealingRange: (Number.isFinite(rLow) && Number.isFinite(rHigh) && rHigh > rLow)
+          ? {
+              low: Number(rLow.toFixed(2)),
+              high: Number(rHigh.toFixed(2)),
+              eq: Number(((rLow + rHigh) / 2).toFixed(2)),
+              pct: Number(pct)
+            }
+          : null,
+        bias: { h1: dirLabel(h1Dir), m15: dirLabel(m15Dir), m5: dirLabel(m5Dir) },
+        sessionGuard: sessionGuard ? { label: sessionGuard.label || '', tone: sessionGuard.tone || '', halfLot: Boolean(sessionGuard.halfLot) } : null,
+        newsStatus: newsStatus || 'SAFE',
+        weekendClosed: Boolean(ctx?.marketClosed || ctx?.weekendClosed),
+        sell: packPoi(
+          primarySellZone, backupSellZone, sellVerdict, sellSlVal, sellTpVal, tpCandSell, tpCandSell2, sellRr,
+          primarySellZone?.breached || isSellSlHit ? 'INVALID' : isSellTpHit ? 'TP_HIT' : isSellReacting ? 'REACTING' : isSellTesting ? 'TESTING' : 'STANDBY'
+        ),
+        buy: packPoi(
+          primaryBuyZone, backupBuyZone, buyVerdict, buySlVal, buyTpVal, tpCandBuy, tpCandBuy2, buyRr,
+          primaryBuyZone?.breached || isBuySlHit ? 'INVALID' : isBuyTpHit ? 'TP_HIT' : isBuyReacting ? 'REACTING' : isBuyTesting ? 'TESTING' : 'STANDBY'
+        )
+      };
+      window.AmyMappingLiveCockpit = cockpitSnapshot;
+      localStorage.setItem('amyfx.mapping.cockpit_snapshot.v1', JSON.stringify(cockpitSnapshot));
+    } catch (_) {}
   }
 
   /* ── Master Update ── */

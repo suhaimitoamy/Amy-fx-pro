@@ -100,19 +100,20 @@
       (/\b(entry|sl)\b/i.test(q) && /\b(modal|saldo|risiko|risk|lot)\b/i.test(q));
 
     const wantsMapping =
-      /\b(harga|price|mapping|xau|gold|emas|chart|grafik|candle|sinyal|signal|bias|arah|entry|setup|poi|ob|order block|fvg|bsl|ssl|pdh|pdl|pwh|pwl|asia high|asia low|dealing range|diskon|discount|premium|equilibrium|eq|bos|mss|sweep|likuiditas|liquidity|adr|no-trade|breakdown|breakout|scalp|buy|sell|sl|tp|timeframe|m15|m5|h1)\b/i.test(q);
+      /\b(harga|price|mapping|xau|gold|emas|chart|grafik|candle|sinyal|signal|bias|arah|entry|setup|poi|ob|order block|fvg|bsl|ssl|pdh|pdl|pwh|pwl|asia high|asia low|dealing range|diskon|discount|premium|equilibrium|eq|bos|mss|sweep|likuiditas|liquidity|adr|no-trade|breakdown|breakout|scalp|buy|sell|sl|tp|timeframe|m15|m5|h1|respect|riwayat poi|riwayat reaksi|akhir pekan|weekend|pasar tutup)\b/i.test(q);
 
     const wantsMarketIntel =
       /\b(news|berita|kabar|headline|kalender|calendar|ekonomi|kompas|fundamental|makro|fomc|nfp|cpi|ppi|pce|gdp|fed|powell|yield|dxy|dollar|dolar|inflasi|pengangguran|unemployment|philly|ism|geopolitik|iran|israel|hormuz|perang|news lock|high impact)\b/i.test(q);
 
     const wantsJournal =
-      /\b(jurnal|journal|transaksi|trade saya|riwayat trade|profit|rugi|loss|winrate|win rate|profit factor|pips|performa|evaluasi|kesalahan|emosi|disiplin|psikologi|fomo|overtrade|revenge|habit|kebiasaan|streak|catatan trading)\b/i.test(q);
+      /\b(jurnal|journal|transaksi|trade saya|riwayat trade|profit|rugi|winrate|win rate|profit factor|net pips|total pips|performa|evaluasi|kesalahan|emosi|disiplin|psikologi|fomo|overtrade|revenge|habit|kebiasaan|streak|catatan trading|daily loss|loss guard|evaluasi mingguan|mingguan|7 hari|akun real|akun sim)\b/i.test(q) ||
+      (/\bloss\b/i.test(q) && !/\bstop\s*loss\b/i.test(q));
 
     const wantsPractice =
-      /\b(practice|praktik|simulasi|latihan|replay|candle replay|chart analysis|guided|60 kasus|backtest|riwayat backtest|skor latihan|soal)\b/i.test(q);
+      /\b(practice|praktik|simulasi|latihan|replay|candle replay|chart analysis|guided|60 kasus|100 kasus|8 pilar|mastery|backtest|riwayat backtest|skor latihan|soal)\b/i.test(q);
 
     const wantsAcademy =
-      /\b(academy|akademi|belajar|materi|modul|level \d|bab|bagian \d|tutorial|bacaan|progres belajar|kurikulum|glosarium|kamus|istilah|apa itu|jelaskan konsep|pengertian|definisi|cara kerja|bedanya|perbedaan)\b/i.test(q);
+      /\b(academy|akademi|belajar|materi|modul|level \d|level 0|pemula|bab|bagian \d|pelajaran|tutorial|bacaan|progres belajar|kurikulum|glosarium|kamus|istilah|akun cent|mt5|apa itu|jelaskan konsep|pengertian|definisi|cara kerja|bedanya|perbedaan)\b/i.test(q);
 
     const wantsAll = /\b(semua menu|semua modul|ringkasan aplikasi|status lengkap|cek semua|briefing lengkap|kondisi hari ini)\b/i.test(q);
 
@@ -130,7 +131,7 @@
     const filteredModules =
       modules.includes('journal') &&
       !wantsAll &&
-      !/\b(mapping|harga|xau|gold|emas|chart|grafik|sinyal|bias|ob|fvg|dealing range|bsl|ssl)\b/i.test(q)
+      !/\b(mapping|harga|xau|gold|emas|chart|grafik|sinyal|bias|poi|ob|fvg|dealing range|bsl|ssl|respect|riwayat poi|riwayat reaksi|weekend|akhir pekan|pasar tutup)\b/i.test(q)
         ? modules.filter(m => m !== 'mapping')
         : modules;
 
@@ -144,6 +145,9 @@
       else if (/\b(berita|kalender|market intel|kompas)\b/i.test(q)) navTarget = 'market_intel';
       else if (/\b(jurnal|journal|habit)\b/i.test(q)) navTarget = 'journal';
       else if (/\b(practice|latihan|replay|backtest|simulasi)\b/i.test(q)) navTarget = 'practice';
+      else if (/\b(kalkulator|resiko|risiko)\b/i.test(q)) navTarget = 'kalkulator';
+      else if (/\b(glosarium|kamus)\b/i.test(q)) navTarget = 'glosarium';
+      else if (/\b(academy|akademi|tutorial|materi)\b/i.test(q)) navTarget = 'academy';
       else if (/\b(indikator|pine)\b/i.test(q)) navTarget = 'indikator';
       else if (/\b(beranda|home)\b/i.test(q)) navTarget = 'home';
     }
@@ -386,26 +390,72 @@
     let match = knowledge.find(k => k.title && k.title.toLowerCase() === q);
     if (match) return match;
 
-    const modMatch = q.match(/(?:modul|bagian)\s*0?(\d+)/i);
+    // Match Level 0 sub-lessons like "Bab 0.3", "Pelajaran 0.2", "0.4"
+    const subBabMatch = q.match(/(?:pelajaran|bab|modul|bagian)?\s*\b(0\.[1-6])\b/i);
+    if (subBabMatch) {
+      const code = subBabMatch[1];
+      match = knowledge.find(k => (k.title || '').toLowerCase().includes(`pelajaran ${code}`));
+      if (match) return match;
+    }
+
+    // Match numbered lessons like "Bab 3", "Pelajaran 03", "Modul 12", "Bagian 08"
+    const modMatch = q.match(/(?:pelajaran|bab|modul|bagian)\s*0?(\d{1,2})\b/i);
     if (modMatch) {
-      const num = String(modMatch[1]).padStart(2, '0');
-      match = knowledge.find(k => k.path && (k.path.includes(`bagian-${num}`) || k.path.includes(`modul-${num}`)));
+      const rawNum = String(Number(modMatch[1]));
+      const padNum = rawNum.padStart(2, '0');
+      match = knowledge.find(k => {
+        const t = (k.title || '').toLowerCase();
+        const p = (k.path || '').toLowerCase();
+        return (
+          t.startsWith(`pelajaran ${padNum} `) ||
+          t.startsWith(`pelajaran ${padNum}—`) ||
+          t.startsWith(`pelajaran ${rawNum} `) ||
+          p.includes(`bagian-${padNum}`) ||
+          p.includes(`modul-${padNum}`)
+        );
+      });
       if (match) return match;
     }
 
-    const lvlMatch = q.match(/level\s*(\d+)/i);
+    // Match Level 0..6 ("Level 0", "Level 00", "Level 2")
+    const lvlMatch = q.match(/level\s*0?(\d)\b/i);
     if (lvlMatch) {
-      match = knowledge.find(k => k.path && k.path.includes(`level-${lvlMatch[1]}`));
+      const n = String(Number(lvlMatch[1]));
+      const pad = n.padStart(2, '0');
+      match = knowledge.find(k => {
+        const t = (k.title || '').toLowerCase();
+        const p = (k.path || '').toLowerCase();
+        return t.includes(`(level ${pad}:`) || t.includes(`(level ${n}:`) || p.includes(`level-${n}`);
+      });
       if (match) return match;
     }
 
-    const stopWords = ['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'materi', 'materinya', 'bab', 'buka', 'pelajari', 'belajar', 'jelaskan', 'ringkum', 'tampilkan', 'baca', 'lihat', 'tolong', 'coba', 'dong', 'ya', 'tentang', 'kita', 'sedang'];
-    const terms = q.split(/\s+/).filter(t => t.length > 2 && !stopWords.includes(t));
+    const stopWords = new Set(['apa', 'itu', 'cara', 'yang', 'dan', 'di', 'ke', 'dari', 'materi', 'materinya', 'bab', 'pelajaran', 'buka', 'pelajari', 'belajar', 'jelaskan', 'ringkas', 'tampilkan', 'baca', 'lihat', 'tolong', 'coba', 'dong', 'ya', 'tentang', 'kita', 'sedang', 'bedanya', 'perbedaan', 'pengertian', 'definisi', 'arti']);
+    const terms = q
+      .replace(/[^a-z0-9.\s/-]/g, ' ')
+      .split(/\s+/)
+      .filter(t => t.length > 1 && !stopWords.has(t));
     if (terms.length) {
-      match = knowledge.find(k => terms.every(term => (k.title || '').toLowerCase().includes(term)));
-      if (match) return match;
-      match = knowledge.find(k => terms.some(term => (k.title || '').toLowerCase().includes(term)));
-      if (match) return match;
+      const ranked = knowledge
+        .map(k => {
+          const title = (k.title || '').toLowerCase();
+          const body = (k.text || '').toLowerCase();
+          let score = 0;
+          let hits = 0;
+          for (const term of terms) {
+            if (title.includes(term)) {
+              score += 5;
+              hits += 1;
+            } else if (body.includes(term)) {
+              score += 1;
+              hits += 1;
+            }
+          }
+          return { k, score, hits };
+        })
+        .filter(r => r.score > 0)
+        .sort((a, b) => (b.hits - a.hits) || (b.score - a.score));
+      if (ranked[0]) return ranked[0].k;
     }
     return null;
   }
@@ -495,27 +545,59 @@
 
   async function collectAcademyReadingContext(userQuestion) {
     try {
-      const lastRead = (() => {
-        try { return JSON.parse(root.localStorage.getItem('amy_academy_last_read_v2') || 'null'); } catch { return null; }
-      })();
-      const requestedLesson = resolveLessonFromQuery(userQuestion);
-      if (requestedLesson?.title) lastRequestedLesson = requestedLesson;
-
       const out = [];
+      if (root.AmyLocalAssistant?.academy) {
+        const prog = root.AmyLocalAssistant.academy();
+        if (prog) out.push(prog);
+      }
+      const requestedLesson = resolveLessonFromQuery(userQuestion);
       if (requestedLesson?.title) {
+        lastRequestedLesson = requestedLesson;
         out.push(`=== MATERI ICT / ACADEMY TERKAIT ===\n• Judul: ${requestedLesson.title}\n• Isi:\n${(requestedLesson.fullText || requestedLesson.summary).slice(0, 2200)}`);
       }
-      if (lastRead?.title) {
-        out.push(`• Terakhir Dibaca: ${lastRead.title}${lastRead.headingText ? ' (' + lastRead.headingText + ')' : ''}`);
-      }
-      return out.join('\n');
+      return out.join('\n\n');
     } catch (_) {
       return '';
     }
   }
 
-  // Synchronized Mapping Structure Summary (100% aligned with Mapping Cockpit Dealing Range & Valid BSL/SSL)
+  function formatCockpitSnapshotLines(cockpit, reactionToday, isWeekend) {
+    const out = [];
+    if (isWeekend || cockpit?.weekendClosed) {
+      out.push('• STATUS PASAR: **Pasar Tutup (Akhir Pekan)** (Jumat 17:00 NY s.d. Minggu 17:00 NY) — harga terakhir adalah penutupan Jumat, jangan eksekusi live.');
+    }
+    if (cockpit) {
+      out.push(
+        `• Mapping Cockpit Aktif: Prioritas **${cockpit.prioritySide || 'NETRAL'}** | Bias H1 ${cockpit.bias?.h1 || 'NETRAL'} · M15 ${cockpit.bias?.m15 || 'NETRAL'} · M5 ${cockpit.bias?.m5 || 'NETRAL'}${cockpit.sessionGuard?.label ? ' | Sesi: ' + cockpit.sessionGuard.label : ''}`
+      );
+      const fmtSide = (side, plan) => {
+        if (!plan || !plan.zone) return;
+        const z = plan.zone;
+        const v = plan.verdict ? `${plan.verdict.grade} (${plan.verdict.score}/5)` : 'WAIT';
+        const touch = z.touchCount > 0 ? `Sentuh ${z.touchCount}x${z.ceTouched ? ' CE' : ''}` : (z.fresh ? 'Fresh' : '');
+        const details = [
+          `${side} [${z.kind} ${z.tf}]: $${Number(z.low).toFixed(2)}–$${Number(z.high).toFixed(2)} (CE $${Number(z.ce).toFixed(2)})`,
+          `Verdict ${v} · ${plan.state || 'STANDBY'}${touch ? ' · ' + touch : ''}`,
+          plan.sl ? `SL $${Number(plan.sl).toFixed(2)}` : '',
+          plan.tp1 ? `TP1 $${Number(plan.tp1).toFixed(2)}${plan.rr1 ? ' (1:' + Number(plan.rr1).toFixed(1) + 'R)' : ''}` : '',
+          plan.tp2 ? `TP2 $${Number(plan.tp2).toFixed(2)}` : ''
+        ].filter(Boolean);
+        out.push(`• Dual-Layer POI ${details.join(' | ')}`);
+      };
+      fmtSide('SELL', cockpit.sell);
+      fmtSide('BUY', cockpit.buy);
+    }
+    if (reactionToday) {
+      out.push(
+        `• Riwayat Reaksi POI Hari Ini (${reactionToday.dayWita}): ${reactionToday.respected} Respected, ${reactionToday.broken} Broken${reactionToday.respectRate != null ? ` (**Respect Rate ${reactionToday.respectRate}%**)` : ''} dari ${reactionToday.total} POI.`
+      );
+    }
+    return out;
+  }
+
+  // Synchronized Mapping Structure Summary (100% aligned with Mapping Cockpit Dealing Range, Dual-Layer POI & Valid BSL/SSL)
   async function fetchLiveMarketStructureSummary() {
+    let ctx = null;
     try {
       const res = await fetch(getApiBaseUrl() + '/api/scalper-setups', {
         headers: { Accept: 'application/json' },
@@ -523,112 +605,165 @@
       });
       if (res.ok) {
         const data = await res.json();
-        const ctx = data.context || data;
-        if (ctx && (ctx.version || ctx.m15)) {
+        const candidate = data.context || data;
+        if (candidate && (candidate.version || candidate.m15)) {
+          ctx = candidate;
           try {
             root.AmyMarketContext = ctx;
             root.localStorage.setItem('amyfx.market-context.v1', JSON.stringify(ctx));
           } catch (_) {}
-
-          const livePrice = getLivePriceNumber() || Number(ctx.price || 0);
-          const snap = root.AmyLocalAssistant?.buildMappingSnapshot
-            ? root.AmyLocalAssistant.buildMappingSnapshot(ctx, livePrice)
-            : null;
-
-          const lines = [];
-          if (livePrice > 0) lines.push(`• Harga Live XAU/USD: $${livePrice.toFixed(2)}`);
-          if (snap) {
-            lines.push(
-              `• Dealing Range M15 (SINKRON COCKPIT): **${snap.zoneLabel}** | Low $${Number(snap.rangeLow || 0).toFixed(2)} — High $${Number(snap.rangeHigh || 0).toFixed(2)} | EQ 50%: $${Number(snap.eq || 0).toFixed(2)}`
-            );
-            const liqArr = [];
-            if (snap.bslAbove) liqArr.push(`BSL Valid di Atas: ${snap.bslAbove.label} $${snap.bslAbove.level.toFixed(2)}`);
-            if (snap.sslBelow) liqArr.push(`SSL Valid di Bawah: ${snap.sslBelow.label} $${snap.sslBelow.level.toFixed(2)}`);
-            if (liqArr.length) lines.push(`• Likuiditas Valid (Belum Tertembus): ${liqArr.join(' | ')}`);
-          }
-
-          lines.push(
-            `• Bias Multi-TF: H1 ${ctx.h1?.bias || 'NEUTRAL'} (${ctx.h1?.health || ''}, Protected $${Number(ctx.h1?.protectedLevel || 0).toFixed(2)}) | M15 ${ctx.m15?.structure || ''} (Kontrol ${ctx.m15?.control || 'SEIMBANG'}, Invalidasi $${Number(ctx.m15?.invalidLevel || 0).toFixed(2)}) | M5 ${ctx.m5?.status || 'WAIT'}`
-          );
-
-          const poi = ctx.m15?.poi;
-          if (poi?.low && poi?.high) {
-            lines.push(
-              `• Order Block M15 (${poi.label || poi.side}): $${Number(poi.low).toFixed(2)}–$${Number(poi.high).toFixed(2)} | 50% CE: $${Number(poi.ce).toFixed(2)} (${poi.lifecycle || 'FRESH'})`
-            );
-          }
-
-          const freshFvgs = (ctx.indicators?.m15?.fvg || []).filter(f => f.status === 1 || f.lifecycle === 'FRESH');
-          if (freshFvgs.length) {
-            lines.push(
-              `• FVG Fresh M15: ` +
-                freshFvgs
-                  .slice(0, 2)
-                  .map(f => `${f.side} $${Number(f.low).toFixed(2)}–$${Number(f.high).toFixed(2)} (CE $${Number(f.ce).toFixed(2)})`)
-                  .join(' | ')
-            );
-          }
-
-          if (ctx.confluence?.score != null) {
-            lines.push(`• Confluence: ${ctx.confluence.score}/100 [${ctx.confluence.grade || 'WAIT'}] | Skenario Utama: ${ctx.primary?.label || 'WAIT'}`);
-          }
-          if (ctx.plan?.entry) {
-            lines.push(
-              `• Plan Pantauan: ${ctx.plan.signalName || 'Setup'} · Entry $${Number(ctx.plan.entry).toFixed(2)} | SL $${Number(ctx.plan.sl).toFixed(2)} | TP $${Number(ctx.plan.tp1).toFixed(2)} (RR ${Number(ctx.plan.rr1 || 0).toFixed(2)}R) | Status Eksekusi: ${ctx.execution?.status || 'WAIT'}`
-            );
-          }
-          if (ctx.news?.note) {
-            lines.push(`• Status Kalender Mapping: ${ctx.news.note}`);
-          }
-          return lines.join('\n');
         }
       }
     } catch (_) {}
-    return '';
+
+    if (!ctx) {
+      try {
+        ctx = root.AmyMarketContext || JSON.parse(root.localStorage.getItem('amyfx.market-context.v1') || 'null');
+      } catch (_) {}
+    }
+
+    const livePrice = getLivePriceNumber() || Number(ctx?.price || 0);
+    const snap = ctx && root.AmyLocalAssistant?.buildMappingSnapshot
+      ? root.AmyLocalAssistant.buildMappingSnapshot(ctx, livePrice)
+      : null;
+
+    let cockpit = snap?.cockpit || root.AmyMappingLiveCockpit || null;
+    if (!cockpit) {
+      try {
+        const rawC = JSON.parse(root.localStorage.getItem('amyfx.mapping.cockpit_snapshot.v1') || 'null');
+        if (rawC && (Date.now() - Number(rawC.updatedAt || 0) < 6 * 3600 * 1000 || root.AmyLocalAssistant?.isWeekendClosure?.())) {
+          cockpit = rawC;
+        }
+      } catch (_) {}
+    }
+    const reactionToday = snap?.reactionToday || root.AmyLocalAssistant?.getReactionHistoryToday?.() || null;
+    const isWeekend = Boolean(snap?.weekendClosed || root.AmyLocalAssistant?.isWeekendClosure?.());
+
+    const lines = [];
+    if (livePrice > 0) lines.push(`• Harga Live XAU/USD: $${livePrice.toFixed(2)}`);
+
+    if (snap) {
+      lines.push(
+        `• Dealing Range M15 (SINKRON COCKPIT): **${snap.zoneLabel}** | Low $${Number(snap.rangeLow || 0).toFixed(2)} — High $${Number(snap.rangeHigh || 0).toFixed(2)} | EQ 50%: $${Number(snap.eq || 0).toFixed(2)}`
+      );
+      const liqArr = [];
+      if (snap.bslAbove) liqArr.push(`BSL Valid di Atas: ${snap.bslAbove.label} $${snap.bslAbove.level.toFixed(2)}`);
+      if (snap.sslBelow) liqArr.push(`SSL Valid di Bawah: ${snap.sslBelow.label} $${snap.sslBelow.level.toFixed(2)}`);
+      if (liqArr.length) lines.push(`• Likuiditas Valid (Belum Tertembus): ${liqArr.join(' | ')}`);
+    } else if (cockpit?.dealingRange) {
+      lines.push(
+        `• Dealing Range M15 (COCKPIT): ${cockpit.dealingRange.pct}% | Low $${cockpit.dealingRange.low.toFixed(2)} — High $${cockpit.dealingRange.high.toFixed(2)} | EQ 50%: $${cockpit.dealingRange.eq.toFixed(2)}`
+      );
+    }
+
+    lines.push(...formatCockpitSnapshotLines(cockpit, reactionToday, isWeekend));
+
+    if (ctx) {
+      lines.push(
+        `• Bias Multi-TF: H1 ${ctx.h1?.bias || 'NEUTRAL'} (${ctx.h1?.health || ''}, Protected $${Number(ctx.h1?.protectedLevel || 0).toFixed(2)}) | M15 ${ctx.m15?.structure || ''} (Kontrol ${ctx.m15?.control || 'SEIMBANG'}, Invalidasi $${Number(ctx.m15?.invalidLevel || 0).toFixed(2)}) | M5 ${ctx.m5?.status || 'WAIT'}`
+      );
+
+      const poi = ctx.m15?.poi;
+      if (poi?.low && poi?.high) {
+        lines.push(
+          `• Order Block M15 (${poi.label || poi.side}): $${Number(poi.low).toFixed(2)}–$${Number(poi.high).toFixed(2)} | 50% CE: $${Number(poi.ce).toFixed(2)} (${poi.lifecycle || 'FRESH'})`
+        );
+      }
+
+      const freshFvgs = (ctx.indicators?.m15?.fvg || []).filter(f => f.status === 1 || f.lifecycle === 'FRESH');
+      if (freshFvgs.length) {
+        lines.push(
+          `• FVG Fresh M15: ` +
+            freshFvgs
+              .slice(0, 2)
+              .map(f => `${f.side} $${Number(f.low).toFixed(2)}–$${Number(f.high).toFixed(2)} (CE $${Number(f.ce).toFixed(2)})`)
+              .join(' | ')
+        );
+      }
+
+      if (ctx.confluence?.score != null) {
+        lines.push(`• Confluence: ${ctx.confluence.score}/100 [${ctx.confluence.grade || 'WAIT'}] | Skenario Utama: ${ctx.primary?.label || 'WAIT'}`);
+      }
+      if (ctx.plan?.entry) {
+        lines.push(
+          `• Plan Pantauan: ${ctx.plan.signalName || 'Setup'} · Entry $${Number(ctx.plan.entry).toFixed(2)} | SL $${Number(ctx.plan.sl).toFixed(2)} | TP $${Number(ctx.plan.tp1).toFixed(2)} (RR ${Number(ctx.plan.rr1 || 0).toFixed(2)}R) | Status Eksekusi: ${ctx.execution?.status || 'WAIT'}`
+        );
+      }
+      if (ctx.news?.note) {
+        lines.push(`• Status Kalender Mapping: ${ctx.news.note}`);
+      }
+    }
+
+    return lines.join('\n');
   }
 
   // Synchronized Market Intel (Live Calendar USD Aktual vs Forecast + WITA Countdown + Gold-focused News)
   async function fetchLiveMarketIntelSummary(topic) {
     const sections = [];
 
-    // 1. Live Calendar USD High-Impact
+    // 1. Live Calendar USD High-Impact (with Market Intel localStorage fallback supporting timestampMs & dateIso)
     try {
-      const calRes = await fetch(getApiBaseUrl() + '/api/calendar', {
-        headers: { Accept: 'application/json' },
-        signal: AbortSignal.timeout(4500)
-      });
-      if (calRes.ok) {
-        const calData = await calRes.json();
-        try {
-          root.localStorage.setItem('amyfx.market.calendar.v1', JSON.stringify(calData));
-        } catch (_) {}
-        const events = Array.isArray(calData?.events) ? calData.events : Array.isArray(calData?.items) ? calData.items : [];
-        if (events.length) {
-          const nowMs = Date.now();
-          const upcoming = events
-            .filter(e => e.timestampMs && Number(e.timestampMs) > nowMs)
-            .sort((a, b) => Number(a.timestampMs) - Number(b.timestampMs));
-          const released = events.filter(e => e.actual && String(e.actual).trim() && String(e.actual).trim() !== '—').slice(-3).reverse();
-
-          const calLines = ['KALENDER EKONOMI USD (REAL-TIME):'];
-          if (upcoming.length) {
-            upcoming.slice(0, 3).forEach(ev => {
-              const diffMin = Math.max(0, Math.round((Number(ev.timestampMs) - nowMs) / 60000));
-              const h = Math.floor(diffMin / 60);
-              const m = diffMin % 60;
-              const cd = h > 24 ? `${Math.floor(h / 24)}h ${h % 24}j lagi` : h > 0 ? `${h}j ${m}m lagi` : `${m}m lagi`;
-              calLines.push(`• Upcoming: ${ev.title || ev.event} (${ev.impact || 'HIGH'}) — ${ev.timeWita || ''} (${cd}) | Forecast: ${ev.forecast || '—'}, Prev: ${ev.previous || '—'}`);
-            });
-          } else {
-            calLines.push('• Tidak ada jadwal USD High-Impact dalam waktu dekat.');
-          }
-          if (released.length) {
-            released.forEach(ev => {
-              calLines.push(`• Rilis Aktual: ${ev.title || ev.event} → Aktual ${ev.actual} vs Forecast ${ev.forecast || '—'}${ev.goldBias ? ' [' + ev.goldBias + ']' : ''}`);
-            });
-          }
-          sections.push(calLines.join('\n'));
+      let calData = null;
+      try {
+        const calRes = await fetch(getApiBaseUrl() + '/api/calendar', {
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(4500)
+        });
+        if (calRes.ok) {
+          calData = await calRes.json();
+          try {
+            root.localStorage.setItem('amyfx.market.calendar.v1', JSON.stringify(calData));
+          } catch (_) {}
         }
+      } catch (_) {}
+
+      if (!calData) {
+        try {
+          calData =
+            JSON.parse(root.localStorage.getItem('amyfx.market.calendar.v1') || 'null') ||
+            JSON.parse(root.localStorage.getItem('amy_economic_calendar_v1') || 'null');
+        } catch (_) {}
+      }
+
+      const rawEvents = Array.isArray(calData?.events)
+        ? calData.events
+        : Array.isArray(calData?.items)
+        ? calData.items
+        : Array.isArray(calData)
+        ? calData
+        : [];
+      if (rawEvents.length) {
+        const nowMs = Date.now();
+        const events = rawEvents.map(e => ({
+          ...e,
+          _ts: Number.isFinite(Number(e.timestampMs)) && Number(e.timestampMs) > 0
+            ? Number(e.timestampMs)
+            : (e.dateIso ? Date.parse(e.dateIso) : NaN)
+        }));
+        const upcoming = events
+          .filter(e => Number.isFinite(e._ts) && e._ts > nowMs)
+          .sort((a, b) => a._ts - b._ts);
+        const released = events.filter(e => e.actual && String(e.actual).trim() && String(e.actual).trim() !== '—').slice(-3).reverse();
+
+        const calLines = ['KALENDER EKONOMI USD (REAL-TIME):'];
+        if (upcoming.length) {
+          upcoming.slice(0, 3).forEach(ev => {
+            const diffMin = Math.max(0, Math.round((ev._ts - nowMs) / 60000));
+            const h = Math.floor(diffMin / 60);
+            const m = diffMin % 60;
+            const cd = h > 24 ? `${Math.floor(h / 24)}h ${h % 24}j lagi` : h > 0 ? `${h}j ${m}m lagi` : `${m}m lagi`;
+            const wita = ev.timeWita || new Date(ev._ts).toLocaleString('id-ID', { timeZone: 'Asia/Makassar', hour12: false }) + ' WITA';
+            calLines.push(`• Upcoming: ${ev.title || ev.event} (${ev.impact || 'HIGH'}) — ${wita} (${cd}) | Forecast: ${ev.forecast || '—'}, Prev: ${ev.previous || '—'}`);
+          });
+        } else {
+          calLines.push('• Tidak ada jadwal USD High-Impact dalam waktu dekat.');
+        }
+        if (released.length) {
+          released.forEach(ev => {
+            calLines.push(`• Rilis Aktual: ${ev.title || ev.event} → Aktual ${ev.actual} vs Forecast ${ev.forecast || '—'}${ev.goldBias ? ' [' + ev.goldBias + ']' : ''}`);
+          });
+        }
+        sections.push(calLines.join('\n'));
       }
     } catch (_) {}
 
@@ -702,14 +837,16 @@
           if (root.AmyLocalAssistant?.readJournals) {
             const jData = await root.AmyLocalAssistant.readJournals();
             const jSummary = root.AmyLocalAssistant.journal(userQuestion || '', jData);
-            if (jSummary) lines.push(`DATA JURNAL & HABITS PENGGUNA:\n${jSummary}`);
+            if (jSummary) lines.push(`DATA JURNAL, HABITS & DAILY LOSS GUARD PENGGUNA:\n${jSummary}`);
           }
         })()
       );
     }
 
-    if (mods.includes('risk_calc') && root.AmyLocalAssistant?.riskCalc) {
-      const calc = root.AmyLocalAssistant.riskCalc(userQuestion || '');
+    if (mods.includes('risk_calc') && (root.AmyLocalAssistant?.calculateLot || root.AmyLocalAssistant?.riskCalc)) {
+      const calc = root.AmyLocalAssistant.calculateLot
+        ? root.AmyLocalAssistant.calculateLot(userQuestion || '')
+        : { text: root.AmyLocalAssistant.riskCalc(userQuestion || '') };
       if (calc?.text) lines.push(`HASIL HITUNGAN LOT PRESISI:\n${calc.text}`);
     }
 
@@ -1661,8 +1798,10 @@
       for (const mod of intents.modules) {
         if (mod === 'mapping') addIfNotCurrent('📈 Buka Chart Gold & Mapping', 'apps/mapping/index.html');
         if (mod === 'market_intel') addIfNotCurrent('📰 Buka Berita & Kalender', 'apps/market-intel/index.html');
-        if (mod === 'journal' || mod === 'risk_calc') addIfNotCurrent('📓 Buka Jurnal & Habits', 'apps/journal/index.html');
-        if (mod === 'practice') addIfNotCurrent('🎯 Buka Trading Practice', 'apps/practice/index.html');
+        if (mod === 'journal') addIfNotCurrent('📓 Buka Jurnal & Habits', 'apps/journal/index.html');
+        if (mod === 'risk_calc') addIfNotCurrent('🧮 Buka Kalkulator Lot', 'apps/academy/tools/kalkulator-resiko.html');
+        if (mod === 'practice') addIfNotCurrent('🎯 Buka Trading Practice (100 Kasus)', 'apps/academy/trading-practice/index.html');
+        if (mod === 'academy') addIfNotCurrent('🎓 Buka Amy FX Academy', 'apps/academy/index.html');
       }
 
       const unique = [];
@@ -1919,7 +2058,10 @@
           mapping: ['Chart Gold & Mapping', 'apps/mapping/index.html'],
           market_intel: ['Berita & Kalender', 'apps/market-intel/index.html'],
           journal: ['Jurnal & Habits', 'apps/journal/index.html'],
-          practice: ['Trading Practice', 'apps/practice/index.html'],
+          practice: ['Trading Practice', 'apps/academy/trading-practice/index.html'],
+          academy: ['Amy FX Academy', 'apps/academy/index.html'],
+          kalkulator: ['Kalkulator Risiko & Lot', 'apps/academy/tools/kalkulator-resiko.html'],
+          glosarium: ['Glosarium ICT', 'apps/academy/glosarium/index.html'],
           indikator: ['Indikator ICT', 'apps/indikator/index.html'],
           home: ['Beranda', 'index.html']
         };
@@ -1943,9 +2085,9 @@
         !imgToSend &&
         !intents.modules.includes('market_intel') &&
         !intents.modules.includes('journal') &&
-        root.AmyLocalAssistant?.riskCalc
+        root.AmyLocalAssistant?.calculateLot
       ) {
-        const calc = root.AmyLocalAssistant.riskCalc(q);
+        const calc = root.AmyLocalAssistant.calculateLot(q);
         if (calc?.ok) {
           renderBubble('model', calc.text, { links: resolveActionLinks(intents, calc.text) });
           const hist = loadHistory();
@@ -2257,13 +2399,13 @@
                     {
                       name: 'navigate_to_page',
                       description:
-                        'HANYA dipanggil jika Sayang SECARA EKSPLISIT memerintahkan pindah halaman (contoh: "buka halaman mapping", "pindah ke berita", "buka jurnal"). JANGAN dipanggil jika hanya bertanya informasi.',
+                        'HANYA dipanggil jika Sayang SECARA EKSPLISIT memerintahkan pindah halaman (contoh: "buka halaman mapping", "pindah ke berita", "buka jurnal", "buka academy"). JANGAN dipanggil jika hanya bertanya informasi.',
                       parameters: {
                         type: 'OBJECT',
                         properties: {
                           page: {
                             type: 'STRING',
-                            description: 'Pilihan: "home", "mapping", "news", "journal", "practice", "indikator".'
+                            description: 'Pilihan: "home", "mapping", "news", "journal", "practice", "academy", "kalkulator", "glosarium", "indikator".'
                           }
                         },
                         required: ['page']
@@ -2284,6 +2426,7 @@
                       `Kamu adalah ✦ AMY, asisten trading suara khusus XAU/USD (Gold) di Amy FX Pro.\n` +
                       `FOKUS 100% TRADING XAU/USD & FITUR AMY FX PRO: Tolak halus topik non-trading dan arahkan kembali ke trading Gold atau fitur aplikasi.\n` +
                       `PROFIL: Sayang adalah Pure Gold Scalper M15/M5 target 100 Pips ($10), zona waktu WITA (UTC+8). Panggil selalu "Sayang" dengan hangat, tajam, dan jujur (Anti-Yes-Man).\n` +
+                      `FITUR TERKINI AMY FX PRO: Mapping Cockpit Dual-Layer POI + 5-Point Verdict + Riwayat Reaksi/Respect Rate POI + status Pasar Tutup Akhir Pekan; Jurnal REAL vs SIM/Backtest + Evaluasi Mingguan 7H + Daily Loss Guard + Habits; Academy 7 Level / 36 Bab (termasuk Level 0 Pemula); Trading Practice 100 Kasus ICT (8 Pilar).\n` +
                       `ATURAN FORMAT ANGKA & LEVEL (MUTLAK):\n` +
                       `- WAJIB menuliskan dan menyebutkan SEMUA angka harga, level support/resistance, Order Block, FVG, persentase, dan pips MENGGUNAKAN DIGIT ANGKA (contoh: $3595.57, 3611.41 - 3624.32, 50%, 100 pips).\n` +
                       `- DILARANG KERAS mengeja angka menjadi huruf atau kata-kata panjang (JANGAN PERNAH tulis "tiga ribu lima ratus...", "seventeen", dll). Trader butuh melihat angka digit riil dengan cepat dan presisi.\n` +
@@ -2383,7 +2526,9 @@
                   });
                 } else if (fc.name === 'calculate_gold_lot') {
                   const qArg = String(fc.args?.query || '').trim();
-                  const calc = root.AmyLocalAssistant?.riskCalc ? root.AmyLocalAssistant.riskCalc(qArg) : null;
+                  const calc = root.AmyLocalAssistant?.calculateLot
+                    ? root.AmyLocalAssistant.calculateLot(qArg)
+                    : (root.AmyLocalAssistant?.riskCalc ? { text: root.AmyLocalAssistant.riskCalc(qArg) } : null);
                   functionResponses.push({
                     id: fc.id,
                     name: fc.name,
@@ -2447,8 +2592,17 @@
                     targetPath = 'apps/market-intel/index.html';
                     title = 'Berita & Kalender';
                   } else if (pArg.includes('practice') || pArg.includes('latih') || pArg.includes('replay') || pArg.includes('backtest')) {
-                    targetPath = 'apps/practice/index.html';
+                    targetPath = 'apps/academy/trading-practice/index.html';
                     title = 'Trading Practice';
+                  } else if (pArg.includes('kalkulator') || pArg.includes('risiko') || pArg.includes('lot')) {
+                    targetPath = 'apps/academy/tools/kalkulator-resiko.html';
+                    title = 'Kalkulator Risiko & Lot';
+                  } else if (pArg.includes('glosarium') || pArg.includes('kamus')) {
+                    targetPath = 'apps/academy/glosarium/index.html';
+                    title = 'Glosarium ICT';
+                  } else if (pArg.includes('academ') || pArg.includes('akadem') || pArg.includes('tutorial') || pArg.includes('materi')) {
+                    targetPath = 'apps/academy/index.html';
+                    title = 'Amy FX Academy';
                   } else if (pArg.includes('indik')) {
                     targetPath = 'apps/indikator/index.html';
                     title = 'Indikator ICT';

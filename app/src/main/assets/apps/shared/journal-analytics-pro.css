@@ -837,3 +837,110 @@ nav.bottom-nav.bottom-nav--focused {
   }
 }
 
+/* ── Prominent Weekly Evaluation Summary (Performa) ────────────────────── */
+.jp-weekly-overview {
+  margin: 12px 0 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--jp-border);
+  background: var(--jp-surface-soft);
+}
+
+.jp-weekly-overview.is-empty {
+  padding: 11px 14px;
+}
+
+.jp-weekly-overview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.jp-weekly-overview .jp-weekly-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--jp-muted);
+}
+
+.jp-weekly-net {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.jp-weekly-overview .jp-weekly-meta {
+  font-size: 12px;
+  color: var(--jp-muted);
+}
+
+.jp-weekly-cells {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--jp-border);
+}
+
+.jp-weekly-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+  min-width: 0;
+}
+
+.jp-weekly-cell:first-child {
+  padding-left: 0;
+}
+
+.jp-weekly-cell + .jp-weekly-cell {
+  border-left: 1px solid var(--jp-border);
+}
+
+.jp-weekly-cell span {
+  font-size: 11px;
+  color: var(--jp-muted);
+}
+
+.jp-weekly-cell strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jp-weekly-cell strong.is-pos,
+.jp-weekly-net.is-pos {
+  color: var(--jp-pos);
+}
+
+.jp-weekly-cell strong.is-neg,
+.jp-weekly-net.is-neg {
+  color: var(--jp-neg);
+}
+
+@media (max-width: 540px) {
+  .jp-weekly-cells {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .jp-weekly-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+  }
+  .jp-weekly-cell + .jp-weekly-cell {
+    border-left: 0;
+  }
+}
+

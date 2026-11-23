@@ -1236,7 +1236,7 @@ html, body {
     gap: 8px;
   }
 
-  .acd-menu-toggle {
+  .acd-menu-toggle:not([hidden]) {
     display: inline-flex;
   }
 
@@ -1475,4 +1475,657 @@ html, body {
   color: var(--acd-gold);
   border-color: color-mix(in srgb, var(--acd-gold) 45%, var(--acd-border));
 }
+
+/* ── Level 0: Track Selector, Collapsed Strip & Practice CTA ─────────── */
+.acd-track-card {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border-radius: var(--acd-radius-lg);
+  background: var(--acd-surface);
+  border: 1px solid var(--acd-border);
+}
+
+.acd-track-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.acd-track-kicker {
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acd-gold);
+}
+
+.acd-track-hint {
+  font-size: 12px;
+  color: var(--acd-muted);
+}
+
+.acd-track-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.acd-track-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--acd-radius-md);
+  border: 1px solid var(--acd-border);
+  background: var(--acd-surface-2);
+  color: var(--acd-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.acd-track-option:hover {
+  border-color: var(--acd-border-strong);
+  background: var(--acd-surface-hover);
+}
+
+.acd-track-option.is-active {
+  border-color: var(--acd-gold);
+  background: color-mix(in srgb, var(--acd-gold-soft) 72%, var(--acd-surface-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acd-gold) 35%, transparent);
+}
+
+.acd-track-badge {
+  font-family: var(--acd-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acd-muted);
+}
+
+.acd-track-option.is-active .acd-track-badge {
+  color: var(--acd-gold);
+}
+
+.acd-track-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--acd-ink);
+}
+
+.acd-track-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--acd-ink-soft);
+}
+
+.acd-tab-btn--zero {
+  border-color: color-mix(in srgb, var(--acd-gold) 42%, var(--acd-border));
+}
+
+.acd-level-section--zero {
+  border-color: color-mix(in srgb, var(--acd-gold) 36%, var(--acd-border));
+}
+
+.acd-level-section--collapsed {
+  padding: 16px 20px;
+  border-style: dashed;
+}
+
+.acd-level-collapsed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.acd-level-collapsed-copy h2 {
+  margin: 4px 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--acd-ink);
+}
+
+.acd-level-collapsed-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--acd-muted);
+}
+
+.acd-practice-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  border-radius: var(--acd-radius-lg);
+  background: color-mix(in srgb, var(--acd-gold-soft) 55%, var(--acd-surface));
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 42%, var(--acd-border));
+}
+
+.acd-practice-copy {
+  min-width: 0;
+}
+
+.acd-practice-kicker {
+  margin: 0 0 4px;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--acd-gold);
+}
+
+.acd-practice-copy h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--acd-ink);
+}
+
+.acd-practice-copy p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--acd-ink-soft);
+  line-height: 1.45;
+}
+
+.acd-practice-link {
+  flex: 0 0 auto;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .acd-track-card {
+    padding: 14px;
+  }
+
+  .acd-track-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .acd-practice-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .acd-practice-link {
+    width: 100%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACADEMY UI CLEANUP — BERANDA PARITY & COMPACT MOBILE NAVIGATION
+   ═══════════════════════════════════════════════════════════════════ */
+body.amyfx-module--academy .acd-hero {
+  padding: 16px !important;
+  border-radius: 16px !important;
+  gap: 14px !important;
+}
+
+body.amyfx-module--academy .acd-hero-kicker {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--acd-muted) !important;
+  margin-bottom: 4px !important;
+}
+
+body.amyfx-module--academy .acd-hero h1 {
+  font-size: 1.32rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.025em !important;
+}
+
+body.amyfx-module--academy .acd-btn-primary {
+  min-height: 40px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+}
+
+/* Compact 2-Column Track Chooser (Fits comfortably above the fold on mobile) */
+body.amyfx-module--academy .acd-track-card {
+  padding: 12px 13px !important;
+  border-radius: 14px !important;
+  margin-bottom: 14px !important;
+}
+
+body.amyfx-module--academy .acd-track-head {
+  margin-bottom: 8px !important;
+}
+
+body.amyfx-module--academy .acd-track-kicker {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--acd-ink) !important;
+}
+
+body.amyfx-module--academy .acd-track-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+body.amyfx-module--academy .acd-track-option {
+  padding: 10px 11px !important;
+  border-radius: 11px !important;
+  gap: 3px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+}
+
+body.amyfx-module--academy .acd-track-option.is-active {
+  background: rgba(255, 255, 255, 0.11) !important;
+  border-color: rgba(255, 255, 255, 0.26) !important;
+  box-shadow: none !important;
+}
+
+body.amyfx-module--academy .acd-track-badge {
+  font-size: 10px !important;
+  letter-spacing: 0.04em !important;
+}
+
+body.amyfx-module--academy .acd-track-title {
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  line-height: 1.25 !important;
+}
+
+body.amyfx-module--academy .acd-track-desc {
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+  color: var(--acd-muted) !important;
+}
+
+/* Single-Row Horizontal Scrollable Level Tabs (Prevents 2-row clutter & FAB overlap) */
+body.amyfx-module--academy .acd-level-tabs {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none !important;
+  gap: 6px !important;
+  padding: 2px 0 4px !important;
+  margin: 0 !important;
+}
+
+body.amyfx-module--academy .acd-level-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+body.amyfx-module--academy .acd-tab-btn {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 11px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: var(--acd-muted) !important;
+  box-shadow: none !important;
+}
+
+body.amyfx-module--academy .acd-tab-btn.is-active {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  color: #f8fafc !important;
+}
+
+body.amyfx-module--academy .acd-level-section {
+  border-radius: 15px !important;
+}
+
+/* Light Mode Parity for Academy Cleanup */
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-track-option {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-track-option.is-active {
+  background: #ffffff !important;
+  border-color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-tab-btn {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #64748b !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-tab-btn.is-active {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* ── Level 0 Readiness Checklist Card & Mini Risk/Lot Lab ──────────────── */
+body.amyfx-module--academy .acd-readiness-card,
+body.amyfx-module--academy .acd-risk-lab {
+  background: var(--acd-surface);
+  border: 1px solid var(--acd-border);
+  border-radius: 15px;
+  padding: 15px 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+body.amyfx-module--academy .acd-readiness-card.is-ready {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+body.amyfx-module--academy .acd-readiness-head,
+body.amyfx-module--academy .acd-risk-lab-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+body.amyfx-module--academy .acd-readiness-title,
+body.amyfx-module--academy .acd-risk-lab-head h2 {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--acd-ink);
+  line-height: 1.3;
+}
+
+body.amyfx-module--academy .acd-readiness-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--acd-muted);
+}
+
+body.amyfx-module--academy .acd-ready-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 12px 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 520px) {
+  body.amyfx-module--academy .acd-ready-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+body.amyfx-module--academy .acd-ready-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--acd-ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+body.amyfx-module--academy .acd-ready-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+body.amyfx-module--academy .acd-ready-item.is-done {
+  border-color: rgba(34, 197, 94, 0.28);
+  color: var(--acd-ink);
+}
+
+body.amyfx-module--academy .acd-ready-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 6px;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--acd-muted);
+  flex-shrink: 0;
+}
+
+body.amyfx-module--academy .acd-ready-item.is-done .acd-ready-check {
+  background: rgba(34, 197, 94, 0.16);
+  color: #32d583;
+}
+
+body.amyfx-module--academy .acd-ready-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.amyfx-module--academy .acd-ready-quiz {
+  font-size: 11px;
+  color: var(--acd-muted);
+  flex-shrink: 0;
+}
+
+body.amyfx-module--academy .acd-readiness-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--acd-border);
+}
+
+body.amyfx-module--academy .acd-readiness-hint {
+  font-size: 12px;
+  color: var(--acd-muted);
+  flex: 1 1 200px;
+}
+
+body.amyfx-module--academy .acd-risk-seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 2px;
+}
+
+body.amyfx-module--academy .acd-risk-seg-btn {
+  border: 0;
+  background: transparent;
+  color: var(--acd-muted);
+  font-size: 11.5px;
+  font-weight: 650;
+  padding: 5px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+body.amyfx-module--academy .acd-risk-seg-btn.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+}
+
+body.amyfx-module--academy .acd-risk-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+body.amyfx-module--academy .acd-risk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+body.amyfx-module--academy .acd-risk-field span {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--acd-muted);
+}
+
+body.amyfx-module--academy .acd-risk-field input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--acd-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--acd-ink);
+  font-family: var(--acd-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body.amyfx-module--academy .acd-risk-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+body.amyfx-module--academy .acd-risk-preset-btn {
+  border: 1px solid var(--acd-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--acd-muted);
+  font-size: 11px;
+  font-weight: 650;
+  padding: 6px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+}
+
+body.amyfx-module--academy .acd-risk-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--acd-border);
+  border-bottom: 1px solid var(--acd-border);
+  padding: 10px 0;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 520px) {
+  body.amyfx-module--academy .acd-risk-results {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+body.amyfx-module--academy .acd-risk-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+body.amyfx-module--academy .acd-risk-metric:first-child {
+  padding-left: 0;
+}
+
+body.amyfx-module--academy .acd-risk-metric + .acd-risk-metric {
+  border-left: 1px solid var(--acd-border);
+}
+
+@media (max-width: 520px) {
+  body.amyfx-module--academy .acd-risk-metric {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+  }
+  body.amyfx-module--academy .acd-risk-metric + .acd-risk-metric {
+    border-left: 0;
+  }
+}
+
+body.amyfx-module--academy .acd-risk-metric span {
+  font-size: 11px;
+  color: var(--acd-muted);
+}
+
+body.amyfx-module--academy .acd-risk-metric strong {
+  font-size: 13.5px;
+  font-weight: 750;
+  color: var(--acd-ink);
+}
+
+body.amyfx-module--academy .acd-risk-status {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+body.amyfx-module--academy .acd-risk-status.is-safe { color: #32d583; }
+body.amyfx-module--academy .acd-risk-status.is-moderate { color: #f5b942; }
+body.amyfx-module--academy .acd-risk-status.is-danger { color: #ff5c6c; }
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-ready-item,
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-field input,
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-preset-btn {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #1e293b !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-ready-item.is-done .acd-ready-check {
+  color: #15803d !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-seg {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-seg-btn.is-active {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-status.is-safe { color: #15803d; }
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-status.is-moderate { color: #b45309; }
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--academy .acd-risk-status.is-danger { color: #dc2626; }
+
+
 

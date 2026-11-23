@@ -1,25 +1,26 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.472/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.473/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Notifikasi POI Mapping Cockpit (M5 & M15): Ganti seluruh notifikasi sinyal engine lama dengan event POI FVG & OB (M5 + M15) murni.",
-    "✦ Format Presisi: Menampilkan arah (BUY/SELL), kind (FVG/OB), timeframe (M5/M15), rentang harga zona, CE 50%, SL, TP1, dan TP2.",
-    "✦ Pengawalan Siklus Hasil Penuh: Update otomatis untuk 🎯 TP1 BEP ✓, 👑 TP2 DOL ★ (+100 Pips), dan 🛡️ Jebol SL ✕.",
-    "✦ Deduplikasi Ketat & Anti-Spam: 1 zona POI hanya mengirim 1x saat disentuh/sentuh CE dan 1x saat hasil akhir."
+    "✦ AMY Live Assistant Bridge: Integrasi snapshot kanonis Mapping Cockpit pasif ke AMY Live Chat & Voice tanpa sentuh engine.",
+    "✦ TwelveData Provider Error Guard: Deteksi otomatis HTTP 429 & error status dengan normalisasi respons aman pada liquidity & heatmap API.",
+    "✦ Amy FX Academy Level 0: 6 Bab Fondasi Pemula Nol (Bab 0.1-0.6) dengan 6 diagram SVG interaktif dual-theme, pemilih jalur, & jembatan praktik.",
+    "✦ Modernisasi UI Peta Harga Beranda & Alarm: Paritas kontrol segmen [M15 | M5], ikon modern alarm/refresh/fullscreen, kalender berita rapi, & FAB adaptif.",
+    "✦ Retensi 180 Hari POI History: Penyimpanan riwayat 6 bulan, arsip harian permanen, & union-merge backup GitHub Cloud Sync."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.472/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.473/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950472,
-  "latest_version_name": "2.0.0-pro.472",
+  "latest_version_code": 950473,
+  "latest_version_name": "2.0.0-pro.473",
   "mandatory": false,
   "releaseDate": "2026-11-23",
   "release_notes": [
-    "✦ Notifikasi POI Mapping Cockpit (M5 & M15): Ganti seluruh notifikasi sinyal engine lama dengan event POI FVG & OB (M5 + M15) murni.",
-    "✦ Format Presisi: Menampilkan arah (BUY/SELL), kind (FVG/OB), timeframe (M5/M15), rentang harga zona, CE 50%, SL, TP1, dan TP2.",
-    "✦ Pengawalan Siklus Hasil Penuh: Update otomatis untuk 🎯 TP1 BEP ✓, 👑 TP2 DOL ★ (+100 Pips), dan 🛡️ Jebol SL ✕.",
-    "✦ Deduplikasi Ketat & Anti-Spam: 1 zona POI hanya mengirim 1x saat disentuh/sentuh CE dan 1x saat hasil akhir."
+    "✦ AMY Live Assistant Bridge: Integrasi snapshot kanonis Mapping Cockpit pasif ke AMY Live Chat & Voice tanpa sentuh engine.",
+    "✦ TwelveData Provider Error Guard: Deteksi otomatis HTTP 429 & error status dengan normalisasi respons aman pada liquidity & heatmap API.",
+    "✦ Amy FX Academy Level 0: 6 Bab Fondasi Pemula Nol (Bab 0.1-0.6) dengan 6 diagram SVG interaktif dual-theme, pemilih jalur, & jembatan praktik.",
+    "✦ Modernisasi UI Peta Harga Beranda & Alarm: Paritas kontrol segmen [M15 | M5], ikon modern alarm/refresh/fullscreen, kalender berita rapi, & FAB adaptif.",
+    "✦ Retensi 180 Hari POI History: Penyimpanan riwayat 6 bulan, arsip harian permanen, & union-merge backup GitHub Cloud Sync."
   ],
-  "version": "2.0.0-pro.472",
-  "versionCode": 950472,
-  "sha256": "884f09cef8df59b46ca2b64bb0b57829dfa43f94664a56681f6fece91a7faf02"
+  "version": "2.0.0-pro.473",
+  "versionCode": 950473
 }

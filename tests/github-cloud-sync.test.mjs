@@ -280,3 +280,94 @@ test('error handling for 401 unauthorized and debounced scheduleAutoSync behavio
   assert.equal(putCalls, 1);
   Sync.cancelAutoSync();
 });
+
+test('GitHub Cloud Sync persists and union-merges Mapping Reaction & POI History (poiRecords + permanent dailyArchive)', async () => {
+  const localTs = Date.UTC(2026, 10, 23, 5, 0, 0);
+  const remoteTs = Date.UTC(2026, 10, 22, 5, 0, 0);
+  const storage = createMemoryStorage({
+    'amyfx.mapping.reaction_history.v1': JSON.stringify({
+      version: 2,
+      poiRecords: [
+        {
+          id: 'POI:M15:FVG:BUY:3600.0-3602.0',
+          side: 'BUY',
+          tf: 'M15',
+          kind: 'FVG',
+          low: 3600,
+          high: 3602,
+          ce: 3601,
+          touchedAt: localTs,
+          status: 'TP1_HIT',
+          source: 'LIVE',
+          touches: [{ index: 1, time: 123, price: 3601 }]
+        }
+      ],
+      timelineEvents: [
+        { id: 'EV:LOCAL', ts: localTs, category: 'POI_TOUCH', side: 'BUY', title: 'Local Touch' }
+      ],
+      dailyArchive: {
+        '2026-11-23': { date: '2026-11-23', total: 1, tp1: 1, tp2: 0, sl: 0, respectRate: 100 }
+      }
+    })
+  });
+
+  // 1. Collect & buildSnapshot includes mappingReactionHistory and strips bulky touches
+  const payload = await Sync.collectLocalPayload({ storage, openDb: async () => null });
+  const snap = Sync.buildSnapshot(payload, { deviceId: 'dev_1', updatedAt: '2026-11-23T06:00:00.000Z' });
+  assert.equal(snap.payload.mappingReactionHistory.poiRecords.length, 1);
+  assert.equal(snap.payload.mappingReactionHistory.poiRecords[0].touches, undefined);
+  assert.equal(snap.payload.mappingReactionHistory.dailyArchive['2026-11-23'].total, 1);
+
+  // 2. Apply remote payload with older day + upgraded status -> union-merge keeps BOTH devices' POIs & archives
+  const remotePayload = {
+    journals: [],
+    personalNotes: [],
+    mappingReactionHistory: {
+      version: 2,
+      poiRecords: [
+        {
+          id: 'POI:M15:FVG:BUY:3600.0-3602.0',
+          side: 'BUY',
+          tf: 'M15',
+          kind: 'FVG',
+          low: 3600,
+          high: 3602,
+          ce: 3601,
+          touchedAt: localTs,
+          status: 'TP2_HIT',
+          source: 'LIVE'
+        },
+        {
+          id: 'POI:M5:OB:SELL:3620.0-3622.0',
+          side: 'SELL',
+          tf: 'M5',
+          kind: 'OB',
+          low: 3620,
+          high: 3622,
+          ce: 3621,
+          touchedAt: remoteTs,
+          status: 'SL_HIT',
+          source: 'BACKFILL'
+        }
+      ],
+      timelineEvents: [
+        { id: 'EV:REMOTE', ts: remoteTs, category: 'BREAK', side: 'SELL', title: 'Remote Break' }
+      ],
+      dailyArchive: {
+        '2026-05-10': { date: '2026-05-10', total: 12, tp2: 5, tp1: 4, sl: 3, respectRate: 75 }
+      }
+    }
+  };
+
+  const applied = await Sync.applyCloudPayload(remotePayload, { storage, openDb: async () => null });
+  assert.equal(applied.mappingPoiCount, 2);
+  assert.equal(applied.mappingDayCount, 2);
+
+  const restored = JSON.parse(storage.getItem('amyfx.mapping.reaction_history.v1'));
+  assert.equal(restored.poiRecords.length, 2);
+  const upgraded = restored.poiRecords.find(r => r.id === 'POI:M15:FVG:BUY:3600.0-3602.0');
+  assert.equal(upgraded.status, 'TP2_HIT');
+  assert.ok(restored.dailyArchive['2026-11-23'], 'must retain local dailyArchive date');
+  assert.ok(restored.dailyArchive['2026-05-10'], 'must merge remote archived date');
+});
+

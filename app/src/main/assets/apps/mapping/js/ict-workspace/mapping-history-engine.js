@@ -6,9 +6,11 @@
  */
 
 export const HISTORY_STORAGE_KEY = 'amyfx.mapping.reaction_history.v1';
-export const MAX_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
-export const MAX_POI_RECORDS = 80;
-export const MAX_TIMELINE_EVENTS = 120;
+export const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+export const MAX_RETENTION_MS = 180 * 24 * 60 * 60 * 1000; // 180 hari detail penuh POI
+export const TIMELINE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari timeline market
+export const MAX_POI_RECORDS = 3000;
+export const MAX_TIMELINE_EVENTS = 400;
 
 const num = v => {
   const n = Number(v);
@@ -52,12 +54,198 @@ export function makePoiId(side, tf, kind, low, high) {
   return `POI:${String(tf || 'M15').toUpperCase()}:${String(kind || 'FVG').toUpperCase()}:${String(side || 'BUY').toUpperCase()}:${Number(low).toFixed(1)}-${Number(high).toFixed(1)}`;
 }
 
+const MONTH_NAMES_ID = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+const SHORT_MONTH_NAMES_ID = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+  'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+];
+
+const DAY_NAMES_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
 export function createEmptyHistoryState() {
   return {
-    version: 1,
+    version: 2,
     poiRecords: [],
-    timelineEvents: []
+    timelineEvents: [],
+    dailyArchive: {}
   };
+}
+
+function normalizeArchiveEntry(dateKey, raw) {
+  if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !raw || typeof raw !== 'object') return null;
+  const tp2 = Math.max(0, Math.round(Number(raw.tp2) || 0));
+  const tp1 = Math.max(0, Math.round(Number(raw.tp1) || 0));
+  const sl = Math.max(0, Math.round(Number(raw.sl) || 0));
+  const reacting = Math.max(0, Math.round(Number(raw.reacting) || 0));
+  const testing = Math.max(0, Math.round(Number(raw.testing) || 0));
+  const total = Math.max(tp2 + tp1 + sl + reacting + testing, Math.round(Number(raw.total) || 0));
+  const wins = tp2 + tp1;
+  const resolved = wins + sl;
+  const respectRate = resolved > 0
+    ? Math.round((wins / resolved) * 100)
+    : (total > 0 ? Math.round(((wins + reacting) / total) * 100) : null);
+
+  return {
+    date: dateKey,
+    total,
+    tp2,
+    tp1,
+    sl,
+    reacting,
+    testing,
+    wins,
+    resolved,
+    respectRate,
+    m15Total: Math.max(0, Math.round(Number(raw.m15Total) || 0)),
+    m15Wins: Math.max(0, Math.round(Number(raw.m15Wins) || 0)),
+    m15Sl: Math.max(0, Math.round(Number(raw.m15Sl) || 0)),
+    m5Total: Math.max(0, Math.round(Number(raw.m5Total) || 0)),
+    m5Wins: Math.max(0, Math.round(Number(raw.m5Wins) || 0)),
+    m5Sl: Math.max(0, Math.round(Number(raw.m5Sl) || 0)),
+    fvgTotal: Math.max(0, Math.round(Number(raw.fvgTotal) || 0)),
+    obTotal: Math.max(0, Math.round(Number(raw.obTotal) || 0)),
+    updatedAt: Number(raw.updatedAt) || 0
+  };
+}
+
+function normalizeDailyArchiveMap(rawArchive) {
+  const out = {};
+  if (!rawArchive || typeof rawArchive !== 'object' || Array.isArray(rawArchive)) return out;
+  for (const [k, v] of Object.entries(rawArchive)) {
+    const entry = normalizeArchiveEntry(k, v);
+    if (entry && entry.total > 0) out[k] = entry;
+  }
+  return out;
+}
+
+export function summarizePoiDayFromRecords(records, dateKey = '') {
+  let tp2 = 0;
+  let tp1 = 0;
+  let sl = 0;
+  let reacting = 0;
+  let testing = 0;
+  let m15Total = 0;
+  let m15Wins = 0;
+  let m15Sl = 0;
+  let m5Total = 0;
+  let m5Wins = 0;
+  let m5Sl = 0;
+  let fvgTotal = 0;
+  let obTotal = 0;
+  let updatedAt = 0;
+
+  for (const r of records || []) {
+    if (!r) continue;
+    const isWin = r.status === 'TP2_HIT' || r.status === 'TP1_HIT';
+    const isSl = r.status === 'SL_HIT';
+    if (r.status === 'TP2_HIT') tp2 += 1;
+    else if (r.status === 'TP1_HIT') tp1 += 1;
+    else if (isSl) sl += 1;
+    else if (r.status === 'REACTING') reacting += 1;
+    else testing += 1;
+
+    const tf = String(r.tf || 'M15').toUpperCase();
+    if (tf === 'M5') {
+      m5Total += 1;
+      if (isWin) m5Wins += 1;
+      else if (isSl) m5Sl += 1;
+    } else {
+      m15Total += 1;
+      if (isWin) m15Wins += 1;
+      else if (isSl) m15Sl += 1;
+    }
+
+    const kind = String(r.kind || '').toUpperCase();
+    if (kind === 'OB') obTotal += 1;
+    else fvgTotal += 1;
+
+    const ts = Math.max(Number(r.resolvedAt) || 0, Number(r.lastTouchAt) || 0, Number(r.touchedAt) || 0);
+    if (ts > updatedAt) updatedAt = ts;
+  }
+
+  const total = tp2 + tp1 + sl + reacting + testing;
+  const wins = tp2 + tp1;
+  const resolved = wins + sl;
+  const respectRate = resolved > 0
+    ? Math.round((wins / resolved) * 100)
+    : (total > 0 ? Math.round(((wins + reacting) / total) * 100) : null);
+
+  return {
+    date: dateKey,
+    total,
+    tp2,
+    tp1,
+    sl,
+    reacting,
+    testing,
+    wins,
+    resolved,
+    respectRate,
+    m15Total,
+    m15Wins,
+    m15Sl,
+    m5Total,
+    m5Wins,
+    m5Sl,
+    fvgTotal,
+    obTotal,
+    updatedAt
+  };
+}
+
+function pickRicherDayArchive(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  if (b.total > a.total) return b;
+  if (a.total > b.total) return a;
+  if (b.resolved > a.resolved) return b;
+  if (a.resolved > b.resolved) return a;
+  return (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
+}
+
+/**
+ * Rebuild permanent dailyArchive by folding all active/pruned POI records into daily summaries
+ * while preserving historical archived days whose raw POI records have aged past 180 days.
+ */
+export function rebuildDailyArchive(poiRecords = [], existingArchive = {}, evictedRecords = []) {
+  const archive = normalizeDailyArchiveMap(existingArchive);
+
+  // Fold any newly evicted (>180d or over-cap) records before they are dropped
+  if (Array.isArray(evictedRecords) && evictedRecords.length > 0) {
+    const evictedByDate = new Map();
+    for (const r of evictedRecords) {
+      const key = witaDateKey(Number(r?.touchedAt));
+      if (!key) continue;
+      if (!evictedByDate.has(key)) evictedByDate.set(key, []);
+      evictedByDate.get(key).push(r);
+    }
+    for (const [dateKey, list] of evictedByDate.entries()) {
+      const summary = summarizePoiDayFromRecords(list, dateKey);
+      archive[dateKey] = pickRicherDayArchive(archive[dateKey], summary);
+    }
+  }
+
+  // Recompute summaries for days that currently have detailed POI records
+  const byDate = new Map();
+  for (const r of poiRecords || []) {
+    const key = witaDateKey(Number(r?.touchedAt));
+    if (!key) continue;
+    if (!byDate.has(key)) byDate.set(key, []);
+    byDate.get(key).push(r);
+  }
+  for (const [dateKey, list] of byDate.entries()) {
+    const summary = summarizePoiDayFromRecords(list, dateKey);
+    // Keep live computation canonical for days with full records, unless existing archive had even more (e.g. synced overflow)
+    archive[dateKey] = archive[dateKey] && archive[dateKey].total > summary.total
+      ? archive[dateKey]
+      : summary;
+  }
+
+  return archive;
 }
 
 export function loadHistoryState(storage) {
@@ -66,26 +254,60 @@ export function loadHistoryState(storage) {
     const raw = storage.getItem(HISTORY_STORAGE_KEY);
     if (!raw) return createEmptyHistoryState();
     const parsed = JSON.parse(raw);
+    const poiRecords = Array.isArray(parsed?.poiRecords) ? parsed.poiRecords : [];
+    const timelineEvents = Array.isArray(parsed?.timelineEvents) ? parsed.timelineEvents : [];
+    const dailyArchive = rebuildDailyArchive(poiRecords, parsed?.dailyArchive || {});
     return {
-      version: 1,
-      poiRecords: Array.isArray(parsed?.poiRecords) ? parsed.poiRecords : [],
-      timelineEvents: Array.isArray(parsed?.timelineEvents) ? parsed.timelineEvents : []
+      version: 2,
+      poiRecords,
+      timelineEvents,
+      dailyArchive
     };
   } catch {
     return createEmptyHistoryState();
   }
 }
 
+function compactPoiForStorage(rec, keepTouches) {
+  if (!rec || typeof rec !== 'object') return rec;
+  if (keepTouches || !Array.isArray(rec.touches) || rec.touches.length === 0) return rec;
+  const copy = { ...rec };
+  delete copy.touches;
+  return copy;
+}
+
 export function saveHistoryState(storage, state) {
   if (!storage || !state) return;
+  const nowMs = Date.now();
+  const compactCutoff = nowMs - SEVEN_DAYS_MS;
+  const poiRecords = (state.poiRecords || [])
+    .slice(0, MAX_POI_RECORDS)
+    .map(r => compactPoiForStorage(r, Number(r?.touchedAt) >= compactCutoff));
+  const timelineEvents = (state.timelineEvents || []).slice(0, MAX_TIMELINE_EVENTS);
+  const dailyArchive = rebuildDailyArchive(poiRecords, state.dailyArchive || {});
+
+  const payload = {
+    version: 2,
+    poiRecords,
+    timelineEvents,
+    dailyArchive
+  };
+
   try {
-    storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify({
-      version: 1,
-      poiRecords: (state.poiRecords || []).slice(0, MAX_POI_RECORDS),
-      timelineEvents: (state.timelineEvents || []).slice(0, MAX_TIMELINE_EVENTS)
-    }));
+    storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(payload));
   } catch {
-    // Ignore storage quota errors gracefully
+    // Fallback if localStorage quota is tight: trim timeline & strip touches while keeping full dailyArchive
+    try {
+      const lean = {
+        version: 2,
+        poiRecords: poiRecords.slice(0, 1000).map(r => compactPoiForStorage(r, false)),
+        timelineEvents: timelineEvents.slice(0, 120),
+        dailyArchive
+      };
+      storage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(lean));
+    } catch {
+      // Ignore storage quota errors gracefully
+    }
   }
 }
 
@@ -663,27 +885,41 @@ export function recordLivePoiProgress({
   }
 
   if (!changed && alerts.length === 0) return { state, changed: false, alerts: [] };
+  const sortedPois = [...poiMap.values()].sort((a, b) => b.touchedAt - a.touchedAt);
+  const keptPois = sortedPois.slice(0, MAX_POI_RECORDS);
+  const evictedPois = sortedPois.slice(MAX_POI_RECORDS);
+  const dailyArchive = rebuildDailyArchive(keptPois, state?.dailyArchive || {}, evictedPois);
   return {
     changed: true,
     alerts,
     state: {
-      version: 1,
-      poiRecords: [...poiMap.values()].sort((a, b) => b.touchedAt - a.touchedAt).slice(0, MAX_POI_RECORDS),
-      timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS)
+      version: 2,
+      poiRecords: keptPois,
+      timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS),
+      dailyArchive
     }
   };
 }
 
 /**
- * Merge persisted localStorage state with fresh candle backfill (LIVE wins over BACKFILL; 7-day pruning).
+ * Merge persisted localStorage state with fresh candle backfill or remote synced state.
+ * - LIVE wins over BACKFILL, never downgrades status progression.
+ * - Full POI details retained up to 180 days (MAX_RETENTION_MS / MAX_POI_RECORDS).
+ * - Any pruned POI records (>180d or over-cap) are permanently rolled up into dailyArchive.
  */
 export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
-  const cutoff = nowMs - MAX_RETENTION_MS;
+  const poiCutoff = nowMs - MAX_RETENTION_MS;
+  const evCutoff = nowMs - TIMELINE_RETENTION_MS;
   const poiMap = new Map();
+  const evictedPois = [];
   const statusRank = { TESTING: 1, REACTING: 2, TP1_HIT: 3, SL_HIT: 4, TP2_HIT: 5 };
 
   const upsertPoi = rec => {
-    if (!rec || !rec.id || !Number.isFinite(rec.touchedAt) || rec.touchedAt < cutoff) return;
+    if (!rec || !rec.id || !Number.isFinite(rec.touchedAt)) return;
+    if (rec.touchedAt < poiCutoff) {
+      evictedPois.push(rec);
+      return;
+    }
     const prev = poiMap.get(rec.id);
     if (!prev) {
       poiMap.set(rec.id, { ...rec });
@@ -723,7 +959,7 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
 
   const evMap = new Map();
   const upsertEv = ev => {
-    if (!ev || !ev.id || !Number.isFinite(ev.ts) || ev.ts < cutoff) return;
+    if (!ev || !ev.id || !Number.isFinite(ev.ts) || ev.ts < evCutoff) return;
     const prev = evMap.get(ev.id);
     if (!prev || (prev.source !== 'LIVE' && ev.source === 'LIVE')) {
       evMap.set(ev.id, { ...ev });
@@ -732,11 +968,31 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
   for (const e of persisted?.timelineEvents || []) upsertEv(e);
   for (const e of backfilled?.timelineEvents || []) upsertEv(e);
 
+  const sortedPois = [...poiMap.values()].sort((a, b) => b.touchedAt - a.touchedAt);
+  const keptPois = sortedPois.slice(0, MAX_POI_RECORDS);
+  const overflowPois = sortedPois.slice(MAX_POI_RECORDS);
+
+  // Merge both dailyArchive maps first (richer summary wins per date)
+  const mergedArchive = normalizeDailyArchiveMap(persisted?.dailyArchive || {});
+  const incomingArchive = normalizeDailyArchiveMap(backfilled?.dailyArchive || {});
+  for (const [k, v] of Object.entries(incomingArchive)) {
+    mergedArchive[k] = pickRicherDayArchive(mergedArchive[k], v);
+  }
+  const dailyArchive = rebuildDailyArchive(keptPois, mergedArchive, [...evictedPois, ...overflowPois]);
+
   return {
-    version: 1,
-    poiRecords: [...poiMap.values()].sort((a, b) => b.touchedAt - a.touchedAt).slice(0, MAX_POI_RECORDS),
-    timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS)
+    version: 2,
+    poiRecords: keptPois,
+    timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS),
+    dailyArchive
   };
+}
+
+/**
+ * Union-merge local state with remote cloud/backup state without losing recorded days on either device.
+ */
+export function mergeRemoteHistoryState(localState, remoteState, nowMs = Date.now()) {
+  return mergeHistoryState(localState || createEmptyHistoryState(), remoteState || createEmptyHistoryState(), nowMs);
 }
 
 /**
@@ -745,7 +1001,7 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
 export function filterByRange(items, tsKey, range = 'TODAY', nowMs = Date.now()) {
   if (!Array.isArray(items)) return [];
   if (range === '7D') {
-    const cutoff = nowMs - MAX_RETENTION_MS;
+    const cutoff = nowMs - SEVEN_DAYS_MS;
     return items.filter(x => Number(x?.[tsKey]) >= cutoff);
   }
   const todayKey = witaDateKey(nowMs);
@@ -788,16 +1044,247 @@ export function summarizePoiStats(poiRecords, range = 'TODAY', nowMs = Date.now(
   };
 }
 
+export function formatWitaDateLabel(dateKey) {
+  if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return '—';
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const dayName = DAY_NAMES_ID[dt.getUTCDay()] || '';
+  const monthShort = SHORT_MONTH_NAMES_ID[m - 1] || '';
+  return `${dayName}, ${d} ${monthShort} ${y}`;
+}
+
+export function getWitaYearMonth(nowMs = Date.now()) {
+  const key = witaDateKey(nowMs);
+  if (!key) {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }
+  const [y, m] = key.split('-').map(Number);
+  return { year: y, month: m - 1 };
+}
+
+function resolveDayTone(summary) {
+  if (!summary || summary.total <= 0) return 'empty';
+  if (summary.resolved > 0) {
+    if (summary.respectRate >= 60) return 'win';
+    if (summary.respectRate < 50) return 'loss';
+    return 'neutral';
+  }
+  return 'neutral';
+}
+
+/**
+ * Build monthly POI performance calendar (8 columns: MIN..SAB + weekly MGG rollup).
+ * Combines detailed 180-day poiRecords with permanent dailyArchive summaries.
+ */
+export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
+  const fallbackYm = getWitaYearMonth(nowMs);
+  const targetYear = Number.isInteger(year) ? year : fallbackYm.year;
+  const targetMonth = Number.isInteger(month) ? month : fallbackYm.month;
+  const todayKey = witaDateKey(nowMs);
+
+  const archive = rebuildDailyArchive(state?.poiRecords || [], state?.dailyArchive || {});
+  const detailCountByDate = new Map();
+  for (const r of state?.poiRecords || []) {
+    const k = witaDateKey(Number(r?.touchedAt));
+    if (!k) continue;
+    detailCountByDate.set(k, (detailCountByDate.get(k) || 0) + 1);
+  }
+
+  const first = new Date(Date.UTC(targetYear, targetMonth, 1));
+  const last = new Date(Date.UTC(targetYear, targetMonth + 1, 0));
+  const startDay = first.getUTCDay(); // 0=MIN .. 6=SAB
+  const totalDays = last.getUTCDate();
+  const monthPrefix = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`;
+
+  const rawCells = [];
+  for (let i = 0; i < startDay; i += 1) rawCells.push({ empty: true });
+
+  const monthAgg = {
+    total: 0,
+    tp2: 0,
+    tp1: 0,
+    wins: 0,
+    sl: 0,
+    reacting: 0,
+    testing: 0,
+    active: 0,
+    resolved: 0,
+    respectRate: null,
+    m15Total: 0,
+    m15Wins: 0,
+    m15Sl: 0,
+    m15RespectRate: null,
+    m5Total: 0,
+    m5Wins: 0,
+    m5Sl: 0,
+    m5RespectRate: null,
+    fvgTotal: 0,
+    obTotal: 0,
+    activeDays: 0
+  };
+
+  for (let day = 1; day <= totalDays; day += 1) {
+    const dateKey = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+    const dow = new Date(Date.UTC(targetYear, targetMonth, day)).getUTCDay();
+    const isWeekend = dow === 0 || dow === 6;
+    const summary = archive[dateKey] || null;
+    const detailCount = detailCountByDate.get(dateKey) || 0;
+
+    if (summary && summary.total > 0) {
+      monthAgg.total += summary.total;
+      monthAgg.tp2 += summary.tp2;
+      monthAgg.tp1 += summary.tp1;
+      monthAgg.wins += summary.wins;
+      monthAgg.sl += summary.sl;
+      monthAgg.reacting += summary.reacting;
+      monthAgg.testing += summary.testing;
+      monthAgg.active += summary.reacting + summary.testing;
+      monthAgg.resolved += summary.resolved;
+      monthAgg.m15Total += summary.m15Total;
+      monthAgg.m15Wins += summary.m15Wins;
+      monthAgg.m15Sl += summary.m15Sl;
+      monthAgg.m5Total += summary.m5Total;
+      monthAgg.m5Wins += summary.m5Wins;
+      monthAgg.m5Sl += summary.m5Sl;
+      monthAgg.fvgTotal += summary.fvgTotal;
+      monthAgg.obTotal += summary.obTotal;
+      monthAgg.activeDays += 1;
+    }
+
+    rawCells.push({
+      empty: false,
+      day,
+      date: dateKey,
+      isToday: dateKey === todayKey,
+      isWeekend,
+      hasData: Boolean(summary && summary.total > 0),
+      hasDetails: detailCount > 0,
+      detailCount,
+      tone: resolveDayTone(summary),
+      summary
+    });
+  }
+
+  while (rawCells.length % 7 !== 0) rawCells.push({ empty: true });
+
+  monthAgg.respectRate = monthAgg.resolved > 0
+    ? Math.round((monthAgg.wins / monthAgg.resolved) * 100)
+    : (monthAgg.total > 0 ? Math.round(((monthAgg.wins + monthAgg.reacting) / monthAgg.total) * 100) : null);
+
+  const m15Res = monthAgg.m15Wins + monthAgg.m15Sl;
+  monthAgg.m15RespectRate = m15Res > 0 ? Math.round((monthAgg.m15Wins / m15Res) * 100) : null;
+  const m5Res = monthAgg.m5Wins + monthAgg.m5Sl;
+  monthAgg.m5RespectRate = m5Res > 0 ? Math.round((monthAgg.m5Wins / m5Res) * 100) : null;
+
+  const weeks = [];
+  for (let i = 0; i < rawCells.length; i += 7) {
+    const days = rawCells.slice(i, i + 7);
+    let wTotal = 0;
+    let wWins = 0;
+    let wSl = 0;
+    let wReacting = 0;
+    for (const cell of days) {
+      if (cell.summary) {
+        wTotal += cell.summary.total;
+        wWins += cell.summary.wins;
+        wSl += cell.summary.sl;
+        wReacting += cell.summary.reacting;
+      }
+    }
+    const wResolved = wWins + wSl;
+    const wRate = wResolved > 0
+      ? Math.round((wWins / wResolved) * 100)
+      : (wTotal > 0 ? Math.round(((wWins + wReacting) / wTotal) * 100) : null);
+    const wTone = wTotal === 0 ? 'empty' : (wResolved > 0 ? (wRate >= 60 ? 'win' : (wRate < 50 ? 'loss' : 'neutral')) : 'neutral');
+
+    weeks.push({
+      days,
+      weekSummary: {
+        total: wTotal,
+        wins: wWins,
+        sl: wSl,
+        resolved: wResolved,
+        respectRate: wRate,
+        tone: wTone
+      }
+    });
+  }
+
+  const totalRecordedDays = Object.keys(archive).length;
+
+  return {
+    year: targetYear,
+    month: targetMonth,
+    monthPrefix,
+    label: `${MONTH_NAMES_ID[targetMonth]} ${targetYear}`,
+    weeks,
+    monthSummary: monthAgg,
+    totalRecordedDays
+  };
+}
+
+/**
+ * Retrieve POI records & summary for a specific WITA date (YYYY-MM-DD) with optional filter.
+ * filter: 'ALL' | 'M15' | 'M5' | 'TP' | 'SL'
+ */
+export function getDayPoiRecords(state, dateKey, filter = 'ALL') {
+  const normalizedFilter = String(filter || 'ALL').toUpperCase();
+  const allForDay = (state?.poiRecords || [])
+    .filter(r => witaDateKey(Number(r?.touchedAt)) === dateKey)
+    .sort((a, b) => Number(b.touchedAt) - Number(a.touchedAt));
+
+  const archive = rebuildDailyArchive(state?.poiRecords || [], state?.dailyArchive || {});
+  const summary = allForDay.length > 0
+    ? summarizePoiDayFromRecords(allForDay, dateKey)
+    : (archive[dateKey] || null);
+
+  let items = allForDay;
+  if (normalizedFilter === 'M15') {
+    items = allForDay.filter(r => String(r.tf || 'M15').toUpperCase() === 'M15');
+  } else if (normalizedFilter === 'M5') {
+    items = allForDay.filter(r => String(r.tf || '').toUpperCase() === 'M5');
+  } else if (normalizedFilter === 'TP') {
+    items = allForDay.filter(r => r.status === 'TP1_HIT' || r.status === 'TP2_HIT');
+  } else if (normalizedFilter === 'SL') {
+    items = allForDay.filter(r => r.status === 'SL_HIT');
+  }
+
+  return {
+    date: dateKey,
+    dateLabel: formatWitaDateLabel(dateKey),
+    filter: normalizedFilter,
+    allCount: allForDay.length,
+    items,
+    summary,
+    isArchivedOnly: allForDay.length === 0 && Boolean(summary && summary.total > 0)
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.AmyMappingHistoryEngine = {
     HISTORY_STORAGE_KEY,
+    SEVEN_DAYS_MS,
+    MAX_RETENTION_MS,
+    TIMELINE_RETENTION_MS,
+    MAX_POI_RECORDS,
+    MAX_TIMELINE_EVENTS,
+    createEmptyHistoryState,
     loadHistoryState,
     saveHistoryState,
     backfillFromCandles,
     recordLivePoiProgress,
     mergeHistoryState,
+    mergeRemoteHistoryState,
+    rebuildDailyArchive,
+    summarizePoiDayFromRecords,
+    buildPoiCalendarMonth,
+    getDayPoiRecords,
     filterByRange,
     summarizePoiStats,
+    witaDateKey,
+    getWitaYearMonth,
+    formatWitaDateLabel,
     formatWitaClock
   };
 }

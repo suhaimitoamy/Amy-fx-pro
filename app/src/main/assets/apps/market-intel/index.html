@@ -7,8 +7,6 @@
   <title>Market Intel — Amy FX Pro</title>
   <script src="../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
   <link rel="stylesheet" href="../shared/market-intelligence.css">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="heatmap-v2.css">
   <link rel="stylesheet" href="../shared/amyfx-blueprint-v1.css" data-amyfx-blueprint-css="v1">
   <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css" data-amyfx-ui-tokens="v1">
   <link rel="stylesheet" href="../shared/amyfx-theme.css" data-amyfx-theme="v1">
@@ -16,6 +14,7 @@
   <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
   <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
   <link rel="stylesheet" href="../shared/amyfx-obsidian-glass.css" data-amyfx-obsidian-glass="v1">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body class="amyfx-module amyfx-module--intel">
   <div class="intel-container">
@@ -47,7 +46,7 @@
     </div>
 
     <nav class="intel-tabs" role="tablist" aria-label="Navigasi Market Intel">
-      <button class="intel-tab active" data-tab="sentiment">Kompas Fundamental</button>
+      <button class="intel-tab active" data-tab="sentiment">Kompas</button>
       <button class="intel-tab" data-tab="news">Berita</button>
       <button class="intel-tab" data-tab="calendar">Kalender</button>
     </nav>
@@ -55,34 +54,40 @@
     <section id="panel-sentiment" class="intel-panel active">
       <div class="intel-status-row">
         <div class="status-bar" id="sentiment-status">Memuat kompas fundamental &amp; sentimen makro...</div>
-        <button type="button" class="intel-refresh-btn" id="btn-refresh-sentiment" aria-label="Perbarui Kompas">Perbarui</button>
+        <button type="button" class="intel-refresh-btn" id="btn-refresh-sentiment" title="Perbarui Kompas" aria-label="Perbarui Kompas">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
       </div>
       <div id="sentiment-content" class="sentiment-wrap"></div>
     </section>
 
     <section id="panel-news" class="intel-panel" role="tabpanel">
       <div class="calendar-filters news-filters" role="group" aria-label="Filter Berita">
-        <button type="button" class="news-filter active" data-news-filter="gold">Fokus Gold (XAU)</button>
+        <button type="button" class="news-filter active" data-news-filter="gold">Fokus Gold</button>
         <button type="button" class="news-filter" data-news-filter="high">High Impact</button>
-        <button type="button" class="news-filter" data-news-filter="all">Semua Berita</button>
+        <button type="button" class="news-filter" data-news-filter="all">Semua</button>
       </div>
       <div class="intel-status-row">
         <div class="status-bar" id="news-status">Memuat berita...</div>
-        <button type="button" class="intel-refresh-btn" id="btn-refresh-news" aria-label="Perbarui Berita">Perbarui</button>
+        <button type="button" class="intel-refresh-btn" id="btn-refresh-news" title="Perbarui Berita" aria-label="Perbarui Berita">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
       </div>
       <div id="news-list" class="news-list"></div>
     </section>
 
     <section id="panel-calendar" class="intel-panel" role="tabpanel">
       <div class="calendar-filters" role="group" aria-label="Filter Kalender Ekonomi">
-        <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold (USD)</button>
+        <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold</button>
         <button type="button" class="cal-filter" data-filter="high">High Impact</button>
         <button type="button" class="cal-filter" data-filter="medium">Medium</button>
-        <button type="button" class="cal-filter" data-filter="all">Semua Rilis</button>
+        <button type="button" class="cal-filter" data-filter="all">Semua</button>
       </div>
       <div class="intel-status-row">
         <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>
-        <button type="button" class="intel-refresh-btn" id="btn-refresh-calendar" aria-label="Perbarui Kalender">Perbarui</button>
+        <button type="button" class="intel-refresh-btn" id="btn-refresh-calendar" title="Perbarui Kalender" aria-label="Perbarui Kalender">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
       </div>
       <div id="calendar-list" class="calendar-list"></div>
     </section>

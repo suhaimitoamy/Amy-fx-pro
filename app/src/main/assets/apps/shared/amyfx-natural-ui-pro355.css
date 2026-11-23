@@ -1658,25 +1658,37 @@ body.amyfx-module--home .profile-page--clean .profile-system-list .profile-row.p
   }
 }
 
-/* Light Mode Parity for Profil 3-Tab */
 html[data-amyfx-theme="light"] .profile-tabs {
-  background: #ffffff !important;
-  border-color: rgba(50, 80, 130, 0.12) !important;
-  box-shadow: 0 1px 6px rgba(20, 40, 80, 0.05) !important;
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
 }
 
 html[data-amyfx-theme="light"] .profile-tab {
-  color: #52637c !important;
+  color: #64748b !important;
 }
 
 html[data-amyfx-theme="light"] .profile-tab:hover {
-  color: #16233a !important;
+  color: #0f172a !important;
 }
 
 html[data-amyfx-theme="light"] .profile-tab.is-active {
-  background: rgba(33, 107, 219, 0.1) !important;
-  border-color: rgba(33, 107, 219, 0.28) !important;
-  color: #1656b8 !important;
+  background: #ffffff !important;
+  border-color: transparent !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+.profile-tabs {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.profile-tab.is-active {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: transparent;
+  color: #f8fafc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
 /* ─── PENGATURAN (NATIVE MOBILE SETTINGS VERTICAL LAYOUT) ────────────────── */
@@ -2379,6 +2391,476 @@ html[data-amyfx-theme="light"] .profile-btn-ghost.is-armed {
   border-color: rgba(220, 38, 38, 0.55) !important;
   color: #b91c1c !important;
 }
+
+/* ═══════════════════════════════════════════════════
+   BERANDA — PETA HARGA CLEANUP (DARK & LIGHT PARITY)
+   ═══════════════════════════════════════════════════ */
+@keyframes amyHomeSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+body.amyfx-module--home .home-price-panel {
+  padding: 14px 14px 12px !important;
+  margin-bottom: 18px !important;
+  border-radius: 18px !important;
+  border: 1px solid var(--amy-border, rgba(255, 255, 255, 0.1)) !important;
+  background: var(--amy-surface, rgba(16, 24, 39, 0.72)) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28) !important;
+}
+
+body.amyfx-module--home .home-price-panel .home-price-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+  gap: 12px !important;
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+}
+
+.home-price-identity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.home-price-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+body.amyfx-module--home .home-price-panel .home-price-head h2 {
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.2 !important;
+  color: var(--amy-text, #f8fafc) !important;
+  white-space: nowrap;
+}
+
+.home-price-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--amy-text-secondary, #94a3b8);
+  white-space: nowrap;
+}
+
+.home-price-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: var(--amy-text-secondary, #94a3b8);
+}
+
+.home-price-sep {
+  opacity: 0.55;
+}
+
+body.amyfx-module--home .home-price-panel .dr-badge {
+  display: inline !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.015em !important;
+  text-transform: none !important;
+  line-height: 1.3 !important;
+}
+
+body.amyfx-module--home .home-price-panel .dr-badge.dr-neutral {
+  color: var(--amy-text-secondary, #94a3b8) !important;
+}
+
+body.amyfx-module--home .home-price-panel .dr-badge.dr-discount,
+body.amyfx-module--home .home-price-panel .dr-badge.dr-breakout {
+  color: #34d399 !important;
+}
+
+body.amyfx-module--home .home-price-panel .dr-badge.dr-premium {
+  color: #f87171 !important;
+}
+
+body.amyfx-module--home .home-price-panel .dr-badge.dr-breakdown {
+  color: #fb923c !important;
+}
+
+#home-chart-source {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--amy-text-secondary, #94a3b8);
+  overflow-wrap: anywhere;
+}
+
+.home-price-quote {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+body.amyfx-module--home #home-chart-price {
+  display: block;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--amy-text, #f8fafc);
+  white-space: nowrap;
+}
+
+/* Single-Row Toolbar */
+body.amyfx-module--home .home-chart-controls {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  margin: 0 0 10px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-tf-seg {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  flex-shrink: 0;
+}
+
+.home-tf-native {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+body.amyfx-module--home .home-chart-controls .home-tf-btn {
+  min-height: 30px !important;
+  height: 30px !important;
+  min-width: 44px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--amy-text-secondary, #94a3b8) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+body.amyfx-module--home .home-chart-controls .home-tf-btn:hover {
+  color: var(--amy-text, #f8fafc) !important;
+}
+
+body.amyfx-module--home .home-chart-controls .home-tf-btn.is-active {
+  background: rgba(255, 255, 255, 0.13) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+.home-chart-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+body.amyfx-module--home .home-chart-controls .home-ctrl-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 11px !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--amy-text, #f1f5f9) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+body.amyfx-module--home .home-chart-controls .home-ctrl-btn:hover {
+  border-color: rgba(255, 255, 255, 0.26) !important;
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: #ffffff !important;
+}
+
+body.amyfx-module--home .home-chart-controls .home-ctrl-btn--icon {
+  width: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+}
+
+body.amyfx-module--home .home-chart-controls .home-ctrl-btn--icon.is-exit {
+  width: auto !important;
+  padding: 0 11px !important;
+  border-color: rgba(239, 68, 68, 0.38) !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #fca5a5 !important;
+}
+
+body.amyfx-module--home .home-chart-controls .home-ctrl-btn--alarm .amyfx-alarm-btn-count {
+  margin-left: 2px;
+  min-width: 17px;
+  height: 17px;
+  font-size: 10px;
+}
+
+#home-chart-refresh.is-loading svg {
+  animation: amyHomeSpin 0.8s linear infinite;
+}
+
+#home-chart-refresh:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+body.amyfx-module--home #home-price-chart {
+  border-radius: 6px;
+}
+
+body.amyfx-module--home #home-chart-note:empty,
+body.amyfx-module--home #home-chart-error:empty {
+  display: none !important;
+  margin: 0 !important;
+}
+
+body.amyfx-module--home #home-chart-note {
+  margin: 8px 0 0 !important;
+  font-size: 11px !important;
+  color: var(--amy-text-secondary, #94a3b8) !important;
+}
+
+body.amyfx-module--home #home-chart-error {
+  margin: 0 0 8px !important;
+  font-size: 11.5px !important;
+}
+
+body.amyfx-module--home .home-menu-heading {
+  margin: 18px 2px 10px !important;
+}
+
+/* Harmonized 2x2 Menu Utama on mobile viewports >= 340px */
+body.amyfx-module--home .quick-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+body.amyfx-module--home .quick-card {
+  min-height: 70px !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+  grid-template-columns: 36px minmax(0, 1fr) 12px !important;
+  gap: 10px !important;
+}
+
+body.amyfx-module--home .quick-card .app-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+
+body.amyfx-module--home .quick-card strong {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+}
+
+/* Fullscreen Polish — dedicated bottom dock so drawing toolbar never overlaps time axis */
+body.amyfx-module--home .home-price-panel.is-fullscreen {
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+  gap: 8px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+body.amyfx-module--home .home-price-panel.is-fullscreen .home-price-head {
+  margin: 0 !important;
+}
+
+body.amyfx-module--home .home-price-panel.is-fullscreen .home-chart-controls {
+  margin: 0 !important;
+  padding-top: 8px !important;
+}
+
+body.amyfx-module--home .home-price-panel.is-fullscreen #home-price-chart {
+  margin-bottom: 52px !important;
+  overflow: visible !important;
+}
+
+body.amyfx-module--home .home-price-panel.is-fullscreen .manual-drawing-toolbar {
+  bottom: -48px !important;
+}
+
+.manual-drawing-toolbar {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 12px !important;
+  padding: 4px 6px !important;
+  gap: 4px !important;
+  background: rgba(15, 23, 42, 0.94) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.draw-btn {
+  border-radius: 8px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 9px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+}
+
+.draw-btn.is-active {
+  box-shadow: none !important;
+}
+
+/* Light Mode Parity for Beranda Peta Harga & Fullscreen */
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel.is-fullscreen {
+  background: #f8fafc !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel .home-price-head h2,
+html[data-amyfx-theme="light"] body.amyfx-module--home #home-chart-price {
+  color: #0f172a !important;
+}
+
+html[data-amyfx-theme="light"] .home-price-subtitle,
+html[data-amyfx-theme="light"] .home-price-meta,
+html[data-amyfx-theme="light"] #home-chart-source,
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel .dr-badge.dr-neutral {
+  color: #64748b !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel .dr-badge.dr-discount,
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel .dr-badge.dr-breakout {
+  color: #15803d !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel .dr-badge.dr-premium {
+  color: #dc2626 !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-price-panel .dr-badge.dr-breakdown {
+  color: #c2410c !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-chart-controls {
+  border-top-color: rgba(15, 23, 42, 0.08);
+}
+
+html[data-amyfx-theme="light"] .home-tf-seg {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-chart-controls .home-tf-btn {
+  color: #64748b !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-chart-controls .home-tf-btn.is-active {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-chart-controls .home-ctrl-btn {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #1e293b !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-chart-controls .home-ctrl-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.24) !important;
+  color: #0f172a !important;
+}
+
+html[data-amyfx-theme="light"] body.amyfx-module--home .home-chart-controls .home-ctrl-btn--icon.is-exit {
+  background: #fef2f2 !important;
+  border-color: rgba(220, 38, 38, 0.32) !important;
+  color: #dc2626 !important;
+}
+
+html[data-amyfx-theme="light"] .manual-drawing-toolbar {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-amyfx-theme="light"] .draw-btn {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #334155 !important;
+}
+
+html[data-amyfx-theme="light"] .draw-btn.is-active {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 380px) {
+  body.amyfx-module--home #home-chart-price {
+    font-size: 18px;
+  }
+  body.amyfx-module--home .home-chart-controls .home-tf-btn {
+    min-width: 40px !important;
+    padding: 0 8px !important;
+  }
+  body.amyfx-module--home .home-chart-controls .home-ctrl-btn {
+    padding: 0 9px !important;
+  }
+  body.amyfx-module--home .quick-card {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+  body.amyfx-module--home .quick-card strong {
+    font-size: 12.5px !important;
+  }
+}
+
 
 
 

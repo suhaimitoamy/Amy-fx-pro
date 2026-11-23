@@ -426,7 +426,6 @@
       : `
         <div class="acc-pos-empty">
           <span class="acc-pos-empty-copy">Belum ada posisi aktif</span>
-          <button type="button" class="acc-pos-empty-btn" data-acc-open-order>Buka Order</button>
         </div>
       `;
 
@@ -450,12 +449,18 @@
       ? "is-warning"
       : "";
 
+    const guardSubCopy = guardState
+      ? (guardState.status === "SAFE"
+          ? `Maks ${guardState.config.maxDailySl} SL · -${guardState.config.maxDailyLossPct}%/hari`
+          : (guardState.detail || `Batas: ${guardState.config.maxDailySl} SL · -${guardState.config.maxDailyLossPct}%`))
+      : "";
+
     const guardHtml = guardState
       ? `
         <div class="amy-guard-bar ${guardToneClass}" data-acc-guard-bar>
           <div class="amy-guard-copy">
             <strong class="amy-guard-title">${escapeHtml(guardState.headline)}</strong>
-            <span class="amy-guard-sub">${escapeHtml(guardState.detail || `Batas: ${guardState.config.maxDailySl} SL · -${guardState.config.maxDailyLossPct}%`)}</span>
+            <span class="amy-guard-sub">${escapeHtml(guardSubCopy)}</span>
           </div>
           <button type="button" class="amy-guard-cfg-btn" data-acc-guard-toggle>${guardEditorOpen ? "Tutup" : "Batas"}</button>
         </div>
@@ -476,7 +481,7 @@
             <div class="acc-title-row">
               <h2 class="acc-title">Akun Pro Simulasi</h2>
             </div>
-            <div class="acc-sub-meta acc-tabular">
+            <div class="acc-sub-meta">
               <span>${escapeHtml(statusMeta)}</span>
               <span aria-hidden="true">·</span>
               <span>Risk ${params.riskPct}%</span>
@@ -494,10 +499,10 @@
         <div class="acc-hero ${heroTone}">
           <div class="acc-hero-bar">
             <span class="acc-hero-label">${heroLabel}</span>
-            <span class="acc-hero-count acc-tabular">${escapeHtml(heroCount)}</span>
+            <span class="acc-hero-count">${escapeHtml(heroCount)}</span>
           </div>
           <strong class="acc-hero-main acc-tabular ${heroMainClass}" data-acc-hero-main>${escapeHtml(heroMainVal)}</strong>
-          <div class="acc-hero-sub acc-tabular" data-acc-hero-sub>${heroSubHtml}</div>
+          <div class="acc-hero-sub" data-acc-hero-sub>${heroSubHtml}</div>
           <div class="acc-hero-today">
             <span class="acc-hero-today-label">Hari Ini</span>
             <strong class="acc-hero-today-val acc-tabular ${todayValClass}" data-acc-today>${escapeHtml(todayValText)}</strong>

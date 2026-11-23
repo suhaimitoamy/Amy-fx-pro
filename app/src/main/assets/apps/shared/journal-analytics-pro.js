@@ -858,57 +858,64 @@
            </div>`
         : "";
 
-      const defaultRiskMoney = defaultBalance > 0 && defaultRisk > 0 ? (defaultBalance * defaultRisk) / 100 : 0;
-      const weeklyReview = (root.AmyTraderInsights && typeof root.AmyTraderInsights.computeWeeklyReview === "function")
-        ? root.AmyTraderInsights.computeWeeklyReview(entries, { days: 7, defaultRiskMoney })
-        : null;
+      const weeklySnap = computeWeeklySnapshot(entries, {
+        days: 7,
+        nowMs: options.nowMs,
+        defaultBalance,
+        defaultRisk
+      });
 
-      let weeklyReviewHtml = "";
-      if (weeklyReview && !weeklyReview.empty) {
-        const wNetVal = unit === "money" && data.hasAnyMoney
-          ? formatSignedMoney(weeklyReview.netMoney, fmtOpts)
-          : formatSignedR(weeklyReview.netR);
-        const wNetTone = (unit === "money" && data.hasAnyMoney ? weeklyReview.netMoney : weeklyReview.netR) > 0
-          ? "is-pos"
-          : (unit === "money" && data.hasAnyMoney ? weeklyReview.netMoney : weeklyReview.netR) < 0
-          ? "is-neg"
-          : "is-flat";
-        const bestTradeTxt = weeklyReview.bestTrade
-          ? `${weeklyReview.bestTrade.pair} · ${weeklyReview.bestTrade.setup} (${unit === "money" && data.hasAnyMoney ? formatSignedMoney(weeklyReview.bestTrade.money, fmtOpts) : formatSignedR(weeklyReview.bestTrade.rVal)})`
+      const weeklyOverviewHtml = (() => {
+        if (weeklySnap.empty) {
+          return `
+            <section class="jp-weekly-overview is-empty" aria-label="Ringkasan Evaluasi 7 Hari Terakhir">
+              <div class="jp-weekly-overview-head">
+                <span class="jp-weekly-eyebrow">Evaluasi Mingguan (7H)</span>
+                <span class="jp-weekly-meta">Belum ada trade tertutup dalam 7 hari terakhir</span>
+              </div>
+            </section>
+          `;
+        }
+        const useMoney = unit === "money" && weeklySnap.hasAnyMoney;
+        const netNum = useMoney ? weeklySnap.netMoney : weeklySnap.netR;
+        const netStr = useMoney ? formatSignedMoney(weeklySnap.netMoney, fmtOpts) : formatSignedR(weeklySnap.netR);
+        const wTone = netNum > 0 ? "is-pos" : netNum < 0 ? "is-neg" : "is-flat";
+        const bestSess = weeklySnap.bestSession
+          ? `${weeklySnap.bestSession.key} (${weeklySnap.bestSession.winRate}% WR)`
           : "—";
-        const bestSessTxt = weeklyReview.bestSession
-          ? `${weeklyReview.bestSession.session} (${weeklyReview.bestSession.wins}/${weeklyReview.bestSession.count} W)`
+        const bestSetup = weeklySnap.bestSetup
+          ? `${weeklySnap.bestSetup.key} (${weeklySnap.bestSetup.winRate}% WR)`
           : "—";
-        const leakTxt = weeklyReview.costliestLeak
-          ? `${weeklyReview.costliestLeak.tag} (${weeklyReview.costliestLeak.count}x · ${unit === "money" && data.hasAnyMoney ? formatSignedMoney(weeklyReview.costliestLeak.totalMoney, fmtOpts) : formatSignedR(weeklyReview.costliestLeak.totalR)})`
-          : "Nihil — eksekusi disiplin";
+        const leakLabel = weeklySnap.topLeak
+          ? `${weeklySnap.topLeak.key} (${weeklySnap.topLeak.count}×)`
+          : "Disiplin · Nihil";
 
-        weeklyReviewHtml = `
-          <section class="jp-weekly-review" aria-label="Evaluasi Mingguan 7 Hari Terakhir">
-            <div class="jp-weekly-head">
+        return `
+          <section class="jp-weekly-overview" aria-label="Ringkasan Evaluasi 7 Hari Terakhir">
+            <div class="jp-weekly-overview-head">
               <div>
-                <span class="jp-weekly-eyebrow">Evaluasi 7 Hari Terakhir</span>
-                <strong class="jp-tabular ${wNetTone}">${escapeHtml(wNetVal)}</strong>
+                <span class="jp-weekly-eyebrow">Evaluasi Mingguan (7H)</span>
+                <strong class="jp-weekly-net jp-tabular ${wTone}">${escapeHtml(netStr)}</strong>
               </div>
-              <span class="jp-weekly-meta jp-tabular">${weeklyReview.tradeCount} trade · ${weeklyReview.winRate}% WR (${weeklyReview.wins}W/${weeklyReview.losses}L)</span>
+              <span class="jp-weekly-meta jp-tabular">${weeklySnap.closedCount} trade · ${weeklySnap.winRate}% WR (${weeklySnap.wins}W/${weeklySnap.losses}L)</span>
             </div>
-            <div class="jp-weekly-grid">
-              <div class="jp-weekly-row">
-                <span>Trade Terbaik</span>
-                <strong class="jp-tabular">${escapeHtml(bestTradeTxt)}</strong>
-              </div>
-              <div class="jp-weekly-row">
+            <div class="jp-weekly-cells">
+              <div class="jp-weekly-cell">
                 <span>Sesi Terkuat</span>
-                <strong class="jp-tabular">${escapeHtml(bestSessTxt)}</strong>
+                <strong>${escapeHtml(bestSess)}</strong>
               </div>
-              <div class="jp-weekly-row">
-                <span>Kebocoran Utama</span>
-                <strong class="jp-tabular ${weeklyReview.costliestLeak ? "is-neg" : "is-pos"}">${escapeHtml(leakTxt)}</strong>
+              <div class="jp-weekly-cell">
+                <span>Pola Terkuat</span>
+                <strong>${escapeHtml(bestSetup)}</strong>
+              </div>
+              <div class="jp-weekly-cell">
+                <span>Disiplin &amp; Bocor</span>
+                <strong class="${weeklySnap.topLeak ? "is-neg" : "is-pos"}">${escapeHtml(leakLabel)}</strong>
               </div>
             </div>
           </section>
         `;
-      }
+      })();
 
       let activePaneHtml = "";
       if (uiState.subtab === "calendar" && hasCalendar) {
@@ -916,7 +923,6 @@
       } else if (uiState.subtab === "leaks") {
         activePaneHtml = `
           <div class="jp-subtab-pane" data-jp-pane="leaks">
-            ${weeklyReviewHtml}
             ${briefHtml}
             <div class="jp-ledger-section">
               <div class="jp-panel-head">
@@ -994,6 +1000,8 @@
               <span class="jp-kpi-sub jp-tabular">${escapeHtml(streakLabel)}</span>
             </article>
           </section>
+
+          ${weeklyOverviewHtml}
 
           <div class="jp-subtabs-bar" role="tablist" aria-label="Detail Analitik Performa">
             ${subtabDefs.map((tab) => `
@@ -1253,11 +1261,122 @@
     return { data, text: lines.join("\n") };
   }
 
+  function computeWeeklySnapshot(entries, options = {}) {
+    const days = Math.max(1, Number(options.days) || 7);
+    const nowMs = Number.isFinite(Number(options.nowMs)) ? Number(options.nowMs) : Date.now();
+    const cutoff = nowMs - days * DAY_MS;
+    const rawList = Array.isArray(entries) ? entries : [];
+    const normalized = rawList
+      .map((entry, idx) => normalizeEntry(entry, idx, options))
+      .filter((item) => item.result !== null && item.timestampMs > 0 && item.timestampMs >= cutoff);
+
+    if (!normalized.length) {
+      return {
+        empty: true,
+        days,
+        closedCount: 0,
+        wins: 0,
+        losses: 0,
+        breakevens: 0,
+        winRate: 0,
+        netMoney: 0,
+        netR: 0,
+        hasAnyMoney: false,
+        bestSession: null,
+        bestSetup: null,
+        topLeak: null
+      };
+    }
+
+    let wins = 0;
+    let losses = 0;
+    let breakevens = 0;
+    let netMoney = 0;
+    let netR = 0;
+    let hasAnyMoney = false;
+
+    const sessionMap = new Map();
+    const setupMap = new Map();
+    const leakMap = new Map();
+
+    for (const item of normalized) {
+      if (item.result === "Win") wins += 1;
+      else if (item.result === "Loss") losses += 1;
+      else if (item.result === "BE") breakevens += 1;
+
+      if (item.hasMoney) {
+        hasAnyMoney = true;
+        netMoney += item.deltaMoney;
+      }
+      netR += item.deltaR;
+
+      const sKey = item.session || "Lainnya";
+      const sRec = sessionMap.get(sKey) || { key: sKey, total: 0, wins: 0, netR: 0, netMoney: 0 };
+      sRec.total += 1;
+      if (item.result === "Win") sRec.wins += 1;
+      sRec.netR += item.deltaR;
+      if (item.hasMoney) sRec.netMoney += item.deltaMoney;
+      sessionMap.set(sKey, sRec);
+
+      const stKey = item.setup || "Tanpa Label Setup";
+      if (stKey !== "Tanpa Label Setup") {
+        const stRec = setupMap.get(stKey) || { key: stKey, total: 0, wins: 0, netR: 0, netMoney: 0 };
+        stRec.total += 1;
+        if (item.result === "Win") stRec.wins += 1;
+        stRec.netR += item.deltaR;
+        if (item.hasMoney) stRec.netMoney += item.deltaMoney;
+        setupMap.set(stKey, stRec);
+      }
+
+      for (const lk of item.leaks) {
+        const lkRec = leakMap.get(lk) || { key: lk, count: 0 };
+        lkRec.count += 1;
+        leakMap.set(lk, lkRec);
+      }
+    }
+
+    const pickBest = (map) => {
+      const list = Array.from(map.values()).map((r) => ({
+        ...r,
+        winRate: r.total > 0 ? Math.round((r.wins / r.total) * 100) : 0
+      }));
+      if (!list.length) return null;
+      list.sort((a, b) => {
+        const aScore = hasAnyMoney ? a.netMoney : a.netR;
+        const bScore = hasAnyMoney ? b.netMoney : b.netR;
+        if (bScore !== aScore) return bScore - aScore;
+        return b.winRate - a.winRate;
+      });
+      return list[0];
+    };
+
+    const topLeak = Array.from(leakMap.values()).sort((a, b) => b.count - a.count)[0] || null;
+    const decided = wins + losses;
+    const winRate = decided > 0 ? Math.round((wins / decided) * 100) : 0;
+
+    return {
+      empty: false,
+      days,
+      closedCount: normalized.length,
+      wins,
+      losses,
+      breakevens,
+      winRate,
+      netMoney: Math.round(netMoney * 100) / 100,
+      netR: Math.round(netR * 100) / 100,
+      hasAnyMoney,
+      bestSession: pickBest(sessionMap),
+      bestSetup: pickBest(setupMap),
+      topLeak
+    };
+  }
+
   root.AmyJournalAnalyticsPro = Object.freeze({
     normalizeResult,
     classifySession,
     extractLeaks,
     analyzePro,
+    computeWeeklySnapshot,
     mountProAnalytics,
     renderHomeSnapshot,
     formatForAssistant,

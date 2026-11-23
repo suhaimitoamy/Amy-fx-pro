@@ -34,8 +34,12 @@ function mountHomeFullscreen(panel, view, drawingTool) {
     }
     document.body.classList.toggle('home-chart-fullscreen', enabled);
     panel.classList.toggle('is-fullscreen', enabled);
-    button.textContent = enabled ? '× Keluar' : '⛶ Fullscreen';
+    button.classList.toggle('is-exit', enabled);
+    button.innerHTML = enabled
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg><span>Keluar</span>'
+      : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
     button.setAttribute('aria-label', enabled ? 'Keluar fullscreen Peta Harga' : 'Buka fullscreen Peta Harga');
+    button.setAttribute('title', enabled ? 'Keluar Layar Penuh' : 'Layar Penuh');
     button.setAttribute('aria-pressed', String(enabled));
     view?.setFullscreen(enabled);
     drawingTool?.setFullscreen(enabled);
@@ -278,16 +282,14 @@ export function mountHomeChart(root) {
     if(displayPrice&&!closed) view?.updateActiveCandle?.(displayPrice);
     if($('home-chart-source')){
       if(!last){
-        $('home-chart-source').textContent='Belum ada candle. Periksa koneksi lalu tekan Perbarui.';
-      }else{
+        $('home-chart-source').textContent='Belum ada candle';
+      }else if(closed){
         const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
-        if(closed){
-          const isWeekend=isWeekendClosure(Date.now()/1000);
-          const statusText=isWeekend?'Pasar Tutup (Akhir Pekan)':'Pasar Tutup';
-          $('home-chart-source').textContent=`${tf} · ${statusText} · Candle Terakhir: ${timeStr} WITA · ${result.fresh?'Data Terkini':'Referensi lama / data terlambat'}`;
-        }else{
-          $('home-chart-source').textContent=`${tf} · Candle ${timeStr} WITA · ${result.fresh?'Candle terkini':'Referensi lama / data terlambat'}`;
-        }
+        const isWeekend=isWeekendClosure(Date.now()/1000);
+        const statusText=isWeekend?'Pasar Tutup (Akhir Pekan)':'Pasar Tutup';
+        $('home-chart-source').textContent=`${statusText} · Candle Terakhir ${timeStr} WITA`;
+      }else{
+        $('home-chart-source').textContent=result.fresh?'Candle terkini':'Referensi lama';
       }
     }
     if($('home-chart-note'))$('home-chart-note').textContent=result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
@@ -298,7 +300,9 @@ export function mountHomeChart(root) {
     stop();const id=generation,tf=$('home-chart-tf').value;
     controller=new AbortController();const request=controller;
     const timeout=setTimeout(()=>request.abort(),20000);
-    $('home-chart-refresh').disabled=true;$('home-chart-error').textContent='';
+    $('home-chart-refresh').disabled=true;
+    $('home-chart-refresh').classList.add('is-loading');
+    $('home-chart-error').textContent='';
     if(raw)render();
     try {
       const isH1 = tf === 'H1';
@@ -332,6 +336,7 @@ export function mountHomeChart(root) {
       clearTimeout(timeout);
       if(!disposed&&id===generation){
         $('home-chart-refresh').disabled=false;
+        $('home-chart-refresh').classList.remove('is-loading');
         if(!document.hidden){
           const interval=isGoldMarketOpen(Date.now()/1000)?60000:300000;
           timer=setTimeout(refresh,interval);

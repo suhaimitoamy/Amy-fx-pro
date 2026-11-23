@@ -1,25 +1,28 @@
 /* Amy FX Academy — Curriculum Assembler & Pure Progress Logic
- * Combines Level 1–6 (30 Lessons) + pure helpers for filtering, progress, quiz scoring, and Amy Live knowledge.
+ * Combines Level 0–6 (36 Lessons) + pure helpers for filtering, learner track, progress, quiz scoring, and Amy Live knowledge.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
+    const p0 = require('./level-0.js');
     const p1 = require('./levels-1-2.js');
     const p2 = require('./levels-3-4.js');
     const p3 = require('./levels-5-6.js');
-    module.exports = factory(p1, p2, p3);
+    module.exports = factory(p0, p1, p2, p3);
   } else {
     root.AmyAcademyCurriculum = factory(
+      root.AmyAcademyPart0,
       root.AmyAcademyPart1,
       root.AmyAcademyPart2,
       root.AmyAcademyPart3
     );
   }
-})(typeof globalThis !== 'undefined' ? globalThis : window, function (part1, part2, part3) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function (part0, part1, part2, part3) {
   'use strict';
 
   const STORAGE_KEY = 'amy_academy_progress_v2';
+  const TRACK_STORAGE_KEY = 'amy_academy_track_v1';
 
-  const parts = [part1, part2, part3].filter(Boolean);
+  const parts = [part0, part1, part2, part3].filter(Boolean);
 
   const LEVELS = parts
     .flatMap(p => (Array.isArray(p.LEVELS) ? p.LEVELS : []))
@@ -46,6 +49,37 @@
   function getLessonsByLevel(levelId) {
     const id = Number(levelId);
     return LESSONS.filter(l => l.levelId === id);
+  }
+
+  function formatLessonNumber(lesson) {
+    if (!lesson) return '';
+    if (lesson.code) return String(lesson.code);
+    const num = Number(lesson.number);
+    if (!Number.isFinite(num)) return String(lesson.number ?? '');
+    if (Number.isInteger(num)) return String(num).padStart(2, '0');
+    return String(num);
+  }
+
+  function normalizeTrack(raw) {
+    const v = String(raw || '').trim().toLowerCase();
+    if (v === 'beginner' || v === 'ict') return v;
+    return null;
+  }
+
+  function getRecommendedLessonForTrack(progress, track) {
+    const norm = normalizeProgress(progress);
+    const completedSet = new Set(norm.completedIds);
+    const mode = normalizeTrack(track) || 'beginner';
+
+    if (norm.lastLessonId) {
+      const last = getLessonById(norm.lastLessonId);
+      if (last && !completedSet.has(last.id)) {
+        if (mode !== 'ict' || last.levelId >= 1) return last;
+      }
+    }
+
+    const pool = mode === 'ict' ? LESSONS.filter(l => l.levelId >= 1) : LESSONS;
+    return pool.find(l => !completedSet.has(l.id)) || pool[0] || LESSONS[0] || null;
   }
 
   function normalizeText(value) {
@@ -259,17 +293,19 @@
 
   function buildAmyPromptForLesson(lesson) {
     if (!lesson) {
-      return 'Bantu saya memilih pelajaran ICT scalping XAU/USD terbaik di Amy FX Academy hari ini.';
+      return 'Bantu saya memilih pelajaran trading XAU/USD terbaik di Amy FX Academy hari ini.';
     }
     const level = getLevelById(lesson.levelId);
     const levelLabel = level ? `${level.code} (${level.title})` : `Level ${lesson.levelId}`;
-    return `Saya sedang belajar Amy FX Academy Pelajaran ${lesson.number}: "${lesson.title}" (${levelLabel}). Tolong jelaskan poin kunci eksekusinya di chart XAU/USD saat ini dan kesalahan terbesar yang harus saya hindari.`;
+    const numLabel = formatLessonNumber(lesson);
+    return `Saya sedang belajar Amy FX Academy Bab ${numLabel}: "${lesson.title}" (${levelLabel}). Tolong jelaskan poin kunci praktiknya di XAU/USD dan kesalahan terbesar yang harus saya hindari.`;
   }
 
   function buildAmyKnowledgeEntries() {
     return LESSONS.map(lesson => {
       const level = getLevelById(lesson.levelId);
       const levelHeader = level ? `${level.code}: ${level.title}` : `Level ${lesson.levelId}`;
+      const numLabel = formatLessonNumber(lesson);
       const concepts = (lesson.conceptBlocks || [])
         .map(b => `${b.heading}: ${(b.paragraphs || []).join(' ')}`)
         .join(' | ');
@@ -281,7 +317,7 @@
       const goldenStr = (lesson.goldenRules || []).join(' ');
 
       return {
-        title: `Pelajaran ${String(lesson.number).padStart(2, '0')} — ${lesson.title} (${levelHeader})`,
+        title: `Pelajaran ${numLabel} — ${lesson.title} (${levelHeader})`,
         path: `apps/academy/index.html?lesson=${lesson.id}`,
         text: [
           lesson.summary,
@@ -295,13 +331,112 @@
     });
   }
 
+  function evaluateLevel0Readiness(progress) {
+    const norm = normalizeProgress(progress);
+    const completedSet = new Set(norm.completedIds);
+    const level0Lessons = getLessonsByLevel(0);
+    const total = level0Lessons.length;
+
+    let completed = 0;
+    let quizPassed = 0;
+    let quizCorrectSum = 0;
+    let quizTotalSum = 0;
+
+    const items = level0Lessons.map(lesson => {
+      const done = completedSet.has(lesson.id);
+      if (done) completed += 1;
+      const rec = norm.quizScores[lesson.id] || null;
+      if (rec) {
+        if (rec.passed) quizPassed += 1;
+        quizCorrectSum += rec.correct;
+        quizTotalSum += rec.total;
+      }
+      return {
+        id: lesson.id,
+        code: formatLessonNumber(lesson),
+        title: lesson.title,
+        done,
+        quizPassed: Boolean(rec?.passed),
+        quizScore: rec ? `${rec.correct}/${rec.total}` : null
+      };
+    });
+
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const avgQuizAccuracy = quizTotalSum > 0 ? Math.round((quizCorrectSum / quizTotalSum) * 100) : null;
+    const nextLesson = level0Lessons.find(l => !completedSet.has(l.id)) || null;
+    const readyForIct = total > 0 && completed >= total;
+
+    return {
+      total,
+      completed,
+      percent,
+      quizPassed,
+      avgQuizAccuracy,
+      readyForIct,
+      nextLesson,
+      items
+    };
+  }
+
+  function calculateBeginnerRiskLot(input) {
+    const opts = input && typeof input === 'object' ? input : {};
+    const balanceUsd = Math.max(10, Number(opts.balanceUsd) || 100);
+    const riskPct = Math.max(0.1, Math.min(20, Number(opts.riskPct) || 1));
+    const slPoints = Math.max(0.5, Number(opts.slPoints) || 5);
+    const accountType = String(opts.accountType || 'standard').toLowerCase() === 'cent' ? 'cent' : 'standard';
+    const usdIdrRate = Math.max(1000, Number(opts.usdIdrRate) || 16500);
+
+    const riskUsd = Math.round(((balanceUsd * riskPct) / 100) * 100) / 100;
+    const riskIdr = Math.round(riskUsd * usdIdrRate);
+    // Standard XAU/USD: 1.00 lot = $100 per $1.00 price move -> 0.01 lot = $1 per $1.00 move
+    // Cent XAU/USDc: 1.00 cent lot = $1.00 per $1.00 price move -> 0.01 cent lot = $0.01 per $1.00 move
+    const usdPerPointPerLot = accountType === 'cent' ? 1 : 100;
+    const rawLot = riskUsd / (slPoints * usdPerPointPerLot);
+    const recommendedLot = Math.max(0.01, Math.floor(rawLot * 100) / 100);
+    const actualRiskUsd = Math.round(recommendedLot * slPoints * usdPerPointPerLot * 100) / 100;
+    const actualRiskPct = Math.round((actualRiskUsd / balanceUsd) * 1000) / 10;
+    const slPips = Math.round(slPoints * 10);
+
+    let safetyLevel = 'safe';
+    let safetyLabel = 'Aman (Disiplin Pemula ≤ 1%)';
+    if (actualRiskPct > 2 || riskPct > 2) {
+      safetyLevel = 'danger';
+      safetyLabel = 'Terlalu Besar (> 2% · Rawan Margin Call)';
+    } else if (actualRiskPct > 1.05 || riskPct > 1.05) {
+      safetyLevel = 'moderate';
+      safetyLabel = 'Cukup Agresif (1%–2% · Perlu Hati-hati)';
+    }
+
+    const needsCentHint = accountType === 'standard' && rawLot < 0.01;
+
+    return {
+      balanceUsd,
+      riskPct,
+      slPoints,
+      slPips,
+      accountType,
+      riskUsd,
+      riskIdr,
+      recommendedLot,
+      actualRiskUsd,
+      actualRiskPct,
+      safetyLevel,
+      safetyLabel,
+      needsCentHint
+    };
+  }
+
   return Object.freeze({
     STORAGE_KEY,
+    TRACK_STORAGE_KEY,
     LEVELS,
     LESSONS,
     getLevelById,
     getLessonById,
     getLessonsByLevel,
+    formatLessonNumber,
+    normalizeTrack,
+    getRecommendedLessonForTrack,
     filterLessons,
     createEmptyProgress,
     normalizeProgress,
@@ -309,6 +444,8 @@
     toggleLessonCompleted,
     recordQuizAttempt,
     computeProgressStats,
+    evaluateLevel0Readiness,
+    calculateBeginnerRiskLot,
     getAdjacentLessons,
     buildAmyPromptForLesson,
     buildAmyKnowledgeEntries

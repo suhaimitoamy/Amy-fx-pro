@@ -1090,3 +1090,101 @@ html[data-amyfx-theme="light"] .acc-field input {
   color: #ffffff;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   PROFIL ACCOUNT COCKPIT UI CLEANUP — BERANDA PARITY
+   ═══════════════════════════════════════════════════════════════════ */
+.acc-cockpit {
+  border-radius: 16px !important;
+}
+
+.acc-sub-meta,
+.acc-hero-count,
+.acc-hero-sub,
+.acc-cockpit .amy-guard-sub {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.acc-curr-seg {
+  padding: 2px !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+}
+
+.acc-curr-btn {
+  min-height: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--acc-muted) !important;
+  box-shadow: none !important;
+}
+
+.acc-curr-btn.is-active {
+  background: rgba(255, 255, 255, 0.13) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+}
+
+.acc-order-btn {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 13px !important;
+  border-radius: 10px !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+/* Flatten Daily Loss Guard inside Cockpit into Hairline Row (No Nested Box) */
+.acc-cockpit .amy-guard-bar {
+  margin: 0 !important;
+  padding: 10px 16px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--acc-line) !important;
+  border-radius: 0 !important;
+  background: rgba(34, 197, 94, 0.045) !important;
+  box-shadow: none !important;
+}
+
+.acc-cockpit .amy-guard-bar.is-warning {
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+.acc-cockpit .amy-guard-bar.is-locked {
+  background: rgba(248, 113, 113, 0.09) !important;
+}
+
+.acc-pos-empty {
+  justify-content: center !important;
+  padding: 3px 0 !important;
+}
+
+.acc-pos-empty-copy {
+  font-size: 0.76rem !important;
+  color: var(--acc-muted) !important;
+}
+
+/* Light Mode Parity for Profil Account Cockpit */
+:is([data-amyfx-theme="light"], [data-theme="light"]) .acc-curr-seg {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:is([data-amyfx-theme="light"], [data-theme="light"]) .acc-curr-btn {
+  color: #64748b !important;
+}
+
+:is([data-amyfx-theme="light"], [data-theme="light"]) .acc-curr-btn.is-active {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+:is([data-amyfx-theme="light"], [data-theme="light"]) .acc-cockpit .amy-guard-bar {
+  background: rgba(22, 163, 74, 0.05) !important;
+}
+
+

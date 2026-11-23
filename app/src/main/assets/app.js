@@ -232,13 +232,66 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderHome() {
     setActive('beranda');
     mainContent.innerHTML = `<section class="home-price-panel" aria-label="Peta harga XAU/USD">
-      <div class="section-heading"><h2>Peta harga · XAU/USD</h2><div style="display:flex; align-items:center; gap:8px;"><span id="home-chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM 50% · NETRAL ⚪</span><strong id="home-chart-price">—</strong></div></div>
-      <div class="home-chart-controls"><label>Timeframe <select id="home-chart-tf"><option value="M15">M15</option><option value="M5">M5</option></select></label><button type="button" id="home-chart-refresh">Perbarui</button><button type="button" id="home-chart-alert" title="Pasang Alarm Target Harga">🔔 Pasang Alarm</button><button type="button" id="home-chart-fullscreen" aria-label="Buka fullscreen Peta Harga" aria-pressed="false">⛶ Fullscreen</button></div>
-      <p id="home-chart-source" role="status">Memuat candle tertutup…</p><p id="home-chart-error" role="alert"></p>
+      <div class="section-heading home-price-head">
+        <div class="home-price-identity">
+          <div class="home-price-title-row">
+            <h2>XAU/USD</h2>
+            <span class="home-price-subtitle">Peta Harga</span>
+          </div>
+          <div class="home-price-meta">
+            <span id="home-chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">Equilibrium · 50%</span>
+            <span class="home-price-sep" aria-hidden="true">·</span>
+            <span id="home-chart-source" role="status">Memuat…</span>
+          </div>
+        </div>
+        <div class="home-price-quote">
+          <strong id="home-chart-price">—</strong>
+        </div>
+      </div>
+      <div class="home-chart-controls" role="toolbar" aria-label="Kontrol Peta Harga">
+        <div class="home-tf-seg" role="group" aria-label="Pilih Timeframe">
+          <button type="button" class="home-tf-btn is-active" data-tf="M15" aria-pressed="true">M15</button>
+          <button type="button" class="home-tf-btn" data-tf="M5" aria-pressed="false">M5</button>
+          <select id="home-chart-tf" class="home-tf-native" aria-label="Timeframe" tabindex="-1"><option value="M15" selected>M15</option><option value="M5">M5</option></select>
+        </div>
+        <div class="home-chart-actions">
+          <button type="button" id="home-chart-alert" class="home-ctrl-btn home-ctrl-btn--alarm" title="Pasang Alarm Target Harga" aria-label="Pasang Alarm Target Harga">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span>Alarm</span>
+          </button>
+          <button type="button" id="home-chart-refresh" class="home-ctrl-btn home-ctrl-btn--icon" title="Perbarui Chart" aria-label="Perbarui Chart">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          </button>
+          <button type="button" id="home-chart-fullscreen" class="home-ctrl-btn home-ctrl-btn--icon" title="Layar Penuh" aria-label="Buka fullscreen Peta Harga" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </button>
+        </div>
+      </div>
+      <p id="home-chart-error" role="alert"></p>
       <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
       <p id="home-chart-note"></p>
-    </section><div class="section-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
+    </section><div class="section-heading home-menu-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
     if (typeof mainContent.querySelector === 'function') {
+      const tfSelect = mainContent.querySelector('#home-chart-tf');
+      const tfButtons = Array.from(mainContent.querySelectorAll('.home-tf-btn'));
+      const syncTfButtons = (val) => {
+        tfButtons.forEach((btn) => {
+          const active = btn.getAttribute('data-tf') === val;
+          btn.classList.toggle('is-active', active);
+          btn.setAttribute('aria-pressed', String(active));
+        });
+      };
+      tfButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const nextTf = btn.getAttribute('data-tf');
+          if (!tfSelect || !nextTf || tfSelect.value === nextTf) return;
+          tfSelect.value = nextTf;
+          syncTfButtons(nextTf);
+          tfSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      });
+      tfSelect?.addEventListener('change', () => syncTfButtons(tfSelect.value));
+
       mainContent.querySelector('#home-chart-alert')?.addEventListener('click', () => {
         if (typeof window.AmyPriceAlertManager?.openAddAlertDialog === 'function') {
           window.AmyPriceAlertManager.openAddAlertDialog();

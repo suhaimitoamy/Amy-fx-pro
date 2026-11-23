@@ -206,7 +206,7 @@ function updateCandleCountdown(){
   const rem=Math.max(1,dur-(Math.floor(nowSec)%dur));
   const mins=String(Math.floor(rem/60)).padStart(2,'0');
   const secs=String(rem%60).padStart(2,'0');
-  el.textContent=`Tutup ${tf} · ${mins}:${secs}`;
+  el.textContent=`${tf} · ${mins}:${secs}`;
   el.classList.remove('is-closed');
   el.classList.toggle('is-urgent',rem<=60);
 }
@@ -317,12 +317,12 @@ function draw(degraded=false){
     const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
     if(closed){
       const statusText=isWeekendClosure(Date.now()/1000)?'Pasar Tutup (Akhir Pekan)':'Pasar Tutup';
-      $('source').textContent=`${tf} · ${statusText} · Candle Terakhir: ${timeStr} WITA · ${result.fresh?'Data Terkini':'Referensi lama / data terlambat'}`;
+      $('source').textContent=`${statusText} · Candle Terakhir ${timeStr} WITA`;
     }else{
-      $('source').textContent=`${tf} · Candle ${timeStr} WITA · ${result.fresh?'Candle terkini':'Referensi lama / data terlambat'}`;
+      $('source').textContent=result.fresh?'Candle terkini':'Referensi lama';
     }
   }
-  if($('chart-note'))$('chart-note').textContent=driverPlan?'Level terpasang: Entry, SL, TP1, TP2 (Entry Assistant V3)':scalperPlan?`Level tersinkron (${scalperPlan.side}): POI Entry, 50% CE, TP1 BEP & Runner`:overlay?'Level terpasang: batas area, 50% CE, dan target likuiditas.':result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
+  if($('chart-note'))$('chart-note').textContent='';
   const coverage=$('ict-coverage');
   if(coverage){
     const k=context?.amy?.levels,p=context?.amy?.pivots;
@@ -457,7 +457,7 @@ function schedule(){
 async function refresh(){
   const id=++generation;controller?.abort();controller=new AbortController();const request=controller;
   const timeout=setTimeout(()=>request.abort(),35000),tf=$('timeframe').value;
-  $('refresh').disabled=true;if($('chart-error')){ $('chart-error').textContent=''; $('chart-error').style.color=''; }
+  $('refresh').disabled=true;$('refresh').classList.add('is-loading');if($('chart-error')){ $('chart-error').textContent=''; $('chart-error').style.color=''; }
   if(raw)draw();
   try{
     const [response,h1Loaded,m5Response]=await Promise.all([
@@ -509,7 +509,7 @@ async function refresh(){
         $('chart-error').style.color='';
       }
     }
-  }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;schedule();}}
+  }finally{clearTimeout(timeout);if(id===generation){$('refresh').disabled=false;$('refresh').classList.remove('is-loading');schedule();}}
 }
 window.setTab=name=>{
   if(name!=='Dashboard')fullscreen?.close();
@@ -538,8 +538,26 @@ $('btn-plan-price-alert')?.addEventListener('click',()=>{
     window.AmyPriceAlertManager.openAddAlertDialog(prefill);
   }
 });
+function syncGoldTfButtons(activeTf){
+  document.querySelectorAll('.gold-tf-btn[data-gold-tf]').forEach(btn=>{
+    const isActive=btn.dataset.goldTf===activeTf;
+    btn.classList.toggle('is-active',isActive);
+    btn.setAttribute('aria-pressed',String(isActive));
+  });
+}
+document.querySelectorAll('.gold-tf-btn[data-gold-tf]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const targetTf=btn.dataset.goldTf;
+    const selectEl=$('timeframe');
+    if(!selectEl||!targetTf||selectEl.value===targetTf)return;
+    selectEl.value=targetTf;
+    syncGoldTfButtons(targetTf);
+    selectEl.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+});
 $('timeframe').addEventListener('change',()=>{
   const newTf=$('timeframe').value;
+  syncGoldTfButtons(newTf);
   const stored=getStoredCandles(newTf);
   if(stored&&stored.length>0){
     const closed=!isGoldMarketOpen(Date.now()/1000);
@@ -551,6 +569,7 @@ $('timeframe').addEventListener('change',()=>{
   updateCandleCountdown();
   chart?.reset();draw();refresh();
 });
+syncGoldTfButtons($('timeframe')?.value||'M15');
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     generation++;controller?.abort();clearTimeout(timer);clearTimeout(countdownTimer);

@@ -9,14 +9,17 @@ function loadAcademyRuntime() {
   ctx.globalThis = ctx;
   ctx.window = ctx;
   const files = [
-    'app/src/main/assets/apps/academy/data/levels-1-2.js',
-    'app/src/main/assets/apps/academy/data/levels-3-4.js',
-    'app/src/main/assets/apps/academy/data/levels-5-6.js',
-    'app/src/main/assets/apps/academy/data/curriculum.js',
-    'app/src/main/assets/apps/academy/js/diagram-engine.js'
+    'apps/academy/data/level-0.js',
+    'apps/academy/data/levels-1-2.js',
+    'apps/academy/data/levels-3-4.js',
+    'apps/academy/data/levels-5-6.js',
+    'apps/academy/data/curriculum.js',
+    'apps/academy/js/diagram-engine.js'
   ];
   for (const rel of files) {
-    const code = fs.readFileSync(path.resolve(process.cwd(), rel), 'utf8');
+    const p1 = path.resolve(process.cwd(), 'app/src/main/assets', rel);
+    const fullPath = fs.existsSync(p1) ? p1 : path.resolve(process.cwd(), rel);
+    const code = fs.readFileSync(fullPath, 'utf8');
     vm.runInContext(code, ctx, { filename: rel });
   }
   return {
@@ -27,15 +30,25 @@ function loadAcademyRuntime() {
 
 const { curriculum, diagrams } = loadAcademyRuntime();
 
-test('Academy curriculum has exactly 6 levels, 30 lessons, and 90 diagnostic quiz questions', () => {
-  assert.equal(curriculum.LEVELS.length, 6);
-  assert.equal(curriculum.LESSONS.length, 30);
+test('Academy curriculum has 7 levels (Level 0–6), 36 lessons, and 108 diagnostic quiz questions', () => {
+  assert.equal(curriculum.LEVELS.length, 7);
+  assert.equal(curriculum.LEVELS[0].id, 0);
+  assert.equal(curriculum.LESSONS.length, 36);
+
+  const level0Lessons = curriculum.getLessonsByLevel(0);
+  assert.equal(level0Lessons.length, 6);
+  assert.deepEqual(
+    Array.from(level0Lessons, l => curriculum.formatLessonNumber(l)),
+    ['0.1', '0.2', '0.3', '0.4', '0.5', '0.6']
+  );
 
   const ids = new Set();
   let totalQuestions = 0;
 
   curriculum.LESSONS.forEach((lesson, idx) => {
-    assert.equal(lesson.number, idx + 1, `Lesson ${lesson.id} should have sequential number ${idx + 1}`);
+    if (idx > 0) {
+      assert.ok(lesson.number > curriculum.LESSONS[idx - 1].number, `Lesson ${lesson.id} must be strictly ordered`);
+    }
     assert.ok(lesson.id && !ids.has(lesson.id), `Duplicate or missing lesson id: ${lesson.id}`);
     ids.add(lesson.id);
 
@@ -48,6 +61,14 @@ test('Academy curriculum has exactly 6 levels, 30 lessons, and 90 diagnostic qui
     assert.ok(lesson.xauScenario && Array.isArray(lesson.xauScenario.steps) && lesson.xauScenario.steps.length >= 2);
     assert.ok(Array.isArray(lesson.goldenRules) && lesson.goldenRules.length >= 1);
 
+    if (lesson.levelId === 0) {
+      assert.ok(lesson.practiceCta && lesson.practiceCta.label && lesson.practiceCta.href, `Level 0 lesson ${lesson.id} needs practiceCta`);
+      const targetPath = path.resolve(fs.existsSync(path.resolve(process.cwd(), 'app/src/main/assets/apps/academy')) ? path.resolve(process.cwd(), 'app/src/main/assets/apps/academy') : path.resolve(process.cwd(), 'apps/academy'), lesson.practiceCta.href);
+      assert.ok(fs.existsSync(targetPath), `Practice CTA href must resolve to existing file: ${lesson.practiceCta.href}`);
+    } else {
+      assert.equal(curriculum.formatLessonNumber(lesson), String(lesson.number).padStart(2, '0'));
+    }
+
     assert.ok(Array.isArray(lesson.quiz) && lesson.quiz.length === 3, `Lesson ${lesson.id} must have 3 quiz questions`);
     lesson.quiz.forEach((q, qIdx) => {
       assert.ok(q.question && q.question.length >= 10, `Empty question ${qIdx} in ${lesson.id}`);
@@ -58,7 +79,7 @@ test('Academy curriculum has exactly 6 levels, 30 lessons, and 90 diagnostic qui
     });
   });
 
-  assert.equal(totalQuestions, 90);
+  assert.equal(totalQuestions, 108);
 });
 
 test('Every lesson maps to an interactive multi-stage SVG diagram without NaN or undefined', () => {
@@ -78,16 +99,29 @@ test('Every lesson maps to an interactive multi-stage SVG diagram without NaN or
   }
 });
 
-test('Filtering, search, progress tracking, and quiz persistence logic behave deterministically', () => {
+test('Filtering, search, learner track, progress tracking, and quiz persistence logic behave deterministically', () => {
+  const lvl0 = curriculum.filterLessons({ levelId: 0 });
+  assert.equal(lvl0.length, 6);
+  assert.ok(lvl0.every(l => l.levelId === 0));
+
   const lvl4 = curriculum.filterLessons({ levelId: 4 });
   assert.equal(lvl4.length, 5);
   assert.ok(lvl4.every(l => l.levelId === 4));
+
+  const mt5Hits = curriculum.filterLessons({ query: 'Buy Limit' });
+  assert.ok(mt5Hits.some(l => l.id === 'panduan-mt5-lima-jenis-order'));
 
   const ifvgHits = curriculum.filterLessons({ query: 'IFVG' });
   assert.ok(ifvgHits.length >= 1);
   assert.ok(ifvgHits.some(l => l.diagramId === 'model-ifvg-flip'));
 
   let prog = curriculum.createEmptyProgress();
+  assert.equal(curriculum.normalizeTrack('beginner'), 'beginner');
+  assert.equal(curriculum.normalizeTrack('ICT'), 'ict');
+  assert.equal(curriculum.normalizeTrack('unknown'), null);
+  assert.equal(curriculum.getRecommendedLessonForTrack(prog, 'beginner').id, 'kenal-trading-broker-akun');
+  assert.equal(curriculum.getRecommendedLessonForTrack(prog, 'ict').id, 'logika-trading-probabilitas');
+
   // Failing quiz (1/3) records score but does not mark completed
   prog = curriculum.recordQuizAttempt(prog, curriculum.LESSONS[0].id, 1, 3);
   assert.equal(prog.completedIds.length, 0);
@@ -106,30 +140,27 @@ test('Filtering, search, progress tracking, and quiz persistence logic behave de
   assert.equal(prog.completedIds.length, 1);
 
   const stats = curriculum.computeProgressStats(prog);
-  assert.equal(stats.totalLessons, 30);
+  assert.equal(stats.totalLessons, 36);
   assert.equal(stats.completedCount, 1);
   assert.equal(stats.percent, 3);
+  assert.equal(stats.byLevel[0].levelId, 0);
   assert.equal(stats.byLevel[0].completed, 1);
-  assert.equal(stats.nextRecommendedLesson.number, 2);
+  assert.equal(stats.nextRecommendedLesson.id, 'bid-ask-spread-pips-gold');
 
-  const adj = curriculum.getAdjacentLessons(curriculum.LESSONS[15].id);
-  assert.equal(adj.prev.number, 15);
-  assert.equal(adj.next.number, 17);
+  // Adjacent navigation bridges seamlessly from Level 0 Bab 0.6 to Level 1 Bab 01
+  const bridgeAdj = curriculum.getAdjacentLessons('dasar-tren-sr-rencana-14-hari');
+  assert.equal(bridgeAdj.prev.id, 'membaca-chart-candlestick-nol');
+  assert.equal(bridgeAdj.next.id, 'logika-trading-probabilitas');
 });
 
-test('Amy Live local knowledge file is synced with all 30 new Academy lessons and valid deep-links', () => {
-  const candidatePaths = [
-    path.resolve(process.cwd(), 'apps/shared/amy-local-knowledge.js'),
-    path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js')
-  ];
-  const knowledgePath = candidatePaths.find(p => fs.existsSync(p));
-  assert.ok(knowledgePath, 'amy-local-knowledge.js must exist');
+test('Amy Live local knowledge file is synced with all 36 Academy lessons and valid deep-links', () => {
+  const knowledgePath = (fs.existsSync(path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js')) ? path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js') : path.resolve(process.cwd(), 'apps/shared/amy-local-knowledge.js'));
   const code = fs.readFileSync(knowledgePath, 'utf8');
   const sandbox = { window: {} };
   vm.runInNewContext(code, sandbox);
 
   assert.ok(Array.isArray(sandbox.window.AmyLocalKnowledge));
-  assert.equal(sandbox.window.AmyLocalKnowledge.length, 30);
+  assert.equal(sandbox.window.AmyLocalKnowledge.length, 36);
 
   sandbox.window.AmyLocalKnowledge.forEach((entry, idx) => {
     const lesson = curriculum.LESSONS[idx];

@@ -1,4 +1,5 @@
 import { getCandles } from '../lib/market-candle-store.mjs';
+import { inspectProviderPayload, buildProviderErrorBody } from '../lib/provider-error-guard.mjs';
 
 /**
  * Amy FX — Liquidity/Swing Tracker API
@@ -24,6 +25,16 @@ export default async function handler(req, res) {
       outputsize: safeSize,
       apiKey: process.env.TWELVEDATA_API_KEY
     });
+    const inspected = inspectProviderPayload(marketData);
+    if (!inspected.ok && inspected.code >= 400) {
+      return res.status(inspected.isRateLimited ? 429 : 502).json(
+        buildProviderErrorBody(inspected, {
+          currentPrice: null,
+          updated: new Date().toISOString(),
+          levels: []
+        })
+      );
+    }
     const candles = normalizeCandles(marketData?.values);
 
     if (!candles.length) {

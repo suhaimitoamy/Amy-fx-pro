@@ -1,3 +1,13 @@
+## 2.0.0-pro.473
+
+- feat(ai-studio): Sinkronisasi tuntas seluruh fitur & upgrade dari Google AI Studio:
+  * AMY Live Assistant Bridge (`amy-local-assistant.js`, `amy-gemini-live-bridge.js`, `dashboard-v2.js`): Ekposur kanonis `getLivePrice`, `buildMappingSnapshot`, `readJournals`, `calculateLot`, `isWeekendClosure`, dan snapshot read-only pasif Mapping Cockpit tanpa menyentuh engine.
+  * TwelveData Provider Error Guard (`lib/provider-error-guard.mjs`, `api/twelvedata.js`, `api/heatmap.js`, `api/liquidity.js`): Deteksi otomatis status error & HTTP 429 rate limit dengan fallback payload aman.
+  * Amy FX Academy Level 0 (`level-0.js`, `curriculum.js`, `diagram-engine.js`): 6 Bab Fondasi Pemula Nol (Bab 0.1-0.6) dengan 6 diagram SVG interaktif multi-tahap, pemilih jalur (Level 0 vs Level 1 ICT), dan jembatan praktik langsung (mematuhi GEMINI.md Bagian 9).
+  * UI Modern Paritas Peta Harga Beranda & Cockpit Mapping (`app.js`, `home-price-chart.js`, `styles.css`): Kontrol segmen timeframe [M15 | M5], tombol Alarm SVG modern, refresh, dan fullscreen.
+  * Retensi 180 Hari POI History (`mapping-history-engine.js`): Penyimpanan 6 bulan dengan arsip harian permanen & union-merge GitHub Cloud Sync.
+  * Pure Helper Modules (`cockpit-bridge-helpers.js`, `tests/pro-95-upgrades.test.mjs`): Jembatan POI Mapping ke Jurnal (`buildMappingJournalPrefill`), evaluasi lock berita (`evaluateMappingNewsLock`), evaluasi kesiapan pemula (`evaluateLevel0Readiness`), dan ringkasan 7 hari jurnal.
+
 ## 2.0.0-pro.472
 
 - feat(notification): Penggantian menyeluruh notifikasi HP Android & foreground Web Amy FX Pro ke sistem POI Mapping Cockpit (M5 & M15 FVG & OB).

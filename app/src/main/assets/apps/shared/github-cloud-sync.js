@@ -14,6 +14,9 @@
   const DB_NAME = "tradingLibraryManager.files";
   const DB_VERSION = 2;
   const META_STORE = "metadata";
+  const MAPPING_HISTORY_KEY = "amyfx.mapping.reaction_history.v1";
+  const MAPPING_MAX_POI_RECORDS = 3000;
+  const MAPPING_MAX_TIMELINE_EVENTS = 400;
 
   const REPO_SEGMENT_RE = /^[A-Za-z0-9_.-]{1,100}$/;
   const BRANCH_RE = /^[A-Za-z0-9._/-]{1,100}$/;
@@ -302,6 +305,110 @@
     return copy;
   }
 
+  function sanitizeMappingHistoryForCloud(raw) {
+    if (!raw || typeof raw !== "object") {
+      return { version: 2, poiRecords: [], timelineEvents: [], dailyArchive: {} };
+    }
+    const poiRecords = Array.isArray(raw.poiRecords)
+      ? raw.poiRecords
+          .filter((r) => r && typeof r === "object" && r.id && Number.isFinite(Number(r.touchedAt)))
+          .slice(0, MAPPING_MAX_POI_RECORDS)
+          .map((r) => {
+            const copy = stripSecretsDeep(r);
+            delete copy.touches;
+            return copy;
+          })
+      : [];
+    const timelineEvents = Array.isArray(raw.timelineEvents)
+      ? raw.timelineEvents
+          .filter((e) => e && typeof e === "object" && e.id && Number.isFinite(Number(e.ts)))
+          .slice(0, MAPPING_MAX_TIMELINE_EVENTS)
+          .map((e) => stripSecretsDeep(e))
+      : [];
+    const dailyArchive = {};
+    if (raw.dailyArchive && typeof raw.dailyArchive === "object" && !Array.isArray(raw.dailyArchive)) {
+      Object.keys(raw.dailyArchive).forEach((dateKey) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return;
+        const entry = raw.dailyArchive[dateKey];
+        if (entry && typeof entry === "object" && Number(entry.total) > 0) {
+          dailyArchive[dateKey] = stripSecretsDeep(entry);
+        }
+      });
+    }
+    return {
+      version: 2,
+      poiRecords,
+      timelineEvents,
+      dailyArchive
+    };
+  }
+
+  function mergeMappingHistorySnapshots(localRaw, remoteRaw) {
+    const local = sanitizeMappingHistoryForCloud(localRaw);
+    const remote = sanitizeMappingHistoryForCloud(remoteRaw);
+    const statusRank = { TESTING: 1, REACTING: 2, TP1_HIT: 3, SL_HIT: 4, TP2_HIT: 5 };
+    const poiMap = new Map();
+
+    const upsertPoi = (rec) => {
+      if (!rec || !rec.id || !Number.isFinite(Number(rec.touchedAt))) return;
+      const prev = poiMap.get(rec.id);
+      if (!prev) {
+        poiMap.set(rec.id, { ...rec });
+        return;
+      }
+      const keepLive = prev.source === "LIVE" && rec.source !== "LIVE";
+      const prevRank = statusRank[prev.status] || 0;
+      const nextRank = statusRank[rec.status] || 0;
+      const merged = keepLive ? { ...prev } : { ...prev, ...rec };
+      if (prevRank > nextRank) {
+        merged.status = prev.status;
+        merged.resolvedAt = prev.resolvedAt;
+      } else if (nextRank > prevRank) {
+        merged.status = rec.status;
+        merged.resolvedAt = rec.resolvedAt;
+      }
+      merged.maxFavorable = Math.max(Number(prev.maxFavorable) || 0, Number(rec.maxFavorable) || 0);
+      merged.touchCount = Math.max(Number(prev.touchCount) || 1, Number(rec.touchCount) || 1);
+      merged.ceTouched = Boolean(prev.ceTouched || rec.ceTouched);
+      merged.lastTouchAt = Math.max(Number(prev.lastTouchAt) || 0, Number(rec.lastTouchAt) || 0) || merged.touchedAt;
+      if (prev.source === "LIVE") merged.source = "LIVE";
+      poiMap.set(rec.id, merged);
+    };
+
+    local.poiRecords.forEach(upsertPoi);
+    remote.poiRecords.forEach(upsertPoi);
+
+    const evMap = new Map();
+    const upsertEv = (ev) => {
+      if (!ev || !ev.id || !Number.isFinite(Number(ev.ts))) return;
+      const prev = evMap.get(ev.id);
+      if (!prev || (prev.source !== "LIVE" && ev.source === "LIVE")) {
+        evMap.set(ev.id, { ...ev });
+      }
+    };
+    local.timelineEvents.forEach(upsertEv);
+    remote.timelineEvents.forEach(upsertEv);
+
+    const dailyArchive = { ...local.dailyArchive };
+    Object.keys(remote.dailyArchive).forEach((dateKey) => {
+      const a = dailyArchive[dateKey];
+      const b = remote.dailyArchive[dateKey];
+      if (!a) {
+        dailyArchive[dateKey] = b;
+      } else if ((Number(b.total) || 0) > (Number(a.total) || 0) ||
+        ((Number(b.total) || 0) === (Number(a.total) || 0) && (Number(b.resolved) || 0) >= (Number(a.resolved) || 0))) {
+        dailyArchive[dateKey] = b;
+      }
+    });
+
+    return {
+      version: 2,
+      poiRecords: [...poiMap.values()].sort((a, b) => Number(b.touchedAt) - Number(a.touchedAt)).slice(0, MAPPING_MAX_POI_RECORDS),
+      timelineEvents: [...evMap.values()].sort((a, b) => Number(b.ts) - Number(a.ts)).slice(0, MAPPING_MAX_TIMELINE_EVENTS),
+      dailyArchive
+    };
+  }
+
   function buildSnapshot(payload, meta = {}) {
     const safePayload = payload && typeof payload === "object" ? payload : {};
     const sanitizedJournals = Array.isArray(safePayload.journals)
@@ -342,7 +449,8 @@
       habits: Array.isArray(safePayload.habits) ? stripSecretsDeep(safePayload.habits) : [],
       completedHabits: safePayload.completedHabits && typeof safePayload.completedHabits === "object"
         ? stripSecretsDeep(safePayload.completedHabits)
-        : {}
+        : {},
+      mappingReactionHistory: sanitizeMappingHistoryForCloud(safePayload.mappingReactionHistory)
     };
 
     return {
@@ -495,7 +603,8 @@
       mediaWatched: safeReadJson(storage, "amy_media_watched_v1", []),
       exportedBacktestIds: safeReadJson(storage, "amy.backtest.exportedJournalIds.v1", []),
       habits: safeReadJson(storage, "amy_habits_v2", []),
-      completedHabits: safeReadJson(storage, "amy_completed_dates_v2", {})
+      completedHabits: safeReadJson(storage, "amy_completed_dates_v2", {}),
+      mappingReactionHistory: safeReadJson(storage, MAPPING_HISTORY_KEY, null)
     };
   }
 
@@ -534,6 +643,22 @@
       safeWriteJson(storage, "amy_completed_dates_v2", safe.completedHabits);
     }
 
+    const remoteMapping = safe.mappingReactionHistory;
+    let mergedMappingCount = 0;
+    let mergedMappingDays = 0;
+    if (
+      remoteMapping &&
+      (remoteMapping.poiRecords.length > 0 ||
+        remoteMapping.timelineEvents.length > 0 ||
+        Object.keys(remoteMapping.dailyArchive || {}).length > 0)
+    ) {
+      const localMapping = safeReadJson(storage, MAPPING_HISTORY_KEY, null);
+      const mergedMapping = mergeMappingHistorySnapshots(localMapping, remoteMapping);
+      safeWriteJson(storage, MAPPING_HISTORY_KEY, mergedMapping);
+      mergedMappingCount = mergedMapping.poiRecords.length;
+      mergedMappingDays = Object.keys(mergedMapping.dailyArchive || {}).length;
+    }
+
     const nowIso = new Date().toISOString();
     await writeIdbMetadataBatch([
       { id: "journals.v2", value: safe.journals, updatedAt: nowIso },
@@ -542,7 +667,9 @@
 
     return {
       journalCount: safe.journals.length,
-      noteCount: safe.personalNotes.length
+      noteCount: safe.personalNotes.length,
+      mappingPoiCount: mergedMappingCount,
+      mappingDayCount: mergedMappingDays
     };
   }
 
@@ -946,6 +1073,8 @@
     saveConfig,
     disconnectConfig,
     sanitizeJournalForCloud,
+    sanitizeMappingHistoryForCloud,
+    mergeMappingHistorySnapshots,
     buildSnapshot,
     validateSnapshot,
     detectPushConflict,

@@ -15,12 +15,25 @@ export function deviceHeaders(){
   return {'x-amy-device-token':token};
 }
 function emit(){window.dispatchEvent(new Event('amy-method-toggles'));document.querySelectorAll('[data-method-sync]').forEach(node=>{node.textContent=message;});}
+function shouldSyncRemotePreferences(){
+  if(typeof window==='undefined')return false;
+  if(window.Android?.getScalperDeviceToken)return true;
+  const host=String(window.location?.hostname||'').toLowerCase();
+  if(!host||host==='localhost'||host==='127.0.0.1'||host.endsWith('.run.app'))return false;
+  return true;
+}
 async function request(method,settings){
   const response=await fetch(ENDPOINT,{method,headers:{...deviceHeaders(),'Content-Type':'application/json'},...(settings?{body:JSON.stringify({enabledDrivers:settings})}:{}),cache:'no-store'});
   const data=await response.json();if(!response.ok||!data.ok)throw new Error('server belum tersinkron');return data;
 }
 export function initializeMethods(){
   if(ready)return ready;
+  if(!shouldSyncRemotePreferences()){
+    ready=Promise.resolve();
+    message='';
+    emit();
+    return ready;
+  }
   ready=(async()=>{
     try{
       const remote=await request('GET');
@@ -36,6 +49,7 @@ export function toggleMethod(id){
   const settings=read();settings[id]=!methodEnabled(id);
   try{localStorage.setItem(KEY,JSON.stringify(settings));localStorage.setItem(DIRTY,'1');}
   catch(_){message='Gagal menyimpan pengaturan perangkat.';emit();return;}
+  if(!shouldSyncRemotePreferences()){message='';emit();return;}
   message='Menyinkronkan…';emit();
   queue=queue.catch(()=>{}).then(async()=>{
     const snapshot=JSON.stringify(read());
