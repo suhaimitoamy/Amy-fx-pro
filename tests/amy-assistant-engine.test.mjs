@@ -228,7 +228,7 @@ test('AmyLocalAssistant exports all 4 repaired bridge contracts (getLivePrice, b
   assert.equal(typeof api.riskCalc('Modal $1000 risiko 1% SL 50 pips'), 'string');
 });
 
-test('AmyLocalAssistant syncs Academy 36-bab / Level 0 readiness, Practice 100-case v3 mastery, Calendar dateIso, and Weekend Guard', () => {
+test('AmyLocalAssistant syncs Academy 43-modul Mastery Path, Practice 100-case v3 mastery, Calendar dateIso, and Weekend Guard', () => {
   const futureIso = new Date(Date.now() + 90 * 60000).toISOString();
   const { api } = loadAmyLocalAssistantSandbox({
     amy_academy_progress_v2: {
@@ -243,8 +243,9 @@ test('AmyLocalAssistant syncs Academy 36-bab / Level 0 readiness, Practice 100-c
       ],
       quizScores: {
         'kenal-trading-broker-akun': { correct: 3, total: 3, passed: true },
-        'bid-ask-spread-pips-gold': { correct: 2, total: 3, passed: true }
-      }
+        'bid-ask-spread-pips-gold': { correct: 3, total: 3, passed: true }
+      },
+      xp: 200
     },
     amy_academy_track_v1: 'beginner',
     amy_academy_bookmarks_v1: ['lot-leverage-margin-equity'],
@@ -261,9 +262,9 @@ test('AmyLocalAssistant syncs Academy 36-bab / Level 0 readiness, Practice 100-c
   });
 
   const acdText = api.academy();
-  assert.ok(acdText.includes('7/36 bab'), 'Should count completedIds out of 36');
-  assert.ok(acdText.includes('6/6 bab (SIAP NAIK KE LEVEL 01 ICT)'), 'Should detect full Level 0 readiness');
-  assert.ok(acdText.includes('Pemula Level 0'), 'Should reflect active track');
+  assert.ok(acdText.includes('7/43 modul'), 'Should count completedIds out of 43');
+  assert.ok(acdText.includes('6/6 modul (SIAP MASUK INTI ICT)'), 'Should detect full foundation readiness');
+  assert.ok(acdText.includes('200 XP'), 'Should display earned Mastery XP');
   assert.ok(acdText.includes('2/2 lulus'), 'Should report quiz pass rate');
 
   const pracText = api.practice();

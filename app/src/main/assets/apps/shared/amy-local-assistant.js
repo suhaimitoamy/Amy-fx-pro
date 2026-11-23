@@ -30,7 +30,7 @@
     'membaca-chart-candlestick-nol',
     'dasar-tren-sr-rencana-14-hari'
   ];
-  const TOTAL_ACADEMY_LESSONS=36;
+  const TOTAL_ACADEMY_LESSONS=43;
   const TOTAL_PRACTICE_CASES=100;
   const norm=s=>String(s??'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9/\s]/g,' ').replace(/\s+/g,' ').trim();
   const list=v=>Array.isArray(v)?v:[];
@@ -428,6 +428,7 @@
 
     const doneSet=new Set(completedIds);
     const level0Done=LEVEL0_IDS.filter(id=>doneSet.has(id)).length;
+    const placementPassed=Boolean(progV2.placementPassed);
     const completedCount=doneSet.size||new Set(readTopics).size;
     const pct=Math.min(100,Math.round((completedCount/TOTAL_ACADEMY_LESSONS)*100));
 
@@ -436,15 +437,16 @@
     const quizCorrect=quizVals.reduce((s,q)=>s+Number(q?.correct||0),0);
     const quizTotal=quizVals.reduce((s,q)=>s+Number(q?.total||0),0);
 
+    const foundationReady=placementPassed||level0Done===LEVEL0_IDS.length;
     const lines=[
-      `Progres Amy FX Academy (7 Level / ${TOTAL_ACADEMY_LESSONS} Bab):`,
-      `• Selesai: ${completedCount}/${TOTAL_ACADEMY_LESSONS} bab (${pct}%) | Jalur Aktif: ${track==='beginner'?'Pemula Level 0':'ICT Scalper'} | Bookmark: ${bookmarks.length}`,
-      `• Kesiapan Level 0 (Pra-Trading & Dasar MT5): ${level0Done}/${LEVEL0_IDS.length} bab (${level0Done===LEVEL0_IDS.length?'SIAP NAIK KE LEVEL 01 ICT':'Masih proses fondasi pemula'})`,
+      `Progres Amy FX Academy (Jalur Penguasaan ${TOTAL_ACADEMY_LESSONS} Modul ICT · Sistem Kunci 80%):`,
+      `• Dikuasai: ${completedCount}/${TOTAL_ACADEMY_LESSONS} modul (${pct}%) | Bookmark: ${bookmarks.length}${progV2.xp?` | ${number(progV2.xp)} XP`:''}`,
+      `• Fondasi Pra-Trading & MT5 (Modul 01–06): ${placementPassed?'LULUS TES LONCAT (4/4)':`${level0Done}/${LEVEL0_IDS.length} modul`} (${foundationReady?'SIAP MASUK INTI ICT':'Masih proses fondasi pemula'})`,
       `• Terakhir dibaca: ${last.title||raw('amy_last_opened_title')||'belum tercatat'}${last.headingText?` — ${last.headingText} (${number(last.progress)}%)`:''}`
     ];
     if(quizVals.length){
       const acc=quizTotal>0?Math.round((quizCorrect/quizTotal)*100):0;
-      lines.push(`• Kuis Bab: ${quizPassed}/${quizVals.length} lulus · Akurasi ${quizCorrect}/${quizTotal} (${acc}%)`);
+      lines.push(`• Uji Paham Modul: ${quizPassed}/${quizVals.length} lulus · Akurasi ${quizCorrect}/${quizTotal} (${acc}%)`);
     }
     const pracLine=practice();
     if(pracLine)lines.push(pracLine);

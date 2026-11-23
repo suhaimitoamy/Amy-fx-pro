@@ -1423,6 +1423,341 @@
           ]
         }
       ]
+    },
+
+    // ── MASTERY ICT LANJUTAN & MAPPING MANDIRI (7 BLUEPRINT BARU) ──────────
+    'breaker-mitigation-unicorn': {
+      title: 'Breaker Block vs Mitigation Block & Konfluensi ICT Unicorn',
+      pairTag: 'XAU/USD · BREAKER & UNICORN',
+      priceLabels: ['2.656', '2.648', '2.636'],
+      stages: [
+        {
+          label: '1. Sweep → Jebol Struktur',
+          caption: 'Harga menyapu BSL (puncak baru) lalu langsung dibanting menembus Swing Low dengan Displacement keras — melahirkan Bearish Breaker Block.',
+          zones: [
+            { x1: 28, x2: 92, y1: 60, y2: 72, tone: 'ob', label: 'BEARISH BREAKER BLOCK', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 8, x2: 52, y1: 80, y2: 80, style: 'dashed', tone: 'sweep', label: 'BSL (Swept)', labelSide: 'left' },
+            { x1: 22, x2: 92, y1: 48, y2: 48, style: 'dashed', tone: 'bear', label: 'MSS Jebol', labelSide: 'left' }
+          ],
+          candles: [
+            [12, 56, 78, 54, 74], [20, 74, 76, 50, 52], [28, 52, 62, 48, 60],
+            [36, 60, 73, 58, 72, 'gold'], [44, 72, 87, 70, 74, 'sweep'],
+            [52, 74, 75, 42, 44, 'bear'], [60, 44, 46, 30, 32]
+          ],
+          callouts: [
+            { x: 44, y: 92, text: 'Sweep BSL (Syarat Breaker)', tone: 'sweep' }
+          ]
+        },
+        {
+          label: '2. Irisan ICT Unicorn',
+          caption: 'Saat dorongan jatuh meninggalkan SIBI (FVG) yang bertumpuk langsung di atas kotak Breaker Block, area irisannya adalah Zona Unicorn berprobabilitas tertinggi.',
+          zones: [
+            { x1: 28, x2: 92, y1: 60, y2: 72, tone: 'ob', label: 'BREAKER', labelPos: 'tr' },
+            { x1: 52, x2: 92, y1: 54, y2: 68, tone: 'fvg', label: 'UNICORN (BB + FVG)', labelPos: 'tl' }
+          ],
+          lines: [
+            { x1: 52, x2: 92, y1: 88, y2: 88, style: 'solid', tone: 'sl', label: 'SL di Atas Sweep', labelSide: 'right' }
+          ],
+          candles: [
+            [12, 56, 78, 54, 74], [20, 74, 76, 50, 52], [36, 60, 73, 58, 72, 'gold'],
+            [44, 72, 87, 70, 74], [52, 74, 75, 40, 42, 'bear'], [60, 42, 45, 34, 38],
+            [68, 38, 65, 36, 61], [76, 61, 66, 44, 46, 'bear'], [84, 46, 48, 18, 22, 'bear']
+          ],
+          arrows: [
+            { x1: 72, y1: 64, x2: 86, y2: 20, tone: 'bear', label: 'Entry Unicorn → TP' }
+          ],
+          callouts: [
+            { x: 68, y: 78, text: 'Retest Irisan Breaker + FVG', tone: 'gold' }
+          ]
+        },
+        {
+          label: '3. Beda Mitigation Block',
+          caption: 'Pada Mitigation Block, puncak kedua GAGAL menyapu High lama (membentuk Lower High) sebelum jebol turun. Tetap valid, namun wajib disertai FVG searah H1.',
+          zones: [
+            { x1: 34, x2: 92, y1: 56, y2: 68, tone: 'cyan', label: 'MITIGATION BLOCK (TANPA SWEEP)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 8, x2: 56, y1: 84, y2: 84, style: 'dotted', tone: 'muted', label: 'High Lama (Tidak Disapu)', labelSide: 'left' }
+          ],
+          candles: [
+            [14, 52, 84, 50, 78], [24, 78, 80, 46, 48], [34, 48, 68, 46, 66, 'cyan'],
+            [44, 66, 74, 62, 64], [54, 64, 65, 34, 36, 'bear'], [66, 36, 60, 34, 58],
+            [78, 58, 60, 22, 24, 'bear']
+          ],
+          callouts: [
+            { x: 44, y: 79, text: 'Lower High (Gagal Sweep)', tone: 'cyan' }
+          ]
+        }
+      ]
+    },
+
+    'bpr-nwog-ndog': {
+      title: 'Balanced Price Range (BPR), Volume Imbalance & NWOG/NDOG',
+      pairTag: 'XAU/USD · BPR / VI / NWOG',
+      priceLabels: ['2.670', '2.662', '2.654'],
+      stages: [
+        {
+          label: '1. Irisan Bearish BPR',
+          caption: 'Harga naik cepat meninggalkan BISI lalu langsung dibanting turun meninggalkan SIBI di rentang yang sama — irisan keduanya adalah dinding kaca BPR.',
+          zones: [
+            { x1: 20, x2: 52, y1: 42, y2: 64, tone: 'bull', label: 'BISI (Naik)', labelPos: 'tl' },
+            { x1: 44, x2: 92, y1: 48, y2: 70, tone: 'bear', label: 'SIBI (Turun)', labelPos: 'tr' },
+            { x1: 44, x2: 92, y1: 48, y2: 64, tone: 'gold', label: 'ZONA BPR (OVERLAP)', labelPos: 'tl' }
+          ],
+          candles: [
+            [16, 26, 42, 24, 40], [26, 40, 72, 38, 70, 'bull'], [36, 70, 82, 64, 78],
+            [46, 78, 80, 42, 44, 'bear'], [56, 44, 46, 28, 30], [68, 30, 56, 28, 52],
+            [78, 52, 55, 22, 24, 'bear'], [86, 24, 26, 14, 16, 'bear']
+          ],
+          callouts: [
+            { x: 68, y: 74, text: 'Retest BPR → Pantulan Keras', tone: 'gold' }
+          ]
+        },
+        {
+          label: '2. NWOG & Volume Imbalance',
+          caption: 'Tandai NWOG (Close Jumat → Open Senin) beserta 50% CE-nya. Saat struktur reversal terbentuk di Killzone, NWOG bekerja sebagai magnet DOL utama sepanjang minggu.',
+          zones: [
+            { x1: 8, x2: 92, y1: 22, y2: 36, tone: 'fvg', label: 'NWOG (Close Jumat – Open Senin)', labelPos: 'tr' },
+            { x1: 48, x2: 76, y1: 60, y2: 65, tone: 'gold', label: 'VI (Celah Antar-Body)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 8, x2: 92, y1: 29, y2: 29, style: 'dashed', tone: 'gold', label: '50% CE NWOG', labelSide: 'left' }
+          ],
+          candles: [
+            [14, 16, 24, 14, 22], [28, 36, 54, 34, 52], [38, 52, 76, 50, 74],
+            [48, 74, 78, 64, 65, 'bear'], [58, 60, 66, 44, 46, 'bear'],
+            [70, 46, 61, 44, 58], [80, 58, 59, 28, 30, 'bear'], [88, 30, 32, 20, 22, 'bear']
+          ],
+          arrows: [
+            { x1: 72, y1: 60, x2: 86, y2: 26, tone: 'cyan', label: 'Magnet DOL: NWOG' }
+          ]
+        }
+      ]
+    },
+
+    'smt-divergence-gold': {
+      title: 'SMT Divergence: Retakan Korelasi XAU/USD vs XAG/USD & DXY',
+      pairTag: 'XAU vs XAG / DXY · SMT',
+      priceLabels: ['High', 'Mid', 'Low'],
+      stages: [
+        {
+          label: '1. Bullish SMT (Gold vs Silver)',
+          caption: 'Pada jam Killzone yang sama di PDL: XAU/USD menyapu SSL membuat Lower Low, sementara XAG/USD (Silver) gagal turun lebih rendah (Higher Low) → sidik jari manipulasi beli!',
+          zones: [
+            { x1: 8, x2: 48, y1: 12, y2: 88, tone: 'gold', label: 'XAU/USD (GOLD)', labelPos: 'tl' },
+            { x1: 52, x2: 92, y1: 12, y2: 88, tone: 'cyan', label: 'XAG/USD (SILVER)', labelPos: 'tl' }
+          ],
+          lines: [
+            { x1: 12, x2: 44, y1: 30, y2: 18, style: 'dashed', tone: 'sweep', label: 'LL (Sweep SSL)', labelSide: 'left' },
+            { x1: 56, x2: 88, y1: 24, y2: 36, style: 'dashed', tone: 'bull', label: 'HL (Menolak Turun)', labelSide: 'right' }
+          ],
+          candles: [
+            [16, 60, 64, 28, 32], [24, 32, 54, 30, 50], [32, 50, 52, 16, 22, 'sweep'], [40, 22, 66, 20, 62, 'bull'],
+            [60, 58, 62, 22, 26], [68, 26, 52, 24, 48], [76, 48, 50, 34, 38, 'bull'], [84, 38, 72, 36, 70, 'bull']
+          ],
+          callouts: [
+            { x: 50, y: 92, text: 'Timestamp Identik di Killzone → Bullish SMT Valid!', tone: 'bull' }
+          ]
+        },
+        {
+          label: '2. Bearish SMT (Gold vs DXY)',
+          caption: 'Korelasi terbalik: saat Gold cetak Higher High menyapu PDH, seharusnya DXY cetak Lower Low. Ketika DXY justru cetak Higher Low, Dolar mulai menguat & Gold siap banting turun!',
+          zones: [
+            { x1: 8, x2: 48, y1: 12, y2: 88, tone: 'gold', label: 'XAU/USD (GOLD)', labelPos: 'tl' },
+            { x1: 52, x2: 92, y1: 12, y2: 88, tone: 'bear', label: 'DXY (INDEKS DOLAR)', labelPos: 'tl' }
+          ],
+          lines: [
+            { x1: 12, x2: 44, y1: 68, y2: 82, style: 'dashed', tone: 'sweep', label: 'HH (Sweep BSL)', labelSide: 'left' },
+            { x1: 56, x2: 88, y1: 22, y2: 36, style: 'dashed', tone: 'bear', label: 'HL (Gagal LL)', labelSide: 'right' }
+          ],
+          candles: [
+            [16, 40, 70, 38, 66], [24, 66, 68, 48, 50], [32, 50, 84, 48, 78, 'sweep'], [40, 78, 80, 34, 38, 'bear'],
+            [60, 54, 56, 20, 24], [68, 24, 48, 22, 46], [76, 46, 48, 34, 38, 'bull'], [84, 38, 72, 36, 70, 'bull']
+          ],
+          callouts: [
+            { x: 50, y: 92, text: 'DXY Gagal Turun = Bearish SMT untuk Gold!', tone: 'bear' }
+          ]
+        }
+      ]
+    },
+
+    'mmxm-market-maker-model': {
+      title: 'Market Maker Buy Model (MMBM) — Siklus Kurva Lengkap',
+      pairTag: 'XAU/USD · MMXM CURVE',
+      priceLabels: ['Terminus', 'Mid', 'HTF POI'],
+      stages: [
+        {
+          label: '1. Sisi Kiri (Engineering)',
+          caption: 'Dari Original Consolidation (OC), harga turun bertahap menanam tangga Swing High (BSL) menuju HTF PD Array di dasar kurva.',
+          zones: [
+            { x1: 8, x2: 28, y1: 72, y2: 86, tone: 'asia', label: 'ORIGINAL CONSOLIDATION', labelPos: 'tl' },
+            { x1: 36, x2: 64, y1: 10, y2: 24, tone: 'bull', label: 'HTF PD ARRAY (PDL/H1 OB)', labelPos: 'tl' }
+          ],
+          candles: [
+            [12, 76, 84, 73, 81], [18, 81, 85, 74, 76], [24, 76, 82, 72, 74],
+            [32, 74, 75, 54, 56], [38, 56, 66, 54, 63], [44, 63, 64, 38, 40],
+            [50, 40, 48, 38, 46], [56, 46, 47, 14, 18, 'sweep']
+          ],
+          callouts: [
+            { x: 40, y: 70, text: 'Tangga BSL #1', tone: 'muted' },
+            { x: 52, y: 53, text: 'Tangga BSL #2', tone: 'muted' }
+          ]
+        },
+        {
+          label: '2. SMR → Re-Accumulation → LRLR',
+          caption: 'Di HTF PD Array terjadi Smart Money Reversal (SMR). Harga berpindah ke Buy-Side of the Curve, jeda 1× Re-Accumulation, lalu melesat cepat (LRLR) menyapu Terminus (OC)!',
+          zones: [
+            { x1: 8, x2: 92, y1: 76, y2: 86, tone: 'tp', label: 'TERMINUS (TARGET AKHIR OC)', labelPos: 'tr' },
+            { x1: 36, x2: 62, y1: 10, y2: 24, tone: 'bull', label: 'SMR (TAHAP 1)', labelPos: 'tl' },
+            { x1: 64, x2: 78, y1: 44, y2: 56, tone: 'gold', label: 'RE-ACC (TAHAP 2)', labelPos: 'tl' }
+          ],
+          candles: [
+            [12, 76, 84, 73, 81], [22, 81, 82, 72, 74], [32, 74, 75, 52, 56],
+            [40, 56, 64, 42, 44], [50, 44, 46, 14, 22, 'sweep'], [58, 22, 48, 20, 46, 'bull'],
+            [66, 46, 54, 44, 50], [72, 50, 55, 45, 53, 'gold'],
+            [80, 53, 74, 52, 72, 'bull'], [88, 72, 92, 70, 90, 'bull']
+          ],
+          arrows: [
+            { x1: 54, y1: 22, x2: 88, y2: 88, tone: 'bull', label: 'Buy-Side LRLR' }
+          ],
+          callouts: [
+            { x: 74, y: 34, text: 'Bearish FVG Kiri Ditembus Mudah', tone: 'bull' }
+          ]
+        }
+      ]
+    },
+
+    'ict-macros-weekly-ipda': {
+      title: 'ICT Macros (:50–:10), Weekly Profile & IPDA 20/40/60 Hari',
+      pairTag: 'WITA (UTC+8) · TIME ENGINE',
+      priceLabels: ['Ekspansi', 'Mid', 'Akumulasi'],
+      stages: [
+        {
+          label: '1. Weekly Profile (Senin–Jumat)',
+          caption: 'Classic Bullish Expansion: Senin akumulasi, Selasa/Rabu London membentuk Low of the Week (manipulasi), Rabu–Kamis ekspansi penuh, Jumat waspada TGIF pullback 20–30%.',
+          bars: [
+            { x1: 6, x2: 22, y1: 36, y2: 54, tone: 'asia', label: 'Senin', sub: 'Akumulasi' },
+            { x1: 25, x2: 41, y1: 16, y2: 48, tone: 'sweep', label: 'Selasa', sub: 'Low of Week' },
+            { x1: 44, x2: 60, y1: 32, y2: 76, tone: 'bull', label: 'Rabu', sub: 'Ekspansi 1' },
+            { x1: 63, x2: 79, y1: 52, y2: 92, tone: 'bull', label: 'Kamis', sub: 'Puncak Tren' },
+            { x1: 82, x2: 95, y1: 64, y2: 86, tone: 'gold', label: 'Jumat', sub: 'TGIF -25%' }
+          ],
+          callouts: [
+            { x: 52, y: 8, text: 'Fokus Panen Utama: Selasa–Kamis · Jumat Waspada TGIF', tone: 'gold' }
+          ]
+        },
+        {
+          label: '2. Jendela ICT Macro WITA',
+          caption: 'Di dalam Killzone NY AM, mesin algoritma aktif tajam pada jendela 20 menit (:50–:10), terutama NY Open Macro 20:50–21:10 dan 21:50–22:10 WITA.',
+          zones: [
+            { x1: 18, x2: 34, y1: 12, y2: 88, tone: 'killzone', label: '20:50–21:10', labelPos: 'tl' },
+            { x1: 58, x2: 74, y1: 12, y2: 88, tone: 'gold', label: '21:50–22:10', labelPos: 'tl' }
+          ],
+          candles: [
+            [10, 46, 52, 44, 48], [16, 48, 50, 42, 44], [24, 44, 45, 26, 30, 'sweep'],
+            [32, 30, 58, 29, 55, 'bull'], [44, 55, 60, 48, 50], [54, 50, 54, 45, 47],
+            [64, 47, 74, 46, 72, 'bull'], [74, 72, 86, 70, 84, 'bull'], [86, 84, 90, 80, 88]
+          ],
+          callouts: [
+            { x: 26, y: 18, text: 'Macro 1: Sweep', tone: 'sweep' },
+            { x: 66, y: 18, text: 'Macro 2: Ekspansi DOL', tone: 'bull' }
+          ]
+        }
+      ]
+    },
+
+    'stdev-crt-profiling': {
+      title: 'Standard Deviation (-1/-2/-2.5/-4) & Profil Candle CRT / OLHC',
+      pairTag: 'XAU/USD · STD DEV & CRT',
+      priceLabels: ['-2.5 SD', '-1.0 SD', 'Origin'],
+      stages: [
+        {
+          label: '1. Proyeksi Std Dev (ATH)',
+          caption: 'Saat Gold di All-Time High tanpa swing di kiri, tarik Fib dari Manipulation Leg: -1.0 SD = Partial/BEP, -2.0 s.d. -2.5 SD = Sweet Spot TP Utama!',
+          zones: [
+            { x1: 16, x2: 36, y1: 16, y2: 36, tone: 'sweep', label: 'MANIPULATION LEG', labelPos: 'tl' },
+            { x1: 42, x2: 92, y1: 74, y2: 86, tone: 'tp', label: 'SWEET SPOT TP (-2.0 s.d. -2.5 SD)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 16, x2: 92, y1: 16, y2: 16, style: 'solid', tone: 'sl', label: '1.0 (Low Manipulasi)', labelSide: 'right' },
+            { x1: 16, x2: 92, y1: 36, y2: 36, style: 'solid', tone: 'muted', label: '0.0 (Origin)', labelSide: 'right' },
+            { x1: 36, x2: 92, y1: 56, y2: 56, style: 'dashed', tone: 'cyan', label: '-1.0 SD (Partial/BEP)', labelSide: 'right' },
+            { x1: 36, x2: 92, y1: 76, y2: 76, style: 'dashed', tone: 'bull', label: '-2.0 SD (Target Utama)', labelSide: 'right' }
+          ],
+          candles: [
+            [18, 36, 38, 24, 26], [26, 26, 28, 16, 20, 'sweep'], [36, 20, 44, 19, 42, 'bull'],
+            [46, 42, 44, 34, 38], [56, 38, 58, 37, 56, 'bull'], [66, 56, 62, 50, 54],
+            [76, 54, 82, 53, 80, 'bull'], [86, 80, 86, 72, 74]
+          ]
+        },
+        {
+          label: '2. Profil Candle OLHC & CRT',
+          caption: 'Candle Bullish H4/Daily sehat mengikuti OLHC: buka di Open → turun menyapu Low Candle 1 (sumbu manipulasi) lalu body tutup kembali di dalam range → Candle 3 melesat ke High!',
+          zones: [
+            { x1: 16, x2: 88, y1: 34, y2: 74, tone: 'asia', label: 'RANGE CANDLE 1 (CRT)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 14, x2: 90, y1: 74, y2: 74, style: 'dashed', tone: 'tp', label: 'Target CRT (High C1)', labelSide: 'left' },
+            { x1: 14, x2: 90, y1: 34, y2: 34, style: 'dashed', tone: 'sweep', label: 'Low C1 (Disapu C2)', labelSide: 'left' }
+          ],
+          candles: [
+            [26, 42, 74, 34, 68, 'cyan'],
+            [50, 62, 66, 18, 48, 'sweep'],
+            [74, 48, 86, 44, 82, 'bull']
+          ],
+          callouts: [
+            { x: 26, y: 18, text: 'C1: Range', tone: 'cyan' },
+            { x: 50, y: 10, text: 'C2: Purge & Tutup di Dalam', tone: 'sweep' },
+            { x: 74, y: 92, text: 'C3: Ekspansi OLHC', tone: 'bull' }
+          ]
+        }
+      ]
+    },
+
+    'capstone-blank-chart-mapping': {
+      title: 'Protokol Mapping Mandiri 6 Langkah (Chart Polos Tanpa Indikator)',
+      pairTag: 'CAPSTONE · TOP-DOWN 10 MENIT',
+      priceLabels: ['DOL', '50% EQ', 'POI'],
+      stages: [
+        {
+          label: '1. Alur Top-Down 6 Langkah',
+          caption: 'Selalu urut dari atas ke bawah: Berita/Weekly → Daily (Origin & DOL) → H1 (Dealing Range & POI) → M15 (Asia & IDM) → M5 (Sweep+CISD di Killzone) → Risiko 0.5–1%.',
+          bars: [
+            { x1: 6, x2: 20, y1: 60, y2: 90, tone: 'danger', label: '1. News', sub: 'Weekly' },
+            { x1: 22, x2: 36, y1: 52, y2: 84, tone: 'gold', label: '2. Daily', sub: 'Origin→DOL' },
+            { x1: 38, x2: 52, y1: 44, y2: 78, tone: 'cyan', label: '3. H1', sub: 'Range+POI' },
+            { x1: 54, x2: 68, y1: 34, y2: 70, tone: 'sweep', label: '4. M15', sub: 'Asia+IDM' },
+            { x1: 70, x2: 84, y1: 24, y2: 62, tone: 'bull', label: '5. M5', sub: 'Trigger' },
+            { x1: 86, x2: 96, y1: 14, y2: 54, tone: 'gold', label: '6. Lot', sub: '≤1% Risk' }
+          ],
+          callouts: [
+            { x: 50, y: 8, text: 'Chart Bersih = 1 Bias · 1 DOL · 1–2 POI · 1 Invalidasi', tone: 'gold' }
+          ]
+        },
+        {
+          label: '2. Peta Akhir Siap Eksekusi',
+          caption: 'Hasil akhir chart polos setelah 10 menit mapping: hanya 5 elemen bersih (DOL di atas, Asia Low/IDM di tengah, 1 POI Discount, 1 garis Invalidasi, dan Entry M5).',
+          zones: [
+            { x1: 12, x2: 90, y1: 24, y2: 36, tone: 'ob', label: '1 POI UTAMA (DISCOUNT + OTE)', labelPos: 'tr' }
+          ],
+          lines: [
+            { x1: 10, x2: 92, y1: 86, y2: 86, style: 'solid', tone: 'tp', label: 'DOL UTAMA: PDH', labelSide: 'left' },
+            { x1: 10, x2: 92, y1: 56, y2: 56, style: 'dotted', tone: 'muted', label: '50% EQ H1', labelSide: 'right' },
+            { x1: 10, x2: 62, y1: 44, y2: 44, style: 'dashed', tone: 'sweep', label: 'IDM / Asia Low ($$$)', labelSide: 'left' },
+            { x1: 10, x2: 92, y1: 14, y2: 14, style: 'solid', tone: 'sl', label: 'GARIS INVALIDASI BIAS', labelSide: 'left' }
+          ],
+          candles: [
+            [18, 46, 62, 44, 58], [28, 58, 66, 46, 52], [38, 52, 54, 43, 46],
+            [48, 46, 50, 26, 30, 'sweep'], [58, 30, 48, 29, 46, 'bull'],
+            [68, 46, 52, 34, 42, 'gold'], [78, 42, 68, 40, 66, 'bull'], [88, 66, 88, 64, 86, 'bull']
+          ],
+          arrows: [
+            { x1: 68, y1: 38, x2: 88, y2: 86, tone: 'bull', label: '1:4 R:R ke DOL' }
+          ]
+        }
+      ]
     }
   };
 

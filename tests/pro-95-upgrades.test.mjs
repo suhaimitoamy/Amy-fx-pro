@@ -29,6 +29,8 @@ function loadAcademyCurriculum() {
     'apps/academy/data/levels-1-2.js',
     'apps/academy/data/levels-3-4.js',
     'apps/academy/data/levels-5-6.js',
+    'apps/academy/data/mastery-advanced.js',
+    'apps/academy/data/mastery-deep-enrichment.js',
     'apps/academy/data/curriculum.js'
   ]) {
     const p1 = path.resolve(process.cwd(), 'app/src/main/assets', rel);

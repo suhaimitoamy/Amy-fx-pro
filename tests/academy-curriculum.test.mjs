@@ -13,6 +13,8 @@ function loadAcademyRuntime() {
     'apps/academy/data/levels-1-2.js',
     'apps/academy/data/levels-3-4.js',
     'apps/academy/data/levels-5-6.js',
+    'apps/academy/data/mastery-advanced.js',
+    'apps/academy/data/mastery-deep-enrichment.js',
     'apps/academy/data/curriculum.js',
     'apps/academy/js/diagram-engine.js'
   ];
@@ -30,46 +32,48 @@ function loadAcademyRuntime() {
 
 const { curriculum, diagrams } = loadAcademyRuntime();
 
-test('Academy curriculum has 7 levels (Level 0–6), 36 lessons, and 108 diagnostic quiz questions', () => {
-  assert.equal(curriculum.LEVELS.length, 7);
-  assert.equal(curriculum.LEVELS[0].id, 0);
-  assert.equal(curriculum.LESSONS.length, 36);
-
-  const level0Lessons = curriculum.getLessonsByLevel(0);
-  assert.equal(level0Lessons.length, 6);
-  assert.deepEqual(
-    Array.from(level0Lessons, l => curriculum.formatLessonNumber(l)),
-    ['0.1', '0.2', '0.3', '0.4', '0.5', '0.6']
-  );
+test('Academy Mastery Path has 8 stages, 43 sequential modules, deep enrichment, and valid quizzes', () => {
+  assert.equal(curriculum.STAGES.length, 8);
+  assert.equal(curriculum.LEVELS.length, 8);
+  assert.equal(curriculum.LESSONS.length, 43);
 
   const ids = new Set();
   let totalQuestions = 0;
 
   curriculum.LESSONS.forEach((lesson, idx) => {
-    if (idx > 0) {
-      assert.ok(lesson.number > curriculum.LESSONS[idx - 1].number, `Lesson ${lesson.id} must be strictly ordered`);
-    }
+    assert.equal(lesson.stepNumber, idx + 1, `Module ${lesson.id} must have sequential stepNumber`);
+    assert.equal(lesson.stepCode, String(idx + 1).padStart(2, '0'));
+    assert.equal(curriculum.formatLessonNumber(lesson), String(idx + 1).padStart(2, '0'));
+
     assert.ok(lesson.id && !ids.has(lesson.id), `Duplicate or missing lesson id: ${lesson.id}`);
     ids.add(lesson.id);
 
-    assert.ok(curriculum.getLevelById(lesson.levelId), `Invalid levelId on ${lesson.id}`);
+    assert.ok(curriculum.getStageById(lesson.stageId), `Invalid stageId on ${lesson.id}`);
     assert.ok(typeof lesson.title === 'string' && lesson.title.length >= 8);
     assert.ok(typeof lesson.summary === 'string' && lesson.summary.length >= 30);
-    assert.ok(Array.isArray(lesson.conceptBlocks) && lesson.conceptBlocks.length >= 1);
+    assert.ok(Array.isArray(lesson.conceptBlocks) && lesson.conceptBlocks.length >= 1, `Module ${lesson.id} needs >= 1 conceptBlock`);
     assert.ok(Array.isArray(lesson.validRules) && lesson.validRules.length >= 2);
     assert.ok(Array.isArray(lesson.invalidRules) && lesson.invalidRules.length >= 2);
     assert.ok(lesson.xauScenario && Array.isArray(lesson.xauScenario.steps) && lesson.xauScenario.steps.length >= 2);
     assert.ok(Array.isArray(lesson.goldenRules) && lesson.goldenRules.length >= 1);
 
+    // Deep anti-confusion fields required on EVERY module (01..43)
+    assert.ok(Array.isArray(lesson.mappingSteps) && lesson.mappingSteps.length >= 3, `Module ${lesson.id} needs >= 3 mappingSteps`);
+    assert.ok(Array.isArray(lesson.decisionTree) && lesson.decisionTree.length >= 2, `Module ${lesson.id} needs >= 2 decisionTree rows`);
+    lesson.decisionTree.forEach((row) => {
+      assert.ok(row.condition && row.action, `Invalid decisionTree row in ${lesson.id}`);
+    });
+    assert.ok(lesson.failedCase && lesson.failedCase.context && lesson.failedCase.whyFailed, `Module ${lesson.id} needs failedCase`);
+
     if (lesson.levelId === 0) {
-      assert.ok(lesson.practiceCta && lesson.practiceCta.label && lesson.practiceCta.href, `Level 0 lesson ${lesson.id} needs practiceCta`);
-      const targetPath = path.resolve(fs.existsSync(path.resolve(process.cwd(), 'app/src/main/assets/apps/academy')) ? path.resolve(process.cwd(), 'app/src/main/assets/apps/academy') : path.resolve(process.cwd(), 'apps/academy'), lesson.practiceCta.href);
+      assert.ok(lesson.practiceCta && lesson.practiceCta.label && lesson.practiceCta.href, `Foundation module ${lesson.id} needs practiceCta`);
+      const academyDir = fs.existsSync(path.resolve(process.cwd(), 'app/src/main/assets/apps/academy')) ? path.resolve(process.cwd(), 'app/src/main/assets/apps/academy') : path.resolve(process.cwd(), 'apps/academy');
+      const targetPath = path.resolve(academyDir, lesson.practiceCta.href);
       assert.ok(fs.existsSync(targetPath), `Practice CTA href must resolve to existing file: ${lesson.practiceCta.href}`);
-    } else {
-      assert.equal(curriculum.formatLessonNumber(lesson), String(lesson.number).padStart(2, '0'));
     }
 
-    assert.ok(Array.isArray(lesson.quiz) && lesson.quiz.length === 3, `Lesson ${lesson.id} must have 3 quiz questions`);
+    const minQuiz = lesson.stepNumber >= 37 ? 5 : 3;
+    assert.ok(Array.isArray(lesson.quiz) && lesson.quiz.length >= minQuiz, `Module ${lesson.id} must have >= ${minQuiz} quiz questions`);
     lesson.quiz.forEach((q, qIdx) => {
       assert.ok(q.question && q.question.length >= 10, `Empty question ${qIdx} in ${lesson.id}`);
       assert.ok(Array.isArray(q.options) && q.options.length === 4, `Question ${qIdx} in ${lesson.id} needs 4 options`);
@@ -79,10 +83,26 @@ test('Academy curriculum has 7 levels (Level 0–6), 36 lessons, and 108 diagnos
     });
   });
 
-  assert.equal(totalQuestions, 108);
+  // 7 brand-new advanced ICT modules (Modul 37–43) must be present and non-overlapping
+  const advancedIds = [
+    'breaker-mitigation-unicorn',
+    'bpr-nwog-ndog-imbalance',
+    'smt-divergence-gold',
+    'mmxm-market-maker-model',
+    'ict-macros-weekly-ipda',
+    'stdev-crt-profiling',
+    'capstone-mapping-mandiri'
+  ];
+  advancedIds.forEach((id, i) => {
+    const mod = curriculum.getLessonById(id);
+    assert.ok(mod, `Missing advanced module: ${id}`);
+    assert.equal(mod.stepNumber, 37 + i);
+  });
+
+  assert.ok(totalQuestions >= 150, `Expected >= 150 scenario quiz questions, got ${totalQuestions}`);
 });
 
-test('Every lesson maps to an interactive multi-stage SVG diagram without NaN or undefined', () => {
+test('Every single one of 43 modules maps to an interactive multi-stage SVG diagram without NaN or undefined', () => {
   for (const lesson of curriculum.LESSONS) {
     assert.ok(diagrams.hasDiagram(lesson.diagramId), `Missing diagram blueprint: ${lesson.diagramId}`);
     const bp = diagrams.getDiagramBlueprint(lesson.diagramId);
@@ -99,73 +119,110 @@ test('Every lesson maps to an interactive multi-stage SVG diagram without NaN or
   }
 });
 
-test('Filtering, search, learner track, progress tracking, and quiz persistence logic behave deterministically', () => {
-  const lvl0 = curriculum.filterLessons({ levelId: 0 });
-  assert.equal(lvl0.length, 6);
-  assert.ok(lvl0.every(l => l.levelId === 0));
-
-  const lvl4 = curriculum.filterLessons({ levelId: 4 });
-  assert.equal(lvl4.length, 5);
-  assert.ok(lvl4.every(l => l.levelId === 4));
-
-  const mt5Hits = curriculum.filterLessons({ query: 'Buy Limit' });
-  assert.ok(mt5Hits.some(l => l.id === 'panduan-mt5-lima-jenis-order'));
-
-  const ifvgHits = curriculum.filterLessons({ query: 'IFVG' });
-  assert.ok(ifvgHits.length >= 1);
-  assert.ok(ifvgHits.some(l => l.diagramId === 'model-ifvg-flip'));
-
+test('Strict Duolingo-style Mastery Locking enforces >=80% Uji Paham before unlocking next module', () => {
   let prog = curriculum.createEmptyProgress();
-  assert.equal(curriculum.normalizeTrack('beginner'), 'beginner');
-  assert.equal(curriculum.normalizeTrack('ICT'), 'ict');
-  assert.equal(curriculum.normalizeTrack('unknown'), null);
-  assert.equal(curriculum.getRecommendedLessonForTrack(prog, 'beginner').id, 'kenal-trading-broker-akun');
-  assert.equal(curriculum.getRecommendedLessonForTrack(prog, 'ict').id, 'logika-trading-probabilitas');
+  const mod1 = curriculum.LESSONS[0];
+  const mod2 = curriculum.LESSONS[1];
+  const mod3 = curriculum.LESSONS[2];
 
-  // Failing quiz (1/3) records score but does not mark completed
-  prog = curriculum.recordQuizAttempt(prog, curriculum.LESSONS[0].id, 1, 3);
-  assert.equal(prog.completedIds.length, 0);
-  assert.equal(prog.quizScores[curriculum.LESSONS[0].id].passed, false);
+  // Fresh state: only Modul 01 is unlocked; Modul 02..43 are locked
+  assert.equal(curriculum.getFrontierIndex(prog), 0);
+  assert.equal(curriculum.getModuleLockState(prog, mod1.id), 'unlocked');
+  assert.equal(curriculum.getModuleLockState(prog, mod2.id), 'locked');
+  assert.equal(curriculum.canOpenLesson(prog, mod1.id), true);
+  assert.equal(curriculum.canOpenLesson(prog, mod2.id), false);
+  assert.equal(curriculum.canOpenLesson(prog, 'capstone-mapping-mandiri'), false);
 
-  // Passing quiz (3/3) marks completed and updates best score
-  prog = curriculum.recordQuizAttempt(prog, curriculum.LESSONS[0].id, 3, 3);
-  assert.equal(prog.completedIds.length, 1);
-  assert.equal(prog.quizScores[curriculum.LESSONS[0].id].passed, true);
-  assert.equal(prog.quizScores[curriculum.LESSONS[0].id].correct, 3);
+  const req = curriculum.getUnlockRequirement(prog, mod2.id);
+  assert.equal(req.allowed, false);
+  assert.ok(req.blockedByLesson && req.blockedByLesson.id === mod1.id);
 
-  // Manual toggle off & on
-  prog = curriculum.toggleLessonCompleted(prog, curriculum.LESSONS[0].id, false);
-  assert.equal(prog.completedIds.length, 0);
-  prog = curriculum.toggleLessonCompleted(prog, curriculum.LESSONS[0].id, true);
-  assert.equal(prog.completedIds.length, 1);
+  // Failing Uji Paham (2/3 = 67% < 80%) must NOT unlock Modul 02
+  prog = curriculum.recordQuizAttempt(prog, mod1.id, 2, 3);
+  assert.equal(prog.quizScores[mod1.id].passed, false);
+  assert.equal(curriculum.isLessonMastered(prog, mod1.id), false);
+  assert.equal(curriculum.canOpenLesson(prog, mod2.id), false);
+  assert.equal(curriculum.getModuleLockState(prog, mod2.id), 'locked');
+
+  // Passing Uji Paham (3/3 = 100% >= 80%) masters Modul 01 and unlocks Modul 02 (only)
+  prog = curriculum.recordQuizAttempt(prog, mod1.id, 3, 3);
+  assert.equal(prog.quizScores[mod1.id].passed, true);
+  assert.equal(curriculum.isLessonMastered(prog, mod1.id), true);
+  assert.equal(curriculum.getModuleLockState(prog, mod1.id), 'mastered');
+  assert.equal(curriculum.getModuleLockState(prog, mod2.id), 'unlocked');
+  assert.equal(curriculum.getModuleLockState(prog, mod3.id), 'locked');
+  assert.equal(curriculum.canOpenLesson(prog, mod2.id), true);
+  assert.equal(curriculum.canOpenLesson(prog, mod3.id), false);
+  assert.ok(prog.xp > 0, 'Passing Uji Paham must award Mastery XP');
+
+  // Threshold test for 5-question advanced quiz: 3/5 (60%) fails, 4/5 (80%) passes
+  let advProg = curriculum.createEmptyProgress();
+  advProg = curriculum.recordQuizAttempt(advProg, 'breaker-mitigation-unicorn', 3, 5);
+  assert.equal(advProg.quizScores['breaker-mitigation-unicorn'].passed, false);
+  advProg = curriculum.recordQuizAttempt(advProg, 'breaker-mitigation-unicorn', 4, 5);
+  assert.equal(advProg.quizScores['breaker-mitigation-unicorn'].passed, true);
 
   const stats = curriculum.computeProgressStats(prog);
-  assert.equal(stats.totalLessons, 36);
+  assert.equal(stats.totalLessons, 43);
   assert.equal(stats.completedCount, 1);
-  assert.equal(stats.percent, 3);
-  assert.equal(stats.byLevel[0].levelId, 0);
-  assert.equal(stats.byLevel[0].completed, 1);
-  assert.equal(stats.nextRecommendedLesson.id, 'bid-ask-spread-pips-gold');
+  assert.equal(stats.frontierLesson.id, mod2.id);
+  assert.equal(stats.nextRecommendedLesson.id, mod2.id);
+});
 
-  // Adjacent navigation bridges seamlessly from Level 0 Bab 0.6 to Level 1 Bab 01
+test('Placement Exam requires 100% (4/4) to unlock Modul 07 directly without skipping on partial score', () => {
+  assert.equal(curriculum.PLACEMENT_QUIZ.length, 4);
+
+  const fresh = curriculum.createEmptyProgress();
+  const wrongAnswers = curriculum.PLACEMENT_QUIZ.map((q, idx) => (idx === 0 ? (q.answerIndex + 1) % 4 : q.answerIndex));
+  const failRes = curriculum.evaluatePlacementAttempt(fresh, wrongAnswers);
+  assert.equal(failRes.passed, false);
+  assert.equal(failRes.correct, 3);
+  assert.equal(curriculum.canOpenLesson(failRes.nextProgress, 'logika-trading-probabilitas'), false);
+
+  const perfectAnswers = curriculum.PLACEMENT_QUIZ.map((q) => q.answerIndex);
+  const passRes = curriculum.evaluatePlacementAttempt(fresh, perfectAnswers);
+  assert.equal(passRes.passed, true);
+  assert.equal(passRes.correct, 4);
+  assert.equal(passRes.nextProgress.placementPassed, true);
+  assert.equal(curriculum.canOpenLesson(passRes.nextProgress, 'logika-trading-probabilitas'), true);
+  assert.equal(curriculum.getModuleLockState(passRes.nextProgress, 'logika-trading-probabilitas'), 'unlocked');
+  assert.equal(curriculum.canOpenLesson(passRes.nextProgress, 'membaca-candlestick-body-wick'), false);
+});
+
+test('Search, filtering, and adjacent navigation work across all 43 modules', () => {
+  const mt5Hits = curriculum.filterLessons({ query: 'Buy Limit' });
+  assert.ok(mt5Hits.some((l) => l.id === 'panduan-mt5-lima-jenis-order'));
+
+  const unicornHits = curriculum.filterLessons({ query: 'Unicorn' });
+  assert.ok(unicornHits.some((l) => l.id === 'breaker-mitigation-unicorn'));
+
+  const smtHits = curriculum.filterLessons({ query: 'SMT' });
+  assert.ok(smtHits.some((l) => l.id === 'smt-divergence-gold'));
+
+  const mmxmHits = curriculum.filterLessons({ query: 'MMXM' });
+  assert.ok(mmxmHits.some((l) => l.id === 'mmxm-market-maker-model'));
+
   const bridgeAdj = curriculum.getAdjacentLessons('dasar-tren-sr-rencana-14-hari');
   assert.equal(bridgeAdj.prev.id, 'membaca-chart-candlestick-nol');
   assert.equal(bridgeAdj.next.id, 'logika-trading-probabilitas');
+
+  const advBridge = curriculum.getAdjacentLessons('protokol-100-sample-mandiri');
+  assert.equal(advBridge.next.id, 'breaker-mitigation-unicorn');
 });
 
-test('Amy Live local knowledge file is synced with all 36 Academy lessons and valid deep-links', () => {
-  const knowledgePath = (fs.existsSync(path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js')) ? path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js') : path.resolve(process.cwd(), 'apps/shared/amy-local-knowledge.js'));
+test('Amy Live local knowledge file is synced with all 43 Academy Mastery Modules and valid deep-links', () => {
+  const knowledgePath = fs.existsSync(path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js')) ? path.resolve(process.cwd(), 'app/src/main/assets/apps/shared/amy-local-knowledge.js') : path.resolve(process.cwd(), 'apps/shared/amy-local-knowledge.js');
   const code = fs.readFileSync(knowledgePath, 'utf8');
   const sandbox = { window: {} };
   vm.runInNewContext(code, sandbox);
 
   assert.ok(Array.isArray(sandbox.window.AmyLocalKnowledge));
-  assert.equal(sandbox.window.AmyLocalKnowledge.length, 36);
+  assert.equal(sandbox.window.AmyLocalKnowledge.length, 43);
 
   sandbox.window.AmyLocalKnowledge.forEach((entry, idx) => {
     const lesson = curriculum.LESSONS[idx];
     assert.equal(entry.path, `apps/academy/index.html?lesson=${lesson.id}`);
     assert.ok(entry.title.includes(lesson.title));
-    assert.ok(entry.text.length >= 120);
+    assert.ok(entry.text.length >= 160);
   });
 });

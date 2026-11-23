@@ -1,26 +1,26 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.473/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.474/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ AMY Live Assistant Bridge: Integrasi snapshot kanonis Mapping Cockpit pasif ke AMY Live Chat & Voice tanpa sentuh engine.",
-    "✦ TwelveData Provider Error Guard: Deteksi otomatis HTTP 429 & error status dengan normalisasi respons aman pada liquidity & heatmap API.",
-    "✦ Amy FX Academy Level 0: 6 Bab Fondasi Pemula Nol (Bab 0.1-0.6) dengan 6 diagram SVG interaktif dual-theme, pemilih jalur, & jembatan praktik.",
-    "✦ Modernisasi UI Peta Harga Beranda & Alarm: Paritas kontrol segmen [M15 | M5], ikon modern alarm/refresh/fullscreen, kalender berita rapi, & FAB adaptif.",
-    "✦ Retensi 180 Hari POI History: Penyimpanan riwayat 6 bulan, arsip harian permanen, & union-merge backup GitHub Cloud Sync."
+    "✦ Amy FX Academy 43-Modul Mastery Path: Jalur linier 8 babak (43 modul lengkap) dengan kurikulum terstruktur Duolingo-style.",
+    "✦ Kunci Pemahaman Deterministik (Passing Grade >= 80%): Gerbang kelulusan tiap modul berbasis Uji Paham deterministik tanpa bypass.",
+    "✦ Placement Exam 100% (Tes Loncat): Uji penempatan 4/4 soal untuk membuka langsung modul inti ICT tanpa skipping sebagian.",
+    "✦ Guided Reader 5-Tab & Deep Enrichment: Antarmuka terpandu per modul (Pahami, Keputusan, Kasus, Uji Paham, Semua) & diagram SVG interaktif.",
+    "✦ AMY Live & Provider Error Guard Sync: Kompatibilitas mundur penuh 100% dengan AMY Live Chat/Voice & histori POI 180 hari."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.473/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.474/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950473,
-  "latest_version_name": "2.0.0-pro.473",
+  "latest_version_code": 950474,
+  "latest_version_name": "2.0.0-pro.474",
   "mandatory": false,
   "releaseDate": "2026-11-23",
   "release_notes": [
-    "✦ AMY Live Assistant Bridge: Integrasi snapshot kanonis Mapping Cockpit pasif ke AMY Live Chat & Voice tanpa sentuh engine.",
-    "✦ TwelveData Provider Error Guard: Deteksi otomatis HTTP 429 & error status dengan normalisasi respons aman pada liquidity & heatmap API.",
-    "✦ Amy FX Academy Level 0: 6 Bab Fondasi Pemula Nol (Bab 0.1-0.6) dengan 6 diagram SVG interaktif dual-theme, pemilih jalur, & jembatan praktik.",
-    "✦ Modernisasi UI Peta Harga Beranda & Alarm: Paritas kontrol segmen [M15 | M5], ikon modern alarm/refresh/fullscreen, kalender berita rapi, & FAB adaptif.",
-    "✦ Retensi 180 Hari POI History: Penyimpanan riwayat 6 bulan, arsip harian permanen, & union-merge backup GitHub Cloud Sync."
+    "✦ Amy FX Academy 43-Modul Mastery Path: Jalur linier 8 babak (43 modul lengkap) dengan kurikulum terstruktur Duolingo-style.",
+    "✦ Kunci Pemahaman Deterministik (Passing Grade >= 80%): Gerbang kelulusan tiap modul berbasis Uji Paham deterministik tanpa bypass.",
+    "✦ Placement Exam 100% (Tes Loncat): Uji penempatan 4/4 soal untuk membuka langsung modul inti ICT tanpa skipping sebagian.",
+    "✦ Guided Reader 5-Tab & Deep Enrichment: Antarmuka terpandu per modul (Pahami, Keputusan, Kasus, Uji Paham, Semua) & diagram SVG interaktif.",
+    "✦ AMY Live & Provider Error Guard Sync: Kompatibilitas mundur penuh 100% dengan AMY Live Chat/Voice & histori POI 180 hari."
   ],
-  "version": "2.0.0-pro.473",
-  "versionCode": 950473
+  "version": "2.0.0-pro.474",
+  "versionCode": 950474
 }

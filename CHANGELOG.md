@@ -1,3 +1,12 @@
+## 2.0.0-pro.474
+
+- feat(academy): Overhaul kurikulum Amy FX Academy ke Jalur Penguasaan 43 Modul (8 Babak Linier):
+  * Kunci Pemahaman Ala Duolingo (`getModuleLockState`, `canOpenLesson`): Menetapkan passing grade >= 80% untuk membuka modul berikutnya secara berurutan.
+  * Placement Exam 100% (`evaluatePlacementAttempt`): Tes penempatan 4 soal (harus benar 4/4) untuk membuka modul inti ICT langsung.
+  * Guided Reader 5-Tab: Tab navigasi terpandu per modul (`Pahami`, `Pohon Keputusan`, `Kasus Gagal`, `Uji Paham`, `Semua`) dengan format teks aman `fmtRich`.
+  * Deep Anti-Confusion Enrichment: Suntikan `extraConceptBlocks`, `mappingSteps`, `decisionTree`, dan `failedCase` pada setiap modul (01-43) via `mastery-deep-enrichment.js` dan `mastery-advanced.js`.
+  * Preservasi Pro & Identitas Gradle: Sinkronisasi identitas versi Gradle 950474 & build workflow CI/CD.
+
 ## 2.0.0-pro.473
 
 - feat(ai-studio): Sinkronisasi tuntas seluruh fitur & upgrade dari Google AI Studio:

@@ -78,7 +78,7 @@ export default async function handler(req, res) {
       `2. Market Intel (Kompas Fundamental, Kalender USD aktual vs forecast + countdown WITA, berita Fokus Gold, status News Lock).\n` +
       `3. Jurnal Trading & Psikologi (pemisahan akun REAL vs SIM/Backtest, Analitik Pro: Net PnL, Win Rate, Profit Factor, Expectancy, Max Drawdown, Evaluasi Mingguan 7H, jam profit WITA, Leak Cost pola emosi/kesalahan, Habits & Streak Disiplin, serta Daily Loss Guard).\n` +
       `4. Kalkulator Lot & Risiko XAU/USD (hitung lot presisi Standard & saran Cent bila < 0.01 lot, risiko $ & pips, proyeksi TP1 1:1.5R / TP2 1:3R).\n` +
-      `5. Amy FX Academy 7 Level / 36 Bab (termasuk Level 0 Pra-Trading & Dasar MT5 Pemula Nol + kesiapan 0–6 bab), Glosarium ICT, dan Trading Practice 100 Kasus ICT (8 Pilar + Mastery & kesalahan terakhir).\n\n` +
+      `5. Amy FX Academy Jalur Penguasaan 43 Modul ICT (tanpa level, sistem kunci Uji Paham >=80% ala Duolingo + Tes Loncat Dasar MT5, mencakup DOL mendalam, Breaker/Mitigation/Unicorn, BPR/NWOG/NDOG, SMT Divergence XAU vs Silver/DXY, MMXM, ICT Macros/Weekly Profile/IPDA, StdDev/CRT, hingga Capstone Mapping Chart Kosong), Glosarium ICT, dan Trading Practice 100 Kasus ICT (8 Pilar + Mastery & kesalahan terakhir).\n\n` +
       `DATA REAL-TIME APLIKASI SAAT INI:\n${appContext || 'Belum ada konteks spesifik yang dimuat.'}\n\n` +
       `ATURAN ANTI-HALUSINASI & FORMAT:\n` +
       `• DILARANG mengarang angka harga Gold, statistik jurnal, respect rate POI, atau angka kalender. Gunakan HANYA angka dari DATA REAL-TIME di atas. Jika suatu data kosong/belum tersedia, katakan jujur apa adanya.\n` +
