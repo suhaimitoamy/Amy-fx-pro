@@ -222,6 +222,13 @@ class DriverSetupSyncWorker(
                     return
                 }
 
+                // Disiplin risiko Gold Scalper Sayang: normalisasi SL jika ada anomali jarak (>40 pips / $4.0)
+                val safeSlPrice = if (isBuy) {
+                    if (slPrice < entryPrice - 4.0 || slPrice >= entryPrice) Math.round((entryPrice - 3.5) * 100.0) / 100.0 else slPrice
+                } else {
+                    if (slPrice > entryPrice + 4.0 || slPrice <= entryPrice) Math.round((entryPrice + 3.5) * 100.0) / 100.0 else slPrice
+                }
+
                 badge = if (isBuy) "ENTRY_BUY_READY" else "ENTRY_SELL_READY"
                 val icon = if (isBuy) "🟢" else "🔴"
                 notifTitle = "$icon Asisten Amy: $sigName"
@@ -244,7 +251,7 @@ class DriverSetupSyncWorker(
                 notifBody = String.format(
                     java.util.Locale.US,
                     "%s Entry: $%.2f | SL: $%.2f | %s%s%s. Siapkan eksekusi!",
-                    icon, entryPrice, slPrice, tpTargetStr, spreadNote, zoneStr
+                    icon, entryPrice, safeSlPrice, tpTargetStr, spreadNote, zoneStr
                 )
                 notify = true
             }

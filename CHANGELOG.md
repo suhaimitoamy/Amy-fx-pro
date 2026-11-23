@@ -1,3 +1,7 @@
+## 2.0.0-pro.470
+
+- feat(notification): Integrasi notifikasi Android real-time untuk siklus penuh POI Mapping (Opsi A & B): sentuh CE dengan denting bel emas kristal, pengawalan TP1 BEP, panen TP2 DOL 100 pips, dan batas disiplin SL dengan anti-spam deduplication serta normalisasi risiko aman.
+
 ## 2.0.0-pro.469
 
 - fix(android-filechooser): Penyempurnaan `onShowFileChooser` di `MainActivity.kt` dengan wrapper `Intent.createChooser`, toleransi ekstraksi URI `clipData` & `data.data`, perbaikan CSS overlay `font-size: 100px` (mencegah shadow DOM button 0x0 di WebView), dan pemisahan role button `mt5DropLabel` untuk responsivitas sentuh instan di Android.

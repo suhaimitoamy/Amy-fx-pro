@@ -865,10 +865,10 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
       c.low,
       lastLow ?? c.low,
       d.poi?.low ?? c.low,
-      support ?? c.low,
-      autoRangeLow ?? c.low
+      (support != null && support > entry - 5.0) ? support : c.low
     );
     sl = buyBaseSl - curAtr * s.slBufferAtr;
+    if (entry - sl > 3.50) sl = entry - 3.50;
     risk = Math.max(entry - sl, s.tick);
 
     const tp1Cands = [
@@ -890,10 +890,10 @@ export function entryAssistantV3(d, candlesLTF=[], levels={}, pivots={}, options
       c.high,
       lastHigh ?? c.high,
       d.poi?.high ?? c.high,
-      resistance ?? c.high,
-      autoRangeHigh ?? c.high
+      (resistance != null && resistance < entry + 5.0) ? resistance : c.high
     );
     sl = sellBaseSl + curAtr * s.slBufferAtr;
+    if (sl - entry > 3.50) sl = entry + 3.50;
     risk = Math.max(sl - entry, s.tick);
 
     const tp1Cands = [

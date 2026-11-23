@@ -589,12 +589,37 @@ import {
         mappingHistoryState = liveRes.state;
         stateChanged = true;
       }
+      if (liveRes.alerts && liveRes.alerts.length > 0) {
+        dispatchPoiNotifications(liveRes.alerts);
+      }
     }
 
     if (stateChanged) {
       saveHistoryState(historyStorage, mappingHistoryState);
     }
     renderMappingHistory();
+  }
+
+  function dispatchPoiNotifications(alerts) {
+    if (!Array.isArray(alerts) || alerts.length === 0) return;
+    for (const a of alerts) {
+      if (!a || !a.title || !a.body) continue;
+      const targetUrl = typeof location !== 'undefined' ? `${location.href.split('#')[0]}#Dashboard` : '';
+      try {
+        if (typeof window !== 'undefined' && window.Android?.showNotificationWithUrl) {
+          window.Android.showNotificationWithUrl(a.title, a.body, targetUrl);
+        } else if (typeof window !== 'undefined' && window.Android?.showNotification) {
+          window.Android.showNotification(a.title, a.body);
+        } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          new Notification(a.title, { body: a.body });
+        }
+        if (a.sound === 'gold' && typeof window !== 'undefined' && window.Android?.playNotificationSound) {
+          window.Android.playNotificationSound('gold');
+        }
+      } catch (err) {
+        console.warn('[DashboardV2] Gagal mengirim notifikasi POI:', err);
+      }
+    }
   }
 
   function tickMappingHistory(livePrice) {
@@ -610,6 +635,9 @@ import {
       mappingHistoryState = liveRes.state;
       saveHistoryState(historyStorage, mappingHistoryState);
       renderMappingHistory();
+    }
+    if (liveRes.alerts && liveRes.alerts.length > 0) {
+      dispatchPoiNotifications(liveRes.alerts);
     }
   }
 

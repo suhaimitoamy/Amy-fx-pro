@@ -1,25 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.469/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.470/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus.",
-    "✦ MT5 OCR Touch Overlay & Direct Vision: Perbaikan pemilih file Android WebView overlay penuh & engine Gemini Vision mandiri langsung di HP.",
-    "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
-    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay."
+    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL.",
+    "✦ Anti-Spam & Golden Chime Alert: Suara bel denting kristal emas pada sinyal eksekusi CE & deduplikasi satu kali per peristiwa tanpa spam.",
+    "✦ Normalisasi Risiko Aman: Batasan SL scalper terukur aman (maksimal 35-40 pips) mencegah pelebaran SL berlebih pada alert background Android.",
+    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.469/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.470/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950469,
-  "latest_version_name": "2.0.0-pro.469",
+  "latest_version_code": 950470,
+  "latest_version_name": "2.0.0-pro.470",
   "mandatory": false,
   "releaseDate": "2026-11-23",
   "release_notes": [
-    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus.",
-    "✦ MT5 OCR Touch Overlay & Direct Vision: Perbaikan pemilih file Android WebView overlay penuh & engine Gemini Vision mandiri langsung di HP.",
-    "✦ MT5 Screenshot Scan (Gemini Vision OCR): Impor otomatis riwayat trading MT5 ke Jurnal Trading lewat screenshot hasil trade.",
-    "✦ Global Scroll Guard: Mencegah konflik gesture pull-to-refresh Android saat scroll chart & dialog overlay."
+    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL.",
+    "✦ Anti-Spam & Golden Chime Alert: Suara bel denting kristal emas pada sinyal eksekusi CE & deduplikasi satu kali per peristiwa tanpa spam.",
+    "✦ Normalisasi Risiko Aman: Batasan SL scalper terukur aman (maksimal 35-40 pips) mencegah pelebaran SL berlebih pada alert background Android.",
+    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus."
   ],
-  "version": "2.0.0-pro.469",
-  "versionCode": 950469,
-  "sha256": "5680dab97cbf7bfd9af5ed7c6d9942729a45d0fdd175cc2eb90cffbd86a4b713"
+  "version": "2.0.0-pro.470",
+  "versionCode": 950470,
+  "sha256": ""
 }

@@ -247,6 +247,10 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     maxFavorable: Number(maxFavorable.toFixed(2)),
     status,
     resolvedAt,
+    notifiedCe: true,
+    notifiedTp1: status === 'TP1_HIT' || status === 'TP2_HIT',
+    notifiedTp2: status === 'TP2_HIT',
+    notifiedSl: status === 'SL_HIT',
     source: 'BACKFILL'
   };
 }
@@ -468,10 +472,11 @@ export function recordLivePoiProgress({
   nowMs = Date.now()
 }) {
   const price = num(livePrice);
-  if (!Number.isFinite(price)) return { state, changed: false };
+  if (!Number.isFinite(price)) return { state, changed: false, alerts: [] };
 
   const poiMap = new Map((state?.poiRecords || []).map(r => [r.id, { ...r }]));
   const evMap = new Map((state?.timelineEvents || []).map(e => [e.id, { ...e }]));
+  const alerts = [];
   let changed = false;
 
   // 1. Check active BUY/SELL plans for live entry touch
@@ -514,8 +519,22 @@ export function recordLivePoiProgress({
         maxFavorable: 0,
         status: 'TESTING',
         resolvedAt: null,
+        notifiedCe: Boolean(hitCeNow),
+        notifiedTp1: false,
+        notifiedTp2: false,
+        notifiedSl: false,
         source: 'LIVE'
       };
+      if (hitCeNow) {
+        const icon = rec.side === 'BUY' ? '🟢' : '🔴';
+        alerts.push({
+          type: 'CE_TOUCH',
+          poiId: rec.id,
+          title: `${icon} Asisten Amy: ${rec.side} ${rec.kind} ${rec.tf} (Sentuh CE)`,
+          body: `📍 Entry CE: $${fmt(rec.ce)} | SL: $${fmt(rec.sl)} | TP1: $${fmt(rec.tp1)}${rec.tp2 ? ` · TP2: $${fmt(rec.tp2)}` : ''} · Siapkan eksekusi!`,
+          sound: 'gold'
+        });
+      }
       poiMap.set(id, rec);
       evMap.set(`TOUCH:${id}`, {
         id: `TOUCH:${id}`,
@@ -532,6 +551,17 @@ export function recordLivePoiProgress({
     } else if (hitCeNow && !existing.ceTouched) {
       existing.ceTouched = true;
       existing.lastTouchAt = nowMs;
+      if (!existing.notifiedCe) {
+        existing.notifiedCe = true;
+        const icon = existing.side === 'BUY' ? '🟢' : '🔴';
+        alerts.push({
+          type: 'CE_TOUCH',
+          poiId: existing.id,
+          title: `${icon} Asisten Amy: ${existing.side} ${existing.kind} ${existing.tf} (Sentuh CE)`,
+          body: `📍 Entry CE: $${fmt(existing.ce)} | SL: $${fmt(existing.sl)} | TP1: $${fmt(existing.tp1)}${existing.tp2 ? ` · TP2: $${fmt(existing.tp2)}` : ''} · Siapkan eksekusi!`,
+          sound: 'gold'
+        });
+      }
       changed = true;
     }
   }
@@ -569,6 +599,41 @@ export function recordLivePoiProgress({
 
     if (rec.status !== prevStatus) {
       changed = true;
+      if (rec.status === 'TP1_HIT') {
+        if (!rec.notifiedTp1) {
+          rec.notifiedTp1 = true;
+          alerts.push({
+            type: 'TP1_HIT',
+            poiId: rec.id,
+            title: `🎯 Asisten Amy: TP1 TERCAPAI ($${fmt(rec.tp1)})!`,
+            body: `${rec.side} ${rec.kind} ${rec.tf} menyentuh target 1. Amankan posisi & pasang BEP (Break Even Point)!`,
+            sound: 'gold'
+          });
+        }
+      } else if (rec.status === 'TP2_HIT') {
+        if (!rec.notifiedTp2) {
+          rec.notifiedTp2 = true;
+          alerts.push({
+            type: 'TP2_HIT',
+            poiId: rec.id,
+            title: `👑 Asisten Amy: TP2 DOL SELESAI ($${fmt(rec.tp2)})!`,
+            body: `${rec.side} ${rec.kind} ${rec.tf} mencapai target penuh (+100 Pips). Posisi selesai, selamat Sayang!`,
+            sound: 'gold'
+          });
+        }
+      } else if (rec.status === 'SL_HIT') {
+        if (!rec.notifiedSl) {
+          rec.notifiedSl = true;
+          alerts.push({
+            type: 'SL_HIT',
+            poiId: rec.id,
+            title: `🛡️ Asisten Amy: Batas SL Tertembus ($${fmt(rec.sl)})`,
+            body: `${rec.side} ${rec.kind} ${rec.tf} terkena batas risiko. Disiplin risiko terjaga, jangan revenge trade.`,
+            sound: 'default'
+          });
+        }
+      }
+
       if (rec.status === 'TP2_HIT' || rec.status === 'TP1_HIT' || rec.status === 'SL_HIT') {
         const outTitle = rec.status === 'TP2_HIT'
           ? `${rec.kind} ${rec.tf} ${rec.side} → TP2 DOL Tercapai`
@@ -593,9 +658,10 @@ export function recordLivePoiProgress({
     }
   }
 
-  if (!changed) return { state, changed: false };
+  if (!changed && alerts.length === 0) return { state, changed: false, alerts: [] };
   return {
     changed: true,
+    alerts,
     state: {
       version: 1,
       poiRecords: [...poiMap.values()].sort((a, b) => b.touchedAt - a.touchedAt).slice(0, MAX_POI_RECORDS),
@@ -634,6 +700,10 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
     merged.maxFavorable = Math.max(Number(prev.maxFavorable) || 0, Number(rec.maxFavorable) || 0);
     merged.touchCount = Math.max(Number(prev.touchCount) || 1, Number(rec.touchCount) || 1);
     merged.ceTouched = Boolean(prev.ceTouched || rec.ceTouched);
+    merged.notifiedCe = Boolean(prev.notifiedCe || rec.notifiedCe);
+    merged.notifiedTp1 = Boolean(prev.notifiedTp1 || rec.notifiedTp1);
+    merged.notifiedTp2 = Boolean(prev.notifiedTp2 || rec.notifiedTp2);
+    merged.notifiedSl = Boolean(prev.notifiedSl || rec.notifiedSl);
     merged.lastTouchAt = Math.max(Number(prev.lastTouchAt) || 0, Number(rec.lastTouchAt) || 0) || merged.touchedAt;
     if (Array.isArray(rec.touches) && rec.touches.length >= (Array.isArray(prev.touches) ? prev.touches.length : 0)) {
       merged.touches = rec.touches;
