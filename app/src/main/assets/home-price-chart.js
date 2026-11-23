@@ -287,9 +287,9 @@ export function mountHomeChart(root) {
         const timeStr=new Date((result.sourceTime||last.time)*1000).toLocaleString('id-ID',{timeZone:'Asia/Makassar',hour12:false});
         const isWeekend=isWeekendClosure(Date.now()/1000);
         const statusText=isWeekend?'Pasar Tutup (Akhir Pekan)':'Pasar Tutup';
-        $('home-chart-source').textContent=`${statusText} · Candle Terakhir ${timeStr} WITA`;
+        $('home-chart-source').textContent=`${tf} · ${statusText} · Candle Terakhir ${timeStr} WITA`;
       }else{
-        $('home-chart-source').textContent=result.fresh?'Candle terkini':'Referensi lama';
+        $('home-chart-source').textContent=`${tf} · ${result.fresh?'Candle terkini':'Referensi lama'}`;
       }
     }
     if($('home-chart-note'))$('home-chart-note').textContent=result.plan?'Level entry, SL dan target: model ICT lokal, bukan setup Scalper server.':'';
@@ -300,9 +300,11 @@ export function mountHomeChart(root) {
     stop();const id=generation,tf=$('home-chart-tf').value;
     controller=new AbortController();const request=controller;
     const timeout=setTimeout(()=>request.abort(),20000);
-    $('home-chart-refresh').disabled=true;
-    $('home-chart-refresh').classList.add('is-loading');
-    $('home-chart-error').textContent='';
+    if ($('home-chart-refresh')) {
+      $('home-chart-refresh').disabled=true;
+      $('home-chart-refresh').classList?.add?.('is-loading');
+    }
+    if ($('home-chart-error')) $('home-chart-error').textContent='';
     if(raw)render();
     try {
       const isH1 = tf === 'H1';
@@ -335,8 +337,10 @@ export function mountHomeChart(root) {
     } finally {
       clearTimeout(timeout);
       if(!disposed&&id===generation){
-        $('home-chart-refresh').disabled=false;
-        $('home-chart-refresh').classList.remove('is-loading');
+        if ($('home-chart-refresh')) {
+          $('home-chart-refresh').disabled=false;
+          $('home-chart-refresh').classList?.remove?.('is-loading');
+        }
         if(!document.hidden){
           const interval=isGoldMarketOpen(Date.now()/1000)?60000:300000;
           timer=setTimeout(refresh,interval);

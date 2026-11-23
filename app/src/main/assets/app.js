@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </section><div class="section-heading home-menu-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
     if (typeof mainContent.querySelector === 'function') {
       const tfSelect = mainContent.querySelector('#home-chart-tf');
-      const tfButtons = Array.from(mainContent.querySelectorAll('.home-tf-btn'));
+      const tfButtons = Array.from(typeof mainContent.querySelectorAll === 'function' ? mainContent.querySelectorAll('.home-tf-btn') : []);
       const syncTfButtons = (val) => {
         tfButtons.forEach((btn) => {
           const active = btn.getAttribute('data-tf') === val;

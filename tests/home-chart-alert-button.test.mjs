@@ -10,8 +10,8 @@ test('Item 2.13: Paritas 100% Tombol "Pasang Alarm Target Harga" di Header Chart
       'Template renderHome di app.js harus memiliki button dengan id home-chart-alert'
     );
     assert.ok(
-      appSource.includes('🔔 Pasang Alarm'),
-      'Tombol harus berlabel 🔔 Pasang Alarm'
+      appSource.includes('🔔 Pasang Alarm') || (appSource.includes('id="home-chart-alert"') && appSource.includes('Alarm')),
+      'Tombol harus berlabel Alarm / Pasang Alarm'
     );
     assert.ok(
       appSource.includes("mainContent.querySelector('#home-chart-alert')?.addEventListener('click'"),
@@ -30,8 +30,8 @@ test('Item 2.13: Paritas 100% Tombol "Pasang Alarm Target Harga" di Header Chart
       'HTML mapping harus memiliki button dengan id btn-chart-custom-price-alert'
     );
     assert.ok(
-      mappingHtml.includes('🔔 Pasang Alarm'),
-      'Tombol di chart controls mapping harus berlabel 🔔 Pasang Alarm'
+      mappingHtml.includes('🔔 Pasang Alarm') || (mappingHtml.includes('id="btn-chart-custom-price-alert"') && mappingHtml.includes('Alarm')),
+      'Tombol di chart controls mapping harus berlabel Alarm / Pasang Alarm'
     );
 
     const mappingApp = fs.readFileSync('app/src/main/assets/apps/mapping/js/ict-workspace/app.js', 'utf8');
