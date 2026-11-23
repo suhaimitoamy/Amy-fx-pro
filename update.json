@@ -1,25 +1,23 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.470/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.471/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL.",
-    "✦ Anti-Spam & Golden Chime Alert: Suara bel denting kristal emas pada sinyal eksekusi CE & deduplikasi satu kali per peristiwa tanpa spam.",
-    "✦ Normalisasi Risiko Aman: Batasan SL scalper terukur aman (maksimal 35-40 pips) mencegah pelebaran SL berlebih pada alert background Android.",
-    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus."
+    "✦ Anti-Spam Pullback Filter: Menonaktifkan notifikasi counter-trend pullback (PULLBACK SELL/BUY CISD) di background Android & web.",
+    "✦ Fokus Sniper Murni: Notifikasi hanya terbit untuk sinyal Trend Utama, Peluru Utama Grade A+, dan siklus POI Mapping FVG/OB M5 (CE/TP1/TP2/SL).",
+    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.470/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.471/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950470,
-  "latest_version_name": "2.0.0-pro.470",
+  "latest_version_code": 950471,
+  "latest_version_name": "2.0.0-pro.471",
   "mandatory": false,
   "releaseDate": "2026-11-23",
   "release_notes": [
-    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL.",
-    "✦ Anti-Spam & Golden Chime Alert: Suara bel denting kristal emas pada sinyal eksekusi CE & deduplikasi satu kali per peristiwa tanpa spam.",
-    "✦ Normalisasi Risiko Aman: Batasan SL scalper terukur aman (maksimal 35-40 pips) mencegah pelebaran SL berlebih pada alert background Android.",
-    "✦ MT5 File Chooser WebView Fix: Perbaikan intent chooser native Android & expansi touch overlay file input untuk pembacaan screenshot 100% mulus."
+    "✦ Anti-Spam Pullback Filter: Menonaktifkan notifikasi counter-trend pullback (PULLBACK SELL/BUY CISD) di background Android & web.",
+    "✦ Fokus Sniper Murni: Notifikasi hanya terbit untuk sinyal Trend Utama, Peluru Utama Grade A+, dan siklus POI Mapping FVG/OB M5 (CE/TP1/TP2/SL).",
+    "✦ Notifikasi Siklus Penuh POI Mapping: Notifikasi Android otomatis saat harga menyentuh 50% CE (Entry), TP1 BEP tercapai, TP2 DOL penuh (100 Pips), dan disiplin batas SL."
   ],
-  "version": "2.0.0-pro.470",
-  "versionCode": 950470,
-  "sha256": "6546e0eeb90e95bb96c3554d6098e838e082e7c26a0f700fa5e7185df13077fb"
+  "version": "2.0.0-pro.471",
+  "versionCode": 950471,
+  "sha256": ""
 }

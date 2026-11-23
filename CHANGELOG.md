@@ -1,3 +1,7 @@
+## 2.0.0-pro.471
+
+- fix(notification): Filter anti-spam background Android & web menonaktifkan alert counter-trend pullback (PULLBACK SELL/BUY CISD) agar notifikasi hanya murni berfokus pada sinyal Trend Utama, Peluru Utama Grade A+, dan siklus POI FVG/OB M5 (CE, TP1 BEP, TP2 DOL, SL).
+
 ## 2.0.0-pro.470
 
 - feat(notification): Integrasi notifikasi Android real-time untuk siklus penuh POI Mapping (Opsi A & B): sentuh CE dengan denting bel emas kristal, pengawalan TP1 BEP, panen TP2 DOL 100 pips, dan batas disiplin SL dengan anti-spam deduplication serta normalisasi risiko aman.

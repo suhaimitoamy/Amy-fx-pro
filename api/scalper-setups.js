@@ -131,7 +131,7 @@ export default async function handler(req, res) {
     if (!isMarketClosed) {
       // 1. Evaluasi AMY Entry Assistant V3 (Prioritas Utama / item terdepan di active)
       const v3Plan = context.plan || context.amy?.plan;
-      const validV3Signals = [1, -1, 2, -2]; // BUY ENTRY, SELL ENTRY, PULLBACK BUY, PULLBACK SELL
+      const validV3Signals = [1, -1]; // BUY ENTRY, SELL ENTRY (Pullback [2, -2] dinonaktifkan permanen untuk eliminasi alert noise)
       const isV3Signal = v3Plan && validV3Signals.includes(v3Plan.signalType);
       const isV3Ready = isV3Signal && (v3Plan.status === 'READY' || v3Plan.status === 'ACTIVE' || context.execution?.entryReady);
 

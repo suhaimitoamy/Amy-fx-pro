@@ -207,6 +207,11 @@ class DriverSetupSyncWorker(
         } else if ((assistant?.optString("status") == "READY" || execution?.optBoolean("entryReady", false) == true || event?.optString("key", "")?.contains("ENTRY_SIGNAL") == true) && plan != null && isPlanFresh) {
             val sigType = assistant?.optInt("signalType", 0) ?: 0
             val sigName = assistant?.optString("signalName", "ENTRY SIGNAL").orEmpty().ifBlank { "ENTRY SIGNAL" }
+            val isPullback = Math.abs(sigType) == 2 || sigName.contains("PULLBACK", ignoreCase = true)
+            if (isPullback) {
+                android.util.Log.d("AmyFX-DriverWorker", "Pullback alert ($sigName) suppressed by policy (focus on trend & POI only).")
+                return
+            }
             val isBuy = sigType == 1 || sigType == 2 || (plan.optString("direction").equals("BUY", ignoreCase = true))
             val entryPrice = plan.optDouble("entry", 0.0)
             val slPrice = plan.optDouble("sl", 0.0).takeIf { it > 0.0 } ?: plan.optDouble("stopLoss", 0.0)
