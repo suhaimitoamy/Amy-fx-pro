@@ -1,3 +1,8 @@
+## 2.0.0-pro.468
+
+- fix(journal-ocr): Adopsi pemilih file touch overlay dari AI Studio (`.jl-mt5-file-overlay` mengisi penuh label dengan `inset: 0`) & toleransi MIME type gambar Android MediaStore/DocumentsContract (`application/octet-stream` atau MIME kosong).
+- feat(journal-ocr): Direct Client-Side Gemini Vision Engine dengan rotasi multi-key Base64 terlindungi (`gemini-2.5-flash`, `gemini-flash-latest`) untuk memproses OCR MT5 langsung dari HP tanpa terhambat Vercel 404.
+
 ## 2.0.0-pro.467
 
 - fix(journal-ocr): Perbaikan aktivasi file picker screenshot MT5 pada Android WebView dengan menambahkan click listener langsung pada `mt5DropLabel` dan clipboard paste handler.

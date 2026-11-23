@@ -102,6 +102,40 @@
     return window.AmyJournalBridge || null;
   }
 
+  function getApiBaseUrl() {
+    try {
+      var origin = window.location && window.location.origin ? String(window.location.origin) : "";
+      var protocol = window.location && window.location.protocol ? String(window.location.protocol) : "";
+      if (origin.indexOf("appassets.androidplatform.net") >= 0 || protocol === "file:") {
+        return "https://amy-fx.vercel.app";
+      }
+    } catch (_) {}
+    return "";
+  }
+
+  function isLikelyImageFile(file) {
+    if (!file) return false;
+    var type = String(file.type || "").trim().toLowerCase();
+    var name = String(file.name || "").trim().toLowerCase();
+    if (/^image\//.test(type)) return true;
+    if (/\.(png|jpe?g|webp|gif|bmp|heic|heif|avif)$/.test(name)) return true;
+    // Android WebView / Gallery content:// pickers often return empty MIME or octet-stream
+    if (!type || type === "application/octet-stream") {
+      if (/\.(pdf|mp4|mkv|mov|avi|webm|zip|csv|json|txt|doc|docx|xls|xlsx|mp3|wav)$/.test(name)) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function extractMimeFromDataUrl(dataUrl) {
+    var m = String(dataUrl || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/i);
+    if (!m) return "image/jpeg";
+    var mime = m[1].toLowerCase();
+    return mime === "image/jpg" ? "image/jpeg" : mime;
+  }
+
   function setStatus(text, kind) {
     scanState.statusText = text || "";
     scanState.statusKind = kind || "";
@@ -152,12 +186,21 @@
   function compressImageToJpegDataUrl(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
-      reader.onerror = function () { reject(new Error("Gagal membaca file gambar.")); };
+      reader.onerror = function () { reject(new Error("Gagal membaca file gambar dari perangkat.")); };
       reader.onload = function () {
+        var rawResult = typeof reader.result === "string" ? reader.result : "";
+        if (!rawResult) {
+          reject(new Error("Isi gambar kosong atau gagal dibaca."));
+          return;
+        }
         var img = new Image();
         img.onerror = function () {
           // Fallback to raw data URL if image decode fails (e.g. non-standard env)
-          resolve(typeof reader.result === "string" ? reader.result : "");
+          if (/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(rawResult)) {
+            resolve(rawResult);
+          } else {
+            reject(new Error("Format gambar tidak dapat dibaca. Coba gunakan screenshot PNG/JPG standar."));
+          }
         };
         img.onload = function () {
           try {
@@ -171,7 +214,7 @@
             canvas.height = targetH;
             var ctx = canvas.getContext("2d");
             if (!ctx) {
-              resolve(typeof reader.result === "string" ? reader.result : "");
+              resolve(rawResult);
               return;
             }
             ctx.fillStyle = "#0b111c";
@@ -179,10 +222,10 @@
             ctx.drawImage(img, 0, 0, targetW, targetH);
             resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
           } catch (_) {
-            resolve(typeof reader.result === "string" ? reader.result : "");
+            resolve(rawResult);
           }
         };
-        img.src = reader.result;
+        img.src = rawResult;
       };
       reader.readAsDataURL(file);
     });
@@ -463,10 +506,14 @@
   }
 
   function handleFileSelection(fileList) {
-    var incoming = Array.from(fileList || []).filter(function (f) {
-      return f && /^image\//i.test(f.type || "");
-    });
-    if (!incoming.length) return;
+    var allFiles = Array.from(fileList || []).filter(Boolean);
+    if (!allFiles.length) return;
+
+    var incoming = allFiles.filter(isLikelyImageFile);
+    if (!incoming.length) {
+      setStatus("Format file tidak didukung. Pilih gambar screenshot (PNG, JPG, atau WEBP).", "error");
+      return;
+    }
 
     var remaining = MAX_FILES - scanState.files.length;
     if (remaining <= 0) {
@@ -475,12 +522,28 @@
     }
 
     incoming.slice(0, remaining).forEach(function (file) {
-      scanState.files.push({
+      var previewUrl = "";
+      try {
+        previewUrl = URL.createObjectURL(file);
+      } catch (_) {
+        previewUrl = "";
+      }
+      var entry = {
         file: file,
         name: file.name || ("mt5-ss-" + (scanState.files.length + 1) + ".jpg"),
-        url: URL.createObjectURL(file),
+        url: previewUrl,
         compressedDataUrl: ""
-      });
+      };
+      scanState.files.push(entry);
+
+      // Eagerly pre-read/compress so Android WebView content:// URIs never expire before Scan is tapped
+      compressImageToJpegDataUrl(file).then(function (dataUrl) {
+        entry.compressedDataUrl = dataUrl;
+        if (!entry.url && dataUrl) {
+          entry.url = dataUrl;
+          renderFileThumbs();
+        }
+      }).catch(function () {});
     });
 
     setStatus("", "");
@@ -495,23 +558,36 @@
     return "";
   }
 
+  function isValidGeminiKey(key) {
+    var k = String(key || "").trim();
+    return Boolean(k && k.length >= 20 && (k.indexOf("AIza") === 0 || k.indexOf("AQ.") === 0));
+  }
+
   function getAvailableGeminiKeys() {
     var keys = [];
     try {
       var saved = JSON.parse(localStorage.getItem("tradingLibraryManager.assistantSettings.v1") || "{}");
-      if (saved && saved.apiKey && (saved.apiKey.startsWith("AIza") || saved.apiKey.startsWith("AQ."))) {
+      if (saved && isValidGeminiKey(saved.apiKey)) {
         keys.push(saved.apiKey.trim());
       }
     } catch (_) {}
     try {
+      var userKey = localStorage.getItem("amy_user_gemini_api_key");
+      if (isValidGeminiKey(userKey)) {
+        keys.push(userKey.trim());
+      }
+    } catch (_) {}
+    try {
       var standaloneKey = localStorage.getItem("gemini_api_key");
-      if (standaloneKey && (standaloneKey.startsWith("AIza") || standaloneKey.startsWith("AQ."))) {
+      if (isValidGeminiKey(standaloneKey)) {
         keys.push(standaloneKey.trim());
       }
     } catch (_) {}
     ENCODED_FALLBACK_KEYS.forEach(function (b64) {
       var k = decodeKey(b64);
-      if (k && keys.indexOf(k) === -1) keys.push(k);
+      if (isValidGeminiKey(k) && keys.indexOf(k) === -1) {
+        keys.push(k);
+      }
     });
     return keys;
   }
@@ -524,8 +600,11 @@
     if (!rawBase64) throw new Error("Data gambar kosong.");
 
     var keys = getAvailableGeminiKeys();
-    var lastError = null;
+    if (!keys.length) {
+      throw new Error("Tidak ada API Key Gemini yang tersedia.");
+    }
 
+    var lastError = null;
     for (var k = 0; k < keys.length; k++) {
       var apiKey = keys[k];
       for (var m = 0; m < GEMINI_VISION_MODELS.length; m++) {
@@ -534,7 +613,10 @@
           var url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(apiKey);
           var resp = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "User-Agent": "aistudio-build"
+            },
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: MT5_VISION_SYSTEM_PROMPT }] },
               contents: [{
@@ -575,22 +657,19 @@
     throw lastError || new Error("Gagal membaca screenshot via Gemini Vision.");
   }
 
-  async function callServerProxy(compressedDataUrl) {
-    var endpoint = (typeof location !== "undefined" && (location.hostname === "localhost" || location.hostname === "127.0.0.1"))
-      ? "/api/mt5-scan"
-      : "https://amy-fx.vercel.app/api/mt5-scan";
-
+  async function callServerProxy(compressedDataUrl, mimeType) {
+    var endpoint = getApiBaseUrl() + "/api/mt5-scan";
     var resp = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         imageBase64: compressedDataUrl,
-        mimeType: "image/jpeg"
+        mimeType: mimeType || "image/jpeg"
       })
     });
     var json = await resp.json().catch(function () { return null; });
     if (!resp.ok || !json || !json.ok || !json.data) {
-      throw new Error((json && json.error) || "Gagal memindai screenshot MT5 (" + resp.status + ").");
+      throw new Error((json && json.error) || "Gagal memindai screenshot MT5 (HTTP " + resp.status + ").");
     }
     return json;
   }
@@ -615,12 +694,13 @@
           item.compressedDataUrl = await compressImageToJpegDataUrl(item.file);
         }
 
+        var mimeType = extractMimeFromDataUrl(item.compressedDataUrl);
         var json = null;
         try {
-          json = await callDirectGeminiVision(item.compressedDataUrl, "image/jpeg");
+          json = await callDirectGeminiVision(item.compressedDataUrl, mimeType);
         } catch (directErr) {
           try {
-            json = await callServerProxy(item.compressedDataUrl);
+            json = await callServerProxy(item.compressedDataUrl, mimeType);
           } catch (proxyErr) {
             throw directErr || proxyErr;
           }
@@ -785,50 +865,25 @@
 
     if (fileInput) {
       fileInput.addEventListener("change", function () {
-        handleFileSelection(fileInput.files);
-        fileInput.value = "";
+        var picked = fileInput.files ? Array.from(fileInput.files) : [];
+        if (picked.length) {
+          handleFileSelection(picked);
+        }
+        setTimeout(function () {
+          try { fileInput.value = ""; } catch (_) {}
+        }, 120);
       });
     }
 
-    var dropLabel = byId("mt5DropLabel");
-    if (dropLabel && fileInput) {
-      dropLabel.addEventListener("click", function (ev) {
-        if (ev.target !== fileInput) {
-          ev.preventDefault();
-          fileInput.click();
-        }
-      });
-      dropLabel.addEventListener("dragover", function (ev) {
-        ev.preventDefault();
-        dropLabel.classList.add("is-dragover");
-      });
-      dropLabel.addEventListener("dragleave", function () {
-        dropLabel.classList.remove("is-dragover");
-      });
-      dropLabel.addEventListener("drop", function (ev) {
-        ev.preventDefault();
-        dropLabel.classList.remove("is-dragover");
-        if (ev.dataTransfer && ev.dataTransfer.files) {
-          handleFileSelection(ev.dataTransfer.files);
-        }
-      });
-    }
-
-    window.addEventListener("paste", function (ev) {
-      var d = byId("mt5ScanDialog");
-      if (!d || !d.open || scanState.scanning) return;
-      var clipboard = ev.clipboardData || (window.clipboardData) || (ev.originalEvent && ev.originalEvent.clipboardData);
-      var items = clipboard && clipboard.items;
-      if (!items) return;
-      var imageFiles = [];
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].type && items[i].type.indexOf("image") !== -1) {
-          var blob = items[i].getAsFile();
-          if (blob) imageFiles.push(blob);
-        }
-      }
-      if (imageFiles.length) {
-        handleFileSelection(imageFiles);
+    document.addEventListener("paste", function (ev) {
+      if (!dialog || !dialog.open) return;
+      var items = ev.clipboardData && ev.clipboardData.items ? Array.from(ev.clipboardData.items) : [];
+      var pastedFiles = items
+        .filter(function (it) { return it && it.kind === "file"; })
+        .map(function (it) { return it.getAsFile(); })
+        .filter(Boolean);
+      if (pastedFiles.length) {
+        handleFileSelection(pastedFiles);
       }
     });
 
