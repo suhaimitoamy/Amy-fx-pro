@@ -186,15 +186,19 @@
         root.AmyFXTheme.set(next);
         syncThemeBtn();
       });
-      root.addEventListener('amyfx:theme-change', syncThemeBtn);
+      if (typeof root.addEventListener === 'function') root.addEventListener('amyfx:theme-change', syncThemeBtn);
     }
 
     // Close open tool/jump popovers when tapping outside
-    document.addEventListener('click', function (evt) {
-      document.querySelectorAll('details.drawing-menu[open], details.bt-jump-pop[open]').forEach(function (det) {
-        if (!det.contains(evt.target)) det.removeAttribute('open');
+    if (typeof document.addEventListener === 'function') {
+      document.addEventListener('click', function (evt) {
+        if (typeof document.querySelectorAll === 'function') {
+          document.querySelectorAll('details.drawing-menu[open], details.bt-jump-pop[open]').forEach(function (det) {
+            if (!det.contains(evt.target)) det.removeAttribute('open');
+          });
+        }
       });
-    });
+    }
   }
 
   function bindDrawingToolbar(chart) {
@@ -211,6 +215,8 @@
     function closeTools() {
       if (!toolbar) return;
       toolbar.removeAttribute('open');
+      var sum = toolbar.querySelector('summary');
+      if (sum && typeof sum.focus === 'function') sum.focus();
     }
 
     if (toolbar) {
@@ -433,24 +439,33 @@
       });
     }
 
-    document.addEventListener('fullscreenchange', function () {
-      if (document.fullscreenElement === workspace) nativeActive = true;
-      else if (nativeActive) { nativeActive = false; layout(false); }
-    });
+    if (typeof document.addEventListener === 'function') {
+      document.addEventListener('fullscreenchange', function () {
+        if (document.fullscreenElement === workspace) nativeActive = true;
+        else if (nativeActive) { nativeActive = false; layout(false); }
+      });
 
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && workspace.classList.contains('is-fullscreen') && !chart.textEditor) leaveFullscreen();
-    });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && workspace.classList.contains('is-fullscreen') && !chart.textEditor) leaveFullscreen();
+      });
+    }
 
-    root.addEventListener('resize', function () {
-      if (workspace.classList.contains('is-fullscreen')) root.requestAnimationFrame(function () { chart.resize(); });
-    });
+    if (typeof root.addEventListener === 'function') {
+      root.addEventListener('resize', function () {
+        if (workspace.classList.contains('is-fullscreen') && typeof root.requestAnimationFrame === 'function') {
+          root.requestAnimationFrame(function () { chart.resize(); });
+        }
+      });
+    }
 
     chart.refreshObjectControls({ activeTool: chart.activeTool, selectedId: chart.selectedId });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initShell, { once: true });
-  else initShell();
+  if (typeof document.addEventListener === 'function' && document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initShell, { once: true });
+  } else {
+    initShell();
+  }
 
   root.AmyPracticeUI = Object.freeze({
     byId: byId,
