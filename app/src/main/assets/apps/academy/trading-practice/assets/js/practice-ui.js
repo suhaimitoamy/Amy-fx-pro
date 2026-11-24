@@ -62,8 +62,101 @@
     return record;
   }
 
-  // Self-contained mobile nav drawer & theme button wiring (replaces dead ../assets/js/main.js!)
+  function handleBacktestBack(explicitFallback) {
+    var fallback = explicitFallback || '../../../index.html#backtest';
+
+    // 1. Exit active Replay or Guided Fullscreen first
+    var activeFs = document.querySelector('#replayWorkspace.is-fullscreen, .bt-chart-stage.is-fullscreen');
+    if (activeFs) {
+      var exitBtn = byId('replayFullscreen') || byId('guidedFullscreenBtn');
+      if (exitBtn) {
+        exitBtn.click();
+        return true;
+      }
+    }
+
+    // 2. Close any open native <dialog>
+    var openDialogs = document.querySelectorAll('dialog[open]');
+    if (openDialogs.length) {
+      var topDlg = openDialogs[openDialogs.length - 1];
+      try {
+        if (typeof topDlg.close === 'function') topDlg.close();
+        else topDlg.removeAttribute('open');
+        return true;
+      } catch (_) {}
+    }
+
+    // 3. Close open mobile nav drawer
+    var nav = byId('navlinks');
+    var burger = byId('hamburger');
+    if (nav && nav.classList.contains('is-open')) {
+      nav.classList.remove('is-open');
+      if (burger) burger.setAttribute('aria-expanded', 'false');
+      return true;
+    }
+
+    // 4. Delegate to universal nav if loaded, otherwise 1-step real history.back() -> parent fallback
+    if (root.AmyUniversalNav && typeof root.AmyUniversalNav.goBack === 'function') {
+      root.AmyUniversalNav.goBack(fallback);
+      return true;
+    }
+
+    var sameOriginRef = false;
+    try {
+      if (document.referrer) {
+        sameOriginRef = new URL(document.referrer, root.location.origin).origin === root.location.origin;
+      }
+    } catch (_) {
+      sameOriginRef = false;
+    }
+
+    if (root.history && root.history.length > 1 && (!document.referrer || sameOriginRef)) {
+      var originHref = root.location.href;
+      try {
+        root.history.back();
+        setTimeout(function () {
+          if (root.location.href === originHref) {
+            root.location.assign(fallback);
+          }
+        }, 360);
+        return true;
+      } catch (_) {}
+    }
+
+    root.location.assign(fallback);
+    return true;
+  }
+
+  // Self-contained mobile nav drawer, 1-step back arrow & theme button wiring
   function initShell() {
+    var backBtn = byId('btBackBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', function (evt) {
+        evt.preventDefault();
+        var fallback = backBtn.getAttribute('data-back-fallback') || '../../../index.html#backtest';
+        handleBacktestBack(fallback);
+      });
+    }
+
+    // Allow universal nav / Android hardware back to exit fullscreen or open dialog before leaving page
+    root.__amyfxPageBackHandler = function () {
+      var activeFs = document.querySelector('#replayWorkspace.is-fullscreen, .bt-chart-stage.is-fullscreen');
+      if (activeFs) {
+        var exitBtn = byId('replayFullscreen') || byId('guidedFullscreenBtn');
+        if (exitBtn) { exitBtn.click(); return true; }
+      }
+      var openDialogs = document.querySelectorAll('dialog[open]');
+      if (openDialogs.length) {
+        var topDlg = openDialogs[openDialogs.length - 1];
+        try {
+          if (typeof topDlg.close === 'function') topDlg.close();
+          else topDlg.removeAttribute('open');
+          return true;
+        } catch (_) {}
+      }
+      return false;
+    };
+
     var burger = byId('hamburger');
     var nav = byId('navlinks');
     if (burger && nav) {
@@ -95,6 +188,13 @@
       });
       root.addEventListener('amyfx:theme-change', syncThemeBtn);
     }
+
+    // Close open tool/jump popovers when tapping outside
+    document.addEventListener('click', function (evt) {
+      document.querySelectorAll('details.drawing-menu[open], details.bt-jump-pop[open]').forEach(function (det) {
+        if (!det.contains(evt.target)) det.removeAttribute('open');
+      });
+    });
   }
 
   function bindDrawingToolbar(chart) {
@@ -111,8 +211,6 @@
     function closeTools() {
       if (!toolbar) return;
       toolbar.removeAttribute('open');
-      var sum = toolbar.querySelector('summary');
-      if (sum) sum.focus();
     }
 
     if (toolbar) {
@@ -158,9 +256,9 @@
     });
 
     var clear = byId('clearDrawings');
-    if (clear) clear.addEventListener('click', function () { chart.clearDrawings(); });
+    if (clear) clear.addEventListener('click', function () { chart.clearDrawings(); closeTools(); });
     var remove = byId('deleteDrawing');
-    if (remove) remove.addEventListener('click', function () { chart.deleteSelected(); });
+    if (remove) remove.addEventListener('click', function () { chart.deleteSelected(); closeTools(); });
     var undo = byId('undoDrawing');
     if (undo) undo.addEventListener('click', function () { chart.undo(); });
     var finish = byId('finishDrawing');
@@ -170,35 +268,113 @@
     sync({ activeTool: chart.activeTool, selectedId: chart.selectedId, message: 'Gesture chart aktif · ' + chart.drawings.length + ' objek.' });
   }
 
+  var TV_QUICK_TOOLS = [
+    {
+      id: 'pan',
+      label: 'Geser',
+      title: 'Geser & Crosshair Chart',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="2.2"></circle></svg>'
+    },
+    {
+      id: 'select',
+      label: 'Pilih',
+      title: 'Pilih / Pindahkan Gambar',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 9-6.5 1.8L9 20 5 3z"></path></svg>'
+    },
+    {
+      id: 'trend',
+      label: 'Garis',
+      title: 'Garis Tren (Trendline)',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="19" x2="19" y2="5"></line><circle cx="5" cy="19" r="2"></circle><circle cx="19" cy="5" r="2"></circle></svg>'
+    },
+    {
+      id: 'horizontal',
+      label: 'Level',
+      title: 'Garis Level Horizontal (PDH/PDL/S&R)',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><circle cx="12" cy="12" r="2.2"></circle></svg>'
+    },
+    {
+      id: 'rectangle',
+      label: 'Zona',
+      title: 'Kotak Zona (FVG / Order Block)',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="1.5"></rect><circle cx="4" cy="6" r="1.5"></circle><circle cx="20" cy="18" r="1.5"></circle></svg>'
+    },
+    {
+      id: 'longPosition',
+      label: 'Long RR',
+      title: 'Proyeksi Posisi Long (Buy R:R)',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="9" rx="1" fill="rgba(45,212,191,0.22)" stroke="#2dd4bf"></rect><rect x="4" y="13" width="16" height="7" rx="1" fill="rgba(251,113,133,0.18)" stroke="#fb7185"></rect><line x1="3" y1="13" x2="21" y2="13" stroke="currentColor"></line></svg>'
+    },
+    {
+      id: 'shortPosition',
+      label: 'Short RR',
+      title: 'Proyeksi Posisi Short (Sell R:R)',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1" fill="rgba(251,113,133,0.18)" stroke="#fb7185"></rect><rect x="4" y="11" width="16" height="9" rx="1" fill="rgba(45,212,191,0.22)" stroke="#2dd4bf"></rect><line x1="3" y1="11" x2="21" y2="11" stroke="currentColor"></line></svg>'
+    }
+  ];
+
   function bindReplayWorkspace(chart) {
     var workspace = byId('replayWorkspace');
-    var quick = document.createElement('div');
-    quick.className = 'replay-drawing-actions';
-    quick.innerHTML =
-      '<button type="button" data-quick="pan">Geser</button>' +
-      '<button type="button" data-quick="select">Pilih</button>' +
-      '<button type="button" data-quick="rectangle">Zona</button>' +
-      '<button type="button" data-quick="trend">Garis</button>' +
-      '<button type="button" data-quick="horizontal">Level</button>' +
-      '<button type="button" data-quick="longPosition">Long RR</button>' +
-      '<button type="button" data-quick="shortPosition">Short RR</button>' +
-      '<button type="button" id="replayFollow" aria-pressed="true">Ke Cursor</button>' +
-      '<button type="button" id="replayIctToggle" aria-pressed="false" title="Tampilkan garis PDH/PDL dan Asia High/Low tanpa membocorkan masa depan">ICT Level</button>' +
-      '<button type="button" id="replayFullscreen" aria-pressed="false">Layar Penuh</button>';
-    chart.container.parentNode.insertBefore(quick, chart.container);
+    var dock = byId('tvDrawingDock');
+    if (!dock) {
+      dock = document.createElement('div');
+      dock.id = 'tvDrawingDock';
+      dock.className = 'tv-tool-dock replay-drawing-actions';
+      chart.container.parentNode.insertBefore(dock, chart.container);
+    }
+
+    var extraMenu = byId('tvExtraToolsMenu') || dock.querySelector('.drawing-menu');
+
+    // Insert crisp TradingView SVG tool buttons directly inside the unified dock container
+    if (!dock.querySelector('[data-quick]')) {
+      var frag = document.createDocumentFragment();
+      TV_QUICK_TOOLS.forEach(function (tool) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tv-tool-btn';
+        btn.dataset.quick = tool.id;
+        btn.title = tool.title;
+        btn.setAttribute('aria-label', tool.title);
+        btn.innerHTML = tool.svg + '<span class="tv-tool-label">' + tool.label + '</span>';
+        frag.appendChild(btn);
+      });
+      if (extraMenu) dock.insertBefore(frag, extraMenu);
+      else dock.appendChild(frag);
+    }
+
+    // Fallback creation only if static view controls were absent from markup
+    if (!byId('replayFollow') || !byId('replayIctToggle') || !byId('replayFullscreen')) {
+      var fallbackView = document.createElement('div');
+      fallbackView.className = 'tv-view-actions';
+      fallbackView.innerHTML =
+        '<button type="button" id="replayIctToggle" class="tv-view-btn" aria-pressed="false"><span>ICT</span></button>' +
+        '<button type="button" id="replayFollow" class="tv-view-btn" aria-pressed="true"><span>Cursor</span></button>' +
+        '<button type="button" id="replayFullscreen" class="tv-view-btn tv-fs-btn" aria-pressed="false"><span class="tv-fs-label">Penuh</span></button>';
+      workspace.insertBefore(fallbackView, workspace.firstChild);
+    }
+
+    var extraTools = ['fibonacci', 'horizontalRay', 'priceRange', 'parallelChannel', 'arrow', 'text'];
 
     chart.refreshObjectControls = function (state) {
       var follow = byId('replayFollow');
-      if (follow) follow.setAttribute('aria-pressed', String(chart.followReplay));
-      quick.querySelectorAll('[data-quick]').forEach(function (button) {
-        button.classList.toggle('active', button.dataset.quick === (state.activeTool || 'pan'));
+      if (follow) follow.setAttribute('aria-pressed', String(Boolean(chart.followReplay)));
+      var activeKey = state.activeTool || 'pan';
+      dock.querySelectorAll('[data-quick]').forEach(function (button) {
+        var isOn = button.dataset.quick === activeKey;
+        button.classList.toggle('active', isOn);
+        button.setAttribute('aria-pressed', String(isOn));
       });
+      if (extraMenu) {
+        var extraActive = extraTools.indexOf(activeKey) >= 0;
+        extraMenu.classList.toggle('has-active-tool', extraActive);
+      }
     };
 
-    quick.querySelectorAll('[data-quick]').forEach(function (button) {
+    dock.querySelectorAll('[data-quick]').forEach(function (button) {
       button.addEventListener('click', function () {
         var tool = button.dataset.quick;
         chart.setTool(tool === 'pan' ? null : tool);
+        if (extraMenu) extraMenu.removeAttribute('open');
       });
     });
 
@@ -209,6 +385,16 @@
     var scrollY = 0;
     var placeholder = document.createComment('replay workspace position');
     var nativeActive = false;
+
+    function syncFullscreenButton(enabled) {
+      if (!full) return;
+      var labelNode = full.querySelector('.tv-fs-label');
+      if (labelNode) labelNode.textContent = enabled ? 'Keluar' : 'Penuh';
+      else full.textContent = enabled ? 'Keluar' : 'Penuh';
+      full.setAttribute('aria-label', enabled ? 'Keluar layar penuh' : 'Buka layar penuh');
+      full.setAttribute('title', enabled ? 'Keluar Layar Penuh (Esc)' : 'Layar Penuh');
+      full.setAttribute('aria-pressed', String(enabled));
+    }
 
     function layout(enabled) {
       if (enabled === workspace.classList.contains('is-fullscreen')) return;
@@ -221,13 +407,11 @@
       }
       document.body.classList.toggle('replay-fullscreen', enabled);
       workspace.classList.toggle('is-fullscreen', enabled);
-      full.textContent = enabled ? 'Keluar' : 'Layar Penuh';
-      full.setAttribute('aria-label', enabled ? 'Keluar layar penuh' : 'Buka layar penuh');
-      full.setAttribute('aria-pressed', String(enabled));
+      syncFullscreenButton(enabled);
       root.requestAnimationFrame(function () {
         chart.resize();
         if (!enabled) root.scrollTo(0, scrollY);
-        full.focus({ preventScroll: true });
+        if (full) full.focus({ preventScroll: true });
       });
     }
 

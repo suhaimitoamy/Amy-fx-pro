@@ -2764,6 +2764,359 @@ body.amyfx-module--academy .acd-risk-status.is-danger { color: #ff5c6c; }
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * SINGLE-FLOW INTERACTIVE TRADING BOOK READER (E-BOOK EDITORIAL SYSTEM)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.acd-book-article {
+  max-width: 740px;
+}
+
+.acd-book-header h1 {
+  text-wrap: balance;
+}
+
+.acd-book-outline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 30px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-surface-2);
+  border: 1px solid var(--acd-border);
+}
+
+.acd-book-outline-link {
+  flex: 0 1 auto;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--acd-border);
+  background: var(--acd-surface-1);
+  color: var(--acd-ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.acd-book-outline-link:hover {
+  background: var(--acd-surface-hover);
+  color: var(--acd-ink);
+  border-color: var(--acd-border-strong);
+}
+
+.acd-book-outline-link.is-exam {
+  color: var(--acd-gold);
+  border-color: color-mix(in srgb, var(--acd-gold) 36%, transparent);
+  background: var(--acd-gold-soft);
+}
+
+.acd-book-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.acd-book-chapter-sec {
+  padding: 26px 0;
+  border-top: 1px solid var(--acd-border);
+  scroll-margin-top: calc(var(--acd-header-h) + 16px);
+}
+
+.acd-book-chapter-sec:first-child {
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.acd-book-h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: clamp(1.18rem, 1.8vw, 1.38rem);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--acd-ink);
+  text-wrap: balance;
+}
+
+.acd-book-sec-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acd-gold);
+  flex-shrink: 0;
+}
+
+.acd-book-p {
+  margin: 0 0 15px;
+  font-size: 16px;
+  line-height: 1.82;
+  color: var(--acd-ink-soft);
+  letter-spacing: 0.005em;
+}
+
+.acd-book-p:last-child {
+  margin-bottom: 0;
+}
+
+.acd-book-p strong {
+  color: var(--acd-ink);
+  font-weight: 700;
+}
+
+/* Structured Numerical Example Box (Hairline border, no thick left bar) */
+.acd-book-example {
+  margin: 18px 0;
+  padding: 18px 20px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-surface);
+  border: 1px solid var(--acd-border);
+}
+
+.acd-book-example-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--acd-ink);
+  letter-spacing: -0.005em;
+}
+
+.acd-book-example-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acd-book-example-row {
+  padding-top: 12px;
+  border-top: 1px solid var(--acd-border);
+}
+
+.acd-book-example-row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.acd-book-example-row dt {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--acd-gold);
+}
+
+.acd-book-example-row dd {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: var(--acd-ink-soft);
+}
+
+.acd-book-example-row dd strong {
+  color: var(--acd-ink);
+}
+
+/* Book Comparison Tables (Tabular numerals, safe horizontal scroll on mobile) */
+.acd-book-table-wrap {
+  margin: 20px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--acd-radius-md);
+  border: 1px solid var(--acd-border);
+  background: var(--acd-surface);
+}
+
+.acd-book-table-caption {
+  margin: 0;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acd-ink);
+  background: var(--acd-surface-2);
+  border-bottom: 1px solid var(--acd-border);
+}
+
+.acd-book-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--acd-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  line-height: 1.54;
+}
+
+.acd-book-table th,
+.acd-book-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--acd-border);
+  vertical-align: top;
+}
+
+.acd-book-table th {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.38;
+  color: var(--acd-muted);
+  background: var(--acd-surface-2);
+}
+
+.acd-book-table td {
+  color: var(--acd-ink-soft);
+}
+
+.acd-book-table td code {
+  font-size: 0.88em;
+  padding: 1px 5px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.acd-book-table td.is-lead {
+  color: var(--acd-ink);
+  font-weight: 700;
+  min-width: 110px;
+}
+
+.acd-book-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Editorial Callout (Subtle all-around hairline border + explicit kicker label) */
+.acd-book-callout {
+  margin: 20px 0;
+  padding: 16px 18px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-surface-2);
+  border: 1px solid var(--acd-border-strong);
+}
+
+.acd-book-callout.is-tip {
+  background: color-mix(in srgb, var(--acd-gold-soft) 50%, var(--acd-surface));
+  border-color: color-mix(in srgb, var(--acd-gold) 36%, var(--acd-border));
+}
+
+.acd-book-callout.is-warn {
+  background: color-mix(in srgb, var(--acd-bear-soft) 45%, var(--acd-surface));
+  border-color: color-mix(in srgb, var(--acd-bear) 36%, var(--acd-border));
+}
+
+.acd-book-callout.is-story {
+  background: color-mix(in srgb, var(--acd-fvg-fill) 45%, var(--acd-surface));
+  border-color: color-mix(in srgb, var(--acd-cyan) 36%, var(--acd-border));
+}
+
+.acd-book-callout-kicker {
+  margin: 0 0 4px;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acd-gold);
+}
+
+.acd-book-callout.is-warn .acd-book-callout-kicker {
+  color: var(--acd-bear);
+}
+
+.acd-book-callout.is-story .acd-book-callout-kicker {
+  color: var(--acd-cyan);
+}
+
+.acd-book-callout-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--acd-ink);
+}
+
+.acd-book-callout-body {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--acd-ink-soft);
+}
+
+.acd-book-callout-body strong {
+  color: var(--acd-ink);
+}
+
+/* Inline Book Figure & Embedded Risk Lab */
+.acd-book-figure {
+  margin: 24px 0 4px;
+}
+
+.acd-book-fig-kicker {
+  display: block;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acd-gold);
+  margin-bottom: 2px;
+}
+
+.acd-book-lab {
+  margin: 22px 0 6px !important;
+}
+
+/* Key Takeaways & Natural Bridge to Next Chapter */
+.acd-book-takeaways {
+  margin: 22px 0 18px;
+  padding: 18px 20px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-gold-soft);
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 38%, var(--acd-border));
+}
+
+.acd-book-takeaways ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--acd-ink);
+}
+
+.acd-book-bridge {
+  margin: 12px 0 28px;
+  padding: 18px 20px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-surface);
+  border: 1px solid var(--acd-border);
+}
+
+@media (max-width: 640px) {
+  .acd-book-p {
+    font-size: 15.5px;
+    line-height: 1.78;
+  }
+
+  .acd-book-example,
+  .acd-book-callout,
+  .acd-book-takeaways,
+  .acd-book-bridge {
+    padding: 15px 16px;
+  }
+
+  .acd-book-table {
+    min-width: 560px;
+  }
+
+  .acd-book-table th,
+  .acd-book-table td {
+    padding: 9px 11px;
+    font-size: 13px;
+  }
+}
+
 
 
 

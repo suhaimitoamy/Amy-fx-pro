@@ -1,3 +1,11 @@
+## 2.0.0-pro.475
+
+- feat(navigation): Navigasi Kembali 1-Langkah Global deterministik di seluruh sub-halaman aplikasi.
+- feat(practice): Wadah terpadu kontrol TradingView Replay dock (`#tvDrawingDock`, `.cr-top-actions`).
+- feat(academy): Buku Interaktif Trading 36 Bab komprehensif dalam 6 Bagian Utama dengan 151 soal Uji Paham.
+- feat(mapping): Deteksi visual institusional Inverse FVG (`+iFVG` / `-iFVG`) dan Breaker Block (`+BB` / `-BB`).
+- fix(mapping-engine): Audit forensik 7 akar penyebab SL, buffer SL wick XAU/USD realistis, evaluasi SL-first, Dealing Range dinamis.
+
 ## 2.0.0-pro.474
 
 - feat(academy): Overhaul kurikulum Amy FX Academy ke Jalur Penguasaan 43 Modul (8 Babak Linier):

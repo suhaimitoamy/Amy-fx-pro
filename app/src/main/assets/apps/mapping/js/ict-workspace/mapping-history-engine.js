@@ -6,6 +6,7 @@
  */
 
 export const HISTORY_STORAGE_KEY = 'amyfx.mapping.reaction_history.v1';
+export const BACKFILL_ENGINE_VERSION = 4;
 export const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 export const MAX_RETENTION_MS = 180 * 24 * 60 * 60 * 1000; // 180 hari detail penuh POI
 export const TIMELINE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari timeline market
@@ -108,6 +109,8 @@ function normalizeArchiveEntry(dateKey, raw) {
     m5Sl: Math.max(0, Math.round(Number(raw.m5Sl) || 0)),
     fvgTotal: Math.max(0, Math.round(Number(raw.fvgTotal) || 0)),
     obTotal: Math.max(0, Math.round(Number(raw.obTotal) || 0)),
+    ifvgTotal: Math.max(0, Math.round(Number(raw.ifvgTotal) || 0)),
+    bbTotal: Math.max(0, Math.round(Number(raw.bbTotal) || 0)),
     updatedAt: Number(raw.updatedAt) || 0
   };
 }
@@ -136,6 +139,8 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
   let m5Sl = 0;
   let fvgTotal = 0;
   let obTotal = 0;
+  let ifvgTotal = 0;
+  let bbTotal = 0;
   let updatedAt = 0;
 
   for (const r of records || []) {
@@ -161,6 +166,8 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
 
     const kind = String(r.kind || '').toUpperCase();
     if (kind === 'OB') obTotal += 1;
+    else if (kind === 'IFVG') ifvgTotal += 1;
+    else if (kind === 'BB' || kind === 'BREAKER') bbTotal += 1;
     else fvgTotal += 1;
 
     const ts = Math.max(Number(r.resolvedAt) || 0, Number(r.lastTouchAt) || 0, Number(r.touchedAt) || 0);
@@ -193,6 +200,8 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
     m5Sl,
     fvgTotal,
     obTotal,
+    ifvgTotal,
+    bbTotal,
     updatedAt
   };
 }
@@ -259,6 +268,7 @@ export function loadHistoryState(storage) {
     const dailyArchive = rebuildDailyArchive(poiRecords, parsed?.dailyArchive || {});
     return {
       version: 2,
+      engineVersion: Number(parsed?.engineVersion) || 1,
       poiRecords,
       timelineEvents,
       dailyArchive
@@ -288,6 +298,7 @@ export function saveHistoryState(storage, state) {
 
   const payload = {
     version: 2,
+    engineVersion: Number(state.engineVersion) || BACKFILL_ENGINE_VERSION,
     poiRecords,
     timelineEvents,
     dailyArchive
@@ -300,6 +311,7 @@ export function saveHistoryState(storage, state) {
     try {
       const lean = {
         version: 2,
+        engineVersion: Number(state.engineVersion) || BACKFILL_ENGINE_VERSION,
         poiRecords: poiRecords.slice(0, 1000).map(r => compactPoiForStorage(r, false)),
         timelineEvents: timelineEvents.slice(0, 120),
         dailyArchive
@@ -331,7 +343,22 @@ function normalizeCandles(rows) {
 }
 
 /**
+ * Compute realistic Gold XAU/USD SL wick buffer beyond zone boundary when caller doesn't pass explicit SL.
+ * Prevents 4-pip ($0.40) noise wick-outs on volatile M5/M15 Gold swings while keeping total risk healthy.
+ */
+export function computeGoldSlBuffer(tf, zoneWidth) {
+  const w = Math.max(0.5, Number(zoneWidth) || 2.0);
+  const isM5 = String(tf || 'M15').toUpperCase() === 'M5';
+  return isM5
+    ? Number(Math.max(1.40, Math.min(2.20, w * 0.35)).toFixed(2))
+    : Number(Math.max(1.80, Math.min(3.00, w * 0.35)).toFixed(2));
+}
+
+/**
  * Evaluate a single zone chronologically across subsequent closed candles (conservative SL-first).
+ * - Enforces valid-side approach (SELL approached from below, BUY approached from above) & rejects pre-broken zones.
+ * - Uses realistic Gold wick SL buffer & proportional TP1 when zone.sl/tp1 are not explicitly provided.
+ * - Prevents phantom maxFavorable inflation from pre-entry approach extremes on the touch candle.
  */
 export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs) {
   const isSell = zone.side === 'SELL';
@@ -339,6 +366,8 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   const hi = num(zone.high);
   if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return null;
 
+  const width = hi - lo;
+  const tf = String(zone.tf || 'M15').toUpperCase();
   const ce = num(zone.ce) || (lo + hi) / 2;
   const formedTimeSec = Number(zone.startTime || zone.time || 0);
   const formedIdx = Number.isInteger(zone.formedIndex) ? zone.formedIndex : -1;
@@ -349,15 +378,31 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     : candles.findIndex(c => c.openTime > formedTimeSec);
   if (startIdx < 0 || startIdx >= candles.length) return null;
 
-  // Find first candle touching [lo - 0.15, hi + 0.15]
+  // Realistic Gold SL buffer when structural SL is not explicitly provided
+  const defaultBuf = computeGoldSlBuffer(tf, width);
+  const sl = num(zone.sl) || Number((isSell ? hi + defaultBuf : lo - defaultBuf).toFixed(2));
+
+  // Find first VALID-SIDE candle touching [lo - 0.15, hi + 0.15].
+  // Rejects wrong-side touches (e.g., SELL touched from above SL, or BUY touched from below SL) and pre-broken zones.
   let touchIdx = -1;
   for (let i = startIdx; i < candles.length; i += 1) {
     const c = candles[i];
-    const touched = isSell ? (c.high >= lo - 0.15 && c.low <= hi + 0.5) : (c.low <= hi + 0.15 && c.high >= lo - 0.5);
+    // If price opened already beyond the invalidation edge (wrong-side approach / already broken), zone is dead
+    const openedWrongSide = isSell ? (c.open > hi + 0.25) : (c.open < lo - 0.25);
+    if (openedWrongSide) return null;
+
+    const touched = isSell
+      ? (c.high >= lo - 0.15 && c.low <= hi + 0.15)
+      : (c.low <= hi + 0.15 && c.high >= lo - 0.15);
+
     if (touched) {
       touchIdx = i;
       break;
     }
+
+    // If a bar closed past the far edge without a valid retest (gap/jump over zone), zone is invalidated
+    const jumpedPast = isSell ? (c.close > hi) : (c.close < lo);
+    if (jumpedPast) return null;
   }
   if (touchIdx < 0) return null;
 
@@ -379,10 +424,11 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
       : Math.max(Math.min(touchBar.open, hi), lo);
   }
 
-  const sl = num(zone.sl) || Number((isSell ? hi + 0.40 : lo - 0.40).toFixed(2));
-  const risk = Math.max(1.8, Math.abs(ce - sl));
-  const tp1 = num(zone.tp1) || Number((isSell ? ce - Math.max(risk * 1.6, 5.0) : ce + Math.max(risk * 1.6, 5.0)).toFixed(2));
-  const tp2 = num(zone.tp2) || Number((isSell ? ce - Math.max(risk * 2.8, 9.0) : ce + Math.max(risk * 2.8, 9.0)).toFixed(2));
+  const risk = Math.max(1.5, Math.abs(ce - sl));
+  const minTp1 = tf === 'M5' ? 3.2 : 4.5;
+  const minTp2 = tf === 'M5' ? 6.0 : 8.5;
+  const tp1 = num(zone.tp1) || Number((isSell ? ce - Math.max(risk * 1.6, minTp1) : ce + Math.max(risk * 1.6, minTp1)).toFixed(2));
+  const tp2 = num(zone.tp2) || Number((isSell ? ce - Math.max(risk * 2.8, minTp2) : ce + Math.max(risk * 2.8, minTp2)).toFixed(2));
 
   let status = 'TESTING';
   let resolvedAt = null;
@@ -396,16 +442,19 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   for (let i = touchIdx; i < candles.length; i += 1) {
     const c = candles[i];
     const barTs = c.closeTime * 1000;
-    const fav = isSell ? Math.max(0, ce - c.low) : Math.max(0, c.high - ce);
-    if (fav > maxFavorable) maxFavorable = fav;
 
     const barInZone = isSell
-      ? (c.high >= lo - 0.15 && c.low <= hi + 0.5)
-      : (c.low <= hi + 0.15 && c.high >= lo - 0.5);
+      ? (c.high >= lo - 0.15 && c.low <= hi + 0.15)
+      : (c.low <= hi + 0.15 && c.high >= lo - 0.15);
     const barHitCe = isSell ? (c.high >= ce) : (c.low <= ce);
     const hitSl = isSell ? (c.high > sl) : (c.low < sl);
-    const hitTp1 = isSell ? (c.low <= tp1) : (c.high >= tp1);
-    const hitTp2 = isSell ? (c.low <= tp2) : (c.high >= tp2);
+    // On the touch candle itself, TP1/TP2 is only valid if candle closed favorably (avoiding pre-entry open/wick false TP)
+    const hitTp1 = i === touchIdx
+      ? (isSell ? (c.close <= tp1) : (c.close >= tp1))
+      : (isSell ? (c.low <= tp1) : (c.high >= tp1));
+    const hitTp2 = i === touchIdx
+      ? (isSell ? (c.close <= tp2) : (c.close >= tp2))
+      : (isSell ? (c.low <= tp2) : (c.high >= tp2));
 
     if (barInZone) {
       if (barHitCe) ceTouched = true;
@@ -430,12 +479,21 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
       inZonePrev = false;
     }
 
-    // Conservative SL-first when both hit on the same candle (unless TP1 was already secured on an earlier bar)
+    // Conservative SL-first when both hit on the same candle (unless TP1 was already secured on an earlier bar).
+    // Must check SL BEFORE updating maxFavorable so a stopped-out bar never logs phantom post-SL profit!
     if (hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT') {
       status = 'SL_HIT';
       resolvedAt = barTs;
       break;
     }
+
+    // On the touch candle itself (i === touchIdx), never count pre-entry approach extremes as favorable bounce!
+    // Measure touch-bar bounce strictly from candle close (actual post-touch rejection), then full high/low on later bars.
+    const fav = i === touchIdx
+      ? (isSell ? Math.max(0, ce - c.close) : Math.max(0, c.close - ce))
+      : (isSell ? Math.max(0, ce - c.low) : Math.max(0, c.high - ce));
+    if (fav > maxFavorable) maxFavorable = fav;
+
     if (hitTp2) {
       status = 'TP2_HIT';
       resolvedAt = barTs;
@@ -450,9 +508,9 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   }
 
   return {
-    id: makePoiId(zone.side, zone.tf, zone.kind, lo, hi),
+    id: makePoiId(zone.side, tf, zone.kind, lo, hi),
     side: zone.side,
-    tf: zone.tf,
+    tf,
     kind: zone.kind,
     low: Number(lo.toFixed(2)),
     high: Number(hi.toFixed(2)),
@@ -473,7 +531,8 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     notifiedTp1: status === 'TP1_HIT' || status === 'TP2_HIT',
     notifiedTp2: status === 'TP2_HIT',
     notifiedSl: status === 'SL_HIT',
-    source: 'BACKFILL'
+    source: 'BACKFILL',
+    engineVersion: BACKFILL_ENGINE_VERSION
   };
 }
 
@@ -601,7 +660,29 @@ export function backfillFromCandles({
     }
   }
 
-  // 4. POI Touches & Outcomes from M15 & M5 FVG/OB zones (include historyFvg/historyOb so resolved zones backfill cleanly)
+  // 4. POI Touches & Outcomes from M15 & M5 FVG, OB, iFVG & Breaker Block (BB) zones
+  // Applies strictly CAUSAL (pre-entry) ICT quality filters:
+  // (a) Max zone width cap (<= $10.5 M15 / <= $7.5 M5)
+  // (b) Session discipline: skip dead Rollover (04:00-07:00 WITA) & noisy Asia M5 FVG chop (07:00-14:00 WITA)
+  // (c) Causal M15 trend alignment: raw counter-trend FVG skipped unless backed by reversal-grade OB/BB/iFVG
+  // (d) Anti-opposite-overlap dedupe: never record conflicting BUY + SELL zones at the exact same price within 30m
+  const m15TrendSeries = Array.isArray(ngM15?.structure?.trendByTime) ? ngM15.structure.trendByTime : [];
+  const resolveCausalM15Trend = touchMs => {
+    if (!m15TrendSeries.length) return 'NEUTRAL';
+    const touchSec = Math.floor(touchMs / 1000);
+    let lastTrend = 'NEUTRAL';
+    for (let i = 0; i < m15TrendSeries.length; i += 1) {
+      if (m15TrendSeries[i].time <= touchSec) lastTrend = m15TrendSeries[i].trend || 'NEUTRAL';
+      else break;
+    }
+    return lastTrend;
+  };
+  const getWitaHour = tsMs => {
+    const d = new Date(tsMs + 8 * 3600 * 1000);
+    return Number.isNaN(d.getTime()) ? 14 : d.getUTCHours();
+  };
+
+  const candidatesEvaluated = [];
   const evalNgZones = (ng, candles, tf) => {
     if (!ng?.poi || !candles.length) return;
     const fvgList = Array.isArray(ng.poi.historyFvg) && ng.poi.historyFvg.length
@@ -610,20 +691,35 @@ export function backfillFromCandles({
     const obList = Array.isArray(ng.poi.historyOb) && ng.poi.historyOb.length
       ? ng.poi.historyOb
       : (Array.isArray(ng.poi.ob) ? ng.poi.ob : []);
+    const ifvgList = Array.isArray(ng.poi.historyIfvg) && ng.poi.historyIfvg.length
+      ? ng.poi.historyIfvg
+      : (Array.isArray(ng.poi.ifvg) ? ng.poi.ifvg : []);
+    const bbList = Array.isArray(ng.poi.historyBb) && ng.poi.historyBb.length
+      ? ng.poi.historyBb
+      : (Array.isArray(ng.poi.bb) ? ng.poi.bb : []);
+
     const rawZones = [
-      ...fvgList.map(z => ({ ...z, kind: 'FVG' })),
-      ...obList.map(z => ({ ...z, kind: 'OB' }))
+      ...bbList.map(z => ({ ...z, kind: 'BB' })),
+      ...ifvgList.map(z => ({ ...z, kind: 'iFVG' })),
+      ...obList.map(z => ({ ...z, kind: 'OB' })),
+      ...fvgList.map(z => ({ ...z, kind: 'FVG' }))
     ];
+    const minW = tf === 'M5' ? 1.25 : 1.50;
+    const maxW = tf === 'M5' ? 7.5 : 10.5;
     const seenKeys = new Set();
+
     for (const z of rawZones) {
       const sideStr = String(z.side || z.direction || '').toUpperCase();
       const side = (sideStr === 'SELL' || sideStr === 'BEARISH') ? 'SELL' : 'BUY';
       const loVal = num(z.bot ?? z.low);
       const hiVal = num(z.top ?? z.high);
       if (!Number.isFinite(loVal) || !Number.isFinite(hiVal) || hiVal <= loVal) continue;
+      const zWidth = hiVal - loVal;
+      if (zWidth < minW || zWidth > maxW) continue;
       const dedupeKey = `${side}:${z.kind}:${loVal.toFixed(1)}-${hiVal.toFixed(1)}`;
       if (seenKeys.has(dedupeKey)) continue;
       seenKeys.add(dedupeKey);
+
       const evaluated = evaluateZoneLifecycleOnCandles(
         {
           side,
@@ -640,47 +736,92 @@ export function backfillFromCandles({
         nowMs
       );
       if (!evaluated) continue;
-      poiRecords.push(evaluated);
-      const touchTag = evaluated.touchCount > 1
-        ? ` · ${evaluated.touchCount}× sentuh${evaluated.ceTouched ? ' (50% CE)' : ''}`
-        : (evaluated.ceTouched ? ' · 50% CE tersentuh' : '');
-      pushEvent({
-        id: `TOUCH:${evaluated.id}`,
-        ts: evaluated.touchedAt,
-        category: 'POI_TOUCH',
-        side: evaluated.side,
-        tf: evaluated.tf,
-        title: `${evaluated.kind} ${evaluated.tf} ${evaluated.side} Disentuh`,
-        detail: `Zona $${fmt(evaluated.low)}–$${fmt(evaluated.high)} tersentuh @ $${fmt(evaluated.touchPrice)}${touchTag}`,
-        price: evaluated.touchPrice,
-        source: 'BACKFILL'
-      });
-      if (evaluated.status === 'TP2_HIT' || evaluated.status === 'TP1_HIT' || evaluated.status === 'SL_HIT') {
-        const outTitle = evaluated.status === 'TP2_HIT'
-          ? `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → TP2 DOL Tercapai`
-          : evaluated.status === 'TP1_HIT'
-            ? `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → TP1 BEP Tercapai`
-            : `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → Jebol SL`;
-        pushEvent({
-          id: `OUTCOME:${evaluated.id}:${evaluated.status}`,
-          ts: evaluated.resolvedAt || evaluated.touchedAt + 60000,
-          category: 'POI_OUTCOME',
-          side: evaluated.side,
-          tf: evaluated.tf,
-          title: outTitle,
-          detail: evaluated.status === 'SL_HIT'
-            ? `Invalidasi SL $${fmt(evaluated.sl)} tembus (reaksi maks +$${fmt(evaluated.maxFavorable)})`
-            : `Memantul +$${fmt(evaluated.maxFavorable)} dari CE $${fmt(evaluated.ce)}`,
-          price: evaluated.status === 'SL_HIT' ? evaluated.sl : (evaluated.status === 'TP2_HIT' ? evaluated.tp2 : evaluated.tp1),
-          source: 'BACKFILL'
-        });
-      }
+
+      // Causal Pre-Entry Filter 1: Dead Rollover (04:00-07:00 WITA) & Asia M5 chop (07:00-14:00 WITA)
+      // During Asia, only M15 structural zones are tracked; M5 scalper refinement activates from London Open (14:00+ WITA).
+      const witaH = getWitaHour(evaluated.touchedAt);
+      if (witaH >= 4 && witaH < 7) continue;
+      if (witaH >= 7 && witaH < 14 && tf === 'M5') continue;
+
+      // Causal Pre-Entry Filter 2: Causal M15 Trend Alignment
+      // - M5 is strictly a trend-aligned refinement timeframe (never catch a falling knife on M5 against M15 trend).
+      // - On M15, raw counter-trend FVG is skipped while institutional reversal OB/BB/iFVG remain allowed.
+      const causalTrend = resolveCausalM15Trend(evaluated.touchedAt);
+      const isAligned = (causalTrend === 'BULL' && side === 'BUY') || (causalTrend === 'BEAR' && side === 'SELL');
+      const isCounter = (causalTrend === 'BULL' && side === 'SELL') || (causalTrend === 'BEAR' && side === 'BUY');
+      if (isCounter && (tf === 'M5' || z.kind === 'FVG')) continue;
+
+      // Priority score for resolving overlapping zones at the same price & window
+      const kindWeight = z.kind === 'BB' ? 4 : (z.kind === 'iFVG' ? 3 : (z.kind === 'OB' ? 2 : 1));
+      const priority = (isAligned ? 10 : 0) + (tf === 'M15' ? 3 : 0) + kindWeight;
+      candidatesEvaluated.push({ evaluated, priority, isAligned });
     }
   };
   evalNgZones(ngM15, m15, 'M15');
   evalNgZones(ngM5, m5, 'M5');
 
-  return { poiRecords, timelineEvents };
+  // Anti-Overlap Dedupe (strictly pre-entry: higher causal alignment / M15 / BB / iFVG / OB wins):
+  // 1) Never record conflicting opposite-side (BUY vs SELL) zones at the same price within 30m.
+  // 2) Never double-count stacked same-side zones on the same TF overlapping in price within 30m.
+  candidatesEvaluated.sort((a, b) => b.priority - a.priority || a.evaluated.touchedAt - b.evaluated.touchedAt);
+  const acceptedPois = [];
+  for (const item of candidatesEvaluated) {
+    const cur = item.evaluated;
+    const hasConflict = acceptedPois.some(prev => {
+      const sameWindow = Math.abs(prev.touchedAt - cur.touchedAt) <= 30 * 60 * 1000;
+      if (!sameWindow) return false;
+      if (prev.side !== cur.side) {
+        return Math.max(prev.low, cur.low) <= Math.min(prev.high, cur.high) + 1.0;
+      }
+      if (prev.tf === cur.tf) {
+        return Math.max(prev.low, cur.low) < Math.min(prev.high, cur.high) - 0.15;
+      }
+      return false;
+    });
+    if (hasConflict) continue;
+    acceptedPois.push(cur);
+  }
+  acceptedPois.sort((a, b) => a.touchedAt - b.touchedAt);
+
+  for (const evaluated of acceptedPois) {
+    poiRecords.push(evaluated);
+    const touchTag = evaluated.touchCount > 1
+      ? ` · ${evaluated.touchCount}× sentuh${evaluated.ceTouched ? ' (50% CE)' : ''}`
+      : (evaluated.ceTouched ? ' · 50% CE tersentuh' : '');
+    pushEvent({
+      id: `TOUCH:${evaluated.id}`,
+      ts: evaluated.touchedAt,
+      category: 'POI_TOUCH',
+      side: evaluated.side,
+      tf: evaluated.tf,
+      title: `${evaluated.kind} ${evaluated.tf} ${evaluated.side} Disentuh`,
+      detail: `Zona $${fmt(evaluated.low)}–$${fmt(evaluated.high)} tersentuh @ $${fmt(evaluated.touchPrice)}${touchTag}`,
+      price: evaluated.touchPrice,
+      source: 'BACKFILL'
+    });
+    if (evaluated.status === 'TP2_HIT' || evaluated.status === 'TP1_HIT' || evaluated.status === 'SL_HIT') {
+      const outTitle = evaluated.status === 'TP2_HIT'
+        ? `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → TP2 DOL Tercapai`
+        : evaluated.status === 'TP1_HIT'
+          ? `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → TP1 BEP Tercapai`
+          : `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → Jebol SL`;
+      pushEvent({
+        id: `OUTCOME:${evaluated.id}:${evaluated.status}`,
+        ts: evaluated.resolvedAt || evaluated.touchedAt + 60000,
+        category: 'POI_OUTCOME',
+        side: evaluated.side,
+        tf: evaluated.tf,
+        title: outTitle,
+        detail: evaluated.status === 'SL_HIT'
+          ? `Invalidasi SL $${fmt(evaluated.sl)} tembus (reaksi maks +$${fmt(evaluated.maxFavorable)})`
+          : `Memantul +$${fmt(evaluated.maxFavorable)} dari CE $${fmt(evaluated.ce)}`,
+        price: evaluated.status === 'SL_HIT' ? evaluated.sl : (evaluated.status === 'TP2_HIT' ? evaluated.tp2 : evaluated.tp1),
+        source: 'BACKFILL'
+      });
+    }
+  }
+
+  return { poiRecords, timelineEvents, engineVersion: BACKFILL_ENGINE_VERSION };
 }
 
 /**
@@ -894,6 +1035,7 @@ export function recordLivePoiProgress({
     alerts,
     state: {
       version: 2,
+      engineVersion: Number(state?.engineVersion) || BACKFILL_ENGINE_VERSION,
       poiRecords: keptPois,
       timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS),
       dailyArchive
@@ -954,7 +1096,16 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
     poiMap.set(rec.id, merged);
   };
 
-  for (const r of persisted?.poiRecords || []) upsertPoi(r);
+  // When upgrading to v3+ profitable backfill engine, replace stale legacy BACKFILL records
+  // inside the recent 48h window while preserving ALL LIVE records and older archived history.
+  const incomingV3 = Number(backfilled?.engineVersion || 0) >= BACKFILL_ENGINE_VERSION;
+  const legacyRefreshCutoff = nowMs - 48 * 3600 * 1000;
+  for (const r of persisted?.poiRecords || []) {
+    if (incomingV3 && r?.source === 'BACKFILL' && Number(r.engineVersion || 0) < BACKFILL_ENGINE_VERSION && Number(r.touchedAt || 0) >= legacyRefreshCutoff) {
+      continue;
+    }
+    upsertPoi(r);
+  }
   for (const r of backfilled?.poiRecords || []) upsertPoi(r);
 
   const evMap = new Map();
@@ -965,15 +1116,26 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
       evMap.set(ev.id, { ...ev });
     }
   };
-  for (const e of persisted?.timelineEvents || []) upsertEv(e);
+  for (const e of persisted?.timelineEvents || []) {
+    if (incomingV3 && e?.source === 'BACKFILL' && (e.category === 'POI_TOUCH' || e.category === 'POI_OUTCOME') && Number(e.ts || 0) >= legacyRefreshCutoff) {
+      continue;
+    }
+    upsertEv(e);
+  }
   for (const e of backfilled?.timelineEvents || []) upsertEv(e);
 
   const sortedPois = [...poiMap.values()].sort((a, b) => b.touchedAt - a.touchedAt);
   const keptPois = sortedPois.slice(0, MAX_POI_RECORDS);
   const overflowPois = sortedPois.slice(MAX_POI_RECORDS);
 
-  // Merge both dailyArchive maps first (richer summary wins per date)
+  // Merge both dailyArchive maps first (richer summary wins per date; rebuild dates refreshed by v3 cleanly)
   const mergedArchive = normalizeDailyArchiveMap(persisted?.dailyArchive || {});
+  if (incomingV3) {
+    const todayKey = witaDateKey(nowMs);
+    const yesterdayKey = witaDateKey(nowMs - 24 * 3600 * 1000);
+    delete mergedArchive[todayKey];
+    delete mergedArchive[yesterdayKey];
+  }
   const incomingArchive = normalizeDailyArchiveMap(backfilled?.dailyArchive || {});
   for (const [k, v] of Object.entries(incomingArchive)) {
     mergedArchive[k] = pickRicherDayArchive(mergedArchive[k], v);
@@ -982,6 +1144,7 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
 
   return {
     version: 2,
+    engineVersion: incomingV3 ? BACKFILL_ENGINE_VERSION : Number(persisted?.engineVersion || 2),
     poiRecords: keptPois,
     timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS),
     dailyArchive
@@ -1121,6 +1284,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
     m5RespectRate: null,
     fvgTotal: 0,
     obTotal: 0,
+    ifvgTotal: 0,
+    bbTotal: 0,
     activeDays: 0
   };
 
@@ -1149,6 +1314,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
       monthAgg.m5Sl += summary.m5Sl;
       monthAgg.fvgTotal += summary.fvgTotal;
       monthAgg.obTotal += summary.obTotal;
+      monthAgg.ifvgTotal += Number(summary.ifvgTotal) || 0;
+      monthAgg.bbTotal += Number(summary.bbTotal) || 0;
       monthAgg.activeDays += 1;
     }
 
@@ -1264,11 +1431,13 @@ export function getDayPoiRecords(state, dateKey, filter = 'ALL') {
 if (typeof window !== 'undefined') {
   window.AmyMappingHistoryEngine = {
     HISTORY_STORAGE_KEY,
+    BACKFILL_ENGINE_VERSION,
     SEVEN_DAYS_MS,
     MAX_RETENTION_MS,
     TIMELINE_RETENTION_MS,
     MAX_POI_RECORDS,
     MAX_TIMELINE_EVENTS,
+    computeGoldSlBuffer,
     createEmptyHistoryState,
     loadHistoryState,
     saveHistoryState,

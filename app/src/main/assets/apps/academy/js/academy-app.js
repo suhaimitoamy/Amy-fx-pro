@@ -1,10 +1,11 @@
-/* Amy FX Academy — Duolingo-Style Mastery Path & Anti-Bingung Guided Reader
+/* Amy FX Academy — Interactive 36-Chapter Trading Book & Strict Mastery Locking Reader
  * Features:
- * - Linear 43-Module Mastery Path (No Level Bureaucracy)
- * - Strict Mastery Locking (must pass >= 80% Uji Paham to unlock next module)
- * - Optional 100% (4/4) Placement Exam to prove MT5 basics & jump to Modul 07 (ICT)
- * - Anti-Bingung Guided Reader Tabs: Pahami & Gambar | Kasus Abu-Abu | Bedah Kasus | Uji Paham
- * - Interactive Multi-Stage SVG Diagrams, Mini Risk Lab, Bookmarks, Deep-Link Lock Guard & Tanya Amy
+ * - Single-Flow Textbook Reader (no fragmented 5-tab chopping)
+ * - 6 Book Parts (Bagian I–VI) · 36 Zero-Duplication Chapters (Bab 01–36)
+ * - Inline Multi-Stage Interactive SVG Diagrams placed directly inside relevant sub-chapters
+ * - Inline Mini Risk & Lot Lab inside Bab 03
+ * - Strict Duolingo-Style Locking (>= 80% Uji Paham required to unlock next chapter)
+ * - Optional 100% (4/4) Placement Exam to prove Bagian I basics & jump to Bab 07 (Bagian II)
  */
 (function (root) {
   'use strict';
@@ -20,7 +21,6 @@
     activeLessonId: null,
     filterMode: 'all', // 'all' | 'mastered' | 'saved'
     searchQuery: '',
-    readerTab: 'understand', // 'understand' | 'decisions' | 'cases' | 'exam' | 'all'
     diagramStageIndex: 0,
     quizAnswers: {}, // { [lessonId]: { [qIndex]: selectedOptionIndex } }
     justUnlockedLessonId: null,
@@ -50,7 +50,7 @@
   // Safely render **bold**, *italic*, and `code` inline formatting after strict HTML escaping
   function fmtRich(str) {
     return esc(str)
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*\*((?:(?!\*\*).)+)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*])\*([^\s*](?:[^*\n]*[^\s*])?)\*/g, '$1<em>$2</em>')
       .replace(/`([^`]+)`/g, '<code class="acd-inline-code">$1</code>');
   }
@@ -71,7 +71,9 @@
     try {
       const bRaw = root.localStorage.getItem(BOOKMARKS_KEY);
       const parsed = bRaw ? JSON.parse(bRaw) : [];
-      state.bookmarks = Array.isArray(parsed) ? parsed.map(String) : [];
+      state.bookmarks = Array.isArray(parsed)
+        ? Array.from(new Set(parsed.map(id => (typeof C.resolveLessonId === 'function' ? C.resolveLessonId(id) : String(id)))))
+        : [];
     } catch {
       state.bookmarks = [];
     }
@@ -87,7 +89,7 @@
 
   function toggleBookmark(lessonId) {
     if (!lessonId) return;
-    const id = String(lessonId);
+    const id = typeof C.resolveLessonId === 'function' ? C.resolveLessonId(lessonId) : String(lessonId);
     const idx = state.bookmarks.indexOf(id);
     if (idx >= 0) state.bookmarks.splice(idx, 1);
     else state.bookmarks.unshift(id);
@@ -117,21 +119,12 @@
   function readLessonFromUrl() {
     try {
       const params = new URLSearchParams(root.location.search);
-      const id = params.get('lesson');
-      return id && C.getLessonById(id) ? id : null;
+      const rawId = params.get('lesson');
+      const resolved = rawId ? C.getLessonById(rawId) : null;
+      return resolved ? resolved.id : null;
     } catch {
       return null;
     }
-  }
-
-  function showLockFeedback(lessonId) {
-    const req = C.getUnlockRequirement(state.progress, lessonId);
-    if (req.allowed) return false;
-    state.lockModal = req;
-    state.drawerOpen = false;
-    document.body.style.overflow = 'hidden';
-    render();
-    return true;
   }
 
   function closeModals() {
@@ -164,7 +157,6 @@
     state.view = 'lesson';
     state.activeLessonId = lesson.id;
     state.diagramStageIndex = 0;
-    state.readerTab = options.tab || 'understand';
     state.justUnlockedLessonId = null;
     state.lockModal = null;
     state.placementModalOpen = false;
@@ -208,6 +200,15 @@
     if (labelEl) labelEl.textContent = `${stats.completedCount} / ${stats.totalLessons} (${stats.percent}%)`;
     if (fillEl) fillEl.style.width = `${stats.percent}%`;
     if (menuBtn) menuBtn.hidden = state.view !== 'lesson';
+
+    const backLink = document.getElementById('acdBackLink');
+    const backLabel = document.getElementById('acdBackLabel');
+    if (backLink) {
+      const inLesson = state.view === 'lesson';
+      backLink.setAttribute('aria-label', inLesson ? 'Kembali ke Daftar Materi Academy' : 'Kembali ke Beranda Amy FX Pro');
+      backLink.setAttribute('href', inLesson ? 'index.html' : '../../index.html');
+      if (backLabel) backLabel.textContent = inLesson ? 'Daftar Bab' : 'Beranda';
+    }
   }
 
   function renderLockModal() {
@@ -216,8 +217,8 @@
     if (!targetLesson) return '';
 
     const blockerTitle = blockedByLesson
-      ? `Modul ${fmtStep(blockedByLesson)} · ${blockedByLesson.title}`
-      : 'Modul sebelumnya';
+      ? `Bab ${fmtStep(blockedByLesson)} · ${blockedByLesson.title}`
+      : 'Bab sebelumnya';
 
     return `<div class="acd-modal-backdrop" id="acdLockModalBackdrop" role="presentation">
       <div class="acd-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="acdLockModalTitle">
@@ -227,17 +228,17 @@
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
         </div>
-        <h2 id="acdLockModalTitle" class="acd-modal-title">Modul ${fmtStep(targetLesson)} Masih Terkunci</h2>
+        <h2 id="acdLockModalTitle" class="acd-modal-title">Bab ${fmtStep(targetLesson)} Masih Terkunci</h2>
         <p class="acd-modal-subtitle">${esc(targetLesson.title)}</p>
         <p class="acd-modal-body">
-          Untuk mencegah kebingungan akibat materi yang loncat-loncat, setiap modul baru hanya terbuka setelah kamu <strong>lulus Uji Paham (minimal ${requiredPercent}% benar)</strong> pada modul aktif saat ini:
+          Seperti membaca buku yang terstruktur, setiap bab baru hanya terbuka setelah kamu <strong>lulus Uji Paham (minimal ${requiredPercent}% benar)</strong> pada bab aktif saat ini:
         </p>
         <div class="acd-modal-prereq">
-          <span class="acd-modal-prereq-kicker">Prasyarat Aktif</span>
+          <span class="acd-modal-prereq-kicker">Bab Aktif Saat Ini</span>
           <strong>${esc(blockerTitle)}</strong>
         </div>
         <div class="acd-modal-actions">
-          ${blockedByLesson ? `<button type="button" class="acd-btn-primary" id="acdGoFrontierBtn" data-open-lesson="${esc(blockedByLesson.id)}">Buka Modul ${fmtStep(blockedByLesson)} Sekarang →</button>` : ''}
+          ${blockedByLesson ? `<button type="button" class="acd-btn-primary" id="acdGoFrontierBtn" data-open-lesson="${esc(blockedByLesson.id)}">Buka Bab ${fmtStep(blockedByLesson)} Sekarang →</button>` : ''}
           <button type="button" class="acd-btn-secondary" id="acdCloseLockModalBtn">Tutup</button>
         </div>
       </div>
@@ -293,21 +294,21 @@
     const footerHtml = res
       ? (res.passed
         ? `<div class="acd-unlock-banner" role="status">
-            <strong>🔓 Lulus 4/4! Modul 01–06 Tuntas (+${C.XP_PLACEMENT_BONUS} XP)</strong>
-            <p>Fondasi MT5 &amp; Lot Gold terbukti kuat. Jalur langsung terbuka ke Modul 07 (Pintu Masuk ICT).</p>
+            <strong>🔓 Lulus 4/4! Bagian I (Bab 01–06) Tuntas (+${C.XP_PLACEMENT_BONUS} XP)</strong>
+            <p>Fondasi MT5, Spread &amp; Lot Gold terbukti kuat. Kamu langsung dapat membuka Bab 07 (Bagian II: Struktur Pasar Murni).</p>
             <div class="acd-modal-actions">
-              <button type="button" class="acd-btn-primary" id="acdPlacementContinueBtn" data-open-lesson="${esc(res.unlockedLesson?.id || 'logika-trading-probabilitas')}">Buka Modul 07 Sekarang →</button>
-              <button type="button" class="acd-btn-secondary" id="acdClosePlacementBtn">Lihat Peta Jalur</button>
+              <button type="button" class="acd-btn-primary" id="acdPlacementContinueBtn" data-open-lesson="${esc(res.unlockedLesson?.id || 'struktur-pasar-dasar')}">Buka Bab 07 Sekarang →</button>
+              <button type="button" class="acd-btn-secondary" id="acdClosePlacementBtn">Lihat Daftar Isi</button>
             </div>
           </div>`
         : `<div class="acd-quiz-summary" role="status">
             <div>
               <strong>Belum Lulus Tes Loncat (${res.correct}/${res.total} Benar)</strong>
-              <p class="acd-muted-note">Syarat tes loncat wajib 4/4 benar. Sebaiknya pelajari dari Modul 01 agar fondasi spread, lot &amp; order MT5 benar-benar matang.</p>
+              <p class="acd-muted-note">Syarat tes loncat wajib 4/4 benar. Sebaiknya baca dulu dari Bab 01 agar fondasi pips, spread, lot &amp; order MT5 benar-benar matang.</p>
             </div>
             <div class="acd-modal-actions">
               <button type="button" class="acd-btn-primary" id="acdRetryPlacementBtn">Coba Lagi</button>
-              <button type="button" class="acd-btn-secondary" id="acdClosePlacementBtn">Belajar dari Modul 01</button>
+              <button type="button" class="acd-btn-secondary" id="acdClosePlacementBtn">Baca dari Bab 01</button>
             </div>
           </div>`)
       : `<div class="acd-modal-actions">
@@ -322,11 +323,11 @@
         <div class="acd-modal-top-row">
           <div>
             <p class="acd-hero-kicker">Uji Bukti Paham · Wajib 4/4 Benar</p>
-            <h2 id="acdPlacementTitle" class="acd-modal-title">Tes Loncat Dasar MT5 &amp; Lot Gold</h2>
+            <h2 id="acdPlacementTitle" class="acd-modal-title">Tes Loncat Bagian I (Dasar MT5 &amp; Lot Gold)</h2>
           </div>
           <button type="button" class="acd-icon-btn" id="acdClosePlacementTopBtn" aria-label="Tutup Tes Loncat">×</button>
         </div>
-        <p class="acd-modal-body">Sudah terbiasa memakai MT5, menghitung lot XAU/USD, dan paham Bid/Ask? Jawab 4 skenario nyata ini dengan sempurna (4/4) untuk membuka langsung <strong>Modul 07 (Pintu Masuk ICT)</strong>.</p>
+        <p class="acd-modal-body">Sudah terbiasa memakai MT5, menghitung lot XAU/USD, dan paham Bid/Ask? Jawab 4 skenario nyata ini dengan sempurna (4/4) untuk membuka langsung <strong>Bab 07 (Bagian II: Struktur Pasar &amp; Likuiditas)</strong>.</p>
         <div class="acd-placement-questions">${qsHtml}</div>
         ${footerHtml}
       </div>
@@ -351,16 +352,16 @@
       : baseFiltered;
 
     const primaryCtaLabel = stats.allMastered
-      ? 'Review Capstone · Modul 43'
+      ? `Review Capstone · Bab ${C.LESSONS.length}`
       : stats.completedCount > 0
-        ? `Lanjutkan · Modul ${fmtStep(frontier)}`
-        : `Mulai Modul 01`;
+        ? `Lanjutkan Membaca · Bab ${fmtStep(frontier)}`
+        : 'Mulai Baca Bab 01';
 
     const placementHtml = showPlacementBanner
       ? `<section class="acd-placement-banner" aria-label="Tes loncat bagi trader yang sudah paham dasar MT5">
           <div class="acd-placement-copy">
-            <span class="acd-track-kicker">Sudah Paham Dasar MT5 &amp; Lot Gold?</span>
-            <p>Lewati Modul 01–06 tanpa curang: buktikan pemahamanmu lewat <strong>Tes Loncat (wajib 4/4 benar)</strong> untuk langsung membuka Modul 07 (Pintu Masuk ICT).</p>
+            <span class="acd-track-kicker">Sudah Paham Dasar MT5, Pips &amp; Lot Gold?</span>
+            <p>Lewati Bagian I (Bab 01–06) tanpa melewatkan fondasi: buktikan pemahamanmu lewat <strong>Tes Loncat (wajib 4/4 benar)</strong> untuk langsung membuka Bab 07 (Bagian II).</p>
           </div>
           <button type="button" class="acd-btn-secondary" id="acdOpenPlacementBtn">Ikuti Tes Loncat (4 Soal)</button>
         </section>`
@@ -373,7 +374,7 @@
       const stagePct = stageStat ? stageStat.percent : 0;
       const stageAllDone = stageStat && stageStat.completed === stageStat.total && stageStat.total > 0;
 
-      const nodesHtml = items.map((lesson, idxInStage) => {
+      const nodesHtml = items.map(lesson => {
         const lockState = C.getModuleLockState(state.progress, lesson.id);
         const isMastered = lockState === 'mastered';
         const isActive = lockState === 'unlocked';
@@ -381,24 +382,23 @@
         const isSaved = bookmarkSet.has(String(lesson.id));
         const quizRec = state.progress.quizScores[lesson.id];
         const stepStr = fmtStep(lesson);
-        const zigClass = idxInStage % 2 === 1 ? 'acd-path-item--offset' : '';
 
-        let statusText = `${lesson.readMinutes} mnt · Uji Paham ${lesson.quiz.length} soal`;
+        let statusText = `${lesson.readMinutes} mnt baca · Uji Paham ${lesson.quiz.length} soal`;
         let nodeSymbol = stepStr;
         if (isMastered) {
           nodeSymbol = '✓';
           statusText = quizRec
-            ? `Dikuasai · Skor ${quizRec.correct}/${quizRec.total} · Ketuk untuk review`
-            : 'Dikuasai · Ketuk untuk review';
+            ? `Dikuasai · Skor ${quizRec.correct}/${quizRec.total} · Ketuk untuk baca ulang`
+            : 'Dikuasai · Ketuk untuk baca ulang';
         } else if (isActive) {
           nodeSymbol = '▶';
-          statusText = `Sedang Aktif · Lulus Uji Paham ≥80% untuk buka berikutnya`;
+          statusText = `${lesson.readMinutes} mnt baca · Lulus Uji Paham ≥80% untuk buka bab berikutnya`;
         } else {
           nodeSymbol = '🔒';
-          statusText = 'Terkunci · Tuntaskan modul aktif sebelumnya';
+          statusText = 'Terkunci · Tuntaskan bab aktif sebelumnya';
         }
 
-        return `<div class="acd-path-item is-${lockState} ${zigClass}" data-module-state="${lockState}" data-module-id="${esc(lesson.id)}">
+        return `<div class="acd-path-item is-${lockState}" data-module-state="${lockState}" data-module-id="${esc(lesson.id)}">
           <div class="acd-path-rail" aria-hidden="true">
             <span class="acd-path-line"></span>
             <span class="acd-path-node">${nodeSymbol}</span>
@@ -407,9 +407,9 @@
             <button type="button"
               class="acd-path-card is-${lockState}"
               data-open-lesson="${esc(lesson.id)}"
-              aria-label="Modul ${stepStr}: ${esc(lesson.title)} — ${isMastered ? 'Dikuasai' : isActive ? 'Aktif' : 'Terkunci'}">
+              aria-label="Bab ${stepStr}: ${esc(lesson.title)} — ${isMastered ? 'Dikuasai' : isActive ? 'Aktif' : 'Terkunci'}">
               <div class="acd-path-card-head">
-                <span class="acd-path-step acd-nums">Modul ${stepStr}</span>
+                <span class="acd-path-step acd-nums">Bab ${stepStr}</span>
                 <span class="acd-path-state-label is-${lockState}">
                   ${isMastered ? 'Tuntas' : isActive ? 'Aktif Sekarang' : 'Terkunci'}
                 </span>
@@ -441,32 +441,32 @@
     }).filter(Boolean).join('');
 
     const emptyMsg = state.filterMode === 'saved' && !state.searchQuery
-      ? 'Belum ada modul favorit tersimpan. Ketuk ikon bintang (☆) pada modul yang terbuka untuk menyimpannya.'
+      ? 'Belum ada bab favorit tersimpan. Ketuk ikon bintang (☆) pada bab yang terbuka untuk menyimpannya.'
       : state.filterMode === 'mastered' && !state.searchQuery
-        ? 'Belum ada modul yang dituntaskan. Mulai dari Modul 01 dan lulus Uji Paham minimal 80% untuk membuka jalurmu.'
-        : `Tidak ada modul yang cocok dengan "${esc(state.searchQuery)}".`;
+        ? 'Belum ada bab yang dituntaskan. Mulai dari Bab 01 dan lulus Uji Paham minimal 80% untuk membuka bab berikutnya.'
+        : `Tidak ada bab yang cocok dengan "${esc(state.searchQuery)}".`;
 
     const emptyHtml = `<div class="acd-empty-state">
       <p style="margin:0 0 12px; font-weight:700; color:var(--acd-ink);">${emptyMsg}</p>
-      <button type="button" class="acd-btn-secondary" id="acdResetFilterBtn">Tampilkan Seluruh Jalur</button>
+      <button type="button" class="acd-btn-secondary" id="acdResetFilterBtn">Tampilkan Seluruh Daftar Isi</button>
     </div>`;
 
     return `<div class="acd-overview">
-      <section class="acd-hero" aria-label="Ringkasan Jalur Penguasaan ICT">
+      <section class="acd-hero" aria-label="Ringkasan Buku Panduan ICT">
         <div>
-          <p class="acd-hero-kicker">${C.LESSONS.length} Modul Berurutan · Sistem Kunci Pemahaman 80% · XAU/USD</p>
-          <h1>Jalur Penguasaan ICT Mandiri</h1>
-          <p class="acd-hero-sub">Pelajari ICT secara tuntas tanpa loncat-loncat dan tanpa duplikasi. Setiap modul baru terbuka setelah kamu lulus Uji Paham minimal 80%.</p>
+          <p class="acd-hero-kicker">Buku Interaktif ${C.LESSONS.length} Bab · Nol Duplikasi · Kunci Pemahaman 80% · XAU/USD</p>
+          <h1>Buku Panduan Trading Gold &amp; ICT Mandiri</h1>
+          <p class="acd-hero-sub">Disusun mengalir seperti buku teks dari nol mutlak sampai mampu mapping chart kosong secara mandiri. Setiap bab baru terbuka setelah kamu lulus Uji Paham minimal 80%.</p>
           <p class="acd-hero-resume-meta">
             ${stats.allMastered
-              ? 'Selamat — seluruh 43 modul hingga Capstone Mapping Mandiri telah kamu kuasai.'
-              : `Target Aktif: <strong>Modul ${fmtStep(frontier)} · ${esc(frontier.title)}</strong>`}
+              ? `Selamat — seluruh ${C.LESSONS.length} bab hingga Capstone Mapping Mandiri telah kamu kuasai.`
+              : `Bab Aktif: <strong>Bab ${fmtStep(frontier)} · ${esc(frontier.title)}</strong>`}
           </p>
         </div>
         <div class="acd-hero-right">
           <div class="acd-hero-stats">
             <div class="acd-hero-stats-row">
-              <span>Progres Penguasaan</span>
+              <span>Progres Bacaan</span>
               <strong class="acd-nums">${stats.completedCount} / ${stats.totalLessons} (${stats.percent}%) · ${stats.xp} XP</strong>
             </div>
             <div class="acd-progress-bar-lg" role="progressbar" aria-valuenow="${stats.percent}" aria-valuemin="0" aria-valuemax="100">
@@ -480,7 +480,7 @@
       ${placementHtml}
 
       <div class="acd-toolbar" role="search">
-        <div class="acd-level-tabs" role="tablist" aria-label="Filter jalur modul">
+        <div class="acd-level-tabs" role="tablist" aria-label="Filter daftar isi buku">
           <button type="button" class="acd-tab-btn ${state.filterMode === 'all' ? 'is-active' : ''}" data-filter-mode="all">Semua (${C.LESSONS.length})</button>
           <button type="button" class="acd-tab-btn ${state.filterMode === 'mastered' ? 'is-active' : ''}" data-filter-mode="mastered">Dikuasai (${stats.completedCount})</button>
           <button type="button" class="acd-tab-btn ${state.filterMode === 'saved' ? 'is-active' : ''}" data-filter-mode="saved">Tersimpan (${state.bookmarks.length})</button>
@@ -490,7 +490,7 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input id="acdSearchInput" class="acd-search-input" type="search" placeholder="Cari topik (mis. DOL, Unicorn, SMT, MMXM, FVG, Lot)..." value="${esc(state.searchQuery)}" autocomplete="off" aria-label="Cari materi modul">
+          <input id="acdSearchInput" class="acd-search-input" type="search" placeholder="Cari topik (mis. Pips, Lot, DOL, FVG, iFVG, Breaker, SMT)..." value="${esc(state.searchQuery)}" autocomplete="off" aria-label="Cari materi bab">
         </div>
       </div>
 
@@ -523,39 +523,42 @@
 
       return `<div class="acd-sidebar-group">
         <div class="acd-sidebar-group-title">
-          <span>${esc(stage.code)} · ${esc(stage.title.split('&')[0].trim())}</span>
+          <span>${esc(stage.code)} · ${esc(stage.title.split(':')[0].split('&')[0].trim())}</span>
           <span class="acd-nums">${done}/${items.length}</span>
         </div>
         ${itemsHtml}
       </div>`;
     }).join('');
 
-    return `<aside id="acdSidebar" class="acd-sidebar ${state.drawerOpen ? 'is-open' : ''}" aria-label="Jalur ${C.LESSONS.length} modul">
+    return `<aside id="acdSidebar" class="acd-sidebar ${state.drawerOpen ? 'is-open' : ''}" aria-label="Daftar isi ${C.LESSONS.length} bab">
       <div class="acd-sidebar-top">
-        <button type="button" class="acd-sidebar-overview-btn" id="acdOverviewBtn">← Peta Jalur</button>
-        <button type="button" class="acd-drawer-close" id="acdDrawerCloseBtn" aria-label="Tutup daftar jalur">×</button>
+        <button type="button" class="acd-sidebar-overview-btn" id="acdOverviewBtn">← Daftar Isi Buku</button>
+        <button type="button" class="acd-drawer-close" id="acdDrawerCloseBtn" aria-label="Tutup daftar isi">×</button>
       </div>
       ${groupsHtml}
     </aside>`;
   }
 
-  function renderDiagramCard(lesson) {
+  function renderDiagramCard(lesson, figureLabel) {
     const rendered = D.renderDiagramSVG(lesson.diagramId, state.diagramStageIndex);
     const tabsHtml = rendered.stages.map(s => {
       const active = s.index === rendered.activeIndex;
       return `<button type="button" class="acd-stage-btn ${active ? 'is-active' : ''}" data-diagram-stage="${s.index}" aria-pressed="${active ? 'true' : 'false'}">${esc(s.label)}</button>`;
     }).join('');
 
-    return `<section class="acd-diagram-card" aria-label="Diagram chart interaktif">
+    return `<figure class="acd-diagram-card acd-book-figure" aria-label="Ilustrasi chart interaktif">
       <div class="acd-diagram-head">
-        <h2 class="acd-diagram-title">${esc(rendered.title)}</h2>
-        <div class="acd-stage-tabs" role="group" aria-label="Tahap diagram">${tabsHtml}</div>
+        <div>
+          <span class="acd-book-fig-kicker">${esc(figureLabel || `Ilustrasi Bab ${fmtStep(lesson)}`)}</span>
+          <h3 class="acd-diagram-title">${esc(rendered.title)}</h3>
+        </div>
+        <div class="acd-stage-tabs" role="group" aria-label="Tahap ilustrasi">${tabsHtml}</div>
       </div>
       <div class="acd-diagram-canvas" id="acdDiagramCanvas">${rendered.svg}</div>
-      <div class="acd-diagram-caption" id="acdDiagramCaption">
-        <strong>Catatan Chart:</strong> ${esc(rendered.caption)}
-      </div>
-    </section>`;
+      <figcaption class="acd-diagram-caption" id="acdDiagramCaption">
+        <strong>Penjelasan Gambar:</strong> ${esc(rendered.caption)}
+      </figcaption>
+    </figure>`;
   }
 
   function renderQuizSection(lesson, adj) {
@@ -618,11 +621,11 @@
     if (allAnswered) {
       if (passedNow) {
         const nextBtn = adj.next
-          ? `<button type="button" class="acd-btn-primary" id="acdUnlockedNextBtn" data-open-lesson="${esc(adj.next.id)}">Buka Modul ${fmtStep(adj.next)} →</button>`
-          : `<button type="button" class="acd-btn-primary" id="acdFinishOverviewBtn">Lihat Wisuda Jalur →</button>`;
+          ? `<button type="button" class="acd-btn-primary" id="acdUnlockedNextBtn" data-open-lesson="${esc(adj.next.id)}">Lanjut ke Bab ${fmtStep(adj.next)} →</button>`
+          : `<button type="button" class="acd-btn-primary" id="acdFinishOverviewBtn">Lihat Wisuda Buku →</button>`;
         summaryHtml = `<div class="acd-unlock-banner" role="status">
-          <strong>🔓 Lulus Uji Paham (${currentCorrect}/${total}) — ${adj.next ? `Modul ${fmtStep(adj.next)} Resmi Terbuka!` : 'Seluruh Jalur ICT Tuntas!'}</strong>
-          <p>Pemahamanmu terverifikasi (+${C.XP_PER_MASTERED_MODULE} XP). Progres otomatis tersimpan.</p>
+          <strong>🔓 Lulus Uji Paham (${currentCorrect}/${total}) — ${adj.next ? `Bab ${fmtStep(adj.next)} Resmi Terbuka!` : 'Seluruh 36 Bab Tuntas!'}</strong>
+          <p>Pemahamanmu terverifikasi (+${C.XP_PER_MASTERED_MODULE} XP). Progres bacaan tersimpan otomatis.</p>
           <div class="acd-unlock-actions">
             ${nextBtn}
             <button type="button" class="acd-btn-secondary" id="acdRetryQuizBtn">Ulangi Uji Paham</button>
@@ -632,11 +635,11 @@
         summaryHtml = `<div class="acd-quiz-summary is-failed" role="status">
           <div>
             <strong>🔒 Belum Lulus (${currentCorrect}/${total} — Minimal ${minPass}/${total} Benar)</strong>
-            <p class="acd-muted-note">Modul berikutnya tetap terkunci agar tidak bingung di langkah lanjut. Baca kembali tab <strong>Kasus Abu-Abu</strong> dan <strong>Pahami &amp; Gambar</strong> lalu ulangi Uji Paham.</p>
+            <p class="acd-muted-note">Bab berikutnya tetap terkunci agar kamu benar-benar menguasai materi ini dulu. Baca kembali bagian yang masih ragu di atas, lalu ulangi Uji Paham.</p>
           </div>
           <div class="acd-unlock-actions">
             <button type="button" class="acd-btn-primary" id="acdRetryQuizBtn">Ulangi Uji Paham</button>
-            <button type="button" class="acd-btn-secondary" data-reader-tab="decisions">Baca Kasus Abu-Abu</button>
+            <button type="button" class="acd-btn-secondary" data-scroll-target="acdBookTop">Baca Ulang dari Atas ↑</button>
           </div>
         </div>`;
       }
@@ -646,7 +649,7 @@
       <div class="acd-quiz-head">
         <div>
           <p class="acd-section-kicker" style="margin-bottom:4px;">Gerbang Buka Kunci · Minimal ${minPass}/${total} Benar (80%)</p>
-          <h2 id="acdQuizHeading">Uji Paham Modul ${fmtStep(lesson)} ${isMastered ? '· ✓ Tuntas' : ''}</h2>
+          <h2 id="acdQuizHeading">Uji Paham Bab ${fmtStep(lesson)} ${isMastered ? '· ✓ Tuntas' : ''}</h2>
         </div>
         <span class="acd-quiz-score acd-nums">${esc(scoreBadge)}</span>
       </div>
@@ -659,7 +662,7 @@
     if (typeof C.calculateBeginnerRiskLot !== 'function') return '';
     const calc = C.calculateBeginnerRiskLot(state.riskLab);
     const idrFmt = calc.riskIdr.toLocaleString('id-ID');
-    return `<section id="acdMiniRiskLab" class="acd-risk-lab" aria-label="Simulasi Latihan Lot dan Risiko Gold">
+    return `<section id="acdMiniRiskLab" class="acd-risk-lab acd-book-lab" aria-label="Simulasi Latihan Lot dan Risiko Gold">
       <div class="acd-risk-lab-head">
         <div>
           <span class="acd-track-kicker">Lab Praktik Langsung · XAU/USD</span>
@@ -707,6 +710,162 @@
     </section>`;
   }
 
+  function renderBookBody(lesson) {
+    const sections = lesson.bookSections || [];
+    const diagramIdx = Number.isInteger(lesson.diagramAfterSection)
+      ? Math.max(0, Math.min(sections.length - 1, lesson.diagramAfterSection))
+      : 0;
+    const labIdx = Number.isInteger(lesson.interactiveLabAfterSection)
+      ? lesson.interactiveLabAfterSection
+      : -1;
+
+    const sectionsHtml = sections.map((sec, idx) => {
+      const secId = `acd-sec-${idx}`;
+      const paras = (sec.paragraphs || []).map(p => `<p class="acd-book-p">${fmtRich(p)}</p>`).join('');
+      const parasAfter = (sec.paragraphsAfter || []).map(p => `<p class="acd-book-p">${fmtRich(p)}</p>`).join('');
+
+      const exampleHtml = sec.exampleBox && Array.isArray(sec.exampleBox.rows)
+        ? `<div class="acd-book-example">
+            <h3 class="acd-book-example-title">${esc(sec.exampleBox.title)}</h3>
+            <dl class="acd-book-example-list">
+              ${sec.exampleBox.rows.map(r => `
+                <div class="acd-book-example-row">
+                  <dt>${fmtRich(r.label)}</dt>
+                  <dd>${fmtRich(r.detail)}</dd>
+                </div>
+              `).join('')}
+            </dl>
+          </div>`
+        : '';
+
+      const tableHtml = sec.table && Array.isArray(sec.table.headers) && Array.isArray(sec.table.rows)
+        ? `<div class="acd-book-table-wrap">
+            ${sec.table.caption ? `<p class="acd-book-table-caption">${esc(sec.table.caption)}</p>` : ''}
+            <table class="acd-book-table">
+              <thead>
+                <tr>${sec.table.headers.map(h => `<th scope="col">${esc(h)}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                ${sec.table.rows.map(row => `<tr>${row.map((cell, cIdx) => `<td class="${cIdx === 0 ? 'is-lead' : ''}">${fmtRich(cell)}</td>`).join('')}</tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`
+        : '';
+
+      const calloutTone = sec.callout?.tone || 'tip';
+      const calloutBadge = calloutTone === 'warn' ? 'Perhatian' : calloutTone === 'story' ? 'Contoh Nyata' : 'Catatan Praktis';
+      const calloutHtml = sec.callout
+        ? `<aside class="acd-book-callout is-${esc(calloutTone)}" aria-label="${esc(calloutBadge)}">
+            <p class="acd-book-callout-kicker">${esc(calloutBadge)}</p>
+            <h3 class="acd-book-callout-title">${esc(sec.callout.title)}</h3>
+            <p class="acd-book-callout-body">${fmtRich(sec.callout.body)}</p>
+          </aside>`
+        : '';
+
+      const secNum = sec.number || `${lesson.stepNumber || lesson.number}.${idx + 1}`;
+      const inlineDiagram = idx === diagramIdx
+        ? renderDiagramCard(lesson, `Ilustrasi Bab ${fmtStep(lesson)} · Bagian ${secNum}`)
+        : '';
+
+      const inlineLab = idx === labIdx && lesson.id === 'lot-leverage-margin-equity'
+        ? renderMiniRiskLab()
+        : '';
+
+      return `<section class="acd-book-chapter-sec" id="${secId}" aria-labelledby="${secId}-h">
+        <h2 id="${secId}-h" class="acd-book-h2">
+          <span class="acd-book-sec-num acd-nums">${esc(secNum)}</span>
+          <span>${esc(sec.heading)}</span>
+        </h2>
+        ${paras}
+        ${exampleHtml}
+        ${tableHtml}
+        ${calloutHtml}
+        ${parasAfter}
+        ${inlineLab}
+        ${inlineDiagram}
+      </section>`;
+    }).join('');
+
+    const takeawaysHtml = Array.isArray(lesson.keyTakeaways) && lesson.keyTakeaways.length
+      ? `<section class="acd-book-takeaways" aria-label="Inti Bab ${fmtStep(lesson)}">
+          <p class="acd-section-kicker">Rangkuman Inti Bab ${fmtStep(lesson)}</p>
+          <ul>${lesson.keyTakeaways.map(t => `<li>${fmtRich(t)}</li>`).join('')}</ul>
+        </section>`
+      : '';
+
+    const bridgeHtml = lesson.bridgeNext
+      ? `<section class="acd-book-bridge" aria-label="Jembatan ke bab berikutnya">
+          <p class="acd-section-kicker">Menuju Bab Berikutnya</p>
+          <p class="acd-book-p">${fmtRich(lesson.bridgeNext)}</p>
+        </section>`
+      : '';
+
+    return `${sectionsHtml}${takeawaysHtml}${bridgeHtml}`;
+  }
+
+  function renderClassicSingleFlowBody(lesson) {
+    const conceptsHtml = (lesson.conceptBlocks || []).map((b, idx) => `
+      <section class="acd-book-chapter-sec" id="acd-sec-${idx}">
+        <h2 class="acd-book-h2">
+          <span class="acd-book-sec-num acd-nums">${fmtStep(lesson)}.${idx + 1}</span>
+          <span>${esc(b.heading)}</span>
+        </h2>
+        ${(b.paragraphs || []).map(p => `<p class="acd-book-p">${fmtRich(p)}</p>`).join('')}
+        ${idx === 0 ? renderDiagramCard(lesson, `Ilustrasi Bab ${fmtStep(lesson)}`) : ''}
+      </section>
+    `).join('');
+
+    const mappingStepsHtml = Array.isArray(lesson.mappingSteps) && lesson.mappingSteps.length
+      ? `<section class="acd-book-chapter-sec">
+          <h2 class="acd-book-h2"><span>Langkah Praktik di Chart</span></h2>
+          <div class="acd-book-example">
+            <ol class="acd-step-list">${lesson.mappingSteps.map(s => `<li>${fmtRich(s)}</li>`).join('')}</ol>
+          </div>
+        </section>`
+      : '';
+
+    const decisionHtml = Array.isArray(lesson.decisionTree) && lesson.decisionTree.length
+      ? `<section class="acd-book-chapter-sec">
+          <h2 class="acd-book-h2"><span>Menyikapi Situasi Abu-Abu di Chart</span></h2>
+          <div class="acd-decision-stack">
+            ${lesson.decisionTree.map((item, i) => `
+              <div class="acd-decision-card">
+                <p class="acd-decision-q"><span class="acd-decision-tag acd-nums">Situasi ${i + 1}</span> ${fmtRich(item.condition)}</p>
+                <p class="acd-decision-a"><span class="acd-decision-tag acd-decision-tag--then">Tindakan</span> ${fmtRich(item.action)}</p>
+              </div>
+            `).join('')}
+          </div>
+        </section>`
+      : '';
+
+    const scenarioSteps = (lesson.xauScenario?.steps || []).map(s => `<li>${fmtRich(s)}</li>`).join('');
+    const failedCaseHtml = lesson.failedCase
+      ? `<aside class="acd-book-callout is-warn">
+          <p class="acd-book-callout-kicker">Jebakan Umum</p>
+          <h3 class="acd-book-callout-title">${esc(lesson.failedCase.title || 'Contoh Kasus Gagal')}</h3>
+          <p class="acd-book-callout-body">${fmtRich(lesson.failedCase.context)} <strong>Penyebabnya:</strong> ${fmtRich(lesson.failedCase.whyFailed)}</p>
+        </aside>`
+      : '';
+
+    const goldenItems = (lesson.goldenRules || []).map(g => `<li>${fmtRich(g)}</li>`).join('');
+
+    return `${conceptsHtml}
+      ${mappingStepsHtml}
+      ${decisionHtml}
+      <section class="acd-book-chapter-sec">
+        <h2 class="acd-book-h2"><span>Studi Kasus Nyata di Chart Gold (XAU/USD)</span></h2>
+        <div class="acd-book-example">
+          <p class="acd-scenario-context" style="margin-bottom:10px;">${fmtRich(lesson.xauScenario?.context || '')}</p>
+          <ol class="acd-step-list">${scenarioSteps}</ol>
+        </div>
+        ${failedCaseHtml}
+      </section>
+      <section class="acd-book-takeaways">
+        <p class="acd-section-kicker">Inti Bab ${fmtStep(lesson)}</p>
+        <ul>${goldenItems}</ul>
+      </section>`;
+  }
+
   function renderLessonWorkspace() {
     const lesson = C.getLessonById(state.activeLessonId);
     if (!lesson) return renderOverview();
@@ -715,60 +874,31 @@
     const isMastered = C.isLessonMastered(state.progress, lesson.id);
     const adj = C.getAdjacentLessons(lesson.id);
     const nextUnlocked = adj.next ? C.canOpenLesson(state.progress, adj.next.id) : true;
-    const tab = state.readerTab;
-    const showAll = tab === 'all';
 
-    const conceptsHtml = (lesson.conceptBlocks || []).map(b => `
-      <div class="acd-concept-block">
-        <h2>${esc(b.heading)}</h2>
-        ${(b.paragraphs || []).map(p => `<p>${fmtRich(p)}</p>`).join('')}
-      </div>
-    `).join('');
+    const outlineItems = lesson.bookFormat
+      ? (lesson.bookSections || []).map((s, idx) => {
+          const secNum = s.number || `${lesson.stepNumber || lesson.number}.${idx + 1}`;
+          return {
+            target: `acd-sec-${idx}`,
+            label: `${secNum} ${s.heading.split('(')[0].split(':')[0].trim()}`
+          };
+        })
+      : (lesson.conceptBlocks || []).map((b, idx) => ({
+          target: `acd-sec-${idx}`,
+          label: b.heading.split(':')[0].trim()
+        }));
 
-    const mappingStepsHtml = Array.isArray(lesson.mappingSteps) && lesson.mappingSteps.length
-      ? `<div class="acd-mapping-box">
-          <p class="acd-section-kicker">Langkah Mekanis di Chart Kosong</p>
-          <h3>Cara Gambar &amp; Praktik Langkah demi Langkah</h3>
-          <ol class="acd-step-list">${lesson.mappingSteps.map(s => `<li>${fmtRich(s)}</li>`).join('')}</ol>
-        </div>`
-      : '';
-
-    const decisionTreeHtml = Array.isArray(lesson.decisionTree) && lesson.decisionTree.length
-      ? `<div class="acd-decision-stack">
-          <p class="acd-section-kicker">Pohon Keputusan Kasus Abu-Abu</p>
-          <h2 class="acd-subhead">Kalau Bingung di Chart Asli, Ikuti Ini</h2>
-          ${lesson.decisionTree.map((item, i) => `
-            <div class="acd-decision-card">
-              <p class="acd-decision-q"><span class="acd-decision-tag acd-nums">IF ${i + 1}</span> ${fmtRich(item.condition)}</p>
-              <p class="acd-decision-a"><span class="acd-decision-tag acd-decision-tag--then">THEN</span> ${fmtRich(item.action)}</p>
-            </div>
-          `).join('')}
-        </div>`
-      : '';
-
-    const isPrepStage = lesson.stageId === 0;
-    const validHeading = isPrepStage ? 'Kebiasaan Aman Pemula' : 'Syarat Valid (A+)';
-    const invalidHeading = isPrepStage ? 'Kesalahan Fatal Pemula' : 'Invalid / Jebakan';
-    const validList = (lesson.validRules || []).map(r => `<li>${fmtRich(r)}</li>`).join('');
-    const invalidList = (lesson.invalidRules || []).map(r => `<li>${fmtRich(r)}</li>`).join('');
-
-    const scenarioSteps = (lesson.xauScenario?.steps || []).map(s => `<li>${fmtRich(s)}</li>`).join('');
-    const goldenItems = (lesson.goldenRules || []).map(g => `<li>${fmtRich(g)}</li>`).join('');
-
-    const failedCaseHtml = lesson.failedCase
-      ? `<div class="acd-failed-card">
-          <h3>✕ ${esc(lesson.failedCase.title || 'Contoh Kasus Gagal (Kenapa Kena SL?)')}</h3>
-          <p class="acd-scenario-context">${fmtRich(lesson.failedCase.context)}</p>
-          <p class="acd-failed-reason"><strong>Penyebab Gagal:</strong> ${fmtRich(lesson.failedCase.whyFailed)}</p>
-        </div>`
-      : '';
+    const outlineHtml = `<nav class="acd-book-outline" aria-label="Isi bab ini">
+      ${outlineItems.map(item => `<button type="button" class="acd-book-outline-link" data-scroll-target="${esc(item.target)}">${esc(item.label)}</button>`).join('')}
+      <button type="button" class="acd-book-outline-link is-exam" data-scroll-target="acdExamSection">Uji Paham ${isMastered ? '✓' : '🔓'}</button>
+    </nav>`;
 
     const practiceCtaHtml = lesson.practiceCta
       ? `<section class="acd-practice-cta" aria-label="Praktik langsung di aplikasi">
           <div class="acd-practice-copy">
             <p class="acd-practice-kicker">Praktik Langsung · Amy FX Pro</p>
             <h3>${esc(lesson.practiceCta.label)}</h3>
-            <p>${esc(lesson.practiceCta.description)}</p>
+            <p>${esc(lesson.practiceCta.description || lesson.practiceCta.detail || '')}</p>
           </div>
           <a class="acd-btn-primary acd-practice-link" href="${esc(lesson.practiceCta.href)}">Buka Fitur →</a>
         </section>`
@@ -776,8 +906,8 @@
 
     const graduationHtml = !adj.next
       ? `<section class="acd-graduation-card" aria-label="Langkah eksekusi setelah lulus">
-          <h2>Wisuda Jalur Penguasaan ICT Mandiri</h2>
-          <p>Kamu berada di modul puncak ke-43. Lulus Uji Paham Capstone untuk menuntaskan 100% Academy, lalu buktikan langsung di Cockpit Mapping &amp; Lab 100 Kasus ICT.</p>
+          <h2>Wisuda Buku Panduan ICT Mandiri</h2>
+          <p>Kamu berada di Bab puncak ke-${C.LESSONS.length}. Lulus Uji Paham Capstone untuk menuntaskan 100% Academy, lalu buktikan langsung di Cockpit Mapping &amp; Lab 100 Kasus ICT.</p>
           <div class="acd-graduation-links">
             <a class="acd-btn-primary" href="../mapping/index.html">Buka Cockpit Mapping →</a>
             <a class="acd-btn-secondary" href="trading-practice/index.html">Buka Latihan 100 Kasus ICT</a>
@@ -785,115 +915,64 @@
         </section>`
       : '';
 
-    const sectionUnderstand = (showAll || tab === 'understand')
-      ? `<section class="acd-section" aria-label="Konsep inti dan cara mapping">
-          <p class="acd-section-kicker">01 · Logika Inti &amp; Cara Mapping</p>
-          ${conceptsHtml}
-          ${mappingStepsHtml}
-          ${!showAll ? `<div class="acd-tab-next-row"><button type="button" class="acd-btn-primary" data-reader-tab="decisions">Lanjut ke Kasus Abu-Abu →</button></div>` : ''}
-        </section>`
-      : '';
-
-    const sectionDecisions = (showAll || tab === 'decisions')
-      ? `<section class="acd-section" aria-label="Pohon keputusan kasus abu-abu dan filter valid vs invalid">
-          ${decisionTreeHtml}
-          <div class="acd-compare-grid" style="margin-top:18px;">
-            <div class="acd-compare-card acd-compare-card--valid">
-              <h3><span aria-hidden="true">✓</span> ${validHeading}</h3>
-              <ul class="acd-rule-list">${validList}</ul>
-            </div>
-            <div class="acd-compare-card acd-compare-card--invalid">
-              <h3><span aria-hidden="true">✕</span> ${invalidHeading}</h3>
-              <ul class="acd-rule-list">${invalidList}</ul>
-            </div>
-          </div>
-          ${!showAll ? `<div class="acd-tab-next-row"><button type="button" class="acd-btn-primary" data-reader-tab="cases">Lanjut ke Bedah Kasus Nyata →</button></div>` : ''}
-        </section>`
-      : '';
-
-    const sectionCases = (showAll || tab === 'cases')
-      ? `<section class="acd-section" aria-label="Bedah kasus sukses vs gagal dan aturan emas">
-          <p class="acd-section-kicker">03 · Bedah Kasus Nyata XAU/USD (Sukses vs Gagal)</p>
-          <div class="acd-scenario-card">
-            <h3>✓ Studi Kasus Sukses XAU/USD (WITA)</h3>
-            <p class="acd-scenario-context">${fmtRich(lesson.xauScenario?.context || '')}</p>
-            <ol class="acd-step-list">${scenarioSteps}</ol>
-          </div>
-          ${failedCaseHtml}
-          <div class="acd-golden-box">
-            <h3>Aturan Emas</h3>
-            <ul>${goldenItems}</ul>
-          </div>
-          ${lesson.id === 'lot-leverage-margin-equity' ? renderMiniRiskLab() : ''}
-          ${practiceCtaHtml}
-          ${!showAll ? `<div class="acd-tab-next-row"><button type="button" class="acd-btn-primary" data-reader-tab="exam">Masuk ke Uji Paham (Buka Kunci 🔓) →</button></div>` : ''}
-        </section>`
-      : '';
-
-    const sectionExam = (showAll || tab === 'exam')
-      ? `${renderQuizSection(lesson, adj)}${graduationHtml}`
-      : '';
-
     const nextPagerBtn = adj.next
       ? (nextUnlocked
         ? `<button type="button" class="acd-pager-btn acd-pager-btn--next" data-open-lesson="${esc(adj.next.id)}">
-            <span class="acd-pager-dir">Berikutnya · Modul ${fmtStep(adj.next)} →</span>
+            <span class="acd-pager-dir">Bab Berikutnya · Bab ${fmtStep(adj.next)} →</span>
             <span class="acd-pager-title">${esc(adj.next.title)}</span>
           </button>`
-        : `<button type="button" class="acd-pager-btn acd-pager-btn--next is-locked" id="acdLockedNextBtn" data-reader-tab="exam">
-            <span class="acd-pager-dir">🔒 Modul ${fmtStep(adj.next)} Terkunci</span>
-            <span class="acd-pager-title">Lulus Uji Paham (≥80%) untuk membuka</span>
+        : `<button type="button" class="acd-pager-btn acd-pager-btn--next is-locked" id="acdLockedNextBtn" data-scroll-target="acdExamSection">
+            <span class="acd-pager-dir">🔒 Bab ${fmtStep(adj.next)} Terkunci</span>
+            <span class="acd-pager-title">Selesaikan Uji Paham (≥80%) di bawah untuk membuka</span>
           </button>`)
       : `<button type="button" class="acd-pager-btn acd-pager-btn--next" id="acdFinishOverviewBtn">
-          <span class="acd-pager-dir">Kembali ke Peta Jalur →</span>
-          <span class="acd-pager-title">Lihat Progres ${C.LESSONS.length} Modul</span>
+          <span class="acd-pager-dir">Kembali ke Daftar Isi →</span>
+          <span class="acd-pager-title">Lihat Progres ${C.LESSONS.length} Bab</span>
         </button>`;
 
-    const pagerHtml = `<nav class="acd-pager" aria-label="Navigasi modul">
+    const pagerHtml = `<nav class="acd-pager" aria-label="Navigasi antar bab">
       ${adj.prev
         ? `<button type="button" class="acd-pager-btn" data-open-lesson="${esc(adj.prev.id)}">
-            <span class="acd-pager-dir">← Sebelumnya · Modul ${fmtStep(adj.prev)}</span>
+            <span class="acd-pager-dir">← Sebelumnya · Bab ${fmtStep(adj.prev)}</span>
             <span class="acd-pager-title">${esc(adj.prev.title)}</span>
           </button>`
         : `<div></div>`}
       ${nextPagerBtn}
     </nav>`;
 
-    const readerTabsHtml = `<nav class="acd-reader-tabs" role="tablist" aria-label="Bagian pembelajaran modul">
-      <button type="button" role="tab" class="acd-reader-tab ${tab === 'understand' ? 'is-active' : ''}" data-reader-tab="understand" aria-selected="${tab === 'understand' ? 'true' : 'false'}">1. Pahami &amp; Gambar</button>
-      <button type="button" role="tab" class="acd-reader-tab ${tab === 'decisions' ? 'is-active' : ''}" data-reader-tab="decisions" aria-selected="${tab === 'decisions' ? 'true' : 'false'}">2. Kasus Abu-Abu</button>
-      <button type="button" role="tab" class="acd-reader-tab ${tab === 'cases' ? 'is-active' : ''}" data-reader-tab="cases" aria-selected="${tab === 'cases' ? 'true' : 'false'}">3. Bedah Kasus</button>
-      <button type="button" role="tab" class="acd-reader-tab acd-reader-tab--exam ${tab === 'exam' ? 'is-active' : ''}" data-reader-tab="exam" aria-selected="${tab === 'exam' ? 'true' : 'false'}">4. Uji Paham ${isMastered ? '✓' : '🔓'}</button>
-      <button type="button" role="tab" class="acd-reader-tab ${tab === 'all' ? 'is-active' : ''}" data-reader-tab="all" aria-selected="${tab === 'all' ? 'true' : 'false'}">Semua</button>
-    </nav>`;
+    const bodyHtml = lesson.bookFormat ? renderBookBody(lesson) : renderClassicSingleFlowBody(lesson);
 
     return `<div class="acd-workspace">
       <div id="acdBackdrop" class="acd-backdrop ${state.drawerOpen ? 'is-open' : ''}"></div>
       ${renderSidebar()}
       <main class="acd-reader">
-        <article class="acd-article">
-          <header class="acd-lesson-header">
-            <p class="acd-breadcrumb">${esc(stage ? stage.code : '')} · Modul ${fmtStep(lesson)} dari ${C.LESSONS.length} · ${lesson.readMinutes} menit · ${isMastered ? 'Status: Dikuasai ✓' : 'Status: Wajib Lulus Uji Paham ≥80%'}</p>
+        <article class="acd-article acd-book-article" id="acdBookTop">
+          <header class="acd-lesson-header acd-book-header">
+            <p class="acd-breadcrumb">${esc(stage ? `${stage.code} · ${stage.title}` : '')} · Bab ${fmtStep(lesson)} dari ${C.LESSONS.length} · ${lesson.readMinutes} menit baca · ${isMastered ? 'Dikuasai ✓' : 'Wajib Uji Paham ≥80%'}</p>
             <h1>${esc(lesson.title)}</h1>
-            <p class="acd-lesson-summary">${esc(lesson.summary)}</p>
+            <p class="acd-lesson-summary">${esc(lesson.subtitle || lesson.summary)}</p>
             <div class="acd-lesson-actions">
               <button type="button" class="acd-btn-secondary ${state.bookmarks.includes(String(lesson.id)) ? 'is-saved' : ''}" id="acdToggleBookmarkBtn">
-                ${state.bookmarks.includes(String(lesson.id)) ? '★ Tersimpan' : '☆ Simpan Modul'}
+                ${state.bookmarks.includes(String(lesson.id)) ? '★ Tersimpan' : '☆ Simpan Bab'}
               </button>
-              <button type="button" class="acd-btn-primary" id="acdAskAmyBtn">
-                Tanya Amy Tentang Modul Ini
+              <button type="button" class="acd-btn-secondary" id="acdAskAmyBtn">
+                Tanya Amy Tentang Bab Ini
+              </button>
+              <button type="button" class="acd-btn-primary" data-scroll-target="acdExamSection">
+                Ke Uji Paham ↓
               </button>
             </div>
           </header>
 
-          ${renderDiagramCard(lesson)}
-          ${readerTabsHtml}
+          ${outlineHtml}
 
-          ${sectionUnderstand}
-          ${sectionDecisions}
-          ${sectionCases}
-          ${sectionExam}
+          <div class="acd-book-flow">
+            ${bodyHtml}
+          </div>
 
+          ${practiceCtaHtml}
+          ${renderQuizSection(lesson, adj)}
+          ${graduationHtml}
           ${pagerHtml}
         </article>
       </main>
@@ -953,6 +1032,17 @@
 
     const backdrop = document.getElementById('acdBackdrop');
     if (backdrop) backdrop.addEventListener('click', () => setDrawerOpen(false));
+
+    // Smooth in-chapter section jump links
+    mount.querySelectorAll('[data-scroll-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-scroll-target');
+        const target = targetId ? document.getElementById(targetId) : null;
+        if (target && typeof target.scrollIntoView === 'function') {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
 
     // Lock modal controls
     const closeLockBtn = document.getElementById('acdCloseLockModalBtn');
@@ -1068,18 +1158,6 @@
       });
     });
 
-    mount.querySelectorAll('[data-reader-tab]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const nextTab = btn.getAttribute('data-reader-tab') || 'understand';
-        state.readerTab = nextTab;
-        render();
-        const tabBar = document.querySelector('.acd-reader-tabs');
-        if (tabBar && typeof tabBar.scrollIntoView === 'function') {
-          tabBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      });
-    });
-
     mount.querySelectorAll('[data-open-lesson]').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-open-lesson');
@@ -1097,7 +1175,7 @@
         const canvas = document.getElementById('acdDiagramCanvas');
         const caption = document.getElementById('acdDiagramCaption');
         if (canvas) canvas.innerHTML = rendered.svg;
-        if (caption) caption.innerHTML = `<strong>Catatan Chart:</strong> ${esc(rendered.caption)}`;
+        if (caption) caption.innerHTML = `<strong>Penjelasan Gambar:</strong> ${esc(rendered.caption)}`;
         mount.querySelectorAll('[data-diagram-stage]').forEach(b => {
           const isAct = Number(b.getAttribute('data-diagram-stage')) === rendered.activeIndex;
           b.classList.toggle('is-active', isAct);
@@ -1132,7 +1210,7 @@
       });
     });
 
-    // Interactive Mini Risk/Lot Calculator (Modul 03)
+    // Interactive Mini Risk/Lot Calculator (Bab 03)
     const riskLabEl = document.getElementById('acdMiniRiskLab');
     if (riskLabEl && typeof C.calculateBeginnerRiskLot === 'function') {
       const balInput = document.getElementById('acdRiskBalance');
@@ -1187,6 +1265,46 @@
 
     const brandBtn = document.getElementById('acdBrandBtn');
     if (brandBtn) brandBtn.addEventListener('click', () => openOverview());
+
+    const handleAcademyStepBack = () => {
+      if (state.lockModal || state.placementModalOpen) {
+        closeModals();
+        return true;
+      }
+      if (state.drawerOpen) {
+        setDrawerOpen(false);
+        return true;
+      }
+      if (state.view === 'lesson') {
+        openOverview();
+        return true;
+      }
+      return false;
+    };
+
+    root.__amyfxPageBackHandler = handleAcademyStepBack;
+
+    const backLink = document.getElementById('acdBackLink');
+    if (backLink) {
+      backLink.addEventListener('click', (e) => {
+        if (handleAcademyStepBack()) {
+          e.preventDefault();
+          return;
+        }
+        // On Academy Overview: step back to same-origin non-academy referrer (e.g. Latihan 100 Kasus), else Beranda
+        const ref = document.referrer || '';
+        const isSameOrigin = ref.startsWith(root.location.origin);
+        const isSelfAcademy = /\/apps\/academy\/(?:index\.html)?(?:[?#]|$)/i.test(ref);
+        if (isSameOrigin && !isSelfAcademy && root.history.length > 1) {
+          e.preventDefault();
+          const originHref = root.location.href;
+          root.history.back();
+          setTimeout(() => {
+            if (root.location.href === originHref) root.location.assign('../../index.html');
+          }, 360);
+        }
+      });
+    }
 
     const menuBtn = document.getElementById('acdMenuToggleBtn');
     if (menuBtn) menuBtn.addEventListener('click', () => setDrawerOpen(!state.drawerOpen));

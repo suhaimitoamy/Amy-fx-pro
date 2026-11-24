@@ -1,43 +1,221 @@
 (function() {
   'use strict';
 
-  function getHomeUrl() {
-    if (window.location.pathname.startsWith('/assets/')) {
-      return '/assets/index.html';
-    }
-    return '/index.html';
+  function getRootPrefix(pathname) {
+    return String(pathname || '').startsWith('/assets/') ? '/assets' : '';
   }
 
-  function goBack() {
-    // If not in root, return to home
-    if (window.location.pathname === '/' || (window.location.pathname.endsWith('/index.html') && !window.location.pathname.includes('/apps/'))) {
-      return;
+  function getHomeUrl(pathname) {
+    const p = pathname != null ? pathname : (typeof window !== 'undefined' && window.location ? window.location.pathname : '/');
+    return `${getRootPrefix(p)}/index.html`;
+  }
+
+  /**
+   * Pure deterministic parent-fallback resolver (1-step-up hierarchy)
+   * Used when browser history cannot step back further (direct deep-link / stack bottom).
+   */
+  function getParentFallbackUrl(pathname, search, hash) {
+    const p = String(pathname || '');
+    const s = String(search || '');
+    const prefix = getRootPrefix(p);
+
+    // 1. Inside an Academy chapter (?lesson=...) -> return to Academy Daftar Materi
+    if (p.includes('/apps/academy/index.html') && /[?&]lesson=/.test(s)) {
+      return `${prefix}/apps/academy/index.html`;
     }
-    if (window.Android && typeof window.Android.goHome === 'function') {
+
+    // 2. Inside a Backtest sub-module (Candle Replay / Performa / Latihan) -> return to Backtest tab/hub
+    if (/\/apps\/academy\/trading-practice\/(candle-replay|backtest-history|guided-practice)\.html$/i.test(p)) {
+      return `${prefix}/index.html#backtest`;
+    }
+
+    // 3. Backtest Hub -> return to Home Backtest tab
+    if (/\/apps\/academy\/trading-practice\/(?:index\.html)?$/i.test(p)) {
+      return `${prefix}/index.html#backtest`;
+    }
+
+    // 4. Top-level sub-apps (Academy overview, Mapping, Journal, Market Intel) -> Home
+    return `${prefix}/index.html`;
+  }
+
+  function isSameOriginUrl(urlStr, currentOrigin) {
+    if (!urlStr || !currentOrigin) return false;
+    try {
+      const parsed = new URL(urlStr, currentOrigin);
+      return parsed.origin === currentOrigin;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /**
+   * Pure decision helper for unit-testing 1-step-back navigation.
+   */
+  function resolveBackStep(opts) {
+    const o = opts || {};
+    const pathname = String(o.pathname || '/');
+    const search = String(o.search || '');
+    const hash = String(o.hash || '');
+
+    // Already at app root (Beranda)
+    if (pathname === '/' || (pathname.endsWith('/index.html') && !pathname.includes('/apps/'))) {
+      return { action: 'noop', targetUrl: null };
+    }
+
+    if (o.pageHandled) {
+      return { action: 'page-handler', targetUrl: null };
+    }
+
+    if (o.overlayClosed) {
+      return { action: 'overlay', targetUrl: null };
+    }
+
+    const fallbackUrl = o.explicitFallback || getParentFallbackUrl(pathname, search, hash);
+    const hasUsableHistory = Number(o.historyLength || 0) > 1 &&
+      (!o.referrer || isSameOriginUrl(o.referrer, o.origin || 'http://localhost'));
+
+    if (hasUsableHistory) {
+      return { action: 'history-back', targetUrl: fallbackUrl };
+    }
+
+    return { action: 'navigate', targetUrl: fallbackUrl };
+  }
+
+  /**
+   * Automatically close active in-page overlays (fullscreen, dialogs, modals, drawers)
+   * before leaving the current page. Returns true if an overlay was closed.
+   */
+  function tryCloseActiveOverlay() {
+    if (typeof document === 'undefined') return false;
+
+    // 1. Native <dialog open>
+    const openDialogs = document.querySelectorAll('dialog[open]');
+    if (openDialogs.length) {
+      const topDialog = openDialogs[openDialogs.length - 1];
+      try {
+        if (typeof topDialog.close === 'function') topDialog.close();
+        else topDialog.removeAttribute('open');
+        return true;
+      } catch (_) {}
+    }
+
+    // 2. Mapping Chart Fullscreen
+    const mappingFs = document.querySelector('#gold-chart-workspace.is-fullscreen');
+    if (mappingFs) {
+      const exitBtn = document.querySelector('#btn-chart-fullscreen, .chart-fullscreen-exit');
+      if (exitBtn) {
+        exitBtn.click();
+        return true;
+      }
+    }
+
+    // 3. Backtest Replay / Guided Chart Fullscreen
+    const replayFs = document.querySelector('#replayWorkspace.is-fullscreen, .bt-chart-stage.is-fullscreen');
+    if (replayFs) {
+      const exitBtn = document.querySelector('#replayFullscreen, #guidedFullscreenBtn');
+      if (exitBtn) {
+        exitBtn.click();
+        return true;
+      }
+    }
+
+    // 4. Mapping Lot Calculator / generic active modals
+    const activeModal = document.querySelector('.amy-lot-modal.active, .amy-alert-modal.active, #fullscreenModal:not([hidden])');
+    if (activeModal) {
+      const closeBtn = activeModal.querySelector('[data-close], .close-btn, #fullscreenBackBtn, button[aria-label*="Tutup"]');
+      if (closeBtn) closeBtn.click();
+      else {
+        activeModal.classList.remove('active');
+        activeModal.hidden = true;
+      }
+      return true;
+    }
+
+    // 5. Open Journal Sidebar Drawer
+    if (document.body && document.body.classList.contains('sidebar-open')) {
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (backdrop) {
+        backdrop.click();
+        return true;
+      }
+    }
+
+    // 6. Open Amy Assistant floating panel
+    const amyPanel = document.querySelector('#amy-local-panel.is-open');
+    if (amyPanel) {
+      const closeAmy = document.querySelector('#amy-local-close');
+      if (closeAmy) {
+        closeAmy.click();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function navigateToFallback(targetUrl) {
+    const homeUrl = getHomeUrl();
+    const isExactHome = targetUrl === homeUrl || targetUrl === `${homeUrl}#beranda`;
+    if (isExactHome && window.Android && typeof window.Android.goHome === 'function') {
       window.Android.goHome();
       return;
     }
-    const homeUrl = getHomeUrl();
-    const originPath = window.location.pathname;
-    try {
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.assign(homeUrl);
-      }
-    } catch (_) {
-      window.location.assign(homeUrl);
+    window.location.assign(targetUrl || homeUrl);
+  }
+
+  function goBack(explicitFallback) {
+    if (typeof window === 'undefined' || !window.location) return;
+
+    const pathname = window.location.pathname;
+    if (pathname === '/' || (pathname.endsWith('/index.html') && !pathname.includes('/apps/'))) {
+      return;
     }
-    // Safety fallback: if user is still on the same page after 300ms, force redirect
-    setTimeout(() => {
-      if (window.location.pathname === originPath && window.location.pathname.includes('/apps/')) {
-        if (window.Android && typeof window.Android.goHome === 'function') {
-          window.Android.goHome();
-        } else {
-          window.location.assign(homeUrl);
-        }
+
+    // Priority 1: Module-specific 1-step back handler (e.g., Academy Lesson -> Daftar Bab)
+    let pageHandled = false;
+    if (typeof window.__amyfxPageBackHandler === 'function') {
+      try {
+        pageHandled = Boolean(window.__amyfxPageBackHandler());
+      } catch (_) {
+        pageHandled = false;
       }
-    }, 300);
+    }
+    if (pageHandled) return;
+
+    // Priority 2: Active overlay / fullscreen / dialog / drawer
+    if (tryCloseActiveOverlay()) return;
+
+    // Priority 3: Real 1-step-back via browser/WebView history (NEVER short-circuit to Android.goHome!)
+    const step = resolveBackStep({
+      pathname,
+      search: window.location.search,
+      hash: window.location.hash,
+      historyLength: window.history ? window.history.length : 0,
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      origin: window.location.origin,
+      explicitFallback
+    });
+
+    if (step.action === 'noop') return;
+
+    if (step.action === 'history-back') {
+      const originHref = window.location.href;
+      try {
+        window.history.back();
+      } catch (_) {
+        navigateToFallback(step.targetUrl);
+        return;
+      }
+      // Safety fallback ONLY if full URL (including ?query & #hash) did not change
+      setTimeout(() => {
+        if (window.location.href === originHref) {
+          navigateToFallback(step.targetUrl);
+        }
+      }, 360);
+      return;
+    }
+
+    navigateToFallback(step.targetUrl);
   }
 
   function goForward() {
@@ -46,8 +224,19 @@
     } catch (_) {}
   }
 
-  window.__amyfxGoBack = goBack;
-  window.__amyfxGoForward = goForward;
+  if (typeof window !== 'undefined') {
+    window.__amyfxGoBack = goBack;
+    window.__amyfxGoForward = goForward;
+    window.AmyUniversalNav = Object.freeze({
+      getHomeUrl,
+      getParentFallbackUrl,
+      resolveBackStep,
+      goBack,
+      goForward
+    });
+  }
+
+  if (typeof document === 'undefined') return;
 
   // Global click delegate for any button or link with data-amyfx-nav="back" or "forward"
   document.addEventListener('click', (e) => {
@@ -55,7 +244,8 @@
     if (backBtn) {
       e.preventDefault();
       e.stopPropagation();
-      goBack();
+      const explicitFallback = backBtn.getAttribute('data-back-fallback') || '';
+      goBack(explicitFallback || undefined);
       return;
     }
     const forwardBtn = e.target.closest('[data-amyfx-nav="forward"], #amyfxNavForward, .amyfx-nav-forward');
@@ -69,7 +259,8 @@
   // If in a sub-app (/apps/...), inject navigation arrows at opposite ends if not present
   function ensureNavArrows() {
     if (!window.location.pathname.includes('/apps/')) return;
-    if (document.querySelector('#amyfxNavBack')) return;
+    // Skip injection on pages with their own dedicated back arrow (Academy & Backtest Lab)
+    if (document.querySelector('#amyfxNavBack, #acdBackLink, #btBackBtn')) return;
 
     const header = document.querySelector('header.app-header, header.intel-header, header.topbar, header');
     if (header) {
@@ -78,7 +269,7 @@
       leftBtn.className = 'nav-arrow-btn nav-arrow-left';
       leftBtn.id = 'amyfxNavBack';
       leftBtn.setAttribute('data-amyfx-nav', 'back');
-      leftBtn.setAttribute('aria-label', 'Kembali ke Menu Utama');
+      leftBtn.setAttribute('aria-label', 'Kembali');
       leftBtn.innerHTML = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>

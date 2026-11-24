@@ -18,6 +18,8 @@ import {
 import { calculateNextGenIndicators } from './nextgen-indicators.js';
 import { resolveGoldSessionState } from '../engine/market-session-clock.js';
 import {
+  BACKFILL_ENGINE_VERSION,
+  computeGoldSlBuffer,
   loadHistoryState,
   saveHistoryState,
   backfillFromCandles,
@@ -600,7 +602,12 @@ import {
     const ms = calData.monthSummary;
     if (labelEl) labelEl.textContent = calData.label;
     if (subMetaEl) {
-      const zoneSplit = (ms.fvgTotal > 0 || ms.obTotal > 0) ? ` · FVG ${ms.fvgTotal} · OB ${ms.obTotal}` : '';
+      const parts = [];
+      if (ms.fvgTotal > 0) parts.push(`FVG ${ms.fvgTotal}`);
+      if (ms.obTotal > 0) parts.push(`OB ${ms.obTotal}`);
+      if (ms.ifvgTotal > 0) parts.push(`iFVG ${ms.ifvgTotal}`);
+      if (ms.bbTotal > 0) parts.push(`BB ${ms.bbTotal}`);
+      const zoneSplit = parts.length > 0 ? ` · ${parts.join(' · ')}` : '';
       subMetaEl.textContent = ms.activeDays > 0
         ? `${ms.activeDays} hari aktif${zoneSplit}`
         : 'Belum ada data bulan ini · arsip 180 hari detail';
@@ -756,7 +763,7 @@ import {
             <div class="poi-cal-archive-stat"><span>M15 (${sum.m15Total})</span><strong>${m15Pct}</strong></div>
             <div class="poi-cal-archive-stat"><span>M5 (${sum.m5Total})</span><strong>${m5Pct}</strong></div>
           </div>
-          <div class="poi-cal-archive-foot">Komposisi zona: FVG ${sum.fvgTotal} · OB ${sum.obTotal}</div>
+          <div class="poi-cal-archive-foot">Komposisi zona: FVG ${sum.fvgTotal} · OB ${sum.obTotal}${sum.ifvgTotal ? ` · iFVG ${sum.ifvgTotal}` : ''}${sum.bbTotal ? ` · BB ${sum.bbTotal}` : ''}</div>
         </div>
       `;
     } else if (dayData.items.length === 0) {
@@ -936,13 +943,25 @@ import {
     }
   }
 
+  function filterTrackableLivePlans(plans) {
+    return plans.filter(p => {
+      if (!p || !p.area || p.skip) return false;
+      const lo = Number(p.area.low);
+      const hi = Number(p.area.high);
+      if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return false;
+      const tf = String(p.tf || 'M15').toUpperCase();
+      const maxW = tf === 'M5' ? 8.0 : 11.0;
+      return (hi - lo) <= maxW;
+    });
+  }
+
   function syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice) {
     const amy = ctx?.amy || ctx;
     const m15Candles = amy?.chartCandles?.M15 || [];
     const m5Candles = amy?.chartCandles?.M5 || [];
     const lastM15 = m15Candles[m15Candles.length - 1];
     const lastM5 = m5Candles[m5Candles.length - 1];
-    const backfillKey = `${m15Candles.length}:${lastM15?.open_time || 0}:${m5Candles.length}:${lastM5?.open_time || 0}:${historyResetFloorMs}`;
+    const backfillKey = `v${BACKFILL_ENGINE_VERSION}:${m15Candles.length}:${lastM15?.open_time || 0}:${m5Candles.length}:${lastM5?.open_time || 0}:${historyResetFloorMs}`;
     const nowMs = Date.now();
 
     let stateChanged = false;
@@ -955,11 +974,13 @@ import {
         ngM15,
         ngM5,
         nowMs,
-        lookbackHours: 30
+        lookbackHours: 48
       });
       const filteredBackfill = historyResetFloorMs > 0
         ? {
-            version: 1,
+            version: rawBackfill.version || 2,
+            engineVersion: rawBackfill.engineVersion || BACKFILL_ENGINE_VERSION,
+            lookbackStartMs: Math.max(rawBackfill.lookbackStartMs || 0, historyResetFloorMs),
             poiRecords: rawBackfill.poiRecords.filter(r => r.touchedAt >= historyResetFloorMs),
             timelineEvents: rawBackfill.timelineEvents.filter(e => e.ts >= historyResetFloorMs)
           }
@@ -968,7 +989,7 @@ import {
       stateChanged = true;
     }
 
-    const activePlans = [latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay].filter(Boolean);
+    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay]);
     if (Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
       const liveRes = recordLivePoiProgress({
         state: mappingHistoryState,
@@ -1018,7 +1039,7 @@ import {
 
   function tickMappingHistory(livePrice) {
     if (!Number.isFinite(livePrice) || livePrice <= 0) return;
-    const activePlans = [latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay].filter(Boolean);
+    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay]);
     const liveRes = recordLivePoiProgress({
       state: mappingHistoryState,
       plans: activePlans,
@@ -1142,21 +1163,27 @@ import {
       dashboard
     ];
 
-    let rHigh = NaN;
-    let rLow = NaN;
-    let eqFallback = NaN;
-
+    const candidates = [];
     for (const src of sources) {
       if (!src) continue;
       const hi = num(src.rangeHigh ?? src.high ?? src.rHigh);
       const lo = num(src.rangeLow ?? src.low ?? src.rLow);
       if (Number.isFinite(hi) && Number.isFinite(lo) && hi > lo) {
-        rHigh = hi;
-        rLow = lo;
-        eqFallback = num(src.eq ?? src.equilibrium);
-        break;
+        const spanCheck = hi - lo;
+        const outsideDist = Number.isFinite(livePrice) && livePrice > 0
+          ? (livePrice > hi ? (livePrice - hi) : (livePrice < lo ? (lo - livePrice) : 0))
+          : 0;
+        const isStale = outsideDist > Math.max(15, spanCheck * 0.25);
+        candidates.push({ hi, lo, eqFallback: num(src.eq ?? src.equilibrium), outsideDist, isStale });
       }
     }
+
+    // Prefer first non-stale Dealing Range; if all are outside live price, pick the one closest to livePrice
+    const chosen = candidates.find(c => !c.isStale)
+      || (candidates.length ? [...candidates].sort((a, b) => a.outsideDist - b.outsideDist)[0] : null);
+    let rHigh = chosen ? chosen.hi : NaN;
+    let rLow = chosen ? chosen.lo : NaN;
+    let eqFallback = chosen ? chosen.eqFallback : NaN;
 
     const span = (Number.isFinite(rHigh) && Number.isFinite(rLow) && rHigh > rLow) ? (rHigh - rLow) : NaN;
     const eq = Number.isFinite(span) ? (rLow + rHigh) / 2 : eqFallback;
@@ -1731,6 +1758,28 @@ import {
     const m5BearOBs = dedupeZones(m5RawObs.filter(isBearOb).map(o => ({ ...obZoneOf(o), label: o.label || '-OB Supply M5' })).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
     const m5BullOBs = dedupeZones(m5RawObs.filter(isBullOb).map(o => ({ ...obZoneOf(o), label: o.label || '+OB Demand M5' })).filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo));
 
+    // Lapisan Zona Flip Institusional: Inverse FVG (iFVG) & Breaker Block (BB) — M15 & M5
+    const extractTypedZones = (list, sideTarget, defaultLabel) => dedupeZones(
+      (Array.isArray(list) ? list : [])
+        .filter(z => {
+          const s = String(z.side || z.direction || z.type || '').toUpperCase();
+          const matchSide = sideTarget === 'SELL'
+            ? (s === 'SELL' || s === 'BEARISH' || z.dir === -1)
+            : (s === 'BUY' || s === 'BULLISH' || z.dir === 1);
+          return matchSide && isActiveZone(z);
+        })
+        .map(z => ({ ...zoneOf(z), label: z.label || defaultLabel }))
+        .filter(z => Number.isFinite(z.lo) && Number.isFinite(z.hi) && z.hi > z.lo)
+    );
+    const bearIFVGs = extractTypedZones(ng?.poi?.ifvg, 'SELL', '-iFVG Supply M15');
+    const bullIFVGs = extractTypedZones(ng?.poi?.ifvg, 'BUY', '+iFVG Demand M15');
+    const bearBBs = extractTypedZones(ng?.poi?.bb, 'SELL', '-BB Breaker M15');
+    const bullBBs = extractTypedZones(ng?.poi?.bb, 'BUY', '+BB Breaker M15');
+    const m5BearIFVGs = extractTypedZones(ngM5?.poi?.ifvg, 'SELL', '-iFVG Supply M5');
+    const m5BullIFVGs = extractTypedZones(ngM5?.poi?.ifvg, 'BUY', '+iFVG Demand M5');
+    const m5BearBBs = extractTypedZones(ngM5?.poi?.bb, 'SELL', '-BB Breaker M5');
+    const m5BullBBs = extractTypedZones(ngM5?.poi?.bb, 'BUY', '+BB Breaker M5');
+
     // Evaluasi M5 independen (selaras 100% dengan Hero Card)
     let m5Dir = 0;
     const m5Status = String(ctx.m5?.status || '').toUpperCase();
@@ -1841,15 +1890,19 @@ import {
 
     const MAX_STRUCTURAL_SL_BUFFER = 9.0;
 
-    // Helper pilih POI Scalper Dual-Layer (M5 Refinement + M15 Structural Swing via pure module)
+    // Helper pilih POI Scalper Dual-Layer (M5 Refinement + M15 Structural Swing + iFVG & Breaker Block)
     function selectDualLayerPOI(side) {
       const isSell = side === 'SELL';
       return selectScalperDualLayerPoi({
         side,
         m15Obs: isSell ? uniqueBearOBs : uniqueBullOBs,
         m15Fvgs: isSell ? bearFVGs : bullFVGs,
+        m15Ifvgs: isSell ? bearIFVGs : bullIFVGs,
+        m15Bbs: isSell ? bearBBs : bullBBs,
         m5Obs: isSell ? m5BearOBs : m5BullOBs,
         m5Fvgs: isSell ? m5BearFVGs : m5BullFVGs,
+        m5Ifvgs: isSell ? m5BearIFVGs : m5BullIFVGs,
+        m5Bbs: isSell ? m5BearBBs : m5BullBBs,
         livePrice,
         m15Dir,
         activeLeg,
@@ -1859,6 +1912,15 @@ import {
         impulseHigh,
         impulseLow
       });
+    }
+
+    // Helper buffer SL realistis XAU/USD (anti wick-sweep $0.40 saat anchor tepat di tepi POI)
+    function resolveLiveSlBuffer(invObj, zone) {
+      const isPoiEdge = !invObj || /^Batas (Atas|Bawah)/i.test(String(invObj.name || ''));
+      if (isPoiEdge && zone) {
+        return computeGoldSlBuffer(zone.tf || 'M15', Math.max(0.5, zone.high - zone.low));
+      }
+      return 0.80;
     }
 
     // Helper pilih Invalidasi & SL yang WAJIB berada di LUAR batas zona entry (anti-terbalik) + Guardrail SL Scalper
@@ -2032,14 +2094,16 @@ import {
     let isSellTpHit = false;
     let isSellSlHit = false;
 
-    if (activeSellSession && Number.isFinite(activeSellSession.sl) && livePrice > activeSellSession.sl + 0.40) {
+    const prevSellBuf = Number.isFinite(activeSellSession?.slBuffer) ? activeSellSession.slBuffer : 1.50;
+    if (activeSellSession && Number.isFinite(activeSellSession.sl) && livePrice > activeSellSession.sl + prevSellBuf) {
       isSellSlHit = true;
       activeSellSession = null;
     }
 
     const invSell = resolveStructuralInvalidation(primarySellZone, 'SELL');
     const trueSlBoundary = invSell ? invSell.v : (primarySellZone ? primarySellZone.high : NaN);
-    const slLevelSellNum = Number.isFinite(trueSlBoundary) ? Number((trueSlBoundary + 0.40).toFixed(2)) : NaN;
+    const sellSlBuf = resolveLiveSlBuffer(invSell, primarySellZone);
+    const slLevelSellNum = Number.isFinite(trueSlBoundary) ? Number((trueSlBoundary + sellSlBuf).toFixed(2)) : NaN;
     const sellSlGuard = evaluateSlGuard(primarySellZone?.ce, slLevelSellNum);
     const sellTargets = resolveScalperTargets(primarySellZone, slLevelSellNum, 'SELL');
     const tpCandSell = sellTargets.tp1;
@@ -2059,6 +2123,7 @@ import {
       activeSellSession = {
         zone: primarySellZone,
         sl: trueSlBoundary,
+        slBuffer: sellSlBuf,
         slLevel: Number.isFinite(slLevelSellNum) ? slLevelSellNum.toFixed(2) : null,
         slName: invSell?.name || 'Batas Atas POI',
         tp: tpCandSell?.v,
@@ -2087,9 +2152,18 @@ import {
     }
     const isSellInPlay = isSellTesting || isSellReacting;
 
+    // Render 5-Poin Scalper Verdict (SELL)
+    const sellVerdict = evaluateAndRenderVerdict('SELL', {
+      zone: primarySellZone,
+      slGuard: sellSlGuard,
+      rr1: sellRr,
+      tp1: tpCandSell,
+      isSlHit: isSellSlHit
+    });
+
     // Cache plan for Lot Calculator, 1-Click Alarm & Chart Sync (SELL)
     const sellTpVal = tpCandSell?.v ?? activeSellSession?.tp;
-    const sellSlVal = Number.isFinite(slLevelSellNum) ? slLevelSellNum : (Number.isFinite(activeSellSession?.sl) ? Number((activeSellSession.sl + 0.40).toFixed(2)) : NaN);
+    const sellSlVal = Number.isFinite(slLevelSellNum) ? slLevelSellNum : (Number.isFinite(activeSellSession?.sl) ? Number((activeSellSession.sl + (activeSellSession.slBuffer || 1.50)).toFixed(2)) : NaN);
     latestSellPlan = primarySellZone && Number.isFinite(sellSlVal)
       ? {
           entry: Number(primarySellZone.ce.toFixed(2)),
@@ -2105,6 +2179,7 @@ import {
           tf: primarySellZone.tf || 'M15',
           kind: primarySellZone.kind || 'OB',
           label: primarySellZone.label || '-OB',
+          skip: Boolean(sellVerdict?.skip),
           alarmPrice: Number(primarySellZone.low.toFixed(2)),
           area: {
             low: Number(primarySellZone.low.toFixed(2)),
@@ -2123,6 +2198,7 @@ import {
           tf: backupSellZone.tf || 'M5',
           kind: backupSellZone.kind || 'FVG',
           label: backupSellZone.label || backupSellZone.kind || 'POI',
+          skip: Boolean(sellVerdict?.skip),
           alarmPrice: Number(backupSellZone.low.toFixed(2)),
           area: {
             low: Number(backupSellZone.low.toFixed(2)),
@@ -2134,15 +2210,6 @@ import {
           sl: sellSlVal
         }
       : null;
-
-    // Render 5-Poin Scalper Verdict (SELL)
-    const sellVerdict = evaluateAndRenderVerdict('SELL', {
-      zone: primarySellZone,
-      slGuard: sellSlGuard,
-      rr1: sellRr,
-      tp1: tpCandSell,
-      isSlHit: isSellSlHit
-    });
 
     // Update 3 Structured Level Tiles (SELL)
     const sellEntryValEl = $('sell-entry-val');
@@ -2279,7 +2346,7 @@ import {
       const entryLo = primarySellZone?.low;
       const entryHi = primarySellZone?.high;
       const entryCe = primarySellZone?.ce;
-      const slStr = Number.isFinite(sellSlVal) ? sellSlVal.toFixed(2) : (entryHi ? (entryHi + 0.40).toFixed(2) : null);
+      const slStr = Number.isFinite(sellSlVal) ? sellSlVal.toFixed(2) : (entryHi ? (entryHi + sellSlBuf).toFixed(2) : null);
       const slAnchorLabel = invSell?.name || activeSellSession?.slName || 'Batas Atas POI';
       const lotRule = sessionGuard.halfLot ? ' · <strong>Kurangi lot 50%</strong> (filter sesi/news).' : '';
 
@@ -2294,7 +2361,7 @@ import {
           tpCandSell2
             ? `<li><strong>TP2 Runner (40%):</strong> $${fmt(tpCandSell2.v)} (${esc(tpCandSell2.name)}) · Biarkan berjalan bebas risiko.</li>`
             : '',
-          `<li><strong>SL Scalper:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $0.40 spread · ${esc(sellSlGuard.label)}).</li>`
+          `<li><strong>SL Scalper:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $${sellSlBuf.toFixed(2)} buffer wick Gold · ${esc(sellSlGuard.label)}).</li>`
         ].filter(Boolean).join('');
       }
     }
@@ -2311,14 +2378,16 @@ import {
     let isBuyTpHit = false;
     let isBuySlHit = false;
 
-    if (activeBuySession && Number.isFinite(activeBuySession.sl) && livePrice < activeBuySession.sl - 0.40) {
+    const prevBuyBuf = Number.isFinite(activeBuySession?.slBuffer) ? activeBuySession.slBuffer : 1.50;
+    if (activeBuySession && Number.isFinite(activeBuySession.sl) && livePrice < activeBuySession.sl - prevBuyBuf) {
       isBuySlHit = true;
       activeBuySession = null;
     }
 
     const invBuy = resolveStructuralInvalidation(primaryBuyZone, 'BUY');
     const trueBuySlBoundary = invBuy ? invBuy.v : (primaryBuyZone ? primaryBuyZone.low : NaN);
-    const slLevelBuyNum = Number.isFinite(trueBuySlBoundary) ? Number((trueBuySlBoundary - 0.40).toFixed(2)) : NaN;
+    const buySlBuf = resolveLiveSlBuffer(invBuy, primaryBuyZone);
+    const slLevelBuyNum = Number.isFinite(trueBuySlBoundary) ? Number((trueBuySlBoundary - buySlBuf).toFixed(2)) : NaN;
     const buySlGuard = evaluateSlGuard(primaryBuyZone?.ce, slLevelBuyNum);
     const buyTargets = resolveScalperTargets(primaryBuyZone, slLevelBuyNum, 'BUY');
     const tpCandBuy = buyTargets.tp1;
@@ -2338,6 +2407,7 @@ import {
       activeBuySession = {
         zone: primaryBuyZone,
         sl: trueBuySlBoundary,
+        slBuffer: buySlBuf,
         slLevel: Number.isFinite(slLevelBuyNum) ? slLevelBuyNum.toFixed(2) : null,
         slName: invBuy?.name || 'Batas Bawah POI',
         tp: tpCandBuy?.v,
@@ -2366,9 +2436,18 @@ import {
     }
     const isBuyInPlay = isBuyTesting || isBuyReacting;
 
+    // Render 5-Poin Scalper Verdict (BUY)
+    const buyVerdict = evaluateAndRenderVerdict('BUY', {
+      zone: primaryBuyZone,
+      slGuard: buySlGuard,
+      rr1: buyRr,
+      tp1: tpCandBuy,
+      isSlHit: isBuySlHit
+    });
+
     // Cache plan for Lot Calculator, 1-Click Alarm & Chart Sync (BUY)
     const buyTpVal = tpCandBuy?.v ?? activeBuySession?.tp;
-    const buySlVal = Number.isFinite(slLevelBuyNum) ? slLevelBuyNum : (Number.isFinite(activeBuySession?.sl) ? Number((activeBuySession.sl - 0.40).toFixed(2)) : NaN);
+    const buySlVal = Number.isFinite(slLevelBuyNum) ? slLevelBuyNum : (Number.isFinite(activeBuySession?.sl) ? Number((activeBuySession.sl - (activeBuySession.slBuffer || 1.50)).toFixed(2)) : NaN);
     latestBuyPlan = primaryBuyZone && Number.isFinite(buySlVal)
       ? {
           entry: Number(primaryBuyZone.ce.toFixed(2)),
@@ -2384,6 +2463,7 @@ import {
           tf: primaryBuyZone.tf || 'M15',
           kind: primaryBuyZone.kind || 'OB',
           label: primaryBuyZone.label || '+OB',
+          skip: Boolean(buyVerdict?.skip),
           alarmPrice: Number(primaryBuyZone.high.toFixed(2)),
           area: {
             low: Number(primaryBuyZone.low.toFixed(2)),
@@ -2402,6 +2482,7 @@ import {
           tf: backupBuyZone.tf || 'M5',
           kind: backupBuyZone.kind || 'FVG',
           label: backupBuyZone.label || backupBuyZone.kind || 'POI',
+          skip: Boolean(buyVerdict?.skip),
           alarmPrice: Number(backupBuyZone.high.toFixed(2)),
           area: {
             low: Number(backupBuyZone.low.toFixed(2)),
@@ -2413,15 +2494,6 @@ import {
           sl: buySlVal
         }
       : null;
-
-    // Render 5-Poin Scalper Verdict (BUY)
-    const buyVerdict = evaluateAndRenderVerdict('BUY', {
-      zone: primaryBuyZone,
-      slGuard: buySlGuard,
-      rr1: buyRr,
-      tp1: tpCandBuy,
-      isSlHit: isBuySlHit
-    });
 
     // Update 3 Structured Level Tiles (BUY)
     const buyEntryValEl = $('buy-entry-val');
@@ -2559,7 +2631,7 @@ import {
       const entryHi = primaryBuyZone?.high;
       const entryCe = primaryBuyZone?.ce;
       const limitOrder = Number.isFinite(entryLo) ? (entryLo + 0.40).toFixed(2) : null;
-      const slStr = Number.isFinite(buySlVal) ? buySlVal.toFixed(2) : (Number.isFinite(entryLo) ? (entryLo - 0.40).toFixed(2) : null);
+      const slStr = Number.isFinite(buySlVal) ? buySlVal.toFixed(2) : (Number.isFinite(entryLo) ? (entryLo - buySlBuf).toFixed(2) : null);
       const slAnchorLabel = invBuy?.name || activeBuySession?.slName || 'Batas Bawah POI';
       const lotRule = sessionGuard.halfLot ? ' · <strong>Kurangi lot 50%</strong> (filter sesi/news).' : '';
 
@@ -2575,7 +2647,7 @@ import {
           tpCandBuy2
             ? `<li><strong>TP2 Runner (40%):</strong> $${fmt(tpCandBuy2.v)} (${esc(tpCandBuy2.name)}) · Biarkan berjalan bebas risiko.</li>`
             : '',
-          `<li><strong>SL Scalper:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $0.40 spread · ${esc(buySlGuard.label)}).</li>`
+          `<li><strong>SL Scalper:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $${buySlBuf.toFixed(2)} buffer wick Gold · ${esc(buySlGuard.label)}).</li>`
         ].filter(Boolean).join('');
       }
     }

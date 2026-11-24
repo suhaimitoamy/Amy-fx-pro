@@ -12,14 +12,22 @@
 <body class="amyfx-module amyfx-module--backtest">
   <header class="bt-header">
     <div class="bt-header-inner">
-      <a class="bt-brand" href="index.html">
-        <span class="bt-brand-mark">A</span>
-        <span>Amy FX</span>
-        <span class="bt-brand-sub">Backtest</span>
-      </a>
+      <div class="bt-header-left">
+        <button type="button" id="btBackBtn" class="bt-back-btn" data-back-fallback="../../../index.html#backtest" aria-label="Kembali ke menu Backtest" title="Kembali">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <a class="bt-brand" href="index.html">
+          <span class="bt-brand-mark">A</span>
+          <span>Amy FX</span>
+          <span class="bt-brand-sub">Backtest</span>
+        </a>
+      </div>
 
       <nav class="bt-nav" id="navlinks" aria-label="Navigasi Backtest Lab">
-        <a href="../../../index.html">Beranda</a>
+        <a href="../../../index.html#beranda">Beranda</a>
         <a href="candle-replay.html">Replay</a>
         <a href="backtest-history.html">Performa</a>
         <a href="guided-practice.html" class="is-active">Latihan</a>

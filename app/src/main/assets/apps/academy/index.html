@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090e18">
-  <meta name="description" content="Amy FX Academy — Jalur Penguasaan ICT XAU/USD (43 Modul Berurutan dengan Sistem Kunci Pemahaman ala Duolingo, Panduan Mapping Chart Kosong, Diagram Interaktif, dan Uji Paham).">
-  <title>Amy FX Academy — Jalur Penguasaan ICT XAU/USD</title>
+  <meta name="description" content="Amy FX Academy — Buku Panduan Interaktif Trading Gold & ICT XAU/USD (36 Bab Berurutan tanpa Duplikasi dengan Sistem Kunci Pemahaman 80%, Diagram Interaktif, dan Uji Paham).">
+  <title>Amy FX Academy — Buku Panduan ICT XAU/USD (36 Bab)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,20 +17,20 @@
   <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
   <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
   <link rel="stylesheet" href="../shared/amyfx-obsidian-glass.css" data-amyfx-obsidian-glass="v1">
-  <link rel="stylesheet" href="css/academy.css?v=20261123">
+  <link rel="stylesheet" href="css/academy.css?v=20261124c">
 </head>
 <body class="amyfx-module amyfx-module--academy">
   <header class="acd-topbar">
     <div class="acd-topbar-left">
-      <a class="acd-back-link" href="../../index.html" aria-label="Kembali ke Beranda Amy FX Pro">
+      <a class="acd-back-link" id="acdBackLink" href="../../index.html" aria-label="Kembali ke Beranda Amy FX Pro">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        <span>Beranda</span>
+        <span id="acdBackLabel">Beranda</span>
       </a>
       <span class="acd-brand-sep" aria-hidden="true">/</span>
-      <button type="button" class="acd-brand-btn" id="acdBrandBtn" aria-label="Ke peta jalur belajar Academy">
+      <button type="button" class="acd-brand-btn" id="acdBrandBtn" aria-label="Ke daftar isi buku Academy">
         <span class="acd-brand-mark">ICT</span>
         <span>Amy FX Academy</span>
       </button>
@@ -38,16 +38,16 @@
 
     <div class="acd-topbar-right">
       <div class="acd-progress-compact" aria-label="Progres penguasaan">
-        <span id="acdHeaderProgressText" class="acd-nums">0 / 43 (0%)</span>
+        <span id="acdHeaderProgressText" class="acd-nums">0 / 36 (0%)</span>
         <span class="acd-progress-bar-sm" aria-hidden="true"><span id="acdHeaderProgressFill" style="width:0%"></span></span>
       </div>
-      <button type="button" class="acd-icon-btn acd-menu-toggle" id="acdMenuToggleBtn" aria-label="Buka daftar jalur modul" hidden>
+      <button type="button" class="acd-icon-btn acd-menu-toggle" id="acdMenuToggleBtn" aria-label="Buka daftar isi bab" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
-        <span>Jalur</span>
+        <span>Daftar Bab</span>
       </button>
     </div>
   </header>

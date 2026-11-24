@@ -1155,9 +1155,16 @@ function switchPerformaSubtab(tab) {
   }
 }
 
-function setView(view, shouldRender = true) {
+const journalViewHistory = [];
+
+function setView(view, shouldRender = true, skipHistory = false) {
   const FOCUSED_VIEWS = ["journal", "statistics", "habits", "notes"];
-  state.view = FOCUSED_VIEWS.includes(view) ? view : "journal";
+  const nextView = FOCUSED_VIEWS.includes(view) ? view : "journal";
+  if (!skipHistory && state.view && state.view !== nextView) {
+    journalViewHistory.push(state.view);
+    if (journalViewHistory.length > 20) journalViewHistory.shift();
+  }
+  state.view = nextView;
   Object.entries(dom.views).forEach(([key, section]) => {
     if (!section) return;
     const isActive = key === state.view;
@@ -1177,6 +1184,43 @@ function setView(view, shouldRender = true) {
   } else if (state.view === "statistics") {
     renderStatistics(getFilteredItems(state.items));
   }
+}
+
+if (typeof window !== "undefined") {
+  window.__amyfxPageBackHandler = function () {
+    const openDialog = document.querySelector("dialog[open]");
+    if (openDialog) {
+      try {
+        if (typeof openDialog.close === "function") openDialog.close();
+        else openDialog.removeAttribute("open");
+        return true;
+      } catch (_) {}
+    }
+    const fsModal = document.getElementById("fullscreenModal");
+    if (fsModal && !fsModal.hidden) {
+      const backBtn = document.getElementById("fullscreenBackBtn");
+      if (backBtn) backBtn.click();
+      else fsModal.hidden = true;
+      return true;
+    }
+    if (document.body.classList.contains("sidebar-open")) {
+      const backdrop = document.getElementById("sidebarBackdrop");
+      if (backdrop) backdrop.click();
+      return true;
+    }
+    if (journalViewHistory.length > 0) {
+      const prev = journalViewHistory.pop();
+      if (prev && prev !== state.view) {
+        setView(prev, true, true);
+        return true;
+      }
+    }
+    if (state.view && state.view !== "journal") {
+      setView("journal", true, true);
+      return true;
+    }
+    return false;
+  };
 }
 
 /* ========================================================

@@ -3308,10 +3308,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     navigate(target);
   }));
-  let initialTab = 'beranda';
-  try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}
+  function resolveTabFromHash() {
+    const h = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
+    if (h === 'backtest' || h === 'proyek') return 'proyek';
+    if (h === 'beranda' || h === 'home') return 'beranda';
+    if (h === 'video' || h === 'media' || h === 'koleksi') return 'video';
+    if (h === 'profil' || h === 'profile') return 'profil';
+    if (h === 'pengaturan' || h === 'settings') return 'pengaturan';
+    return '';
+  }
+
+  let initialTab = resolveTabFromHash();
+  if (!initialTab) {
+    initialTab = 'beranda';
+    try { initialTab = localStorage.getItem('amy_root_tab') || initialTab; } catch (_) {}
+  }
   if (initialTab === 'koleksi' || initialTab === 'media') initialTab = 'video';
   navigate(['beranda', 'proyek', 'video', 'media', 'profil', 'pengaturan'].includes(initialTab) ? initialTab : 'beranda');
+
+  window.addEventListener('hashchange', () => {
+    const nextTab = resolveTabFromHash();
+    if (nextTab) navigate(nextTab);
+  });
 
   // Non-blocking startup Cloud Sync check when Auto-Sync is enabled
   setTimeout(async () => {

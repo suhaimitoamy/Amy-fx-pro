@@ -1,27 +1,27 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.474/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.475/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Amy FX Academy 43-Modul Mastery Path: Jalur linier 8 babak (43 modul lengkap) dengan kurikulum terstruktur Duolingo-style.",
-    "✦ Kunci Pemahaman Deterministik (Passing Grade >= 80%): Gerbang kelulusan tiap modul berbasis Uji Paham deterministik tanpa bypass.",
-    "✦ Placement Exam 100% (Tes Loncat): Uji penempatan 4/4 soal untuk membuka langsung modul inti ICT tanpa skipping sebagian.",
-    "✦ Guided Reader 5-Tab & Deep Enrichment: Antarmuka terpandu per modul (Pahami, Keputusan, Kasus, Uji Paham, Semua) & diagram SVG interaktif.",
-    "✦ AMY Live & Provider Error Guard Sync: Kompatibilitas mundur penuh 100% dengan AMY Live Chat/Voice & histori POI 180 hari."
+    "✦ Navigasi Kembali 1-Langkah Global: Penanganan deterministik tombol back pada Academy & modul latihan tanpa keluar paksa ke Beranda.",
+    "✦ Wadah Terpadu Alat TradingView Candle Replay: Konsolidasi kontrol dock alat gambar & header top-actions mobile-friendly.",
+    "✦ Buku Interaktif Trading 36 Bab: Refactor arsitektur 6 Bagian Utama dengan 151 soal Uji Paham deterministik & 36 diagram interaktif SVG.",
+    "✦ Zona Institusional iFVG & Breaker Block (BB): Deteksi visual Inverse FVG (ungu/amber) & Breaker Block (cyan/oranye) lengkap dengan level 50% CE.",
+    "✦ Upgrade Profitabilitas Mesin Mapping v4: Audit forensik 7 akar penyebab SL (penolakan salah sisi, buffer SL wick realistis, Dealing Range live)."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.474/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.475/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950474,
-  "latest_version_name": "2.0.0-pro.474",
+  "latest_version_code": 950475,
+  "latest_version_name": "2.0.0-pro.475",
   "mandatory": false,
-  "releaseDate": "2026-11-23",
+  "releaseDate": "2026-11-24",
   "release_notes": [
-    "✦ Amy FX Academy 43-Modul Mastery Path: Jalur linier 8 babak (43 modul lengkap) dengan kurikulum terstruktur Duolingo-style.",
-    "✦ Kunci Pemahaman Deterministik (Passing Grade >= 80%): Gerbang kelulusan tiap modul berbasis Uji Paham deterministik tanpa bypass.",
-    "✦ Placement Exam 100% (Tes Loncat): Uji penempatan 4/4 soal untuk membuka langsung modul inti ICT tanpa skipping sebagian.",
-    "✦ Guided Reader 5-Tab & Deep Enrichment: Antarmuka terpandu per modul (Pahami, Keputusan, Kasus, Uji Paham, Semua) & diagram SVG interaktif.",
-    "✦ AMY Live & Provider Error Guard Sync: Kompatibilitas mundur penuh 100% dengan AMY Live Chat/Voice & histori POI 180 hari."
+    "✦ Navigasi Kembali 1-Langkah Global: Penanganan deterministik tombol back pada Academy & modul latihan tanpa keluar paksa ke Beranda.",
+    "✦ Wadah Terpadu Alat TradingView Candle Replay: Konsolidasi kontrol dock alat gambar & header top-actions mobile-friendly.",
+    "✦ Buku Interaktif Trading 36 Bab: Refactor arsitektur 6 Bagian Utama dengan 151 soal Uji Paham deterministik & 36 diagram interaktif SVG.",
+    "✦ Zona Institusional iFVG & Breaker Block (BB): Deteksi visual Inverse FVG (ungu/amber) & Breaker Block (cyan/oranye) lengkap dengan level 50% CE.",
+    "✦ Upgrade Profitabilitas Mesin Mapping v4: Audit forensik 7 akar penyebab SL (penolakan salah sisi, buffer SL wick realistis, Dealing Range live)."
   ],
-  "version": "2.0.0-pro.474",
-  "versionCode": 950474,
+  "version": "2.0.0-pro.475",
+  "versionCode": 950475,
   "sha256": "da9518252ac21c64a3ebd16f6d336a132075cd7b6ec36218971302cf560c95ec"
 }

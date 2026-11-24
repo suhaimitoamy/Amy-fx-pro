@@ -13,8 +13,8 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
         trendInvalidation: null, trendInvalidationText: '', trendInvalidationColor: '#ef4444', trend: 'NEUTRAL'
       },
       liquidity: { bsl: [], ssl: [], sweeps: [] },
-      structure: { events: [], trend: 'NEUTRAL', invalidation: null },
-      poi: { fvg: [], ob: [], historyFvg: [], historyOb: [], recentBroken: [] }
+      structure: { events: [], trend: 'NEUTRAL', invalidation: null, trendByTime: [] },
+      poi: { fvg: [], ob: [], ifvg: [], bb: [], historyFvg: [], historyOb: [], historyIfvg: [], historyBb: [], recentBroken: [] }
     };
   }
 
@@ -273,6 +273,9 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
   const structureEvents = [];
   const fvgList = [];
   const obList = [];
+  const ifvgList = [];
+  const bbList = [];
+  const trendByTime = [];
 
   let lastHigh = null;
   let lastLow = null;
@@ -331,6 +334,10 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
     const minSweepDepth = isGoldScale ? Math.max(0.25, curAtr * 0.08) : Math.max(0.01, curAtr * 0.05);
     const minFvgThick = isGoldScale ? Math.max(0.8, curAtr * 0.15) : Math.max(0.02, curAtr * 0.1);
     const minObThick = isGoldScale ? Math.max(0.6, curAtr * 0.12) : Math.max(0.02, curAtr * 0.08);
+    // Max zone width guardrail: reject bloated giant displacement zones (>$9.5 M15 / >$6.5 M5 on Gold)
+    const maxZoneWidth = isGoldScale
+      ? (tf === 'M5' ? Math.max(6.5, curAtr * 2.0) : Math.max(9.5, curAtr * 2.2))
+      : Math.max(curAtr * 2.5, 0.5);
 
     // Check pivot at k = i - swingLen (strictly causal: confirmed only at bar i)
     const k = i - swingLen;
@@ -538,10 +545,12 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
           const bodyTop = Math.max(candidate.open, candidate.close);
           const bodyBot = Math.min(candidate.open, candidate.close);
           const fullThick = candidate.high - candidate.low;
+          const bodyThick = bodyTop - bodyBot;
           if (fullThick < minObThick) continue;
-          const useBodyRange = obUseBody && (bodyTop - bodyBot) >= minObThick;
+          const useBodyRange = (obUseBody || fullThick > maxZoneWidth) && bodyThick >= minObThick && bodyThick <= maxZoneWidth;
           const top = useBodyRange ? bodyTop : candidate.high;
           const bot = useBodyRange ? bodyBot : candidate.low;
+          if ((top - bot) > maxZoneWidth) continue;
           // Reject OB if already invalidated (closed below bot) between origin and break bar
           let preBroken = false;
           for (let mid = originIdx + 1; mid <= i; mid++) {
@@ -626,10 +635,12 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
           const bodyTop = Math.max(candidate.open, candidate.close);
           const bodyBot = Math.min(candidate.open, candidate.close);
           const fullThick = candidate.high - candidate.low;
+          const bodyThick = bodyTop - bodyBot;
           if (fullThick < minObThick) continue;
-          const useBodyRange = obUseBody && (bodyTop - bodyBot) >= minObThick;
+          const useBodyRange = (obUseBody || fullThick > maxZoneWidth) && bodyThick >= minObThick && bodyThick <= maxZoneWidth;
           const top = useBodyRange ? bodyTop : candidate.high;
           const bot = useBodyRange ? bodyBot : candidate.low;
+          if ((top - bot) > maxZoneWidth) continue;
           // Reject OB if already invalidated (closed above top) between origin and break bar
           let preBroken = false;
           for (let mid = originIdx + 1; mid <= i; mid++) {
@@ -680,7 +691,7 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
         const dispBear = prev1.close < prev1.open && b >= mBody * 0.9 && bRatio >= 0.45;
 
         const bullGap = c.low - prev2.high;
-        if (dispBull && bullGap >= minFvgThick) {
+        if (dispBull && bullGap >= minFvgThick && bullGap <= maxZoneWidth) {
           const dupFvg = fvgList.find(z => !z.mitigated && z.side === 'BUY' && Math.abs(z.bot - prev2.high) < 0.25 && Math.abs(z.top - c.low) < 0.25);
           if (!dupFvg) {
             fvgList.push({
@@ -705,7 +716,7 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
         }
 
         const bearGap = prev2.low - c.high;
-        if (dispBear && bearGap >= minFvgThick) {
+        if (dispBear && bearGap >= minFvgThick && bearGap <= maxZoneWidth) {
           const dupFvg = fvgList.find(z => !z.mitigated && z.side === 'SELL' && Math.abs(z.bot - c.high) < 0.25 && Math.abs(z.top - prev2.low) < 0.25);
           if (!dupFvg) {
             fvgList.push({
@@ -731,8 +742,8 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
       }
     }
 
-    // Track distinct touch episodes, 50% CE taps, and mitigation breaks on every FVG & OB
-    const updateZoneTouches = zone => {
+    // Track distinct touch episodes, 50% CE taps, mitigation breaks, and spawn iFVG / Breaker Block on close-break
+    const updateZoneTouches = (zone, inversionKind = null) => {
       if (zone.mitigated || i <= zone.formedIndex) return;
       const isBuy = zone.side === 'BUY';
       const overlapsZone = c.low <= zone.top && c.high >= zone.bot;
@@ -791,11 +802,51 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
             broken: true
           });
         }
+        // ICT Inversion: broken FVG -> iFVG; broken OB -> Breaker Block (BB)
+        const zWidth = zone.top - zone.bot;
+        if (inversionKind && zWidth >= minObThick && zWidth <= maxZoneWidth) {
+          const invSide = isBuy ? 'SELL' : 'BUY';
+          const targetPool = inversionKind === 'iFVG' ? ifvgList : bbList;
+          const dupInv = targetPool.find(z => !z.mitigated && z.side === invSide && Math.abs(z.bot - zone.bot) < 0.25 && Math.abs(z.top - zone.top) < 0.25);
+          if (!dupInv) {
+            const label = inversionKind === 'iFVG'
+              ? (invSide === 'BUY' ? '+iFVG' : '-iFVG')
+              : (invSide === 'BUY' ? '+BB' : '-BB');
+            const color = inversionKind === 'iFVG'
+              ? (invSide === 'BUY' ? '#a855f7' : '#f59e0b')
+              : (invSide === 'BUY' ? '#06b6d4' : '#fb923c');
+            targetPool.push({
+              side: invSide,
+              kind: inversionKind,
+              originKind: inversionKind === 'iFVG' ? 'FVG' : 'OB',
+              top: zone.top,
+              bot: zone.bot,
+              ce: (zone.top + zone.bot) / 2,
+              startTime: c.time,
+              originStartTime: zone.startTime,
+              formedIndex: i,
+              label,
+              color,
+              tested: false,
+              mitigated: false,
+              ceTouched: false,
+              touchCount: 0,
+              firstTouchTime: null,
+              lastTouchTime: null,
+              touches: [],
+              _inTouch: false,
+              lifecycle: 'FRESH'
+            });
+          }
+        }
       }
     };
 
-    for (const fvg of fvgList) updateZoneTouches(fvg);
-    for (const ob of obList) updateZoneTouches(ob);
+    for (const fvg of fvgList) updateZoneTouches(fvg, 'iFVG');
+    for (const ob of obList) updateZoneTouches(ob, 'BB');
+    for (const inv of ifvgList) updateZoneTouches(inv, null);
+    for (const bb of bbList) updateZoneTouches(bb, null);
+    trendByTime.push({ time: c.time, trend });
   }
 
   // Fallback to context M15 bias only if causal loop remained NEUTRAL
@@ -918,22 +969,29 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
   };
   const cleanObs = obList.map(z => stripInternal(z, 'OB'));
   const cleanFvgs = fvgList.map(z => stripInternal(z, 'FVG'));
+  const cleanIfvgs = ifvgList.map(z => stripInternal(z, 'iFVG'));
+  const cleanBbs = bbList.map(z => stripInternal(z, 'BB'));
 
   const isViablePoi = z => !z.mitigated || (z.tested && (!z.endTime || z.endTime >= lastBarTime - 3600));
-  const viableObs = cleanObs.filter(isViablePoi);
-  const nearestBullOb = viableObs.filter(o => o.side === 'BUY' && o.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
-  const nearestBearOb = viableObs.filter(o => o.side === 'SELL' && o.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
-  const activeObs = [nearestBullOb, nearestBearOb].filter(Boolean);
+  const pickNearestPair = list => {
+    const viable = list.filter(isViablePoi);
+    const nearestBull = viable.filter(z => z.side === 'BUY' && z.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
+    const nearestBear = viable.filter(z => z.side === 'SELL' && z.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
+    return { viable, active: [nearestBull, nearestBear].filter(Boolean) };
+  };
 
-  const viableFvgs = cleanFvgs.filter(isViablePoi);
-  const nearestBullFvg = viableFvgs.filter(f => f.side === 'BUY' && f.top <= curP + atr14 * 1.5).sort((a, b) => b.top - a.top)[0];
-  const nearestBearFvg = viableFvgs.filter(f => f.side === 'SELL' && f.bot >= curP - atr14 * 1.5).sort((a, b) => a.bot - b.bot)[0];
-  const activeFvgs = [nearestBullFvg, nearestBearFvg].filter(Boolean);
+  const { viable: viableObs, active: activeObs } = pickNearestPair(cleanObs);
+  const { viable: viableFvgs, active: activeFvgs } = pickNearestPair(cleanFvgs);
+  const { viable: viableIfvgs, active: activeIfvgs } = pickNearestPair(cleanIfvgs);
+  const { viable: viableBbs, active: activeBbs } = pickNearestPair(cleanBbs);
 
-  // Recent history pools (for Mapping History backfill & Chart Gold touch-history visualization)
-  const historyLookbackSec = expectedInterval * 120; // ~30h on M15, ~10h on M5
-  const historyObs = cleanObs.filter(z => (z.lastTouchTime || z.startTime || 0) >= lastBarTime - historyLookbackSec).slice(-12);
-  const historyFvgs = cleanFvgs.filter(z => (z.lastTouchTime || z.startTime || 0) >= lastBarTime - historyLookbackSec).slice(-12);
+  // Full 48-hour history pools (symmetric across M15 & M5 so yesterday's POIs are never truncated)
+  const historyLookbackSec = Math.max(expectedInterval * 160, 48 * 3600);
+  const inHistWindow = z => (z.lastTouchTime || z.startTime || 0) >= lastBarTime - historyLookbackSec;
+  const historyObs = cleanObs.filter(inHistWindow).slice(-36);
+  const historyFvgs = cleanFvgs.filter(inHistWindow).slice(-36);
+  const historyIfvgs = cleanIfvgs.filter(inHistWindow).slice(-36);
+  const historyBbs = cleanBbs.filter(inHistWindow).slice(-36);
   const recentBroken = [...cleanObs, ...cleanFvgs]
     .filter(z => z.mitigated && z.endTime && z.endTime >= lastBarTime - expectedInterval * 24)
     .sort((a, b) => (b.endTime || 0) - (a.endTime || 0))
@@ -1083,6 +1141,7 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
       events: structureEvents.slice(-options.structureHistory || -5),
       lastEvent: structureEvents.at(-1) || null,
       trend,
+      trendByTime,
       protectedHigh,
       protectedLow,
       invalidation: trendInvalidation ? {
@@ -1095,8 +1154,12 @@ export function calculateNextGenIndicators(candles = [], options = {}) {
     poi: {
       fvg: activeFvgs.length ? activeFvgs : viableFvgs.slice(-2),
       ob: activeObs.length ? activeObs : viableObs.slice(-2),
+      ifvg: activeIfvgs.length ? activeIfvgs : viableIfvgs.slice(-2),
+      bb: activeBbs.length ? activeBbs : viableBbs.slice(-2),
       historyFvg: historyFvgs,
       historyOb: historyObs,
+      historyIfvg: historyIfvgs,
+      historyBb: historyBbs,
       recentBroken
     },
     expansion,

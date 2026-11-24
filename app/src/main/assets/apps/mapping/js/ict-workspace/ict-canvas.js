@@ -317,6 +317,70 @@ export function createIctCanvas(element, chart, series) {
         drawTouchMarkers(ob, color);
       }
 
+      // Inverse Fair Value Gaps (iFVG) — Institutional polarity-flip zones
+      for (const inv of indicators?.poi?.ifvg || []) {
+        const xx = leftAt(inv.startTime);
+        const top = y(inv.top), bottom = y(inv.bot);
+        if (xx == null || top == null || bottom == null || xx > plotRight) continue;
+        const end = (inv.mitigated && !inv.tested) ? leftAt(inv.endTime) : lineRight;
+        const right = Math.min(plotRight, end ?? lineRight);
+        const color = inv.side === 'BUY' ? (light ? '#7C3AED' : '#A855F7') : (light ? '#D97706' : '#F59E0B');
+        const isTested = Boolean(inv.tested || (inv.touchCount || 0) > 0);
+
+        ctx.fillStyle = color + (light ? (isTested ? '10' : '18') : (isTested ? '14' : '22'));
+        ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+        ctx.strokeStyle = color + (isTested ? '88' : 'CC');
+        ctx.lineWidth = s.lineWidth || 1.1;
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+        ctx.setLineDash([]);
+
+        const ceY = y(inv.ce);
+        if (ceY != null) {
+          ctx.setLineDash(inv.ceTouched ? [5, 2] : [2, 3]);
+          ctx.strokeStyle = light ? '#D97706' : '#F5C451';
+          ctx.lineWidth = inv.ceTouched ? 1.35 : 1;
+          ctx.beginPath();
+          ctx.moveTo(xx, ceY);
+          ctx.lineTo(right, ceY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        label(formatZoneStatus(inv.label || (inv.side === 'BUY' ? '+iFVG' : '-iFVG'), inv), Math.max(4, xx + 4), top + fontSize + 3, color);
+        drawTouchMarkers(inv, color);
+      }
+
+      // Breaker Blocks (BB) — Violated OB reclaimed as high-probability institutional support/resistance
+      for (const bb of indicators?.poi?.bb || []) {
+        const xx = leftAt(bb.startTime);
+        const top = y(bb.top), bottom = y(bb.bot);
+        if (xx == null || top == null || bottom == null || xx > plotRight) continue;
+        const end = (bb.mitigated && !bb.tested) ? leftAt(bb.endTime) : lineRight;
+        const right = Math.min(plotRight, end ?? lineRight);
+        const color = bb.side === 'BUY' ? (light ? '#0891B2' : '#22D3EE') : (light ? '#EA580C' : '#FB923C');
+        const isTested = Boolean(bb.tested || (bb.touchCount || 0) > 0);
+
+        ctx.fillStyle = color + (light ? (isTested ? '12' : '1E') : (isTested ? '18' : '28'));
+        ctx.fillRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+        ctx.strokeStyle = color + (isTested ? '99' : 'DD');
+        ctx.lineWidth = Math.max(1.25, s.lineWidth || 1.25);
+        ctx.strokeRect(xx, top, Math.max(0, right - xx), Math.max(0, bottom - top));
+
+        const ceY = y(bb.ce);
+        if (ceY != null) {
+          ctx.setLineDash(bb.ceTouched ? [5, 2] : [3, 3]);
+          ctx.strokeStyle = light ? '#D97706' : '#F5C451';
+          ctx.lineWidth = bb.ceTouched ? 1.35 : 1;
+          ctx.beginPath();
+          ctx.moveTo(xx, ceY);
+          ctx.lineTo(right, ceY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        label(formatZoneStatus(bb.label || (bb.side === 'BUY' ? '+BB' : '-BB'), bb), Math.max(4, xx + 4), top + fontSize + 3, color);
+        drawTouchMarkers(bb, color);
+      }
+
       // Subtle ghost boxes for recently broken zones (up to 2) when Touch History layer is ON
       if (showTouches) {
         for (const brk of (indicators?.poi?.recentBroken || []).slice(-2)) {

@@ -211,8 +211,12 @@ export function selectScalperDualLayerPoi({
   side,
   m15Obs = [],
   m15Fvgs = [],
+  m15Ifvgs = [],
+  m15Bbs = [],
   m5Obs = [],
   m5Fvgs = [],
+  m5Ifvgs = [],
+  m5Bbs = [],
   livePrice = 0,
   m15Dir = 0,
   activeLeg = null,
@@ -285,8 +289,12 @@ export function selectScalperDualLayerPoi({
   const impulseEq = impulseValid ? (num(impulseHigh) + num(impulseLow)) / 2 : NaN;
 
   const rawCombined = dedupeTf([
+    ...normalize(m15Bbs, 'M15', 'BB'),
+    ...normalize(m15Ifvgs, 'M15', 'iFVG'),
     ...normalize(m15Obs, 'M15', 'OB'),
     ...normalize(m15Fvgs, 'M15', 'FVG'),
+    ...normalize(m5Bbs, 'M5', 'BB'),
+    ...normalize(m5Ifvgs, 'M5', 'iFVG'),
     ...normalize(m5Obs, 'M5', 'OB'),
     ...normalize(m5Fvgs, 'M5', 'FVG')
   ]);
@@ -312,10 +320,12 @@ export function selectScalperDualLayerPoi({
         : false;
       const isContinuation = Boolean(!inRightHalf && (inImpulseHalf || dist <= 12.0));
       const width = z.high - z.low;
+      const oversized = z.tf === 'M5' ? width > 8.0 : width > 11.0;
       return {
         ...z,
         dist,
         width,
+        oversized,
         breached,
         outsideInvalidation,
         inOte,
@@ -330,9 +340,12 @@ export function selectScalperDualLayerPoi({
   const unbrokenInside = candidates.filter(z => !z.breached && !z.outsideInvalidation);
   const unbrokenAny = candidates.filter(z => !z.breached);
   const insideAny = candidates.filter(z => !z.outsideInvalidation);
-  const basePool = unbrokenInside.length
+  const rawBasePool = unbrokenInside.length
     ? unbrokenInside
     : (unbrokenAny.length ? unbrokenAny : (insideAny.length ? insideAny : candidates));
+  // Prefer healthy scalper-sized zones over bloated $12–$17+ displacement zones whenever available
+  const cleanSizedPool = rawBasePool.filter(z => !z.oversized);
+  const basePool = cleanSizedPool.length ? cleanSizedPool : rawBasePool;
 
   // Dual-Layer Tiering: prefer actionable scalper distance (<= $12), else swing mid (<= $22), else full pool
   const nearScalp = basePool.filter(z => z.dist <= 12.0);
@@ -348,8 +361,11 @@ export function selectScalperDualLayerPoi({
     if (z.inOte) score -= 2.5;
     if (z.inRightHalf) score -= 1.5;
     else if (z.inImpulseHalf) score -= 1.2;
-    if (z.kind === 'OB') score -= 0.8;
-    if (z.width > 14.0) score += 4.0;
+    if (z.kind === 'BB') score -= 1.4;
+    else if (z.kind === 'iFVG') score -= 1.1;
+    else if (z.kind === 'OB') score -= 0.8;
+    if (z.oversized) score += 10.0;
+    else if (z.width > 9.0) score += 2.5;
     if (z.width < 0.8) score += 1.5;
     if (z.outsideInvalidation) score += 25.0;
     if (z.breached) score += 30.0;

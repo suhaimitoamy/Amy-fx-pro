@@ -70,7 +70,7 @@
     // ── LEVEL 0 (PRA-TRADING & DASAR MT5) ────────────────────────────────
     'zero-account-types': {
       title: 'Peran Broker & Perbandingan Akun Demo, Cent (USC) & Standard',
-      pairTag: 'LEVEL 00 · FONDASI AKUN',
+      pairTag: 'BAGIAN I · FONDASI AKUN',
       priceLabels: ['Besar', 'Sedang', 'Aman'],
       stages: [
         {
@@ -235,7 +235,7 @@
 
     'zero-ohlc-timeframe': {
       title: '4 Titik Harga Candlestick (OHLC) & Pecahan Timeframe',
-      pairTag: 'LEVEL 00 · CHART & TIMEFRAME',
+      pairTag: 'BAGIAN I · CHART & TIMEFRAME',
       priceLabels: ['High', 'Mid', 'Low'],
       stages: [
         {
@@ -1030,8 +1030,8 @@
     },
 
     'model-turtle-soup': {
-      title: 'Model 4: Turtle Soup & Smart Money Reversal (SMR)',
-      pairTag: 'XAU/USD · MODEL #4 REVERSAL',
+      title: 'Model Alternatif: Turtle Soup & Smart Money Reversal (SMR)',
+      pairTag: 'XAU/USD · SMR REVERSAL',
       priceLabels: ['PDH/BSL', 'CISD', 'Target'],
       stages: [
         {
@@ -1398,11 +1398,11 @@
       stages: [
         {
           label: 'Fase 1–3 (100 Sample)',
-          caption: 'Jangan ganti strategi tiap minggu. Eksekusi 1 model favorit (misal Sweep-FVG) selama 100 sample: 30 Backtest → 30 Demo/Micro → 40 Live Terukur.',
+          caption: 'Jangan ganti strategi tiap minggu. Eksekusi 1 model utama selama 100 sample: 50 Backtest Replay → 30 Forward Test (Demo/Cent) → 20 Live Terukur.',
           bars: [
-            { x1: 6, x2: 32, y1: 16, y2: 52, tone: 'cyan', label: 'Sample 1–30', sub: 'Backtest / Replay' },
-            { x1: 36, x2: 64, y1: 16, y2: 72, tone: 'gold', label: 'Sample 31–60', sub: 'Micro Lot / 0.5% Risk' },
-            { x1: 68, x2: 94, y1: 16, y2: 92, tone: 'bull', label: 'Sample 61–100', sub: 'Scale 1% · Konsisten' }
+            { x1: 6, x2: 32, y1: 16, y2: 52, tone: 'cyan', label: 'Sample 1–50', sub: 'Backtest / Replay' },
+            { x1: 36, x2: 64, y1: 16, y2: 72, tone: 'gold', label: 'Sample 51–80', sub: 'Forward Demo / Cent' },
+            { x1: 68, x2: 94, y1: 16, y2: 92, tone: 'bull', label: 'Sample 81–100', sub: 'Live 1% · Konsisten' }
           ]
         },
         {
@@ -1630,7 +1630,7 @@
     },
 
     'ict-macros-weekly-ipda': {
-      title: 'ICT Macros (:50–:10), Weekly Profile & IPDA 20/40/60 Hari',
+      title: 'Weekly Profile (Senin–Jumat), IPDA 20/40/60 & Sinergi Macro',
       pairTag: 'WITA (UTC+8) · TIME ENGINE',
       priceLabels: ['Ekspansi', 'Mid', 'Akumulasi'],
       stages: [

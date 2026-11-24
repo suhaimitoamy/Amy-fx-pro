@@ -115,6 +115,40 @@ textarea {
   gap: 12px;
 }
 
+.bt-header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.bt-back-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 9px;
+  border: 1px solid var(--bt-border);
+  background: var(--bt-surface-2);
+  color: var(--bt-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.bt-back-btn:hover {
+  border-color: var(--bt-gold);
+  color: var(--bt-gold);
+  background: var(--bt-gold-soft);
+}
+
+.bt-back-btn:active {
+  transform: scale(0.95);
+}
+
 .bt-brand {
   display: inline-flex;
   align-items: center;
@@ -643,15 +677,166 @@ textarea {
   white-space: nowrap;
 }
 
-/* ── Drawing Quick Bar (injected by practice-ui.js) ── */
-.replay-drawing-actions {
+/* ── TradingView-Style Unified Replay Workspace ── */
+.tv-workspace {
+  gap: 8px;
+}
+
+.tv-top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tv-view-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.tv-view-btn {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid var(--bt-border);
+  background: var(--bt-bg-elev);
+  color: var(--bt-text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.tv-view-btn:hover {
+  color: var(--bt-text);
+  border-color: var(--bt-border-strong);
+}
+
+.tv-view-btn[aria-pressed="true"] {
+  background: var(--bt-gold-soft);
+  border-color: var(--bt-gold);
+  color: var(--bt-gold);
+}
+
+.tv-fs-btn[aria-pressed="false"] .tv-icon-collapse {
+  display: none;
+}
+
+.tv-fs-btn[aria-pressed="true"] .tv-icon-expand {
+  display: none;
+}
+
+.tv-fs-btn[aria-pressed="true"] {
+  background: var(--bt-red-soft);
+  border-color: var(--bt-red);
+  color: var(--bt-red);
+}
+
+.tv-tf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tv-tf-row .bt-ohlc-bar {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+/* Unified TradingView Frame: Tool Container + Chart Canvas fused seamlessly */
+.tv-chart-body {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--bt-border);
+  border-radius: var(--bt-radius-sm);
+  background: var(--bt-bg-elev);
+  position: relative;
+  min-width: 0;
+}
+
+/* Desktop: TradingView 46px Vertical Left Tool Rail */
+.tv-tool-dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: 46px;
+  flex: 0 0 46px;
+  padding: 6px 4px;
+  border-right: 1px solid var(--bt-border);
+  background: color-mix(in srgb, var(--bt-surface-2) 55%, var(--bt-bg-elev));
+  border-radius: calc(var(--bt-radius-sm) - 1px) 0 0 calc(var(--bt-radius-sm) - 1px);
+  z-index: 12;
+}
+
+.tv-tool-dock .tv-tool-btn,
+.tv-tool-dock .drawing-menu > summary {
+  width: 36px;
+  height: 34px;
+  padding: 0;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--bt-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.tv-tool-dock .tv-tool-label {
+  display: none;
+}
+
+.tv-tool-dock .tv-tool-btn:hover,
+.tv-tool-dock .drawing-menu > summary:hover {
+  color: var(--bt-text);
+  background: var(--bt-surface-2);
+  border-color: var(--bt-border);
+}
+
+.tv-tool-dock .tv-tool-btn.active,
+.tv-tool-dock .tv-tool-btn[aria-pressed="true"],
+.tv-tool-dock .drawing-menu.has-active-tool > summary,
+.tv-tool-dock .drawing-menu[open] > summary {
+  background: var(--bt-gold-soft);
+  border-color: var(--bt-gold);
+  color: var(--bt-gold);
+}
+
+.tv-tool-dock .drawing-menu {
+  position: relative;
+  margin-top: auto;
+}
+
+.tv-tool-dock .drawing-menu-grid {
+  left: calc(100% + 8px);
+  right: auto;
+  top: auto;
+  bottom: 0;
+  z-index: 50;
+}
+
+/* Fallback styles for non-dock drawing quick actions */
+.replay-drawing-actions:not(.tv-tool-dock) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 5px;
 }
 
-.replay-drawing-actions button {
+.replay-drawing-actions:not(.tv-tool-dock) button {
   height: 30px;
   padding: 0 9px;
   border-radius: 6px;
@@ -664,13 +849,8 @@ textarea {
   transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
 }
 
-.replay-drawing-actions button:hover {
-  color: var(--bt-text);
-  border-color: var(--bt-border-strong);
-}
-
-.replay-drawing-actions button.active,
-.replay-drawing-actions button[aria-pressed="true"] {
+.replay-drawing-actions:not(.tv-tool-dock) button.active,
+.replay-drawing-actions:not(.tv-tool-dock) button[aria-pressed="true"] {
   background: var(--bt-gold-soft);
   border-color: var(--bt-gold);
   color: var(--bt-gold);
@@ -687,6 +867,13 @@ textarea {
   border: 1px solid var(--bt-border);
   background: var(--bt-bg-elev);
   touch-action: none;
+}
+
+.tv-chart-body .practice-chart-shell {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  border-radius: 0 calc(var(--bt-radius-sm) - 1px) calc(var(--bt-radius-sm) - 1px) 0;
 }
 
 .practice-chart-canvas {
@@ -814,7 +1001,7 @@ textarea {
   color: var(--bt-text-muted);
 }
 
-/* ── Replay Fullscreen Mode ── */
+/* ── Replay Fullscreen Mode (TradingView Unified Container) ── */
 body.replay-fullscreen {
   overflow: hidden;
 }
@@ -826,16 +1013,32 @@ body.replay-fullscreen {
   background: var(--bt-bg);
   border-radius: 0;
   border: 0;
-  padding: 10px;
+  padding: 8px 10px;
+  gap: 6px;
   height: 100dvh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+#replayWorkspace.is-fullscreen .tv-chart-body {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 #replayWorkspace.is-fullscreen .practice-chart-shell {
   flex: 1 1 auto;
   height: auto !important;
-  min-height: 220px;
+  min-height: 0;
+}
+
+#replayWorkspace.is-fullscreen .bt-status-foot {
+  display: none;
+}
+
+#replayWorkspace.is-fullscreen .bt-playback-bar {
+  padding-top: 4px;
+  gap: 6px;
 }
 
 /* ── Drawing Extra Menu ── */
@@ -1873,83 +2076,155 @@ body.bt-guided-fullscreen {
     font-size: 12px;
   }
 
+  .tv-top-bar {
+    gap: 6px;
+  }
+
   .bt-source-group {
     width: 100%;
+    flex-wrap: nowrap;
   }
 
   .bt-source-select {
     max-width: 100%;
-    flex: 1 1 140px;
+    flex: 1 1 auto;
     height: 32px;
     font-size: 12px;
   }
 
-  .bt-tf-group {
+  .tv-view-actions {
     width: 100%;
-    flex-wrap: nowrap;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .tv-view-btn {
+    width: 100%;
+    height: 32px;
+    padding: 0 6px;
+    font-size: 11.5px;
+  }
+
+  .tv-tf-row {
+    gap: 6px;
   }
 
   .bt-tf-seg {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .bt-tf-seg::-webkit-scrollbar {
-    display: none;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2px;
+    overflow: visible;
   }
 
   .bt-tf-seg button {
-    flex: 0 0 auto;
-    padding: 5px 8px;
+    padding: 5px 2px;
+    font-size: 11px;
+    text-align: center;
   }
 
   .bt-source-badge {
     display: none;
   }
 
-  .practice-chart-shell {
-    min-height: 340px;
+  /* Mobile Portrait: Unified Single-Row 8-Tool TradingView Dock fused above Chart */
+  .tv-chart-body {
+    flex-direction: column;
+  }
+
+  .tv-tool-dock {
+    width: 100%;
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 3px;
+    padding: 4px;
+    border-right: 0;
+    border-bottom: 1px solid var(--bt-border);
+    border-radius: calc(var(--bt-radius-sm) - 1px) calc(var(--bt-radius-sm) - 1px) 0 0;
+  }
+
+  .tv-tool-dock .tv-tool-btn,
+  .tv-tool-dock .drawing-menu,
+  .tv-tool-dock .drawing-menu > summary {
+    width: 100%;
+    height: 36px;
+    margin-top: 0;
+  }
+
+  .tv-tool-dock .drawing-menu-grid {
+    left: auto;
+    right: 0;
+    top: calc(100% + 6px);
+    bottom: auto;
+    width: min(268px, calc(100vw - 24px));
+  }
+
+  .tv-chart-body .practice-chart-shell {
+    min-height: 330px;
     height: 360px;
+    border-radius: 0 0 calc(var(--bt-radius-sm) - 1px) calc(var(--bt-radius-sm) - 1px);
   }
 
-  .replay-drawing-actions {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
+  /* Mobile Fullscreen: Hide dataset picker row so chart maximizes vertical real estate */
+  #replayWorkspace.is-fullscreen {
+    padding: 6px 8px;
+    gap: 5px;
   }
 
-  .replay-drawing-actions::-webkit-scrollbar {
+  #replayWorkspace.is-fullscreen .bt-source-group {
     display: none;
   }
 
-  .replay-drawing-actions button {
-    flex: 0 0 auto;
-    white-space: nowrap;
+  #replayWorkspace.is-fullscreen .tv-tf-row {
+    gap: 4px;
+  }
+
+  #replayWorkspace.is-fullscreen .bt-ohlc-bar {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  #replayWorkspace.is-fullscreen .tv-chart-body .practice-chart-shell {
+    min-height: 0;
+    height: auto !important;
+  }
+
+  .bt-playback-bar {
+    gap: 6px;
   }
 
   .bt-playback-controls {
     width: 100%;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(62px, 1.35fr) repeat(3, minmax(0, 1fr)) minmax(52px, 1.05fr);
+    gap: 4px;
   }
 
+  .bt-playback-controls .bt-btn-sm,
+  .bt-playback-controls .bt-speed-select {
+    width: 100%;
+    padding: 0 4px;
+    font-size: 11.5px;
+    min-width: 0;
+  }
+
+  /* Compact Single-Row Killzone + Jump + Bookmark Bar (Zero Orphan Bar!) */
   .bt-killzone-group {
     width: 100%;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.85fr) 34px minmax(0, 1.15fr);
+    gap: 4px;
   }
 
   .bt-killzone-group > button,
-  .bt-killzone-group > .bt-jump-pop {
-    flex: 1 1 0;
-  }
-
+  .bt-killzone-group > .bt-jump-pop,
   .bt-killzone-group > .bt-jump-pop summary {
     width: 100%;
+    padding: 0 4px;
+    font-size: 11px;
+    min-width: 0;
   }
 
   .bt-metric-label {
@@ -2138,4 +2413,41 @@ body.bt-guided-fullscreen {
 .bt-next-month-bar[hidden] {
   display: none !important;
 }
+
+@media (max-width: 768px) {
+  .bt-chart-stage:not(.tv-workspace) .practice-chart-shell {
+    min-height: 320px;
+    height: 350px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  #replayWorkspace.is-fullscreen .tv-chart-body {
+    flex-direction: row;
+  }
+  #replayWorkspace.is-fullscreen .tv-tool-dock {
+    width: 44px;
+    flex: 0 0 44px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--bt-border);
+    border-bottom: 0;
+    border-radius: calc(var(--bt-radius-sm) - 1px) 0 0 calc(var(--bt-radius-sm) - 1px);
+  }
+  #replayWorkspace.is-fullscreen .tv-tool-dock .tv-tool-btn,
+  #replayWorkspace.is-fullscreen .tv-tool-dock .drawing-menu > summary {
+    width: 34px;
+    height: 30px;
+  }
+  #replayWorkspace.is-fullscreen .tv-tool-dock .drawing-menu-grid {
+    left: calc(100% + 8px);
+    right: auto;
+    top: auto;
+    bottom: 0;
+  }
+  #replayWorkspace.is-fullscreen .tv-chart-body .practice-chart-shell {
+    border-radius: 0 calc(var(--bt-radius-sm) - 1px) calc(var(--bt-radius-sm) - 1px) 0;
+  }
+}
+
 
