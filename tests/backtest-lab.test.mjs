@@ -213,9 +213,13 @@ test('guided-exercises.json: all 100 exercises map to valid Academy 6-Level less
   const academyDataDir = fs.existsSync(path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'data'))
     ? path.join(ROOT, 'app', 'src', 'main', 'assets', 'apps', 'academy', 'data')
     : path.join(ROOT, 'apps', 'academy', 'data');
-  for (const f of ['levels-1-2.js', 'levels-3-4.js', 'levels-5-6.js']) {
+  for (const f of ['level-0.js', 'levels-1-2.js', 'levels-3-4.js', 'levels-5-6.js', 'mastery-advanced.js', 'curriculum.js']) {
     const src = fs.readFileSync(path.join(academyDataDir, f), 'utf8');
     for (const m of src.matchAll(/id:\s*'([^']+)'/g)) validIds.add(m[1]);
+    for (const m of src.matchAll(/'([a-z0-9-]+)':\s*'([a-z0-9-]+)'/g)) {
+      validIds.add(m[1]);
+      validIds.add(m[2]);
+    }
   }
 
   for (const ex of guided.exercises) {
