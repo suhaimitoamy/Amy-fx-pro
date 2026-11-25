@@ -22,5 +22,6 @@
     "✦ Server Lokal, API & Android Native: Validasi allowlist interval heatmap/liquidity & SQLite lokal, limit POST body 2MB, rule ProGuard AmyFxAiBridge, dan alias bridge MainActivity."
   ],
   "version": "2.0.0-pro.477",
-  "versionCode": 950477
+  "versionCode": 950477,
+  "sha256": "95714131b5f1f3880ae62a0d313eb97a21926885a073009beb755a140ec8dbdc"
 }
