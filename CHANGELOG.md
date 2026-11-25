@@ -1,3 +1,11 @@
+## 2.0.0-pro.477
+
+- fix(mapping-poi): Perbaikan menyeluruh Cockpit Mapping & Riwayat POI (`ict-presentation.js`, `chart-view.js`, `context-panel.js`, `dashboard-v2.js`, `mapping-history-engine.js`, `trade-lifecycle-tracker.js`): penyelarasan index `formedIndex` via `openTime`, deduplikasi cross-TF M15/M5 (window 90 menit), SL/TP zona cadangan independen, persistence `historyResetFloorMs`, proteksi tick & konteks akhir pekan, serta normalisasi timestamp ms/detik.
+- fix(lot-sync): Guard anti-duplikasi listener `O(2^N)` & dukungan cashflow negatif (`lot-calculator.js`), sinkronisasi Cloud Sync GitHub untuk `amyfx_custom_price_alerts`, `amy-guided-v3-mastery`, dan `reading_history_v2` (`github-cloud-sync.js`), serta nonaktifkan prefs Supabase (`method-toggles.js`).
+- fix(journal-intel-academy): Perbaikan tombol dropdown mode asisten & label restore, await `saveJournals()`, serta muat `journal-export.js` (`journal/index.html`, `journal/app.js`); pembersihan endpoint Supabase & guard DOM `ict-intel.js` serta filter candle sintetis (`market-intel/`); perbaikan fallback endpoint APK & path script asisten (`academy/belajar/assets/micro-learning.js`).
+- fix(assistant-nav-theme): Perbaikan selector live price & summary POI/Daily Loss Guard (`amy-local-assistant.js`, `amy-gemini-live-bridge.js`), deteksi tema OS `prefers-color-scheme` (`amyfx-theme-controller.js`), navigasi kembali global untuk modal & chart fullscreen (`amyfx-universal-nav.js`), serta tombol Kompas XAU & pembersihan data lokal lengkap (`app.js`).
+- fix(backend-android): Validasi allowlist interval `api/heatmap.js`, `api/liquidity.js`, & `tools/serve-local.mjs`, gating Supabase news (`api/news.js`), limit POST body 2MB + timezone kalender WITA/WIB (`serve-local.mjs`), rule ProGuard `AmyFxAiBridge` (`proguard-rules.pro`), serta alias bridge & route `News` (`MainActivity.kt`).
+
 ## 2.0.0-pro.476
 
 - feat(market-intel): Rombak total Kompas Makro Institusional Real-Time (`api/macro-snapshot.js`, `kompas-engine.js`) berbasis kuotasi live DXY, US10Y, VIX, SMT XAU/XAG, SVG Gauge, dan guard aktual kalender USD.

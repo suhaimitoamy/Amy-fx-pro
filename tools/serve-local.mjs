@@ -54,7 +54,10 @@ let lastScalperSetupsPayload = null;
 async function getLocalSqliteCandles(interval, limit = 300) {
   try {
     const tfMap = { '1min': 'M1', '5min': 'M5', '15min': 'M15', '30min': 'M30', '1h': 'H1', '4h': 'H4', '1day': 'D1' };
-    const tfStr = tfMap[interval] || interval.toUpperCase();
+    const safeInterval = String(interval || '').toLowerCase();
+    const tfStr = tfMap[safeInterval];
+    if (!tfStr) return null;
+    const safeLimit = Math.max(1, Math.min(2000, parseInt(limit, 10) || 300));
     const script = `
 import sqlite3, json
 try:
@@ -66,7 +69,7 @@ try:
         WHERE timeframe = ? AND open_time <= datetime('now')
         ORDER BY open_time DESC
         LIMIT ?
-    ''', ('${tfStr}', ${limit})).fetchall()
+    ''', ('${tfStr}', ${safeLimit})).fetchall()
     values = []
     for r in rows:
         values.append({
@@ -77,7 +80,7 @@ try:
             'close': str(r[4]),
             'volume': str(r[5])
         })
-    print(json.dumps({'status': 'ok', 'meta': {'symbol': 'XAU/USD', 'interval': '${interval}'}, 'values': values, 'source': 'local-sqlite'}))
+    print(json.dumps({'status': 'ok', 'meta': {'symbol': 'XAU/USD', 'interval': '${safeInterval}'}, 'values': values, 'source': 'local-sqlite'}))
 except Exception as e:
     print(json.dumps({'status': 'error', 'message': str(e)}))
 `;
@@ -239,7 +242,7 @@ async function getLocalCalendarData() {
 
           const baseDate = item.time ? new Date(item.time) : new Date();
           const ymd = !isNaN(baseDate.getTime()) ? baseDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-          const dateStr = `${ymd}T${rawTime.length === 5 ? rawTime + ':00' : '12:00:00'}Z`;
+          const dateStr = `${ymd}T${rawTime.length === 5 ? rawTime + ':00' : '12:00:00'}+07:00`;
 
           events.push({
             title: rawTitle,
@@ -369,7 +372,12 @@ const requestHandler = async (req, res) => {
           },
           end: () => {}
         };
-        await handler(req, fakeRes);
+        const fakeReq = {
+          method: req.method,
+          headers: req.headers,
+          query: Object.fromEntries(parsedUrl.searchParams.entries())
+        };
+        await handler(fakeReq, fakeRes);
         if (statusCode === 200 && responseBody && responseBody.ok === true) {
           lastScalperSetupsPayload = responseBody;
           res.writeHead(200, { ...outHeaders, 'Content-Type': 'application/json; charset=utf-8' });
@@ -504,9 +512,16 @@ const requestHandler = async (req, res) => {
           let localStatus = 200;
           const localHeaders = {};
           let localBody = null;
+          let localRedirect = null;
           const fakeRes = {
             setHeader: (k, v) => { localHeaders[k] = v; },
             status: (c) => { localStatus = c; return fakeRes; },
+            redirect: (code, targetUrl) => {
+              localStatus = Number(code) || 307;
+              localRedirect = targetUrl;
+              localHeaders['Location'] = targetUrl;
+              return fakeRes;
+            },
             json: (d) => { localBody = d; },
             send: (d) => { localBody = d; },
             end: () => {}
@@ -517,6 +532,11 @@ const requestHandler = async (req, res) => {
             query: Object.fromEntries(parsedUrl.searchParams.entries())
           };
           await localHandler(fakeReq, fakeRes);
+          if (localRedirect && !res.writableEnded) {
+            res.writeHead(localStatus, { ...localHeaders, Location: localRedirect, 'Access-Control-Allow-Origin': '*' });
+            res.end();
+            return;
+          }
           const localParsed = typeof localBody === 'string'
             ? (() => { try { return JSON.parse(localBody); } catch { return null; } })()
             : localBody;
@@ -808,10 +828,27 @@ const requestHandler = async (req, res) => {
         };
         if (req.method === 'POST') {
           let bodyStr = '';
-          req.on('data', chunk => { bodyStr += chunk; });
+          let tooLarge = false;
+          req.on('data', chunk => {
+            if (tooLarge) return;
+            bodyStr += chunk;
+            if (bodyStr.length > 2 * 1024 * 1024) {
+              tooLarge = true;
+              res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({ ok: false, error: 'Payload too large' }));
+            }
+          });
           req.on('end', async () => {
-            try { fakeReq.body = bodyStr ? JSON.parse(bodyStr) : {}; } catch (_) {}
-            await handler(fakeReq, fakeRes);
+            if (tooLarge) return;
+            try {
+              try { fakeReq.body = bodyStr ? JSON.parse(bodyStr) : {}; } catch (_) {}
+              await handler(fakeReq, fakeRes);
+            } catch (err) {
+              if (!res.writableEnded) {
+                res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, error: err?.message || 'Internal error' }));
+              }
+            }
           });
           return;
         }

@@ -16,11 +16,8 @@ export function deviceHeaders(){
 }
 function emit(){window.dispatchEvent(new Event('amy-method-toggles'));document.querySelectorAll('[data-method-sync]').forEach(node=>{node.textContent=message;});}
 function shouldSyncRemotePreferences(){
-  if(typeof window==='undefined')return false;
-  if(window.Android?.getScalperDeviceToken)return true;
-  const host=String(window.location?.hostname||'').toLowerCase();
-  if(!host||host==='localhost'||host==='127.0.0.1'||host.endsWith('.run.app'))return false;
-  return true;
+  // Kebijakan Zero-Touch Supabase: preferensi driver disimpan 100% lokal di perangkat
+  return false;
 }
 async function request(method,settings){
   const response=await fetch(ENDPOINT,{method,headers:{...deviceHeaders(),'Content-Type':'application/json'},...(settings?{body:JSON.stringify({enabledDrivers:settings})}:{}),cache:'no-store'});

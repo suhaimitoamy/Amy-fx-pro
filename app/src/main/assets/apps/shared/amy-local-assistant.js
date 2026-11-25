@@ -89,7 +89,7 @@
     const g=Number(root.amyfxCurrentPrice);
     if(Number.isFinite(g)&&g>=500&&g<=25000)return g;
     if(root.document){
-      const sels=['#hero-price','#live-price','#home-gold-price','#chart-price','[data-live-price]'];
+      const sels=['#hero-price','#live-price','#home-gold-price','#home-chart-price','#chart-price','[data-live-price]'];
       for(const sel of sels){
         const el=root.document.querySelector(sel);
         if(!el)continue;
@@ -113,9 +113,18 @@
     if(!hist||typeof hist!=='object')return null;
     const todayWita=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Makassar'});
     const arch=hist.dailyArchive&&hist.dailyArchive[todayWita];
-    const pois=list(hist.pois).filter(p=>p&&(!p.dayWita||p.dayWita===todayWita));
-    const respected=arch?.respected!=null?Number(arch.respected):pois.filter(p=>p.outcome==='RESPECTED'||p.status==='RESPECTED').length;
-    const broken=arch?.broken!=null?Number(arch.broken):pois.filter(p=>p.outcome==='BROKEN'||p.status==='BROKEN').length;
+    const allRecs=list(hist.poiRecords).length?list(hist.poiRecords):list(hist.pois);
+    const pois=allRecs.filter(p=>{
+      if(!p)return false;
+      if(p.dayWita)return p.dayWita===todayWita;
+      const ts=Number(p.touchedAt||p.ts||0);
+      if(!Number.isFinite(ts)||ts<=0)return true;
+      return new Date(ts).toLocaleDateString('en-CA',{timeZone:'Asia/Makassar'})===todayWita;
+    });
+    const isWin=p=>['RESPECTED','TP1_HIT','TP2_HIT'].includes(String(p?.outcome||p?.status||'').toUpperCase());
+    const isLoss=p=>['BROKEN','SL_HIT'].includes(String(p?.outcome||p?.status||'').toUpperCase());
+    const respected=arch?.respected!=null?Number(arch.respected):(arch?.wins!=null?Number(arch.wins):pois.filter(isWin).length);
+    const broken=arch?.broken!=null?Number(arch.broken):(arch?.sl!=null?Number(arch.sl):pois.filter(isLoss).length);
     const tested=respected+broken;
     const total=arch?.total!=null?Number(arch.total):pois.length;
     const respectRate=tested>0?Math.round((respected/tested)*100):null;
@@ -405,8 +414,12 @@
     if(root.AmyTraderInsights?.evaluateDailyLossGuard){
       try{
         const balance=Number(raw('amy_default_balance')||1000);
-        const res=root.AmyTraderInsights.evaluateDailyLossGuard(realRows,{...cfg,balance});
-        if(res)return `• Daily Loss Guard: ${res.status||res.level||'AMAN'} (Loss hari ini: ${res.todayLosses||0}/${cfg.maxDailySl||2} SL · PnL hari ini: ${res.todayNetUsd!=null?'$'+Number(res.todayNetUsd).toFixed(2):'$0.00'})`;
+        const res=root.AmyTraderInsights.evaluateDailyLossGuard(realRows,{config:cfg,balanceUsd:balance});
+        if(res){
+          const losses=res.lossCount??res.todayLosses??0;
+          const net=res.todayNetMoney??res.todayNetUsd;
+          return `• Daily Loss Guard: ${res.status||res.level||'AMAN'} (Loss hari ini: ${losses}/${cfg.maxDailySl||2} SL · PnL hari ini: ${net!=null?'$'+Number(net).toFixed(2):'$0.00'})`;
+        }
       }catch{}
     }
     const todayWita=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Makassar'});
@@ -855,6 +868,6 @@
     }, 120);
     return true;
   }
-  root.AmyLocalAssistant=Object.freeze({ask,intent,mapping,news,journal,academy,knowledge,habits,riskCalc,calculateLot,calendar,practice,macroCompass,accountPortfolioSummary,briefing,openWithPrompt,getLivePrice,buildMappingSnapshot,readJournals:journals,isWeekendClosure:isWeekendClosureWita,getReactionHistoryToday:getReactionHistoryTodaySummary});
+  root.AmyLocalAssistant=Object.freeze({ask,intent,mapping,news,journal,academy,knowledge,habits,riskCalc,calculateLot,calendar,practice,macroCompass,accountPortfolioSummary,poiBreakdownSummary,briefing,openWithPrompt,getLivePrice,buildMappingSnapshot,readJournals:journals,isWeekendClosure:isWeekendClosureWita,getReactionHistoryToday:getReactionHistoryTodaySummary});
   if(root.document){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();}
 })(typeof window==='undefined'?globalThis:window);

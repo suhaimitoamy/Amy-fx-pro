@@ -1830,6 +1830,7 @@ const priceAlertManager = {
   clearAlerts,
   checkPrice,
   setPreviousPrice,
+  getPreviousPrice: () => previousPrice,
   getCurrentLivePrice,
   getNotificationStatus,
   requestNotificationPermission,

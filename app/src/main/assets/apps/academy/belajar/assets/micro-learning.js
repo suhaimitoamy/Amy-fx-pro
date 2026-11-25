@@ -128,7 +128,12 @@
       } catch (_) {}
 
       try {
-        fetch('/api/academy-reading', {
+        var host = typeof location !== 'undefined' ? String(location.hostname || '').toLowerCase() : '';
+        var isLocal = typeof location !== 'undefined'
+          && !String(location.protocol || '').startsWith('file')
+          && host !== 'appassets.androidplatform.net';
+        var readingApiUrl = isLocal ? '/api/academy-reading' : 'https://amy-fx.vercel.app/api/academy-reading';
+        fetch(readingApiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lastRead: record, history: hist, microProgress: getProgress() })
@@ -151,7 +156,7 @@
     try {
       if (window.AmyLocalAssistant || document.getElementById('amy-local-root')) return;
       var s = document.createElement('script');
-      s.src = '/apps/shared/amy-local-assistant.js';
+      s.src = '../../shared/amy-local-assistant.js';
       s.defer = true;
       document.head.appendChild(s);
     } catch (_) {}

@@ -1,5 +1,7 @@
 (function () {
-  const API_BASE = 'https://amy-fx.vercel.app/api';
+  const _host = typeof location !== 'undefined' ? String(location.hostname || '').toLowerCase() : '';
+  const _isLocal = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(_host);
+  const API_BASE = _isLocal ? '/api' : 'https://amy-fx.vercel.app/api';
   const SNAPSHOT_KEY = 'amy_heatmap_dynamic_snapshot_v2';
   const REFRESH_MS = 20 * 1000;
   let controller = null;
@@ -254,10 +256,14 @@
   }
 
   function normalizeProviderCandles(data) {
-    return (Array.isArray(data?.values) ? data.values : []).slice().reverse().map(candle => ({
-      time: candle.datetime,
-      open: Number(candle.open), high: Number(candle.high), low: Number(candle.low), close: Number(candle.close)
-    }));
+    return (Array.isArray(data?.values) ? data.values : [])
+      .filter(candle => candle && candle.amyfxSyntheticCurrent !== true && candle.synthetic !== true)
+      .slice()
+      .reverse()
+      .map(candle => ({
+        time: candle.datetime,
+        open: Number(candle.open), high: Number(candle.high), low: Number(candle.low), close: Number(candle.close)
+      }));
   }
 
   async function fetchComputedHeatmap(signal) {

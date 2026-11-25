@@ -161,6 +161,84 @@ export function mountHomeChart(root) {
   let view=null,raw=null,controller=null,timer=null,generation=0,disposed=false,es=null,drawingTool=null;
   let h1Cache=null,h1CacheTime=0;
   let simPriceLines=[];
+  let drSyncAt=0,drSyncInFlight=false,marketPublishAt=0;
+
+  function resolveHomeDealingRange(){
+    const direct=window.amyfxLastDealingRange||window.amyfxLastContext?.m15?.dealingRange||window.amyfxLastContext?.amy?.levels?.dealingRange||window.amyfxLastContext?.dealingRange;
+    if(direct&&(direct.rangeHigh||direct.top||direct.high||direct.rHigh))return direct;
+    try{
+      if(typeof localStorage!=='undefined'){
+        const rawCtx=localStorage.getItem('amyfx.market-context.v1');
+        if(rawCtx){
+          const parsed=JSON.parse(rawCtx);
+          const cachedDr=parsed?.m15?.dealingRange||parsed?.amy?.levels?.dealingRange||parsed?.dealingRange;
+          if(cachedDr&&(cachedDr.rangeHigh||cachedDr.top||cachedDr.high||cachedDr.rHigh)){
+            window.amyfxLastContext=window.amyfxLastContext||parsed;
+            window.amyfxLastDealingRange=cachedDr;
+            return cachedDr;
+          }
+        }
+      }
+    }catch(_){}
+    return direct||null;
+  }
+
+  function publishHomeQuoteFreshness(price,capturedMs){
+    const p=Number(price);
+    if(!Number.isFinite(p)||p<=0)return;
+    const ms=Number.isFinite(Number(capturedMs))&&Number(capturedMs)>0?Number(capturedMs):Date.now();
+    const iso=new Date(ms).toISOString();
+    window.amyfxHomeChartCapturedAt=iso;
+    try{
+      window.AmyFXMarketState={
+        ...(window.AmyFXMarketState||{}),
+        pair:'XAU/USD',
+        timeframe:$('home-chart-tf')?.value||'M15',
+        currentPrice:p,
+        capturedAt:iso,
+        updatedAt:iso
+      };
+    }catch(_){}
+    try{
+      window.AmyFXIntel?.write?.('quote',{price:p,capturedAt:ms,source:'HOME_CHART'});
+    }catch(_){}
+    if(Date.now()-marketPublishAt>=3000){
+      marketPublishAt=Date.now();
+      try{
+        if(typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('amyfx:market-update',{detail:{price:p,capturedAt:iso}}));
+      }catch(_){}
+    }
+  }
+
+  async function syncDealingRangeFromServer(){
+    if(disposed||drSyncInFlight||typeof fetch!=='function')return;
+    if(Date.now()-drSyncAt<120000&&resolveHomeDealingRange())return;
+    drSyncInFlight=true;
+    drSyncAt=Date.now();
+    try{
+      const host=typeof location!=='undefined'?String(location.hostname||''):'';
+      const isLocal=/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+      const url=isLocal?'/api/scalper-setups?limit=1':'https://amy-fx.vercel.app/api/scalper-setups?limit=1';
+      const res=await fetch(url,{cache:'no-store'});
+      if(!res||!res.ok)return;
+      const data=await res.json();
+      const ctx=data?.context;
+      if(!ctx||disposed)return;
+      window.amyfxLastContext=ctx;
+      const dr=ctx?.m15?.dealingRange||ctx?.amy?.levels?.dealingRange||ctx?.dealingRange;
+      if(dr){
+        window.amyfxLastDealingRange=dr;
+        try{
+          if(typeof localStorage!=='undefined')localStorage.setItem('amyfx.market-context.v1',JSON.stringify(ctx));
+        }catch(_){}
+        const livePx=Number(window.amyfxCurrentPrice)||Number(ctx.price);
+        if(Number.isFinite(livePx)&&livePx>0&&$('home-chart-dealing-range-badge')){
+          updateDealingRangeBadge($('home-chart-dealing-range-badge'),livePx,dr);
+        }
+      }
+    }catch(_){}
+    finally{drSyncInFlight=false;}
+  }
   try { view=createPriceChart($('home-price-chart')); }
   catch { $('home-price-chart').textContent='Chart tidak tersedia. Coba muat ulang aplikasi.';return ()=>{}; }
   function clearSimPriceLines(){
@@ -272,11 +350,15 @@ export function mountHomeChart(root) {
       if(closed||!Number.isFinite(currentLive)||currentLive<=0){
         window.amyfxCurrentPrice=displayPrice;
       }
-      try{window.dispatchEvent(new CustomEvent('amyfx:home-chart-price',{detail:{price:displayPrice,closed}}));}catch(_){}
+      if(!closed){
+        const candleMs=(result.sourceTime||last?.time)?Number(result.sourceTime||last.time)*1000:Date.now();
+        publishHomeQuoteFreshness(displayPrice,Math.max(candleMs,Date.now()-30000));
+      }
+      try{if(typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('amyfx:home-chart-price',{detail:{price:displayPrice,closed}}));}catch(_){}
     }
     $('home-chart-price').textContent=displayPrice?displayPrice.toFixed(2):'—';
     if($('home-chart-dealing-range-badge')){
-      const dr = window.amyfxLastDealingRange || window.amyfxLastContext?.m15?.dealingRange || window.amyfxLastContext?.amy?.levels?.dealingRange || window.amyfxLastContext?.dealingRange;
+      const dr = resolveHomeDealingRange();
       if(displayPrice) updateDealingRangeBadge($('home-chart-dealing-range-badge'), displayPrice, dr);
     }
     if(displayPrice&&!closed) view?.updateActiveCandle?.(displayPrice);
@@ -330,6 +412,7 @@ export function mountHomeChart(root) {
       const previous=raw?analyze({...raw,now:Date.now()/1000}):null;
       if(!result.candles.length||(previous&&raw?.tf===next.tf&&result.sourceTime<previous.sourceTime))throw Error('Candle tidak lengkap atau lebih lama');
       raw=next;render();
+      syncDealingRangeFromServer();
     } catch {
       if(disposed||id!==generation)return;
       if(raw)raw.degraded=true;
@@ -379,9 +462,10 @@ export function mountHomeChart(root) {
     const capturedAt=Number(detail?.timestamp||detail?.capturedAt);
     if(!Number.isFinite(price)||price<=0)return;
     window.amyfxCurrentPrice=price;
+    publishHomeQuoteFreshness(price,capturedAt);
     const priceEl=$('home-chart-price');
     if(priceEl)priceEl.textContent=price.toFixed(2);
-    const dr=window.amyfxLastDealingRange||window.amyfxLastContext?.m15?.dealingRange||window.amyfxLastContext?.amy?.levels?.dealingRange||window.amyfxLastContext?.dealingRange;
+    const dr=resolveHomeDealingRange();
     const badgeEl=$('home-chart-dealing-range-badge');
     if(badgeEl)updateDealingRangeBadge(badgeEl,price,dr);
     view?.updateActiveCandle?.(price,capturedAt);

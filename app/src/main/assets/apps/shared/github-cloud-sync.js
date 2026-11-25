@@ -604,6 +604,9 @@
       exportedBacktestIds: safeReadJson(storage, "amy.backtest.exportedJournalIds.v1", []),
       habits: safeReadJson(storage, "amy_habits_v2", []),
       completedHabits: safeReadJson(storage, "amy_completed_dates_v2", {}),
+      priceAlerts: safeReadJson(storage, "amyfx_custom_price_alerts", safeReadJson(storage, "amy_price_alerts_v1", [])),
+      guidedPracticeMastery: safeReadJson(storage, "amy-guided-v3-mastery", null),
+      readingHistory: safeReadJson(storage, "reading_history_v2", []),
       mappingReactionHistory: safeReadJson(storage, MAPPING_HISTORY_KEY, null)
     };
   }
@@ -614,6 +617,16 @@
     safeWriteJson(storage, "tradingLibraryManager.journals.v1", safe.journals);
     safeWriteJson(storage, "amy_journal_entries", safe.journals);
     safeWriteJson(storage, "tradingLibraryManager.notes.v1", safe.personalNotes);
+    if (Array.isArray(safe.priceAlerts)) {
+      safeWriteJson(storage, "amyfx_custom_price_alerts", safe.priceAlerts);
+      safeWriteJson(storage, "amy_price_alerts_v1", safe.priceAlerts);
+    }
+    if (safe.guidedPracticeMastery && typeof safe.guidedPracticeMastery === "object") {
+      safeWriteJson(storage, "amy-guided-v3-mastery", safe.guidedPracticeMastery);
+    }
+    if (Array.isArray(safe.readingHistory)) {
+      safeWriteJson(storage, "reading_history_v2", safe.readingHistory);
+    }
 
     const p = safe.profile;
     if (p.traderName) safeWriteString(storage, "amy_trader_name", p.traderName);

@@ -76,7 +76,12 @@ import {
   let activeHistoryRange = 'TODAY';
   let historyShowAll = false;
   let lastHistoryBackfillKey = '';
+  const HISTORY_RESET_FLOOR_KEY = 'amyfx.mapping.reset_floor.v1';
   let historyResetFloorMs = 0;
+  try {
+    const savedFloor = Number(historyStorage?.getItem(HISTORY_RESET_FLOOR_KEY) || 0);
+    if (Number.isFinite(savedFloor) && savedFloor > 0) historyResetFloorMs = savedFloor;
+  } catch (_) {}
   const initialYm = getWitaYearMonth(Date.now());
   let historyCalendarYear = initialYm.year;
   let historyCalendarMonth = initialYm.month;
@@ -100,26 +105,44 @@ import {
   }
 
   function getDualLayerNextGen(amy, chartNg) {
-    const chartIsM15 = chartNg && (!chartNg.tf || String(chartNg.tf).toUpperCase() === 'M15');
-    let ngM15 = chartIsM15 ? chartNg : null;
     const rawM15 = amy?.chartCandles?.M15;
+    const chartIsM15 = chartNg && (!chartNg.tf || String(chartNg.tf).toUpperCase() === 'M15');
+    const chartCandles = typeof window !== 'undefined' && Array.isArray(window.amyfxLastCandles)
+      ? window.amyfxLastCandles
+      : null;
+    const chartMatchesRawM15 = chartIsM15 && (
+      !Array.isArray(rawM15) || rawM15.length < 20 ||
+      (chartCandles && chartCandles.length === rawM15.length
+        && Number(chartCandles[chartCandles.length - 1]?.time) === Number(rawM15[rawM15.length - 1]?.open_time ?? rawM15[rawM15.length - 1]?.time))
+    );
+    let ngM15 = chartMatchesRawM15 ? chartNg : null;
     if (!ngM15 && Array.isArray(rawM15) && rawM15.length >= 20) {
       const lastBar = rawM15[rawM15.length - 1];
-      const key = `${rawM15.length}:${lastBar?.open_time}:${lastBar?.close}`;
+      const key = `${rawM15.length}:${lastBar?.open_time}:${lastBar?.close}:${Boolean(amy)}`;
       if (dualLayerCache.m15Key !== key) {
-        dualLayerCache.m15Ng = calculateNextGenIndicators(toNgCandles(rawM15), { tf: 'M15' });
+        dualLayerCache.m15Ng = calculateNextGenIndicators(toNgCandles(rawM15), { tf: 'M15', context: amy ? { amy } : null });
         dualLayerCache.m15Key = key;
       }
       ngM15 = dualLayerCache.m15Ng;
     }
 
-    let ngM5 = (chartNg && String(chartNg.tf || '').toUpperCase() === 'M5') ? chartNg : null;
-    const rawM5 = amy?.chartCandles?.M5;
+    const rawM5 = Array.isArray(amy?.chartCandles?.M5) && amy.chartCandles.M5.length >= 20
+      ? amy.chartCandles.M5
+      : (typeof window !== 'undefined' && Array.isArray(window.amyfxLastCandlesM5) && window.amyfxLastCandlesM5.length >= 20
+          ? window.amyfxLastCandlesM5
+          : null);
+    const chartIsM5 = chartNg && String(chartNg.tf || '').toUpperCase() === 'M5';
+    const chartMatchesRawM5 = chartIsM5 && (
+      !Array.isArray(rawM5) || rawM5.length < 20 ||
+      (chartCandles && chartCandles.length === rawM5.length
+        && Number(chartCandles[chartCandles.length - 1]?.time) === Number(rawM5[rawM5.length - 1]?.open_time ?? rawM5[rawM5.length - 1]?.time))
+    );
+    let ngM5 = chartMatchesRawM5 ? chartNg : null;
     if (!ngM5 && Array.isArray(rawM5) && rawM5.length >= 20) {
       const lastBar = rawM5[rawM5.length - 1];
-      const key = `${rawM5.length}:${lastBar?.open_time}:${lastBar?.close}`;
+      const key = `${rawM5.length}:${lastBar?.open_time ?? lastBar?.time}:${lastBar?.close}:${Boolean(amy)}`;
       if (dualLayerCache.m5Key !== key) {
-        dualLayerCache.m5Ng = calculateNextGenIndicators(toNgCandles(rawM5), { tf: 'M5' });
+        dualLayerCache.m5Ng = calculateNextGenIndicators(toNgCandles(rawM5), { tf: 'M5', context: amy ? { amy } : null });
         dualLayerCache.m5Key = key;
       }
       ngM5 = dualLayerCache.m5Ng;
@@ -319,7 +342,7 @@ import {
       const plan = isSell ? latestSellPlan : latestBuyPlan;
       const overlay = isSell ? latestSellOverlay : latestBuyOverlay;
       const gradeEl = $(isSell ? 'sell-verdict-grade' : 'buy-verdict-grade');
-      const biasEl = $('hero-bias-pill');
+      const biasEl = $('hero-bias-banner') || $('hero-bias-pill');
       const sessionEl = $('cockpit-session-pill');
       const payload = buildMappingJournalPrefill(
         plan || { side },
@@ -376,15 +399,23 @@ import {
       } catch (_) {}
 
       try {
-        if (typeof location !== 'undefined' && location.origin && !location.origin.startsWith('file:')) {
+        if (typeof location !== 'undefined') {
+          const host = String(location.hostname || '').toLowerCase();
+          const isLocalWeb = !String(location.protocol || '').startsWith('file') && host !== 'appassets.androidplatform.net';
+          const calendarUrl = isLocalWeb ? `${location.origin}/api/calendar` : 'https://amy-fx.vercel.app/api/calendar';
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 4500);
-          const res = await fetch(`${location.origin}/api/calendar`, { signal: controller.signal, cache: 'no-store' });
+          const res = await fetch(calendarUrl, { signal: controller.signal, cache: 'no-store' });
           clearTimeout(timer);
           if (res.ok) {
             const data = await res.json();
             const list = Array.isArray(data?.events) ? data.events : (Array.isArray(data) ? data : []);
-            if (list.length) applyNewsLockBanner(list);
+            if (list.length) {
+              applyNewsLockBanner(list);
+              try {
+                localStorage.setItem('amy_economic_calendar_v1', JSON.stringify({ savedAt: Date.now(), events: list }));
+              } catch (_) {}
+            }
           }
         }
       } catch (_) {}
@@ -437,6 +468,7 @@ import {
         btnHistoryClear.textContent = 'Reset Riwayat';
         btnHistoryClear.classList.remove('is-armed');
         historyResetFloorMs = now;
+        try { historyStorage?.setItem(HISTORY_RESET_FLOOR_KEY, String(now)); } catch (_) {}
         historyShowAll = false;
         calendarDayShowAll = false;
         selectedCalendarDate = '';
@@ -1186,6 +1218,8 @@ import {
     if (liveRes.changed) {
       mappingHistoryState = liveRes.state;
       saveHistoryState(historyStorage, mappingHistoryState);
+      try { window.dispatchEvent(new CustomEvent('amyfx:poi-history-updated')); } catch (_) {}
+      try { window.AmyGitHubSync?.scheduleAutoSync?.('mapping-history', { delayMs: 15000 }); } catch (_) {}
       renderMappingHistory();
     }
     if (liveRes.alerts && liveRes.alerts.length > 0) {
@@ -2233,7 +2267,10 @@ import {
     let isSellSlHit = false;
 
     const prevSellBuf = Number.isFinite(activeSellSession?.slBuffer) ? activeSellSession.slBuffer : 1.50;
-    if (activeSellSession && Number.isFinite(activeSellSession.sl) && livePrice > activeSellSession.sl + prevSellBuf) {
+    const prevSellEffectiveSl = Number.isFinite(Number(activeSellSession?.slLevel))
+      ? Number(activeSellSession.slLevel)
+      : (Number.isFinite(activeSellSession?.sl) ? activeSellSession.sl + prevSellBuf : NaN);
+    if (activeSellSession && Number.isFinite(prevSellEffectiveSl) && livePrice > prevSellEffectiveSl) {
       isSellSlHit = true;
       activeSellSession = null;
     }
@@ -2332,25 +2369,32 @@ import {
           sl: sellSlVal
         }
       : null;
-    backupSellOverlay = backupSellZone && !backupSellZone.breached
-      ? {
-          scalper: true,
-          side: 'SELL',
-          tf: backupSellZone.tf || 'M5',
-          kind: backupSellZone.kind || 'FVG',
-          label: backupSellZone.label || backupSellZone.kind || 'POI',
-          skip: Boolean(sellVerdict?.skip),
-          alarmPrice: Number(backupSellZone.low.toFixed(2)),
-          area: {
-            low: Number(backupSellZone.low.toFixed(2)),
-            high: Number(backupSellZone.high.toFixed(2)),
-            ce: Number(backupSellZone.ce.toFixed(2))
-          },
-          tp1: Number.isFinite(sellTpVal) ? Number(sellTpVal.toFixed(2)) : NaN,
-          tp2: tpCandSell2 ? Number(tpCandSell2.v.toFixed(2)) : NaN,
-          sl: sellSlVal
-        }
-      : null;
+    backupSellOverlay = (() => {
+      if (!backupSellZone || backupSellZone.breached) return null;
+      const bTf = backupSellZone.tf || 'M5';
+      const bCe = Number(backupSellZone.ce.toFixed(2));
+      const bSl = computeGoldSlPrice('SELL', backupSellZone.low, backupSellZone.high, bCe, bTf);
+      const bRisk = Math.max(1.8, Math.abs(bSl - bCe));
+      const bTp1 = Number((bCe - Math.max(bRisk * 1.5, bTf === 'M5' ? 9.0 : 10.5)).toFixed(2));
+      const bTp2 = Number((bCe - Math.max(bRisk * 2.5, bTf === 'M5' ? 15.0 : 17.5)).toFixed(2));
+      return {
+        scalper: true,
+        side: 'SELL',
+        tf: bTf,
+        kind: backupSellZone.kind || 'FVG',
+        label: backupSellZone.label || backupSellZone.kind || 'POI',
+        skip: Boolean(sellVerdict?.skip),
+        alarmPrice: Number(backupSellZone.low.toFixed(2)),
+        area: {
+          low: Number(backupSellZone.low.toFixed(2)),
+          high: Number(backupSellZone.high.toFixed(2)),
+          ce: bCe
+        },
+        tp1: bTp1,
+        tp2: bTp2,
+        sl: bSl
+      };
+    })();
 
     // Update 3 Structured Level Tiles (SELL)
     const sellEntryValEl = $('sell-entry-val');
@@ -2520,7 +2564,10 @@ import {
     let isBuySlHit = false;
 
     const prevBuyBuf = Number.isFinite(activeBuySession?.slBuffer) ? activeBuySession.slBuffer : 1.50;
-    if (activeBuySession && Number.isFinite(activeBuySession.sl) && livePrice < activeBuySession.sl - prevBuyBuf) {
+    const prevBuyEffectiveSl = Number.isFinite(Number(activeBuySession?.slLevel))
+      ? Number(activeBuySession.slLevel)
+      : (Number.isFinite(activeBuySession?.sl) ? activeBuySession.sl - prevBuyBuf : NaN);
+    if (activeBuySession && Number.isFinite(prevBuyEffectiveSl) && livePrice < prevBuyEffectiveSl) {
       isBuySlHit = true;
       activeBuySession = null;
     }
@@ -2619,25 +2666,32 @@ import {
           sl: buySlVal
         }
       : null;
-    backupBuyOverlay = backupBuyZone && !backupBuyZone.breached
-      ? {
-          scalper: true,
-          side: 'BUY',
-          tf: backupBuyZone.tf || 'M5',
-          kind: backupBuyZone.kind || 'FVG',
-          label: backupBuyZone.label || backupBuyZone.kind || 'POI',
-          skip: Boolean(buyVerdict?.skip),
-          alarmPrice: Number(backupBuyZone.high.toFixed(2)),
-          area: {
-            low: Number(backupBuyZone.low.toFixed(2)),
-            high: Number(backupBuyZone.high.toFixed(2)),
-            ce: Number(backupBuyZone.ce.toFixed(2))
-          },
-          tp1: Number.isFinite(buyTpVal) ? Number(buyTpVal.toFixed(2)) : NaN,
-          tp2: tpCandBuy2 ? Number(tpCandBuy2.v.toFixed(2)) : NaN,
-          sl: buySlVal
-        }
-      : null;
+    backupBuyOverlay = (() => {
+      if (!backupBuyZone || backupBuyZone.breached) return null;
+      const bTf = backupBuyZone.tf || 'M5';
+      const bCe = Number(backupBuyZone.ce.toFixed(2));
+      const bSl = computeGoldSlPrice('BUY', backupBuyZone.low, backupBuyZone.high, bCe, bTf);
+      const bRisk = Math.max(1.8, Math.abs(bCe - bSl));
+      const bTp1 = Number((bCe + Math.max(bRisk * 1.5, bTf === 'M5' ? 9.0 : 10.5)).toFixed(2));
+      const bTp2 = Number((bCe + Math.max(bRisk * 2.5, bTf === 'M5' ? 15.0 : 17.5)).toFixed(2));
+      return {
+        scalper: true,
+        side: 'BUY',
+        tf: bTf,
+        kind: backupBuyZone.kind || 'FVG',
+        label: backupBuyZone.label || backupBuyZone.kind || 'POI',
+        skip: Boolean(buyVerdict?.skip),
+        alarmPrice: Number(backupBuyZone.high.toFixed(2)),
+        area: {
+          low: Number(backupBuyZone.low.toFixed(2)),
+          high: Number(backupBuyZone.high.toFixed(2)),
+          ce: bCe
+        },
+        tp1: bTp1,
+        tp2: bTp2,
+        sl: bSl
+      };
+    })();
 
     // Update 3 Structured Level Tiles (BUY)
     const buyEntryValEl = $('buy-entry-val');
@@ -3007,7 +3061,7 @@ import {
     if (Number.isFinite(p) && p > 0) {
       applyHeroPrice(p);
       if (window.amyfxLastContext) updateDealingRange(window.amyfxLastContext);
-      tickMappingHistory(p);
+      if (resolveGoldSessionState(Date.now()).isOpen) tickMappingHistory(p);
     }
   });
 
@@ -3016,7 +3070,7 @@ import {
     if (Number.isFinite(p) && p > 0) {
       applyHeroPrice(p);
       if (window.amyfxLastContext) updateDealingRange(window.amyfxLastContext);
-      tickMappingHistory(p);
+      if (resolveGoldSessionState(Date.now()).isOpen) tickMappingHistory(p);
     }
   });
 

@@ -162,19 +162,33 @@ export function mountEconomicEventBanner({
     } catch (_) {}
 
     let events = parseCachedCalendar(raw);
+    let cacheStale = false;
+    try {
+      const parsed = raw ? JSON.parse(raw) : null;
+      const savedAt = Number(parsed?.savedAt || 0);
+      if (!savedAt || (Date.now() - savedAt) > 10 * 60 * 1000) cacheStale = true;
+    } catch (_) {
+      cacheStale = true;
+    }
 
-    // Fallback fetch jika cache lokal kosong
-    if ((!events || !events.length) && fetchFallback && !isFetching) {
+    // Fetch live calendar when cache is empty or older than 10m (with APK origin fallback)
+    if ((!events || !events.length || cacheStale) && fetchFallback && !isFetching) {
       isFetching = true;
       try {
         const controller = new AbortController();
         const fetchTimeout = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch('/api/calendar', { signal: controller.signal });
+        const host = typeof location !== 'undefined' ? String(location.hostname || '').toLowerCase() : '';
+        const isLocalOrigin = typeof location !== 'undefined'
+          && !String(location.protocol || '').startsWith('file')
+          && host !== 'appassets.androidplatform.net';
+        const url = isLocalOrigin ? '/api/calendar' : 'https://amy-fx.vercel.app/api/calendar';
+        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
         clearTimeout(fetchTimeout);
         if (res.ok) {
           const json = await res.json();
-          events = parseCachedCalendar(json);
-          if (events.length > 0) {
+          const freshEvents = parseCachedCalendar(json);
+          if (freshEvents.length > 0) {
+            events = freshEvents;
             try {
               localStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), events }));
             } catch (_) {}

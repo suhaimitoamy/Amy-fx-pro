@@ -375,6 +375,10 @@ export function dashboardContextV4Rows(amy, context = null) {
   const d = amy?.dashboard;
   const ctx = context || (typeof window !== 'undefined' ? window.AmyMarketContext : null);
   const levels = amy?.levels || ctx?.levels || ctx?.keyLevels || {};
+  const fallbackCandles = (typeof window !== 'undefined' && Array.isArray(window.amyfxLastCandles) && window.amyfxLastCandles.length > 0)
+    ? window.amyfxLastCandles
+    : (Array.isArray(amy?.chartCandles) ? amy.chartCandles : []);
+  const lastCandle = fallbackCandles.length > 0 ? fallbackCandles[fallbackCandles.length - 1] : null;
   const currentPrice = (typeof window !== 'undefined' && Number.isFinite(Number(window.amyfxCurrentPrice)) && Number(window.amyfxCurrentPrice) > 0)
     ? Number(window.amyfxCurrentPrice)
     : (Number.isFinite(Number(amy?.currentPrice)) && Number(amy?.currentPrice) > 0)

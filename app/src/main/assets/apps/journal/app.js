@@ -163,7 +163,8 @@ const dom = {
   assistantQuestionInput: document.querySelector("#assistantQuestionInput"),
   assistantAnswer: document.querySelector("#assistantAnswer"),
   assistantChatLog: document.querySelector("#assistantChatLog"),
-  assistantModeTabs: document.querySelector("#assistantModeTabs"),
+  modeToggleBtn: document.querySelector("#modeToggleBtn"),
+  assistantModeTabs: document.querySelector("#assistantModeTabs, #modeDropdownMenu"),
   assistantShortcutMenu: document.querySelector("#assistantShortcutMenu"),
   assistantModeButtons: document.querySelectorAll(".assistant-mode-tab"),
   assistantModeLabel: document.querySelector("#assistantModeLabel"),
@@ -662,10 +663,15 @@ function bindEvents() {
     }
   });
   dom.clearAssistantHistoryBtn?.addEventListener("click", clearAssistantHistory);
+  dom.modeToggleBtn?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    dom.assistantModeTabs?.classList.toggle("hidden");
+  });
   dom.assistantModeTabs?.addEventListener("click", (event) => {
     const button = event.target.closest(".assistant-mode-tab");
     if (!button) return;
     setAssistantMode(button.dataset.assistantMode || "coach");
+    dom.assistantModeTabs?.classList.add("hidden");
   });
   dom.assistantShortcutMenu?.addEventListener("click", handleAssistantShortcutClick);
   dom.assistantQuestionInput?.addEventListener("keydown", (event) => {
@@ -5761,7 +5767,7 @@ async function importBackup(event) {
   input.value = '';
   if (!file) return;
 
-  const restoreLabel = document.querySelector('label[for="importBackupInput"]');
+  const restoreLabel = document.querySelector('label[for="drawerRestoreInput"], label[for="importBackupInput"]');
   const originalLabel = restoreLabel?.textContent || 'Restore';
   input.disabled = true;
   if (restoreLabel) restoreLabel.textContent = 'Membaca backup...';
@@ -6466,7 +6472,7 @@ async function saveJournalForm(event) {
       ? state.journals.map((entry) => entry.id === journal.id ? journal : entry)
       : [journal, ...state.journals];
     state.journalOpenDate = journal.date || state.journalOpenDate;
-    saveJournals();
+    await saveJournals();
     state.pendingJournalFiles = [];
     if (dom.journalFileInput) dom.journalFileInput.value = "";
     resetJournalForm();
@@ -6505,7 +6511,8 @@ window.AmyJournalBridge = {
     if (dom.journalEmotionInput) dom.journalEmotionInput.value = entry.emotion || "";
     if (dom.journalTitleInput) dom.journalTitleInput.value = entry.title || "";
     syncJournalQuickPickers();
-    if (typeof syncMistakeChipStates === "function") syncMistakeChipStates();
+    if (typeof syncMistakeChipsUi === "function") syncMistakeChipsUi();
+    else if (typeof syncMistakeChipStates === "function") syncMistakeChipStates();
 
     if (optionalFile) {
       try {

@@ -102,7 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
       'amy_sim_cashflows_v1', 'amy_daily_loss_guard_v1',
       'amy_media_watched_v1', 'amy_replay_bookmarks_v1',
       'amy_academy_bookmarks_v1', 'amy_academy_progress_v2',
-      'amy_media_items', 'amy.backtest.exportedJournalIds.v1'
+      'amy_media_items', 'amy.backtest.exportedJournalIds.v1',
+      'amyfx.mapping.reaction_history.v1', 'amyfx.mapping.reset_floor.v1',
+      'amyfx_custom_price_alerts', 'amy_price_alerts_v1',
+      'amy_habits_v2', 'amy_completed_dates_v2',
+      'amy-guided-v3-mastery', 'amyfx.gemini.chat.v1'
     ];
     keys.forEach(key => { try { localStorage.removeItem(key); } catch (_) {} });
     if (mediaDbPromise) {
@@ -361,10 +365,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const events = Array.isArray(parsed?.events) ? parsed.events : (Array.isArray(parsed?.items) ? parsed.items : (Array.isArray(parsed) ? parsed : []));
       const nowMs = Date.now();
       const upcomingHigh = events
+        .filter((ev) => {
+          const cur = String(ev?.currency || ev?.country || 'USD').toUpperCase();
+          return !cur || cur.includes('USD') || cur === 'US';
+        })
         .map((ev) => {
           const ts = Number.isFinite(Number(ev?.timestampMs)) && Number(ev.timestampMs) > 0
             ? Number(ev.timestampMs)
-            : (ev?.dateIso ? Date.parse(ev.dateIso) : NaN);
+            : (ev?.dateIso ? Date.parse(ev.dateIso) : (ev?.date ? Date.parse(ev.date) : NaN));
           return { ...ev, _ts: ts };
         })
         .filter((ev) => Number.isFinite(ev._ts) && ev._ts >= nowMs - 15 * 60000 && ev._ts <= nowMs + 12 * 3600000)
@@ -426,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openProject('mapping');
     });
     strip.querySelector('#home-cmd-macro')?.addEventListener('click', () => {
-      openProject('news');
+      openProject('intel');
     });
 
     // Cell 1: Active Balance (Synced with Profile + Riwayat POI)
@@ -497,7 +505,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!cached || ageMs > 8 * 60 * 1000) {
         const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
         const tId = ctrl ? setTimeout(() => ctrl.abort(), 4500) : null;
-        fetch('/api/macro-snapshot', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+        const macroUrl = (typeof location !== 'undefined'
+          && !String(location.protocol || '').startsWith('file')
+          && String(location.hostname || '').toLowerCase() !== 'appassets.androidplatform.net')
+          ? '/api/macro-snapshot'
+          : 'https://amy-fx.vercel.app/api/macro-snapshot';
+        fetch(macroUrl, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
           .then((r) => (r.ok ? r.json() : null))
           .then((data) => {
             if (!data || !data.quotes) return;
@@ -2324,7 +2337,9 @@ document.addEventListener('DOMContentLoaded', () => {
       try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
       const updatedSnap = window.AmyHomeAccountCockpit?.getSnapshot?.();
       if (identityMetaEl && updatedSnap) {
-        const effBal = Number.isFinite(Number(updatedSnap.initialCapitalUsd)) ? updatedSnap.initialCapitalUsd : Number(balanceInput?.value || simParams.baseBalanceUsd);
+        const effBal = Number.isFinite(Number(updatedSnap.balanceUsd))
+          ? updatedSnap.balanceUsd
+          : (Number.isFinite(Number(updatedSnap.initialCapitalUsd)) ? updatedSnap.initialCapitalUsd : Number(balanceInput?.value || simParams.baseBalanceUsd));
         const rateVal = Number(rateInput?.value || simParams.usdIdrRate);
         const riskVal = Number(riskInput?.value || simParams.riskPct);
         identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(effBal, selectedCurrency, rateVal))}</span><span aria-hidden="true">·</span><span>${escapeHtml(riskVal)}%</span>`;
@@ -3116,7 +3131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         dailyLossGuard: readJsonSafe('amy_daily_loss_guard_v1', null),
         mappingPoiHistory: readJsonSafe('amyfx.mapping.reaction_history.v1', null),
-        priceAlerts: readJsonSafe('amy_price_alerts_v1', []),
+        priceAlerts: readJsonSafe('amyfx_custom_price_alerts', readJsonSafe('amy_price_alerts_v1', [])),
         guidedPracticeMastery: readJsonSafe('amy-guided-v3-mastery', null),
         academyProgress: readJsonSafe('amy_academy_progress_v2', null),
         academyBookmarks: readJsonSafe('amy_academy_bookmarks_v1', []),
@@ -3175,6 +3190,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         if (Array.isArray(data.priceAlerts)) {
+          localStorage.setItem('amyfx_custom_price_alerts', JSON.stringify(data.priceAlerts));
           localStorage.setItem('amy_price_alerts_v1', JSON.stringify(data.priceAlerts));
         }
         if (data.guidedPracticeMastery && typeof data.guidedPracticeMastery === 'object') {

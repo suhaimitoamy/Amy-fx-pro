@@ -526,6 +526,8 @@ export function createPriceChart(element, { touchAxes = false, onCrosshairOHLC =
       rightBars = null;
       lastResult = null;
       activeBar = null;
+      lines.forEach(line => { try { series.removePriceLine(line); } catch (_) {} });
+      lines = [];
       indicatorLines.forEach(line => { try { series.removePriceLine(line); } catch (_) {} });
       indicatorLines = [];
       alertLines.forEach(line => { try { series.removePriceLine(line); } catch (_) {} });

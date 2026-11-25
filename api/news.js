@@ -25,8 +25,9 @@ export default async function handler(req, res) {
   const requestedLimit = Number.parseInt(String(req.query.limit || '20'), 10);
   const limit = Math.max(1, Math.min(Number.isFinite(requestedLimit) ? requestedLimit : 20, 50));
   const telegramOnly = String(req.query.source || '').toLowerCase() === 'telegram';
+  const useSupabaseNews = process.env.AMY_USE_SUPABASE_NEWS === '1';
 
-  if (!telegramOnly) {
+  if (!telegramOnly && useSupabaseNews) {
     try {
       const central = await fetchJsonWithTimeout(
         `${SUPABASE_NEWS_FEED}?limit=${limit}`,

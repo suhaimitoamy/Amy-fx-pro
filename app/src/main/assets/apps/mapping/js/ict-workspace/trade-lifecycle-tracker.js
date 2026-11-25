@@ -260,8 +260,10 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
       }
 
       if (triggered) {
+        const tsNum = Number(timestamp);
+        const normMs = Number.isFinite(tsNum) && tsNum > 0 ? (tsNum > 1e11 ? tsNum : tsNum * 1000) : Date.now();
         trade.status = 'ACTIVE_RUNNING';
-        trade.triggeredAt = timestamp ? timestamp * 1000 : Date.now();
+        trade.triggeredAt = normMs;
         changed = true;
 
         if (!trade.notified.ACTIVE_RUNNING) {
@@ -283,8 +285,9 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
       if (trade.side === 'BUY') {
         // Cek Stop Loss terlebih dahulu (prinsip proteksi risiko)
         if (curLow <= trade.sl || curPrice <= trade.sl) {
+          const tsNum = Number(timestamp);
           trade.status = 'CLOSED_SL';
-          trade.closedAt = timestamp ? timestamp * 1000 : Date.now();
+          trade.closedAt = Number.isFinite(tsNum) && tsNum > 0 ? (tsNum > 1e11 ? tsNum : tsNum * 1000) : Date.now();
           trade.closePrice = trade.sl;
           const lossPts = Number(Math.abs(trade.entry - trade.sl).toFixed(2));
           trade.profitPoints = -lossPts;
@@ -304,9 +307,10 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
           const hitTp2 = trade.tp2 && (curHigh >= trade.tp2 || curPrice >= trade.tp2);
           const tpPrice = hitTp2 ? trade.tp2 : trade.tp1;
           const gainPts = Number(Math.abs(tpPrice - trade.entry).toFixed(2));
+          const tsNum = Number(timestamp);
 
           trade.status = 'CLOSED_TP';
-          trade.closedAt = timestamp ? timestamp * 1000 : Date.now();
+          trade.closedAt = Number.isFinite(tsNum) && tsNum > 0 ? (tsNum > 1e11 ? tsNum : tsNum * 1000) : Date.now();
           trade.closePrice = tpPrice;
           trade.profitPoints = gainPts;
           trade.closeReason = hitTp2 ? 'TP2' : 'TP1';
@@ -324,8 +328,9 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
         // SELL
         // Cek Stop Loss terlebih dahulu
         if (curHigh >= trade.sl || curPrice >= trade.sl) {
+          const tsNum = Number(timestamp);
           trade.status = 'CLOSED_SL';
-          trade.closedAt = timestamp ? timestamp * 1000 : Date.now();
+          trade.closedAt = Number.isFinite(tsNum) && tsNum > 0 ? (tsNum > 1e11 ? tsNum : tsNum * 1000) : Date.now();
           trade.closePrice = trade.sl;
           const lossPts = Number(Math.abs(trade.sl - trade.entry).toFixed(2));
           trade.profitPoints = -lossPts;
@@ -345,9 +350,10 @@ export function updatePrice(price, high = null, low = null, timestamp = null) {
           const hitTp2 = trade.tp2 && (curLow <= trade.tp2 || curPrice <= trade.tp2);
           const tpPrice = hitTp2 ? trade.tp2 : trade.tp1;
           const gainPts = Number(Math.abs(trade.entry - tpPrice).toFixed(2));
+          const tsNum = Number(timestamp);
 
           trade.status = 'CLOSED_TP';
-          trade.closedAt = timestamp ? timestamp * 1000 : Date.now();
+          trade.closedAt = Number.isFinite(tsNum) && tsNum > 0 ? (tsNum > 1e11 ? tsNum : tsNum * 1000) : Date.now();
           trade.closePrice = tpPrice;
           trade.profitPoints = gainPts;
           trade.closeReason = hitTp2 ? 'TP2' : 'TP1';

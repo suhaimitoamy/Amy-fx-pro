@@ -1,27 +1,26 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.476/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.477/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Kompas Makro Institusional Real-Time: Engine DXY, US 10Y Yield, VIX, SMT XAU/XAG, SVG Gauge, & guard rilis aktual USD.",
-    "✦ Candle Replay Pro Studio: Potong Bar interaktif, scrubber timeline, 5 tipe chart, skala %/Log/Auto, indikator anti-bocor (EMA/VWAP/BB/Sesi), magnet OHLC, & 1-klik order.",
-    "✦ Beranda Command Center Strip & Lot Sync Profil: Ringkasan Saldo Aktif, Sesi & News Guard, Kompas XAU live, serta Kalkulator Lot tersinkron Profil + breakdown performa POI.",
-    "✦ AMY Assistant 30-Detik Briefing & Jurnal Playbook Scorecard: Chip 'Layak Entry?', rapor Grade A–D per setup ICT, performa harian WITA, & Detektor Kebocoran Otomatis.",
-    "✦ Backend Multi-Key + Cadangan Lengkap: Rotasi multi-key TwelveData, stale fallback cache 30m, dan ekspor/pulihkan cadangan profil menyertakan Riwayat POI & Alarm."
+    "✦ Audit Total Mapping Cockpit & Riwayat POI: Perbaikan penyelarasan index candle openTime, deduplikasi cross-TF M15/M5, SL/TP zona cadangan independen, persistence reset floor, dan proteksi konteks/tick akhir pekan.",
+    "✦ Kalkulator Lot & Sync Profil Aman: Guard anti-duplikasi listener O(2^N), dukung cashflow negatif, sinkronisasi GitHub Cloud Sync untuk Custom Price Alerts, Mastery Academy, & Riwayat Baca.",
+    "✦ Jurnal, Market Intel & Academy: Perbaikan tombol mode asisten & ekspor PDF/Markdown Jurnal, pembersihan sisa endpoint Supabase di Market Intel, filter candle sintetis heatmap, serta fallback endpoint APK.",
+    "✦ AMY Assistant, Tema & Navigasi Global: Pemulihan skor Daily Loss Guard & ringkasan POI Trading, deteksi tema sistem OS otomatis, serta tombol kembali 1-langkah untuk layar penuh & modal.",
+    "✦ Server Lokal, API & Android Native: Validasi allowlist interval heatmap/liquidity & SQLite lokal, limit POST body 2MB, rule ProGuard AmyFxAiBridge, dan alias bridge MainActivity."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.476/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.477/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950476,
-  "latest_version_name": "2.0.0-pro.476",
+  "latest_version_code": 950477,
+  "latest_version_name": "2.0.0-pro.477",
   "mandatory": false,
   "releaseDate": "2026-11-25",
   "release_notes": [
-    "✦ Kompas Makro Institusional Real-Time: Engine DXY, US 10Y Yield, VIX, SMT XAU/XAG, SVG Gauge, & guard rilis aktual USD.",
-    "✦ Candle Replay Pro Studio: Potong Bar interaktif, scrubber timeline, 5 tipe chart, skala %/Log/Auto, indikator anti-bocor (EMA/VWAP/BB/Sesi), magnet OHLC, & 1-klik order.",
-    "✦ Beranda Command Center Strip & Lot Sync Profil: Ringkasan Saldo Aktif, Sesi & News Guard, Kompas XAU live, serta Kalkulator Lot tersinkron Profil + breakdown performa POI.",
-    "✦ AMY Assistant 30-Detik Briefing & Jurnal Playbook Scorecard: Chip 'Layak Entry?', rapor Grade A–D per setup ICT, performa harian WITA, & Detektor Kebocoran Otomatis.",
-    "✦ Backend Multi-Key + Cadangan Lengkap: Rotasi multi-key TwelveData, stale fallback cache 30m, dan ekspor/pulihkan cadangan profil menyertakan Riwayat POI & Alarm."
+    "✦ Audit Total Mapping Cockpit & Riwayat POI: Perbaikan penyelarasan index candle openTime, deduplikasi cross-TF M15/M5, SL/TP zona cadangan independen, persistence reset floor, dan proteksi konteks/tick akhir pekan.",
+    "✦ Kalkulator Lot & Sync Profil Aman: Guard anti-duplikasi listener O(2^N), dukung cashflow negatif, sinkronisasi GitHub Cloud Sync untuk Custom Price Alerts, Mastery Academy, & Riwayat Baca.",
+    "✦ Jurnal, Market Intel & Academy: Perbaikan tombol mode asisten & ekspor PDF/Markdown Jurnal, pembersihan sisa endpoint Supabase di Market Intel, filter candle sintetis heatmap, serta fallback endpoint APK.",
+    "✦ AMY Assistant, Tema & Navigasi Global: Pemulihan skor Daily Loss Guard & ringkasan POI Trading, deteksi tema sistem OS otomatis, serta tombol kembali 1-langkah untuk layar penuh & modal.",
+    "✦ Server Lokal, API & Android Native: Validasi allowlist interval heatmap/liquidity & SQLite lokal, limit POST body 2MB, rule ProGuard AmyFxAiBridge, dan alias bridge MainActivity."
   ],
-  "version": "2.0.0-pro.476",
-  "versionCode": 950476,
-  "sha256": "ff7320f0199c4d43b059e808457a362147544ec084e4724ee1eb5ff086ee0ec3"
+  "version": "2.0.0-pro.477",
+  "versionCode": 950477
 }

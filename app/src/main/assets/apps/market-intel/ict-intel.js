@@ -46,11 +46,16 @@ try {
   if (!snapshot) {
     const localCandles = JSON.parse(localStorage.getItem('amyfx.mapping.candles.M15') || 'null');
     if (Array.isArray(localCandles) && localCandles.length > 5) {
-      snapshot = snapshotFromCandles(localCandles, Date.now() / 1000);
+      snapshot = liquidityOnly(localCandles, Date.now() / 1000);
     }
   }
 } catch {}
+const LEGACY_ICT_IDS = ['market-command-strip', 'intel-briefing', 'heatmap-price', 'heatmap-status', 'liquidity-status', 'heatmap-canvas', 'liquidity-list'];
+function hasLegacyIctDom() {
+  return typeof document !== 'undefined' && LEGACY_ICT_IDS.some(id => $(id));
+}
 function paint() {
+  if (!hasLegacyIctDom()) return;
   const valid=validSnapshot(snapshot),fresh=isFresh(snapshot)&&!failed;
   const levels=nearestLevels(snapshot),bands=liquidityBands(snapshot),close=snapshot?.close;
   const status=valid?(fresh?'Candle terkini':'Referensi lama'):'Menunggu Mapping';
@@ -71,6 +76,7 @@ function paint() {
   const ll=$('liquidity-list');if(ll)ll.innerHTML=bands.length?bands.map(row).join(''):'<p class="ict-empty">Belum ada level belum tersentuh. Perbarui data atau buka Mapping.</p>';
 }
 async function refresh() {
+  if(!hasLegacyIctDom())return Promise.resolve();
   if(request)return request;
   controller=new AbortController();const activeController=controller;
   const timeout=setTimeout(()=>activeController.abort(),20000);
@@ -104,5 +110,5 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)controller?
 window.addEventListener('online',refresh);
 window.addEventListener('pagehide',()=>{controller?.abort();clearInterval(timer);});
 window.addEventListener('pageshow',event=>{if(event.persisted){startTimer();refresh();}});
-function startTimer(){clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)refresh();},60000);}
+function startTimer(){clearInterval(timer);if(!hasLegacyIctDom())return;timer=setInterval(()=>{if(!document.hidden)refresh();},60000);}
 paint();startTimer();

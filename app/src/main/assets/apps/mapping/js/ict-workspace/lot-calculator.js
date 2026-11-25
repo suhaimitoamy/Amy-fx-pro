@@ -123,8 +123,13 @@ export function resolveSyncedProfileAccount(storage = typeof localStorage !== 'u
       if (Array.isArray(cf)) {
         for (const item of cf) {
           const amt = Number(item?.amountUsd || 0);
-          if (!Number.isFinite(amt) || amt <= 0) continue;
-          netCashflow += String(item?.type || '').toUpperCase() === 'WITHDRAW' ? -amt : amt;
+          if (!Number.isFinite(amt) || amt === 0) continue;
+          const kind = String(item?.type || '').toUpperCase();
+          if (amt < 0) {
+            netCashflow += amt;
+          } else {
+            netCashflow += kind === 'WITHDRAW' ? -amt : amt;
+          }
         }
       }
     } catch (_) {}
@@ -472,6 +477,8 @@ export function injectLotCalculatorStyles() {
 /**
  * Setup and mount the interactive modal
  */
+let lotWindowEventsBound = false;
+
 export function initLotCalculator() {
   if (typeof document === 'undefined') return;
 
@@ -629,11 +636,18 @@ export function initLotCalculator() {
 
   // Bind trigger buttons in page
   bindTriggerButtons();
+  updateSyncBanner(resolveSyncedProfileAccount());
 
-  // Listen for global custom event
-  window.addEventListener('amyfx:open-lot-calc', (e) => {
-    openLotCalculator(e.detail);
-  });
+  // Register global window listeners once to prevent O(2^N) duplication on repeated modal opens
+  if (!lotWindowEventsBound) {
+    lotWindowEventsBound = true;
+    window.addEventListener('amyfx:open-lot-calc', (e) => {
+      openLotCalculator(e.detail);
+    });
+    window.addEventListener('amyfx:poi-history-updated', () => {
+      updateSyncBanner(resolveSyncedProfileAccount());
+    });
+  }
 }
 
 function updateActiveChip(val) {

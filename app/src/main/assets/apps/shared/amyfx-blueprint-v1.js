@@ -160,8 +160,9 @@
       return Number.isNaN(date.getTime()) ? null : date.toISOString();
     },
     wita(value = Date.now(), options = {}) {
+      if (value === null || value === "" || value === 0) return "Menunggu data";
       const date = value instanceof Date ? value : new Date(value);
-      if (Number.isNaN(date.getTime())) return "Waktu tidak valid";
+      if (Number.isNaN(date.getTime()) || date.getTime() <= 0) return "Menunggu data";
       return new Intl.DateTimeFormat("id-ID", {
         timeZone: CONFIG.timezone,
         dateStyle: options.dateStyle || "medium",
@@ -233,8 +234,10 @@
     const values = [
       window.AmyFXMarketState?.capturedAt,
       window.AmyFXMarketState?.updatedAt,
+      window.amyfxHomeChartCapturedAt,
       window.lastMappingResult?.capturedAt,
       window.lastMappingResult?.timestamp,
+      window.amyfxLastContext?.generatedAt,
       window.AmyFXHeatmapState?.updatedAt,
       window.AmyFXIntelState?.updatedAt,
       window.AmyFXIntel?.read?.()?.mapping?.updated,
@@ -892,7 +895,7 @@
     const settings = globalSettings();
     const summary = journalSummary();
     return {
-      captured: Time.wita(context.captured_at),
+      captured: context.captured_at ? Time.wita(context.captured_at) : "Menunggu data",
       freshness: context.freshness?.state || "unknown",
       journal: `${summary.total} trade • ${summary.winRate ?? "–"}% WR`,
       mentor: settings.key_refs.length ? `${settings.key_refs.length} key siap` : "Mode deterministik",
@@ -901,10 +904,42 @@
     };
   }
 
+  let latestCommandNext = "Buat rencana trading pertama";
+  let ccUpdateRunning = false;
+  async function updateCommandCenter(section) {
+    if (!section || ccUpdateRunning) return;
+    ccUpdateRunning = true;
+    try {
+      const metrics = await commandMetrics();
+      latestCommandNext = metrics.next;
+      const timeEl = section.querySelector("[data-cc-time]");
+      if (timeEl) timeEl.textContent = metrics.captured;
+      const freshness = section.querySelector("[data-cc-freshness]");
+      if (freshness) {
+        freshness.textContent = metrics.freshness.toUpperCase();
+        const stateBox = freshness.closest("[data-state]");
+        if (stateBox) stateBox.dataset.state = metrics.freshness;
+      }
+      const journalEl = section.querySelector("[data-cc-journal]");
+      if (journalEl) journalEl.textContent = metrics.journal;
+      const mentorEl = section.querySelector("[data-cc-mentor]");
+      if (mentorEl) mentorEl.textContent = metrics.mentor;
+      const migEl = section.querySelector("[data-cc-migration]");
+      if (migEl) migEl.textContent = metrics.migration;
+    } finally {
+      ccUpdateRunning = false;
+    }
+  }
+
   async function ensureCommandCenter() {
     if (moduleName !== "home" || !flags.command_center) return;
     const main = document.getElementById("main-content");
-    if (!main || main.querySelector("[data-amy-command-center]")) return;
+    if (!main) return;
+    const existing = main.querySelector("[data-amy-command-center]");
+    if (existing) {
+      await updateCommandCenter(existing);
+      return;
+    }
     const section = document.createElement("section");
     section.className = "amy-os-command-center";
     section.dataset.amyCommandCenter = "1";
@@ -918,20 +953,13 @@
       </div>
       <div class="amy-os-command-actions"><button type="button" data-cc-amy>Buka Amy</button><button type="button" data-cc-next>Langkah berikutnya</button></div>`;
     main.insertAdjacentElement("afterbegin", section);
-    const metrics = await commandMetrics();
-    section.querySelector("[data-cc-time]").textContent = metrics.captured;
-    const freshness = section.querySelector("[data-cc-freshness]");
-    freshness.textContent = metrics.freshness.toUpperCase();
-    freshness.closest("[data-state]").dataset.state = metrics.freshness;
-    section.querySelector("[data-cc-journal]").textContent = metrics.journal;
-    section.querySelector("[data-cc-mentor]").textContent = metrics.mentor;
-    section.querySelector("[data-cc-migration]").textContent = metrics.migration;
+    await updateCommandCenter(section);
     section.querySelector("[data-cc-amy]").addEventListener("click", () => window.dispatchEvent(new CustomEvent("amyfx:open-mentor")));
     section.querySelector("[data-cc-next]").addEventListener("click", () => {
       window.dispatchEvent(new CustomEvent("amyfx:open-mentor"));
       setTimeout(() => {
         const input = mentor?.querySelector("[data-amy-input]");
-        if (input) input.value = `Bantu saya menjalankan langkah berikutnya: ${metrics.next}`;
+        if (input) input.value = `Bantu saya menjalankan langkah berikutnya: ${latestCommandNext}`;
       }, 0);
     });
   }
@@ -983,7 +1011,15 @@
       new MutationObserver(syncUi).observe(observerTarget, { childList: true, subtree: true });
     }
     ["amyfx:journal-state-change", "amyfx:mapping-state-change", "amyfx:market-update", "amyfx:home-stats-change"]
-      .forEach(name => window.addEventListener(name, () => refreshMentorContext()));
+      .forEach(name => window.addEventListener(name, () => {
+        refreshMentorContext();
+        const cc = document.querySelector?.("[data-amy-command-center]");
+        if (cc) updateCommandCenter(cc);
+      }));
+    window.addEventListener("amyfx:home-chart-price", () => {
+      const cc = document.querySelector?.("[data-amy-command-center]");
+      if (cc) updateCommandCenter(cc);
+    });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) refreshMentorContext();
     });

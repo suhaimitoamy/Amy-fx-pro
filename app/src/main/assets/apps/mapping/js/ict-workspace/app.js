@@ -72,7 +72,11 @@ function renderOhlcHud(info){
 }
 
 try{chart=createPriceChart($('chart'),{touchAxes:true});if(typeof renderOhlcHud==='function')chart.setOnCrosshairOHLC?.(renderOhlcHud);}catch{$('chart').textContent='Peta harga belum tersedia. Bukti struktur tetap dapat dibaca.';}
-const drawingToolProxy={repaint:()=>drawingTool?.repaint?.()};
+const drawingToolProxy={
+  repaint:()=>drawingTool?.repaint?.(),
+  setFullscreen:(isFs)=>drawingTool?.setFullscreen?.(isFs),
+  isToolbarVisible:()=>Boolean(drawingTool?.isToolbarVisible?.())
+};
 if(chart?.chart&&chart?.series){
   import('../../../../manual-drawing-tool.js')
     .catch(()=>import('./manual-drawing-tool.js'))
@@ -305,7 +309,7 @@ function draw(degraded=false){
   }
   if($('chart-price'))$('chart-price').textContent=displayPrice?displayPrice.toFixed(2):'—';
   if(displayPrice&&!closed)chart?.updateActiveCandle?.(displayPrice);
-  if(displayPrice&&Number.isFinite(displayPrice)&&typeof window.AmyPriceAlertManager?.setPreviousPrice==='function'&&window.AmyPriceAlertManager.previousPrice==null){
+  if(displayPrice&&Number.isFinite(displayPrice)&&typeof window.AmyPriceAlertManager?.setPreviousPrice==='function'&&window.AmyPriceAlertManager.getPreviousPrice?.()==null){
     window.AmyPriceAlertManager.setPreviousPrice(displayPrice);
   }
   renderAmy(context?.amy, display||loadDisplay(), context?.news, context);
@@ -392,6 +396,7 @@ function startBrowserLivePriceStream(){
     const es=new EventSource(url);
     es.onmessage=(event)=>{
       try{
+        if(!isGoldMarketOpen(Date.now()/1000))return;
         const data=JSON.parse(event.data);
         const liveNum=Number(data?.price);
         if(data&&Number.isFinite(liveNum)&&liveNum>0){

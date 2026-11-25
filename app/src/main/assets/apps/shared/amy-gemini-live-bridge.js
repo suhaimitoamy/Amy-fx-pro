@@ -893,7 +893,8 @@
     }
 
     if (root.AmyLocalAssistant?.accountPortfolioSummary && (mods.includes('mapping') || mods.includes('journal') || mods.includes('risk_calc'))) {
-      const portTxt = root.AmyLocalAssistant.accountPortfolioSummary();
+      const portObj = root.AmyLocalAssistant.accountPortfolioSummary();
+      const portTxt = typeof portObj === 'string' ? portObj : (portObj?.line || '');
       if (portTxt) lines.push(`SALDO AKTIF & RISIKO PROFIL:\n${portTxt}`);
     }
 
@@ -2102,7 +2103,7 @@
           academy: ['Amy FX Academy', 'apps/academy/index.html'],
           kalkulator: ['Kalkulator Risiko & Lot', 'apps/academy/tools/kalkulator-resiko.html'],
           glosarium: ['Glosarium ICT', 'apps/academy/glosarium/index.html'],
-          indikator: ['Indikator ICT', 'apps/indikator/index.html'],
+          indikator: ['Indikator ICT (Beranda)', 'index.html'],
           home: ['Beranda', 'index.html']
         };
         const target = navMap[intents.navTarget];
@@ -2645,8 +2646,8 @@
                     targetPath = 'apps/academy/index.html';
                     title = 'Amy FX Academy';
                   } else if (pArg.includes('indik')) {
-                    targetPath = 'apps/indikator/index.html';
-                    title = 'Indikator ICT';
+                    targetPath = 'index.html';
+                    title = 'Indikator ICT (Beranda)';
                   } else if (pArg.includes('home') || pArg.includes('beranda')) {
                     targetPath = 'index.html';
                     title = 'Beranda';

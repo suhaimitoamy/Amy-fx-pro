@@ -14,7 +14,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type"
+          "value": "Accept, Content-Type, x-amy-device-token"
         },
         {
           "key": "X-Content-Type-Options",

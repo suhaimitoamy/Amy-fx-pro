@@ -102,7 +102,7 @@
     // 2. Mapping Chart Fullscreen
     const mappingFs = document.querySelector('#gold-chart-workspace.is-fullscreen');
     if (mappingFs) {
-      const exitBtn = document.querySelector('#btn-chart-fullscreen, .chart-fullscreen-exit');
+      const exitBtn = document.querySelector('#chart-fullscreen, #btn-chart-fullscreen, .chart-fullscreen-exit');
       if (exitBtn) {
         exitBtn.click();
         return true;
@@ -119,10 +119,10 @@
       }
     }
 
-    // 4. Mapping Lot Calculator / generic active modals
-    const activeModal = document.querySelector('.amy-lot-modal.active, .amy-alert-modal.active, #fullscreenModal:not([hidden])');
+    // 4. Mapping Lot Calculator / Price Alerts / generic active modals
+    const activeModal = document.querySelector('.amy-lot-modal-backdrop.active, .amyfx-alert-overlay:not([hidden]), .amy-lot-modal.active, .amy-alert-modal.active, #fullscreenModal:not([hidden])');
     if (activeModal) {
-      const closeBtn = activeModal.querySelector('[data-close], .close-btn, #fullscreenBackBtn, button[aria-label*="Tutup"]');
+      const closeBtn = activeModal.querySelector('#lot-calc-close, #amyfx-alert-close, [data-close], .close-btn, #fullscreenBackBtn, button[aria-label*="Tutup"]');
       if (closeBtn) closeBtn.click();
       else {
         activeModal.classList.remove('active');

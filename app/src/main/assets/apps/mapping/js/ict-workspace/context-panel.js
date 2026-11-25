@@ -117,7 +117,11 @@ function empty(reason){
   }
 }
 function render(){
-  const c=failed?null:currentContext(payload);
+  const weekendClosed=!isMarketOpenNow();
+  let c=failed?null:currentContext(payload);
+  if(!c&&weekendClosed&&payload?.context?.version==='amyfx-gold-context-v1'&&payload?.context?.source?.M15){
+    c=payload.context;
+  }
   if(!c){
     empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');
     return;
@@ -127,7 +131,7 @@ function render(){
   const tf=c.source?.M15?'M15':(c.source?.M5?'M5':'M1');
   const confTime=c.source?.M15||c.source?.M5||c.source?.M1;
   const confObj=c.m15||c.m5||c.m1;
-  setTxt('connection','Candle server terkini');setTxt('context-state','KONTEKS · BUKAN SINYAL');
+  setTxt('connection',weekendClosed?'Pasar Tutup (Akhir Pekan)':'Candle server terkini');setTxt('context-state','KONTEKS · BUKAN SINYAL');
   setTxt('market-state',(c.marketState||'MENUNGGU').replaceAll('NO_SETUP','Belum ada setup').replaceAll('BULLISH','Bullish').replaceAll('BEARISH','Bearish').replaceAll('NEUTRAL','Netral'));
   setTxt('market-story',c.narrative||'Menunggu penjelasan server.');
   setTxt('context-source',`H1 ${time(c.source?.H1)} · M15 ${time(c.source?.M15)}${c.source?.M5?` · M5 ${time(c.source.M5)}`:''}`);

@@ -7,6 +7,12 @@
 -keepclassmembers class com.amyelitesuite.TwelveDataPriceBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
+-keepclassmembers class com.amyelitesuite.AmyFxAiBridge {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keepclassmembers class com.amyelitesuite.AmyFxAiProviderRepairBridge {
+    @android.webkit.JavascriptInterface <methods>;
+}
 
 # Keep app service and receiver entry points stable.
 -keep class com.amyelitesuite.ScannerService { *; }

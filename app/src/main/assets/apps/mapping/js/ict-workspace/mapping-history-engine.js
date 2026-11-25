@@ -413,9 +413,10 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   const ce = num(zone.ce) || (lo + hi) / 2;
   const formedTimeSec = Number(zone.startTime || zone.time || 0);
   const formedIdx = Number.isInteger(zone.formedIndex) ? zone.formedIndex : -1;
+  const idxMatchesTime = formedIdx >= 0 && formedIdx < candles.length && (formedTimeSec <= 0 || candles[formedIdx]?.openTime === formedTimeSec);
 
   // Start checking strictly AFTER the zone formation candle
-  const startIdx = formedIdx >= 0
+  const startIdx = idxMatchesTime
     ? formedIdx + 1
     : candles.findIndex(c => c.openTime > formedTimeSec);
   if (startIdx < 0 || startIdx >= candles.length) return null;
@@ -807,22 +808,24 @@ export function backfillFromCandles({
   evalNgZones(ngM5, m5, 'M5');
 
   // Anti-Overlap Dedupe (strictly pre-entry: higher causal alignment / M15 / BB / iFVG / OB wins):
-  // 1) Never record conflicting opposite-side (BUY vs SELL) zones at the same price within 30m.
-  // 2) Never double-count stacked same-side zones on the same TF overlapping in price within 30m.
+  // 1) Never record conflicting opposite-side (BUY vs SELL) zones at the same price within 90m.
+  // 2) Never double-count stacked/overlapping same-side zones on same TF or superseded by M15 within 90m.
   candidatesEvaluated.sort((a, b) => b.priority - a.priority || a.evaluated.touchedAt - b.evaluated.touchedAt);
   const acceptedPois = [];
   for (const item of candidatesEvaluated) {
     const cur = item.evaluated;
     const hasConflict = acceptedPois.some(prev => {
-      const sameWindow = Math.abs(prev.touchedAt - cur.touchedAt) <= 30 * 60 * 1000;
-      if (!sameWindow) return false;
+      const diffMs = Math.abs(prev.touchedAt - cur.touchedAt);
+      if (diffMs > 90 * 60 * 1000) return false;
       if (prev.side !== cur.side) {
         return Math.max(prev.low, cur.low) <= Math.min(prev.high, cur.high) + 1.0;
       }
+      const overlap = Math.min(prev.high, cur.high) - Math.max(prev.low, cur.low);
       if (prev.tf === cur.tf) {
-        return Math.max(prev.low, cur.low) < Math.min(prev.high, cur.high) - 0.15;
+        return overlap > 0.15;
       }
-      return false;
+      const minWidth = Math.max(0.5, Math.min(prev.high - prev.low, cur.high - cur.low));
+      return overlap >= minWidth * 0.45 && diffMs <= 60 * 60 * 1000;
     });
     if (hasConflict) continue;
     acceptedPois.push(cur);

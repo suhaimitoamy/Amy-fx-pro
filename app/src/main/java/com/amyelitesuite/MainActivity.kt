@@ -735,7 +735,7 @@ class MainActivity : Activity() {
     private fun applyAmyFxRoute(route: String?) {
         val safeRoute = when (route) {
             "Dashboard", "Analyze", "Setups", "History", "Settings",
-            "Mapping", "MarketIntel", "Academy", "Practice", "Journal" -> route
+            "Mapping", "MarketIntel", "Academy", "Practice", "Journal", "News" -> route
             else -> return
         }
         if (!::webView.isInitialized) return
@@ -1208,6 +1208,12 @@ class MainActivity : Activity() {
                 mContext.startService(intent)
             } catch (_: Exception) {}
         }
+
+        @JavascriptInterface
+        fun getBackgroundVideoStateJson(): String = getBackgroundVideoState()
+
+        @JavascriptInterface
+        fun setPullToRefreshEnabled(enabled: Boolean) = setSwipeRefreshEnabled(enabled)
 
         @JavascriptInterface
         fun getBackgroundVideoState(): String {

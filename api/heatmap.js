@@ -35,6 +35,10 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ zones: [], error: 'method_not_allowed' });
 
   const { symbol = 'XAU/USD', interval = '15min', outputsize = '240' } = req.query;
+  const allowedIntervals = new Set(['1min', '5min', '15min', '30min', '1h', '4h', '1day', '1week']);
+  if (!allowedIntervals.has(String(interval || '').toLowerCase())) {
+    return res.status(400).json({ zones: [], error: 'invalid_interval' });
+  }
   const cacheKey = `${symbol}|${interval}`;
 
   try {

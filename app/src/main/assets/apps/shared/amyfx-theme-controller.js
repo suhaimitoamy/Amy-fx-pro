@@ -247,7 +247,14 @@
 
   function resolvedTheme(value = preference) {
     if (value === "light" || value === "dark") return value;
-    return "dark";
+    try {
+      const mq = typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-color-scheme: light)")
+        : null;
+      return mq && mq.matches ? "light" : "dark";
+    } catch (_) {
+      return "dark";
+    }
   }
 
   function moduleName() {

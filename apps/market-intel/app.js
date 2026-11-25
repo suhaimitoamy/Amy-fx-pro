@@ -28,10 +28,14 @@ const requestControllers = {};
 const panelLoadedAt = {};
 
 const CALENDAR_ENDPOINTS = [
-  ...(typeof location !== 'undefined' && location.origin && !location.origin.startsWith('file:') ? [`${location.origin}/api/calendar`] : []),
+  ...(typeof location !== 'undefined'
+    && location.origin
+    && !location.origin.startsWith('file:')
+    && String(location.hostname || '').toLowerCase() !== 'appassets.androidplatform.net'
+    ? [`${location.origin}/api/calendar`]
+    : []),
   'https://amy-fx.vercel.app/api/calendar',
-  'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
-  'https://wliecyxzlwhmtftnfnps.supabase.co/functions/v1/economic-calendar'
+  'https://nfs.faireconomy.media/ff_calendar_thisweek.json'
 ];
 const CALENDAR_CACHE_KEY = 'amy_economic_calendar_v1';
 const NEWS_CACHE_KEY = 'amyfx.assistant.news.v1';
