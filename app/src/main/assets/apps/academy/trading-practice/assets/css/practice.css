@@ -720,10 +720,19 @@ textarea {
   border-color: var(--bt-border-strong);
 }
 
+.tv-view-btn:focus-visible {
+  outline: 2px solid var(--bt-gold);
+  outline-offset: 1px;
+}
+
 .tv-view-btn[aria-pressed="true"] {
   background: var(--bt-gold-soft);
   border-color: var(--bt-gold);
   color: var(--bt-gold);
+}
+
+.tv-snap-label {
+  display: none;
 }
 
 .tv-fs-btn[aria-pressed="false"] .tv-icon-collapse {
@@ -826,6 +835,453 @@ textarea {
   top: auto;
   bottom: 0;
   z-index: 50;
+}
+
+.tv-dock-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--bt-border);
+  margin: 2px 0;
+  flex-shrink: 0;
+}
+
+.tv-tool-dock .tv-util-btn.is-strong {
+  background: color-mix(in srgb, #38bdf8 22%, transparent);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/* ── Pro Studio Top Popovers (Chart Style, Indicators, Icon Actions) ── */
+.tv-style-select {
+  height: 32px;
+  font-size: 12px;
+  padding: 0 8px;
+  width: auto;
+  min-width: 88px;
+}
+
+.tv-view-btn.tv-icon-only {
+  width: 32px;
+  padding: 0;
+}
+
+.tv-pop-menu {
+  position: relative;
+}
+
+.tv-pop-menu > summary {
+  list-style: none;
+}
+
+.tv-pop-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tv-pop-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 45;
+  min-width: 240px;
+  padding: 10px;
+  border-radius: var(--bt-radius);
+  border: 1px solid var(--bt-border);
+  background: var(--bt-surface);
+  box-shadow: var(--bt-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tv-pop-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--bt-text-muted);
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.tv-check-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bt-text);
+  cursor: pointer;
+  padding: 3px 4px;
+  border-radius: 6px;
+}
+
+.tv-check-row:hover {
+  background: var(--bt-bg-elev);
+}
+
+.tv-check-row input[type="checkbox"] {
+  accent-color: var(--bt-gold);
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.tv-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Chart Canvas Stage & Floating Overlays (1-Click Trading + Object Mini Bar) ── */
+.tv-canvas-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.practice-chart-overlay.is-cutting {
+  pointer-events: all;
+  cursor: col-resize;
+}
+
+.tv-quick-trade-bar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 15;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9px;
+  border: 1px solid var(--bt-border-strong);
+  background: color-mix(in srgb, var(--bt-surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--bt-shadow);
+}
+
+.tv-quick-trade-bar[hidden] {
+  display: none !important;
+}
+
+.tv-qt-btn {
+  border: 0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  min-width: 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1.15;
+  transition: filter 0.12s ease, transform 0.1s ease;
+}
+
+.tv-qt-btn:hover {
+  filter: brightness(1.08);
+}
+
+.tv-qt-btn:active {
+  transform: scale(0.98);
+}
+
+.tv-qt-btn.is-sell {
+  background: #e11d48;
+  color: #ffffff;
+}
+
+.tv-qt-btn.is-buy {
+  background: #0d9488;
+  color: #ffffff;
+}
+
+.tv-qt-dir {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.9;
+}
+
+.tv-qt-btn strong {
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.tv-qt-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.tv-qt-spread {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--bt-text-muted);
+}
+
+.tv-qt-lot {
+  width: 56px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid var(--bt-border);
+  background: var(--bt-bg-elev);
+  color: var(--bt-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 0 4px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.tv-qt-lot::-webkit-outer-spin-button,
+.tv-qt-lot::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tv-floating-obj-bar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 16;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: calc(100% - 20px);
+  padding: 5px 8px;
+  border-radius: 9px;
+  border: 1px solid var(--bt-border-strong);
+  background: color-mix(in srgb, var(--bt-surface) 95%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--bt-shadow);
+}
+
+.tv-floating-obj-bar[hidden] {
+  display: none !important;
+}
+
+.tv-obj-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tv-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s ease;
+}
+
+.tv-swatch:hover {
+  transform: scale(1.16);
+}
+
+.tv-mini-select {
+  height: 26px;
+  border-radius: 5px;
+  border: 1px solid var(--bt-border);
+  background: var(--bt-bg-elev);
+  color: var(--bt-text);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 5px;
+  cursor: pointer;
+}
+
+.tv-mini-action {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 5px;
+  border: 1px solid var(--bt-border);
+  background: var(--bt-bg-elev);
+  color: var(--bt-text);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tv-mini-action.is-accent {
+  border-color: var(--bt-gold);
+  background: var(--bt-gold-soft);
+  color: var(--bt-gold);
+}
+
+.tv-mini-action.is-danger {
+  border-color: var(--bt-red);
+  color: var(--bt-red);
+}
+
+/* ── Object Tree inside Extra Tools Menu ── */
+.tv-obj-tree-wrap {
+  width: 100%;
+  border-top: 1px solid var(--bt-border);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.tv-obj-tree-head {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bt-text-muted);
+  margin-bottom: 4px;
+}
+
+.tv-obj-tree-list {
+  max-height: 118px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tv-obj-tree-empty {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  padding: 4px 2px;
+}
+
+.tv-obj-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tv-obj-row.is-selected .tv-obj-select {
+  border-color: var(--bt-gold);
+  color: var(--bt-gold);
+  background: var(--bt-gold-soft);
+}
+
+.tv-obj-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 26px !important;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px !important;
+}
+
+.tv-obj-mini {
+  width: 24px;
+  height: 26px !important;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-obj-mini.is-del {
+  color: var(--bt-red) !important;
+}
+
+/* ── Timeline Scrubber & Right Scale Mode Pills (%, Log, Auto) ── */
+.tv-scrubber-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: var(--bt-radius-sm);
+  background: var(--bt-bg-elev);
+  border: 1px solid var(--bt-border);
+}
+
+.tv-scrub-counter {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bt-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tv-scrubber {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 5px;
+  accent-color: var(--bt-gold);
+  cursor: pointer;
+}
+
+.tv-scale-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.tv-scale-btn {
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 5px;
+  border: 1px solid var(--bt-border);
+  background: transparent;
+  color: var(--bt-text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tv-scale-btn:hover {
+  color: var(--bt-text);
+  border-color: var(--bt-border-strong);
+}
+
+.tv-scale-btn.is-active,
+.tv-scale-btn[aria-pressed="true"] {
+  background: var(--bt-gold-soft);
+  border-color: var(--bt-gold);
+  color: var(--bt-gold);
+}
+
+/* ── Keyboard Shortcuts Dialog Grid ── */
+.tv-shortcut-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.tv-shortcut-grid > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--bt-bg-elev);
+  border: 1px solid var(--bt-border);
+  font-size: 12px;
+}
+
+.tv-shortcut-grid kbd {
+  font-family: var(--bt-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--bt-border-strong);
+  background: var(--bt-surface);
+  color: var(--bt-gold);
+  white-space: nowrap;
 }
 
 /* Fallback styles for non-dock drawing quick actions */
@@ -2082,14 +2538,41 @@ body.bt-guided-fullscreen {
 
   .bt-source-group {
     width: 100%;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .bt-source-select {
+    grid-column: span 4;
     max-width: 100%;
-    flex: 1 1 auto;
+    width: 100%;
     height: 32px;
     font-size: 12px;
+  }
+
+  .bt-source-group > #openCloudBtn {
+    grid-column: span 2;
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+  }
+
+  .tv-style-select {
+    grid-column: span 3;
+    width: 100%;
+    height: 32px;
+  }
+
+  .tv-pop-menu {
+    grid-column: span 3;
+    width: 100%;
+  }
+
+  .tv-pop-panel {
+    left: auto;
+    right: 0;
+    width: min(260px, calc(100vw - 24px));
   }
 
   .tv-view-actions {
@@ -2099,6 +2582,10 @@ body.bt-guided-fullscreen {
     gap: 5px;
   }
 
+  #replayShortcutBtn {
+    display: none;
+  }
+
   .tv-view-btn {
     width: 100%;
     height: 32px;
@@ -2106,8 +2593,25 @@ body.bt-guided-fullscreen {
     font-size: 11.5px;
   }
 
+  .tv-view-btn.tv-icon-only {
+    width: 100%;
+  }
+
+  .tv-snap-label {
+    display: inline;
+  }
+
   .tv-tf-row {
     gap: 6px;
+  }
+
+  .bt-ohlc-bar {
+    font-size: 10.5px;
+    padding: 5px 8px;
+  }
+
+  .bt-ohlc-vals {
+    gap: 5px 7px;
   }
 
   .bt-tf-seg {
@@ -2128,7 +2632,7 @@ body.bt-guided-fullscreen {
     display: none;
   }
 
-  /* Mobile Portrait: Unified Single-Row 8-Tool TradingView Dock fused above Chart */
+  /* Mobile Portrait: Unified Symmetrical 6x2 TradingView Dock fused above Chart (Zero Clipping!) */
   .tv-chart-body {
     flex-direction: column;
   }
@@ -2137,7 +2641,7 @@ body.bt-guided-fullscreen {
     width: 100%;
     flex: 0 0 auto;
     display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 3px;
     padding: 4px;
     border-right: 0;
@@ -2145,11 +2649,15 @@ body.bt-guided-fullscreen {
     border-radius: calc(var(--bt-radius-sm) - 1px) calc(var(--bt-radius-sm) - 1px) 0 0;
   }
 
+  .tv-dock-divider {
+    display: none;
+  }
+
   .tv-tool-dock .tv-tool-btn,
   .tv-tool-dock .drawing-menu,
   .tv-tool-dock .drawing-menu > summary {
     width: 100%;
-    height: 36px;
+    height: 32px;
     margin-top: 0;
   }
 
@@ -2158,7 +2666,7 @@ body.bt-guided-fullscreen {
     right: 0;
     top: calc(100% + 6px);
     bottom: auto;
-    width: min(268px, calc(100vw - 24px));
+    width: min(276px, calc(100vw - 24px));
   }
 
   .tv-chart-body .practice-chart-shell {
@@ -2167,13 +2675,61 @@ body.bt-guided-fullscreen {
     border-radius: 0 0 calc(var(--bt-radius-sm) - 1px) calc(var(--bt-radius-sm) - 1px);
   }
 
-  /* Mobile Fullscreen: Hide dataset picker row so chart maximizes vertical real estate */
+  .tv-quick-trade-bar {
+    top: 6px;
+    left: 6px;
+    padding: 3px;
+    gap: 3px;
+  }
+
+  .tv-qt-btn {
+    min-width: 68px;
+    padding: 3px 6px;
+  }
+
+  .tv-qt-btn strong {
+    font-size: 11.5px;
+  }
+
+  .tv-qt-lot {
+    width: 50px;
+    height: 20px;
+    font-size: 10.5px;
+    padding: 0 3px;
+  }
+
+  .tv-scrubber-row {
+    gap: 6px;
+    padding: 4px 6px;
+  }
+
+  .tv-scrub-counter {
+    font-size: 10.5px;
+  }
+
+  /* Mobile Fullscreen: Hide dataset picker row & compact top actions so chart maximizes vertical real estate */
   #replayWorkspace.is-fullscreen {
     padding: 6px 8px;
     gap: 5px;
   }
 
   #replayWorkspace.is-fullscreen .bt-source-group {
+    display: none;
+  }
+
+  #replayWorkspace.is-fullscreen .tv-view-actions {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  #replayWorkspace.is-fullscreen .tv-view-btn {
+    height: 30px;
+    padding: 0 3px;
+    font-size: 10.5px;
+    gap: 3px;
+  }
+
+  #replayWorkspace.is-fullscreen .tv-view-btn:not(.tv-fs-btn) span {
     display: none;
   }
 
@@ -2198,32 +2754,32 @@ body.bt-guided-fullscreen {
   .bt-playback-controls {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(62px, 1.35fr) repeat(3, minmax(0, 1fr)) minmax(52px, 1.05fr);
-    gap: 4px;
+    grid-template-columns: 30px repeat(2, minmax(0, 1fr)) minmax(54px, 1.3fr) repeat(3, minmax(0, 1fr)) minmax(48px, 1fr);
+    gap: 3px;
   }
 
   .bt-playback-controls .bt-btn-sm,
   .bt-playback-controls .bt-speed-select {
     width: 100%;
-    padding: 0 4px;
-    font-size: 11.5px;
+    padding: 0 3px;
+    font-size: 11px;
     min-width: 0;
   }
 
-  /* Compact Single-Row Killzone + Jump + Bookmark Bar (Zero Orphan Bar!) */
+  /* Compact Single-Row Random + Killzone + Jump + Bookmark Bar (Zero Orphan Bar!) */
   .bt-killzone-group {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.85fr) 34px minmax(0, 1.15fr);
-    gap: 4px;
+    grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 1fr)) minmax(0, 0.85fr) 30px minmax(0, 1.1fr);
+    gap: 3px;
   }
 
   .bt-killzone-group > button,
   .bt-killzone-group > .bt-jump-pop,
   .bt-killzone-group > .bt-jump-pop summary {
     width: 100%;
-    padding: 0 4px;
-    font-size: 11px;
+    padding: 0 3px;
+    font-size: 10.5px;
     min-width: 0;
   }
 

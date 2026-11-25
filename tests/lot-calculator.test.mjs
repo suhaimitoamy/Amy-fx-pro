@@ -128,12 +128,12 @@ test('Lot & Risk Calculator Engine: Formula Matematis & Presisi (Item 2.1)', asy
   });
 
   await t.test('4. Persistensi Saldo dan Persentase Risiko di LocalStorage', () => {
-    assert.equal(getSavedBalance(), 1000, 'Default balance 1000');
-    assert.equal(getSavedRiskPercent(), 1.0, 'Default risk 1.0%');
+    assert.equal(getSavedBalance(), 5000, 'Default balance 5000');
+    assert.equal(getSavedRiskPercent(), 1.5, 'Default risk 1.5%');
 
-    saveBalance(5000);
-    assert.equal(getSavedBalance(), 5000);
-    assert.equal(storage.get(BALANCE_KEY), '5000');
+    saveBalance(3000);
+    assert.equal(getSavedBalance(), 3000);
+    assert.equal(storage.get(BALANCE_KEY), '3000');
 
     saveRiskPercent(0.5);
     assert.equal(getSavedRiskPercent(), 0.5);

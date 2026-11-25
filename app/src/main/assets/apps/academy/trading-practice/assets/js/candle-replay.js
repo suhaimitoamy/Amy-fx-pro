@@ -1208,6 +1208,13 @@
           if (bar) ui.renderOhlc('ohlc', bar, bar.time);
         }
       },
+      onCutModeChange: function (active) {
+        var cutBtn = ui.byId('replayCutBtn');
+        if (cutBtn) {
+          cutBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+          cutBtn.classList.toggle('active', Boolean(active));
+        }
+      },
       onChartTap: function (pt) {
         // Only populate form when user explicitly enabled a Tap chip (never hijack casual chart taps!)
         if (!tapTarget) return;
@@ -1234,15 +1241,54 @@
     chart.setTool(null);
     ui.bindDrawingToolbar(chart);
 
-    // Wire ICT Level overlay toggle (injected inside quick bar by practice-ui.js)
+    function setIctEnabled(enabled) {
+      ictOverlayEnabled = Boolean(enabled);
+      var ictBtnEl = ui.byId('replayIctToggle');
+      var indIctCb = ui.byId('indIctCheckbox');
+      if (ictBtnEl) {
+        ictBtnEl.setAttribute('aria-pressed', ictOverlayEnabled ? 'true' : 'false');
+        ictBtnEl.classList.toggle('active', ictOverlayEnabled);
+      }
+      if (indIctCb) indIctCb.checked = ictOverlayEnabled;
+      syncIctLevels();
+    }
+
+    function updateQuickTradePrices(px) {
+      var bidEl = ui.byId('qtBidPrice');
+      var askEl = ui.byId('qtAskPrice');
+      var spEl = ui.byId('qtSpreadLabel');
+      var sp = Math.max(0, Number(spreadUsd || 0.25));
+      if (spEl) spEl.textContent = sp.toFixed(2);
+      if (px == null || !Number.isFinite(Number(px))) {
+        if (bidEl) bidEl.textContent = '—';
+        if (askEl) askEl.textContent = '—';
+        return;
+      }
+      var half = sp / 2;
+      if (bidEl) bidEl.textContent = (Number(px) - half).toFixed(2);
+      if (askEl) askEl.textContent = (Number(px) + half).toFixed(2);
+    }
+
+    function updateScrubber(payload) {
+      var scrub = ui.byId('replayScrubber');
+      var counter = ui.byId('replayBarCounter');
+      if (!payload) return;
+      var total = Number(payload.totalBars || 0);
+      var idx = Number(payload.cursorIndex || 0);
+      if (scrub && total > 0) {
+        scrub.min = '0';
+        scrub.max = String(Math.max(0, total - 1));
+        scrub.value = String(idx);
+      }
+      if (counter) {
+        counter.textContent = total > 0 ? ('Bar ' + (idx + 1).toLocaleString('id-ID') + ' / ' + total.toLocaleString('id-ID')) : 'Bar — / —';
+      }
+    }
+
+    // Wire ICT Level overlay toggle (synced with Indicators menu checkbox)
     var ictBtn = ui.byId('replayIctToggle');
     if (ictBtn) {
-      ictBtn.addEventListener('click', function () {
-        ictOverlayEnabled = !ictOverlayEnabled;
-        ictBtn.setAttribute('aria-pressed', ictOverlayEnabled ? 'true' : 'false');
-        ictBtn.classList.toggle('active', ictOverlayEnabled);
-        syncIctLevels();
-      });
+      ictBtn.addEventListener('click', function () { setIctEnabled(!ictOverlayEnabled); });
     }
 
     var savedState = storage.loadReplayState();
@@ -1265,11 +1311,16 @@
         if (!payload) return;
         visibleCandles = payload.candles || [];
         chart.options.timeframeSeconds = core.timeframeSeconds(payload.timeframe) || 900;
+        chart.setWatermark('XAU/USD · ' + payload.timeframe);
         chart.setDrawingTimeBoundary(payload.cursor);
         chart.setCandles(visibleCandles, payload.reason === 'start' || payload.reason === 'timeframe');
 
         var bar = currentBar();
-        if (bar) ui.renderOhlc('ohlc', bar, bar.time);
+        if (bar) {
+          ui.renderOhlc('ohlc', bar, bar.time);
+          updateQuickTradePrices(Number(bar.close));
+        }
+        updateScrubber(payload);
         var sess = core.classifyIctSession(payload.cursor);
         ui.text('replaySessionBadge', sess);
         ui.text('replaySourceBadge', payload.sampleOnly ? 'Sample · Jan 2025' : payload.source);
@@ -1393,6 +1444,312 @@
       });
     }
 
+    // Pro Studio Controls: Chart Style, Indicators, Bar-Cut, 1-Click Execution, RR->Order, Scrubber, Scale, Random, Snapshot, Shortcuts
+    var styleSel = ui.byId('chartStyleSelect');
+    if (styleSel) {
+      styleSel.addEventListener('change', function () {
+        chart.setChartStyle(styleSel.value);
+      });
+    }
+
+    var indPanel = ui.byId('tvIndicatorPanel');
+    if (indPanel) {
+      indPanel.addEventListener('change', function (evt) {
+        var cb = evt.target;
+        if (!cb || cb.type !== 'checkbox') return;
+        if (cb.id === 'indIctCheckbox') {
+          setIctEnabled(cb.checked);
+          return;
+        }
+        var key = cb.dataset.indicator;
+        if (!key) return;
+        var patch = {};
+        patch[key] = cb.checked;
+        chart.setIndicators(patch);
+        var activeCount = Object.keys(chart.indicators).filter(function (k) { return chart.indicators[k]; }).length;
+        var summaryEl = document.querySelector('#tvIndicatorMenu > summary');
+        if (summaryEl) summaryEl.setAttribute('aria-pressed', activeCount > 0 ? 'true' : 'false');
+      });
+    }
+
+    // Bar-Cut ("Potong Bar" scissor mode)
+    var cutBtn = ui.byId('replayCutBtn');
+    if (cutBtn) {
+      cutBtn.addEventListener('click', async function () {
+        if (chart.cutMode && chart.cutMode.active) {
+          chart.setCutMode(false);
+          ui.status('replayStatus', 'Mode Potong Bar dibatalkan.');
+          return;
+        }
+        replay.pause();
+        setPlayButtonLabel(false);
+        ui.status('replayStatus', 'Memuat timeline penuh untuk Potong Bar…');
+        try {
+          var full = await replay.getFullTimelineCandles();
+          chart.setCutMode(true, full, async function (clickedTime) {
+            var targetTs = window.AmyReplayIndicators
+              ? window.AmyReplayIndicators.resolveCutBarTimestamp(replay.timeline, clickedTime)
+              : clickedTime;
+            await replay.seek(targetTs);
+            ui.status('replayStatus', 'Replay dipotong & dimulai dari ' + core.formatWita(targetTs, true) + '.', false, true);
+          });
+        } catch (err) {
+          ui.status('replayStatus', err && err.message || 'Gagal membuka mode Potong Bar.', true);
+        }
+      });
+    }
+
+    // 1-Click Floating Instant Order Strip
+    var qtToggle = ui.byId('replayQuickTradeToggle');
+    var qtBar = ui.byId('tvQuickTradeBar');
+    if (qtToggle && qtBar) {
+      qtToggle.addEventListener('click', function () {
+        var show = qtBar.hidden;
+        qtBar.hidden = !show;
+        qtToggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+        var form = ui.byId('tradeForm');
+        var lotIn = ui.byId('qtLotInput');
+        if (show && form && form.elements.lot && lotIn) {
+          lotIn.value = Number(form.elements.lot.value || 0.10).toFixed(2);
+        }
+      });
+    }
+
+    function executeQuickMarketOrder(direction) {
+      var bar = currentBar();
+      if (!bar || !replay || replay.cursor == null) {
+        ui.status('tradeStatus', 'Tunggu data candle dimuat sebelum eksekusi 1-Klik.', true);
+        return;
+      }
+      var lotIn = ui.byId('qtLotInput');
+      var lotVal = Math.max(0.01, Math.min(50, Number(lotIn ? lotIn.value : 0.10) || 0.10));
+      var px = Number(bar.close);
+      var sl = direction === 'BUY' ? (px - 5) : (px + 5);
+      var tp = direction === 'BUY' ? (px + 10) : (px - 10);
+      enqueueTradeTask(async function () {
+        try {
+          var stats = getSessionStats();
+          var rec = tradesApi.create({
+            bias: direction,
+            orderType: 'MARKET',
+            entry: px,
+            stopLoss: sl,
+            takeProfit: tp,
+            lot: lotVal,
+            setupType: 'Auto',
+            notes: '1-Klik Instant Order',
+            sessionId: activeSession ? activeSession.id : storage.getActiveSessionId(),
+            symbol: 'XAUUSD',
+            timeframe: replay.timeframe,
+            sourceId: replay.sourceId,
+            replayStartTime: replay.startTime || replay.cursor,
+            tradeTime: replay.cursor,
+            currentPrice: px,
+            currentCandle: bar,
+            spreadUsd: spreadUsd,
+            balanceUsd: stats.currentBalanceUsd,
+            riskPercent: activeSession ? activeSession.riskPercent : 1,
+            nonce: Date.now().toString(36)
+          });
+          await storage.saveTrade(rec);
+          ui.status('tradeStatus', '1-Klik ' + direction + ' ' + rec.lot.toFixed(2) + ' lot dieksekusi di ' + core.price(rec.fillPrice || rec.entry) + ' (SL ' + core.price(sl) + ' · TP ' + core.price(tp) + ').', false, true);
+          await runRefreshTradesAndEvaluate();
+        } catch (err) {
+          ui.status('tradeStatus', err && err.message || 'Gagal eksekusi 1-Klik.', true);
+        }
+      });
+    }
+
+    var qtSellBtn = ui.byId('qtSellBtn');
+    var qtBuyBtn = ui.byId('qtBuyBtn');
+    if (qtSellBtn) qtSellBtn.addEventListener('click', function () { executeQuickMarketOrder('SELL'); });
+    if (qtBuyBtn) qtBuyBtn.addEventListener('click', function () { executeQuickMarketOrder('BUY'); });
+
+    // Send Long/Short Position Drawing directly into Order Ticket (1-Click Sync!)
+    var sendObjBtn = ui.byId('tvObjSendOrderBtn');
+    if (sendObjBtn) {
+      sendObjBtn.addEventListener('click', function () {
+        var sel = chart.getSelectedDrawing ? chart.getSelectedDrawing() : null;
+        if (!sel || (sel.type !== 'longPosition' && sel.type !== 'shortPosition')) return;
+        var pos = window.AmyPracticeDrawing && window.AmyPracticeDrawing.positionStats(sel);
+        if (!pos || !pos.valid) {
+          ui.status('tradeStatus', 'Geometri proyeksi R:R tidak valid untuk dikirim ke Order.', true);
+          return;
+        }
+        var form = ui.byId('tradeForm');
+        if (!form) return;
+        var bias = sel.type === 'longPosition' ? 'BUY' : 'SELL';
+        form.elements.bias.value = bias;
+        var biasSeg = ui.byId('biasSeg');
+        if (biasSeg) {
+          biasSeg.querySelectorAll('button[data-bias]').forEach(function (b) {
+            b.classList.toggle('is-active', b.dataset.bias === bias);
+          });
+        }
+        var px = currentPrice();
+        var isNearMarket = px != null && Math.abs(pos.entry - px) <= 0.5;
+        syncOrderTypeButtons(isNearMarket ? 'MARKET' : 'LIMIT');
+        form.elements.entry.value = pos.entry.toFixed(2);
+        form.elements.stopLoss.value = pos.stop.toFixed(2);
+        form.elements.takeProfit.value = pos.target.toFixed(2);
+        slTpPinnedByUser = true;
+        autoCalculateLot();
+        updateOrderPreview();
+        ui.status('tradeStatus', 'Proyeksi ' + bias + ' (' + pos.rr.toFixed(2) + 'R) disalin ke Tiket Order.', false, true);
+      });
+    }
+
+    // Timeline Scrubber Seek
+    var scrubEl = ui.byId('replayScrubber');
+    if (scrubEl) {
+      scrubEl.addEventListener('change', async function () {
+        replay.pause();
+        setPlayButtonLabel(false);
+        await replay.seekByIndex(Number(scrubEl.value));
+      });
+    }
+
+    // Reset to Replay Start & Random Bar
+    var resetStartBtn = ui.byId('replayResetStartBtn');
+    if (resetStartBtn) {
+      resetStartBtn.addEventListener('click', async function () {
+        replay.pause();
+        setPlayButtonLabel(false);
+        var startTs = replay.startTime || (replay.timeline && replay.timeline[Math.min(80, Math.max(0, replay.timeline.length - 1))]);
+        if (startTs != null) {
+          await replay.seek(startTs);
+          ui.status('replayStatus', 'Kembali ke titik awal sesi Replay.', false, true);
+        }
+      });
+    }
+
+    var randomBtn = ui.byId('replayRandomBtn');
+    if (randomBtn) {
+      randomBtn.addEventListener('click', async function () {
+        replay.pause();
+        setPlayButtonLabel(false);
+        await replay.jumpToRandom();
+        ui.status('replayStatus', 'Melompat ke candle acak untuk latihan blind backtest.', false, true);
+      });
+    }
+
+    // Scale Modes (%, Log, Auto)
+    document.querySelectorAll('[data-scale-mode]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mode = btn.dataset.scaleMode;
+        var nextMode = chart.priceScaleMode === mode ? 'normal' : mode;
+        chart.setPriceScaleMode(nextMode);
+        document.querySelectorAll('[data-scale-mode]').forEach(function (other) {
+          var on = other.dataset.scaleMode === nextMode;
+          other.classList.toggle('is-active', on);
+          other.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        var autoBtn = ui.byId('scaleAutoBtn');
+        if (autoBtn) autoBtn.classList.toggle('is-active', nextMode === 'normal');
+      });
+    });
+
+    var scaleAutoBtn = ui.byId('scaleAutoBtn');
+    if (scaleAutoBtn) {
+      scaleAutoBtn.addEventListener('click', function () {
+        chart.setPriceScaleMode('normal');
+        chart.resetChartScale();
+        document.querySelectorAll('[data-scale-mode]').forEach(function (other) {
+          other.classList.remove('is-active');
+          other.setAttribute('aria-pressed', 'false');
+        });
+        scaleAutoBtn.classList.add('is-active');
+      });
+    }
+
+    // Chart PNG Snapshot
+    var snapBtn = ui.byId('replaySnapshotBtn');
+    if (snapBtn) {
+      snapBtn.addEventListener('click', async function () {
+        var bar = currentBar();
+        var stamp = bar ? core.formatWita(bar.time, true) : '';
+        var dataUrl = await chart.exportSnapshotDataUrl('Amy FX Replay · XAU/USD ' + replay.timeframe + (stamp ? ' · ' + stamp : ''));
+        if (!dataUrl) {
+          ui.status('replayStatus', 'Gagal membuat screenshot chart.', true);
+          return;
+        }
+        var link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'amyfx-replay-XAUUSD-' + replay.timeframe + '-' + Date.now() + '.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        ui.status('replayStatus', 'Screenshot chart berhasil disimpan (PNG).', false, true);
+      });
+    }
+
+    // Keyboard Shortcuts Modal & Pro Hotkeys
+    var shortcutDlg = ui.byId('shortcutHelpDialog');
+    var shortcutBtn = ui.byId('replayShortcutBtn');
+    var closeShortcutBtn = ui.byId('closeShortcutHelp');
+    function toggleShortcutHelp() {
+      if (!shortcutDlg) return;
+      if (shortcutDlg.open) shortcutDlg.close();
+      else if (typeof shortcutDlg.showModal === 'function') shortcutDlg.showModal();
+      else shortcutDlg.setAttribute('open', '');
+    }
+    if (shortcutBtn) shortcutBtn.addEventListener('click', toggleShortcutHelp);
+    if (closeShortcutBtn && shortcutDlg) closeShortcutBtn.addEventListener('click', function () { if (shortcutDlg.open) shortcutDlg.close(); });
+
+    function handleReplayHotkeys(evt) {
+      var tag = evt.target && evt.target.tagName ? evt.target.tagName.toUpperCase() : '';
+      var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (evt.target && evt.target.isContentEditable);
+      if (isEditable || chart.textEditor) return;
+
+      var key = evt.key;
+      var lower = String(key || '').toLowerCase();
+
+      if (key === '?' || (evt.shiftKey && key === '/')) {
+        evt.preventDefault();
+        toggleShortcutHelp();
+        return;
+      }
+      if (key === ' ' && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
+        evt.preventDefault();
+        var pBtn = ui.byId('playToggle');
+        if (pBtn) pBtn.click();
+        return;
+      }
+      if (evt.shiftKey && key === 'ArrowRight') {
+        evt.preventDefault();
+        replay.pause();
+        setPlayButtonLabel(false);
+        replay.move(1);
+        return;
+      }
+      if (evt.shiftKey && key === 'ArrowLeft') {
+        evt.preventDefault();
+        replay.pause();
+        setPlayButtonLabel(false);
+        replay.move(-1);
+        return;
+      }
+      if (evt.altKey && !evt.ctrlKey && !evt.metaKey) {
+        var altTools = { h: 'horizontal', t: 'trend', v: 'vertical', f: 'fibonacci', r: 'rectangle' };
+        if (altTools[lower]) {
+          evt.preventDefault();
+          chart.setTool(altTools[lower]);
+          return;
+        }
+        if (lower === 'm') {
+          evt.preventDefault();
+          var order = ['off', 'weak', 'strong'];
+          chart.setMagnetMode(order[(order.indexOf(chart.magnetMode || 'off') + 1) % order.length]);
+          return;
+        }
+      }
+      if (!evt.ctrlKey && !evt.metaKey && !evt.altKey && lower === 'm') {
+        evt.preventDefault();
+        chart.setTool(chart.activeTool === 'measure' ? null : 'measure');
+      }
+    }
+    document.addEventListener('keydown', handleReplayHotkeys);
+
     bindSessionControls();
     bindFormControls();
     bindActivePositionActions();
@@ -1417,6 +1774,7 @@
     }
 
     window.addEventListener('pagehide', function () {
+      document.removeEventListener('keydown', handleReplayHotkeys);
       if (replay) replay.destroy();
       if (chart) chart.destroy();
     }, { once: true });

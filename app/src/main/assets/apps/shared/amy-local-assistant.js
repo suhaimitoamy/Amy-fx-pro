@@ -193,8 +193,111 @@
     ].filter(Boolean);
     return `• Rencana ${parts.join(' | ')}`;
   }
+  function macroCompass(){
+    const snap=read('amy_macro_snapshot_v1');
+    const q=snap?.quotes;
+    if(!q||typeof q!=='object')return null;
+    const parts=[];
+    let score=0,active=0;
+    if(q.dxy&&Number.isFinite(Number(q.dxy.price))){
+      active+=1;
+      const chg=Number(q.dxy.changePct||0);
+      if(chg<=-0.1)score+=1;else if(chg>=0.1)score-=1;
+      parts.push(`DXY ${Number(q.dxy.price).toFixed(2)} (${chg>=0?'+':''}${chg.toFixed(2)}%)`);
+    }
+    if(q.us10y&&Number.isFinite(Number(q.us10y.price))){
+      active+=1;
+      const chg=Number(q.us10y.changePct||0);
+      if(chg<=-0.3)score+=1;else if(chg>=0.3)score-=1;
+      parts.push(`US10Y ${Number(q.us10y.price).toFixed(2)}% (${chg>=0?'+':''}${chg.toFixed(2)}%)`);
+    }
+    if(q.vix&&Number.isFinite(Number(q.vix.price))){
+      active+=1;
+      const v=Number(q.vix.price);
+      if(v>=22)score+=1;
+      parts.push(`VIX ${v.toFixed(1)}`);
+    }
+    if(q.gold&&q.silver&&Number.isFinite(Number(q.gold.changePct))&&Number.isFinite(Number(q.silver.changePct))){
+      const g=Number(q.gold.changePct),s=Number(q.silver.changePct);
+      const smt=(g>0.15&&s<-0.15)||(g<-0.15&&s>0.15)?'Divergensi SMT':(g*s>0?'Konfirmasi Searah':'Netral');
+      parts.push(`XAU/XAG ${smt}`);
+    }
+    if(!active)return null;
+    const bias=score>=1?'Dukung Bullish XAU':(score<=-1?'Tekanan Bearish XAU':'Makro Netral');
+    return {bias,score,parts,line:`• Kompas Makro XAU: ${bias} (${parts.join(' · ')})`};
+  }
+  function accountPortfolioSummary(){
+    try{
+      if(root.AmyAccountSimEngine?.computeAccountSnapshot){
+        const sim=root.AmyAccountSimEngine;
+        const params=sim.readParams();
+        const cashflows=sim.readCashflows?sim.readCashflows():[];
+        const poiRecords=sim.readPoiHistoryRecords?sim.readPoiHistoryRecords():[];
+        const snap=sim.computeAccountSnapshot({params,cashflows,poiRecords,journals:[],openPositions:[]});
+        const balStr=sim.formatMoney(snap.balanceUsd,{currency:params.currency,usdIdrRate:params.usdIdrRate,signed:false});
+        const poiStr=snap.poiClosedCount>0?` | Riwayat POI: ${snap.poiClosedCount} selesai (${sim.formatMoney(snap.poiRealizedAllUsd,{currency:params.currency,usdIdrRate:params.usdIdrRate,signed:true})})`:'';
+        return {
+          balanceUsd:snap.balanceUsd,
+          riskPct:params.riskPct,
+          poiClosedCount:snap.poiClosedCount,
+          line:`• Saldo Aktif Profil: ${balStr} (Risiko ${params.riskPct}%/setup${poiStr})`
+        };
+      }
+    }catch{}
+    const baseBal=Number(raw('amy_default_balance')||5000);
+    const riskPct=Number(raw('amy_default_risk')||1.5);
+    return {
+      balanceUsd:baseBal,
+      riskPct,
+      poiClosedCount:0,
+      line:`• Saldo Profil: $${baseBal.toFixed(2)} (Risiko ${riskPct}%/setup)`
+    };
+  }
+  function poiBreakdownSummary(){
+    const hist=read('amyfx.mapping.reaction_history.v1');
+    const recs=list(hist?.poiRecords);
+    if(!recs.length)return null;
+    const byKind={};
+    for(const r of recs){
+      const st=String(r?.status||'').toUpperCase();
+      if(st!=='TP1_HIT'&&st!=='TP2_HIT'&&st!=='SL_HIT')continue;
+      const k=String(r.kind||'POI').toUpperCase();
+      byKind[k]=byKind[k]||{w:0,l:0};
+      if(st==='SL_HIT')byKind[k].l+=1;else byKind[k].w+=1;
+    }
+    const ranked=Object.entries(byKind)
+      .map(([k,v])=>({k,t:v.w+v.l,wr:Math.round((v.w/(v.w+v.l))*100),w:v.w,l:v.l}))
+      .sort((a,b)=>b.wr-a.wr||b.t-a.t);
+    if(!ranked.length)return null;
+    const top=ranked[0];
+    return `• Zona POI Paling Konsisten: ${top.k} (${top.wr}% Respect · ${top.w}W/${top.l}L dari ${top.t} selesai)`;
+  }
+  function briefing(q,m,journalData,now){
+    const lines=['Briefing Kelayakan Entry XAU/USD (Sinkron Semua Modul)'];
+    const weekend=isWeekendClosureWita(new Date(now||Date.now()));
+    if(weekend){
+      lines.push('• Keputusan Cepat: TUNGGU (Pasar Gold Tutup Akhir Pekan · Jumat 17:00 NY – Minggu 17:00 NY). Fokus evaluasi jurnal & latihan replay.');
+    }
+    const macro=macroCompass();
+    lines.push(macro?macro.line:'• Kompas Makro XAU: Belum ada cache makro tersimpan — buka Market Intel → Kompas untuk sinkronisasi DXY, US10Y & VIX.');
+    lines.push(mapping(q,m,now));
+    const bdLine=poiBreakdownSummary();
+    if(bdLine)lines.push(bdLine);
+    const acc=accountPortfolioSummary();
+    if(acc?.line)lines.push(acc.line);
+    const realRows=list(journalData?.rows).filter(r=>!isSimJournalEntry(r));
+    lines.push(evaluateDailyLossGuardSummary(realRows));
+    const calLine=calendar();
+    if(calLine&&!calLine.includes('Belum ada cache')){
+      const firstTwo=calLine.split('\n').slice(0,2).join(' — ');
+      lines.push(`• ${firstTwo}`);
+    }
+    return lines.join('\n');
+  }
   function intent(q){
     const found=[];
+    if(/\b(layak entry|siap entry|boleh entry|briefing|kondisi gold|kondisi hari ini|status akun|saldo aktif|performa poi)\b/.test(q))found.push('briefing');
+    if(/\b(kompas|makro|dxy|us10y|yield|vix|smt)\b/.test(q))found.push('macro');
     if(/\b(harga|price|mapping|market|xau|gold|emas|sinyal|signal|bias|arah|entry|setup|stop loss|target|sl|tp|respect|riwayat poi|riwayat reaksi|weekend|akhir pekan|pasar tutup)\b/.test(q))found.push('mapping');
     if(/\b(news|berita|kabar|headline|ekonomi)\b/.test(q))found.push('news');
     if(/\b(kalender|jadwal rilis|rilis news|agenda ekonomi)\b/.test(q))found.push('calendar');
@@ -205,6 +308,7 @@
     if(/\b(practice|simulasi|replay|100 kasus|8 pilar|mastery)\b/.test(q))found.push('practice');
     if(/\b(latihan)\b/.test(q)&&!/progres|progress|belajar/.test(q))found.push('practice');
     if(/\b(belajar|baca|bacaan|membaca|pelajari|academy|akademi|tutorial|progres|progress|soal|skor|nilai|materi|pelajaran|level 0|pemula|kurikulum)\b/.test(q))found.push('academy');
+    if(found.includes('briefing'))return ['briefing'];
     // Personal trade questions use Journal, unless Mapping is explicitly named.
     if(found.includes('journal')&&!/mapping|harga|market|xau|gold|emas|sinyal|signal|bias|arah|poi|respect|riwayat poi|riwayat reaksi|weekend|akhir pekan|pasar tutup/.test(q))return found.filter(id=>id!=='mapping');
     return found;
@@ -695,6 +799,15 @@
     if(!text&&intents.length){
       const parts=[];
       for(const id of intents){
+        if(id==='briefing'){
+          parts.push(briefing(q,root.AmyICTMapping||read('amyfx.ict.mapping.v1'),await journals(),Date.now()));
+          links.push({label:'Buka Mapping',path:routes.mapping[1]},{label:'Buka Kompas Makro',path:routes.news[1]});
+        }
+        if(id==='macro'){
+          const mc=macroCompass();
+          parts.push(mc?mc.line:'Belum ada snapshot Kompas Makro tersimpan. Buka Market Intel → Kompas untuk memuat DXY, US10Y & VIX.');
+          links.push({label:'Buka Market Intel',path:routes.news[1]});
+        }
         if(id==='mapping')parts.push(mapping(q,root.AmyICTMapping||read('amyfx.ict.mapping.v1'),Date.now()));
         if(id==='news')parts.push(news(q,read('amyfx.assistant.news.v1')||read('amyfx.market.intel.v1',{})?.news));
         if(id==='calendar')parts.push(calendar());
@@ -720,7 +833,7 @@
     const open=()=>{try{if(typeof window.AmyFXCloseVideoReel==='function')window.AmyFXCloseVideoReel();}catch(_){}document.querySelectorAll('dialog[open]').forEach(d=>{if(!d.closest('#amy-local-root')){try{d.close();}catch(_){}d.removeAttribute('open');if(d.classList.contains('amy-reel-dialog'))d.style.display='none';}});panel.hidden=false;fab.hidden=true;input.focus();};const close=()=>{panel.hidden=true;fab.hidden=false;fab.focus();};fab.onclick=open;host.querySelector('#amy-local-close').onclick=close;panel.addEventListener('keydown',e=>{if(e.key==='Escape')close();});root.addEventListener('amyfx:open-mentor',open);
     function append(text,links=[]){const p=document.createElement('p');p.textContent=text;messages.appendChild(p);links.forEach(l=>{try{const url=new URL(l.path,base);if(!url.href.startsWith(base))return;const a=document.createElement('a');a.href=url.href;a.textContent=l.label;p.appendChild(a);}catch{}});while(messages.children.length>40)messages.firstChild.remove();messages.scrollTop=messages.scrollHeight;}
     let busy=false;async function send(q){if(busy||!q.trim())return;busy=true;input.value='';append('Anda: '+q);const button=host.querySelector('form button');button.disabled=true;try{const r=await ask(q);append(r.text,r.links);}catch{append('Data belum dapat dibaca. Buka menu terkait lalu coba lagi.');}finally{busy=false;button.disabled=false;input.focus();}}
-    host.querySelector('form').onsubmit=e=>{e.preventDefault();send(input.value);};['Harga Mapping','Berita terbaru','Evaluasi jurnal saya','Progres belajar'].forEach(q=>{const b=document.createElement('button');b.type='button';b.textContent=q;b.onclick=()=>send(q);host.querySelector('.prompts').appendChild(b);});
+    host.querySelector('form').onsubmit=e=>{e.preventDefault();send(input.value);};['Layak entry sekarang?','Harga Mapping','Evaluasi jurnal saya','Progres belajar'].forEach(q=>{const b=document.createElement('button');b.type='button';b.textContent=q;b.onclick=()=>send(q);host.querySelector('.prompts').appendChild(b);});
     append('Saya membaca data aplikasi yang tersimpan dan materi Academy. Pilih pertanyaan di atas atau tulis pertanyaanmu.');
     // Knowledge is packaged JavaScript, loaded locally; no network AI call.
     if(script){knowledgeReady=new Promise(resolve=>{const s=document.createElement('script');const timer=setTimeout(resolve,5000);const done=()=>{clearTimeout(timer);resolve();};s.onload=done;s.onerror=done;s.src=new URL('amy-local-knowledge.js',script).href;document.head.appendChild(s);});const g=document.createElement('script');g.src=new URL('amy-gemini-live-bridge.js',script).href;g.async=true;document.head.appendChild(g);}
@@ -742,6 +855,6 @@
     }, 120);
     return true;
   }
-  root.AmyLocalAssistant=Object.freeze({ask,intent,mapping,news,journal,academy,knowledge,habits,riskCalc,calculateLot,calendar,practice,openWithPrompt,getLivePrice,buildMappingSnapshot,readJournals:journals,isWeekendClosure:isWeekendClosureWita,getReactionHistoryToday:getReactionHistoryTodaySummary});
+  root.AmyLocalAssistant=Object.freeze({ask,intent,mapping,news,journal,academy,knowledge,habits,riskCalc,calculateLot,calendar,practice,macroCompass,accountPortfolioSummary,briefing,openWithPrompt,getLivePrice,buildMappingSnapshot,readJournals:journals,isWeekendClosure:isWeekendClosureWita,getReactionHistoryToday:getReactionHistoryTodaySummary});
   if(root.document){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();}
 })(typeof window==='undefined'?globalThis:window);

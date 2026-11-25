@@ -82,14 +82,55 @@
     <div class="bt-replay-grid">
       <!-- Left: TradingView-Style Replay Chart Workspace -->
       <section class="bt-chart-stage tv-workspace" id="replayWorkspace">
-        <!-- Row 1: Dataset & Pinned View Controls (Always Visible: ICT, Cursor, Fullscreen) -->
+        <!-- Row 1: Dataset, Chart Style, Indicators (fx) & Pinned View Controls -->
         <div class="tv-top-bar">
           <div class="bt-toolbar-group bt-source-group">
             <select id="replaySourceSelect" class="bt-select bt-source-select" aria-label="Pilih Dataset Historis"></select>
             <button type="button" id="openDataManager" class="bt-btn-sm bt-btn-primary">Cloud</button>
+            <select id="chartStyleSelect" class="bt-select tv-style-select" aria-label="Tipe Grafik" title="Tipe Grafik">
+              <option value="candles" selected>Candle</option>
+              <option value="hollow">Hollow</option>
+              <option value="bars">Bar OHLC</option>
+              <option value="line">Garis</option>
+              <option value="area">Area</option>
+            </select>
+            <details class="tv-pop-menu" id="tvIndicatorMenu">
+              <summary class="tv-view-btn" title="Indikator Teknikal (Zero Future Leak)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                <span>Indikator</span>
+              </summary>
+              <div class="tv-pop-panel tv-indicator-panel" id="tvIndicatorPanel">
+                <div class="tv-pop-title">Indikator &amp; Sesi (Nol Bocor Masa Depan)</div>
+                <label class="tv-check-row"><input type="checkbox" data-indicator="ema20"> <span class="tv-dot" style="background:#38bdf8"></span> EMA 20</label>
+                <label class="tv-check-row"><input type="checkbox" data-indicator="ema50"> <span class="tv-dot" style="background:#f59e0b"></span> EMA 50</label>
+                <label class="tv-check-row"><input type="checkbox" data-indicator="ema200"> <span class="tv-dot" style="background:#a855f7"></span> EMA 200</label>
+                <label class="tv-check-row"><input type="checkbox" data-indicator="vwap"> <span class="tv-dot" style="background:#f472b6"></span> VWAP Intraday</label>
+                <label class="tv-check-row"><input type="checkbox" data-indicator="bb"> <span class="tv-dot" style="background:#94a3b8"></span> Bollinger Bands (20, 2)</label>
+                <label class="tv-check-row"><input type="checkbox" data-indicator="sessions"> <span class="tv-dot" style="background:#2dd4bf"></span> Arsir Sesi (Asia / London / NY)</label>
+                <label class="tv-check-row"><input type="checkbox" id="indIctCheckbox"> <span class="tv-dot" style="background:#facc15"></span> Level ICT (PDH / PDL / Asia H-L)</label>
+              </div>
+            </details>
           </div>
 
           <div class="tv-view-actions" id="tvViewActions">
+            <button type="button" id="replayCutBtn" class="tv-view-btn" aria-pressed="false" title="Potong Bar: pilih titik mulai Replay langsung di chart">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="6" cy="6" r="3"></circle>
+                <circle cx="6" cy="18" r="3"></circle>
+                <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+              </svg>
+              <span>Potong</span>
+            </button>
+            <button type="button" id="replayQuickTradeToggle" class="tv-view-btn" aria-pressed="false" title="Tampilkan tombol Instant BUY / SELL di atas chart">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              <span>1-Klik</span>
+            </button>
             <button type="button" id="replayIctToggle" class="tv-view-btn" aria-pressed="false" title="Tampilkan garis PDH/PDL dan Asia High/Low tanpa membocorkan masa depan">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -107,6 +148,16 @@
                 <line x1="19" y1="12" x2="22" y2="12"></line>
               </svg>
               <span>Cursor</span>
+            </button>
+            <button type="button" id="replaySnapshotBtn" class="tv-view-btn tv-icon-only" title="Simpan Screenshot Chart (PNG)" aria-label="Simpan Screenshot Chart">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <span class="tv-snap-label">Foto</span>
+            </button>
+            <button type="button" id="replayShortcutBtn" class="tv-view-btn tv-icon-only" title="Pintasan Keyboard (?)" aria-label="Pintasan Keyboard">
+              <span>?</span>
             </button>
             <button type="button" id="replayFullscreen" class="tv-view-btn tv-fs-btn" aria-pressed="false" aria-label="Buka layar penuh" title="Layar Penuh">
               <svg class="tv-icon-expand" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -153,12 +204,12 @@
           </div>
         </div>
 
-        <!-- Unified TradingView Chart Body: Single Drawing Tool Container (Left Rail Desktop / Unified Dock Mobile) + Chart Canvas -->
+        <!-- Unified Chart Body: Single Drawing Tool Dock + Chart Canvas + Floating Pro Overlays -->
         <div class="tv-chart-body" id="tvChartBody">
           <div class="tv-tool-dock replay-drawing-actions" id="tvDrawingDock" role="toolbar" aria-label="Alat Gambar Chart">
-            <!-- practice-ui.js populates crisp SVG TradingView tool buttons here -->
+            <!-- practice-ui.js populates crisp SVG studio tool buttons + Magnet/Lock/Eye toggles here -->
             <details class="drawing-menu" id="tvExtraToolsMenu">
-              <summary aria-label="Alat gambar lanjutan dan gaya" title="Alat Lanjutan &amp; Gaya">
+              <summary aria-label="Alat gambar lanjutan, objek dan gaya" title="Alat Lanjutan, Daftar Objek &amp; Gaya">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="1.5"></circle>
                   <circle cx="12" cy="5" r="1.5"></circle>
@@ -169,23 +220,94 @@
               <div class="drawing-menu-grid">
                 <button type="button" data-drawing-tool="fibonacci">Fibonacci</button>
                 <button type="button" data-drawing-tool="horizontalRay">Sinar Horiz</button>
-                <button type="button" data-drawing-tool="priceRange">Rentang</button>
-                <button type="button" data-drawing-tool="parallelChannel">Kanal</button>
+                <button type="button" data-drawing-tool="vertical">Garis Vertikal</button>
+                <button type="button" data-drawing-tool="datePriceRange">Rentang Tgl/Hrg</button>
+                <button type="button" data-drawing-tool="priceRange">Rentang Harga</button>
+                <button type="button" data-drawing-tool="parallelChannel">Kanal Paralel</button>
                 <button type="button" data-drawing-tool="arrow">Panah</button>
+                <button type="button" data-drawing-tool="path">Kuas / Path</button>
+                <button type="button" data-drawing-tool="circle">Lingkaran</button>
                 <button type="button" data-drawing-tool="text">Teks</button>
+                <button type="button" data-drawing-tool="note">Catatan</button>
+                <button type="button" data-drawing-tool="priceNote">Label Harga</button>
+                <button type="button" id="stayDrawingToggle" aria-pressed="false">Tetap Gambar</button>
                 <button type="button" id="undoDrawing">Undo</button>
+                <button type="button" id="redoDrawing">Redo</button>
                 <button type="button" id="deleteDrawing" disabled>Hapus</button>
                 <button type="button" id="clearDrawings">Bersihkan</button>
                 <button type="button" id="finishDrawing">Selesai</button>
+                <div class="tv-obj-tree-wrap">
+                  <div class="tv-obj-tree-head">Daftar Objek (<span id="tvObjectCount">0</span>)</div>
+                  <div class="tv-obj-tree-list" id="tvObjectTreeList">
+                    <div class="tv-obj-tree-empty">Belum ada objek gambar.</div>
+                  </div>
+                </div>
               </div>
             </details>
           </div>
-          <div id="chart" class="practice-chart-shell"></div>
+
+          <div class="tv-canvas-stage">
+            <!-- Floating 1-Click Instant Order Strip (Toggleable via 1-Klik button) -->
+            <div class="tv-quick-trade-bar" id="tvQuickTradeBar" hidden>
+              <button type="button" class="tv-qt-btn is-sell" id="qtSellBtn">
+                <span class="tv-qt-dir">SELL</span>
+                <strong class="tabular" id="qtBidPrice">—</strong>
+              </button>
+              <div class="tv-qt-mid">
+                <span class="tv-qt-spread tabular" id="qtSpreadLabel">0.25</span>
+                <input type="number" id="qtLotInput" class="tv-qt-lot tabular" value="0.10" step="0.01" min="0.01" max="50" aria-label="Lot 1-Klik">
+              </div>
+              <button type="button" class="tv-qt-btn is-buy" id="qtBuyBtn">
+                <span class="tv-qt-dir">BUY</span>
+                <strong class="tabular" id="qtAskPrice">—</strong>
+              </button>
+            </div>
+
+            <!-- Floating Selected-Object Mini Toolbar (Color, Width, Dash, Duplicate, Send RR to Order, Delete) -->
+            <div class="tv-floating-obj-bar" id="tvFloatingObjBar" hidden role="toolbar" aria-label="Edit Objek Terpilih">
+              <div class="tv-obj-swatches" id="tvObjSwatches">
+                <button type="button" class="tv-swatch" data-swatch="#facc15" style="background:#facc15" aria-label="Warna Emas"></button>
+                <button type="button" class="tv-swatch" data-swatch="#2dd4bf" style="background:#2dd4bf" aria-label="Warna Hijau"></button>
+                <button type="button" class="tv-swatch" data-swatch="#fb7185" style="background:#fb7185" aria-label="Warna Merah"></button>
+                <button type="button" class="tv-swatch" data-swatch="#38bdf8" style="background:#38bdf8" aria-label="Warna Biru"></button>
+                <button type="button" class="tv-swatch" data-swatch="#a78bfa" style="background:#a78bfa" aria-label="Warna Ungu"></button>
+                <button type="button" class="tv-swatch" data-swatch="#f8fafc" style="background:#f8fafc" aria-label="Warna Putih"></button>
+              </div>
+              <select id="tvObjWidthSelect" class="tv-mini-select" aria-label="Ketebalan Garis" title="Ketebalan Garis">
+                <option value="1">1px</option>
+                <option value="2" selected>2px</option>
+                <option value="3">3px</option>
+                <option value="4">4px</option>
+              </select>
+              <select id="tvObjLineStyleSelect" class="tv-mini-select" aria-label="Pola Garis" title="Pola Garis">
+                <option value="solid" selected>Solid</option>
+                <option value="dashed">Putus</option>
+                <option value="dotted">Titik</option>
+              </select>
+              <button type="button" id="tvObjDuplicateBtn" class="tv-mini-action" title="Duplikat (Ctrl+D)">Duplikat</button>
+              <button type="button" id="tvObjSendOrderBtn" class="tv-mini-action is-accent" hidden title="Salin Entry, SL &amp; TP dari proyeksi R:R ke tiket Order">Kirim ke Order</button>
+              <button type="button" id="tvObjDeleteBtn" class="tv-mini-action is-danger" title="Hapus (Del)">Hapus</button>
+            </div>
+
+            <div id="chart" class="practice-chart-shell"></div>
+          </div>
+        </div>
+
+        <!-- Timeline Progress Scrubber + Scale Modes (%, Log, Auto) -->
+        <div class="tv-scrubber-row" id="replayScrubberRow">
+          <span class="tv-scrub-counter tabular" id="replayBarCounter">Bar — / —</span>
+          <input type="range" id="replayScrubber" class="tv-scrubber" min="0" max="100" value="0" step="1" aria-label="Geser posisi timeline replay">
+          <div class="tv-scale-group" role="group" aria-label="Mode Skala Harga">
+            <button type="button" class="tv-scale-btn" data-scale-mode="percent" aria-pressed="false" title="Skala Persentase (%)">%</button>
+            <button type="button" class="tv-scale-btn" data-scale-mode="log" aria-pressed="false" title="Skala Logaritmik">Log</button>
+            <button type="button" class="tv-scale-btn is-active" id="scaleAutoBtn" title="Reset Skala Otomatis (Auto)">Auto</button>
+          </div>
         </div>
 
         <!-- Unified Bottom Playback & Killzone Transport Dock -->
         <div class="bt-playback-bar">
           <div class="bt-playback-controls">
+            <button type="button" class="bt-btn-sm" id="replayResetStartBtn" title="Kembali ke awal sesi Replay">⏮</button>
             <button type="button" class="bt-btn-sm" data-step="-5">-5</button>
             <button type="button" class="bt-btn-sm" data-step="-1">-1</button>
             <button type="button" id="playToggle" class="bt-btn-sm bt-btn-primary">Putar</button>
@@ -193,14 +315,18 @@
             <button type="button" class="bt-btn-sm" data-step="5">+5</button>
             <button type="button" class="bt-btn-sm" data-step="20">+20</button>
             <select id="speedSelect" class="bt-select bt-speed-select" aria-label="Kecepatan Putar">
-              <option value="1200">0.7x</option>
+              <option value="1800">0.3x</option>
+              <option value="1200">0.5x</option>
               <option value="700" selected>1x</option>
-              <option value="350">2x</option>
-              <option value="160">4x</option>
+              <option value="360">2x</option>
+              <option value="240">3x</option>
+              <option value="150">5x</option>
+              <option value="120">10x</option>
             </select>
           </div>
 
           <div class="bt-killzone-group">
+            <button type="button" class="bt-btn-sm" id="replayRandomBtn" title="Loncat ke candle acak (Latihan Blind Backtest)">Acak</button>
             <button type="button" class="bt-btn-sm" data-killzone="Asia">Asia</button>
             <button type="button" class="bt-btn-sm" data-killzone="London">London</button>
             <button type="button" class="bt-btn-sm" data-killzone="New York">NY</button>
@@ -436,12 +562,38 @@
     </div>
   </dialog>
 
+  <!-- Keyboard Shortcuts Cheat-Sheet Dialog -->
+  <dialog id="shortcutHelpDialog" class="bt-dialog bt-dialog-sm" aria-labelledby="shortcutHelpTitle">
+    <div class="bt-dialog-head">
+      <h2 id="shortcutHelpTitle">Pintasan Keyboard Replay</h2>
+      <button type="button" id="closeShortcutHelp" class="bt-btn-sm">Tutup</button>
+    </div>
+    <div class="bt-dialog-body">
+      <div class="tv-shortcut-grid">
+        <div><kbd>Spasi</kbd><span>Putar / Jeda Replay</span></div>
+        <div><kbd>Shift + →</kbd><span>Maju +1 Candle</span></div>
+        <div><kbd>Shift + ←</kbd><span>Mundur -1 Candle</span></div>
+        <div><kbd>Alt + H</kbd><span>Garis Horizontal</span></div>
+        <div><kbd>Alt + T</kbd><span>Garis Tren (Trendline)</span></div>
+        <div><kbd>Alt + V</kbd><span>Garis Vertikal</span></div>
+        <div><kbd>Alt + F</kbd><span>Fibonacci Retracement</span></div>
+        <div><kbd>Alt + R</kbd><span>Kotak Zona (FVG / OB)</span></div>
+        <div><kbd>M</kbd><span>Pengukur (Ruler Pips &amp; Bar)</span></div>
+        <div><kbd>Alt + M</kbd><span>Ganti Magnet OHLC</span></div>
+        <div><kbd>Ctrl + Z / Shift+Z</kbd><span>Undo / Redo Gambar</span></div>
+        <div><kbd>Ctrl + D</kbd><span>Duplikat Objek Terpilih</span></div>
+        <div><kbd>Del / Esc</kbd><span>Hapus Objek / Batal Alat</span></div>
+      </div>
+    </div>
+  </dialog>
+
   <script src="vendor/lightweight-charts.standalone.production.js"></script>
   <script src="assets/js/zip-reader.js"></script>
   <script src="assets/js/practice-core.js"></script>
   <script src="assets/js/storage.js"></script>
   <script src="assets/js/data-provider.js"></script>
   <script src="assets/js/drawing-core.js"></script>
+  <script src="assets/js/replay-indicators.js"></script>
   <script src="assets/js/chart-engine.js"></script>
   <script src="assets/js/replay-engine.js"></script>
   <script src="assets/js/trade-engine.js"></script>

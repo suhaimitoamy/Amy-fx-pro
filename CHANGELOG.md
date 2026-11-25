@@ -1,3 +1,10 @@
+## 2.0.0-pro.476
+
+- feat(market-intel): Rombak total Kompas Makro Institusional Real-Time (`api/macro-snapshot.js`, `kompas-engine.js`) berbasis kuotasi live DXY, US10Y, VIX, SMT XAU/XAG, SVG Gauge, dan guard aktual kalender USD.
+- feat(replay): Hadirkan Candle Replay Pro Studio (`replay-indicators.js`, `chart-engine.js`, `practice-ui.js`) dengan Potong Bar, scrubber, 5 tipe chart, indikator zero-future-leak, magnet OHLC, dan 1-klik order.
+- feat(ecosystem): Upgrade 5 Pilar — Command Strip Beranda (`#home-cmd-strip`), Synced Lot Calculator + Breakdown Performa POI, AMY Briefing 30 detik, Jurnal Playbook Scorecard + Leak Detector, serta rotasi multi-key + stale cache backend.
+- fix(mapping-poi): Kalibrasi jarak SL Gold 60–100 pips (`BACKFILL_ENGINE_VERSION = 5`), realisasi PnL bertanda minus/plus jujur, serta sinkronisasi Saldo Aktif Profil.
+
 ## 2.0.0-pro.475
 
 - feat(navigation): Navigasi Kembali 1-Langkah Global deterministik di seluruh sub-halaman aplikasi.

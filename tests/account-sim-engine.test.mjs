@@ -192,3 +192,55 @@ test("computeAccountSnapshot excludes backtest-lab historical exports from live 
   assert.equal(snap.closedCount, 1);
 });
 
+test("computeAccountSnapshot adjusts Profile balance up on POI TP and down on POI SL, and resets cleanly when POI history is cleared", () => {
+  const nowMs = Date.UTC(2026, 10, 25, 8, 0, 0); // 16:00 WITA
+  const store = createMemoryStorage({
+    [sim.STORAGE_KEYS.poiHistory]: JSON.stringify({
+      version: 2,
+      poiRecords: [
+        { id: "poi-sl-1", side: "SELL", tf: "M5", ce: 3520, sl: 3527, tp1: 3509.5, tp2: 3502.5, status: "SL_HIT", touchedAt: nowMs - 3600_000, resolvedAt: nowMs - 3000_000 },
+        { id: "poi-tp2-1", side: "BUY", tf: "M15", ce: 3500, sl: 3492, tp1: 3512, tp2: 3520, status: "TP2_HIT", touchedAt: nowMs - 1800_000, resolvedAt: nowMs - 600_000 },
+        { id: "poi-open-1", side: "BUY", tf: "M15", ce: 3530, sl: 3522, tp1: 3542, tp2: 3550, status: "TESTING", touchedAt: nowMs }
+      ]
+    })
+  });
+
+  const poiRecords = sim.readPoiHistoryRecords(store);
+  assert.equal(poiRecords.length, 3);
+
+  // SL only -> balance MUST decrease
+  const slOnly = sim.computeAccountSnapshot({
+    params: { baseBalanceUsd: 5000, riskPct: 1.5, currency: "USD" },
+    poiRecords: [poiRecords[0]],
+    nowMs
+  });
+  assert.equal(slOnly.poiRealizedAllUsd, -75);
+  assert.equal(slOnly.balanceUsd, 4925);
+  assert.equal(slOnly.slCount, 1);
+  assert.equal(slOnly.netPipsClosed, -70);
+
+  // SL (-$75 -> $4925) followed by TP2 (+2.5R on $73.88 = +$184.70 -> $5109.70)
+  const combined = sim.computeAccountSnapshot({
+    params: { baseBalanceUsd: 5000, riskPct: 1.5, currency: "USD" },
+    poiRecords,
+    nowMs
+  });
+  assert.equal(combined.poiRealizedAllUsd, 109.7);
+  assert.equal(combined.poiRealizedTodayUsd, 109.7);
+  assert.equal(combined.balanceUsd, 5109.7);
+  assert.equal(combined.poiClosedCount, 2);
+  assert.equal(combined.tpCount, 1);
+  assert.equal(combined.slCount, 1);
+  assert.equal(combined.netPipsClosed, 130); // -70p + 200p
+
+  // Cleared Riwayat POI -> restores cleanly to baseBalanceUsd
+  const resetSnap = sim.computeAccountSnapshot({
+    params: { baseBalanceUsd: 5000, riskPct: 1.5, currency: "USD" },
+    poiRecords: [],
+    nowMs
+  });
+  assert.equal(resetSnap.balanceUsd, 5000);
+  assert.equal(resetSnap.poiRealizedAllUsd, 0);
+});
+
+

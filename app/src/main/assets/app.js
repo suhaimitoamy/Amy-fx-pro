@@ -270,7 +270,25 @@ document.addEventListener('DOMContentLoaded', () => {
       <p id="home-chart-error" role="alert"></p>
       <div id="home-price-chart" aria-label="Chart candlestick XAU/USD dengan level model ICT"></div>
       <p id="home-chart-note"></p>
-    </section><div class="section-heading home-menu-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
+    </section>
+    <section class="home-cmd-strip" id="home-cmd-strip" aria-label="Ringkasan Hari Ini">
+      <button type="button" class="home-cmd-cell" id="home-cmd-balance" data-cmd-nav="profil">
+        <span class="home-cmd-label">Saldo Aktif</span>
+        <strong class="home-cmd-val" id="home-cmd-balance-val">—</strong>
+        <span class="home-cmd-sub" id="home-cmd-balance-sub">Sinkron Profil &amp; POI</span>
+      </button>
+      <button type="button" class="home-cmd-cell" id="home-cmd-session" data-cmd-open="mapping">
+        <span class="home-cmd-label">Sesi &amp; News</span>
+        <strong class="home-cmd-val" id="home-cmd-session-val">Memuat…</strong>
+        <span class="home-cmd-sub" id="home-cmd-session-sub">Kalender USD</span>
+      </button>
+      <button type="button" class="home-cmd-cell" id="home-cmd-macro" data-cmd-open="news">
+        <span class="home-cmd-label">Kompas XAU</span>
+        <strong class="home-cmd-val" id="home-cmd-macro-val">Memuat…</strong>
+        <span class="home-cmd-sub" id="home-cmd-macro-sub">DXY · US10Y · VIX</span>
+      </button>
+    </section>
+    <div class="section-heading home-menu-heading"><h2>Menu Utama</h2></div><div class="quick-grid slide-up">${projects.map(item => quickCard(item)).join('')}</div>`;
     if (typeof mainContent.querySelector === 'function') {
       const tfSelect = mainContent.querySelector('#home-chart-tf');
       const tfButtons = Array.from(typeof mainContent.querySelectorAll === 'function' ? mainContent.querySelectorAll('.home-tf-btn') : []);
@@ -302,7 +320,198 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof window.AmyHomeAccountCockpit?.render === 'function') {
         window.AmyHomeAccountCockpit.render();
       }
+      populateHomeCommandStrip();
       try { window.dispatchEvent(new CustomEvent('amyfx:home-rendered')); } catch (_) {}
+    }
+  }
+
+  function resolveHomeGoldSessionSummary(nowDate = new Date()) {
+    try {
+      const nyParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(nowDate);
+      const wd = nyParts.find((p) => p.type === 'weekday')?.value || '';
+      const nyHour = Number(nyParts.find((p) => p.type === 'hour')?.value || 0);
+      if (wd === 'Sat' || (wd === 'Fri' && nyHour >= 17) || (wd === 'Sun' && nyHour < 17)) {
+        return { label: 'Pasar Tutup', tone: 'is-muted', detail: 'Akhir Pekan · Ref Jumat' };
+      }
+      if (nyHour === 17) {
+        return { label: 'Rollover Harian', tone: 'is-warn', detail: 'Spread lebar · tunggu 18:00 NY' };
+      }
+      const witaHour = (nowDate.getUTCHours() + 8) % 24;
+      if (witaHour >= 15 && witaHour <= 18) return { label: 'London Killzone', tone: 'is-pos', detail: 'Likuiditas aktif · WITA' };
+      if (witaHour >= 20 && witaHour <= 23) return { label: 'NY AM Killzone', tone: 'is-pos', detail: 'Volatilitas puncak · WITA' };
+      if (witaHour >= 7 && witaHour <= 14) return { label: 'Sesi Asia', tone: 'is-flat', detail: 'Range pembentukan likuiditas' };
+      if (witaHour === 19) return { label: 'Pre-NY Overlap', tone: 'is-warn', detail: 'Waspada rilis data USD' };
+      return { label: 'NY PM / Late', tone: 'is-flat', detail: 'Momentum melambat' };
+    } catch (_) {
+      return { label: 'Sesi Gold', tone: 'is-flat', detail: 'WITA aktif' };
+    }
+  }
+
+  function resolveHomeNewsGuardNote() {
+    try {
+      const raw = localStorage.getItem('amyfx.market.calendar.v1') || localStorage.getItem('amy_economic_calendar_v1');
+      if (!raw) return 'Cek jadwal di Berita';
+      const parsed = JSON.parse(raw);
+      const events = Array.isArray(parsed?.events) ? parsed.events : (Array.isArray(parsed?.items) ? parsed.items : (Array.isArray(parsed) ? parsed : []));
+      const nowMs = Date.now();
+      const upcomingHigh = events
+        .map((ev) => {
+          const ts = Number.isFinite(Number(ev?.timestampMs)) && Number(ev.timestampMs) > 0
+            ? Number(ev.timestampMs)
+            : (ev?.dateIso ? Date.parse(ev.dateIso) : NaN);
+          return { ...ev, _ts: ts };
+        })
+        .filter((ev) => Number.isFinite(ev._ts) && ev._ts >= nowMs - 15 * 60000 && ev._ts <= nowMs + 12 * 3600000)
+        .filter((ev) => /high|tinggi|3/i.test(String(ev.impact || 'HIGH')))
+        .sort((a, b) => a._ts - b._ts);
+      if (!upcomingHigh.length) return 'News Guard: Aman (tidak ada USD High)';
+      const next = upcomingHigh[0];
+      const diffMin = Math.round((next._ts - nowMs) / 60000);
+      const title = String(next.title || next.event || 'USD High').slice(0, 22);
+      if (diffMin <= 30 && diffMin >= -15) return `News Lock: ${title}`;
+      if (diffMin < 60) return `${title} (${diffMin}m lagi)`;
+      return `${title} (${Math.floor(diffMin / 60)}j ${diffMin % 60}m)`;
+    } catch (_) {
+      return 'News Guard: Aman';
+    }
+  }
+
+  function summarizeMacroSnapshotForHome(snap) {
+    const q = snap?.quotes || {};
+    const dxy = q.dxy;
+    const y10 = q.us10y;
+    const vix = q.vix;
+    const parts = [];
+    let score = 0;
+    let count = 0;
+    if (dxy && Number.isFinite(Number(dxy.changePct))) {
+      count += 1;
+      score += Number(dxy.changePct) <= -0.1 ? 1 : (Number(dxy.changePct) >= 0.1 ? -1 : 0);
+      parts.push(`DXY ${Number(dxy.changePct) >= 0 ? '+' : ''}${Number(dxy.changePct).toFixed(2)}%`);
+    }
+    if (y10 && Number.isFinite(Number(y10.changePct))) {
+      count += 1;
+      score += Number(y10.changePct) <= -0.3 ? 1 : (Number(y10.changePct) >= 0.3 ? -1 : 0);
+      parts.push(`10Y ${Number(y10.price || 0).toFixed(2)}%`);
+    }
+    if (vix && Number.isFinite(Number(vix.price))) {
+      count += 1;
+      if (Number(vix.price) >= 22) score += 1;
+      parts.push(`VIX ${Number(vix.price).toFixed(1)}`);
+    }
+    if (!count) {
+      return { label: 'Menunggu Data', tone: 'is-muted', sub: 'Ketuk untuk buka Kompas' };
+    }
+    const label = score >= 1 ? 'Dukung Bullish' : (score <= -1 ? 'Tekanan Bearish' : 'Makro Netral');
+    const tone = score >= 1 ? 'is-pos' : (score <= -1 ? 'is-neg' : 'is-flat');
+    return { label, tone, sub: parts.slice(0, 2).join(' · ') };
+  }
+
+  function populateHomeCommandStrip() {
+    const strip = document.getElementById('home-cmd-strip');
+    if (!strip) return;
+
+    // Bind navigation clicks
+    strip.querySelector('#home-cmd-balance')?.addEventListener('click', () => {
+      const profileBtn = document.querySelector('.nav-btn[data-target="profil"]');
+      if (profileBtn) profileBtn.click();
+    });
+    strip.querySelector('#home-cmd-session')?.addEventListener('click', () => {
+      openProject('mapping');
+    });
+    strip.querySelector('#home-cmd-macro')?.addEventListener('click', () => {
+      openProject('news');
+    });
+
+    // Cell 1: Active Balance (Synced with Profile + Riwayat POI)
+    const balValEl = document.getElementById('home-cmd-balance-val');
+    const balSubEl = document.getElementById('home-cmd-balance-sub');
+    if (balValEl && balSubEl) {
+      try {
+        const sim = window.AmyAccountSimEngine;
+        if (sim && typeof sim.computeAccountSnapshot === 'function') {
+          const params = sim.readParams();
+          const cashflows = sim.readCashflows();
+          const positions = sim.readPositions();
+          const poiRecords = sim.readPoiHistoryRecords ? sim.readPoiHistoryRecords() : [];
+          let journals = [];
+          try {
+            const rawJ = JSON.parse(localStorage.getItem('tradingLibraryManager.journals.v1') || '[]');
+            if (Array.isArray(rawJ)) journals = rawJ;
+          } catch (_) {}
+          const snap = sim.computeAccountSnapshot({ params, cashflows, journals, openPositions: positions, poiRecords });
+          const fmtMoney = (usd, signed = false) => sim.formatMoney(usd, {
+            currency: params.currency,
+            usdIdrRate: params.usdIdrRate,
+            signed
+          });
+          balValEl.textContent = fmtMoney(snap.balanceUsd, false);
+          balValEl.className = `home-cmd-val ${snap.realizedAllUsd > 0 ? 'is-pos' : (snap.realizedAllUsd < 0 ? 'is-neg' : '')}`;
+          const todayTxt = fmtMoney(snap.todayTotalUsd, true);
+          balSubEl.textContent = snap.poiClosedCount > 0
+            ? `Hari ini ${todayTxt} · ${snap.poiClosedCount} POI`
+            : `Hari ini ${todayTxt} · Risiko ${params.riskPct}%`;
+        } else {
+          const rawBal = Number(localStorage.getItem('amy_default_balance') || 5000);
+          balValEl.textContent = `$${rawBal.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+          balSubEl.textContent = `Risiko ${localStorage.getItem('amy_default_risk') || '1.5'}% · Profil`;
+        }
+      } catch (_) {}
+    }
+
+    // Cell 2: Gold Session & News Guard
+    const sessValEl = document.getElementById('home-cmd-session-val');
+    const sessSubEl = document.getElementById('home-cmd-session-sub');
+    if (sessValEl && sessSubEl) {
+      const sess = resolveHomeGoldSessionSummary();
+      sessValEl.textContent = sess.label;
+      sessValEl.className = `home-cmd-val ${sess.tone}`;
+      const newsNote = resolveHomeNewsGuardNote();
+      sessSubEl.textContent = sess.tone === 'is-muted' ? sess.detail : newsNote;
+    }
+
+    // Cell 3: Kompas Makro XAU (instant cache + non-blocking refresh)
+    const macroValEl = document.getElementById('home-cmd-macro-val');
+    const macroSubEl = document.getElementById('home-cmd-macro-sub');
+    if (macroValEl && macroSubEl) {
+      const applyMacro = (snap) => {
+        const m = summarizeMacroSnapshotForHome(snap);
+        macroValEl.textContent = m.label;
+        macroValEl.className = `home-cmd-val ${m.tone}`;
+        macroSubEl.textContent = m.sub;
+      };
+      let cached = null;
+      try {
+        cached = JSON.parse(localStorage.getItem('amy_macro_snapshot_v1') || 'null');
+      } catch (_) {}
+      if (cached && cached.quotes) {
+        applyMacro(cached);
+      }
+      const ageMs = cached ? (Date.now() - Number(cached._fetchedAt || Date.parse(cached.updatedAt || '') || 0)) : Infinity;
+      if (!cached || ageMs > 8 * 60 * 1000) {
+        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const tId = ctrl ? setTimeout(() => ctrl.abort(), 4500) : null;
+        fetch('/api/macro-snapshot', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data) => {
+            if (!data || !data.quotes) return;
+            const snap = { ...data, _fetchedAt: Date.now() };
+            try { localStorage.setItem('amy_macro_snapshot_v1', JSON.stringify(snap)); } catch (_) {}
+            if (document.getElementById('home-cmd-macro-val')) applyMacro(snap);
+          })
+          .catch(() => {
+            if (!cached && document.getElementById('home-cmd-macro-val')) {
+              applyMacro(null);
+            }
+          })
+          .finally(() => { if (tId) clearTimeout(tId); });
+      }
     }
   }
 
@@ -1786,6 +1995,34 @@ document.addEventListener('DOMContentLoaded', () => {
       return ((b * r) / 100).toFixed(2);
     };
 
+    const computePoiAdjustedState = (baseBalUsd, riskPctVal, currency, rate) => {
+      const baseNum = Math.max(0, Number(baseBalUsd) || 0);
+      const riskNum = Math.max(0.1, Math.min(25, Number(riskPctVal) || 1.5));
+      if (!simEngine?.computeAccountSnapshot) {
+        return { activeBalUsd: baseNum, poiPnlUsd: 0, poiClosedCount: 0 };
+      }
+      const cashflows = simEngine.readCashflows ? simEngine.readCashflows() : [];
+      const poiRecords = simEngine.readPoiHistoryRecords ? simEngine.readPoiHistoryRecords() : [];
+      const snap = simEngine.computeAccountSnapshot({
+        params: {
+          ...simParams,
+          baseBalanceUsd: baseNum,
+          riskPct: riskNum,
+          currency: currency || simParams.currency,
+          usdIdrRate: Number(rate) >= 1000 ? Number(rate) : simParams.usdIdrRate
+        },
+        cashflows,
+        journals: [],
+        openPositions: [],
+        poiRecords
+      });
+      return {
+        activeBalUsd: snap.balanceUsd,
+        poiPnlUsd: snap.poiRealizedAllUsd || 0,
+        poiClosedCount: snap.poiClosedCount || 0
+      };
+    };
+
     const buildIdentityBalanceText = (balUsd, currency, rate) => {
       if (currency === 'IDR') {
         return formatIdrQuick(balUsd, rate);
@@ -1793,14 +2030,30 @@ document.addEventListener('DOMContentLoaded', () => {
       return `$${formatMoney(balUsd)}`;
     };
 
-    const buildRiskSummaryText = (balUsd, riskPct, currency, rate) => {
-      const riskUsd = Number(calcRiskUsd(balUsd, riskPct));
-      const riskIdrText = formatIdrQuick(riskUsd, rate);
-      if (currency === 'IDR') {
-        return `Risiko ${riskIdrText} ($${riskUsd.toFixed(2)}) / trade`;
-      }
-      return `Risiko $${riskUsd.toFixed(2)} (${riskIdrText}) / trade`;
+    const formatSignedQuick = (usd, currency, rate) => {
+      const n = Number(usd) || 0;
+      const sign = n < 0 ? '-' : (n > 0 ? '+' : '');
+      const absText = buildIdentityBalanceText(Math.abs(n), currency, rate);
+      return `${sign}${absText}`;
     };
+
+    const buildRiskSummaryText = (balUsd, riskPct, currency, rate) => {
+      const adj = computePoiAdjustedState(balUsd, riskPct, currency, rate);
+      const effectiveBal = adj.activeBalUsd;
+      const riskUsd = Number(calcRiskUsd(effectiveBal, riskPct));
+      const riskIdrText = formatIdrQuick(riskUsd, rate);
+      const riskPart = currency === 'IDR'
+        ? `Risiko ${riskIdrText} ($${riskUsd.toFixed(2)}) / trade`
+        : `Risiko $${riskUsd.toFixed(2)} (${riskIdrText}) / trade`;
+      if (adj.poiClosedCount > 0) {
+        const activeStr = buildIdentityBalanceText(effectiveBal, currency, rate);
+        const poiStr = formatSignedQuick(adj.poiPnlUsd, currency, rate);
+        return `Saldo Aktif ${activeStr} (POI ${poiStr}) · ${riskPart}`;
+      }
+      return riskPart;
+    };
+
+    const initialAdj = computePoiAdjustedState(userBalance, userRisk, simParams.currency, simParams.usdIdrRate);
 
     mainContent.innerHTML = `
       <div class="profile-page profile-page--clean">
@@ -1813,7 +2066,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="profile-identity-meta" id="traderIdentityMeta">
                 <span>XAU/USD</span>
                 <span aria-hidden="true">·</span>
-                <span>${escapeHtml(buildIdentityBalanceText(userBalance, simParams.currency, simParams.usdIdrRate))}</span>
+                <span>${escapeHtml(buildIdentityBalanceText(initialAdj.activeBalUsd, simParams.currency, simParams.usdIdrRate))}</span>
                 <span aria-hidden="true">·</span>
                 <span>${escapeHtml(userRisk)}%</span>
               </div>
@@ -1975,6 +2228,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (riskSummaryEl) {
         riskSummaryEl.textContent = buildRiskSummaryText(bal, r, selectedCurrency, rate);
       }
+      if (identityMetaEl) {
+        const adj = computePoiAdjustedState(bal, r, selectedCurrency, rate);
+        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(adj.activeBalUsd, selectedCurrency, rate))}</span><span aria-hidden="true">·</span><span>${escapeHtml(r)}%</span>`;
+      }
     }
 
     function syncProfileCurrencyUi(nextCurrency) {
@@ -1985,12 +2242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
       });
       refreshRiskPreview();
-      if (identityMetaEl) {
-        const balVal = Number(balanceInput?.value || simParams.baseBalanceUsd);
-        const riskVal = Number(riskInput?.value || simParams.riskPct);
-        const rateVal = Number(rateInput?.value || simParams.usdIdrRate);
-        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(balVal, selectedCurrency, rateVal))}</span><span aria-hidden="true">·</span><span>${escapeHtml(riskVal)}%</span>`;
-      }
     }
 
     currencyBtns.forEach((btn) => {
@@ -2001,15 +2252,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.__amyProfileSimSyncHandler) {
       window.removeEventListener('amyfx:sim-state-change', window.__amyProfileSimSyncHandler);
+      window.removeEventListener('amyfx:poi-history-updated', window.__amyProfileSimSyncHandler);
     }
     window.__amyProfileSimSyncHandler = (ev) => {
       if (!document.getElementById('profileTradingParamsPanel')) return;
       const cur = ev?.detail?.currency || (simEngine?.readParams ? simEngine.readParams().currency : null);
       if (cur && cur !== selectedCurrency) {
         syncProfileCurrencyUi(cur);
+      } else {
+        refreshRiskPreview();
       }
     };
     window.addEventListener('amyfx:sim-state-change', window.__amyProfileSimSyncHandler);
+    window.addEventListener('amyfx:poi-history-updated', window.__amyProfileSimSyncHandler);
 
     balanceInput?.addEventListener('input', refreshRiskPreview);
     riskInput?.addEventListener('input', refreshRiskPreview);
@@ -2041,9 +2296,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (leverageInput) leverageInput.value = String(saved.leverage);
       if (spreadInput) spreadInput.value = String(saved.spreadUsd);
       refreshRiskPreview();
-      if (identityMetaEl) {
-        identityMetaEl.innerHTML = `<span>XAU/USD</span><span aria-hidden="true">·</span><span>${escapeHtml(buildIdentityBalanceText(saved.baseBalanceUsd, saved.currency, saved.usdIdrRate))}</span><span aria-hidden="true">·</span><span>${escapeHtml(saved.riskPct)}%</span>`;
-      }
       try { window.dispatchEvent(new CustomEvent('amyfx:sim-state-change')); } catch (_) {}
       showToast('Parameter Akun Pro tersimpan.');
     });
@@ -2863,6 +3115,9 @@ document.addEventListener('DOMContentLoaded', () => {
           cashflows: readJsonSafe('amy_sim_cashflows_v1', [])
         },
         dailyLossGuard: readJsonSafe('amy_daily_loss_guard_v1', null),
+        mappingPoiHistory: readJsonSafe('amyfx.mapping.reaction_history.v1', null),
+        priceAlerts: readJsonSafe('amy_price_alerts_v1', []),
+        guidedPracticeMastery: readJsonSafe('amy-guided-v3-mastery', null),
         academyProgress: readJsonSafe('amy_academy_progress_v2', null),
         academyBookmarks: readJsonSafe('amy_academy_bookmarks_v1', []),
         replayBookmarks: readJsonSafe('amy_replay_bookmarks_v1', []),
@@ -2872,6 +3127,9 @@ document.addEventListener('DOMContentLoaded', () => {
         personalNotes,
         journals: journalsList
       };
+      const poiCount = Array.isArray(backupData.mappingPoiHistory?.poiRecords)
+        ? backupData.mappingPoiHistory.poiRecords.length
+        : 0;
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -2879,7 +3137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       a.download = `amyfx-pro-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast(`Cadangan diunduh (${journalsList.length} jurnal · ${personalNotes.length} catatan).`);
+      showToast(`Cadangan diunduh (${journalsList.length} jurnal · ${poiCount} POI · ${personalNotes.length} catatan).`);
     });
 
     const importFileInput = document.getElementById('profileImportFileInput');
@@ -2908,6 +3166,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (data.dailyLossGuard && typeof data.dailyLossGuard === 'object') {
           localStorage.setItem('amy_daily_loss_guard_v1', JSON.stringify(data.dailyLossGuard));
+        }
+        let restoredPoiCount = 0;
+        if (data.mappingPoiHistory && typeof data.mappingPoiHistory === 'object') {
+          localStorage.setItem('amyfx.mapping.reaction_history.v1', JSON.stringify(data.mappingPoiHistory));
+          if (Array.isArray(data.mappingPoiHistory.poiRecords)) {
+            restoredPoiCount = data.mappingPoiHistory.poiRecords.length;
+          }
+        }
+        if (Array.isArray(data.priceAlerts)) {
+          localStorage.setItem('amy_price_alerts_v1', JSON.stringify(data.priceAlerts));
+        }
+        if (data.guidedPracticeMastery && typeof data.guidedPracticeMastery === 'object') {
+          localStorage.setItem('amy-guided-v3-mastery', JSON.stringify(data.guidedPracticeMastery));
         }
         if (data.academyProgress && typeof data.academyProgress === 'object') {
           localStorage.setItem('amy_academy_progress_v2', JSON.stringify(data.academyProgress));
@@ -2953,7 +3224,7 @@ document.addEventListener('DOMContentLoaded', () => {
           } catch (_) {}
         }
 
-        showToast(`Cadangan dipulihkan (${journalCount} jurnal · ${noteCount} catatan).`);
+        showToast(`Cadangan dipulihkan (${journalCount} jurnal · ${restoredPoiCount} POI · ${noteCount} catatan).`);
         renderSettings();
       } catch (err) {
         showToast('Gagal memulihkan cadangan: ' + (err.message || 'File rusak'));

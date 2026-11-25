@@ -823,13 +823,15 @@ const requestHandler = async (req, res) => {
       }
     }
 
-    if (pathname === '/api/heatmap' || pathname === '/api/liquidity' || pathname === '/api/learning-live-example') {
+    if (pathname === '/api/heatmap' || pathname === '/api/liquidity' || pathname === '/api/learning-live-example' || pathname === '/api/macro-snapshot') {
       try {
         const handlerModule = pathname === '/api/heatmap'
           ? '../api/heatmap.js'
           : pathname === '/api/liquidity'
             ? '../api/liquidity.js'
-            : '../api/learning-live-example.js';
+            : pathname === '/api/macro-snapshot'
+              ? '../api/macro-snapshot.js'
+              : '../api/learning-live-example.js';
         const handler = (await import(handlerModule)).default;
         let statusCode = 200;
         const outHeaders = {

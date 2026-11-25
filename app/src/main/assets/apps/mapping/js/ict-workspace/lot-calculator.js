@@ -12,8 +12,13 @@
  * - Rasio Risk/Reward: RR1 = |TP1 - Entry| / |Entry - SL|
  */
 
+import { computePoiPortfolioLedger, HISTORY_STORAGE_KEY } from './mapping-history-engine.js';
+
 export const BALANCE_KEY = 'amy_account_balance';
 export const RISK_PERCENT_KEY = 'amy_risk_percent';
+const PROFILE_BALANCE_KEY = 'amy_default_balance';
+const PROFILE_RISK_KEY = 'amy_default_risk';
+const PROFILE_CASHFLOW_KEY = 'amy_sim_cashflows_v1';
 
 /**
  * Pure mathematical calculation engine
@@ -79,34 +84,107 @@ export function calculateLotAndRisk({
 }
 
 /**
- * Persisted balance helper
+ * Resolve Profile's live Active Balance & Risk % (base modal + cashflows + Riwayat POI realized PnL).
+ * Falls back cleanly to saved calculator values only if Profile keys are absent.
+ */
+export function resolveSyncedProfileAccount(storage = typeof localStorage !== 'undefined' ? localStorage : null) {
+  if (!storage) {
+    return { balanceUsd: 5000, riskPct: 1.5, source: 'default', poiClosedCount: 0 };
+  }
+  try {
+    // Prefer unified AmyAccountSimEngine snapshot if loaded on page
+    if (typeof window !== 'undefined' && window.AmyAccountSimEngine?.computeAccountSnapshot) {
+      const sim = window.AmyAccountSimEngine;
+      const params = sim.readParams(storage);
+      const cashflows = sim.readCashflows ? sim.readCashflows(storage) : [];
+      const poiRecords = sim.readPoiHistoryRecords ? sim.readPoiHistoryRecords(storage) : [];
+      const snap = sim.computeAccountSnapshot({ params, cashflows, poiRecords, journals: [], openPositions: [] });
+      if (snap && Number.isFinite(snap.balanceUsd) && snap.balanceUsd > 0) {
+        return {
+          balanceUsd: Number(snap.balanceUsd.toFixed(2)),
+          riskPct: Number(params.riskPct.toFixed(2)),
+          source: 'profile-synced',
+          poiClosedCount: Number(snap.poiClosedCount || 0)
+        };
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const rawBase = parseFloat(storage.getItem(PROFILE_BALANCE_KEY) || '');
+    const rawRisk = parseFloat(storage.getItem(PROFILE_RISK_KEY) || '');
+    const hasProfileBase = Number.isFinite(rawBase) && rawBase > 0;
+    const baseBalanceUsd = hasProfileBase ? rawBase : 5000;
+    const riskPct = Number.isFinite(rawRisk) && rawRisk > 0 ? Math.min(25, Math.max(0.1, rawRisk)) : 1.5;
+
+    let netCashflow = 0;
+    try {
+      const cf = JSON.parse(storage.getItem(PROFILE_CASHFLOW_KEY) || '[]');
+      if (Array.isArray(cf)) {
+        for (const item of cf) {
+          const amt = Number(item?.amountUsd || 0);
+          if (!Number.isFinite(amt) || amt <= 0) continue;
+          netCashflow += String(item?.type || '').toUpperCase() === 'WITHDRAW' ? -amt : amt;
+        }
+      }
+    } catch (_) {}
+
+    let poiRecords = [];
+    try {
+      const rawHist = JSON.parse(storage.getItem(HISTORY_STORAGE_KEY) || 'null');
+      if (Array.isArray(rawHist?.poiRecords)) poiRecords = rawHist.poiRecords;
+    } catch (_) {}
+
+    const initialCapitalUsd = Math.max(0, Number((baseBalanceUsd + netCashflow).toFixed(2)));
+    const ledger = computePoiPortfolioLedger(poiRecords, { baseBalanceUsd: initialCapitalUsd, riskPct });
+    return {
+      balanceUsd: Number((ledger.endingBalanceUsd > 0 ? ledger.endingBalanceUsd : initialCapitalUsd).toFixed(2)),
+      riskPct: Number(riskPct.toFixed(2)),
+      source: hasProfileBase || ledger.closedCount > 0 ? 'profile-synced' : 'default',
+      poiClosedCount: ledger.closedCount
+    };
+  } catch (_) {
+    return { balanceUsd: 5000, riskPct: 1.5, source: 'default', poiClosedCount: 0 };
+  }
+}
+
+/**
+ * Persisted balance helper (defaults to Profile Active Balance when synced)
  */
 export function getSavedBalance() {
-  if (typeof localStorage === 'undefined') return 1000;
-  const val = parseFloat(localStorage.getItem(BALANCE_KEY) || '1000');
-  return Number.isFinite(val) && val > 0 ? val : 1000;
+  if (typeof localStorage === 'undefined') return 5000;
+  const synced = resolveSyncedProfileAccount(localStorage);
+  if (synced.source === 'profile-synced' && synced.balanceUsd > 0) {
+    return synced.balanceUsd;
+  }
+  const val = parseFloat(localStorage.getItem(BALANCE_KEY) || '');
+  return Number.isFinite(val) && val > 0 ? val : synced.balanceUsd;
 }
 
 export function saveBalance(balance) {
   if (typeof localStorage === 'undefined') return;
-  const b = Math.max(1, Number(balance) || 1000);
+  const b = Math.max(1, Number(balance) || 5000);
   try {
     localStorage.setItem(BALANCE_KEY, String(b));
   } catch {}
 }
 
 /**
- * Persisted risk percent helper
+ * Persisted risk percent helper (defaults to Profile Risk % when synced)
  */
 export function getSavedRiskPercent() {
-  if (typeof localStorage === 'undefined') return 1.0;
-  const val = parseFloat(localStorage.getItem(RISK_PERCENT_KEY) || '1.0');
-  return Number.isFinite(val) && val > 0 ? val : 1.0;
+  if (typeof localStorage === 'undefined') return 1.5;
+  const synced = resolveSyncedProfileAccount(localStorage);
+  if (synced.source === 'profile-synced' && synced.riskPct > 0) {
+    return synced.riskPct;
+  }
+  const val = parseFloat(localStorage.getItem(RISK_PERCENT_KEY) || '');
+  return Number.isFinite(val) && val > 0 ? val : synced.riskPct;
 }
 
 export function saveRiskPercent(pct) {
   if (typeof localStorage === 'undefined') return;
-  const p = Math.max(0.1, Number(pct) || 1.0);
+  const p = Math.max(0.1, Number(pct) || 1.5);
   try {
     localStorage.setItem(RISK_PERCENT_KEY, String(p));
   } catch {}
@@ -320,6 +398,73 @@ export function injectLotCalculatorStyles() {
     .stat-risk { color: #ef4444; }
     .stat-tp1 { color: #eab308; }
     .stat-tp2 { color: #22c55e; }
+    .amy-lot-sync-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 7px 10px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11.5px;
+      color: #cbd5e1;
+      font-variant-numeric: tabular-nums;
+    }
+    .amy-lot-sync-btn {
+      background: transparent;
+      border: 1px solid rgba(245, 196, 81, 0.4);
+      color: #f5c451;
+      border-radius: 7px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .amy-lot-sync-btn:hover {
+      background: rgba(245, 196, 81, 0.14);
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-lot-sheet {
+      background: #ffffff;
+      border-color: rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+      box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.18);
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-lot-header {
+      border-bottom-color: rgba(15, 23, 42, 0.09);
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-lot-header h3 {
+      color: #b45309;
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-lot-input {
+      background: #f8fafc;
+      border-color: rgba(15, 23, 42, 0.14);
+      color: #0f172a;
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-lot-sync-bar {
+      background: #f8fafc;
+      border-color: rgba(15, 23, 42, 0.1);
+      color: #334155;
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-lot-sync-btn {
+      color: #b45309;
+      border-color: rgba(180, 83, 9, 0.35);
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-bloomberg-card {
+      background: #f8fafc;
+      border-color: rgba(180, 83, 9, 0.25);
+      box-shadow: none;
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-bloomberg-stat-item {
+      background: #ffffff;
+      border-color: rgba(15, 23, 42, 0.08);
+    }
+    :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .amy-bloomberg-lot-val {
+      color: #b45309;
+      text-shadow: none;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -344,22 +489,28 @@ export function initLotCalculator() {
           <button type="button" class="amy-lot-close-btn" id="lot-calc-close" title="Tutup">&times;</button>
         </div>
 
+        <div class="amy-lot-sync-bar" id="lot-calc-sync-bar">
+          <span id="lot-calc-sync-text">Saldo Aktif Profil: $5,000.00 · Risiko 1.5%</span>
+          <button type="button" class="amy-lot-sync-btn" id="lot-calc-sync-btn">Sync Profil</button>
+        </div>
+
         <!-- Akun & Persen Risiko -->
         <div class="amy-lot-grid-inputs">
           <div class="amy-lot-field">
             <label for="lot-calc-balance">Modal Akun ($)</label>
-            <input type="number" id="lot-calc-balance" class="amy-lot-input" value="1000" min="1" step="10">
+            <input type="number" id="lot-calc-balance" class="amy-lot-input" value="5000" min="1" step="10">
           </div>
           <div class="amy-lot-field">
             <label for="lot-calc-risk-pct">Risiko (%)</label>
-            <input type="number" id="lot-calc-risk-pct" class="amy-lot-input" value="1.0" min="0.1" max="100" step="0.1">
+            <input type="number" id="lot-calc-risk-pct" class="amy-lot-input" value="1.5" min="0.1" max="100" step="0.1">
           </div>
         </div>
 
         <!-- Chips Preset Risiko -->
         <div class="amy-risk-chips">
           <button type="button" class="amy-risk-chip" data-risk="0.5">0.5%</button>
-          <button type="button" class="amy-risk-chip active" data-risk="1.0">1.0%</button>
+          <button type="button" class="amy-risk-chip" data-risk="1.0">1.0%</button>
+          <button type="button" class="amy-risk-chip active" data-risk="1.5">1.5%</button>
           <button type="button" class="amy-risk-chip" data-risk="2.0">2.0%</button>
           <button type="button" class="amy-risk-chip" data-risk="custom">Custom</button>
         </div>
@@ -461,6 +612,19 @@ export function initLotCalculator() {
         }
       });
     });
+
+    // Sync to Profile button
+    const syncBtn = document.getElementById('lot-calc-sync-btn');
+    syncBtn?.addEventListener('click', () => {
+      const synced = resolveSyncedProfileAccount();
+      if (balanceInput) balanceInput.value = synced.balanceUsd;
+      if (riskInput) {
+        riskInput.value = synced.riskPct;
+        updateActiveChip(synced.riskPct);
+      }
+      updateSyncBanner(synced);
+      recalculateModalUI();
+    });
   }
 
   // Bind trigger buttons in page
@@ -490,6 +654,18 @@ function updateActiveChip(val) {
   }
 }
 
+function updateSyncBanner(synced) {
+  if (typeof document === 'undefined' || !synced) return;
+  const el = document.getElementById('lot-calc-sync-text');
+  if (!el) return;
+  const balTxt = Number(synced.balanceUsd || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  const poiTxt = synced.poiClosedCount > 0 ? ` · ${synced.poiClosedCount} POI` : '';
+  el.textContent = `Saldo Aktif Profil: $${balTxt} · Risiko ${Number(synced.riskPct || 1.5).toFixed(1)}%${poiTxt}`;
+}
+
 export function openLotCalculator(plan = null) {
   if (typeof document === 'undefined') return;
   initLotCalculator();
@@ -504,12 +680,13 @@ export function openLotCalculator(plan = null) {
   const tp1Input = document.getElementById('lot-calc-tp1');
   const tp2Input = document.getElementById('lot-calc-tp2');
 
-  if (balanceInput) balanceInput.value = getSavedBalance();
+  const synced = resolveSyncedProfileAccount();
+  if (balanceInput) balanceInput.value = synced.balanceUsd;
   if (riskInput) {
-    const savedRisk = getSavedRiskPercent();
-    riskInput.value = savedRisk;
-    updateActiveChip(savedRisk);
+    riskInput.value = synced.riskPct;
+    updateActiveChip(synced.riskPct);
   }
+  updateSyncBanner(synced);
 
   // Detect plan from argument, or fallback to DOM Card 4 values
   let eVal = plan?.entry;

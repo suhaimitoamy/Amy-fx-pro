@@ -30,17 +30,12 @@ test('market intel membawa ID berita pada deep-link notifikasi', () => {
   assert.match(appSource, /focusNewsItem\(pendingNewsId\)/);
 });
 
-test('market intel integrates client-side auto-translation with offline local cache', () => {
+test('market intel fetches sanitized server-translated news feed with local offline cache fallback', () => {
   const appSource = fs.readFileSync(new URL('../app/src/main/assets/apps/market-intel/app.js', import.meta.url), 'utf8');
-  assert.match(appSource, /TRANSLATION_CACHE_KEY\s*=\s*'amy_news_tr_cache_v1'/);
-  assert.match(appSource, /function getTranslationCache\(\)/);
-  assert.match(appSource, /function saveTranslationToCache\(/);
-  assert.match(appSource, /function needsClientTranslation\(/);
-  assert.match(appSource, /async function translateTextClient\(/);
-  assert.match(appSource, /function applyCachedTranslations\(/);
-  assert.match(appSource, /async function autoTranslateNewsItems\(/);
-  assert.match(appSource, /api\.mymemory\.translated\.net/);
-  assert.match(appSource, /translate\.googleapis\.com/);
+  assert.match(appSource, /NEWS_CACHE_KEY\s*=\s*'amyfx\.assistant\.news\.v1'/);
+  assert.match(appSource, /fetch\(`\$\{API_BASE\}\/news\?limit=\$\{fetchLimit\}`/);
+  assert.match(appSource, /cleanNewsContent/);
+  assert.match(appSource, /prepareNewsItem/);
 });
 
 test('Supabase feed normalizes missing translations and retries failures', async t => {

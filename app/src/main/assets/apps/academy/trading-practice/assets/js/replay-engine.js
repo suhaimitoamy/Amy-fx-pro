@@ -130,6 +130,54 @@
     return this.seek(nextTs);
   };
 
+  ReplayController.prototype.getProgress = function () {
+    var total = this.timeline.length;
+    if (!total) return { index: 0, total: 0, percent: 0, cursor: this.cursor, startTime: this.startTime, endTime: null };
+    var insertion = lowerBound(this.timeline, this.cursor == null ? this.timeline[0] : this.cursor);
+    var idx = this.timeline[insertion] === this.cursor ? insertion : Math.max(0, insertion - 1);
+    return {
+      index: idx,
+      total: total,
+      percent: total > 1 ? Math.round((idx / (total - 1)) * 1000) / 10 : 100,
+      cursor: this.cursor,
+      startTime: this.timeline[0],
+      endTime: this.timeline[total - 1]
+    };
+  };
+
+  ReplayController.prototype.seekByIndex = async function (targetIndex) {
+    this.pause();
+    this.isDefaultInitial = false;
+    if (!this.timeline.length) await this.loadTimeline();
+    var idx = Math.max(0, Math.min(this.timeline.length - 1, Math.round(Number(targetIndex || 0))));
+    var previous = this.cursor;
+    this.cursor = this.timeline[idx];
+    if (this.startTime == null) this.startTime = this.cursor;
+    return this.emit('seek', previous);
+  };
+
+  ReplayController.prototype.jumpToRandom = async function () {
+    this.pause();
+    if (!this.timeline.length) await this.loadTimeline();
+    if (this.timeline.length < 12) return this.seekByIndex(Math.floor(this.timeline.length / 2));
+    var minIdx = Math.max(10, Math.floor(this.timeline.length * 0.12));
+    var maxIdx = Math.max(minIdx + 1, Math.floor(this.timeline.length * 0.85));
+    var idx = minIdx + Math.floor(Math.random() * (maxIdx - minIdx));
+    return this.seekByIndex(idx);
+  };
+
+  ReplayController.prototype.getFullTimelineCandles = async function () {
+    if (!this.timeline.length) await this.loadTimeline();
+    var endTs = this.timeline[this.timeline.length - 1];
+    var result = await this.provider.getCandles({
+      symbol: this.symbol,
+      timeframe: this.timeframe,
+      sourceId: this.sourceId,
+      cursor: endTs
+    });
+    return result && Array.isArray(result.candles) ? result.candles : [];
+  };
+
   ReplayController.prototype.emit = async function (reason, previousCursor, autoplayToken) {
     var sequence = ++this.requestSequence;
     var cursor = this.cursor;
@@ -161,6 +209,7 @@
     }
 
     var endTime = this.timeline.length ? this.timeline[this.timeline.length - 1] : null;
+    var progress = this.getProgress();
     var payload = {
       reason: reason,
       sourceId: this.sourceId,
@@ -170,6 +219,9 @@
       previousCursor: previousCursor,
       startTime: this.startTime,
       endTime: endTime,
+      cursorIndex: progress.index,
+      totalBars: progress.total,
+      progressPercent: progress.percent,
       atEnd: endTime != null && this.cursor >= endTime,
       source: result.source,
       sampleOnly: result.sampleOnly,

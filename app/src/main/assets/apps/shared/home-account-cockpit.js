@@ -324,6 +324,7 @@
     const params = sim.readParams();
     const cashflows = sim.readCashflows();
     const positions = sim.readPositions();
+    const poiRecords = sim.readPoiHistoryRecords ? sim.readPoiHistoryRecords() : [];
     const marketPrice = getLiveMarketPrice();
     const marketOpen = isMarketOpenNow();
 
@@ -332,7 +333,8 @@
       cashflows,
       journals: cachedJournals,
       openPositions: positions,
-      marketPrice
+      marketPrice,
+      poiRecords
     });
     lastSnapshot = snap;
 
@@ -363,11 +365,20 @@
     const heroLabel = hasOpen ? "PROFIT BERJALAN" : "BALANCE AKUN PRO";
     const heroCount = hasOpen
       ? `${snap.positions.length} posisi aktif`
-      : `${snap.closedCount} trade simulasi`;
+      : (snap.poiClosedCount > 0 && snap.simClosedCount === 0
+          ? `${snap.poiClosedCount} riwayat POI`
+          : (snap.poiClosedCount > 0 && snap.simClosedCount > 0
+              ? `${snap.simClosedCount} trade · ${snap.poiClosedCount} POI`
+              : `${snap.closedCount} trade simulasi`));
     const heroMainVal = hasOpen
       ? fmt(snap.floatingUsd, { signed: true })
       : fmt(snap.balanceUsd);
     const heroMainClass = hasOpen ? toneClass(snap.floatingUsd) : "acc-flat";
+
+    const poiSubTag = snap.poiClosedCount > 0
+      ? `<span aria-hidden="true">·</span>
+         <span class="${toneClass(snap.poiRealizedAllUsd)}">POI ${escapeHtml(fmt(snap.poiRealizedAllUsd, { signed: true }))}</span>`
+      : "";
 
     const heroSubHtml = hasOpen
       ? `<span class="${toneClass(snap.floatingUsd)}">${escapeHtml(sim.formatPips(snap.floatingPips))}</span>
@@ -375,7 +386,8 @@
          <span class="${toneClass(snap.floatingUsd)}">${snap.floatingPct >= 0 ? "+" : ""}${snap.floatingPct.toFixed(2)}% saldo</span>`
       : `<span>Modal ${escapeHtml(fmt(snap.initialCapitalUsd))}</span>
          <span aria-hidden="true">·</span>
-         <span class="${toneClass(snap.realizedAllUsd)}">${snap.returnPct >= 0 ? "+" : ""}${snap.returnPct.toFixed(2)}%</span>`;
+         <span class="${toneClass(snap.realizedAllUsd)}">${snap.returnPct >= 0 ? "+" : ""}${snap.returnPct.toFixed(2)}%</span>
+         ${poiSubTag}`;
 
     const todayValText = fmt(snap.todayTotalUsd, { signed: true });
     const todayValClass = toneClass(snap.todayTotalUsd);
@@ -942,6 +954,7 @@
       "amyfx:profile-rendered",
       "amyfx:journal-state-change",
       "amyfx:sim-state-change",
+      "amyfx:poi-history-updated",
       "amyfx:integration-change"
     ].forEach((ev) => window.addEventListener(ev, () => refreshFromStorage()));
 
@@ -961,6 +974,7 @@
         "amy_account_spread",
         "amy_sim_positions_v1",
         "amy_sim_cashflows_v1",
+        "amyfx.mapping.reaction_history.v1",
         LEGACY_JOURNAL_KEY
       ].includes(event.key)) {
         refreshFromStorage();

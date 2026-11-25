@@ -22,7 +22,8 @@
     spreadUsd: "amy_account_spread",
     positions: "amy_sim_positions_v1",
     cashflows: "amy_sim_cashflows_v1",
-    activeMode: "amy_account_view_mode_v1"
+    activeMode: "amy_account_view_mode_v1",
+    poiHistory: "amyfx.mapping.reaction_history.v1"
   });
 
   const DEFAULT_PARAMS = Object.freeze({
@@ -436,12 +437,104 @@
     return String(entry?.source || "").trim().toLowerCase() === "backtest-lab";
   }
 
+  function readPoiHistoryRecords(storage) {
+    const store = storage || (typeof localStorage !== "undefined" ? localStorage : null);
+    if (!store) return [];
+    try {
+      const raw = store.getItem(STORAGE_KEYS.poiHistory);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed?.poiRecords) ? parsed.poiRecords : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function computePoiHistoryImpact(poiRecords = [], {
+    baseBalanceUsd = DEFAULT_PARAMS.baseBalanceUsd,
+    riskPct = DEFAULT_PARAMS.riskPct
+  } = {}, nowMs = Date.now()) {
+    const startBal = Math.max(0, round2(Number(baseBalanceUsd) || 0));
+    const safeRiskPct = clamp(Number(riskPct) || DEFAULT_PARAMS.riskPct, 0.1, 25);
+    const todayWita = getWitaDateString(nowMs);
+    const list = Array.isArray(poiRecords) ? poiRecords : [];
+
+    const resolved = list
+      .filter((r) => r && (r.status === "SL_HIT" || r.status === "TP1_HIT" || r.status === "TP2_HIT"))
+      .slice()
+      .sort((a, b) => {
+        const ta = Number(a.resolvedAt || a.touchedAt || 0);
+        const tb = Number(b.resolvedAt || b.touchedAt || 0);
+        if (ta !== tb) return ta - tb;
+        return String(a.id || "").localeCompare(String(b.id || ""));
+      });
+
+    let runningBal = startBal;
+    let realizedAllUsd = 0;
+    let realizedTodayUsd = 0;
+    let tpCount = 0;
+    let slCount = 0;
+    let netPips = 0;
+
+    for (const rec of resolved) {
+      const ce = Number(rec.ce) || ((Number(rec.low) + Number(rec.high)) / 2) || 0;
+      const sl = Number(rec.sl) || 0;
+      const tp1 = Number(rec.tp1) || 0;
+      const tp2 = Number(rec.tp2) || 0;
+      const slDistUsd = (ce > 0 && sl > 0) ? Math.max(0.5, round2(Math.abs(ce - sl))) : 6.0;
+      const riskUsd = round2((runningBal * safeRiskPct) / 100);
+
+      let rawPnlUsd = 0;
+      let pips = 0;
+      if (rec.status === "SL_HIT") {
+        rawPnlUsd = -riskUsd;
+        pips = -round1(slDistUsd * PIPS_PER_DOLLAR);
+        slCount += 1;
+      } else {
+        const isTp2 = rec.status === "TP2_HIT";
+        const target = isTp2 ? (tp2 || tp1) : tp1;
+        const fallbackMult = isTp2 ? 2.5 : 1.5;
+        const tpDistUsd = (ce > 0 && target > 0)
+          ? Math.max(0.5, round2(Math.abs(target - ce)))
+          : round2(slDistUsd * fallbackMult);
+        const maxRr = isTp2 ? 6.0 : 5.0;
+        const rr = round2(clamp(tpDistUsd / slDistUsd, 0.5, maxRr));
+        rawPnlUsd = round2(riskUsd * rr);
+        pips = round1(tpDistUsd * PIPS_PER_DOLLAR);
+        tpCount += 1;
+      }
+
+      const nextBal = Math.max(0, round2(runningBal + rawPnlUsd));
+      const appliedPnl = round2(nextBal - runningBal);
+      runningBal = nextBal;
+      realizedAllUsd = round2(realizedAllUsd + appliedPnl);
+      netPips = round1(netPips + pips);
+
+      const recDate = getWitaDateString(Number(rec.resolvedAt || rec.touchedAt || 0));
+      if (recDate === todayWita) {
+        realizedTodayUsd = round2(realizedTodayUsd + appliedPnl);
+      }
+    }
+
+    return {
+      startingBalanceUsd: startBal,
+      endingBalanceUsd: runningBal,
+      realizedAllUsd,
+      realizedTodayUsd,
+      tpCount,
+      slCount,
+      closedCount: resolved.length,
+      netPips
+    };
+  }
+
   function computeAccountSnapshot({
     params = DEFAULT_PARAMS,
     cashflows = [],
     journals = [],
     openPositions = [],
     marketPrice = null,
+    poiRecords = [],
     nowMs = Date.now()
   } = {}) {
     const safeParams = sanitizeParams(params);
@@ -455,8 +548,8 @@
     const simJournals = filterJournalsByMode(journals, "SIM").filter((e) => !isBacktestJournal(e));
     const closedSim = simJournals.filter(isClosedJournal);
 
-    let realizedAllUsd = 0;
-    let todayRealizedUsd = 0;
+    let simRealizedAllUsd = 0;
+    let simTodayRealizedUsd = 0;
     let tpCount = 0;
     let slCount = 0;
     let beCount = 0;
@@ -464,7 +557,7 @@
 
     for (const entry of closedSim) {
       const net = resolveJournalNetUsd(entry);
-      realizedAllUsd += net;
+      simRealizedAllUsd += net;
 
       const res = String(entry.result || entry.outcome || "").trim().toUpperCase();
       if (res === "WIN" || res === "PROFIT") tpCount += 1;
@@ -477,12 +570,21 @@
       const entryDate = String(entry.date || "").slice(0, 10) ||
         (entry.exitTime ? getWitaDateString(Date.parse(entry.exitTime)) : "");
       if (entryDate === todayWita) {
-        todayRealizedUsd += net;
+        simTodayRealizedUsd += net;
       }
     }
 
-    realizedAllUsd = round2(realizedAllUsd);
-    todayRealizedUsd = round2(todayRealizedUsd);
+    const poiImpact = computePoiHistoryImpact(
+      poiRecords,
+      { baseBalanceUsd: initialCapitalUsd, riskPct: safeParams.riskPct },
+      nowMs
+    );
+
+    const realizedAllUsd = round2(simRealizedAllUsd + poiImpact.realizedAllUsd);
+    const todayRealizedUsd = round2(simTodayRealizedUsd + poiImpact.realizedTodayUsd);
+    tpCount += poiImpact.tpCount;
+    slCount += poiImpact.slCount;
+    netPipsClosed = round1(netPipsClosed + poiImpact.netPips);
 
     const evaluatedPositions = (Array.isArray(openPositions) ? openPositions : []).map((pos) =>
       evaluatePosition(pos, marketPrice, safeParams)
@@ -492,7 +594,7 @@
     const floatingPips = round1(evaluatedPositions.reduce((acc, p) => acc + p.pips, 0));
     const marginUsd = round2(evaluatedPositions.reduce((acc, p) => acc + p.marginUsd, 0));
 
-    const balanceUsd = round2(initialCapitalUsd + realizedAllUsd);
+    const balanceUsd = Math.max(0, round2(initialCapitalUsd + realizedAllUsd));
     const equityUsd = round2(balanceUsd + floatingUsd);
     const freeMarginUsd = round2(equityUsd - marginUsd);
     const todayTotalUsd = round2(todayRealizedUsd + floatingUsd);
@@ -509,6 +611,13 @@
       initialCapitalUsd,
       cashflowTotalUsd,
       realizedAllUsd,
+      simRealizedAllUsd: round2(simRealizedAllUsd),
+      poiRealizedAllUsd: poiImpact.realizedAllUsd,
+      poiRealizedTodayUsd: poiImpact.realizedTodayUsd,
+      poiClosedCount: poiImpact.closedCount,
+      poiTpCount: poiImpact.tpCount,
+      poiSlCount: poiImpact.slCount,
+      poiNetPips: poiImpact.netPips,
       balanceUsd,
       floatingUsd,
       floatingPips,
@@ -523,7 +632,8 @@
       tpCount,
       slCount,
       beCount,
-      closedCount: closedSim.length,
+      closedCount: closedSim.length + poiImpact.closedCount,
+      simClosedCount: closedSim.length,
       winRate,
       netPipsClosed: round1(netPipsClosed),
       netPipsTotal: round1(netPipsClosed + floatingPips),
@@ -600,6 +710,8 @@
     openPosition,
     evaluatePosition,
     buildClosedJournalRecord,
+    readPoiHistoryRecords,
+    computePoiHistoryImpact,
     computeAccountSnapshot,
     formatIdr,
     formatUsd,

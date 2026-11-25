@@ -2804,5 +2804,151 @@ body.amyfx-module--journal .jl-ghost-btn {
   border-color: rgba(220, 38, 38, 0.3) !important;
 }
 
+/* ── Playbook Scorecard & Auto Leak Detector ── */
+.jp-playbook-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.jp-pb-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.5fr) 36px 46px 42px minmax(72px, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--jl-line, rgba(255, 255, 255, 0.07));
+  font-size: 0.78rem;
+}
+
+.jp-pb-row:last-child {
+  border-bottom: 0;
+}
+
+.jp-pb-head {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--jl-muted, #94a3b8);
+  padding-top: 2px;
+  padding-bottom: 6px;
+}
+
+.jp-pb-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.jp-pb-name strong {
+  font-weight: 650;
+  color: var(--jl-text, #f1f5f9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-pb-grade {
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.jp-pb-grade.is-grade-a { background: rgba(34, 197, 94, 0.16); color: #4ade80; }
+.jp-pb-grade.is-grade-b { background: rgba(56, 189, 248, 0.16); color: #38bdf8; }
+.jp-pb-grade.is-grade-c { background: rgba(245, 158, 11, 0.16); color: #fbbf24; }
+.jp-pb-grade.is-grade-d { background: rgba(248, 113, 113, 0.16); color: #f87171; }
+
+.jp-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.jp-auto-leaks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.jp-leak-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--jl-line, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.jp-leak-item.is-high {
+  border-color: rgba(248, 113, 113, 0.32);
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.jp-leak-item.is-medium {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.jp-leak-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.jp-leak-item-top strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--jl-text, #f8fafc);
+}
+
+.jp-leak-cost {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #f87171;
+  white-space: nowrap;
+}
+
+.jp-leak-detail {
+  margin: 0 0 4px;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--jl-muted, #94a3b8);
+}
+
+.jp-leak-action {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--jl-text, #e2e8f0);
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-pb-grade.is-grade-a { background: #dcfce7; color: #15803d; }
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-pb-grade.is-grade-b { background: #e0f2fe; color: #0369a1; }
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-pb-grade.is-grade-c { background: #fef3c7; color: #b45309; }
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-pb-grade.is-grade-d { background: #fee2e2; color: #dc2626; }
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-leak-item.is-high {
+  background: #fef2f2;
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-leak-item.is-medium {
+  background: #fffbeb;
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .jp-leak-cost {
+  color: #dc2626;
+}
+
+
 
 

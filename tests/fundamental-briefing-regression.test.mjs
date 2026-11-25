@@ -8,11 +8,11 @@ const appSource = fs.readFileSync(appPath, 'utf8');
 const stylesPath = new URL('../app/src/main/assets/apps/market-intel/styles.css', import.meta.url);
 const stylesSource = fs.readFileSync(stylesPath, 'utf8');
 
-test('fundamental briefing contains macro event analyzer and institutional briefing sections', () => {
+test('fundamental briefing contains macro event analyzer and institutional Kompas Makro sections', () => {
   assert.match(appSource, /function parseCalendarNumber/);
   assert.match(appSource, /function analyzeMacroEvent/);
-  assert.match(appSource, /briefing-card card-primary card-conclusion/);
-  assert.match(appSource, /Risk Sentiment/);
+  assert.match(appSource, /km-shell/);
+  assert.match(appSource, /KOMPAS MAKRO XAU\/USD/);
   assert.match(appSource, /safe haven/i);
 });
 

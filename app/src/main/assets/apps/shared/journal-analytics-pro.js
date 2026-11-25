@@ -917,6 +917,78 @@
         `;
       })();
 
+      const playbookData = computePlaybookScorecard(entries, {
+        range: uiState.range,
+        unit: activeUnit,
+        defaultBalance,
+        defaultRisk,
+        nowMs: options.nowMs
+      });
+      const autoLeaks = detectTradingLeaks(entries, {
+        range: uiState.range,
+        unit: activeUnit,
+        defaultBalance,
+        defaultRisk,
+        nowMs: options.nowMs
+      });
+
+      const renderPlaybookTable = (rows, emptyMsg) => {
+        if (!rows || !rows.length) {
+          return `<p class="jp-empty-inline">${escapeHtml(emptyMsg)}</p>`;
+        }
+        return `
+          <div class="jp-playbook-table" role="table" aria-label="Playbook Scorecard">
+            <div class="jp-pb-row jp-pb-head" role="row">
+              <span role="columnheader">Pola / Hari</span>
+              <span role="columnheader" class="jp-num">Trade</span>
+              <span role="columnheader" class="jp-num">WR</span>
+              <span role="columnheader" class="jp-num">PF</span>
+              <span role="columnheader" class="jp-num">Net</span>
+            </div>
+            ${rows.slice(0, 7).map((r) => {
+              const tone = r.net > 0 ? "is-pos" : r.net < 0 ? "is-neg" : "is-flat";
+              const pfTxt = formatProfitFactor(r.profitFactor);
+              return `
+                <div class="jp-pb-row" role="row">
+                  <span role="cell" class="jp-pb-name">
+                    <strong>${escapeHtml(r.key)}</strong>
+                    ${r.grade ? `<em class="jp-pb-grade is-grade-${escapeHtml(r.grade.toLowerCase())}">${escapeHtml(r.grade)}</em>` : ""}
+                  </span>
+                  <span role="cell" class="jp-num jp-tabular">${r.total}</span>
+                  <span role="cell" class="jp-num jp-tabular">${r.winRate}%</span>
+                  <span role="cell" class="jp-num jp-tabular">${escapeHtml(pfTxt)}</span>
+                  <span role="cell" class="jp-num jp-tabular ${tone}">${escapeHtml(formatValue(r.net, unit, fmtOpts))}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      };
+
+      const renderAutoLeaksHtml = (items) => {
+        if (!items || !items.length) {
+          return `<p class="jp-empty-inline">Tidak ada kebocoran perilaku berulang terdeteksi pada rentang ini. Pertahankan disiplin eksekusi.</p>`;
+        }
+        return `
+          <div class="jp-auto-leaks">
+            ${items.map((item) => {
+              const costVal = unit === "money" ? item.costMoney : item.costR;
+              const costStr = costVal > 0 ? `-${formatAbsValue(costVal, unit, fmtOpts)}` : `${item.occurrences}×`;
+              return `
+                <article class="jp-leak-item is-${escapeHtml(item.severity)}">
+                  <div class="jp-leak-item-top">
+                    <strong>${escapeHtml(item.title)}</strong>
+                    <span class="jp-leak-cost jp-tabular">${escapeHtml(costStr)}</span>
+                  </div>
+                  <p class="jp-leak-detail">${escapeHtml(item.detail)}</p>
+                  <p class="jp-leak-action">Perbaikan: ${escapeHtml(item.action)}</p>
+                </article>
+              `;
+            }).join("")}
+          </div>
+        `;
+      };
+
       let activePaneHtml = "";
       if (uiState.subtab === "calendar" && hasCalendar) {
         activePaneHtml = `<div class="jp-subtab-pane" data-jp-pane="calendar">${calendarPaneHtml}</div>`;
@@ -926,7 +998,13 @@
             ${briefHtml}
             <div class="jp-ledger-section">
               <div class="jp-panel-head">
-                <h4>Kebocoran &amp; Psikologi <button type="button" class="amy-info-btn" data-info-tip="Menghitung total biaya kerugian dari kesalahan disiplin yang tercatat pada jurnal." aria-label="Info kebocoran" aria-expanded="false">i</button></h4>
+                <h4>Detektor Kebocoran Otomatis <button type="button" class="amy-info-btn" data-info-tip="Mendeteksi otomatis pola Revenge Trade, Overtrade Harian, Sesi Bocor, dan tag kesalahan berulang dari riwayat trade." aria-label="Info detektor kebocoran" aria-expanded="false">i</button></h4>
+              </div>
+              ${renderAutoLeaksHtml(autoLeaks)}
+            </div>
+            <div class="jp-ledger-section">
+              <div class="jp-panel-head">
+                <h4>Biaya Tag Kesalahan &amp; Emosi <button type="button" class="amy-info-btn" data-info-tip="Menghitung total biaya kerugian dari kesalahan disiplin yang tercatat pada jurnal." aria-label="Info kebocoran" aria-expanded="false">i</button></h4>
               </div>
               <div class="jp-rows jp-rows--leaks">
                 ${renderLeakRows(data.breakdowns.byLeak, unit, fmtOpts)}
@@ -940,6 +1018,21 @@
             <div class="jp-split-grid">
               <div class="jp-ledger-section">
                 <div class="jp-panel-head">
+                  <h4>Playbook Scorecard (Setup ICT) <button type="button" class="amy-info-btn" data-info-tip="Rapor Profit Factor, Win Rate, dan Grade (A–D) per pola entry OB, FVG, iFVG, Breaker, atau Sweep." aria-label="Info playbook" aria-expanded="false">i</button></h4>
+                </div>
+                ${renderPlaybookTable(playbookData.byPlaybook, "Belum ada data playbook setup.")}
+              </div>
+
+              <div class="jp-ledger-section">
+                <div class="jp-panel-head">
+                  <h4>Performa per Hari (WITA) <button type="button" class="amy-info-btn" data-info-tip="Distribusi Win Rate dan Net P/L berdasarkan hari trading Senin–Jumat (WITA)." aria-label="Info hari" aria-expanded="false">i</button></h4>
+                </div>
+                ${renderPlaybookTable(playbookData.byWeekday, "Belum ada data hari trading.")}
+              </div>
+            </div>
+            <div class="jp-split-grid">
+              <div class="jp-ledger-section">
+                <div class="jp-panel-head">
                   <h4>Performa per Sesi (WITA) <button type="button" class="amy-info-btn" data-info-tip="Perbandingan hasil eksekusi berdasarkan jendela sesi Asia, London, NY AM, dan NY PM (WITA)." aria-label="Info sesi" aria-expanded="false">i</button></h4>
                 </div>
                 <div class="jp-rows">
@@ -949,7 +1042,7 @@
 
               <div class="jp-ledger-section">
                 <div class="jp-panel-head">
-                  <h4>Performa per Setup ICT <button type="button" class="amy-info-btn" data-info-tip="Konsistensi setiap pola entry. Isi kolom Setup saat mencatat trade agar terkelompok otomatis." aria-label="Info setup" aria-expanded="false">i</button></h4>
+                  <h4>Detail Setup Tertulis <button type="button" class="amy-info-btn" data-info-tip="Konsistensi setiap label setup persis seperti yang ditulis di jurnal." aria-label="Info setup" aria-expanded="false">i</button></h4>
                 </div>
                 <div class="jp-rows">
                   ${renderBreakdownRows(data.breakdowns.bySetup, unit, "Belum ada data setup.", fmtOpts)}
@@ -1371,12 +1464,305 @@
     };
   }
 
+  const WEEKDAY_NAMES_ID = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const WITA_OFFSET_MS = 8 * 3600 * 1000;
+
+  function classifyPlaybookBucket(setupText, titleText) {
+    const combined = `${setupText || ""} ${titleText || ""}`.trim();
+    if (!combined || /^tanpa label setup$/i.test(combined)) return "Lainnya";
+    if (/\bifvg\b|inverse\s*fvg/i.test(combined)) return "iFVG";
+    if (/\bfvg\b|fair\s*value\s*gap|silver\s*bullet/i.test(combined)) return "FVG";
+    if (/\bbreaker\b|\bbb\b/i.test(combined)) return "Breaker";
+    if (/\bsweep\b|turtle\s*soup|liquidity\s*grab|judas/i.test(combined)) return "Sweep";
+    if (/\bob\b|order\s*block|ote\b/i.test(combined)) return "Order Block";
+    if (/\bmss\b|\bbos\b|\bchoch\b/i.test(combined)) return "Struktur MSS/BOS";
+    const clean = String(setupText || "").trim();
+    if (clean && !/^tanpa label setup$/i.test(clean)) {
+      return clean.length > 22 ? clean.slice(0, 21) + "…" : clean;
+    }
+    return "Lainnya";
+  }
+
+  function gradePlaybookBucket(row) {
+    if (!row || row.total < 2) return "";
+    const pf = row.profitFactor;
+    if ((pf === Infinity || pf >= 1.8) && row.winRate >= 55 && row.net > 0) return "A";
+    if ((pf === Infinity || pf >= 1.2) && row.net > 0) return "B";
+    if (row.net >= 0 || (Number.isFinite(pf) && pf >= 0.85)) return "C";
+    return "D";
+  }
+
+  function computePlaybookScorecard(entries, options = {}) {
+    const rawList = Array.isArray(entries) ? entries : [];
+    const range = ["7d", "30d", "90d", "all"].includes(options.range) ? options.range : "all";
+    const nowMs = Number.isFinite(options.nowMs) ? options.nowMs : Date.now();
+    const defaultBalance = Number(options.defaultBalance || 0) > 0 ? Number(options.defaultBalance) : 0;
+    const defaultRisk = Number(options.defaultRisk || 0) > 0 ? Number(options.defaultRisk) : 0;
+
+    const allNormalized = rawList.map((e, i) => normalizeEntry(e, i, { defaultBalance, defaultRisk }));
+    const ranged = filterByRange(allNormalized, range, nowMs);
+    const closed = ranged.filter((item) => item.result !== null);
+
+    const hasAnyMoney = closed.some((item) => item.hasMoney && item.deltaMoney !== 0);
+    const requestedUnit = options.unit || "auto";
+    const unit = requestedUnit === "money" ? "money" : requestedUnit === "r" ? "r" : hasAnyMoney ? "money" : "r";
+
+    const playbookMap = new Map();
+    const weekdayMap = new Map();
+    const sessionMap = new Map();
+
+    const bump = (map, key, item, delta) => {
+      const rec = map.get(key) || {
+        key,
+        total: 0,
+        wins: 0,
+        losses: 0,
+        be: 0,
+        grossProfit: 0,
+        grossLoss: 0,
+        net: 0,
+        netMoney: 0,
+        netR: 0
+      };
+      rec.total += 1;
+      if (item.result === "Win") rec.wins += 1;
+      else if (item.result === "Loss") rec.losses += 1;
+      else rec.be += 1;
+      if (delta > 0) rec.grossProfit += delta;
+      else if (delta < 0) rec.grossLoss += Math.abs(delta);
+      rec.net += delta;
+      rec.netMoney += item.deltaMoney;
+      rec.netR += item.deltaR;
+      map.set(key, rec);
+    };
+
+    for (const item of closed) {
+      const delta = unit === "money" ? item.deltaMoney : item.deltaR;
+      const pbKey = classifyPlaybookBucket(item.setup, item.title);
+      bump(playbookMap, pbKey, item, delta);
+      bump(sessionMap, item.session || "Lainnya", item, delta);
+
+      if (item.timestampMs > 0) {
+        const witaDayIdx = new Date(item.timestampMs + WITA_OFFSET_MS).getUTCDay();
+        bump(weekdayMap, WEEKDAY_NAMES_ID[witaDayIdx] || "Lainnya", item, delta);
+      }
+    }
+
+    const finalize = (map, fixedOrder = null) =>
+      [...map.values()]
+        .map((r) => {
+          const decided = r.wins + r.losses;
+          const winRate = decided > 0 ? +((r.wins / decided) * 100).toFixed(1) : 0;
+          const pf = r.grossLoss > 0 ? +(r.grossProfit / r.grossLoss).toFixed(2) : (r.grossProfit > 0 ? Infinity : 0);
+          const expectancy = r.total > 0 ? +(r.net / r.total).toFixed(2) : 0;
+          const out = {
+            key: r.key,
+            total: r.total,
+            wins: r.wins,
+            losses: r.losses,
+            be: r.be,
+            winRate,
+            profitFactor: pf,
+            expectancy,
+            net: +r.net.toFixed(2),
+            netMoney: +r.netMoney.toFixed(2),
+            netR: +r.netR.toFixed(2)
+          };
+          out.grade = gradePlaybookBucket(out);
+          return out;
+        })
+        .sort((a, b) => {
+          if (fixedOrder) {
+            const ia = fixedOrder.indexOf(a.key);
+            const ib = fixedOrder.indexOf(b.key);
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+          }
+          if (b.net !== a.net) return b.net - a.net;
+          return b.total - a.total;
+        });
+
+    const byPlaybook = finalize(playbookMap);
+    const byWeekday = finalize(weekdayMap, ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]);
+    const bySession = finalize(sessionMap);
+
+    return {
+      unit,
+      closedCount: closed.length,
+      byPlaybook,
+      byWeekday,
+      bySession,
+      bestPlaybook: byPlaybook.find((p) => p.key !== "Lainnya" && p.net > 0) || byPlaybook.find((p) => p.net > 0) || null,
+      worstPlaybook: [...byPlaybook].reverse().find((p) => p.net < 0) || null
+    };
+  }
+
+  function detectTradingLeaks(entries, options = {}) {
+    const rawList = Array.isArray(entries) ? entries : [];
+    const range = ["7d", "30d", "90d", "all"].includes(options.range) ? options.range : "all";
+    const nowMs = Number.isFinite(options.nowMs) ? options.nowMs : Date.now();
+    const defaultBalance = Number(options.defaultBalance || 0) > 0 ? Number(options.defaultBalance) : 0;
+    const defaultRisk = Number(options.defaultRisk || 0) > 0 ? Number(options.defaultRisk) : 0;
+
+    const allNormalized = rawList.map((e, i) => normalizeEntry(e, i, { defaultBalance, defaultRisk }));
+    const ranged = filterByRange(allNormalized, range, nowMs);
+    const closed = ranged
+      .filter((item) => item.result !== null)
+      .sort((a, b) => (a.timestampMs - b.timestampMs) || (a.originalIndex - b.originalIndex));
+
+    if (closed.length < 2) return [];
+
+    const leaks = [];
+
+    // 1. Revenge / Rapid Re-entry (< 25 menit setelah Loss dan berakhir Loss lagi)
+    let revengeCount = 0;
+    let revengeCostMoney = 0;
+    let revengeCostR = 0;
+    for (let i = 1; i < closed.length; i += 1) {
+      const prev = closed[i - 1];
+      const cur = closed[i];
+      if (prev.result !== "Loss" || cur.result !== "Loss") continue;
+      if (prev.timestampMs > 0 && cur.timestampMs > 0) {
+        const diffMin = (cur.timestampMs - prev.timestampMs) / 60000;
+        if (diffMin >= 0 && diffMin <= 25) {
+          revengeCount += 1;
+          revengeCostMoney += Math.abs(Math.min(0, cur.deltaMoney));
+          revengeCostR += Math.abs(Math.min(0, cur.deltaR));
+        }
+      }
+    }
+    if (revengeCount >= 1) {
+      leaks.push({
+        id: "revenge-rapid",
+        severity: "high",
+        title: "Revenge / Re-entry Terlalu Cepat",
+        occurrences: revengeCount,
+        costMoney: +revengeCostMoney.toFixed(2),
+        costR: +revengeCostR.toFixed(2),
+        detail: `Terdeteksi ${revengeCount}× entry ulang dalam ≤25 menit setelah kena SL yang kembali berakhir Loss.`,
+        action: "Terapkan jeda wajib minimal 30 menit (atau tutup chart) setiap kali kena SL sebelum cari setup baru."
+      });
+    }
+
+    // 2. Overtrade Harian (> 4 trade dalam 1 hari WITA dengan hasil bersih negatif)
+    const byDay = new Map();
+    for (const item of closed) {
+      const dayKey = item.dateLabel || (item.timestampMs > 0 ? new Date(item.timestampMs + WITA_OFFSET_MS).toISOString().slice(0, 10) : "");
+      if (!dayKey) continue;
+      const d = byDay.get(dayKey) || { count: 0, netMoney: 0, netR: 0 };
+      d.count += 1;
+      d.netMoney += item.deltaMoney;
+      d.netR += item.deltaR;
+      byDay.set(dayKey, d);
+    }
+    let overtradeDays = 0;
+    let overtradeCostMoney = 0;
+    let overtradeCostR = 0;
+    for (const d of byDay.values()) {
+      if (d.count >= 5 && (d.netMoney < 0 || d.netR < 0)) {
+        overtradeDays += 1;
+        overtradeCostMoney += Math.abs(Math.min(0, d.netMoney));
+        overtradeCostR += Math.abs(Math.min(0, d.netR));
+      }
+    }
+    if (overtradeDays >= 1) {
+      leaks.push({
+        id: "overtrade-day",
+        severity: "high",
+        title: "Overtrade Harian (≥5 Trade/Hari)",
+        occurrences: overtradeDays,
+        costMoney: +overtradeCostMoney.toFixed(2),
+        costR: +overtradeCostR.toFixed(2),
+        detail: `Ada ${overtradeDays} hari dengan ≥5 transaksi yang berakhir minus bersih.`,
+        action: "Batasi maksimal 2–3 setup A+ per hari dan aktifkan Daily Loss Guard (stop setelah 2 SL)."
+      });
+    }
+
+    // 3. Sesi Bocor (sesi >= 3 trade, WR < 40%, net negatif)
+    const sessionBuckets = new Map();
+    for (const item of closed) {
+      const s = item.session || "Lainnya";
+      const rec = sessionBuckets.get(s) || { key: s, total: 0, wins: 0, losses: 0, netMoney: 0, netR: 0 };
+      rec.total += 1;
+      if (item.result === "Win") rec.wins += 1;
+      else if (item.result === "Loss") rec.losses += 1;
+      rec.netMoney += item.deltaMoney;
+      rec.netR += item.deltaR;
+      sessionBuckets.set(s, rec);
+    }
+    for (const rec of sessionBuckets.values()) {
+      const decided = rec.wins + rec.losses;
+      const wr = decided > 0 ? (rec.wins / decided) * 100 : 0;
+      if (rec.total >= 3 && wr < 40 && (rec.netMoney < 0 || rec.netR < 0)) {
+        leaks.push({
+          id: `leaky-session-${rec.key.toLowerCase().replace(/\s+/g, "-")}`,
+          severity: "medium",
+          title: `Sesi Rawan: ${rec.key}`,
+          occurrences: rec.total,
+          costMoney: +Math.abs(Math.min(0, rec.netMoney)).toFixed(2),
+          costR: +Math.abs(Math.min(0, rec.netR)).toFixed(2),
+          detail: `Sesi ${rec.key} mencatat WR ${wr.toFixed(0)}% (${rec.wins}W/${rec.losses}L) dari ${rec.total} trade.`,
+          action: `Kurangi risiko setengahnya di sesi ${rec.key} atau fokuskan eksekusi hanya di Killzone terkuatmu.`
+        });
+      }
+    }
+
+    // 4. Tag Kesalahan Disiplin Berulang (>= 2x dengan dampak rugi)
+    const tagMap = new Map();
+    for (const item of closed) {
+      for (const lk of item.leaks) {
+        const rec = tagMap.get(lk) || { key: lk, count: 0, losses: 0, costMoney: 0, costR: 0 };
+        rec.count += 1;
+        if (item.result === "Loss" || item.deltaMoney < 0 || item.deltaR < 0) {
+          rec.losses += 1;
+          rec.costMoney += Math.abs(Math.min(0, item.deltaMoney));
+          rec.costR += Math.abs(Math.min(0, item.deltaR));
+        }
+        tagMap.set(lk, rec);
+      }
+    }
+    const actionByTag = {
+      "FOMO": "Hanya entry jika harga benar-benar menyentuh zona POI + konfirmasi M5, jangan kejar candle berjalan.",
+      "Pelanggaran SL": "Kunci SL 60–100 pips saat order dipasang dan dilarang menggeser SL menjauh.",
+      "Entry Prematur": "Tunggu candle M5 close terkonfirmasi (MSS/Displacement) sebelum klik Buy/Sell.",
+      "Overtrade": "Patuhi kuota maksimal 2–3 setup per hari dan tutup terminal setelah target tercapai.",
+      "Revenge Trade": "Stop trading otomatis setelah 2 SL beruntun (Daily Loss Guard).",
+      "Fear / Cut Dini": "Gunakan partial TP di TP1 (1:1.5R) lalu geser SL ke BE agar psikologi tetap tenang.",
+      "Greed / Tidak TP": "Pasang order TP1 & TP2 otomatis di MT5 begitu posisi terbuka."
+    };
+    for (const rec of tagMap.values()) {
+      if (rec.count >= 2 && rec.losses >= 1) {
+        leaks.push({
+          id: `repeat-tag-${rec.key.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+          severity: rec.losses >= 3 ? "high" : "medium",
+          title: `Pola Berulang: ${rec.key}`,
+          occurrences: rec.count,
+          costMoney: +rec.costMoney.toFixed(2),
+          costR: +rec.costR.toFixed(2),
+          detail: `Tercatat ${rec.count}× di catatan jurnal (${rec.losses} berakhir rugi).`,
+          action: actionByTag[rec.key] || "Tambahkan checklist pra-entry khusus untuk mencegah kesalahan ini terulang."
+        });
+      }
+    }
+
+    const sevRank = { high: 2, medium: 1 };
+    return leaks.sort((a, b) =>
+      (sevRank[b.severity] - sevRank[a.severity]) ||
+      (b.costMoney - a.costMoney) ||
+      (b.costR - a.costR) ||
+      (b.occurrences - a.occurrences)
+    );
+  }
+
   root.AmyJournalAnalyticsPro = Object.freeze({
     normalizeResult,
     classifySession,
     extractLeaks,
     analyzePro,
     computeWeeklySnapshot,
+    computePlaybookScorecard,
+    detectTradingLeaks,
     mountProAnalytics,
     renderHomeSnapshot,
     formatForAssistant,

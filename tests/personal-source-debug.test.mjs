@@ -45,11 +45,12 @@ test('home storage and clear-data flow are hardened', () => {
   assert.match(source, /await clearPersonalLocalData\(\)/);
 });
 
-test('Market Intel clears stale heatmap visuals and labels backend freshness', () => {
+test('Market Intel clears stale macro visuals and labels backend freshness', () => {
   const source = read('app/src/main/assets/apps/market-intel/app.js');
-  assert.match(source, /clearHeatmapState/);
-  assert.match(source, /payloadIsFresh/);
-  assert.match(source, /SUPABASE_EDGE/);
+  const heatmap = read('app/src/main/assets/apps/market-intel/heatmap-v2.js');
+  assert.match(heatmap, /AmyFXIntel\?\.freshness/);
+  assert.match(source, /_sourceMode/);
+  assert.match(source, /AmyKompasEngine/);
   assert.match(source, /VERCEL_NEWS/);
 });
 

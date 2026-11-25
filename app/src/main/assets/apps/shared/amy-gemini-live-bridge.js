@@ -115,10 +115,13 @@
     const wantsAcademy =
       /\b(academy|akademi|belajar|materi|modul|level \d|level 0|pemula|bab|bagian \d|pelajaran|tutorial|bacaan|progres belajar|kurikulum|glosarium|kamus|istilah|akun cent|mt5|apa itu|jelaskan konsep|pengertian|definisi|cara kerja|bedanya|perbedaan)\b/i.test(q);
 
+    const wantsBriefing = /\b(layak entry|boleh entry|bisa entry|briefing|siap entry|kondisi gold sekarang)\b/i.test(q);
     const wantsAll = /\b(semua menu|semua modul|ringkasan aplikasi|status lengkap|cek semua|briefing lengkap|kondisi hari ini)\b/i.test(q);
 
     if (wantsAll) {
       modules.push('mapping', 'market_intel', 'journal', 'academy', 'practice');
+    } else if (wantsBriefing) {
+      modules.push('mapping', 'market_intel', 'journal');
     } else {
       if (wantsLotCalc) modules.push('risk_calc');
       if (wantsMapping) modules.push('mapping');
@@ -767,6 +770,33 @@
       }
     } catch (_) {}
 
+    // 1b. Live Macro Snapshot (DXY, US10Y, VIX, XAU/XAG SMT)
+    try {
+      let macroSnap = null;
+      try {
+        const mRes = await fetch(getApiBaseUrl() + '/api/macro-snapshot', {
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(4000)
+        });
+        if (mRes.ok) {
+          const parsed = await mRes.json();
+          if (parsed && parsed.quotes) {
+            macroSnap = { ...parsed, _fetchedAt: Date.now() };
+            try { root.localStorage.setItem('amy_macro_snapshot_v1', JSON.stringify(macroSnap)); } catch (_) {}
+          }
+        }
+      } catch (_) {}
+      if (!macroSnap) {
+        try {
+          macroSnap = JSON.parse(root.localStorage.getItem('amy_macro_snapshot_v1') || 'null');
+        } catch (_) {}
+      }
+      const mc = root.AmyLocalAssistant?.macroCompass?.();
+      if (mc && mc.line) {
+        sections.push(`KOMPAS MAKRO XAU/USD (REAL-TIME):\n${mc.line}`);
+      }
+    } catch (_) {}
+
     // 2. Live News Fokus Gold & Kompas
     try {
       const newsRes = await fetch(getApiBaseUrl() + '/api/news', {
@@ -860,6 +890,16 @@
           if (txt) lines.push(txt);
         })
       );
+    }
+
+    if (root.AmyLocalAssistant?.accountPortfolioSummary && (mods.includes('mapping') || mods.includes('journal') || mods.includes('risk_calc'))) {
+      const portTxt = root.AmyLocalAssistant.accountPortfolioSummary();
+      if (portTxt) lines.push(`SALDO AKTIF & RISIKO PROFIL:\n${portTxt}`);
+    }
+
+    if (root.AmyLocalAssistant?.poiBreakdownSummary && (mods.includes('mapping') || mods.includes('journal'))) {
+      const poiTxt = root.AmyLocalAssistant.poiBreakdownSummary();
+      if (poiTxt) lines.push(`PERFORMA RIWAYAT POI (7 HARI):\n${poiTxt}`);
     }
 
     await Promise.allSettled(tasks);
@@ -2222,10 +2262,11 @@
 
     promptsWrap.innerHTML = '';
     [
+      { label: 'Layak Entry?', q: 'Layak entry XAU/USD sekarang? Cek Kompas Makro, Mapping, Saldo Aktif, dan Daily Loss Guard.' },
       { label: 'Chart Gold', q: 'Harga Gold sekarang berapa, di zona Dealing Range apa, dan mana level BSL/SSL serta OB terdekat?' },
       { label: 'Berita & Kalender', q: 'Apa berita fokus Gold terbaru dan jadwal kalender ekonomi USD terdekat?' },
       { label: 'Jurnal & Habits', q: 'Evaluasi performa jurnal trading, win rate, habit disiplin, dan emosi saya' },
-      { label: 'Hitung Lot', q: 'Hitung lot XAU/USD untuk modal $1000 risiko 1% SL 50 pips' },
+      { label: 'Hitung Lot', q: 'Hitung lot XAU/USD untuk modal aktif saya dengan risiko profil SL 70 pips' },
       { label: 'Practice', q: 'Bagaimana skor latihan Trading Practice saya dan apa yang perlu diulang?' }
     ].forEach(item => {
       const b = document.createElement('button');

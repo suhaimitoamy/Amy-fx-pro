@@ -7,16 +7,25 @@
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var FIB_LEVELS = Object.freeze([0, 0.236, 0.382, 0.5, 0.618, 0.705, 0.786, 1]);
   var COLORS = Object.freeze({
-    horizontal: '#9ca3af', horizontalRay: '#94a3b8', trend: '#60a5fa', parallelChannel: '#38bdf8',
+    horizontal: '#9ca3af', horizontalRay: '#94a3b8', vertical: '#94a3b8', trend: '#60a5fa', parallelChannel: '#38bdf8',
     fibonacci: '#f59e0b', longPosition: '#22c55e', shortPosition: '#ef4444', priceRange: '#facc15',
-    rectangle: '#a78bfa', arrow: '#60a5fa', path: '#e2e8f0', circle: '#c084fc', text: '#f8fafc',
-    note: '#fbbf24', priceNote: '#fbbf24', entry: '#facc15', stop: '#ef4444', target: '#22c55e'
+    datePriceRange: '#38bdf8', rectangle: '#a78bfa', arrow: '#60a5fa', path: '#e2e8f0', circle: '#c084fc', text: '#f8fafc',
+    note: '#fbbf24', priceNote: '#fbbf24', entry: '#facc15', stop: '#ef4444', target: '#22c55e', measure: '#38bdf8'
   });
   var TOOL_LABELS = Object.freeze({
-    horizontal: 'Garis Horizontal', horizontalRay: 'Sinar Horizontal', trend: 'Trend Line', parallelChannel: 'Kanal Paralel',
+    horizontal: 'Garis Horizontal', horizontalRay: 'Sinar Horizontal', vertical: 'Garis Vertikal', trend: 'Trend Line', parallelChannel: 'Kanal Paralel',
     fibonacci: 'Fibonacci Retracement', longPosition: 'Posisi Pembelian', shortPosition: 'Posisi Penjualan', priceRange: 'Rentang Harga',
-    rectangle: 'Rectangle', arrow: 'Panah', path: 'Path / Free Line', circle: 'Lingkaran', text: 'Teks', note: 'Catatan',
-    priceNote: 'Catatan Harga', entry: 'Entry', stop: 'Stop', target: 'Target', select: 'Pilih / Edit'
+    datePriceRange: 'Rentang Harga & Waktu', rectangle: 'Rectangle', arrow: 'Panah', path: 'Path / Free Line', circle: 'Lingkaran', text: 'Teks', note: 'Catatan',
+    priceNote: 'Catatan Harga', entry: 'Entry', stop: 'Stop', target: 'Target', select: 'Pilih / Edit', measure: 'Pengukur (Ruler)'
+  });
+  var INDICATOR_META = Object.freeze({
+    ema20: { color: '#38bdf8', width: 1.6, style: 0 },
+    ema50: { color: '#f59e0b', width: 1.7, style: 0 },
+    ema200: { color: '#a855f7', width: 2, style: 0 },
+    vwap: { color: '#f472b6', width: 1.8, style: 2 },
+    bbUpper: { color: '#64748b', width: 1.2, style: 2 },
+    bbMiddle: { color: '#94a3b8', width: 1.1, style: 1 },
+    bbLower: { color: '#64748b', width: 1.2, style: 2 }
   });
 
   function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
@@ -64,10 +73,23 @@
     this.candles = [];
     this.priceLines = [];
     this.ictPriceLines = [];
+    this.lastTradeLevels = [];
+    this.lastIctLevels = [];
     this.studyZone = null;
+    this.chartStyle = options.chartStyle || 'candles';
+    this.priceScaleMode = 'normal';
+    this.magnetMode = 'off';
+    this.drawingsLocked = false;
+    this.drawingsHidden = false;
+    this.indicators = { ema20: false, ema50: false, ema200: false, vwap: false, bb: false, sessions: false };
+    this.indicatorSeries = {};
+    this.measureBox = null;
+    this.cutMode = null;
+    this.watermarkText = options.watermarkText || '';
     this.onCrosshair = typeof options.onCrosshair === 'function' ? options.onCrosshair : function () {};
     this.onChartTap = typeof options.onChartTap === 'function' ? options.onChartTap : function () {};
     this.onDrawingState = typeof options.onDrawingState === 'function' ? options.onDrawingState : function () {};
+    this.onCutModeChange = typeof options.onCutModeChange === 'function' ? options.onCutModeChange : function () {};
 
     container.classList.add('practice-chart-shell');
     this.host = document.createElement('div');
@@ -130,12 +152,7 @@
         priceFormatter: function (price) { return Number.isFinite(Number(price)) ? Number(price).toFixed(2) : '—'; }
       }
     });
-    this.series = this.chart.addCandlestickSeries({
-      upColor: isLight ? '#0d9488' : '#2dd4bf', downColor: isLight ? '#e11d48' : '#fb7185', borderVisible: false,
-      wickUpColor: isLight ? '#0d9488' : '#2dd4bf', wickDownColor: isLight ? '#e11d48' : '#fb7185',
-      lastValueVisible: true, priceLineVisible: true,
-      priceFormat: { type: 'price', precision: 2, minMove: 0.01 }
-    });
+    this.series = this.createMainSeries(this.chartStyle, isLight);
 
     this.handleCrosshair = this.handleCrosshair.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -182,6 +199,309 @@
     this.notify('Pilih alat gambar untuk mulai.');
   }
 
+  CandleChart.prototype.createMainSeries = function (style, isLight) {
+    var up = isLight ? '#0d9488' : '#2dd4bf';
+    var down = isLight ? '#e11d48' : '#fb7185';
+    var bg = isLight ? '#ffffff' : '#0b111a';
+    var pf = { type: 'price', precision: 2, minMove: 0.01 };
+    var mode = String(style || 'candles').toLowerCase();
+
+    if (mode === 'hollow') {
+      return this.chart.addCandlestickSeries({
+        upColor: bg, downColor: down, borderVisible: true,
+        borderUpColor: up, borderDownColor: down,
+        wickUpColor: up, wickDownColor: down,
+        lastValueVisible: true, priceLineVisible: true, priceFormat: pf
+      });
+    }
+    if (mode === 'bars' && typeof this.chart.addBarSeries === 'function') {
+      return this.chart.addBarSeries({
+        upColor: up, downColor: down, thinBars: false,
+        lastValueVisible: true, priceLineVisible: true, priceFormat: pf
+      });
+    }
+    if (mode === 'line' && typeof this.chart.addLineSeries === 'function') {
+      return this.chart.addLineSeries({
+        color: isLight ? '#b45309' : '#facc15', lineWidth: 2,
+        lastValueVisible: true, priceLineVisible: true, priceFormat: pf
+      });
+    }
+    if (mode === 'area' && typeof this.chart.addAreaSeries === 'function') {
+      return this.chart.addAreaSeries({
+        lineColor: isLight ? '#0d9488' : '#2dd4bf',
+        topColor: isLight ? 'rgba(13, 148, 136, 0.28)' : 'rgba(45, 212, 191, 0.26)',
+        bottomColor: isLight ? 'rgba(13, 148, 136, 0.02)' : 'rgba(45, 212, 191, 0.02)',
+        lineWidth: 2, lastValueVisible: true, priceLineVisible: true, priceFormat: pf
+      });
+    }
+    return this.chart.addCandlestickSeries({
+      upColor: up, downColor: down, borderVisible: false,
+      wickUpColor: up, wickDownColor: down,
+      lastValueVisible: true, priceLineVisible: true, priceFormat: pf
+    });
+  };
+
+  CandleChart.prototype.formatSeriesPoint = function (bar) {
+    if (this.chartStyle === 'line' || this.chartStyle === 'area') {
+      return { time: bar.time, value: bar.close };
+    }
+    return bar;
+  };
+
+  CandleChart.prototype.setChartStyle = function (style) {
+    var next = ['candles', 'hollow', 'bars', 'line', 'area'].indexOf(String(style || '').toLowerCase()) >= 0
+      ? String(style).toLowerCase()
+      : 'candles';
+    if (next === this.chartStyle && this.series) return;
+    var range = this.chart.timeScale().getVisibleLogicalRange ? this.chart.timeScale().getVisibleLogicalRange() : null;
+    if (this.series) {
+      try { this.chart.removeSeries(this.series); } catch (_) {}
+    }
+    this.chartStyle = next;
+    var isLight = typeof document !== 'undefined' && document.documentElement.dataset.amyfxTheme === 'light';
+    this.series = this.createMainSeries(next, isLight);
+    if (this.candles.length) {
+      this.series.setData(this.candles.map(this.formatSeriesPoint.bind(this)));
+    }
+    if (range && this.chart.timeScale().setVisibleLogicalRange) {
+      this.chart.timeScale().setVisibleLogicalRange(range);
+    }
+    this.setPriceScaleMode(this.priceScaleMode);
+    this.setTradeLevels(this.lastTradeLevels);
+    this.setIctLevels(this.lastIctLevels);
+    this.syncIndicatorSeries();
+    this.renderDrawings();
+    this.notify('Tipe chart diubah ke ' + next.toUpperCase() + '.');
+  };
+
+  CandleChart.prototype.setPriceScaleMode = function (mode) {
+    var normalized = ['normal', 'log', 'percent'].indexOf(String(mode || '').toLowerCase()) >= 0
+      ? String(mode).toLowerCase()
+      : 'normal';
+    this.priceScaleMode = normalized;
+    var modes = root.LightweightCharts && root.LightweightCharts.PriceScaleMode;
+    if (!modes || !this.chart) return;
+    var lwMode = normalized === 'log' ? modes.Logarithmic : (normalized === 'percent' ? modes.Percentage : modes.Normal);
+    this.chart.applyOptions({ rightPriceScale: { mode: lwMode } });
+    this.scheduleDrawingSync();
+  };
+
+  CandleChart.prototype.resetChartScale = function () {
+    if (!this.chart) return;
+    this.chart.applyOptions({ rightPriceScale: { autoScale: true } });
+    this.chart.timeScale().fitContent();
+    this.scheduleDrawingSync();
+    this.notify('Skala harga & waktu di-reset (Auto).');
+  };
+
+  CandleChart.prototype.setWatermark = function (text) {
+    this.watermarkText = String(text || '').trim();
+    this.scheduleDrawingSync();
+  };
+
+  CandleChart.prototype.setMagnetMode = function (mode) {
+    var next = ['off', 'weak', 'strong'].indexOf(String(mode || '').toLowerCase()) >= 0
+      ? String(mode).toLowerCase()
+      : 'off';
+    this.magnetMode = next;
+    this.notify('Magnet OHLC: ' + (next === 'off' ? 'Mati' : (next === 'weak' ? 'Lemah (Snap dekat)' : 'Kuat (Selalu snap OHLC)')));
+  };
+
+  CandleChart.prototype.setStayInDrawingMode = function (enabled) {
+    this.stayInDrawingMode = Boolean(enabled);
+    this.notify(this.stayInDrawingMode ? 'Mode Tetap Menggambar aktif.' : 'Mode Tetap Menggambar mati.');
+  };
+
+  CandleChart.prototype.setDrawingsLocked = function (locked) {
+    this.drawingsLocked = Boolean(locked);
+    this.renderDrawings();
+    this.notify(this.drawingsLocked ? 'Semua objek gambar dikunci.' : 'Kunci objek gambar dibuka.');
+  };
+
+  CandleChart.prototype.setDrawingsHidden = function (hidden) {
+    this.drawingsHidden = Boolean(hidden);
+    if (this.drawingsHidden) this.selectedId = null;
+    this.renderDrawings();
+    this.notify(this.drawingsHidden ? 'Semua objek gambar disembunyikan.' : 'Objek gambar ditampilkan kembali.');
+  };
+
+  CandleChart.prototype.toggleDrawingVisibility = function (id) {
+    var d = this.drawings.find(function (item) { return item.id === id; });
+    if (!d) return;
+    this.remember();
+    d.visible = d.visible === false;
+    if (d.visible === false && this.selectedId === id) this.selectedId = null;
+    this.saveDrawings();
+    this.renderDrawings();
+    this.notify(d.visible ? 'Objek ditampilkan.' : 'Objek disembunyikan.');
+  };
+
+  CandleChart.prototype.toggleDrawingLock = function (id) {
+    var d = this.drawings.find(function (item) { return item.id === id; });
+    if (!d) return;
+    this.remember();
+    d.locked = !d.locked;
+    this.saveDrawings();
+    this.renderDrawings();
+    this.notify(d.locked ? 'Objek dikunci.' : 'Kunci objek dibuka.');
+  };
+
+  CandleChart.prototype.deleteDrawingById = function (id) {
+    var exists = this.drawings.some(function (item) { return item.id === id; });
+    if (!exists) return false;
+    this.remember();
+    this.drawings = this.drawings.filter(function (item) { return item.id !== id; });
+    if (this.selectedId === id) this.selectedId = null;
+    this.saveDrawings();
+    this.renderDrawings();
+    this.notify('Objek dihapus.');
+    return true;
+  };
+
+  CandleChart.prototype.getSelectedDrawing = function () {
+    var id = this.selectedId;
+    if (!id) return null;
+    return this.drawings.find(function (item) { return item.id === id; }) || null;
+  };
+
+  CandleChart.prototype.setIndicators = function (patch) {
+    this.indicators = Object.assign({}, this.indicators, patch || {});
+    this.syncIndicatorSeries();
+    this.renderDrawings();
+  };
+
+  CandleChart.prototype.syncIndicatorSeries = function () {
+    var indApi = root.AmyReplayIndicators;
+    if (!indApi || !this.chart) return;
+    var active = this.indicators || {};
+    var candles = this.candles || [];
+    var dataMap = {};
+
+    if (active.ema20) dataMap.ema20 = indApi.computeEMA(candles, 20);
+    if (active.ema50) dataMap.ema50 = indApi.computeEMA(candles, 50);
+    if (active.ema200) dataMap.ema200 = indApi.computeEMA(candles, 200);
+    if (active.vwap) dataMap.vwap = indApi.computeIntradayVWAP(candles);
+    if (active.bb) {
+      var bb = indApi.computeBollingerBands(candles, 20, 2);
+      dataMap.bbUpper = bb.upper;
+      dataMap.bbMiddle = bb.middle;
+      dataMap.bbLower = bb.lower;
+    }
+
+    var self = this;
+    Object.keys(INDICATOR_META).forEach(function (key) {
+      var points = dataMap[key];
+      if (!points) {
+        if (self.indicatorSeries[key]) {
+          try { self.chart.removeSeries(self.indicatorSeries[key]); } catch (_) {}
+          delete self.indicatorSeries[key];
+        }
+        return;
+      }
+      if (!self.indicatorSeries[key]) {
+        var meta = INDICATOR_META[key];
+        self.indicatorSeries[key] = self.chart.addLineSeries({
+          color: meta.color,
+          lineWidth: meta.width,
+          lineStyle: meta.style,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false
+        });
+      }
+      self.indicatorSeries[key].setData(points);
+    });
+  };
+
+  CandleChart.prototype.setCutMode = function (enabled, fullCandles, onSelect) {
+    if (!enabled) {
+      if (!this.cutMode) return;
+      var saved = this.cutMode.savedCandles;
+      var savedFollow = this.cutMode.savedFollow;
+      this.cutMode = null;
+      this.overlay.classList.remove('is-cutting');
+      this.followReplay = savedFollow;
+      if (Array.isArray(saved) && saved.length) {
+        this.setCandles(saved, false);
+      }
+      this.setTool(null);
+      this.onCutModeChange(false);
+      this.renderDrawings();
+      return;
+    }
+    var full = Array.isArray(fullCandles) && fullCandles.length ? fullCandles : this.candles.slice();
+    this.cutMode = {
+      active: true,
+      savedCandles: this.candles.slice(),
+      savedFollow: this.followReplay,
+      fullCandles: full,
+      hoverX: null,
+      hoverBar: null,
+      onSelect: typeof onSelect === 'function' ? onSelect : function () {}
+    };
+    this.selectedId = null;
+    this.activeTool = null;
+    this.measureBox = null;
+    this.setCandles(full, true);
+    this.overlay.classList.remove('is-panning', 'is-drawing', 'is-selecting');
+    this.overlay.classList.add('is-cutting');
+    this.overlay.setAttribute('aria-hidden', 'false');
+    this.onCutModeChange(true);
+    this.renderDrawings();
+    this.notify('Mode Potong Bar aktif: klik candle mana saja untuk memulai Replay dari titik tersebut (Esc untuk batal).');
+  };
+
+  CandleChart.prototype.exportSnapshotDataUrl = function (metaLabel) {
+    var w = Math.max(300, this.container.clientWidth || 800);
+    var h = Math.max(240, this.container.clientHeight || 480);
+    var dpr = Math.min(2, root.devicePixelRatio || 1);
+    var out = document.createElement('canvas');
+    out.width = Math.round(w * dpr);
+    out.height = Math.round(h * dpr);
+    var ctx = out.getContext('2d');
+    if (!ctx) return null;
+    ctx.scale(dpr, dpr);
+
+    var isLight = typeof document !== 'undefined' && document.documentElement.dataset.amyfxTheme === 'light';
+    ctx.fillStyle = isLight ? '#ffffff' : '#0b111a';
+    ctx.fillRect(0, 0, w, h);
+
+    var containerRect = this.container.getBoundingClientRect();
+    var canvases = this.host.querySelectorAll('canvas');
+    canvases.forEach(function (cv) {
+      try {
+        var r = cv.getBoundingClientRect();
+        ctx.drawImage(cv, r.left - containerRect.left, r.top - containerRect.top, r.width, r.height);
+      } catch (_) {}
+    });
+
+    // Stamp subtle header label
+    ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.72)' : 'rgba(248, 250, 252, 0.78)';
+    ctx.font = '700 12px Inter, system-ui, sans-serif';
+    ctx.fillText(String(metaLabel || 'Amy FX Backtest Replay · XAU/USD'), 12, 20);
+
+    return new Promise(function (resolve) {
+      try {
+        var svgData = new XMLSerializer().serializeToString(this.overlay);
+        var blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var img = new Image();
+        img.onload = function () {
+          try { ctx.drawImage(img, 0, 0, this.plotWidth(), this.plotHeight()); } catch (_) {}
+          URL.revokeObjectURL(url);
+          try { resolve(out.toDataURL('image/png')); } catch (_) { resolve(null); }
+        }.bind(this);
+        img.onerror = function () {
+          URL.revokeObjectURL(url);
+          try { resolve(out.toDataURL('image/png')); } catch (_) { resolve(null); }
+        };
+        img.src = url;
+      } catch (_) {
+        try { resolve(out.toDataURL('image/png')); } catch (__) { resolve(null); }
+      }
+    }.bind(this));
+  };
+
   CandleChart.prototype.applyTheme = function (theme) {
     var isLight = String(theme || '').toLowerCase() === 'light';
     if (this.chart) {
@@ -199,13 +519,22 @@
       });
     }
     if (this.series) {
-      this.series.applyOptions({
-        upColor: isLight ? '#0d9488' : '#2dd4bf',
-        downColor: isLight ? '#e11d48' : '#fb7185',
-        wickUpColor: isLight ? '#0d9488' : '#2dd4bf',
-        wickDownColor: isLight ? '#e11d48' : '#fb7185'
-      });
+      var up = isLight ? '#0d9488' : '#2dd4bf';
+      var down = isLight ? '#e11d48' : '#fb7185';
+      var bg = isLight ? '#ffffff' : '#0b111a';
+      if (this.chartStyle === 'hollow') {
+        this.series.applyOptions({ upColor: bg, downColor: down, borderUpColor: up, borderDownColor: down, wickUpColor: up, wickDownColor: down });
+      } else if (this.chartStyle === 'line') {
+        this.series.applyOptions({ color: isLight ? '#b45309' : '#facc15' });
+      } else if (this.chartStyle === 'area') {
+        this.series.applyOptions({ lineColor: up });
+      } else if (this.chartStyle === 'bars') {
+        this.series.applyOptions({ upColor: up, downColor: down });
+      } else {
+        this.series.applyOptions({ upColor: up, downColor: down, wickUpColor: up, wickDownColor: down });
+      }
     }
+    this.scheduleDrawingSync();
   };
 
   CandleChart.prototype.loadDrawings = function () {
@@ -232,9 +561,16 @@
     this.onDrawingState({
       activeTool: this.activeTool,
       selectedId: this.selectedId,
+      selectedDrawing: this.getSelectedDrawing(),
       count: this.drawings.length,
       followReplay: this.followReplay,
       stayInDrawingMode: this.stayInDrawingMode,
+      magnetMode: this.magnetMode,
+      drawingsLocked: this.drawingsLocked,
+      drawingsHidden: this.drawingsHidden,
+      chartStyle: this.chartStyle,
+      priceScaleMode: this.priceScaleMode,
+      cutMode: Boolean(this.cutMode && this.cutMode.active),
       message: String(message || '')
     });
   };
@@ -318,8 +654,9 @@
     }
     this.candles = safe;
     if (incremental) {
-      for (var j = previous.length - 1; j < safe.length; j += 1) this.series.update(safe[j]);
-    } else this.series.setData(safe);
+      for (var j = previous.length - 1; j < safe.length; j += 1) this.series.update(this.formatSeriesPoint(safe[j]));
+    } else this.series.setData(safe.map(this.formatSeriesPoint.bind(this)));
+    this.syncIndicatorSeries();
     if (fit !== false && safe.length) scale.fitContent();
     else if (!incremental && range && scale.setVisibleLogicalRange) {
       // setData on rewind can shift even with shiftVisibleRangeOnNewBar=false.
@@ -402,13 +739,17 @@
     if (last && value.time < last.time) return;
     if (last && value.time === last.time) this.candles[this.candles.length - 1] = value;
     else this.candles.push(value);
-    this.series.update(value);
+    this.series.update(this.formatSeriesPoint(value));
+    this.syncIndicatorSeries();
     this.syncOverlaySize();
     this.renderDrawings();
   };
 
   CandleChart.prototype.setTool = function (tool) {
-    var requested = tool === 'select' ? 'select' : this.model.normalizeType(tool);
+    if (this.cutMode && this.cutMode.active && tool !== null) {
+      this.setCutMode(false);
+    }
+    var requested = (tool === 'select' || tool === 'measure') ? tool : this.model.normalizeType(tool);
     this.activeTool = requested || null;
     this.tapAnchor = null;
     this.gestureStart = null;
@@ -417,12 +758,13 @@
     this.draftPath = null;
     this.dragState = null;
     this.gesturePointerId = null;
+    if (this.activeTool !== 'measure') this.measureBox = null;
     this.flushPendingCandles();
     if (this.activeTool !== 'select') this.selectedId = null;
-    this.overlay.classList.toggle('is-panning', !this.activeTool);
+    this.overlay.classList.toggle('is-panning', !this.activeTool && !(this.cutMode && this.cutMode.active));
     this.overlay.classList.toggle('is-drawing', Boolean(this.activeTool && this.activeTool !== 'select'));
     this.overlay.classList.toggle('is-selecting', this.activeTool === 'select');
-    this.overlay.setAttribute('aria-hidden', this.activeTool ? 'false' : 'true');
+    this.overlay.setAttribute('aria-hidden', (this.activeTool || (this.cutMode && this.cutMode.active)) ? 'false' : 'true');
     this.renderDrawings();
     this.notify(this.activeTool ? (TOOL_LABELS[this.activeTool] + ' aktif.') : 'Gesture chart aktif.');
   };
@@ -574,7 +916,27 @@
     if (time == null || price == null) return null;
     if (typeof time === 'object') time = Date.UTC(time.year, time.month - 1, time.day) / 1000;
     if (this.drawingTimeBoundary != null && !this.options.allowDrawingProjection) time = Math.min(Number(time), this.drawingTimeBoundary);
-    return { time: Number(time), price: Number(price), x: x, y: y };
+    var pt = { time: Number(time), price: Number(price), x: x, y: y, snapped: false };
+    var useMagnet = this.magnetMode && this.magnetMode !== 'off' && !(this.cutMode && this.cutMode.active) && this.activeTool && this.activeTool !== 'select' && root.AmyReplayIndicators;
+    if (useMagnet && this.candles.length) {
+      var topPx = this.series.coordinateToPrice(Math.max(0, y - 18));
+      var botPx = this.series.coordinateToPrice(Math.min(this.plotHeight(), y + 18));
+      var tol = (topPx != null && botPx != null) ? Math.abs(Number(topPx) - Number(botPx)) : 2.5;
+      var snapped = root.AmyReplayIndicators.snapPointToCandleOHLC(pt, this.candles, this.magnetMode, tol);
+      if (snapped && snapped.snapped) {
+        var sx = this.timeToX(snapped.time);
+        var sy = this.series.priceToCoordinate(snapped.price);
+        pt = {
+          time: snapped.time,
+          price: snapped.price,
+          x: sx != null ? Number(sx) : x,
+          y: sy != null ? Number(sy) : y,
+          snapped: true,
+          ohlcKey: snapped.ohlcKey
+        };
+      }
+    }
+    return pt;
   };
 
   CandleChart.prototype.svgElement = function (name, attributes) {
@@ -666,6 +1028,15 @@
         'stroke-dasharray': drawing.type === 'horizontal' ? '6 5' : 'none'
       });
       this.appendLabel(group, width - 90, a.y, (TOOL_LABELS[drawing.type] || 'Harga') + ' ' + priceText(domain[0].price), { stroke: color, color: color });
+    } else if (drawing.type === 'vertical') {
+      var h = this.plotHeight();
+      this.appendLine(group, { x: a.x, y: 0 }, { x: a.x, y: h }, {
+        stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': '5 4'
+      });
+      var vTimeLabel = root.AmyPracticeCore && root.AmyPracticeCore.formatWita
+        ? root.AmyPracticeCore.formatWita(domain[0].time, true)
+        : new Date(domain[0].time * 1000).toISOString().slice(5, 16).replace('T', ' ');
+      this.appendLabel(group, a.x + 6, h - 18, vTimeLabel, { stroke: color, color: color });
     } else if (drawing.type === 'horizontalRay') {
       this.appendLine(group, a, { x: width, y: a.y }, { stroke: color, 'stroke-width': 2, 'stroke-dasharray': '7 4' });
       this.appendLabel(group, a.x + 7, a.y - 13, 'Ray ' + priceText(domain[0].price), { stroke: color });
@@ -686,6 +1057,25 @@
         x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.max(1, Math.abs(a.x - b.x)), height: Math.max(1, Math.abs(a.y - b.y)),
         fill: 'none', stroke: 'transparent', 'stroke-width': 20, 'pointer-events': 'stroke', class: 'practice-drawing-hit'
       }));
+    } else if (drawing.type === 'datePriceRange' && b) {
+      var rx = Math.min(a.x, b.x);
+      var ry = Math.min(a.y, b.y);
+      var rw = Math.max(2, Math.abs(a.x - b.x));
+      var rh = Math.max(2, Math.abs(a.y - b.y));
+      var stats = root.AmyReplayIndicators
+        ? root.AmyReplayIndicators.computeMeasureStats(domain[0], domain[1], this.candles, this.options.timeframeSeconds)
+        : null;
+      var boxColor = style.color || (stats && !stats.bullish ? '#fb7185' : '#38bdf8');
+      group.appendChild(this.svgElement('rect', {
+        x: rx, y: ry, width: rw, height: rh, rx: 3,
+        fill: boxColor, 'fill-opacity': .14, stroke: boxColor, 'stroke-width': 1.5, 'pointer-events': 'all', class: 'practice-drawing-hit'
+      }));
+      if (stats) {
+        var sign = stats.deltaPrice >= 0 ? '+' : '';
+        var topTxt = sign + priceText(stats.deltaPrice) + ' (' + sign + stats.pips.toFixed(1) + 'p · ' + sign + stats.pct.toFixed(2) + '%)';
+        var botTxt = stats.bars + ' bar · ' + stats.durationLabel;
+        this.appendLabel(group, rx + 4, ry > 28 ? ry - 14 : ry + rh + 14, topTxt + ' | ' + botTxt, { stroke: boxColor, color: boxColor });
+      }
     } else if (drawing.type === 'circle' && b) {
       group.appendChild(this.svgElement('ellipse', {
         cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, rx: Math.max(2, Math.abs(a.x - b.x) / 2), ry: Math.max(2, Math.abs(a.y - b.y) / 2),
@@ -746,10 +1136,14 @@
       this.appendLine(group, a, { x: width, y: a.y }, { stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '4 4' });
       this.appendLabel(group, a.x + 7, a.y, (drawing.text || 'Harga') + ' · ' + priceText(domain[0].price), { stroke: color, color: color });
     }
+    var dashPattern = style.lineStyle === 'dashed' ? '7 5' : (style.lineStyle === 'dotted' ? '2 4' : null);
     group.querySelectorAll('[stroke]').forEach(function (element) {
       if (element.getAttribute('stroke') === 'transparent' || element.getAttribute('stroke') === 'none') return;
       element.setAttribute('stroke-width', style.width);
       if (style.color) element.setAttribute('stroke', style.color);
+      if (dashPattern && (element.tagName === 'line' || element.tagName === 'polyline' || element.tagName === 'rect' || element.tagName === 'ellipse')) {
+        element.setAttribute('stroke-dasharray', dashPattern);
+      }
     });
     group.setAttribute('opacity', style.opacity);
     return group;
@@ -797,6 +1191,130 @@
     });
   };
 
+  CandleChart.prototype.renderWatermark = function () {
+    if (!this.watermarkText) return;
+    var w = this.plotWidth();
+    var h = this.plotHeight();
+    var isLight = typeof document !== 'undefined' && document.documentElement.dataset.amyfxTheme === 'light';
+    var txt = this.svgElement('text', {
+      x: w / 2, y: h / 2 + 8,
+      'text-anchor': 'middle',
+      fill: isLight ? 'rgba(15, 23, 42, 0.055)' : 'rgba(226, 232, 240, 0.055)',
+      'font-size': Math.max(20, Math.min(44, Math.round(w * 0.055))),
+      'font-weight': 800,
+      'letter-spacing': '0.08em',
+      'font-family': 'Inter, system-ui, sans-serif',
+      'pointer-events': 'none'
+    });
+    txt.textContent = this.watermarkText;
+    this.overlay.appendChild(txt);
+  };
+
+  CandleChart.prototype.renderSessionBands = function () {
+    if (!this.indicators || !this.indicators.sessions || !root.AmyReplayIndicators || !this.candles.length) return;
+    var bands = root.AmyReplayIndicators.computeSessionBands(this.candles);
+    var h = this.plotHeight();
+    var w = this.plotWidth();
+    var colors = {
+      Asia: 'rgba(56, 189, 248, 0.07)',
+      London: 'rgba(245, 158, 11, 0.075)',
+      'New York': 'rgba(45, 212, 191, 0.075)'
+    };
+    var strokes = { Asia: '#38bdf8', London: '#f59e0b', 'New York': '#2dd4bf' };
+    var group = this.svgElement('g', { class: 'practice-session-bands', 'pointer-events': 'none' });
+    var self = this;
+    bands.forEach(function (band) {
+      var x1 = self.timeToX(band.startTime);
+      var x2 = self.timeToX(band.endTime);
+      if (x1 == null && x2 == null) return;
+      var left = Math.max(0, x1 != null ? x1 : 0);
+      var right = Math.min(w, x2 != null ? x2 + 6 : w);
+      var bw = right - left;
+      if (bw < 3) return;
+      group.appendChild(self.svgElement('rect', {
+        x: left, y: 0, width: bw, height: h,
+        fill: colors[band.session] || 'rgba(148,163,184,0.05)'
+      }));
+      if (bw >= 34) {
+        var lbl = self.svgElement('text', {
+          x: left + 5, y: 14, fill: strokes[band.session] || '#94a3b8',
+          'font-size': 9.5, 'font-weight': 700, 'fill-opacity': 0.72,
+          'font-family': 'Inter, sans-serif', 'pointer-events': 'none'
+        });
+        lbl.textContent = band.session === 'New York' ? 'NY' : band.session.toUpperCase();
+        group.appendChild(lbl);
+      }
+    });
+    this.overlay.appendChild(group);
+  };
+
+  CandleChart.prototype.renderMeasureBox = function () {
+    if (!this.measureBox || !this.measureBox.a || !this.measureBox.b) return;
+    var a = this.screenPoint(this.measureBox.a);
+    var b = this.screenPoint(this.measureBox.b);
+    if (!a || !b) return;
+    var stats = root.AmyReplayIndicators
+      ? root.AmyReplayIndicators.computeMeasureStats(this.measureBox.a, this.measureBox.b, this.candles, this.options.timeframeSeconds)
+      : null;
+    var bullish = stats ? stats.bullish : (this.measureBox.b.price >= this.measureBox.a.price);
+    var col = bullish ? '#38bdf8' : '#fb7185';
+    var fill = bullish ? 'rgba(56, 189, 248, 0.16)' : 'rgba(251, 113, 133, 0.16)';
+    var x = Math.min(a.x, b.x);
+    var y = Math.min(a.y, b.y);
+    var w = Math.max(2, Math.abs(b.x - a.x));
+    var h = Math.max(2, Math.abs(b.y - a.y));
+    var group = this.svgElement('g', { class: 'practice-measure-box', 'pointer-events': 'none' });
+    group.appendChild(this.svgElement('rect', {
+      x: x, y: y, width: w, height: h, rx: 3, fill: fill, stroke: col, 'stroke-width': 1.4
+    }));
+    group.appendChild(this.svgElement('line', {
+      x1: a.x, y1: y + h / 2, x2: b.x, y2: y + h / 2, stroke: col, 'stroke-width': 1.1, 'stroke-dasharray': '4 3'
+    }));
+    group.appendChild(this.svgElement('line', {
+      x1: x + w / 2, y1: a.y, x2: x + w / 2, y2: b.y, stroke: col, 'stroke-width': 1.1, 'stroke-dasharray': '4 3'
+    }));
+    if (stats) {
+      var sign = stats.deltaPrice >= 0 ? '+' : '';
+      var line1 = sign + priceText(stats.deltaPrice) + ' (' + sign + stats.pips.toFixed(1) + ' pips · ' + sign + stats.pct.toFixed(2) + '%)';
+      var line2 = stats.bars + ' bar · ' + stats.durationLabel;
+      var labelY = bullish ? Math.max(28, y - 16) : Math.min(this.plotHeight() - 16, y + h + 16);
+      this.appendLabel(group, x + w / 2 - 90, labelY, line1 + '  |  ' + line2, {
+        stroke: col, color: '#f8fafc', background: bullish ? 'rgba(12, 74, 110, 0.94)' : 'rgba(136, 19, 55, 0.94)'
+      });
+    }
+    this.overlay.appendChild(group);
+  };
+
+  CandleChart.prototype.renderCutOverlay = function () {
+    if (!this.cutMode || !this.cutMode.active) return;
+    var w = this.plotWidth();
+    var h = this.plotHeight();
+    var group = this.svgElement('g', { class: 'practice-cut-overlay', 'pointer-events': 'none' });
+    var hx = this.cutMode.hoverX;
+    if (hx != null) {
+      group.appendChild(this.svgElement('rect', {
+        x: hx, y: 0, width: Math.max(0, w - hx), height: h,
+        fill: 'rgba(15, 23, 42, 0.56)'
+      }));
+      group.appendChild(this.svgElement('line', {
+        x1: hx, y1: 0, x2: hx, y2: h,
+        stroke: '#38bdf8', 'stroke-width': 2, 'stroke-dasharray': '6 4'
+      }));
+      var bar = this.cutMode.hoverBar;
+      var tsLabel = bar && root.AmyPracticeCore && root.AmyPracticeCore.formatWita
+        ? root.AmyPracticeCore.formatWita(bar.time, true)
+        : 'Klik untuk potong di sini';
+      this.appendLabel(group, hx - 74, 24, '✂ Potong: ' + tsLabel, {
+        stroke: '#38bdf8', color: '#e0f2fe', background: 'rgba(12, 74, 110, 0.95)'
+      });
+    } else {
+      this.appendLabel(group, Math.max(12, w / 2 - 150), 24, '✂ Geser & klik candle untuk memilih titik mulai Replay', {
+        stroke: '#38bdf8', color: '#e0f2fe', background: 'rgba(12, 74, 110, 0.95)'
+      });
+    }
+    this.overlay.appendChild(group);
+  };
+
   CandleChart.prototype.renderDrawings = function () {
     if (!this.overlay || !this.series) return;
     this.syncOverlaySize();
@@ -807,18 +1325,22 @@
     defs.appendChild(marker);
     this.overlay.appendChild(defs);
     var self = this;
+    this.renderSessionBands();
+    this.renderWatermark();
     if (this.studyZone) {
       this.renderStudyZone(this.studyZone);
     }
-    this.drawings.filter(function (drawing) { return self.isDrawingVisible(drawing); }).forEach(function (drawing) {
-      var group = self.renderDrawing(drawing, false);
-      if (group) self.overlay.appendChild(group);
-    });
+    if (!this.drawingsHidden) {
+      this.drawings.filter(function (drawing) { return drawing.visible !== false && self.isDrawingVisible(drawing); }).forEach(function (drawing) {
+        var group = self.renderDrawing(drawing, false);
+        if (group) self.overlay.appendChild(group);
+      });
+    }
     if (this.draftPath && this.draftPath.length > 1) {
       var pathDraft = this.model.create('path', this.draftPath, { style: this.drawingStyle });
       var pathGroup = pathDraft && this.renderDrawing(pathDraft, true);
       if (pathGroup) this.overlay.appendChild(pathGroup);
-    } else if (this.gestureStart && this.hoverPoint && this.activeTool && this.activeTool !== 'select') {
+    } else if (this.gestureStart && this.hoverPoint && this.activeTool && this.activeTool !== 'select' && this.activeTool !== 'measure') {
       var previewPoints = this.draftPoints.length ? this.draftPoints.concat([this.hoverPoint]) : [this.gestureStart, this.hoverPoint];
       var required = this.model.requiredPoints(this.activeTool);
       if (previewPoints.length >= required) {
@@ -826,28 +1348,39 @@
         var previewGroup = preview && this.renderDrawing(preview, true);
         if (previewGroup) this.overlay.appendChild(previewGroup);
       }
-    } else if (this.draftPoints.length === 2 && this.hoverPoint && this.activeTool) {
+    } else if (this.draftPoints.length === 2 && this.hoverPoint && this.activeTool && this.activeTool !== 'measure') {
       var thirdPreview = this.model.create(this.activeTool, this.draftPoints.concat([this.hoverPoint]));
       var thirdGroup = thirdPreview && this.renderDrawing(thirdPreview, true);
       if (thirdGroup) this.overlay.appendChild(thirdGroup);
     }
+    if (this.hoverPoint && this.hoverPoint.snapped && this.activeTool && this.activeTool !== 'select') {
+      this.overlay.appendChild(this.svgElement('circle', {
+        cx: this.hoverPoint.x, cy: this.hoverPoint.y, r: 5.5,
+        fill: 'rgba(250, 204, 21, 0.25)', stroke: '#facc15', 'stroke-width': 1.8, 'pointer-events': 'none'
+      }));
+    }
+    this.renderMeasureBox();
+    this.renderCutOverlay();
     var selected = this.drawings.find(function (drawing) { return drawing.id === self.selectedId; });
-    var selectable = this.activeTool === 'select' && selected && this.isDrawingVisible(selected);
-    this.deleteButton.hidden = !selectable || Boolean(this.dragState || this.gestureStart);
-    if (selectable) this.renderHandles(selected);
+    var selectable = !this.drawingsHidden && this.activeTool === 'select' && selected && selected.visible !== false && this.isDrawingVisible(selected);
+    var hasExternalFloatingBar = typeof document !== 'undefined' && Boolean(document.getElementById('tvFloatingObjBar'));
+    this.deleteButton.hidden = hasExternalFloatingBar || !selectable || Boolean(this.dragState || this.gestureStart);
+    if (selectable && !this.drawingsLocked && !selected.locked) this.renderHandles(selected);
   };
 
   CandleChart.prototype.findDrawingAt = function (x, y) {
+    if (this.drawingsHidden) return null;
     var hit = { x: x, y: y };
     for (var index = this.drawings.length - 1; index >= 0; index -= 1) {
       var drawing = this.drawings[index];
-      if (!this.isDrawingVisible(drawing)) continue;
+      if (drawing.visible === false || !this.isDrawingVisible(drawing)) continue;
       var points = drawing.points.map(this.screenPoint.bind(this));
       var a = points[0];
       var b = points[1];
       var c = points[2];
       if (!a) continue;
       if (['horizontal', 'entry', 'stop', 'target'].indexOf(drawing.type) >= 0 && Math.abs(y - a.y) <= 14) return drawing;
+      if (drawing.type === 'vertical' && Math.abs(x - a.x) <= 14) return drawing;
       if ((drawing.type === 'horizontalRay' || drawing.type === 'priceNote') && x >= a.x - 14 && Math.abs(y - a.y) <= 14) return drawing;
       if (['text', 'note'].indexOf(drawing.type) >= 0 && distance(hit, a) <= 30) return drawing;
       if (drawing.type === 'path') {
@@ -862,7 +1395,7 @@
         var cy = (a.y + b.y) / 2;
         if (Math.pow((x - cx) / rx, 2) + Math.pow((y - cy) / ry, 2) <= 1.25) return drawing;
       }
-      if (b && ['rectangle', 'fibonacci', 'longPosition', 'shortPosition'].indexOf(drawing.type) >= 0) {
+      if (b && ['rectangle', 'datePriceRange', 'fibonacci', 'longPosition', 'shortPosition'].indexOf(drawing.type) >= 0) {
         var xs = points.filter(Boolean).map(function (point) { return point.x; });
         var ys = points.filter(Boolean).map(function (point) { return point.y; });
         if (x >= Math.min.apply(null, xs) - 14 && x <= Math.max.apply(null, xs) + 14 && y >= Math.min.apply(null, ys) - 14 && y <= Math.max.apply(null, ys) + 14) return drawing;
@@ -919,6 +1452,24 @@
   };
 
   CandleChart.prototype.handlePointerDown = function (event) {
+    if (this.cutMode && this.cutMode.active) {
+      if (event.button != null && event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      var cutPt = this.pointFromEvent(event);
+      var targetBar = null;
+      if (cutPt && root.AmyReplayIndicators && this.cutMode.fullCandles.length) {
+        var found = root.AmyReplayIndicators.findNearestCandle(this.cutMode.fullCandles, cutPt.time);
+        targetBar = found ? found.candle : null;
+      }
+      if (targetBar) {
+        var cb = this.cutMode.onSelect;
+        this.cutMode.savedCandles = null;
+        this.setCutMode(false);
+        cb(targetBar.time);
+      }
+      return;
+    }
     if (!this.activeTool || (event.button != null && event.button !== 0)) return;
     if (this.gesturePointerId != null && this.gesturePointerId !== event.pointerId) return;
     this.gesturePointerId = event.pointerId;
@@ -927,6 +1478,20 @@
     var point = this.pointFromEvent(event);
     if (!point) return;
     this.capturePointer(event);
+    if (this.activeTool === 'measure') {
+      if (this.measureBox && !this.measureBox.finalized) {
+        this.measureBox.b = point;
+        this.measureBox.finalized = true;
+        this.gestureStart = null;
+        this.renderDrawings();
+        return;
+      }
+      this.measureBox = { a: point, b: point, finalized: false };
+      this.gestureStart = point;
+      this.hoverPoint = point;
+      this.renderDrawings();
+      return;
+    }
     if (this.activeTool === 'select') {
       var handle = event.target.closest && event.target.closest('[data-point-index]');
       var painted = event.target.closest && event.target.closest('[data-drawing-id]');
@@ -934,7 +1499,8 @@
       var drawing = targetId ? this.drawings.find(function (item) { return item.id === targetId; }) : null;
       if (!drawing) drawing = this.findDrawingAt(point.x, point.y);
       this.selectedId = drawing ? drawing.id : null;
-      this.dragState = drawing ? {
+      var canDrag = drawing && !this.drawingsLocked && !drawing.locked;
+      this.dragState = canDrag ? {
         id: drawing.id,
         mode: handle ? 'point' : 'move',
         pointIndex: handle ? Number(handle.getAttribute('data-point-index')) : null,
@@ -945,7 +1511,11 @@
         remembered: false
       } : null;
       this.renderDrawings();
-      this.notify(drawing ? 'Gambar dipilih. Geser objek atau handle putih untuk mengedit.' : 'Tidak ada gambar pada titik ini.');
+      if (drawing && !canDrag) {
+        this.notify('Gambar terpilih sedang dikunci. Buka kunci untuk menggeser.');
+      } else {
+        this.notify(drawing ? 'Gambar dipilih. Geser objek atau handle putih untuk mengedit.' : 'Tidak ada gambar pada titik ini.');
+      }
       return;
     }
     if (this.activeTool === 'path') {
@@ -963,10 +1533,26 @@
   };
 
   CandleChart.prototype.handlePointerMove = function (event) {
+    if (this.cutMode && this.cutMode.active) {
+      var cutPt = this.pointFromEvent(event);
+      if (cutPt && root.AmyReplayIndicators && this.cutMode.fullCandles.length) {
+        var found = root.AmyReplayIndicators.findNearestCandle(this.cutMode.fullCandles, cutPt.time);
+        this.cutMode.hoverBar = found ? found.candle : null;
+        this.cutMode.hoverX = this.cutMode.hoverBar ? this.timeToX(this.cutMode.hoverBar.time) : cutPt.x;
+        this.scheduleDrawingSync();
+      }
+      return;
+    }
     if (event.pointerId != null && this.gesturePointerId != null && event.pointerId !== this.gesturePointerId) return;
     if (!this.activeTool) return;
     var point = this.pointFromEvent(event);
     if (!point) return;
+    if (this.activeTool === 'measure' && this.measureBox && !this.measureBox.finalized) {
+      this.measureBox.b = point;
+      this.hoverPoint = point;
+      this.scheduleDrawingSync();
+      return;
+    }
     if (this.activeTool === 'select' && this.dragState) {
       event.preventDefault();
       var next;
@@ -1005,13 +1591,14 @@
       this.scheduleDrawingSync();
       return;
     }
-    if (this.gestureStart || this.draftPoints.length === 2) {
+    if (this.gestureStart || this.draftPoints.length === 2 || (this.magnetMode !== 'off' && this.activeTool !== 'select')) {
       this.hoverPoint = point;
       this.scheduleDrawingSync();
     }
   };
 
   CandleChart.prototype.handlePointerUp = function (event) {
+    if (this.cutMode && this.cutMode.active) return;
     if (event.pointerId != null && this.gesturePointerId != null && event.pointerId !== this.gesturePointerId) return;
     this.gesturePointerId = null;
     try { this.overlay.releasePointerCapture(event.pointerId); } catch (_) {}
@@ -1020,6 +1607,14 @@
     var point = this.pointFromEvent(event);
     if (!point) { this.handlePointerCancel(event); return; }
     try {
+    if (this.activeTool === 'measure') {
+      if (this.measureBox && !this.measureBox.finalized && this.gestureStart && distance(this.gestureStart, point) >= 4) {
+        this.measureBox.b = point;
+        this.measureBox.finalized = true;
+      }
+      this.renderDrawings();
+      return;
+    }
     if (this.activeTool === 'select') {
       if (this.dragState && point) this.handlePointerMove(event);
       if (this.dragState && this.dragState.remembered) {
@@ -1104,6 +1699,12 @@
   };
 
   CandleChart.prototype.handleKeyDown = function (event) {
+    if (event.key === 'Escape' && this.cutMode && this.cutMode.active) {
+      event.preventDefault();
+      this.setCutMode(false);
+      this.notify('Mode Potong Bar dibatalkan.');
+      return;
+    }
     if (event.key === 'Escape' && this.textEditor) {
       event.preventDefault();
       this.removeTextEditor();
@@ -1111,11 +1712,20 @@
       this.notify('Anotasi dibatalkan.');
       return;
     }
+    if (event.key === 'Escape' && this.measureBox) {
+      this.measureBox = null;
+      this.setTool(null);
+      return;
+    }
     if (event.key === 'Escape' && this.activeTool) this.setTool(null);
-    var isEditor = Boolean(event.target && event.target.matches && event.target.matches('input, textarea, [contenteditable="true"]'));
+    var isEditor = Boolean(event.target && event.target.matches && event.target.matches('input, textarea, select, [contenteditable="true"]'));
     if (!isEditor && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
       event.preventDefault();
       if (event.shiftKey) this.redo(); else this.undo();
+    }
+    if (!isEditor && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd' && this.selectedId) {
+      event.preventDefault();
+      this.duplicateSelected();
     }
     if ((event.key === 'Delete' || event.key === 'Backspace') && this.activeTool === 'select' && this.selectedId && !isEditor) {
       event.preventDefault();
@@ -1146,9 +1756,10 @@
 
   CandleChart.prototype.setTradeLevels = function (levels) {
     var self = this;
+    this.lastTradeLevels = Array.isArray(levels) ? levels.slice() : [];
     this.priceLines.forEach(function (line) { try { self.series.removePriceLine(line); } catch (_) {} });
     this.priceLines = [];
-    (Array.isArray(levels) ? levels : []).forEach(function (level) {
+    this.lastTradeLevels.forEach(function (level) {
       if (!Number.isFinite(Number(level.price))) return;
       self.priceLines.push(self.series.createPriceLine({
         price: Number(level.price),
@@ -1163,9 +1774,10 @@
 
   CandleChart.prototype.setIctLevels = function (levels) {
     var self = this;
+    this.lastIctLevels = Array.isArray(levels) ? levels.slice() : [];
     this.ictPriceLines.forEach(function (line) { try { self.series.removePriceLine(line); } catch (_) {} });
     this.ictPriceLines = [];
-    (Array.isArray(levels) ? levels : []).forEach(function (level) {
+    this.lastIctLevels.forEach(function (level) {
       if (!Number.isFinite(Number(level.price))) return;
       var color = level.type === 'pdh' ? '#f59e0b' : (level.type === 'pdl' ? '#f59e0b' : '#38bdf8');
       self.ictPriceLines.push(self.series.createPriceLine({

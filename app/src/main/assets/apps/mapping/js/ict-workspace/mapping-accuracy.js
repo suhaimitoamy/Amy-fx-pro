@@ -480,9 +480,9 @@ export function evaluateScalperPoiVerdict({
   const m5Pass = isM5Aligned;
   const m5Label = isM5Aligned ? 'M5 Konfirm' : 'Tunggu M5';
 
-  // 5. Risk / Reward & SL Guard (Strict ideal SL <= $7.5 + honest synthetic TP1 tag)
-  const slIdeal = slGuard.status === 'ideal' && Number.isFinite(slGuard.dist) && slGuard.dist >= 2.0 && slGuard.dist <= 7.5;
-  const slAcceptable = Number.isFinite(slGuard.dist) && slGuard.dist >= 2.0 && slGuard.dist <= 9.0;
+  // 5. Risk / Reward & SL Guard (Ideal Gold SL 60-100 pips / <= $10.0 + honest synthetic TP1 tag)
+  const slIdeal = slGuard.status === 'ideal' && Number.isFinite(slGuard.dist) && slGuard.dist >= 2.0 && slGuard.dist <= 10.0;
+  const slAcceptable = Number.isFinite(slGuard.dist) && slGuard.dist >= 2.0 && slGuard.dist <= 12.0;
   const rrOk = Number.isFinite(rr1) && rr1 >= 1.4;
   const tpSynthetic = Boolean(tp1?.synthetic);
   const rrSlPass = Boolean(zone) && slIdeal && rrOk && !tpSynthetic && !sessionGuard.blocked;

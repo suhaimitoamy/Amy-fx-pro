@@ -1,19 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-const engineRelPath = existsSync(resolve(import.meta.dirname, '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js'))
-  ? '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js'
-  : '../apps/mapping/js/ict-workspace/mapping-history-engine.js';
-
-const {
+import {
   HISTORY_STORAGE_KEY,
+  GOLD_SL_MIN_USD,
+  GOLD_SL_MAX_USD,
   SEVEN_DAYS_MS,
   MAX_RETENTION_MS,
   witaDateKey,
   formatWitaClock,
+  computeGoldSlPrice,
+  computePoiRecordPnl,
+  computePoiPortfolioLedger,
   createEmptyHistoryState,
   loadHistoryState,
   saveHistoryState,
@@ -25,8 +23,11 @@ const {
   buildPoiCalendarMonth,
   getDayPoiRecords,
   filterByRange,
-  summarizePoiStats
-} = await import(engineRelPath);
+  summarizePoiStats,
+  classifyWitaSession,
+  summarizePoiBreakdown
+} from '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js';
+import { resolveSyncedProfileAccount } from '../app/src/main/assets/apps/mapping/js/ict-workspace/lot-calculator.js';
 
 const BASE_SEC = Math.floor(Date.UTC(2026, 3, 15, 4, 0, 0) / 1000); // 12:00 WITA
 const NOW_MS = (BASE_SEC + 10 * 900) * 1000;
@@ -109,8 +110,8 @@ test('backfillFromCandles: extracts BREAK, SWEEP, KEY_LEVEL, and POI_TOUCH/OUTCO
     makeBar(0, 3000, 3004, 2999, 3003),
     makeBar(1, 3003, 3010, 3002, 3009),
     makeBar(2, 3009, 3010, 3001, 3004), // touches BUY FVG [3000, 3002] & hits Asia Low / PDL
-    makeBar(3, 3004, 3012, 3003, 3011), // hits TP1 + PDH (3011.5)
-    makeBar(4, 3011, 3016, 3010, 3015)  // hits TP2
+    makeBar(3, 3004, 3015, 3003, 3014), // hits TP1 + PDH (3011.5)
+    makeBar(4, 3014, 3024, 3013, 3023)  // hits TP2 (2.5R on 82p SL)
   ];
 
   const ctx = {
@@ -154,6 +155,8 @@ test('backfillFromCandles: extracts BREAK, SWEEP, KEY_LEVEL, and POI_TOUCH/OUTCO
 
   assert.ok(result.poiRecords.length >= 1, 'should reconstruct at least 1 touched POI');
   assert.equal(result.poiRecords[0].status, 'TP2_HIT');
+  const slDist = Math.abs(result.poiRecords[0].ce - result.poiRecords[0].sl);
+  assert.ok(slDist >= GOLD_SL_MIN_USD && slDist <= GOLD_SL_MAX_USD, `Expected SL in 60-100p ($6-$10), got $${slDist}`);
 
   const categories = new Set(result.timelineEvents.map(e => e.category));
   assert.ok(categories.has('BREAK'), 'should record BOS/MSS event');
@@ -161,6 +164,38 @@ test('backfillFromCandles: extracts BREAK, SWEEP, KEY_LEVEL, and POI_TOUCH/OUTCO
   assert.ok(categories.has('KEY_LEVEL'), 'should record PDH / Asia / MO key level hit');
   assert.ok(categories.has('POI_TOUCH'), 'should record POI touch event');
   assert.ok(categories.has('POI_OUTCOME'), 'should record POI outcome event');
+});
+
+test('computeGoldSlPrice & computePoiPortfolioLedger: enforces 60-100p SL and strictly negative SL PnL / positive TP PnL', () => {
+  // M5 & M15 SL distances strictly inside 60-100 pips ($6.00 - $10.00)
+  const slM5Sell = computeGoldSlPrice('SELL', 3520.0, 3521.55, 3520.78, 'M5');
+  const distM5 = Number((slM5Sell - 3520.78).toFixed(2));
+  assert.ok(distM5 >= 6.0 && distM5 <= 8.0, `M5 SL dist should be 60-80p, got $${distM5}`);
+
+  const slM15Buy = computeGoldSlPrice('BUY', 3529.7, 3531.82, 3530.76, 'M15');
+  const distM15 = Number((3530.76 - slM15Buy).toFixed(2));
+  assert.ok(distM15 >= 7.0 && distM15 <= 10.0, `M15 SL dist should be 70-100p, got $${distM15}`);
+
+  // Signed PnL: SL_HIT MUST be strictly negative, TP1/TP2 strictly positive, TESTING = 0
+  const slRec = { id: 'p-sl', side: 'SELL', tf: 'M5', ce: 3520.0, sl: 3527.0, tp1: 3509.5, tp2: 3502.5, status: 'SL_HIT', touchedAt: NOW_MS - 3600_000, resolvedAt: NOW_MS - 3000_000 };
+  const tpRec = { id: 'p-tp2', side: 'BUY', tf: 'M15', ce: 3500.0, sl: 3492.0, tp1: 3512.0, tp2: 3520.0, status: 'TP2_HIT', touchedAt: NOW_MS - 1800_000, resolvedAt: NOW_MS - 600_000 };
+  const openRec = { id: 'p-open', side: 'BUY', tf: 'M15', ce: 3530.0, sl: 3522.0, tp1: 3542.0, tp2: 3550.0, status: 'TESTING', touchedAt: NOW_MS };
+
+  const singleSl = computePoiRecordPnl(slRec, 75);
+  assert.equal(singleSl.isLoss, true);
+  assert.equal(singleSl.pips, -70);
+  assert.equal(singleSl.pnlUsd, -75);
+
+  const ledger = computePoiPortfolioLedger([openRec, tpRec, slRec], { baseBalanceUsd: 5000, riskPct: 1.5 });
+  // Step 1: SL_HIT on $5000 * 1.5% = -$75.00 -> $4925.00
+  // Step 2: TP2_HIT (+2.5R) on $4925 * 1.5% = $73.88 * 2.5 = +$184.70 -> $5109.70
+  assert.equal(ledger.perRecord.get('p-sl').pnlUsd, -75);
+  assert.ok(ledger.perRecord.get('p-sl').pips < 0);
+  assert.equal(ledger.perRecord.get('p-tp2').pnlUsd, 184.7);
+  assert.ok(ledger.perRecord.get('p-tp2').pips > 0);
+  assert.equal(ledger.perRecord.get('p-open').pnlUsd, 0);
+  assert.equal(ledger.endingBalanceUsd, 5109.7);
+  assert.equal(ledger.netPnlUsd, 109.7);
 });
 
 test('recordLivePoiProgress: tracks TESTING -> REACTING -> TP1_HIT -> TP2_HIT and ignores sub-$0.50 noise', () => {
@@ -433,3 +468,68 @@ test('buildPoiCalendarMonth & getDayPoiRecords: builds 8-column month grid, week
   assert.ok(combined.dailyArchive['2025-11-10']);
   assert.ok(combined.dailyArchive[archivedDate]);
 });
+
+test('summarizePoiBreakdown & classifyWitaSession group POIs accurately by Zone Kind and WITA session', () => {
+  const asiaTs = Date.UTC(2026, 3, 15, 2, 0, 0);   // 10:00 WITA (Asia)
+  const londonTs = Date.UTC(2026, 3, 15, 8, 0, 0); // 16:00 WITA (London)
+  const nyTs = Date.UTC(2026, 3, 15, 13, 30, 0);   // 21:30 WITA (NY)
+
+  assert.equal(classifyWitaSession(asiaTs), 'Asia');
+  assert.equal(classifyWitaSession(londonTs), 'London');
+  assert.equal(classifyWitaSession(nyTs), 'NY');
+
+  const records = [
+    { id: 'B1', side: 'BUY', tf: 'M15', kind: 'OB', low: 3000, high: 3002, ce: 3001, sl: 2993, tp1: 3013, tp2: 3021, touchedAt: londonTs, resolvedAt: londonTs + 60000, status: 'TP2_HIT' },
+    { id: 'B2', side: 'SELL', tf: 'M5', kind: 'FVG', low: 3020, high: 3022, ce: 3021, sl: 3028, tp1: 3010, tp2: 3003, touchedAt: londonTs + 120000, resolvedAt: londonTs + 180000, status: 'TP1_HIT' },
+    { id: 'B3', side: 'BUY', tf: 'M5', kind: 'FVG', low: 3010, high: 3012, ce: 3011, sl: 3004, tp1: 3021, tp2: 3029, touchedAt: asiaTs, resolvedAt: asiaTs + 60000, status: 'SL_HIT' },
+    { id: 'B4', side: 'SELL', tf: 'M15', kind: 'iFVG', low: 3030, high: 3032, ce: 3031, sl: 3039, tp1: 3019, tp2: 3011, touchedAt: nyTs, status: 'TESTING' }
+  ];
+
+  const ledger = computePoiPortfolioLedger(records, { baseBalanceUsd: 5000, riskPct: 1.5 });
+  const bd = summarizePoiBreakdown(records, 'ALL', nyTs + 60000, ledger);
+
+  assert.equal(bd.total, 4);
+  assert.equal(bd.resolved, 3);
+  const obRow = bd.byKind.find(r => r.key === 'OB');
+  const fvgRow = bd.byKind.find(r => r.key === 'FVG');
+  const ifvgRow = bd.byKind.find(r => r.key === 'iFVG');
+  assert.equal(obRow.respectRate, 100);
+  assert.equal(obRow.netPips, 200);
+  assert.equal(fvgRow.respectRate, 50);
+  assert.equal(ifvgRow.active, 1);
+  assert.equal(ifvgRow.respectRate, null);
+
+  const londonRow = bd.bySession.find(r => r.key === 'London');
+  const asiaRow = bd.bySession.find(r => r.key === 'Asia');
+  assert.equal(londonRow.respectRate, 100);
+  assert.equal(asiaRow.respectRate, 0);
+  assert.ok(asiaRow.netPips < 0);
+  assert.equal(bd.bestKind?.key, 'OB');
+  assert.equal(bd.bestSession?.key, 'London');
+});
+
+test('resolveSyncedProfileAccount syncs Lot Calculator with Profile balance, cashflows, and Riwayat POI PnL', () => {
+  const store = new Map();
+  const mockStorage = {
+    getItem: k => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v))
+  };
+
+  store.set('amy_default_balance', '4000');
+  store.set('amy_default_risk', '2');
+  store.set('amy_sim_cashflows_v1', JSON.stringify([{ type: 'DEPOSIT', amountUsd: 1000 }]));
+  store.set(HISTORY_STORAGE_KEY, JSON.stringify({
+    version: 2,
+    poiRecords: [
+      { id: 'SYNC-SL', side: 'BUY', tf: 'M15', kind: 'OB', low: 3000, high: 3002, ce: 3001, sl: 2993, tp1: 3013, tp2: 3021, touchedAt: NOW_MS - 60000, resolvedAt: NOW_MS, status: 'SL_HIT' }
+    ]
+  }));
+
+  const synced = resolveSyncedProfileAccount(mockStorage);
+  assert.equal(synced.source, 'profile-synced');
+  assert.equal(synced.riskPct, 2);
+  assert.equal(synced.poiClosedCount, 1);
+  // Base $4000 + Deposit $1000 = $5000; 2% SL = -$100 => $4900 active balance
+  assert.equal(synced.balanceUsd, 4900);
+});
+

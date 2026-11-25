@@ -5,6 +5,28 @@ import { inspectProviderPayload, buildProviderErrorBody } from '../lib/provider-
  * Amy FX — Liquidity/Swing Tracker API
  * Reads the same Supabase-first candle stream used by Mapping and Heatmap.
  */
+const liquidityMemoryCache = globalThis.__amyFxLiquidityCache
+  || (globalThis.__amyFxLiquidityCache = new Map());
+const LIQUIDITY_STALE_MAX_MS = 30 * 60 * 1000;
+
+function readLiquidityFallback(key) {
+  const entry = liquidityMemoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.storedAt > LIQUIDITY_STALE_MAX_MS) {
+    liquidityMemoryCache.delete(key);
+    return null;
+  }
+  return entry.payload;
+}
+
+function writeLiquidityFallback(key, payload) {
+  liquidityMemoryCache.set(key, { storedAt: Date.now(), payload });
+  if (liquidityMemoryCache.size > 16) {
+    const oldestKey = liquidityMemoryCache.keys().next().value;
+    if (oldestKey) liquidityMemoryCache.delete(oldestKey);
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -12,8 +34,10 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ levels: [], error: 'method_not_allowed' });
 
+  const { symbol = 'XAU/USD', interval = '15min', outputsize = '200' } = req.query;
+  const cacheKey = `${symbol}|${interval}`;
+
   try {
-    const { symbol = 'XAU/USD', interval = '15min', outputsize = '200' } = req.query;
     if (symbol !== 'XAU/USD') {
       return res.status(403).json({ levels: [], error: 'symbol_not_allowed' });
     }
@@ -23,10 +47,20 @@ export default async function handler(req, res) {
       symbol,
       interval,
       outputsize: safeSize,
-      apiKey: process.env.TWELVEDATA_API_KEY
+      apiKey: process.env.TWELVEDATA_API_KEYS || process.env.TWELVEDATA_API_KEY
     });
     const inspected = inspectProviderPayload(marketData);
     if (!inspected.ok && inspected.code >= 400) {
+      const stale = readLiquidityFallback(cacheKey);
+      if (stale) {
+        res.setHeader('X-AmyFX-Market-Source', 'liquidity-stale-fallback');
+        return res.status(200).json({
+          ...stale,
+          staleFallback: true,
+          rateLimited: inspected.isRateLimited,
+          warning: inspected.message
+        });
+      }
       return res.status(inspected.isRateLimited ? 429 : 502).json(
         buildProviderErrorBody(inspected, {
           currentPrice: null,
@@ -50,18 +84,30 @@ export default async function handler(req, res) {
     const currentPrice = candles.at(-1).close;
     const levels = trackLiquidity(candles);
 
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
-    res.setHeader('X-AmyFX-Market-Source', marketData?.source || 'unknown');
-    return res.status(200).json({
+    const payload = {
       currentPrice,
       updated: new Date().toISOString(),
       sourceCandleTime: candles.at(-1)?.time || null,
       source: marketData?.source || 'unknown',
       cacheState: marketData?.amyfxCacheState || 'UNKNOWN',
       levels
-    });
+    };
+    writeLiquidityFallback(cacheKey, payload);
+
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
+    res.setHeader('X-AmyFX-Market-Source', marketData?.source || 'unknown');
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('liquidity provider failed', error);
+    const stale = readLiquidityFallback(cacheKey);
+    if (stale) {
+      res.setHeader('X-AmyFX-Market-Source', 'liquidity-stale-fallback');
+      return res.status(200).json({
+        ...stale,
+        staleFallback: true,
+        warning: error?.message || 'Market data unavailable'
+      });
+    }
     return res.status(502).json({
       currentPrice: null,
       updated: new Date().toISOString(),

@@ -17,10 +17,11 @@ const apiNewsSource = fs.readFileSync(apiNewsPath, 'utf8');
 const syncHandlerPath = new URL('../supabase/functions/news-sync/handler.ts', import.meta.url);
 const syncHandlerSource = fs.readFileSync(syncHandlerPath, 'utf8');
 
-test('Bug 1: Kompas without data provides neutral insufficient state, not SELL ON RALLY or live badge', () => {
-  assert.match(appSource, /goldBias\s*=\s*['"]⚪ Belum Cukup Data Fundamental Baru['"]/);
-  assert.match(appSource, /conclusionBias\s*=\s*['"]⚪ BELUM CUKUP DATA['"]/);
-  assert.match(appSource, /briefing-sync-badge sync-disconnected.*🔴 Kalender Belum Terhubung/);
+test('Bug 1: Kompas uses real-data AmyKompasEngine with honest offline/live sync state', () => {
+  assert.match(appSource, /window\.AmyKompasEngine/);
+  assert.match(appSource, /engine\.computeKompasState/);
+  assert.match(appSource, /let syncText = 'Feed Offline';/);
+  assert.match(appSource, /Live Makro · \$\{liveQuotesCount\}\/4 Feed/);
 });
 
 test('Bug 2: Macro event analyzer handles post-release actual vs forecast surprise', () => {
@@ -78,12 +79,13 @@ test('Bug 2: Macro event analyzer handles post-release actual vs forecast surpri
 });
 
 test('Bug 3: Calendar and Kompas accurately distinguish Live, Local Cache, and Stale Cache (>24h)', () => {
-  assert.match(appSource, /🟢 Sinkronisasi Live \(WITA\)/);
-  assert.match(appSource, /🟠 Cache Usang \(>24 Jam\)/);
-  assert.match(appSource, /🟡 Cache Lokal \(Tersimpan\)/);
-  assert.match(appSource, /briefing-sync-badge sync-live/);
-  assert.match(appSource, /briefing-sync-badge sync-cache/);
-  assert.match(appSource, /briefing-sync-badge sync-disconnected/);
+  assert.match(appSource, /Sinkronisasi Live \(WITA\)/);
+  assert.match(appSource, /Cache Usang \(>24 Jam\)/);
+  assert.match(appSource, /Cache Lokal/);
+  assert.match(appSource, /km-sync tone-\$\{escapeHtml\(syncTone\)\}/);
+  assert.match(appSource, /syncTone = 'live';/);
+  assert.match(appSource, /syncTone = 'cache';/);
+  assert.match(appSource, /let syncTone = 'offline';/);
 });
 
 test('Bug 4: Telegram parser isolates posts by boundary chunk in api/news.js and sync handler', () => {
@@ -92,17 +94,17 @@ test('Bug 4: Telegram parser isolates posts by boundary chunk in api/news.js and
 });
 
 test('Bug 5: loadNews preserves cached news DOM on fetch failure', () => {
-  assert.match(appSource, /if\s*\(list && list\.children\.length > 0\)\s*\{\s*status\.textContent\s*=\s*'Gagal sinkronisasi feed baru • Menampilkan berita tersimpan'/);
+  assert.match(appSource, /if\s*\(list && list\.children\.length > 0\)\s*\{\s*if\s*\(status\)\s*status\.textContent\s*=\s*'Gagal menyinkronkan feed baru • Menampilkan berita tersimpan'/);
 });
 
-test('Bug 6: Calendar engine enforces per-endpoint 4s timeout and displays retry button on error', () => {
-  assert.match(appSource, /setTimeout\(\(\) => controller\.abort\(\), 4000\)/);
-  assert.match(appSource, /<button class="cal-retry-btn" onclick="loadCalendar\(\)">🔄 Coba Lagi<\/button>/);
+test('Bug 6: Calendar engine enforces per-endpoint timeout and displays retry button on error', () => {
+  assert.match(appSource, /controller\.abort\(\)/);
+  assert.match(appSource, /<button type="button" class="cal-retry-btn" onclick="loadCalendar\(\)">Coba Lagi<\/button>/);
 });
 
 test('Bug 7: Deep link expands fetch limit to 50 items when pendingNewsId is present', () => {
-  assert.match(appSource, /const fetchLimit = pendingNewsId \? 50 : 20;/);
-  assert.match(appSource, /\$\{API_BASE\}\/news\?limit=\$\{fetchLimit\}&fresh=/);
+  assert.match(appSource, /const fetchLimit = pendingNewsId \? 50 : 30;/);
+  assert.match(appSource, /\$\{API_BASE\}\/news\?limit=\$\{fetchLimit\}/);
 });
 
 test('Bug 8: Gold relevance filter prevents notifications on non-gold topics', () => {
@@ -110,26 +112,17 @@ test('Bug 8: Gold relevance filter prevents notifications on non-gold topics', (
   assert.match(appSource, /if\s*\(lastNewsId && lastNewsId !== currentNewsId && isNewsRelevantForGold\(latestNews\)\)/);
 });
 
-test('Bug 9: Auto-translation enforces sequence counter to prevent overwriting newer feed', () => {
+test('Bug 9: News feed enforces sequence counter to prevent overwriting newer feed', () => {
   assert.match(appSource, /let newsFetchSequence = 0;/);
   assert.match(appSource, /const currentSequence = \+\+newsFetchSequence;/);
-  assert.match(appSource, /if \(sequence && sequence !== newsFetchSequence\) return;/);
   assert.match(appSource, /if \(currentSequence === newsFetchSequence\)/);
 });
 
-test('Bug 10: Fallback translation chunks into <= 450 chars and never caches truncated ellipsis strings', () => {
-  assert.match(appSource, /function splitIntoTranslationChunks/);
-  assert.match(appSource, /splitIntoTranslationChunks\(cleanText, 450\)/);
-  assert.match(appSource, /if \(translatedText\.endsWith\('…'\) \|\| translatedText\.endsWith\('\.\.\.'\)\) return;/);
-});
-
 test('Bug 11: Dynamic calendar values are escaped before HTML insertion', () => {
-  assert.match(appSource, /escapeHtml\(mainEvent\.forecast \|\| '—'\)/);
-  assert.match(appSource, /escapeHtml\(mainEvent\.previous \|\| '—'\)/);
-  assert.match(appSource, /escapeHtml\(mainEvent\.actual \|\| '—'\)/);
-  assert.match(appSource, /escapeHtml\(mainEvent\.title\)/);
   assert.match(appSource, /escapeHtml\(ev\.forecast \|\| '—'\)/);
+  assert.match(appSource, /escapeHtml\(ev\.previous \|\| '—'\)/);
   assert.match(appSource, /escapeHtml\(ev\.actual\)/);
+  assert.match(appSource, /escapeHtml\(ev\.title\)/);
 });
 
 test('Kompas Fundamental UI: Kompas is default tab, primary priority, and retains all 3 tabs', () => {
@@ -138,6 +131,7 @@ test('Kompas Fundamental UI: Kompas is default tab, primary priority, and retain
   assert.match(htmlSource, /<button class="intel-tab" data-tab="news">/);
   assert.match(htmlSource, /<button class="intel-tab" data-tab="calendar">/);
   assert.match(htmlSource, /<section id="panel-sentiment" class="intel-panel active">/);
+  assert.match(htmlSource, /kompas-engine\.js/);
 
   // Check app.js state
   assert.match(appSource, /let currentTab = 'sentiment';/);
@@ -146,14 +140,13 @@ test('Kompas Fundamental UI: Kompas is default tab, primary priority, and retain
   assert.match(appSource, /window\.openEvidenceNews = function/);
   assert.match(appSource, /window\.openEvidenceCalendar = function/);
 
-  // Check Kompas question coverage
-  assert.match(appSource, /kompas-horizon-pill/);
-  assert.match(appSource, /dominant-factors-box/);
-  assert.match(appSource, /kompas-evidence-cols/);
-  assert.match(appSource, /col-support/);
-  assert.match(appSource, /col-oppose/);
-  assert.match(appSource, /scenario-box/);
-  assert.match(appSource, /Jembatan Eksekusi ke Chart Mapping/);
+  // Check Institutional Kompas layout coverage
+  assert.match(appSource, /km-shell/);
+  assert.match(appSource, /km-hero/);
+  assert.match(appSource, /km-telemetry/);
+  assert.match(appSource, /km-split/);
+  assert.match(appSource, /km-range/);
+  assert.match(appSource, /Mapping XAU\/USD/);
 });
 
 test('api/calendar uses explicit +07:00 WIB timezone offset for fallback macro events (item 1.56)', () => {

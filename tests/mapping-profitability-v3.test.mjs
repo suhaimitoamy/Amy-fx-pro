@@ -50,17 +50,17 @@ test('1. evaluateZoneLifecycleOnCandles rejects wrong-side approaches for SELL a
   assert.equal(buyRes, null, 'BUY zone approached from below must NOT produce a fake touch/SL');
 });
 
-test('2. evaluateZoneLifecycleOnCandles eliminates phantom maxFavorable on touch bar & applies Gold wick SL buffer', () => {
+test('2. evaluateZoneLifecycleOnCandles eliminates phantom maxFavorable on touch bar & applies 60-100p Gold SL', () => {
   const baseSec = Math.floor(Date.UTC(2026, 10, 24, 6, 0, 0) / 1000);
   const nowMs = (baseSec + 10 * 900) * 1000;
 
-  // SELL zone [3600, 3602], CE = 3601. Buffer M15 = 1.80 -> SL = 3603.80.
-  // Candle 1 sits strictly below zone (high 3599.2 < 3599.85), then Candle 2 blasts straight through from 3594 to 3606!
+  // SELL zone [3600, 3602], CE = 3601. M15 60-100p Gold SL = 3601 + 8.20 = 3609.20 (82 pips).
+  // Candle 1 sits strictly below zone, then Candle 2 blasts straight through from 3594 to 3611!
   // Old engine falsely logged maxFavorable = 3601 - 3593.5 = +$7.5! New engine must log $0.0!
   const blowoutCandles = [
     makeBar(baseSec, 3602, 3602.5, 3599, 3599.5),
     makeBar(baseSec + 900, 3599.0, 3599.2, 3594.0, 3594.5),
-    makeBar(baseSec + 1800, 3594.5, 3606.0, 3593.5, 3605.0)
+    makeBar(baseSec + 1800, 3594.5, 3611.0, 3593.5, 3610.0)
   ];
   const blowout = evaluateZoneLifecycleOnCandles(
     { side: 'SELL', tf: 'M15', kind: 'FVG', low: 3600, high: 3602, ce: 3601, formedIndex: 0 },
@@ -71,15 +71,16 @@ test('2. evaluateZoneLifecycleOnCandles eliminates phantom maxFavorable on touch
   assert.ok(blowout);
   assert.equal(blowout.status, 'SL_HIT');
   assert.equal(blowout.maxFavorable, 0, 'Pre-entry candle low must NEVER count as phantom maxFavorable');
-  assert.ok(blowout.sl >= 3603.7, `Expected realistic Gold M15 SL >= 3603.7, got ${blowout.sl}`);
+  const slDistM15 = Number((blowout.sl - blowout.ce).toFixed(2));
+  assert.ok(slDistM15 >= 6.0 && slDistM15 <= 10.0, `Expected 60-100p Gold M15 SL, got $${slDistM15}`);
 
   // Wick survival test: Gold M5 BUY zone [3600, 3602], CE = 3601.
-  // Realistic M5 SL buffer = $1.40 -> SL = 3598.60. Candle wicks to 3599.10 (-$0.90 below zone, which used to kill $0.40 SL!) then rockets to 3609.
+  // 60-80p M5 Gold SL -> SL = 3601 - 7.10 = 3593.90 (71 pips). Candle wicks to 3596.5 (-$4.50 from CE, survives 60-100p SL!) then rallies to TP2 (3618.75).
   const wickSurviveCandles = [
     makeBar(baseSec, 3600, 3603, 3599.8, 3602.8),
     makeBar(baseSec + 300, 3602.8, 3605, 3602.5, 3604.5),
-    makeBar(baseSec + 600, 3604.5, 3604.6, 3599.1, 3601.8), // $0.90 Gold wick sweep, closes bullish inside zone
-    makeBar(baseSec + 900, 3601.8, 3609.5, 3601.2, 3609.0)  // Rockets past TP1 & TP2!
+    makeBar(baseSec + 600, 3604.5, 3604.6, 3596.5, 3601.8), // $4.50 Gold wick sweep survives 71-pip SL
+    makeBar(baseSec + 900, 3601.8, 3621.0, 3601.2, 3620.0)  // Rockets past TP1 & TP2!
   ];
   const survived = evaluateZoneLifecycleOnCandles(
     { side: 'BUY', tf: 'M5', kind: 'OB', low: 3600, high: 3602, ce: 3601, formedIndex: 0 },
@@ -88,9 +89,11 @@ test('2. evaluateZoneLifecycleOnCandles eliminates phantom maxFavorable on touch
     nowMs
   );
   assert.ok(survived);
-  assert.equal(survived.status, 'TP2_HIT', 'Zone with $0.90 Gold wick sweep must survive realistic buffer and hit TP2');
-  assert.equal(computeGoldSlBuffer('M5', 2.0), 1.4);
-  assert.equal(computeGoldSlBuffer('M15', 2.0), 1.8);
+  assert.equal(survived.status, 'TP2_HIT', 'Zone with $4.50 Gold wick sweep must survive 60-100p SL and hit TP2');
+  const m5Dist = 1.0 + computeGoldSlBuffer('M5', 2.0);
+  const m15Dist = 1.0 + computeGoldSlBuffer('M15', 2.0);
+  assert.ok(m5Dist >= 6.0 && m5Dist <= 8.0, `M5 CE-to-SL should be 60-80p, got $${m5Dist}`);
+  assert.ok(m15Dist >= 7.0 && m15Dist <= 10.0, `M15 CE-to-SL should be 70-100p, got $${m15Dist}`);
 });
 
 test('3. nextgen-indicators spawns iFVG on broken FVG and Breaker Block (BB) on broken OB + tracks trendByTime', () => {
@@ -138,7 +141,7 @@ test('4. backfillFromCandles applies causal session/trend/overlap filters, inclu
     makeBar(rolloverSec + 900, 3600.5, 3601, 3598.2, 3600.2), // touches rollover zone
     makeBar(londonSec, 3602, 3605, 3601.5, 3604.5),
     makeBar(londonSec + 900, 3604.5, 3604.8, 3601.2, 3603.5), // touches BUY BB [3600.5, 3602.5]
-    makeBar(londonSec + 1800, 3603.5, 3612.0, 3603.2, 3611.5) // hits TP2!
+    makeBar(londonSec + 1800, 3603.5, 3624.0, 3603.2, 3623.0) // hits TP2 (2.5R on 82p SL)!
   ];
 
   const ngM15 = {

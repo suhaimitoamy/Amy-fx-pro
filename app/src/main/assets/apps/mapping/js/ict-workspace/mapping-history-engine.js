@@ -6,7 +6,10 @@
  */
 
 export const HISTORY_STORAGE_KEY = 'amyfx.mapping.reaction_history.v1';
-export const BACKFILL_ENGINE_VERSION = 4;
+export const BACKFILL_ENGINE_VERSION = 5;
+export const GOLD_SL_MIN_USD = 6.0;  // 60 pips XAU/USD ($1.00 = 10 pips)
+export const GOLD_SL_MAX_USD = 10.0; // 100 pips XAU/USD
+export const GOLD_PIPS_PER_USD = 10;
 export const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 export const MAX_RETENTION_MS = 180 * 24 * 60 * 60 * 1000; // 180 hari detail penuh POI
 export const TIMELINE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari timeline market
@@ -343,21 +346,61 @@ function normalizeCandles(rows) {
 }
 
 /**
- * Compute realistic Gold XAU/USD SL wick buffer beyond zone boundary when caller doesn't pass explicit SL.
- * Prevents 4-pip ($0.40) noise wick-outs on volatile M5/M15 Gold swings while keeping total risk healthy.
+ * Compute realistic Gold XAU/USD SL wick buffer beyond zone boundary so total CE-to-SL
+ * distance lands in the 60-100 pips ($6.00-$10.00) range on XAU/USD ($1.00 = 10 pips).
+ * - M5 zones target 60-80 pips ($6.00-$8.00) from CE.
+ * - M15 zones target 70-100 pips ($7.00-$10.00) from CE.
  */
 export function computeGoldSlBuffer(tf, zoneWidth) {
   const w = Math.max(0.5, Number(zoneWidth) || 2.0);
   const isM5 = String(tf || 'M15').toUpperCase() === 'M5';
-  return isM5
-    ? Number(Math.max(1.40, Math.min(2.20, w * 0.35)).toFixed(2))
-    : Number(Math.max(1.80, Math.min(3.00, w * 0.35)).toFixed(2));
+  const targetCeDist = isM5
+    ? Math.max(GOLD_SL_MIN_USD, Math.min(8.0, 6.0 + w * 0.55))
+    : Math.max(7.0, Math.min(GOLD_SL_MAX_USD, 7.0 + w * 0.60));
+  const buf = Math.max(1.0, targetCeDist - (w / 2));
+  return Number(buf.toFixed(2));
+}
+
+/**
+ * Compute Gold XAU/USD SL price anchored to CE with strict 60-100 pips ($6.00-$10.00) guardrail,
+ * always placed outside the zone invalidation boundary ([low, high]).
+ */
+export function computeGoldSlPrice(side, low, high, ce, tf = 'M15', structuralSl = NaN) {
+  const isSell = String(side || '').toUpperCase() === 'SELL';
+  const lo = num(low);
+  const hi = num(high);
+  const entryCe = num(ce) || (Number.isFinite(lo) && Number.isFinite(hi) ? (lo + hi) / 2 : NaN);
+  if (!Number.isFinite(entryCe)) return NaN;
+
+  const width = (Number.isFinite(lo) && Number.isFinite(hi) && hi > lo) ? (hi - lo) : 2.0;
+  const isM5 = String(tf || 'M15').toUpperCase() === 'M5';
+  const defaultDist = isM5
+    ? Math.max(GOLD_SL_MIN_USD, Math.min(8.0, 6.0 + width * 0.55))
+    : Math.max(7.0, Math.min(GOLD_SL_MAX_USD, 7.0 + width * 0.60));
+
+  let desiredDist = defaultDist;
+  const structNum = num(structuralSl);
+  if (Number.isFinite(structNum)) {
+    const rawDist = isSell ? (structNum - entryCe) : (entryCe - structNum);
+    if (rawDist > 0) {
+      desiredDist = Math.max(GOLD_SL_MIN_USD, Math.min(GOLD_SL_MAX_USD, rawDist));
+    }
+  }
+
+  let slPrice = isSell ? (entryCe + desiredDist) : (entryCe - desiredDist);
+  // Ensure SL always clears the zone edge with at least $0.80 buffer
+  if (Number.isFinite(hi) && isSell && slPrice < hi + 0.80) {
+    slPrice = hi + 0.80;
+  } else if (Number.isFinite(lo) && !isSell && slPrice > lo - 0.80) {
+    slPrice = lo - 0.80;
+  }
+  return Number(slPrice.toFixed(2));
 }
 
 /**
  * Evaluate a single zone chronologically across subsequent closed candles (conservative SL-first).
  * - Enforces valid-side approach (SELL approached from below, BUY approached from above) & rejects pre-broken zones.
- * - Uses realistic Gold wick SL buffer & proportional TP1 when zone.sl/tp1 are not explicitly provided.
+ * - Uses 60-100 pips ($6.00-$10.00) Gold SL & proportional TP1/TP2 when zone.sl/tp1 are not explicitly provided.
  * - Prevents phantom maxFavorable inflation from pre-entry approach extremes on the touch candle.
  */
 export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs) {
@@ -366,7 +409,6 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   const hi = num(zone.high);
   if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return null;
 
-  const width = hi - lo;
   const tf = String(zone.tf || 'M15').toUpperCase();
   const ce = num(zone.ce) || (lo + hi) / 2;
   const formedTimeSec = Number(zone.startTime || zone.time || 0);
@@ -378,9 +420,11 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     : candles.findIndex(c => c.openTime > formedTimeSec);
   if (startIdx < 0 || startIdx >= candles.length) return null;
 
-  // Realistic Gold SL buffer when structural SL is not explicitly provided
-  const defaultBuf = computeGoldSlBuffer(tf, width);
-  const sl = num(zone.sl) || Number((isSell ? hi + defaultBuf : lo - defaultBuf).toFixed(2));
+  // Realistic 60-100 pip Gold SL when structural SL is not explicitly provided
+  const hasExplicitSl = Number.isFinite(num(zone.sl));
+  const sl = hasExplicitSl
+    ? Number(num(zone.sl).toFixed(2))
+    : computeGoldSlPrice(zone.side, lo, hi, ce, tf);
 
   // Find first VALID-SIDE candle touching [lo - 0.15, hi + 0.15].
   // Rejects wrong-side touches (e.g., SELL touched from above SL, or BUY touched from below SL) and pre-broken zones.
@@ -424,11 +468,13 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
       : Math.max(Math.min(touchBar.open, hi), lo);
   }
 
-  const risk = Math.max(1.5, Math.abs(ce - sl));
-  const minTp1 = tf === 'M5' ? 3.2 : 4.5;
-  const minTp2 = tf === 'M5' ? 6.0 : 8.5;
-  const tp1 = num(zone.tp1) || Number((isSell ? ce - Math.max(risk * 1.6, minTp1) : ce + Math.max(risk * 1.6, minTp1)).toFixed(2));
-  const tp2 = num(zone.tp2) || Number((isSell ? ce - Math.max(risk * 2.8, minTp2) : ce + Math.max(risk * 2.8, minTp2)).toFixed(2));
+  const risk = hasExplicitSl ? Math.max(1.5, Math.abs(ce - sl)) : Math.max(GOLD_SL_MIN_USD, Math.abs(ce - sl));
+  const tp1Mult = hasExplicitSl ? 1.6 : 1.5;
+  const tp2Mult = hasExplicitSl ? 2.8 : 2.5;
+  const minTp1 = hasExplicitSl ? (tf === 'M5' ? 3.2 : 4.5) : (tf === 'M5' ? 9.0 : 10.5);
+  const minTp2 = hasExplicitSl ? (tf === 'M5' ? 6.0 : 8.5) : (tf === 'M5' ? 15.0 : 17.5);
+  const tp1 = num(zone.tp1) || Number((isSell ? ce - Math.max(risk * tp1Mult, minTp1) : ce + Math.max(risk * tp1Mult, minTp1)).toFixed(2));
+  const tp2 = num(zone.tp2) || Number((isSell ? ce - Math.max(risk * tp2Mult, minTp2) : ce + Math.max(risk * tp2Mult, minTp2)).toFixed(2));
 
   let status = 'TESTING';
   let resolvedAt = null;
@@ -800,6 +846,11 @@ export function backfillFromCandles({
       source: 'BACKFILL'
     });
     if (evaluated.status === 'TP2_HIT' || evaluated.status === 'TP1_HIT' || evaluated.status === 'SL_HIT') {
+      const slDist = Math.max(0.5, Math.abs((Number(evaluated.ce) || 0) - (Number(evaluated.sl) || 0)));
+      const slPips = Math.round(slDist * GOLD_PIPS_PER_USD);
+      const targetPrice = evaluated.status === 'TP2_HIT' ? evaluated.tp2 : evaluated.tp1;
+      const tpDist = Math.max(0.5, Math.abs((Number(targetPrice) || 0) - (Number(evaluated.ce) || 0)));
+      const tpPips = Math.round(tpDist * GOLD_PIPS_PER_USD);
       const outTitle = evaluated.status === 'TP2_HIT'
         ? `${evaluated.kind} ${evaluated.tf} ${evaluated.side} → TP2 DOL Tercapai`
         : evaluated.status === 'TP1_HIT'
@@ -813,9 +864,9 @@ export function backfillFromCandles({
         tf: evaluated.tf,
         title: outTitle,
         detail: evaluated.status === 'SL_HIT'
-          ? `Invalidasi SL $${fmt(evaluated.sl)} tembus (reaksi maks +$${fmt(evaluated.maxFavorable)})`
-          : `Memantul +$${fmt(evaluated.maxFavorable)} dari CE $${fmt(evaluated.ce)}`,
-        price: evaluated.status === 'SL_HIT' ? evaluated.sl : (evaluated.status === 'TP2_HIT' ? evaluated.tp2 : evaluated.tp1),
+          ? `Invalidasi SL $${fmt(evaluated.sl)} tembus (-$${slDist.toFixed(2)} / -${slPips}p)`
+          : `Target tercapai +$${tpDist.toFixed(2)} (+${tpPips}p) dari CE $${fmt(evaluated.ce)}`,
+        price: evaluated.status === 'SL_HIT' ? evaluated.sl : targetPrice,
         source: 'BACKFILL'
       });
     }
@@ -859,10 +910,10 @@ export function recordLivePoiProgress({
     const ceVal = num(plan.area.ce) || (lo + hi) / 2;
     const hitCeNow = isSell ? (price >= ceVal) : (price <= ceVal);
     if (!existing) {
-      const sl = num(plan.sl) || Number((isSell ? hi + 0.40 : lo - 0.40).toFixed(2));
+      const sl = num(plan.sl) || computeGoldSlPrice(plan.side, lo, hi, ceVal, tf);
       const risk = Math.max(1.8, Math.abs(ceVal - sl));
-      const tp1 = num(plan.tp1) || Number((isSell ? ceVal - Math.max(risk * 1.6, 5.0) : ceVal + Math.max(risk * 1.6, 5.0)).toFixed(2));
-      const tp2 = num(plan.tp2) || Number((isSell ? ceVal - Math.max(risk * 2.8, 9.0) : ceVal + Math.max(risk * 2.8, 9.0)).toFixed(2));
+      const tp1 = num(plan.tp1) || Number((isSell ? ceVal - Math.max(risk * 1.5, 9.0) : ceVal + Math.max(risk * 1.5, 9.0)).toFixed(2));
+      const tp2 = num(plan.tp2) || Number((isSell ? ceVal - Math.max(risk * 2.5, 15.0) : ceVal + Math.max(risk * 2.5, 15.0)).toFixed(2));
       const rec = {
         id,
         side: plan.side,
@@ -980,28 +1031,36 @@ export function recordLivePoiProgress({
       } else if (rec.status === 'TP2_HIT') {
         if (!rec.notifiedTp2) {
           rec.notifiedTp2 = true;
+          const tp2Pips = Math.round(Math.abs((Number(rec.tp2) || 0) - (Number(rec.ce) || 0)) * GOLD_PIPS_PER_USD);
           alerts.push({
             type: 'TP2_HIT',
             poiId: rec.id,
             title: `👑 TP2 DOL ★ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
-            body: `Target penuh $${fmt(rec.tp2)} tercapai (+100 Pips). Posisi selesai, selamat Sayang!`,
+            body: `Target penuh $${fmt(rec.tp2)} tercapai (+${tp2Pips} Pips). Posisi selesai!`,
             sound: 'gold'
           });
         }
       } else if (rec.status === 'SL_HIT') {
         if (!rec.notifiedSl) {
           rec.notifiedSl = true;
+          const slDist = Math.abs((Number(rec.ce) || 0) - (Number(rec.sl) || 0));
+          const slPips = Math.round(slDist * GOLD_PIPS_PER_USD);
           alerts.push({
             type: 'SL_HIT',
             poiId: rec.id,
             title: `🛡️ Jebol SL ✕ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
-            body: `Batas risiko $${fmt(rec.sl)} tersentuh. Disiplin risiko terjaga, jangan revenge trade.`,
+            body: `Batas risiko $${fmt(rec.sl)} tersentuh (-$${slDist.toFixed(2)} / -${slPips}p). Disiplin risiko terjaga.`,
             sound: 'default'
           });
         }
       }
 
       if (rec.status === 'TP2_HIT' || rec.status === 'TP1_HIT' || rec.status === 'SL_HIT') {
+        const slDist = Math.max(0.5, Math.abs((Number(rec.ce) || 0) - (Number(rec.sl) || 0)));
+        const slPips = Math.round(slDist * GOLD_PIPS_PER_USD);
+        const targetPrice = rec.status === 'TP2_HIT' ? rec.tp2 : rec.tp1;
+        const tpDist = Math.max(0.5, Math.abs((Number(targetPrice) || 0) - (Number(rec.ce) || 0)));
+        const tpPips = Math.round(tpDist * GOLD_PIPS_PER_USD);
         const outTitle = rec.status === 'TP2_HIT'
           ? `${rec.kind} ${rec.tf} ${rec.side} → TP2 DOL Tercapai`
           : rec.status === 'TP1_HIT'
@@ -1016,8 +1075,8 @@ export function recordLivePoiProgress({
           tf: rec.tf,
           title: outTitle,
           detail: rec.status === 'SL_HIT'
-            ? `Invalidasi SL $${fmt(rec.sl)} tersentuh live @ $${fmt(price)}`
-            : `Reaksi +$${fmt(Math.max(fav, rec.maxFavorable || 0))} dari CE $${fmt(rec.ce)}`,
+            ? `Invalidasi SL $${fmt(rec.sl)} tersentuh live (-$${slDist.toFixed(2)} / -${slPips}p)`
+            : `Target tercapai +$${tpDist.toFixed(2)} (+${tpPips}p) dari CE $${fmt(rec.ce)}`,
           price: Number(price.toFixed(2)),
           source: 'LIVE'
         });
@@ -1428,16 +1487,284 @@ export function getDayPoiRecords(state, dateKey, filter = 'ALL') {
   };
 }
 
+function round2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
+function round1(n) {
+  return Math.round((Number(n) || 0) * 10) / 10;
+}
+
+/**
+ * Compute honest signed PnL metrics for a single POI record (SL_HIT is strictly negative, TP1/TP2 strictly positive).
+ * XAU/USD convention: $1.00 = 10 pips.
+ */
+export function computePoiRecordPnl(rec, riskUsd = 75) {
+  const ce = num(rec?.ce) || ((num(rec?.low) + num(rec?.high)) / 2) || 0;
+  const sl = num(rec?.sl) || 0;
+  const tp1 = num(rec?.tp1) || 0;
+  const tp2 = num(rec?.tp2) || 0;
+  const status = String(rec?.status || 'TESTING').toUpperCase();
+  const safeRisk = Math.max(0, round2(Number(riskUsd) || 0));
+
+  const slDistUsd = (ce > 0 && sl > 0) ? Math.max(0.5, round2(Math.abs(ce - sl))) : GOLD_SL_MIN_USD;
+  const slPips = Math.round(slDistUsd * GOLD_PIPS_PER_USD);
+
+  if (status === 'SL_HIT') {
+    return {
+      status,
+      isRealized: true,
+      isWin: false,
+      isLoss: true,
+      slDistUsd,
+      slPips,
+      priceDeltaUsd: -round2(slDistUsd),
+      pips: -round1(slDistUsd * GOLD_PIPS_PER_USD),
+      rr: -1,
+      riskUsd: safeRisk,
+      pnlUsd: -safeRisk
+    };
+  }
+
+  if (status === 'TP1_HIT' || status === 'TP2_HIT') {
+    const target = status === 'TP2_HIT' ? (tp2 || tp1) : tp1;
+    const fallbackMult = status === 'TP2_HIT' ? 2.5 : 1.5;
+    const tpDistUsd = (ce > 0 && target > 0)
+      ? Math.max(0.5, round2(Math.abs(target - ce)))
+      : round2(slDistUsd * fallbackMult);
+    const maxRr = status === 'TP2_HIT' ? 6.0 : 5.0;
+    const rr = round2(Math.max(0.5, Math.min(maxRr, tpDistUsd / slDistUsd)));
+    return {
+      status,
+      isRealized: true,
+      isWin: true,
+      isLoss: false,
+      slDistUsd,
+      slPips,
+      priceDeltaUsd: round2(tpDistUsd),
+      pips: round1(tpDistUsd * GOLD_PIPS_PER_USD),
+      rr,
+      riskUsd: safeRisk,
+      pnlUsd: round2(safeRisk * rr)
+    };
+  }
+
+  return {
+    status,
+    isRealized: false,
+    isWin: false,
+    isLoss: false,
+    slDistUsd,
+    slPips,
+    priceDeltaUsd: 0,
+    pips: 0,
+    rr: 0,
+    riskUsd: safeRisk,
+    pnlUsd: 0
+  };
+}
+
+/**
+ * Chronologically compound POI history outcomes from baseBalanceUsd using riskPct per POI.
+ * Returns exact per-record signed PnL map and resulting endingBalanceUsd so Riwayat POI and Profile stay 100% synced.
+ */
+export function computePoiPortfolioLedger(poiRecords = [], {
+  baseBalanceUsd = 5000,
+  riskPct = 1.5
+} = {}) {
+  const startBal = Math.max(0, round2(Number(baseBalanceUsd) || 0));
+  const safeRiskPct = Math.max(0.1, Math.min(25, Number(riskPct) || 1.5));
+  const list = Array.isArray(poiRecords) ? poiRecords : [];
+
+  const resolved = list
+    .filter(r => r && (r.status === 'SL_HIT' || r.status === 'TP1_HIT' || r.status === 'TP2_HIT'))
+    .slice()
+    .sort((a, b) => {
+      const ta = Number(a.resolvedAt || a.touchedAt || 0);
+      const tb = Number(b.resolvedAt || b.touchedAt || 0);
+      if (ta !== tb) return ta - tb;
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
+
+  let runningBal = startBal;
+  let netPnlUsd = 0;
+  let netPips = 0;
+  let winCount = 0;
+  let lossCount = 0;
+  const perRecord = new Map();
+
+  for (const rec of resolved) {
+    const riskUsd = round2((runningBal * safeRiskPct) / 100);
+    const info = computePoiRecordPnl(rec, riskUsd);
+    const nextBal = Math.max(0, round2(runningBal + info.pnlUsd));
+    const appliedPnl = round2(nextBal - runningBal);
+    runningBal = nextBal;
+    netPnlUsd = round2(netPnlUsd + appliedPnl);
+    netPips = round1(netPips + info.pips);
+    if (info.isWin) winCount += 1;
+    else if (info.isLoss) lossCount += 1;
+
+    perRecord.set(rec.id, {
+      ...info,
+      pnlUsd: appliedPnl,
+      balanceAfterUsd: runningBal
+    });
+  }
+
+  // Also compute non-realized metadata (slPips, potential riskUsd) for open records
+  const currentRiskUsd = round2((runningBal * safeRiskPct) / 100);
+  for (const rec of list) {
+    if (!rec || !rec.id || perRecord.has(rec.id)) continue;
+    perRecord.set(rec.id, {
+      ...computePoiRecordPnl(rec, currentRiskUsd),
+      balanceAfterUsd: runningBal
+    });
+  }
+
+  return {
+    startingBalanceUsd: startBal,
+    endingBalanceUsd: runningBal,
+    netPnlUsd,
+    netPips,
+    closedCount: resolved.length,
+    winCount,
+    lossCount,
+    perRecord
+  };
+}
+
+/**
+ * Classify a timestamp (ms) into WITA (UTC+8) Gold trading session buckets.
+ */
+export function classifyWitaSession(tsMs) {
+  const n = Number(tsMs);
+  if (!Number.isFinite(n) || n <= 0) return 'Lainnya';
+  const witaHour = new Date(n + 8 * 3600 * 1000).getUTCHours();
+  if (witaHour >= 7 && witaHour <= 14) return 'Asia';
+  if (witaHour >= 15 && witaHour <= 19) return 'London';
+  if (witaHour >= 20 || witaHour <= 3) return 'NY';
+  return 'Transisi';
+}
+
+function normalizePoiKindBucket(rawKind) {
+  const k = String(rawKind || 'POI').trim().toUpperCase();
+  if (k.includes('IFVG')) return 'iFVG';
+  if (k.includes('FVG')) return 'FVG';
+  if (k.includes('BB') || k.includes('BREAKER')) return 'BB';
+  if (k.includes('OB') || k.includes('ORDER')) return 'OB';
+  return k || 'POI';
+}
+
+/**
+ * Summarize POI reaction performance by Zone Kind (OB/FVG/iFVG/BB) and WITA Session (Asia/London/NY).
+ * Pure zero-DOM helper used by Mapping Riwayat POI and AMY Assistant.
+ */
+export function summarizePoiBreakdown(poiRecords = [], range = 'ALL', nowMs = Date.now(), ledger = null) {
+  const scoped = range === 'ALL'
+    ? (Array.isArray(poiRecords) ? poiRecords : [])
+    : filterByRange(poiRecords, 'touchedAt', range, nowMs);
+
+  const kindMap = new Map();
+  const sessionMap = new Map();
+
+  const bump = (map, key, rec, pnlInfo) => {
+    const row = map.get(key) || {
+      key,
+      total: 0,
+      wins: 0,
+      losses: 0,
+      active: 0,
+      resolved: 0,
+      respectRate: null,
+      netPips: 0,
+      netUsd: 0
+    };
+    row.total += 1;
+    const st = String(rec?.status || 'TESTING').toUpperCase();
+    if (st === 'TP1_HIT' || st === 'TP2_HIT') {
+      row.wins += 1;
+      row.resolved += 1;
+    } else if (st === 'SL_HIT') {
+      row.losses += 1;
+      row.resolved += 1;
+    } else {
+      row.active += 1;
+    }
+    if (pnlInfo && pnlInfo.isRealized) {
+      row.netPips = round1(row.netPips + (Number(pnlInfo.pips) || 0));
+      row.netUsd = round2(row.netUsd + (Number(pnlInfo.pnlUsd) || 0));
+    }
+    map.set(key, row);
+  };
+
+  let resolvedTotal = 0;
+  for (const rec of scoped) {
+    if (!rec) continue;
+    const pnlInfo = ledger?.perRecord?.get(rec.id) || computePoiRecordPnl(rec, 0);
+    if (pnlInfo?.isRealized) resolvedTotal += 1;
+    bump(kindMap, normalizePoiKindBucket(rec.kind), rec, pnlInfo);
+    bump(sessionMap, classifyWitaSession(rec.touchedAt), rec, pnlInfo);
+  }
+
+  const finalize = (map, orderList = null) =>
+    Array.from(map.values())
+      .map(row => ({
+        ...row,
+        respectRate: row.resolved > 0 ? Math.round((row.wins / row.resolved) * 100) : null
+      }))
+      .sort((a, b) => {
+        if (orderList) {
+          const ia = orderList.indexOf(a.key);
+          const ib = orderList.indexOf(b.key);
+          if (ia !== -1 && ib !== -1 && ia !== ib) return ia - ib;
+          if (ia !== -1) return -1;
+          if (ib !== -1) return 1;
+        }
+        const ra = a.respectRate ?? -1;
+        const rb = b.respectRate ?? -1;
+        if (rb !== ra) return rb - ra;
+        return b.total - a.total;
+      });
+
+  const byKind = finalize(kindMap);
+  const bySession = finalize(sessionMap, ['Asia', 'London', 'NY', 'Transisi', 'Lainnya']);
+
+  const pickBest = rows => {
+    const candidates = rows.filter(r => r.resolved > 0);
+    if (!candidates.length) return null;
+    return candidates
+      .slice()
+      .sort((a, b) => (b.respectRate - a.respectRate) || (b.netPips - a.netPips) || (b.resolved - a.resolved))[0];
+  };
+
+  return {
+    total: scoped.length,
+    resolved: resolvedTotal,
+    byKind,
+    bySession,
+    bestKind: pickBest(byKind),
+    bestSession: pickBest(bySession)
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.AmyMappingHistoryEngine = {
     HISTORY_STORAGE_KEY,
     BACKFILL_ENGINE_VERSION,
+    GOLD_SL_MIN_USD,
+    GOLD_SL_MAX_USD,
+    GOLD_PIPS_PER_USD,
     SEVEN_DAYS_MS,
     MAX_RETENTION_MS,
     TIMELINE_RETENTION_MS,
     MAX_POI_RECORDS,
     MAX_TIMELINE_EVENTS,
     computeGoldSlBuffer,
+    computeGoldSlPrice,
+    computePoiRecordPnl,
+    computePoiPortfolioLedger,
+    classifyWitaSession,
+    summarizePoiBreakdown,
     createEmptyHistoryState,
     loadHistoryState,
     saveHistoryState,

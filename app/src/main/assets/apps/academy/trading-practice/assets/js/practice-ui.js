@@ -164,13 +164,15 @@
         var open = nav.classList.toggle('is-open');
         burger.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
-      document.addEventListener('click', function (evt) {
-        if (!nav.classList.contains('is-open')) return;
-        if (!nav.contains(evt.target) && !burger.contains(evt.target)) {
-          nav.classList.remove('is-open');
-          burger.setAttribute('aria-expanded', 'false');
-        }
-      });
+      if (typeof document.addEventListener === 'function') {
+        document.addEventListener('click', function (evt) {
+          if (!nav.classList.contains('is-open')) return;
+          if (!nav.contains(evt.target) && !burger.contains(evt.target)) {
+            nav.classList.remove('is-open');
+            burger.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
     }
 
     var themeBtn = byId('themeToggleBtn');
@@ -189,11 +191,11 @@
       if (typeof root.addEventListener === 'function') root.addEventListener('amyfx:theme-change', syncThemeBtn);
     }
 
-    // Close open tool/jump popovers when tapping outside
+    // Close open tool/jump/indicator popovers when tapping outside
     if (typeof document.addEventListener === 'function') {
       document.addEventListener('click', function (evt) {
         if (typeof document.querySelectorAll === 'function') {
-          document.querySelectorAll('details.drawing-menu[open], details.bt-jump-pop[open]').forEach(function (det) {
+          document.querySelectorAll('details.drawing-menu[open], details.bt-jump-pop[open], details.tv-pop-menu[open]').forEach(function (det) {
             if (!det.contains(evt.target)) det.removeAttribute('open');
           });
         }
@@ -267,8 +269,16 @@
     if (remove) remove.addEventListener('click', function () { chart.deleteSelected(); closeTools(); });
     var undo = byId('undoDrawing');
     if (undo) undo.addEventListener('click', function () { chart.undo(); });
+    var redo = byId('redoDrawing');
+    if (redo) redo.addEventListener('click', function () { chart.redo(); });
     var finish = byId('finishDrawing');
     if (finish) finish.addEventListener('click', function () { chart.setTool(null); closeTools(); });
+    var stayBtn = byId('stayDrawingToggle');
+    if (stayBtn) {
+      stayBtn.addEventListener('click', function () {
+        chart.setStayInDrawingMode(!chart.stayInDrawingMode);
+      });
+    }
 
     if (byId('replayWorkspace')) bindReplayWorkspace(chart);
     sync({ activeTool: chart.activeTool, selectedId: chart.selectedId, message: 'Gesture chart aktif · ' + chart.drawings.length + ' objek.' });
@@ -290,19 +300,19 @@
     {
       id: 'trend',
       label: 'Garis',
-      title: 'Garis Tren (Trendline)',
+      title: 'Garis Tren (Alt+T)',
       svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="19" x2="19" y2="5"></line><circle cx="5" cy="19" r="2"></circle><circle cx="19" cy="5" r="2"></circle></svg>'
     },
     {
       id: 'horizontal',
       label: 'Level',
-      title: 'Garis Level Horizontal (PDH/PDL/S&R)',
+      title: 'Garis Level Horizontal (Alt+H)',
       svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><circle cx="12" cy="12" r="2.2"></circle></svg>'
     },
     {
       id: 'rectangle',
       label: 'Zona',
-      title: 'Kotak Zona (FVG / Order Block)',
+      title: 'Kotak Zona FVG / OB (Alt+R)',
       svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="1.5"></rect><circle cx="4" cy="6" r="1.5"></circle><circle cx="20" cy="18" r="1.5"></circle></svg>'
     },
     {
@@ -316,6 +326,33 @@
       label: 'Short RR',
       title: 'Proyeksi Posisi Short (Sell R:R)',
       svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1" fill="rgba(251,113,133,0.18)" stroke="#fb7185"></rect><rect x="4" y="11" width="16" height="9" rx="1" fill="rgba(45,212,191,0.22)" stroke="#2dd4bf"></rect><line x1="3" y1="11" x2="21" y2="11" stroke="currentColor"></line></svg>'
+    },
+    {
+      id: 'measure',
+      label: 'Ukur',
+      title: 'Pengukur Pips, % & Bar (M)',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"></path><line x1="14.5" y1="12.5" x2="12" y2="15"></line><line x1="11.5" y1="9.5" x2="9" y2="12"></line><line x1="8.5" y1="6.5" x2="6" y2="9"></line></svg>'
+    }
+  ];
+
+  var TV_UTILITY_TOOLS = [
+    {
+      id: 'magnetToggleBtn',
+      action: 'magnet',
+      title: 'Magnet OHLC: Mati (Klik untuk Lemah / Kuat · Alt+M)',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15v-5a6 6 0 1 1 12 0v5"></path><path d="M6 15h4v5H6z"></path><path d="M14 15h4v5h-4z"></path></svg>'
+    },
+    {
+      id: 'lockDrawingsBtn',
+      action: 'lock',
+      title: 'Kunci Semua Objek Gambar',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>'
+    },
+    {
+      id: 'hideDrawingsBtn',
+      action: 'hide',
+      title: 'Sembunyikan / Tampilkan Semua Objek Gambar',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
     }
   ];
 
@@ -331,7 +368,7 @@
 
     var extraMenu = byId('tvExtraToolsMenu') || dock.querySelector('.drawing-menu');
 
-    // Insert crisp TradingView SVG tool buttons directly inside the unified dock container
+    // Insert crisp SVG studio tool buttons + Magnet/Lock/Eye utility toggles inside the unified dock
     if (!dock.querySelector('[data-quick]')) {
       var frag = document.createDocumentFragment();
       TV_QUICK_TOOLS.forEach(function (tool) {
@@ -343,6 +380,22 @@
         btn.setAttribute('aria-label', tool.title);
         btn.innerHTML = tool.svg + '<span class="tv-tool-label">' + tool.label + '</span>';
         frag.appendChild(btn);
+      });
+      var divider = document.createElement('span');
+      divider.className = 'tv-dock-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      frag.appendChild(divider);
+      TV_UTILITY_TOOLS.forEach(function (util) {
+        var ubtn = document.createElement('button');
+        ubtn.type = 'button';
+        ubtn.id = util.id;
+        ubtn.className = 'tv-tool-btn tv-util-btn';
+        ubtn.dataset.dockUtil = util.action;
+        ubtn.title = util.title;
+        ubtn.setAttribute('aria-label', util.title);
+        ubtn.setAttribute('aria-pressed', 'false');
+        ubtn.innerHTML = util.svg;
+        frag.appendChild(ubtn);
       });
       if (extraMenu) dock.insertBefore(frag, extraMenu);
       else dock.appendChild(frag);
@@ -359,7 +412,80 @@
       workspace.insertBefore(fallbackView, workspace.firstChild);
     }
 
-    var extraTools = ['fibonacci', 'horizontalRay', 'priceRange', 'parallelChannel', 'arrow', 'text'];
+    var extraTools = ['fibonacci', 'horizontalRay', 'vertical', 'datePriceRange', 'priceRange', 'parallelChannel', 'arrow', 'path', 'circle', 'text', 'note', 'priceNote'];
+
+    // Floating Selected-Object Mini Toolbar & Object Tree wiring
+    var floatBar = byId('tvFloatingObjBar');
+    var objWidthSel = byId('tvObjWidthSelect');
+    var objStyleSel = byId('tvObjLineStyleSelect');
+    var objSendBtn = byId('tvObjSendOrderBtn');
+    var objDupBtn = byId('tvObjDuplicateBtn');
+    var objDelBtn = byId('tvObjDeleteBtn');
+    var objSwatches = byId('tvObjSwatches');
+    var objTreeList = byId('tvObjectTreeList');
+    var objCountEl = byId('tvObjectCount');
+
+    if (objSwatches) {
+      objSwatches.addEventListener('click', function (evt) {
+        var sw = evt.target.closest('[data-swatch]');
+        if (!sw) return;
+        chart.setDrawingStyle({ color: sw.dataset.swatch });
+      });
+    }
+    if (objWidthSel) {
+      objWidthSel.addEventListener('change', function () {
+        chart.setDrawingStyle({ width: Number(objWidthSel.value) });
+      });
+    }
+    if (objStyleSel) {
+      objStyleSel.addEventListener('change', function () {
+        chart.setDrawingStyle({ lineStyle: objStyleSel.value });
+      });
+    }
+    if (objDupBtn) objDupBtn.addEventListener('click', function () { chart.duplicateSelected(); });
+    if (objDelBtn) objDelBtn.addEventListener('click', function () { chart.deleteSelected(); });
+
+    function escTree(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+
+    function renderObjectTree() {
+      if (objCountEl) objCountEl.textContent = String(chart.drawings.length);
+      if (!objTreeList) return;
+      if (!chart.drawings.length) {
+        objTreeList.innerHTML = '<div class="tv-obj-tree-empty">Belum ada objek gambar.</div>';
+        return;
+      }
+      var labels = (root.AmyCandleChart && root.AmyCandleChart.TOOL_LABELS) || {};
+      objTreeList.innerHTML = chart.drawings.slice().reverse().map(function (d) {
+        var name = labels[d.type] || d.type;
+        var isSel = d.id === chart.selectedId;
+        var visOff = d.visible === false;
+        var safeId = escTree(d.id);
+        var safeLabel = escTree(name + (d.text ? ' · ' + d.text.slice(0, 14) : ''));
+        return '<div class="tv-obj-row' + (isSel ? ' is-selected' : '') + '">' +
+          '<button type="button" class="tv-obj-select" data-obj-select="' + safeId + '">' + safeLabel + '</button>' +
+          '<button type="button" class="tv-obj-mini" data-obj-vis="' + safeId + '" title="Sembunyikan/Tampilkan">' + (visOff ? '🚫' : '👁') + '</button>' +
+          '<button type="button" class="tv-obj-mini" data-obj-lock="' + safeId + '" title="Kunci/Buka">' + (d.locked ? '🔒' : '🔓') + '</button>' +
+          '<button type="button" class="tv-obj-mini is-del" data-obj-del="' + safeId + '" title="Hapus">×</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    if (objTreeList) {
+      objTreeList.addEventListener('click', function (evt) {
+        var selBtn = evt.target.closest('[data-obj-select]');
+        if (selBtn) { chart.selectDrawing(selBtn.dataset.objSelect); return; }
+        var visBtn = evt.target.closest('[data-obj-vis]');
+        if (visBtn) { chart.toggleDrawingVisibility(visBtn.dataset.objVis); return; }
+        var lockBtn = evt.target.closest('[data-obj-lock]');
+        if (lockBtn) { chart.toggleDrawingLock(lockBtn.dataset.objLock); return; }
+        var delBtn = evt.target.closest('[data-obj-del]');
+        if (delBtn) { chart.deleteDrawingById(delBtn.dataset.objDel); return; }
+      });
+    }
 
     chart.refreshObjectControls = function (state) {
       var follow = byId('replayFollow');
@@ -374,6 +500,44 @@
         var extraActive = extraTools.indexOf(activeKey) >= 0;
         extraMenu.classList.toggle('has-active-tool', extraActive);
       }
+
+      var magBtn = byId('magnetToggleBtn');
+      if (magBtn) {
+        var m = chart.magnetMode || 'off';
+        magBtn.classList.toggle('active', m !== 'off');
+        magBtn.classList.toggle('is-strong', m === 'strong');
+        magBtn.setAttribute('aria-pressed', String(m !== 'off'));
+        magBtn.title = 'Magnet OHLC: ' + (m === 'off' ? 'Mati' : (m === 'weak' ? 'Lemah' : 'Kuat')) + ' (Klik untuk ubah · Alt+M)';
+      }
+      var lockBtn = byId('lockDrawingsBtn');
+      if (lockBtn) {
+        lockBtn.classList.toggle('active', Boolean(chart.drawingsLocked));
+        lockBtn.setAttribute('aria-pressed', String(Boolean(chart.drawingsLocked)));
+      }
+      var hideBtn = byId('hideDrawingsBtn');
+      if (hideBtn) {
+        hideBtn.classList.toggle('active', Boolean(chart.drawingsHidden));
+        hideBtn.setAttribute('aria-pressed', String(Boolean(chart.drawingsHidden)));
+      }
+      var stayBtnEl = byId('stayDrawingToggle');
+      if (stayBtnEl) {
+        stayBtnEl.classList.toggle('active', Boolean(chart.stayInDrawingMode));
+        stayBtnEl.setAttribute('aria-pressed', String(Boolean(chart.stayInDrawingMode)));
+      }
+
+      var selected = chart.getSelectedDrawing ? chart.getSelectedDrawing() : null;
+      if (floatBar) {
+        var showFloat = Boolean(selected && !chart.drawingsHidden && chart.activeTool === 'select');
+        floatBar.hidden = !showFloat;
+        if (showFloat && selected) {
+          if (objWidthSel) objWidthSel.value = String(Math.min(4, Math.max(1, Math.round(selected.style.width || 2))));
+          if (objStyleSel) objStyleSel.value = selected.style.lineStyle || 'solid';
+          if (objSendBtn) {
+            objSendBtn.hidden = !(selected.type === 'longPosition' || selected.type === 'shortPosition');
+          }
+        }
+      }
+      renderObjectTree();
     };
 
     dock.querySelectorAll('[data-quick]').forEach(function (button) {
@@ -383,6 +547,27 @@
         if (extraMenu) extraMenu.removeAttribute('open');
       });
     });
+
+    var magBtnInit = byId('magnetToggleBtn');
+    if (magBtnInit) {
+      magBtnInit.addEventListener('click', function () {
+        var order = ['off', 'weak', 'strong'];
+        var next = order[(order.indexOf(chart.magnetMode || 'off') + 1) % order.length];
+        chart.setMagnetMode(next);
+      });
+    }
+    var lockBtnInit = byId('lockDrawingsBtn');
+    if (lockBtnInit) {
+      lockBtnInit.addEventListener('click', function () {
+        chart.setDrawingsLocked(!chart.drawingsLocked);
+      });
+    }
+    var hideBtnInit = byId('hideDrawingsBtn');
+    if (hideBtnInit) {
+      hideBtnInit.addEventListener('click', function () {
+        chart.setDrawingsHidden(!chart.drawingsHidden);
+      });
+    }
 
     var followBtn = byId('replayFollow');
     if (followBtn) followBtn.addEventListener('click', function () { chart.goToCursor(); });

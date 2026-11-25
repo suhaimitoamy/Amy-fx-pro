@@ -20,6 +20,9 @@ import { resolveGoldSessionState } from '../engine/market-session-clock.js';
 import {
   BACKFILL_ENGINE_VERSION,
   computeGoldSlBuffer,
+  computeGoldSlPrice,
+  computePoiRecordPnl,
+  computePoiPortfolioLedger,
   loadHistoryState,
   saveHistoryState,
   backfillFromCandles,
@@ -27,6 +30,7 @@ import {
   mergeHistoryState,
   filterByRange,
   summarizePoiStats,
+  summarizePoiBreakdown,
   buildPoiCalendarMonth,
   getDayPoiRecords,
   getWitaYearMonth,
@@ -438,6 +442,7 @@ import {
         selectedCalendarDate = '';
         mappingHistoryState = createEmptyHistoryState();
         saveHistoryState(historyStorage, mappingHistoryState);
+        try { window.dispatchEvent(new CustomEvent('amyfx:poi-history-updated')); } catch (_) {}
         renderMappingHistory();
       });
     }
@@ -561,14 +566,76 @@ import {
     }
   }
 
-  function renderPoiRecordCard(rec, includeDate = false) {
+  function readProfileAccountParams() {
+    let baseBalanceUsd = 5000;
+    let riskPct = 1.5;
+    let currency = 'IDR';
+    let usdIdrRate = 16500;
+    let cashflowTotalUsd = 0;
+    try {
+      const b = Number(localStorage.getItem('amy_default_balance'));
+      if (Number.isFinite(b) && b > 0) baseBalanceUsd = b;
+      const r = Number(localStorage.getItem('amy_default_risk'));
+      if (Number.isFinite(r) && r > 0) riskPct = Math.max(0.1, Math.min(25, r));
+      const cur = String(localStorage.getItem('amy_account_currency') || '').toUpperCase();
+      if (cur === 'USD' || cur === 'IDR') currency = cur;
+      const rate = Number(localStorage.getItem('amy_usd_idr_rate'));
+      if (Number.isFinite(rate) && rate >= 1000) usdIdrRate = rate;
+      const rawCf = localStorage.getItem('amy_sim_cashflows_v1');
+      if (rawCf) {
+        const list = JSON.parse(rawCf);
+        if (Array.isArray(list)) {
+          cashflowTotalUsd = list.reduce((acc, item) => acc + (Number(item?.amountUsd) || 0), 0);
+        }
+      }
+    } catch (_) {}
+    const initialCapitalUsd = Math.max(0, Math.round((baseBalanceUsd + cashflowTotalUsd) * 100) / 100);
+    return { baseBalanceUsd, initialCapitalUsd, riskPct, currency, usdIdrRate };
+  }
+
+  function formatPoiMoney(usdAmount, profileParams, { signed = true } = {}) {
+    const val = Math.round((Number(usdAmount) || 0) * 100) / 100;
+    const abs = Math.abs(val);
+    const sign = val < 0 ? '-' : (signed && val > 0 ? '+' : '');
+    if (profileParams?.currency === 'IDR') {
+      const rate = Number(profileParams?.usdIdrRate) >= 1000 ? Number(profileParams.usdIdrRate) : 16500;
+      const idr = Math.round(abs * rate);
+      return `${sign}Rp${idr.toLocaleString('id-ID')}`;
+    }
+    return `${sign}$${abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function formatSignedPipsLabel(pips) {
+    const val = Math.round((Number(pips) || 0) * 10) / 10;
+    const sign = val < 0 ? '-' : (val > 0 ? '+' : '');
+    const abs = Math.abs(val);
+    return `${sign}${Number.isInteger(abs) ? abs : abs.toFixed(1)}p`;
+  }
+
+  function renderPoiRecordCard(rec, includeDate = false, ledger = null, profileParams = null) {
+    const params = profileParams || readProfileAccountParams();
     const isSell = rec.side === 'SELL';
     const sideCls = isSell ? 'is-sell' : 'is-buy';
     const badge = formatPoiOutcomeBadge(rec);
     const clock = formatWitaClock(rec.touchedAt, includeDate);
     const tp2Part = Number.isFinite(Number(rec.tp2)) && Number(rec.tp2) > 0 ? ` · TP2 $${fmt(rec.tp2)}` : '';
-    const maxFav = Number(rec.maxFavorable) || 0;
-    const favPart = maxFav > 0 ? `Maks +$${maxFav.toFixed(1)}` : `Sentuh $${fmt(rec.touchPrice)}`;
+    const fallbackRisk = Math.round(((params.initialCapitalUsd * params.riskPct) / 100) * 100) / 100;
+    const pnl = ledger?.perRecord?.get(rec.id) || computePoiRecordPnl(rec, fallbackRisk);
+    const slPipsTag = pnl.slPips > 0 ? ` (${pnl.slPips}p)` : '';
+
+    let pnlText = '';
+    let pnlCls = 'is-open';
+    if (pnl.isLoss) {
+      pnlCls = 'is-loss';
+      pnlText = `${formatSignedPipsLabel(pnl.pips)} · ${formatPoiMoney(pnl.pnlUsd, params, { signed: true })}`;
+    } else if (pnl.isWin) {
+      pnlCls = 'is-win';
+      pnlText = `${formatSignedPipsLabel(pnl.pips)} · ${formatPoiMoney(pnl.pnlUsd, params, { signed: true })}`;
+    } else {
+      const maxFav = Number(rec.maxFavorable) || 0;
+      pnlText = maxFav > 0 ? `Reaksi +$${maxFav.toFixed(1)}` : `Sentuh $${fmt(rec.touchPrice)}`;
+    }
+
     const tCount = Number(rec.touchCount) || 1;
     const touchBadgeText = `${tCount}×${rec.ceTouched ? ' · CE' : ''}`;
     return `
@@ -585,14 +652,14 @@ import {
           </div>
         </div>
         <div class="history-item-meta">
-          <span>CE $${fmt(rec.ce)} · SL $${fmt(rec.sl)} · TP1 $${fmt(rec.tp1)}${tp2Part}</span>
-          <span>${esc(favPart)}</span>
+          <span>CE $${fmt(rec.ce)} · SL $${fmt(rec.sl)}${slPipsTag} · TP1 $${fmt(rec.tp1)}${tp2Part}</span>
+          <span class="history-item-pnl ${pnlCls}">${esc(pnlText)}</span>
         </div>
       </div>
     `;
   }
 
-  function renderPoiCalendarPanel(calData) {
+  function renderPoiCalendarPanel(calData, poiLedger = null, profileParams = null) {
     const labelEl = $('poi-cal-month-label');
     const subMetaEl = $('poi-cal-sub-meta');
     const gridWrapEl = $('poi-cal-grid-wrap');
@@ -773,7 +840,7 @@ import {
       const moreHtml = dayData.items.length > 6
         ? `<button type="button" class="history-more-btn poi-cal-more-btn" id="btn-poi-cal-day-more">${calendarDayShowAll ? 'Ringkas (6)' : `Tampilkan semua (${dayData.items.length})`}</button>`
         : '';
-      bodyHtml = `<div class="history-list">${visible.map(rec => renderPoiRecordCard(rec, false)).join('')}</div>${moreHtml}`;
+      bodyHtml = `<div class="history-list">${visible.map(rec => renderPoiRecordCard(rec, false, poiLedger, profileParams)).join('')}</div>${moreHtml}`;
     }
 
     detailEl.innerHTML = `
@@ -809,6 +876,11 @@ import {
     const includeDate = activeHistoryRange === '7D';
     const scopeLabel = activeHistoryRange === '7D' ? '7 Hari' : 'Hari Ini';
 
+    const profileParams = readProfileAccountParams();
+    const poiLedger = computePoiPortfolioLedger(mappingHistoryState.poiRecords, {
+      baseBalanceUsd: profileParams.initialCapitalUsd,
+      riskPct: profileParams.riskPct
+    });
     const poiStats = summarizePoiStats(mappingHistoryState.poiRecords, activeHistoryRange, nowMs);
     const timelineItems = filterByRange(mappingHistoryState.timelineEvents, 'ts', activeHistoryRange, nowMs);
     const calData = buildPoiCalendarMonth(mappingHistoryState, historyCalendarYear, historyCalendarMonth, nowMs);
@@ -831,11 +903,26 @@ import {
         } else {
           const rateTxt = poiStats.respectRate !== null ? ` · Respect ${poiStats.respectRate}%` : '';
           scoreMainEl.textContent = `${scopeLabel}: ${poiStats.total} POI Disentuh${rateTxt}`;
+          let scopeNetUsd = 0;
+          let scopeResolved = 0;
+          for (const rec of poiStats.items) {
+            const p = poiLedger.perRecord.get(rec.id);
+            if (p && p.isRealized) {
+              scopeNetUsd += p.pnlUsd;
+              scopeResolved += 1;
+            }
+          }
+          scopeNetUsd = Math.round(scopeNetUsd * 100) / 100;
           const chips = [
             `<span class="history-chip is-respect">TP1/TP2: ${poiStats.tp1Count + poiStats.tp2Count}</span>`,
             `<span class="history-chip is-sl">Jebol SL: ${poiStats.slCount}</span>`,
             `<span class="history-chip is-active">Aktif: ${poiStats.reactingCount + poiStats.testingCount}</span>`
           ];
+          if (scopeResolved > 0) {
+            const netCls = scopeNetUsd > 0 ? 'is-respect' : (scopeNetUsd < 0 ? 'is-sl' : '');
+            chips.push(`<span class="history-chip ${netCls}">Net: ${esc(formatPoiMoney(scopeNetUsd, profileParams, { signed: true }))}</span>`);
+            chips.push(`<span class="history-chip">Saldo: ${esc(formatPoiMoney(poiLedger.endingBalanceUsd, profileParams, { signed: false }))}</span>`);
+          }
           scoreChipsEl.innerHTML = chips.join('');
         }
       } else if (activeHistoryTab === 'TIMELINE') {
@@ -884,7 +971,56 @@ import {
         poiListEl.innerHTML = `<div class="history-empty">Belum ada POI yang disentuh pada rentang ${esc(scopeLabel.toLowerCase())}. Saat harga menyentuh zona Demand/Supply aktif, status dan hasilnya tercatat otomatis di sini.</div>`;
       } else {
         const visible = historyShowAll ? poiStats.items : poiStats.items.slice(0, 5);
-        poiListEl.innerHTML = visible.map(rec => renderPoiRecordCard(rec, includeDate)).join('');
+        poiListEl.innerHTML = visible.map(rec => renderPoiRecordCard(rec, includeDate, poiLedger, profileParams)).join('');
+      }
+    }
+
+    const breakdownEl = $('history-poi-breakdown');
+    if (breakdownEl) {
+      const bd = summarizePoiBreakdown(mappingHistoryState.poiRecords, activeHistoryRange, nowMs, poiLedger);
+      if (bd.total === 0) {
+        breakdownEl.hidden = true;
+        breakdownEl.innerHTML = '';
+      } else {
+        const fmtPips = v => {
+          const n = Number(v) || 0;
+          if (n > 0) return `+${n.toFixed(0)}p`;
+          if (n < 0) return `${n.toFixed(0)}p`;
+          return '0p';
+        };
+        const renderBdRows = (rows) => rows.slice(0, 5).map(r => {
+          const wrTxt = r.respectRate !== null ? `${r.respectRate}%` : '—';
+          const pipsCls = r.netPips > 0 ? 'is-pos' : (r.netPips < 0 ? 'is-neg' : '');
+          const wrCls = r.respectRate === null ? '' : (r.respectRate >= 55 ? 'is-pos' : (r.respectRate < 45 ? 'is-neg' : ''));
+          return `
+            <div class="poi-bd-row">
+              <span class="poi-bd-key">${esc(r.key)}</span>
+              <span class="poi-bd-cnt">${r.wins}W/${r.losses}L${r.active ? ` · ${r.active}A` : ''}</span>
+              <span class="poi-bd-wr ${wrCls}">${wrTxt}</span>
+              <span class="poi-bd-pips ${pipsCls}">${fmtPips(r.netPips)}</span>
+            </div>
+          `;
+        }).join('');
+
+        breakdownEl.hidden = false;
+        breakdownEl.innerHTML = `
+          <div class="poi-bd-grid">
+            <div class="poi-bd-col">
+              <div class="poi-bd-head">
+                <span>Performa Jenis Zona</span>
+                <span>Respect · Pips</span>
+              </div>
+              <div class="poi-bd-rows">${renderBdRows(bd.byKind)}</div>
+            </div>
+            <div class="poi-bd-col">
+              <div class="poi-bd-head">
+                <span>Performa Sesi (WITA)</span>
+                <span>Respect · Pips</span>
+              </div>
+              <div class="poi-bd-rows">${renderBdRows(bd.bySession)}</div>
+            </div>
+          </div>
+        `;
       }
     }
 
@@ -920,7 +1056,7 @@ import {
 
     // Panel 3: Kalender Reaksi & POI Bulanan
     if (activeHistoryTab === 'CALENDAR') {
-      renderPoiCalendarPanel(calData);
+      renderPoiCalendarPanel(calData, poiLedger, profileParams);
     }
 
     // Footer controls (Expand/Collapse + Reset)
@@ -1008,6 +1144,7 @@ import {
 
     if (stateChanged) {
       saveHistoryState(historyStorage, mappingHistoryState);
+      try { window.dispatchEvent(new CustomEvent('amyfx:poi-history-updated')); } catch (_) {}
       try {
         window.AmyGitHubSync?.scheduleAutoSync?.('mapping-history', { delayMs: 15000 });
       } catch (_) {}
@@ -1958,9 +2095,10 @@ import {
         return { dist: NaN, status: 'unknown', label: 'Menunggu SL' };
       }
       const dist = Math.abs(entryCe - slPrice);
-      if (dist < 2.0) return { dist, status: 'tight', label: `SL $${dist.toFixed(2)} · Ketat (<$2 Rawan Wick)` };
-      if (dist > 7.5) return { dist, status: 'wide', label: `SL $${dist.toFixed(2)} · Lebar (Refine M5)` };
-      return { dist, status: 'ideal', label: `SL $${dist.toFixed(2)} · Ideal Scalper` };
+      const pips = Math.round(dist * 10);
+      if (dist < 6.0) return { dist, status: 'tight', label: `SL $${dist.toFixed(2)} (${pips}p) · Ketat (<60p)` };
+      if (dist > 10.0) return { dist, status: 'wide', label: `SL $${dist.toFixed(2)} (${pips}p) · Lebar (>100p)` };
+      return { dist, status: 'ideal', label: `SL $${dist.toFixed(2)} (${pips}p) · Ideal 60–100p` };
     }
 
     // Helper Target 2-Tahap Scalper: TP1 Cepat (Close 60% & Geser BEP) + TP2 Runner (DOL Utama)
@@ -2103,7 +2241,10 @@ import {
     const invSell = resolveStructuralInvalidation(primarySellZone, 'SELL');
     const trueSlBoundary = invSell ? invSell.v : (primarySellZone ? primarySellZone.high : NaN);
     const sellSlBuf = resolveLiveSlBuffer(invSell, primarySellZone);
-    const slLevelSellNum = Number.isFinite(trueSlBoundary) ? Number((trueSlBoundary + sellSlBuf).toFixed(2)) : NaN;
+    const rawSlSell = Number.isFinite(trueSlBoundary) ? Number((trueSlBoundary + sellSlBuf).toFixed(2)) : NaN;
+    const slLevelSellNum = primarySellZone
+      ? computeGoldSlPrice('SELL', primarySellZone.low, primarySellZone.high, primarySellZone.ce, primarySellZone.tf || 'M15', rawSlSell)
+      : rawSlSell;
     const sellSlGuard = evaluateSlGuard(primarySellZone?.ce, slLevelSellNum);
     const sellTargets = resolveScalperTargets(primarySellZone, slLevelSellNum, 'SELL');
     const tpCandSell = sellTargets.tp1;
@@ -2387,7 +2528,10 @@ import {
     const invBuy = resolveStructuralInvalidation(primaryBuyZone, 'BUY');
     const trueBuySlBoundary = invBuy ? invBuy.v : (primaryBuyZone ? primaryBuyZone.low : NaN);
     const buySlBuf = resolveLiveSlBuffer(invBuy, primaryBuyZone);
-    const slLevelBuyNum = Number.isFinite(trueBuySlBoundary) ? Number((trueBuySlBoundary - buySlBuf).toFixed(2)) : NaN;
+    const rawSlBuy = Number.isFinite(trueBuySlBoundary) ? Number((trueBuySlBoundary - buySlBuf).toFixed(2)) : NaN;
+    const slLevelBuyNum = primaryBuyZone
+      ? computeGoldSlPrice('BUY', primaryBuyZone.low, primaryBuyZone.high, primaryBuyZone.ce, primaryBuyZone.tf || 'M15', rawSlBuy)
+      : rawSlBuy;
     const buySlGuard = evaluateSlGuard(primaryBuyZone?.ce, slLevelBuyNum);
     const buyTargets = resolveScalperTargets(primaryBuyZone, slLevelBuyNum, 'BUY');
     const tpCandBuy = buyTargets.tp1;

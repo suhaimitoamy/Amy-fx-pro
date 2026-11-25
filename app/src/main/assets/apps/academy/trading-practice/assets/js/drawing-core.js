@@ -5,8 +5,8 @@
   if (root.AmyPracticeDrawing) return;
 
   var TYPE_ALIASES = Object.freeze({ zone: 'rectangle' });
-  var SINGLE_POINT = Object.freeze(['horizontal', 'horizontalRay', 'entry', 'stop', 'target', 'text', 'note', 'priceNote']);
-  var TWO_POINT = Object.freeze(['trend', 'fibonacci', 'priceRange', 'rectangle', 'arrow', 'circle']);
+  var SINGLE_POINT = Object.freeze(['horizontal', 'horizontalRay', 'vertical', 'entry', 'stop', 'target', 'text', 'note', 'priceNote']);
+  var TWO_POINT = Object.freeze(['trend', 'fibonacci', 'priceRange', 'datePriceRange', 'rectangle', 'arrow', 'circle']);
   var THREE_POINT = Object.freeze(['parallelChannel', 'longPosition', 'shortPosition']);
   var SUPPORTED = Object.freeze(SINGLE_POINT.concat(TWO_POINT, THREE_POINT, ['path']));
 
@@ -47,10 +47,13 @@
     style = style || {};
     var colorStr = String(style.color || '').trim();
     var isValidColor = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(colorStr) || /^(rgb|hsl)a?\(/.test(colorStr);
+    var ls = String(style.lineStyle || 'solid').toLowerCase();
+    var lineStyle = (ls === 'dashed' || ls === 'dotted') ? ls : 'solid';
     return {
       color: isValidColor ? colorStr : null,
       width: Number.isFinite(Number(style.width)) ? Math.max(1, Math.min(8, Number(style.width))) : 2,
-      opacity: style.opacity != null && Number.isFinite(Number(style.opacity)) ? Math.max(.1, Math.min(1, Number(style.opacity))) : 1
+      opacity: style.opacity != null && Number.isFinite(Number(style.opacity)) ? Math.max(.1, Math.min(1, Number(style.opacity))) : 1,
+      lineStyle: lineStyle
     };
   }
 
@@ -68,6 +71,8 @@
       style: normalizeStyle(input.style),
       replayCreatedAt: input.replayCreatedAt == null ? null : finite(input.replayCreatedAt),
       text: String(input.text || '').trim().slice(0, 240),
+      locked: Boolean(input.locked),
+      visible: input.visible !== false,
       createdAt: Number(input.createdAt || Date.now())
     };
   }
@@ -81,6 +86,8 @@
       style: options.style,
       replayCreatedAt: options.replayCreatedAt,
       text: options.text,
+      locked: options.locked,
+      visible: options.visible,
       createdAt: options.createdAt
     });
   }
@@ -95,6 +102,8 @@
       style: normalizeStyle(normalized.style),
       replayCreatedAt: normalized.replayCreatedAt,
       text: normalized.text,
+      locked: normalized.locked,
+      visible: normalized.visible,
       createdAt: normalized.createdAt
     };
   }

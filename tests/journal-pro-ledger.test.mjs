@@ -87,7 +87,7 @@ test("mountProAnalytics renders Hero Equity Curve, 4 KPI cells, and 3 sub-tabs (
   // Switch to Sesi & Setup sub-tab
   container.clickSubtab("breakdown");
   assert.match(container.innerHTML, /Performa per Sesi \(WITA\)/);
-  assert.match(container.innerHTML, /Performa per Setup ICT/);
+  assert.match(container.innerHTML, /Playbook Scorecard \(Setup ICT\)/);
   assert.doesNotMatch(container.innerHTML, /CALENDAR_MOCK/);
 
   // Switch to Kebocoran sub-tab

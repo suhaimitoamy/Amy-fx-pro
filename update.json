@@ -1,27 +1,27 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.475/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.476/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Navigasi Kembali 1-Langkah Global: Penanganan deterministik tombol back pada Academy & modul latihan tanpa keluar paksa ke Beranda.",
-    "✦ Wadah Terpadu Alat TradingView Candle Replay: Konsolidasi kontrol dock alat gambar & header top-actions mobile-friendly.",
-    "✦ Buku Interaktif Trading 36 Bab: Refactor arsitektur 6 Bagian Utama dengan 151 soal Uji Paham deterministik & 36 diagram interaktif SVG.",
-    "✦ Zona Institusional iFVG & Breaker Block (BB): Deteksi visual Inverse FVG (ungu/amber) & Breaker Block (cyan/oranye) lengkap dengan level 50% CE.",
-    "✦ Upgrade Profitabilitas Mesin Mapping v4: Audit forensik 7 akar penyebab SL (penolakan salah sisi, buffer SL wick realistis, Dealing Range live)."
+    "✦ Kompas Makro Institusional Real-Time: Engine DXY, US 10Y Yield, VIX, SMT XAU/XAG, SVG Gauge, & guard rilis aktual USD.",
+    "✦ Candle Replay Pro Studio: Potong Bar interaktif, scrubber timeline, 5 tipe chart, skala %/Log/Auto, indikator anti-bocor (EMA/VWAP/BB/Sesi), magnet OHLC, & 1-klik order.",
+    "✦ Beranda Command Center Strip & Lot Sync Profil: Ringkasan Saldo Aktif, Sesi & News Guard, Kompas XAU live, serta Kalkulator Lot tersinkron Profil + breakdown performa POI.",
+    "✦ AMY Assistant 30-Detik Briefing & Jurnal Playbook Scorecard: Chip 'Layak Entry?', rapor Grade A–D per setup ICT, performa harian WITA, & Detektor Kebocoran Otomatis.",
+    "✦ Backend Multi-Key + Cadangan Lengkap: Rotasi multi-key TwelveData, stale fallback cache 30m, dan ekspor/pulihkan cadangan profil menyertakan Riwayat POI & Alarm."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.475/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.476/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950475,
-  "latest_version_name": "2.0.0-pro.475",
+  "latest_version_code": 950476,
+  "latest_version_name": "2.0.0-pro.476",
   "mandatory": false,
-  "releaseDate": "2026-11-24",
+  "releaseDate": "2026-11-25",
   "release_notes": [
-    "✦ Navigasi Kembali 1-Langkah Global: Penanganan deterministik tombol back pada Academy & modul latihan tanpa keluar paksa ke Beranda.",
-    "✦ Wadah Terpadu Alat TradingView Candle Replay: Konsolidasi kontrol dock alat gambar & header top-actions mobile-friendly.",
-    "✦ Buku Interaktif Trading 36 Bab: Refactor arsitektur 6 Bagian Utama dengan 151 soal Uji Paham deterministik & 36 diagram interaktif SVG.",
-    "✦ Zona Institusional iFVG & Breaker Block (BB): Deteksi visual Inverse FVG (ungu/amber) & Breaker Block (cyan/oranye) lengkap dengan level 50% CE.",
-    "✦ Upgrade Profitabilitas Mesin Mapping v4: Audit forensik 7 akar penyebab SL (penolakan salah sisi, buffer SL wick realistis, Dealing Range live)."
+    "✦ Kompas Makro Institusional Real-Time: Engine DXY, US 10Y Yield, VIX, SMT XAU/XAG, SVG Gauge, & guard rilis aktual USD.",
+    "✦ Candle Replay Pro Studio: Potong Bar interaktif, scrubber timeline, 5 tipe chart, skala %/Log/Auto, indikator anti-bocor (EMA/VWAP/BB/Sesi), magnet OHLC, & 1-klik order.",
+    "✦ Beranda Command Center Strip & Lot Sync Profil: Ringkasan Saldo Aktif, Sesi & News Guard, Kompas XAU live, serta Kalkulator Lot tersinkron Profil + breakdown performa POI.",
+    "✦ AMY Assistant 30-Detik Briefing & Jurnal Playbook Scorecard: Chip 'Layak Entry?', rapor Grade A–D per setup ICT, performa harian WITA, & Detektor Kebocoran Otomatis.",
+    "✦ Backend Multi-Key + Cadangan Lengkap: Rotasi multi-key TwelveData, stale fallback cache 30m, dan ekspor/pulihkan cadangan profil menyertakan Riwayat POI & Alarm."
   ],
-  "version": "2.0.0-pro.475",
-  "versionCode": 950475,
+  "version": "2.0.0-pro.476",
+  "versionCode": 950476,
   "sha256": "c5fdaa36a469b47232804bc7f16d0a859b4d4c0a659b55a45bd65d2507788748"
 }

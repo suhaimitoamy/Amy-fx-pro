@@ -1,0 +1,222 @@
+Regression failed: dynamic-heatmap-ui-regression.test.mjs
+Exit status: 1
+
+'      <button class="intel-tab active" data-tab="sentiment">Kompas</button>\n' +
+      '      <button class="intel-tab" data-tab="news">Berita</button>\n' +
+      '      <button class="intel-tab" data-tab="calendar">Kalender</button>\n' +
+      '    </nav>\n' +
+      '\n' +
+      '    <section id="panel-sentiment" class="intel-panel active">\n' +
+      '      <div class="intel-status-row">\n' +
+      '        <div class="status-bar" id="sentiment-status">Memuat kompas fundamental &amp; sentimen makro...</div>\n' +
+      '        <button type="button" class="intel-refresh-btn" id="btn-refresh-sentiment" title="Perbarui Kompas" aria-label="Perbarui Kompas">\n' +
+      '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>\n' +
+      '        </button>\n' +
+      '      </div>\n' +
+      '      <div id="sentiment-content" class="sentiment-wrap"></div>\n' +
+      '    </section>\n' +
+      '\n' +
+      '    <section id="panel-news" class="intel-panel" role="tabpanel">\n' +
+      '      <div class="calendar-filters news-filters" role="group" aria-label="Filter Berita">\n' +
+      '        <button type="button" class="news-filter active" data-news-filter="gold">Fokus Gold</button>\n' +
+      '        <button type="button" class="news-filter" data-news-filter="high">High Impact</button>\n' +
+      '        <button type="button" class="news-filter" data-news-filter="all">Semua</button>\n' +
+      '      </div>\n' +
+      '      <div class="intel-status-row">\n' +
+      '        <div class="status-bar" id="news-status">Memuat berita...</div>\n' +
+      '        <button type="button" class="intel-refresh-btn" id="btn-refresh-news" title="Perbarui Berita" aria-label="Perbarui Berita">\n' +
+      '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>\n' +
+      '        </button>\n' +
+      '      </div>\n' +
+      '      <div id="news-list" class="news-list"></div>\n' +
+      '    </section>\n' +
+      '\n' +
+      '    <section id="panel-calendar" class="intel-panel" role="tabpanel">\n' +
+      '      <div class="calendar-filters" role="group" aria-label="Filter Kalender Ekonomi">\n' +
+      '        <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold</button>\n' +
+      '        <button type="button" class="cal-filter" data-filter="high">High Impact</button>\n' +
+      '        <button type="button" class="cal-filter" data-filter="medium">Medium</button>\n' +
+      '        <button type="button" class="cal-filter" data-filter="all">Semua</button>\n' +
+      '      </div>\n' +
+      '      <div class="intel-status-row">\n' +
+      '        <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>\n' +
+      '        <button type="button" class="intel-refresh-btn" id="btn-refresh-calendar" title="Perbarui Kalender" aria-label="Perbarui Kalender">\n' +
+      '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>\n' +
+      '        </button>\n' +
+      '      </div>\n' +
+      '      <div id="calendar-list" class="calendar-list"></div>\n' +
+      '    </section>\n' +
+      '\n' +
+      '    <div id="loading-overlay" class="loading-overlay" hidden>\n' +
+      '      <div class="spinner"></div>\n' +
+      '      <p>Memuat Data...</p>\n' +
+      '    </div>\n' +
+      '  </div>\n' +
+      '  <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>\n' +
+      '  <script src="../shared/amyfx-market-state-contract-v1.js" data-amyfx-market-contract="v2"></script>\n' +
+      '  <script src="../shared/market-intelligence.js"></script>\n' +
+      '  <script src="../shared/trader-insights-engine.js" data-amyfx-trader-insights="v1"></script>\n' +
+      '  <script src="kompas-engine.js"></script>\n' +
+      '  <script src="app.js"></script>\n' +
+      '  <script type="module" src="ict-intel.js"></script>\n' +
+      '  <script src="../shared/amyfx-blueprint-hotfix-v1.js" data-amyfx-blueprint-hotfix="v1"></script>\n' +
+      '  <script src="../shared/amyfx-blueprint-v1.js" data-amyfx-blueprint-js="v1"></script>\n' +
+      '  <script src="../shared/amyfx-universal-nav.js"></script>\n' +
+      '  <script src="../shared/amy-local-assistant.js" data-amy-local-assistant="v1"></script>\n' +
+      '</body>\n' +
+      '</html>\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+      <meta name="theme-color" content="#070B12">
+      <title>Market Intel — Amy FX Pro</title>
+      <script src="../shared/amyfx-theme-controller.js" data-amyfx-theme-controller="v1"></script>
+      <link rel="stylesheet" href="../shared/market-intelligence.css">
+      <link rel="stylesheet" href="../shared/amyfx-blueprint-v1.css" data-amyfx-blueprint-css="v1">
+      <link rel="stylesheet" href="../shared/amyfx-ui-tokens.css" data-amyfx-ui-tokens="v1">
+      <link rel="stylesheet" href="../shared/amyfx-theme.css" data-amyfx-theme="v1">
+      <link rel="stylesheet" href="../shared/amyfx-components.css" data-amyfx-components="v1">
+      <link rel="stylesheet" href="../shared/amyfx-ui-polish-pro348.css" data-amyfx-ui-polish="pro348">
+      <link rel="stylesheet" href="../shared/amyfx-natural-ui-pro355.css" data-amyfx-natural-ui="pro355">
+      <link rel="stylesheet" href="../shared/amyfx-obsidian-glass.css" data-amyfx-obsidian-glass="v1">
+      <link rel="stylesheet" href="styles.css">
+    </head>
+    <body class="amyfx-module amyfx-module--intel">
+      <div class="intel-container">
+        <header class="intel-header intel-topbar">
+          <button type="button" class="nav-arrow-btn nav-arrow-left" id="amyfxNavBack" data-amyfx-nav="back" aria-label="Kembali ke Menu Utama">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <div class="intel-header__copy">
+            <small class="intel-header__kicker">AMY FX PRO · XAU/USD</small>
+            <h1 class="intel-header__title">Market Intelligence</h1>
+          </div>
+          <button type="button" class="nav-arrow-btn nav-arrow-right" id="amyfxNavForward" data-amyfx-nav="forward" aria-label="Maju">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </header>
+    
+        <div id="intelSessionStrip" class="intel-session-strip is-safe" role="status" aria-live="polite">
+          <div class="intel-session-strip__copy">
+            <span class="intel-session-strip__tag" id="intelSessionBadge">SESI AMAN</span>
+            <strong class="intel-session-strip__title" id="intelSessionTitle">Memeriksa jadwal berita USD hari ini…</strong>
+          </div>
+          <button type="button" class="intel-session-strip__btn" id="intelSessionJumpBtn">Kalender</button>
+        </div>
+    
+        <nav class="intel-tabs" role="tablist" aria-label="Navigasi Market Intel">
+          <button class="intel-tab active" data-tab="sentiment">Kompas</button>
+          <button class="intel-tab" data-tab="news">Berita</button>
+          <button class="intel-tab" data-tab="calendar">Kalender</button>
+        </nav>
+    
+        <section id="panel-sentiment" class="intel-panel active">
+          <div class="intel-status-row">
+            <div class="status-bar" id="sentiment-status">Memuat kompas fundamental &amp; sentimen makro...</div>
+            <button type="button" class="intel-refresh-btn" id="btn-refresh-sentiment" title="Perbarui Kompas" aria-label="Perbarui Kompas">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+          </div>
+          <div id="sentiment-content" class="sentiment-wrap"></div>
+        </section>
+    
+        <section id="panel-news" class="intel-panel" role="tabpanel">
+          <div class="calendar-filters news-filters" role="group" aria-label="Filter Berita">
+            <button type="button" class="news-filter active" data-news-filter="gold">Fokus Gold</button>
+            <button type="button" class="news-filter" data-news-filter="high">High Impact</button>
+            <button type="button" class="news-filter" data-news-filter="all">Semua</button>
+          </div>
+          <div class="intel-status-row">
+            <div class="status-bar" id="news-status">Memuat berita...</div>
+            <button type="button" class="intel-refresh-btn" id="btn-refresh-news" title="Perbarui Berita" aria-label="Perbarui Berita">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+          </div>
+          <div id="news-list" class="news-list"></div>
+        </section>
+    
+        <section id="panel-calendar" class="intel-panel" role="tabpanel">
+          <div class="calendar-filters" role="group" aria-label="Filter Kalender Ekonomi">
+            <button type="button" class="cal-filter active" data-filter="gold">Fokus Gold</button>
+            <button type="button" class="cal-filter" data-filter="high">High Impact</button>
+            <button type="button" class="cal-filter" data-filter="medium">Medium</button>
+            <button type="button" class="cal-filter" data-filter="all">Semua</button>
+          </div>
+          <div class="intel-status-row">
+            <div class="status-bar" id="calendar-status">Memuat jadwal kalender ekonomi...</div>
+            <button type="button" class="intel-refresh-btn" id="btn-refresh-calendar" title="Perbarui Kalender" aria-label="Perbarui Kalender">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+          </div>
+          <div id="calendar-list" class="calendar-list"></div>
+        </section>
+    
+        <div id="loading-overlay" class="loading-overlay" hidden>
+          <div class="spinner"></div>
+          <p>Memuat Data...</p>
+        </div>
+      </div>
+      <script src="../shared/amyfx-loading.js" data-amyfx-loading="v1"></script>
+      <script src="../shared/amyfx-market-state-contract-v1.js" data-amyfx-market-contract="v2"></script>
+      <script src="../shared/market-intelligence.js"></script>
+      <script src="../shared/trader-insights-engine.js" data-amyfx-trader-insights="v1"></script>
+      <script src="kompas-engine.js"></script>
+      <script src="app.js"></script>
+      <script type="module" src="ict-intel.js"></script>
+      <script src="../shared/amyfx-blueprint-hotfix-v1.js" data-amyfx-blueprint-hotfix="v1"></script>
+      <script src="../shared/amyfx-blueprint-v1.js" data-amyfx-blueprint-js="v1"></script>
+      <script src="../shared/amyfx-universal-nav.js"></script>
+      <script src="../shared/amy-local-assistant.js" data-amy-local-assistant="v1"></script>
+    </body>
+    </html>
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///root/Amy-fx-pro/tests/dynamic-heatmap-ui-regression.test.mjs:26:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: dynamic heatmap refreshes independently and tracks strength changes
+ok 3 - dynamic heatmap refreshes independently and tracks strength changes
+  ---
+  duration_ms: 2.577
+  type: 'test'
+  ...
+# Subtest: heatmap API uses dynamic lifecycle engine and shared candle cache
+ok 4 - heatmap API uses dynamic lifecycle engine and shared candle cache
+  ---
+  duration_ms: 7.067615
+  type: 'test'
+  ...
+# Subtest: shared briefing uses canonical quote and Intel-only BSL SSL while heatmap keeps source candle time
+ok 5 - shared briefing uses canonical quote and Intel-only BSL SSL while heatmap keeps source candle time
+  ---
+  duration_ms: 6.172
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 787.27077
