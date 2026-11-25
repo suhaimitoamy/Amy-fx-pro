@@ -27,28 +27,30 @@ export default async function handler(req, res) {
   const telegramOnly = String(req.query.source || '').toLowerCase() === 'telegram';
   const useSupabaseNews = process.env.AMY_USE_SUPABASE_NEWS === '1';
 
-  if (!telegramOnly && useSupabaseNews) {
-    try {
-      const central = await fetchJsonWithTimeout(
-        `${SUPABASE_NEWS_FEED}?limit=${limit}`,
-        { headers: { Accept: 'application/json' } },
-        1500
-      );
-
-      if (Array.isArray(central?.news) && central.news.length > 0) {
-        central.news = await Promise.all(
-          central.news.map(normalizeNewsTranslation)
+  if (!telegramOnly) {
+    if (useSupabaseNews) {
+      try {
+        const central = await fetchJsonWithTimeout(
+          `${SUPABASE_NEWS_FEED}?limit=${limit}`,
+          { headers: { Accept: 'application/json' } },
+          1500
         );
 
-        res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
-        return res.status(200).json({
-          ...central,
-          count: central.news.length,
-          backend: 'supabase'
-        });
+        if (Array.isArray(central?.news) && central.news.length > 0) {
+          central.news = await Promise.all(
+            central.news.map(normalizeNewsTranslation)
+          );
+
+          res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+          return res.status(200).json({
+            ...central,
+            count: central.news.length,
+            backend: 'supabase'
+          });
+        }
+      } catch (error) {
+        console.warn('Supabase news feed unavailable, using Telegram fallback:', error?.message || error);
       }
-    } catch (error) {
-      console.warn('Supabase news feed unavailable, using Telegram fallback:', error?.message || error);
     }
   }
 

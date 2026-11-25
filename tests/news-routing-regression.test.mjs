@@ -40,6 +40,12 @@ test('market intel fetches sanitized server-translated news feed with local offl
 
 test('Supabase feed normalizes missing translations and retries failures', async t => {
   // Deterministic fixtures; no live translation or database writes in this test.
+  const prevSupabaseFlag = process.env.AMY_USE_SUPABASE_NEWS;
+  process.env.AMY_USE_SUPABASE_NEWS = '1';
+  t.after(() => {
+    if (prevSupabaseFlag === undefined) delete process.env.AMY_USE_SUPABASE_NEWS;
+    else process.env.AMY_USE_SUPABASE_NEWS = prevSupabaseFlag;
+  });
   const original = 'Gold rises as the dollar weakens.';
   const indonesian = 'Emas naik saat dolar melemah.';
   const unavailable = 'Terjemahan Bahasa Indonesia belum tersedia. Buka sumber untuk membaca berita asli.';
