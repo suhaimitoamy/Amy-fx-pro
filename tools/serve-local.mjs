@@ -922,7 +922,7 @@ const requestHandler = async (req, res) => {
 
     if (pathname === '/api/academy-reading') {
       try {
-        const handler = (await import('../api/academy-reading.js')).default;
+        const handler = (await import('../lib/api-academy-reading.mjs')).default;
         let statusCode = 200;
         const outHeaders = {
           'Access-Control-Allow-Origin': '*',
@@ -1031,7 +1031,7 @@ const requestHandler = async (req, res) => {
       const dispatchGemini = async (rawBody = '') => {
         try {
           const handlerModule = pathname === '/api/gemini-config'
-            ? '../api/gemini-config.js'
+            ? '../lib/api-gemini-config.mjs'
             : pathname === '/api/mt5-scan'
               ? '../api/mt5-scan.js'
               : '../api/gemini-chat.js';

@@ -1,3 +1,8 @@
+## 2.0.0-pro.479
+
+- fix(apk-home-stream): Sambungkan Peta Harga Beranda (`home-price-chart.js`) ke `window.AmyLivePrice.connect()` saat berjalan di Android APK agar stream harga live langsung menyala sejak Beranda dibuka.
+- fix(vercel-limit): Konsolidasikan `/api/gemini-config` & `/api/academy-reading` ke `lib/` dengan rewrite `vercel.json` lewat `api/gemini-chat.js` sehingga total Serverless Functions turun dari 14 menjadi 12 (memenuhi batas Hobby Plan Vercel tanpa menghapus endpoint).
+
 ## 2.0.0-pro.478
 
 - feat(live-price-hub): Implementasi singleton Shared Twelve Data WebSocket Hub (`lib/live-price-ws-hub.mjs`) untuk XAU/USD guna mencegah bentrok limit 1 koneksi Basic 8 dan menyiarkan tick real-time ke banyak klien tanpa duplikasi koneksi.

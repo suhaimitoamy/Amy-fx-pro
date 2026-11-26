@@ -31,6 +31,16 @@
       ]
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/gemini-config",
+      "destination": "/api/gemini-chat?__route=gemini-config"
+    },
+    {
+      "source": "/api/academy-reading",
+      "destination": "/api/gemini-chat?__route=academy-reading"
+    }
+  ],
   "functions": {
     "api/live-price.js": {
       "maxDuration": 60

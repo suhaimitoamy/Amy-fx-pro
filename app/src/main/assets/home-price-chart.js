@@ -307,7 +307,15 @@ export function mountHomeChart(root) {
   }
   const fsTeardown=mountHomeFullscreen(root,view,drawingTool);
   function startBrowserLivePriceStream(){
-    if(typeof window==='undefined'||window.Android||window.AmyLivePrice||window.__amyFxHomeSseStarted)return;
+    if(typeof window==='undefined')return;
+    if(window.AmyLivePrice&&typeof window.AmyLivePrice.connect==='function'){
+      if(!window.__amyFxNativePriceStarted&&isGoldMarketOpen(Date.now()/1000)){
+        window.__amyFxNativePriceStarted=true;
+        try{window.AmyLivePrice.connect();}catch(_){}
+      }
+      return;
+    }
+    if(window.Android||window.__amyFxHomeSseStarted)return;
     if(typeof EventSource!=='function')return;
     window.__amyFxHomeSseStarted=true;
     const proto=typeof location!=='undefined'?String(location.protocol||''):'';

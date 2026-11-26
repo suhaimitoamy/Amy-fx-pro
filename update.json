@@ -1,25 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.478/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.479/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Shared Twelve Data WebSocket Hub: Implementasi singleton Hub WebSocket untuk stream harga live XAU/USD tanpa melanggar batas 1 koneksi Twelve Data Basic 8.",
-    "✦ Optimasi Vercel Serverless SSE: Upgrade endpoint /api/live-price ke arsitektur Shared Hub 50 detik dengan heartbeat 12s dan failover multi-key otomatis.",
-    "✦ Sinkronisasi Peta Harga Beranda & Chart Gold Mapping: Stream same-origin dengan fallback bertahap dan deduplikasi tick live.",
-    "✦ Server Lokal Always-On: Dukungan upstream relay tunggal dan mode persisten pada tools/serve-local.mjs."
+    "✦ Live Stream Beranda APK & Deploy Vercel 12-Fungsi: Hubungkan Peta Harga Beranda APK langsung ke bridge native TwelveDataPriceBridge (window.AmyLivePrice.connect) dan konsolidasikan endpoint Vercel menjadi 12 Serverless Functions agar deploy Hobby Plan berjalan mulus."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.478/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.479/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950478,
-  "latest_version_name": "2.0.0-pro.478",
+  "latest_version_code": 950479,
+  "latest_version_name": "2.0.0-pro.479",
   "mandatory": false,
   "releaseDate": "2026-11-26",
   "release_notes": [
-    "✦ Shared Twelve Data WebSocket Hub: Implementasi singleton Hub WebSocket untuk stream harga live XAU/USD tanpa melanggar batas 1 koneksi Twelve Data Basic 8.",
-    "✦ Optimasi Vercel Serverless SSE: Upgrade endpoint /api/live-price ke arsitektur Shared Hub 50 detik dengan heartbeat 12s dan failover multi-key otomatis.",
-    "✦ Sinkronisasi Peta Harga Beranda & Chart Gold Mapping: Stream same-origin dengan fallback bertahap dan deduplikasi tick live.",
-    "✦ Server Lokal Always-On: Dukungan upstream relay tunggal dan mode persisten pada tools/serve-local.mjs."
+    "✦ Live Stream Beranda APK & Deploy Vercel 12-Fungsi: Hubungkan Peta Harga Beranda APK langsung ke bridge native TwelveDataPriceBridge (window.AmyLivePrice.connect) dan konsolidasikan endpoint Vercel menjadi 12 Serverless Functions agar deploy Hobby Plan berjalan mulus."
   ],
-  "version": "2.0.0-pro.478",
-  "versionCode": 950478,
+  "version": "2.0.0-pro.479",
+  "versionCode": 950479,
   "sha256": "4369393a438b79cf96bb0f82eab8d0ff48f995f2f9b72cd656845cb930c4679e"
 }
