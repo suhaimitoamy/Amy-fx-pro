@@ -33,8 +33,11 @@ __pycache__/
 /*_FIX_NOTES.md
 /.amyfx_backup*
 
-# Generated logs
+# Generated logs & runtime reports
 *.log
+/preview-regression-failure.txt
+/*.apk
+/*.apk.sha256
 .vercel
 .env*
 supabase/.temp/
