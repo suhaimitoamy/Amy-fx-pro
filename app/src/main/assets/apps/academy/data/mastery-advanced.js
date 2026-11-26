@@ -36,7 +36,7 @@
       diagramId: 'breaker-mitigation-unicorn',
       bookFormat: true,
       diagramAfterSection: 1,
-      summary: 'Saat sebuah Order Block jebol tidak berarti peluang habis — justru sering melahirkan benteng pembalikan paling keras (Breaker Block). Pelajari beda tegas Breaker vs Mitigation Block dan konfluensi terkuat di Gold: ICT Unicorn Model.',
+      summary: 'Saat sebuah Order Block jebol tidak berarti peluang habis — justru sering melahirkan benteng reversal paling keras (Breaker Block). Pelajari beda tegas Breaker vs Mitigation Block dan konfluensi terkuat di Gold: ICT Unicorn Model.',
       bookSections: [
         {
           number: '22.1',
@@ -44,7 +44,7 @@
           shortTitle: 'Psikologi Breaker Block',
           paragraphs: [
             'Di Bab 21 kamu melihat bagaimana Order Block yang sehat menahan harga. Sekarang tanyakan pertanyaan sebaliknya: **apa yang terjadi di balik layar ketika sebuah Order Block gagal menahan harga dan malah dijebol keras oleh Displacement?**',
-            'Bayangkan institusi besar melihat tumpukan Stop Loss (BSL) di atas sebuah puncak lama. Mereka mendorong harga naik sedikit dengan candle hijau terakhir untuk **menyapu BSL** tersebut — memancing ribuan trader ritel ikut FOMO Buy di pucuk. Sesaat setelah likuiditas BSL terambil, bank langsung membanting harga turun keras hingga **menembus Swing Low sebelumnya**!',
+            'Bayangkan institusi besar melihat tumpukan Stop Loss (BSL) di atas sebuah puncak lama. Mereka mendorong harga naik sedikit dengan candle hijau terakhir untuk **sweep BSL** tersebut — memancing ribuan trader ritel ikut FOMO Buy di pucuk. Sesaat setelah Liquidity BSL terambil, bank langsung membanting harga turun keras hingga **menembus Swing Low sebelumnya**!',
             'Rangkaian candle hijau terakhir yang tadinya tampak seperti "Bullish Order Block" di kaki naik sebelum sweep itu kini resmi **jebol dan berubah kutub** menjadi **Bearish Breaker Block (`-BB`)**. Ketika harga nanti naik kembali (*retrace*) menyentuh kotak Breaker tersebut, bank menutup sisa order beli umpan mereka di titik impas (*breakeven*) sambil menambahkan order jual baru secara masif — itulah sebabnya pantulan dari Breaker Block sering **jauh lebih keras, cepat, dan bersih** dibanding Order Block biasa! (Di Chart Gold Mapping Cockpit Amy FX Pro, zona ini otomatis tampil sebagai **`+BB` cyan** untuk Buy dan **`-BB` oranye** untuk Sell).'
           ]
         },
@@ -59,10 +59,10 @@
             caption: 'Perbandingan Struktural: Breaker Block (BB) vs Mitigation Block (MB)',
             headers: ['Pembeda Kunci', 'Breaker Block (BB)', 'Mitigation Block (MB)', 'Implikasi Trading'],
             rows: [
-              ['Ada Sweep Likuiditas?', '**WAJIB ADA SWEEP!** Harga mencetak High baru tipis (ambil BSL) untuk `-BB`, atau Low baru tipis (ambil SSL) untuk `+BB`', '**TIDAK ADA SWEEP!** Harga gagal mencapai ekstrem lama (mencetak *Lower High* untuk `-MB`, atau *Higher Low* untuk `+MB`)', 'Breaker punya bahan bakar likuiditas penuh; Mitigation tidak'],
-              ['Penembusan Balik', 'Ditembus balik dengan **Displacement (Body Close)** menembus Swing tengah', 'Ditembus balik dengan **Displacement (Body Close)** menembus Swing tengah', 'Keduanya tetap wajib mematahkan Swing dengan body close'],
+              ['Ada Sweep Liquidity?', '**WAJIB ADA SWEEP!** Harga mencetak High baru tipis (ambil BSL) untuk `-BB`, atau Low baru tipis (ambil SSL) untuk `+BB`', '**TIDAK ADA SWEEP!** Harga gagal mencapai ekstrem lama (mencetak *Lower High* untuk `-MB`, atau *Higher Low* untuk `+MB`)', 'Breaker punya bahan bakar Liquidity penuh; Mitigation tidak'],
+              ['Break Balik', 'Ditembus balik dengan **Displacement (Body Close)** menembus Swing tengah', 'Ditembus balik dengan **Displacement (Body Close)** menembus Swing tengah', 'Keduanya tetap wajib mematahkan Swing dengan body close'],
               ['Tingkat Kekuatan', '**Sangat Tinggi (Grade A+)** — menempati peringkat atas Hierarki PD Array', '**Menengah–Tinggi (Grade B+/A-)** — daya tolak lebih lunak', 'Breaker bisa berdiri kuat; Mitigation WAJIB dibantu FVG & searah Bias H1'],
-              ['Contoh Urutan Bearish', 'Swing Low → **Sweep HH** → Jebol Swing Low', 'Swing Low → **Gagal HH (LH)** → Jebol Swing Low', 'Cek 1 detik: apakah ujungnya menyapu High/Low lama?']
+              ['Contoh Urutan Bearish', 'Swing Low → **Sweep HH** → Jebol Swing Low', 'Swing Low → **Gagal HH (LH)** → Jebol Swing Low', 'Cek 1 detik: apakah ujungnya sweep High/Low lama?']
             ]
           }
         },
@@ -88,7 +88,7 @@
             rows: [
               {
                 label: 'Tahap 1 — Sweep & Jebol Balik (MSS)',
-                detail: 'Bias H1 sedang Bearish menuju `PDL 2.632,00`. XAU/USD melonjak menyapu **London High `2.654,50`** (syarat Sweep terpenuhi!), lalu langsung dibanting keras menutup body menembus **Swing Low `2.648,00`**.'
+                detail: 'Bias H1 sedang Bearish menuju `PDL 2.632,00`. XAU/USD melonjak sweep **London High `2.654,50`** (syarat Sweep terpenuhi!), lalu langsung dibanting keras menutup body menembus **Swing Low `2.648,00`**.'
               },
               {
                 label: 'Tahap 2 — Menandai Breaker & FVG (Irisan Unicorn)',
@@ -109,12 +109,12 @@
         }
       ],
       keyTakeaways: [
-        '**Breaker Block (BB)** adalah Order Block yang jebol balik secara agresif **setelah menyapu likuiditas** (`HH` tipis untuk Bearish BB, `LL` tipis untuk Bullish BB).',
+        '**Breaker Block (BB)** adalah Order Block yang jebol balik secara agresif **setelah sweep Liquidity** (`HH` tipis untuk Bearish BB, `LL` tipis untuk Bullish BB).',
         '**Mitigation Block (MB)** terlihat mirip, tetapi **tidak memiliki Sweep** di ujungnya (gagal mencetak High/Low baru) sehingga kekuatannya lebih rendah dan butuh konfluensi FVG + Bias HTF.',
         '**ICT Unicorn Model** adalah irisan tumpang tindih (*overlap*) antara **Breaker Block** dan **Fair Value Gap (FVG)** dari dorongan Displacement yang sama.',
         'SL paling logis untuk Breaker/Unicorn diletakkan di luar ujung puncak/dasar sweep (+ napas spread); jika Body Close menembus keluar seluruh kotak Breaker, setup batal total.'
       ],
-      bridgeNext: 'Sekarang kamu sudah menguasai empat zona entry utama ICT: FVG, iFVG, Order Block, dan Breaker/Unicorn. Tetapi bagaimana cara tahu secara paling awal dan paling objektif bahwa harga benar-benar sudah **berbalik arah** setelah menyapu likuiditas — sebelum kamu memutuskan zona mana yang aktif? Mari kita bedah dua pemicu pembalikan paling presisi di **Bab 23: CISD vs Market Structure Shift (MSS): Sinyal Balik Arah Paling Presisi**.',
+      bridgeNext: 'Sekarang kamu sudah menguasai empat zona entry utama ICT: FVG, iFVG, Order Block, dan Breaker/Unicorn. Tetapi bagaimana cara tahu secara paling awal dan paling objektif bahwa harga benar-benar sudah **berbalik arah** setelah sweep Liquidity — sebelum kamu memutuskan zona mana yang aktif? Mari kita bedah dua pemicu reversal paling presisi di **Bab 23: CISD vs Market Structure Shift (MSS): Sinyal Balik Arah Paling Presisi**.',
       practiceCta: {
         label: 'Pantau Zona +BB / -BB Live di Chart Gold',
         description: 'Buka Chart Gold di Mapping Cockpit untuk melihat deteksi otomatis Breaker Block (+BB cyan / -BB oranye) beserta prioritasnya.',
@@ -129,14 +129,14 @@
         }
       ],
       mappingSteps: [
-        'Tandai swing terakhir yang baru saja menyapu likuiditas (ambil BSL/SSL) beserta Swing Lawan tepat di sebelahnya.',
+        'Tandai swing terakhir yang baru saja sweep Liquidity (ambil BSL/SSL) beserta Swing Lawan tepat di sebelahnya.',
         'Tunggu dorongan Displacement kuat yang menutup body menembus Swing Lawan tersebut (MSS).',
         'Tarik kotak pada rangkaian candle lawan terakhir sebelum puncak/dasar sweep sebagai Breaker Block, lalu cek apakah ada FVG yang bertumpuk membentuk Zona Unicorn.',
         'Eksekusi saat retrace ke tepi Breaker / irisan Unicorn dengan SL di luar puncak/dasar sweep (+ napas spread).'
       ],
       decisionTree: [
         {
-          condition: 'Harga menjebol Swing dengan Displacement, tetapi puncak sebelumnya TIDAK menyapu High lama (malah Lower High).',
+          condition: 'Harga menjebol Swing dengan Displacement, tetapi puncak sebelumnya TIDAK sweep High lama (malah Lower High).',
           action: 'Itu Mitigation Block, bukan Breaker Block. Wajib ada FVG menumpuk dan searah Bias H1 — jika tidak, skip.'
         },
         {
@@ -159,7 +159,7 @@
         'Menahan posisi ketika Body Close sudah menembus keluar kotak Breaker.'
       ],
       xauScenario: {
-        context: 'NY Open 20:35 WITA, Bias H1 Bearish menuju PDL 2.632: XAU/USD menyapu London High 2.654,50 lalu jebol Swing Low 2.648,00.',
+        context: 'NY Open 20:35 WITA, Bias H1 Bearish menuju PDL 2.632: XAU/USD sweep London High 2.654,50 lalu jebol Swing Low 2.648,00.',
         steps: [
           'Bearish Breaker Block di 2.650,00–2.652,40 beririsan dengan Bearish FVG 2.649,20–2.651,80 → Zona Unicorn 2.650,00–2.651,80.',
           'Sell di 2.650,50, SL di 2.655,00 ($4,50), TP1 2.641,50 (1:2) dan TP2 PDL 2.632,50 (1:4).'
@@ -167,8 +167,8 @@
       },
       failedCase: {
         title: 'Kasus Gagal: Breaker Palsu di Tengah Asia Chop',
-        context: 'Sesi Asia 10:15 WITA, harga menembus micro-low M5 tanpa menyapu High sesi mana pun dan tanpa Displacement/FVG.',
-        whyFailed: 'Tanpa sweep nyata, tanpa FVG (bukan Unicorn), dan di luar Killzone, sesi London langsung menyapu seluruh kotak Asia dan mengenai SL.'
+        context: 'Sesi Asia 10:15 WITA, harga menembus micro-low M5 tanpa sweep High sesi mana pun dan tanpa Displacement/FVG.',
+        whyFailed: 'Tanpa sweep nyata, tanpa FVG (bukan Unicorn), dan di luar Killzone, sesi London langsung sweep seluruh kotak Asia dan mengenai SL.'
       },
       goldenRules: [
         'Breaker Block = Sweep + Jebol Balik Agresif. Tanpa sweep di ujungnya, itu Mitigation Block.',
@@ -198,7 +198,7 @@
           explanation: 'ICT Unicorn adalah irisan tumpang tindih antara kotak Breaker Block dengan kotak FVG dari dorongan Displacement yang menjebol struktur.'
         },
         {
-          question: 'Harga membentuk Bullish Breaker di `2.640–2.642` (setelah menyapu SSL `2.637` dan menjebol Swing High `2.645`). Saat retrace, candle M5 menutup **Body Close penuh di `2.638,50`**. Apa keputusan mekanis yang benar?',
+          question: 'Harga membentuk Bullish Breaker di `2.640–2.642` (setelah sweep SSL `2.637` dan menjebol Swing High `2.645`). Saat retrace, candle M5 menutup **Body Close penuh di `2.638,50`**. Apa keputusan mekanis yang benar?',
           options: [
             'Langsung Buy dua kali lipat karena harga makin murah',
             'Menunggu 5 candle lagi sambil menghapus Stop Loss',
@@ -276,7 +276,7 @@
               ],
               [
                 '**VI** (*Volume Imbalance*)',
-                'Celah tipis antara **Close candle 1** dan **Open candle 2**, walau sumbu (*wick*) masih bersentuhan',
+                'Celah tipis antara **Close candle 1** dan **Open candle 2**, walau Wick masih bersentuhan',
                 'Muncul di dalam kaki Displacement sesi aktif (bukan error feed broker)',
                 'Titik retest mikro yang sangat dihormati di tepi body atau garis `50%`'
               ],
@@ -323,11 +323,11 @@
               },
               {
                 label: '2. Pembentukan Bearish BPR di London KZ',
-                detail: 'Harga sempat naik kencang meninggalkan `BISI 2.666,00–2.669,00`, lalu langsung dibanting turun menyapu struktur dan meninggalkan `SIBI 2.665,00–2.668,00`. Irisan keduanya (**`2.666,00–2.668,00`**) resmi menjadi **Bearish BPR**.'
+                detail: 'Harga sempat naik kencang meninggalkan `BISI 2.666,00–2.669,00`, lalu langsung dibanting turun sweep struktur dan meninggalkan `SIBI 2.665,00–2.668,00`. Irisan keduanya (**`2.666,00–2.668,00`**) resmi menjadi **Bearish BPR**.'
               },
               {
                 label: '3. Entry, SL Struktural & Target NWOG (Dengan Napas Ask)',
-                detail: 'Harga retrace ke `2.666,50` dan ditolak sumbu atas → **Sell `2.666,50`**, SL di atas puncak BPR **`2.670,00`** (risiko **`$3,50`**). **TP1** di `50% NWOG` (+`$0,50` napas Ask) = **`2.658,50`** (**`+$8,00` / `2,29R`**). **TP2** di batas bawah NWOG (+`$0,50` napas Ask) = **`2.656,50`** (**`+$10,00` / `2,86R`**).'
+                detail: 'Harga retrace ke `2.666,50` dan ditolak wick atas → **Sell `2.666,50`**, SL di atas puncak BPR **`2.670,00`** (risiko **`$3,50`**). **TP1** di `50% NWOG` (+`$0,50` napas Ask) = **`2.658,50`** (**`+$8,00` / `2,29R`**). **TP2** di batas bawah NWOG (+`$0,50` napas Ask) = **`2.656,50`** (**`+$10,00` / `2,86R`**).'
               }
             ]
           },
@@ -335,13 +335,13 @@
             tone: 'warn',
             kicker: 'Peringatan Pembukaan Pekan',
             title: 'Jangan Pernah "Menutup Gap" di 15 Menit Pertama Senin Pagi!',
-            body: 'Spread pembukaan Senin pagi (`05:00–07:00 WITA`) sangat tipis likuiditas dan mudah melonjak. Selalu tunggu struktur valid di **London atau NY AM Killzone** sebelum menargetkan kotak NWOG sebagai magnet DOL.'
+            body: 'Spread pembukaan Senin pagi (`05:00–07:00 WITA`) sangat tipis Liquidity dan mudah melonjak. Selalu tunggu struktur valid di **London atau NY AM Killzone** sebelum menargetkan kotak NWOG sebagai magnet DOL.'
           }
         }
       ],
       keyTakeaways: [
         '**Balanced Price Range (BPR)** adalah irisan tumpang tindih antara **BISI** dan **SIBI** dari dua gerakan impulsif berlawanan arah — bekerja sebagai dinding kaca pantulan super tajam.',
-        '**Volume Imbalance (VI)** adalah celah murni antara *Close candle 1* dan *Open candle 2* walau sumbu saling bersentuhan.',
+        '**Volume Imbalance (VI)** adalah celah murni antara *Close candle 1* dan *Open candle 2* walau wick saling bersentuhan.',
         '**NWOG** (`Close Jumat 17:00 NY → Open Minggu 18:00 NY`) dan **NDOG** (`Close 17:00 → Open 18:00 NY` harian) beserta garis `50% CE`-nya adalah jangkar magnet DOL sepanjang minggu — bukan sinyal entry buta saat spread Senin pagi melebar.'
       ],
       bridgeNext: 'Kamu sekarang sudah bisa membaca jejak ketimpangan tersembunyi di satu chart XAU/USD (BPR, VI, NWOG/NDOG). Sekarang mari kita tambah "mata kedua" yang dipakai desk institusi untuk membongkar manipulasi secara *real-time* sebelum publik menyadarinya: **Bab 32 — SMT Divergence: Membaca Jejak Manipulasi Gold vs Silver (XAG) & DXY**.',
@@ -361,7 +361,7 @@
       mappingSteps: [
         'Setiap Senin pagi (07:00 WITA), tandai NWOG (Close Jumat 17:00 NY → Open Minggu 18:00 NY) beserta garis 50% CE dan biarkan aktif sepanjang minggu.',
         'Setiap pagi Selasa–Jumat, tandai NDOG (Close 17:00 NY → Open 18:00 NY) sebagai magnet intraday.',
-        'Saat terjadi pembalikan tajam berbentuk "V", tandai irisan tumpang tindih BISI dan SIBI sebagai Balanced Price Range (BPR).',
+        'Saat terjadi reversal tajam berbentuk "V", tandai irisan tumpang tindih BISI dan SIBI sebagai Balanced Price Range (BPR).',
         'Catat Volume Imbalance (celah Close–Open antar-body) di dalam leg Displacement sebagai titik retest presisi.'
       ],
       decisionTree: [
@@ -413,7 +413,7 @@
         {
           question: 'Apa perbedaan utama antara **Volume Imbalance (VI)** dan **Fair Value Gap (FVG)**?',
           options: [
-            '**Volume Imbalance** adalah celah murni antar-body (*Close candle 1* ke *Open candle 2*) walau sumbu masih bersentuhan, sedangkan **FVG** adalah celah 3-candle tanpa tersentuh sumbu candle 1 dan 3',
+            '**Volume Imbalance** adalah celah murni antar-body (*Close candle 1* ke *Open candle 2*) walau wick masih bersentuhan, sedangkan **FVG** adalah celah 3-candle tanpa tersentuh wick candle 1 dan 3',
             'Volume Imbalance hanya muncul di saham, tidak pernah di XAU/USD',
             'Volume Imbalance membutuhkan minimal 5 candle',
             'Tidak ada perbedaan sama sekali'
@@ -466,7 +466,7 @@
       number: 32,
       bookFormat: true,
       title: 'SMT Divergence: Membaca Jejak Manipulasi Gold vs Silver (XAG) & DXY',
-      subtitle: 'Sidik jari manipulasi Smart Money yang paling sulit dipalsukan: ketika Gold dan aset pasangannya retak korelasi tepat di jam Killzone dan level likuiditas kunci.',
+      subtitle: 'Sidik jari manipulasi Smart Money yang paling sulit dipalsukan: ketika Gold dan aset pasangannya retak korelasi tepat di jam Killzone dan level Liquidity kunci.',
       readMinutes: 10,
       diagramId: 'smt-divergence-gold',
       diagramAfterSection: 1,
@@ -477,8 +477,8 @@
           heading: 'Apa Itu SMT Divergence (Smart Money Technique) & Kenapa Sulit Dipalsukan?',
           shortTitle: 'Logika SMT Divergence',
           paragraphs: [
-            'Di pasar global, aset yang memiliki ikatan fundamental erat seharusnya mencetak *Swing High* dan *Swing Low* secara serempak. **SMT Divergence (*Smart Money Technique*)** terjadi ketika pada **menit/jam yang sama persis** di sebuah level likuiditas kunci (`PDH/PDL`, `London High/Low`, atau `HTF POI`), **satu aset berhasil menembus mencetak ekstrem baru (menyapu likuiditas), sedangkan aset pasangannya GAGAL menembus level yang sama**.',
-            'Kenapa retakan korelasi ini begitu berharga? Karena ia membongkar niat asli di balik candle: jika sebuah breakout benar-benar didorong arus fundamental serentak, **Gold dan Silver sama-sama menembus puncak** (dan DXY serentak menembus dasar). Ketika salah satu aset "mogok" tidak mau ikut menembus, itulah sidik jari paling jujur bahwa sapuan di aset satunya hanyalah **stop hunt manipulasi** sebelum harga berbalik arah!'
+            'Di pasar global, aset yang memiliki ikatan fundamental erat seharusnya mencetak *Swing High* dan *Swing Low* secara serempak. **SMT Divergence (*Smart Money Technique*)** terjadi ketika pada **menit/jam yang sama persis** di sebuah level Liquidity kunci (`PDH/PDL`, `London High/Low`, atau `HTF POI`), **satu aset berhasil menembus mencetak ekstrem baru (sweep Liquidity), sedangkan aset pasangannya GAGAL menembus level yang sama**.',
+            'Kenapa retakan korelasi ini begitu berharga? Karena ia membongkar niat asli di balik candle: jika sebuah breakout benar-benar didorong arus fundamental serentak, **Gold dan Silver sama-sama menembus puncak** (dan DXY serentak menembus dasar). Ketika salah satu aset "mogok" tidak mau ikut menembus, itulah sidik jari paling jujur bahwa sweep di aset satunya hanyalah **stop hunt manipulasi** sebelum harga berbalik arah!'
           ]
         },
         {
@@ -495,28 +495,28 @@
               [
                 '**Bullish SMT** (Siap Naik)',
                 '**XAG/USD** (*Searah*)',
-                'Mencetak **Lower Low** (menyapu SSL/PDL)',
+                'Mencetak **Lower Low** (sweep SSL/PDL)',
                 'XAG **gagal turun** — mencetak **Higher Low**',
                 'Tekanan jual Gold hanyalah *stop hunt* beli'
               ],
               [
                 '**Bearish SMT** (Siap Turun)',
                 '**XAG/USD** (*Searah*)',
-                'Mencetak **Higher High** (menyapu BSL/PDH)',
+                'Mencetak **Higher High** (sweep BSL/PDH)',
                 'XAG **gagal naik** — mencetak **Lower High**',
                 'Dorongan naik Gold adalah distribusi jual'
               ],
               [
                 '**Bullish SMT** (Siap Naik)',
                 '**DXY** (*Terbalik*)',
-                'Mencetak **Lower Low** (menyapu SSL/PDL)',
+                'Mencetak **Lower Low** (sweep SSL/PDL)',
                 'DXY **gagal cetak HH** — malah **Lower High**',
                 'Dolar kehabisan tenaga → Gold siap melesat naik'
               ],
               [
                 '**Bearish SMT** (Siap Turun)',
                 '**DXY** (*Terbalik*)',
-                'Mencetak **Higher High** (menyapu BSL/PDH)',
+                'Mencetak **Higher High** (sweep BSL/PDH)',
                 'DXY **gagal cetak LL** — malah **Higher Low**',
                 'Dolar mulai menguat diam-diam → Gold rawan jatuh'
               ]
@@ -529,8 +529,8 @@
           shortTitle: '3 Syarat Anti-Noise SMT',
           paragraphs: [
             'Banyak pemula melihat sedikit perbedaan tinggi candle di M1 jam `11:30 WITA` (jam mati Asia) lalu berteriak *"Ada SMT!"* dan langsung menekan order melawan tren. Itu bukan SMT — itu **noise**. Pastikan 3 syarat mutlak ini terpenuhi:',
-            '• **Syarat 1 — Timestamp & Timeframe Identik:** Kedua ayunan yang dibandingkan wajib terbentuk pada **jam/candle yang sama persis** di timeframe yang sama (`H1` atau `M15`). Haram membandingkan puncak Gold hari Selasa dengan puncak Silver hari Kamis.',
-            '• **Syarat 2 — Lokasi & Waktu Keramat (`Time & Price`):** SMT hanya bernilai tinggi jika terjadi tepat di **level likuiditas penting** (`PDH/PDL`, `PWH/PWL`, `Asia/London High-Low`, atau `HTF PD Array`) dan di dalam **Killzone London / NY AM**.',
+            '• **Syarat 1 — Timestamp & Timeframe Identik:** Kedua swing yang dibandingkan wajib terbentuk pada **jam/candle yang sama persis** di timeframe yang sama (`H1` atau `M15`). Haram membandingkan puncak Gold hari Selasa dengan puncak Silver hari Kamis.',
+            '• **Syarat 2 — Lokasi & Waktu Keramat (`Time & Price`):** SMT hanya bernilai tinggi jika terjadi tepat di **level Liquidity penting** (`PDH/PDL`, `PWH/PWL`, `Asia/London High-Low`, atau `HTF PD Array`) dan di dalam **Killzone London / NY AM**.',
             '• **Syarat 3 — SMT = Lampu Hijau Konteks, Bukan Tombol Entry Buta:** Setelah SMT terlihat, **jangan langsung klik Market Order!** Turun ke `M5` dan tunggu pemicu eksekusi resmi: **CISD/MSS + PD Array (`FVG`/`OB`/`Unicorn`)**.'
           ]
         },
@@ -539,14 +539,14 @@
           heading: 'Studi Kasus Lengkap XAU/USD: Konfluensi Ganda Bullish SMT (XAG + DXY) di NY AM',
           shortTitle: 'Studi Kasus SMT Gold',
           paragraphs: [
-            'Lihat bagaimana pengecekan 10 detik ke chart `XAG/USD` dan `DXY` mengubah sebuah sapuan biasa menjadi setup Grade A++ berprobabilitas luar biasa tinggi:'
+            'Lihat bagaimana pengecekan 10 detik ke chart `XAG/USD` dan `DXY` mengubah sebuah sweep biasa menjadi setup Grade A++ berprobabilitas luar biasa tinggi:'
           ],
           exampleBox: {
             title: 'Eksekusi Bullish SMT Ganda — NY AM Killzone (20:45 WITA EDT)',
             rows: [
               {
-                label: '1. Sapuan di Level Kunci',
-                detail: 'Pukul `20:45 WITA`, XAU/USD turun menembus **London Low `2.638,00`** dan menyapu tipis ke **`2.636,50`** (Lower Low).'
+                label: '1. Sweep di Level Kunci',
+                detail: 'Pukul `20:45 WITA`, XAU/USD turun menembus **London Low `2.638,00`** dan sweep tipis ke **`2.636,50`** (Lower Low).'
               },
               {
                 label: '2. Cek 10 Detik: XAG/USD & DXY (Timestamp Sama)',
@@ -567,11 +567,11 @@
         }
       ],
       keyTakeaways: [
-        '**SMT Divergence** adalah retakan korelasi pada timestamp identik di level likuiditas kunci — membongkar bahwa sapuan di satu aset hanyalah *stop hunt* manipulasi.',
+        '**SMT Divergence** adalah retakan korelasi pada timestamp identik di level Liquidity kunci — membongkar bahwa sweep di satu aset hanyalah *stop hunt* manipulasi.',
         'Hafalkan polaritasnya: **XAU vs XAG bersifat searah**, sedangkan **XAU vs DXY bersifat terbalik**.',
         'SMT tanpa **Key Level** dan di luar **Killzone** hanyalah noise; eksekusi tetap wajib menunggu **CISD/MSS + PD Array** di LTF M5.'
       ],
-      bridgeNext: 'Sekarang kamu sudah bisa mengonfirmasi titik pembalikan institusi hingga ke sidik jari antar-asetnya (`SMT Divergence`). Tetapi setelah pembalikan terjadi, bagaimana kamu melihat **keseluruhan peta perjalanan harga dari awal sampai selesai** — kapan FVG lawan akan ditembus mudah dan kapan tren resmi habis? Mari masuk ke **Bab 33: Market Maker Buy & Sell Model (MMXM): Peta Besar Perjalanan Harga**.',
+      bridgeNext: 'Sekarang kamu sudah bisa mengonfirmasi titik reversal institusi hingga ke sidik jari antar-asetnya (`SMT Divergence`). Tetapi setelah reversal terjadi, bagaimana kamu melihat **keseluruhan peta perjalanan harga dari awal sampai selesai** — kapan FVG lawan akan ditembus mudah dan kapan tren resmi habis? Mari masuk ke **Bab 33: Market Maker Buy & Sell Model (MMXM): Peta Besar Perjalanan Harga**.',
       practiceCta: {
         label: 'Pantau Arah DXY & Kompas Fundamental Gold',
         description: 'Cek kekuatan Indeks Dolar AS (DXY) dan sentimen makro Gold di modul Market Intelligence sebagai pendamping konfirmasi SMT.',
@@ -581,19 +581,19 @@
         {
           heading: 'SMT Divergence: XAU vs XAG & DXY',
           paragraphs: [
-            'SMT terjadi saat satu aset menyapu level likuiditas kunci sementara pasangan korelasinya gagal menembus pada timestamp sama. XAU–XAG searah; XAU–DXY terbalik. Wajib di Key Level + Killzone dan tetap dikonfirmasi CISD/MSS.'
+            'SMT terjadi saat satu aset sweep level Liquidity kunci sementara pasangan korelasinya gagal menembus pada timestamp sama. XAU–XAG searah; XAU–DXY terbalik. Wajib di Key Level + Killzone dan tetap dikonfirmasi CISD/MSS.'
           ]
         }
       ],
       mappingSteps: [
         'Buka chart pembanding XAG/USD (searah) dan DXY (terbalik) pada timeframe yang sama (H1/M15).',
-        'Tunggu XAU/USD menyapu level likuiditas penting (PDH/PDL, Asia/London H-L) di jam Killzone.',
-        'Bandingkan titik puncak/dasar pada timestamp identik: jika satu menyapu dan pasangannya gagal → SMT aktif.',
+        'Tunggu XAU/USD sweep level Liquidity penting (PDH/PDL, Asia/London H-L) di jam Killzone.',
+        'Bandingkan titik puncak/dasar pada timestamp identik: jika satu sweep dan pasangannya gagal → SMT aktif.',
         'Turun ke M5 dan tunggu CISD/MSS + PD Array di XAU/USD sebelum menekan entry.'
       ],
       decisionTree: [
         {
-          condition: 'SMT terlihat di tengah range jam 11:30 WITA tanpa menyentuh level likuiditas penting.',
+          condition: 'SMT terlihat di tengah range jam 11:30 WITA tanpa menyentuh level Liquidity penting.',
           action: 'ABAIKAN (Noise) — SMT hanya valid di Key Level/HTF POI dalam jam Killzone.'
         },
         {
@@ -603,7 +603,7 @@
       ],
       validRules: [
         'Titik pembanding antar-aset WAJIB berada pada timestamp dan timeframe identik.',
-        'SMT terjadi di level likuiditas kunci / HTF PD Array dalam jendela Killzone dan diikuti konfirmasi CISD/MSS.'
+        'SMT terjadi di level Liquidity kunci / HTF PD Array dalam jendela Killzone dan diikuti konfirmasi CISD/MSS.'
       ],
       invalidRules: [
         'Membandingkan swing dari dua waktu berbeda antar aset.',
@@ -619,7 +619,7 @@
       failedCase: {
         title: 'Kasus Gagal: SMT Mikro di Jam Mati Asia',
         context: 'Pukul 11:30 WITA di tengah range M5, Gold cetak titik sedikit lebih tinggi dari Silver; trader langsung Sell.',
-        whyFailed: 'Di luar Killzone dan bukan di level likuiditas kunci — sesi London langsung mendorong keduanya naik menembus SL.'
+        whyFailed: 'Di luar Killzone dan bukan di level Liquidity kunci — sesi London langsung mendorong keduanya naik menembus SL.'
       },
       goldenRules: [
         'SMT Divergence = Sidik jari manipulasi Smart Money. Tanpa Key Level dan Killzone, SMT hanyalah noise.',
@@ -629,7 +629,7 @@
         {
           question: 'Kondisi mana yang menunjukkan **Bullish SMT Divergence** antara `XAU/USD` (Gold) dan `DXY` (Indeks Dolar AS)?',
           options: [
-            '**`XAU/USD` mencetak Lower Low (menyapu SSL), sementara pada waktu sama `DXY` GAGAL mencetak Higher High (malah Lower High)**',
+            '**`XAU/USD` mencetak Lower Low (sweep SSL), sementara pada waktu sama `DXY` GAGAL mencetak Higher High (malah Lower High)**',
             '`XAU/USD` mencetak Lower Low dan `DXY` serempak mencetak Higher High sangat kuat',
             '`XAU/USD` mencetak Higher High dan `DXY` juga mencetak Higher High secara acak di sesi Asia',
             '`XAU/USD` diam sideways saat `DXY` tutup'
@@ -640,24 +640,24 @@
         {
           question: 'Kondisi mana yang menunjukkan **Bearish SMT Divergence** antara `XAU/USD` dan `XAG/USD` (Silver)?',
           options: [
-            '**`XAU/USD` mencetak Higher High menyapu PDH, sementara di jam yang sama `XAG/USD` gagal menembus PDH-nya (`Lower High`)**',
+            '**`XAU/USD` mencetak Higher High sweep PDH, sementara di jam yang sama `XAG/USD` gagal menembus PDH-nya (`Lower High`)**',
             'Keduanya sama-sama menembus PDH dengan Displacement tebal',
             '`XAU/USD` mencetak Lower Low sementara `XAG/USD` mencetak Higher Low',
             '`XAU/USD` naik hari Senin dan `XAG/USD` turun hari Jumat'
           ],
           answerIndex: 0,
-          explanation: 'Gold dan Silver berkorelasi searah; saat Gold menyapu puncak (HH) namun Silver gagal (LH) di jam yang sama, muncul sinyal Bearish SMT.'
+          explanation: 'Gold dan Silver berkorelasi searah; saat Gold sweep puncak (HH) namun Silver gagal (LH) di jam yang sama, muncul sinyal Bearish SMT.'
         },
         {
           question: 'Syarat wajib agar **SMT Divergence** tidak menjadi jebakan noise adalah...',
           options: [
             'Cukup melihat chart M1 kapan saja',
-            'Terjadi pada **timestamp yang sama persis**, tepat di **level likuiditas kunci / HTF PD Array**, dan di dalam **jam Killzone**',
+            'Terjadi pada **timestamp yang sama persis**, tepat di **level Liquidity kunci / HTF PD Array**, dan di dalam **jam Killzone**',
             'Wajib ditambah indikator MACD dan Stochastic',
             'Hanya boleh dipakai pada hari Jumat malam'
           ],
           answerIndex: 1,
-          explanation: 'SMT bekerja karena konteks Time & Price: waktu identik, lokasi likuiditas kunci, dan sesi institusional.'
+          explanation: 'SMT bekerja karena konteks Time & Price: waktu identik, lokasi Liquidity kunci, dan sesi institusional.'
         },
         {
           question: 'Setelah melihat **Bullish SMT** valid antara Gold dan Silver tepat di PDL pukul `20:45 WITA`, langkah eksekusi paling aman adalah...',
@@ -673,7 +673,7 @@
         {
           question: 'Mengapa membandingkan Swing High Gold pukul `15:00 WITA` dengan Swing High Silver pukul `18:00 WITA` dianggap salah total?',
           options: [
-            'Karena SMT wajib membandingkan titik ayunan pada **jendela waktu (timestamp) yang sama persis**',
+            'Karena SMT wajib membandingkan titik swing pada **jendela waktu (timestamp) yang sama persis**',
             'Karena pukul `18:00 WITA` pasar Silver libur',
             'Karena Gold dan Silver tidak boleh dilihat di M15',
             'Karena hanya perbandingan 1 minggu penuh yang valid'
@@ -706,7 +706,7 @@
           paragraphs: [
             'Pernahkah kamu bertanya: *"Kenapa tadi Bearish FVG yang sangat rapi itu malah ditembus naik tanpa ampun, padahal kemarin bentuk yang persis sama menahan harga dengan indah?"* Jawabannya sederhana: karena kamu melihat FVG sebagai kotak terpisah, bukan sebagai bagian dari **satu kurva siklus utuh**.',
             'Dalam ICT, hampir setiap pergerakan tren intraday maupun swing XAU/USD mengikuti cetak biru **Market Maker Buy Model (`MMBM`)** untuk siklus beli berbentuk huruf **"V"**, atau **Market Maker Sell Model (`MMSM`)** untuk siklus jual berbentuk **"Λ"** terbalik — gabungan keduanya disebut **MMXM**.',
-            'Sisi kiri kurva adalah fase membangun deretan tangga likuiditas; ujung lancip di HTF PD Array adalah titik balik institusi (**Smart Money Reversal**); dan sisi kanan kurva adalah fase panen cepat kembali menuju titik awal (**Terminus**).'
+            'Sisi kiri kurva adalah fase membangun deretan tangga Liquidity; ujung lancip di HTF PD Array adalah titik balik institusi (**Smart Money Reversal**); dan sisi kanan kurva adalah fase panen cepat kembali menuju titik awal (**Terminus**).'
           ]
         },
         {
@@ -740,9 +740,9 @@
               ],
               [
                 '**4. Sisi Kanan Kurva** (*LRLR → Terminus*)',
-                'Naik cepat lewat `1–2×` jeda **Re-Accumulation** menyapu seluruh tangga BSL hingga tembus atas OC',
-                'Jatuh cepat lewat `1–2×` jeda **Redistribution** menyapu seluruh tangga SSL hingga tembus bawah OC',
-                '**Entry Tahap 2** (Re-Acc/Redist); **STOP entry** begitu OC tersapu!'
+                'Naik cepat lewat `1–2×` jeda **Re-Accumulation** sweep seluruh tangga BSL hingga tembus atas OC',
+                'Jatuh cepat lewat `1–2×` jeda **Redistribution** sweep seluruh tangga SSL hingga tembus bawah OC',
+                '**Entry Tahap 2** (Re-Acc/Redist); **STOP entry** begitu OC kena sweep!'
               ]
             ]
           }
@@ -755,7 +755,7 @@
             'Begitu kamu tahu sedang berada di sisi mana dari kurva MMXM, 80% kebingungan memilih PD Array langsung sirna:',
             '• **Di Buy-Side of the Curve (Sisi Kanan MMBM):** Semua **Bullish PD Array** (BISI/Bullish OB/Breaker) akan **DIHORMATI** sebagai batu loncatan naik, sementara semua **Bearish PD Array bekas sisi kiri** akan **DITEMBUS MUDAH**! Fenomena meluncur cepat menembus tangga sisi kiri tanpa perlawanan inilah **Low Resistance Liquidity Run (`LRLR`)**.',
             '• **Di Sell-Side of the Curve (Sisi Kanan MMSM):** Kebalikannya berlaku penuh — semua Bearish PD Array dihormati, sementara Bullish PD Array bekas sisi kiri ditembus cepat menuju batas bawah Original Consolidation.',
-            '• **Kapan Siklus Resmi Selesai?** Begitu harga menyapu puncak/dasar **Original Consolidation (Terminus)**, misi MMXM **RESMI TUNTAS!** Jangan serakah membuka entry searah baru di atas/bawah Terminus karena institusi justru sering memulai distribusi balik arah di sana.'
+            '• **Kapan Siklus Resmi Selesai?** Begitu harga sweep puncak/dasar **Original Consolidation (Terminus)**, misi MMXM **RESMI TUNTAS!** Jangan serakah membuka entry searah baru di atas/bawah Terminus karena institusi justru sering memulai distribusi balik arah di sana.'
           ]
         },
         {
@@ -774,7 +774,7 @@
               },
               {
                 label: 'Babak 3 — Smart Money Reversal (SMR)',
-                detail: 'Di `2.641,50`, Gold menyapu PDL `$0,50` lalu meledak naik mematahkan struktur (MSS Bullish) dan meninggalkan `BISI` M5 di `2.645,00–2.647,00`. Harga resmi masuk **Buy-Side of the Curve**.'
+                detail: 'Di `2.641,50`, Gold sweep PDL `$0,50` lalu meledak naik mematahkan struktur (MSS Bullish) dan meninggalkan `BISI` M5 di `2.645,00–2.647,00`. Harga resmi masuk **Buy-Side of the Curve**.'
               },
               {
                 label: 'Babak 4 — Eksekusi, Re-Accumulation & Terminus LRLR',
@@ -786,16 +786,16 @@
             tone: 'warn',
             kicker: 'Kesalahan Paling Umum di MMXM',
             title: 'Jangan Counter-Trend di Sisi Kanan, dan Jangan Kejar Setelah Terminus!',
-            body: 'Dua kesalahan fatal di MMXM: (1) nekat Sell pada Bearish FVG bekas sisi kiri saat kurva sudah masuk **Buy-Side** (`LRLR`), dan (2) tetap mengejar Buy setelah puncak **Original Consolidation (Terminus)** sudah tersapu penuh.'
+            body: 'Dua kesalahan fatal di MMXM: (1) nekat Sell pada Bearish FVG bekas sisi kiri saat kurva sudah masuk **Buy-Side** (`LRLR`), dan (2) tetap mengejar Buy setelah puncak **Original Consolidation (Terminus)** sudah kena sweep penuh.'
           }
         }
       ],
       keyTakeaways: [
         '**MMXM (`MMBM`/`MMSM`)** memetakan siklus lengkap 4 babak: **Original Consolidation (OC)** → **Engineering Sisi Kiri** → **Smart Money Reversal (SMR di HTF POI)** → **Re-Accumulation/Redistribution & LRLR menuju Terminus**.',
         'Hukum **Side of the Curve**: di sisi kanan MMBM, Bullish PD Array dihormati sedangkan Bearish PD Array sisi kiri ditembus cepat (**LRLR**).',
-        'Entry terbaik hanya pada **Tahap 1 (SMR)** atau **Tahap 2 (Re-Accumulation/Redistribution)** — begitu **Original Consolidation (Terminus)** tersapu, siklus selesai!'
+        'Entry terbaik hanya pada **Tahap 1 (SMR)** atau **Tahap 2 (Re-Accumulation/Redistribution)** — begitu **Original Consolidation (Terminus)** kena sweep, siklus selesai!'
       ],
-      bridgeNext: 'Kamu sekarang sudah bisa membaca kurva lengkap MMXM dalam satu hari maupun beberapa hari. Sekarang mari kita naikkan lensa waktu ke skala **mingguan dan kuartalan**: kapan hari terbaik dalam seminggu untuk memanen ekspansi, kapan hari Jumat berbalik arah (*TGIF*), dan sejauh mana memori likuiditas bank di chart Daily? Mari buka **Bab 34: Weekly Profile (Classic Expansion, Midweek Reversal, TGIF) & IPDA 20/40/60**.',
+      bridgeNext: 'Kamu sekarang sudah bisa membaca kurva lengkap MMXM dalam satu hari maupun beberapa hari. Sekarang mari kita naikkan lensa waktu ke skala **mingguan dan kuartalan**: kapan hari terbaik dalam seminggu untuk memanen ekspansi, kapan hari Jumat berbalik arah (*TGIF*), dan sejauh mana memori Liquidity bank di chart Daily? Mari buka **Bab 34: Weekly Profile (Classic Expansion, Midweek Reversal, TGIF) & IPDA 20/40/60**.',
       practiceCta: {
         label: 'Lacak Kurva MMBM/MMSM Bar-by-Bar di Candle Replay',
         description: 'Gunakan Candle Replay M15/H1 XAU/USD untuk melatih mata mengenali Original Consolidation, SMR, Re-Accumulation, dan Terminus secara langsung.',
@@ -805,7 +805,7 @@
         {
           heading: 'Market Maker Buy & Sell Model (MMXM)',
           paragraphs: [
-            'MMXM merangkai 4 babak: Original Consolidation (Terminus) → Engineering sisi kiri → Smart Money Reversal di HTF POI → Re-Accumulation/Redistribution & LRLR menyapu Terminus.'
+            'MMXM merangkai 4 babak: Original Consolidation (Terminus) → Engineering sisi kiri → Smart Money Reversal di HTF POI → Re-Accumulation/Redistribution & LRLR sweep Terminus.'
           ]
         }
       ],
@@ -821,7 +821,7 @@
           action: 'Tunggu jeda Tahap 2 (Re-Accumulation di FVG/OB sisi kanan) — jangan mengejar pucuk candle.'
         },
         {
-          condition: 'Harga sudah menyapu penuh batas atas Original Consolidation (Terminus).',
+          condition: 'Harga sudah sweep penuh batas atas Original Consolidation (Terminus).',
           action: 'Siklus MMBM resmi selesai — kunci profit dan berhenti mengejar Buy baru.'
         }
       ],
@@ -831,7 +831,7 @@
       ],
       invalidRules: [
         'Melawan arus dengan memakai FVG bekas sisi kiri kurva saat sudah masuk LRLR.',
-        'Terus masuk searah setelah Original Consolidation sudah tersapu penuh.'
+        'Terus masuk searah setelah Original Consolidation sudah kena sweep penuh.'
       ],
       xauScenario: {
         context: 'MMBM M15 XAU/USD: Asia OC 2.658–2.662, turun ke PDL + H1 OB 2.642, SMR di 2.641,50.',
@@ -842,12 +842,12 @@
       },
       failedCase: {
         title: 'Kasus Gagal: Buy Terlambat di Atas Terminus',
-        context: 'Setelah MMBM selesai menyapu puncak OC 2.662–2.663, trader tetap Buy di FVG baru 2.661.',
+        context: 'Setelah MMBM selesai sweep puncak OC 2.662–2.663, trader tetap Buy di FVG baru 2.661.',
         whyFailed: 'Misi pengiriman MMBM sudah tuntas di Terminus; institusi langsung mendistribusi jual membalikkan harga ke SL.'
       },
       goldenRules: [
         'Tentukan Sisi Kurva (Buy-Side vs Sell-Side) sebelum memilih FVG/OB.',
-        'Masuk di Tahap 1 (SMR) atau Tahap 2 (Re-Acc/Redist) dan kunci profit saat Terminus tersapu.'
+        'Masuk di Tahap 1 (SMR) atau Tahap 2 (Re-Acc/Redist) dan kunci profit saat Terminus kena sweep.'
       ],
       quiz: [
         {
@@ -856,10 +856,10 @@
             'Sebagai area Stop Loss wajib',
             'Sebagai **Target Akhir (Terminus)** tempat kurva Buy-Side menyelesaikan pengirimannya',
             'Sebagai area yang tidak boleh disentuh selamanya',
-            'Hanya hiasan visual tanpa fungsi likuiditas'
+            'Hanya hiasan visual tanpa fungsi Liquidity'
           ],
           answerIndex: 1,
-          explanation: 'Dalam MMXM, harga berawal dari Original Consolidation, menuju HTF PD Array untuk SMR, lalu menyapu sisi seberang OC sebagai Terminus.'
+          explanation: 'Dalam MMXM, harga berawal dari Original Consolidation, menuju HTF PD Array untuk SMR, lalu sweep sisi seberang OC sebagai Terminus.'
         },
         {
           question: 'Saat harga sudah resmi masuk ke **Buy-Side of the Curve** (pasca-SMR Bullish), apa yang biasanya terjadi pada Bearish FVG bekas sisi kiri kurva?',
@@ -887,23 +887,23 @@
           question: 'Di mana **Smart Money Reversal (SMR)** yang valid seharusnya terbentuk?',
           options: [
             'Di ruang kosong tanpa level referensi apa pun',
-            'Tepat di sebuah **HTF PD Array atau Pool Likuiditas kunci** (H1/H4 FVG, OB, atau PDH/PDL)',
+            'Tepat di sebuah **HTF PD Array atau Pool Liquidity kunci** (H1/H4 FVG, OB, atau PDH/PDL)',
             'Tepat di menit pertama pasar buka hari Senin',
             'Hanya saat indikator RSI menyentuh 50'
           ],
           answerIndex: 1,
-          explanation: 'Tanpa pijakan HTF Key Level/PD Array, pembalikan LTF hanyalah pullback sementara, bukan SMR sejati.'
+          explanation: 'Tanpa pijakan HTF Key Level/PD Array, reversal LTF hanyalah pullback sementara, bukan SMR sejati.'
         },
         {
           question: 'Apa tanda bahwa siklus **Market Maker Sell Model (MMSM)** sudah **SELESAI** sehingga kamu dilarang mengejar Sell baru?',
           options: [
             'Saat candle pertama merah muncul',
-            'Saat harga sudah jatuh **menembus dan menyapu batas bawah Original Consolidation (Terminus)**',
+            'Saat harga sudah jatuh **menembus dan sweep batas bawah Original Consolidation (Terminus)**',
             'Saat terjadi Redistribution tahap pertama',
             'Saat sesi London baru saja dimulai'
           ],
           answerIndex: 1,
-          explanation: 'Begitu batas bawah Original Consolidation tersapu, misi likuiditas MMSM sudah tuntas dan rawan pembalikan arah.'
+          explanation: 'Begitu batas bawah Original Consolidation kena sweep, misi Liquidity MMSM sudah tuntas dan rawan reversal arah.'
         }
       ]
     },
@@ -917,7 +917,7 @@
       number: 34,
       bookFormat: true,
       title: 'Weekly Profile (Classic Expansion, Midweek Reversal, TGIF) & IPDA 20/40/60',
-      subtitle: 'Zoom out dari jadwal harian ke peta waktu institusional Senin–Jumat dan memori likuiditas 20, 40, dan 60 hari perdagangan agar kamu tahu kapan hari panen utama dan kapan Jumat berbalik arah.',
+      subtitle: 'Zoom out dari jadwal harian ke peta waktu institusional Senin–Jumat dan memori Liquidity 20, 40, dan 60 hari perdagangan agar kamu tahu kapan hari panen utama dan kapan Jumat berbalik arah.',
       readMinutes: 9,
       diagramId: 'ict-macros-weekly-ipda',
       diagramAfterSection: 0,
@@ -951,8 +951,8 @@
               ],
               [
                 '**2. Midweek Reversal** (*Pekan Berita CPI/FOMC*)',
-                'Senin–Selasa terus menguras likuiditas ke 1 sisi menuju HTF PD Array besar',
-                '**Rabu** (sering dipicu berita merah AS) terjadi **pembalikan arah besar**',
+                'Senin–Selasa terus menguras Liquidity ke 1 sisi menuju HTF PD Array besar',
+                '**Rabu** (sering dipicu berita merah AS) terjadi **reversal arah besar**',
                 'Kamis–Jumat meluncur deras searah tren baru; hindari nekat lawan arah pasca-Rabu'
               ],
               [
@@ -966,13 +966,13 @@
         },
         {
           number: '34.3',
-          heading: 'IPDA Data Range Lookback (20 / 40 / 60 Hari): Memori Likuiditas Institusi',
+          heading: 'IPDA Data Range Lookback (20 / 40 / 60 Hari): Memori Liquidity Institusi',
           shortTitle: 'IPDA Lookback 20/40/60',
           paragraphs: [
             'Saat membuka chart Daily XAU/USD, ada ratusan puncak dan lembah dari tahun-tahun sebelumnya. Mana yang benar-benar masih dibaca oleh algoritma pengiriman harga (*Interbank Price Delivery Algorithm / IPDA*)?',
             'ICT menetapkan patokan **IPDA Data Range Lookback**: hitung mundur secara mekanis di chart Daily berdasarkan **hari perdagangan** (*trading days*, bukan hari kalender):',
-            '• **20 Hari Perdagangan Terakhir (≈ 1 Bulan) — Prioritas #1:** High tertinggi dan Low terendah di dalam 20 candle Daily terakhir adalah kolam likuiditas makro paling aktif dan paling sering menjadi magnet pertama.',
-            '• **40 Hari Perdagangan Terakhir (≈ 2 Bulan) — Prioritas #2:** Aktif sebagai target berikutnya begitu batas 20 hari sudah ditembus atau disapu.',
+            '• **20 Hari Perdagangan Terakhir (≈ 1 Bulan) — Prioritas #1:** High tertinggi dan Low terendah di dalam 20 candle Daily terakhir adalah Liquidity Pool makro paling aktif dan paling sering menjadi magnet pertama.',
+            '• **40 Hari Perdagangan Terakhir (≈ 2 Bulan) — Prioritas #2:** Aktif sebagai target berikutnya begitu batas 20 hari sudah ditembus atau di-sweep.',
             '• **60 Hari Perdagangan Terakhir (≈ 1 Kuartal / 3 Bulan) — Prioritas #3:** Jangkar struktural kuartalan bagi dana lindung nilai (*hedge fund*).',
             'Manfaat praktisnya luar biasa: kamu **tidak perlu lagi menggambar 25 garis support-resistance dari 3 tahun lalu** yang sudah usang! Cukup tandai High/Low segar dalam jendela `20/40/60` hari setiap Minggu malam.'
           ]
@@ -989,11 +989,11 @@
             rows: [
               {
                 label: 'Kasus A — Rabu 21:50 WITA (Classic Bullish Expansion · PANEN!)',
-                detail: 'Selasa London sudah membentuk *Low of the Week* di PDL (menyentuh IPDA 20-day Low). Rabu `21:50 WITA` (NY Macro), harga di M15 Bullish FVG `2.655,00` menyapu micro-low `2.654,20` lalu CISD M5 → **Buy `2.656,00`**, **SL `2.653,00`** (`$3,00`). **TP1 `2.662,00`** (**`+$6,00` / `2,00R`**) dan **TP2 High harian `2.668,00`** (**`+$12,00` / `4,00R`**) tercapai dalam 25 menit!'
+                detail: 'Selasa London sudah membentuk *Low of the Week* di PDL (menyentuh IPDA 20-day Low). Rabu `21:50 WITA` (NY Macro), harga di M15 Bullish FVG `2.655,00` sweep micro-low `2.654,20` lalu CISD M5 → **Buy `2.656,00`**, **SL `2.653,00`** (`$3,00`). **TP1 `2.662,00`** (**`+$6,00` / `2,00R`**) dan **TP2 High harian `2.668,00`** (**`+$12,00` / `4,00R`**) tercapai dalam 25 menit!'
               },
               {
                 label: 'Kasus B — Jumat 21:50 WITA (Setelah Reli +$90 Minggu Ini · TGIF!)',
-                detail: 'Gold sudah melaju `+$90` sejak Senin hingga Kamis. Trader yang lupa Weekly Profile tetap nekat Buy breakout di Macro Jumat malam — padahal institusi justru menutup profit sehingga Gold retrace `-25%` rentang mingguan (**`-$22,50`**) menyapu SL!'
+                detail: 'Gold sudah melaju `+$90` sejak Senin hingga Kamis. Trader yang lupa Weekly Profile tetap nekat Buy breakout di Macro Jumat malam — padahal institusi justru menutup profit sehingga Gold retrace `-25%` rentang mingguan (**`-$22,50`**) sweep SL!'
               }
             ]
           },
@@ -1050,14 +1050,14 @@
       xauScenario: {
         context: 'Rabu 21:50 WITA (Classic Bullish Expansion pasca Low of the Week Selasa) di M15 FVG 2.655,00.',
         steps: [
-          'NY Macro menyapu micro-low 2.654,20 → CISD M5 → Buy 2.656,00, SL 2.653,00 ($3,00).',
+          'NY Macro sweep micro-low 2.654,20 → CISD M5 → Buy 2.656,00, SL 2.653,00 ($3,00).',
           'TP1 2.662,00 (2,00R) dan TP2 High harian 2.668,00 (4,00R).'
         ]
       },
       failedCase: {
         title: 'Kasus Gagal: Buy Breakout di Pucuk Jumat TGIF',
         context: 'Jumat 22:00 WITA setelah Gold reli +$90 sepanjang Senin–Kamis; trader Buy breakout di puncak.',
-        whyFailed: 'Institusi mengambil untung akhir pekan (TGIF) menarik harga retrace 25% (-$22,50) menyapu SL.'
+        whyFailed: 'Institusi mengambil untung akhir pekan (TGIF) menarik harga retrace 25% (-$22,50) sweep SL.'
       },
       goldenRules: [
         'Senin sabar, Selasa–Kamis panen utama, Jumat waspada TGIF.',
@@ -1087,7 +1087,7 @@
           explanation: 'TGIF adalah pullback profit-taking institusi di hari Jumat menuju 20%–30% rentang mingguan setelah ekspansi satu arah panjang.'
         },
         {
-          question: 'Berapa jendela **hari perdagangan** yang digunakan **IPDA Data Range Lookback** di chart Daily untuk memetakan likuiditas makro paling relevan?',
+          question: 'Berapa jendela **hari perdagangan** yang digunakan **IPDA Data Range Lookback** di chart Daily untuk memetakan Liquidity makro paling relevan?',
           options: [
             '`3`, `5`, dan `7` hari',
             '**`20`, `40`, dan `60` hari perdagangan terakhir** (≈ 1 bulan, 2 bulan, dan 1 kuartal)',
@@ -1100,13 +1100,13 @@
         {
           question: 'Pada pekan yang memiliki jadwal rilis berita besar AS di hari Rabu (seperti **CPI** atau **FOMC**), template Weekly Profile mana yang paling sering terjadi jika Senin–Selasa harga terus naik menuju HTF PD Array?',
           options: [
-            '**Midweek Reversal** — Senin–Selasa menguras likuiditas ke atas, lalu Rabu terjadi pembalikan arah besar menuju Kamis–Jumat',
+            '**Midweek Reversal** — Senin–Selasa menguras Liquidity ke atas, lalu Rabu terjadi reversal arah besar menuju Kamis–Jumat',
             'Pasar otomatis libur sampai minggu depan',
             'Tidak mungkin ada perubahan arah sepanjang minggu',
             'Friday TGIF terjadi pada hari Senin pagi'
           ],
           answerIndex: 0,
-          explanation: 'Berita besar pertengahan minggu (Rabu CPI/FOMC) sering menjadi katalis Midweek Reversal setelah likuiditas awal minggu disapu.'
+          explanation: 'Berita besar pertengahan minggu (Rabu CPI/FOMC) sering menjadi katalis Midweek Reversal setelah Liquidity awal minggu di-sweep.'
         },
         {
           question: 'Jumat pukul `21:50 WITA` (NY Macro), Gold sudah reli naik **`+$90`** sejak Senin. Trader tergoda Buy breakout di pucuk minggu ini hanya karena sedang jam Macro. Keputusan paling bijak?',
@@ -1142,7 +1142,7 @@
           heading: 'Masalah All-Time High Gold: Cara Menentukan TP Saat Chart Sebelah Kiri Kosong Total',
           shortTitle: 'Target di All-Time High',
           paragraphs: [
-            'XAU/USD terkenal sering mencetak rekor harga tertinggi baru (**All-Time High / ATH**). Di momen seperti itu, seluruh area di sebelah kiri chart benar-benar kosong: tidak ada PDH lama, tidak ada PWH, dan tidak ada IPDA 60-day High di atas harga! Akibatnya, trader biasa menjadi buta target — entah keluar terlalu cepat di `+$3` karena takut, atau menahan tanpa batas sampai seluruh profit `+$20` habis dimakan pembalikan.',
+            'XAU/USD terkenal sering mencetak rekor harga tertinggi baru (**All-Time High / ATH**). Di momen seperti itu, seluruh area di sebelah kiri chart benar-benar kosong: tidak ada PDH lama, tidak ada PWH, dan tidak ada IPDA 60-day High di atas harga! Akibatnya, trader biasa menjadi buta target — entah keluar terlalu cepat di `+$3` karena takut, atau menahan tanpa batas sampai seluruh profit `+$20` habis dimakan reversal.',
             'Dalam ICT, algoritma tidak pernah bergerak tanpa skala. Ia menggunakan **ukuran kaki manipulasi terakhir (*Manipulation Leg*)** sebagai "penggaris" untuk memproyeksikan jarak ekspansi berikutnya melalui **Fibonacci Standard Deviation**!'
           ]
         },
@@ -1151,9 +1151,9 @@
           heading: 'Peta Level Fibonacci Standard Deviation (-1 / -2 / -2,5 / -4) & Cara Tarik Mekanis',
           shortTitle: 'Level Std Dev & Cara Tarik',
           paragraphs: [
-            'Atur tool *Fibonacci Retracement* di chart-mu pada angka: **`0`**, **`1`**, **`-1`**, **`-1,5`**, **`-2`**, **`-2,5`**, dan **`-4`**. Tarik Fib tepat pada **Manipulation Leg** (kaki sapuan terakhir sebelum terjadi MSS/CISD) sehingga angka negatif memanjang **ke arah target**:',
-            '• **Untuk Target Naik (Bullish):** Letakkan `1,0` di **Low terendah sapuan** dan `0,0` di **Origin Swing High** sebelum turun menyapu → angka `-1`, `-2`, `-2,5`, `-4` otomatis memproyeksi ke **ATAS**.',
-            '• **Untuk Target Turun (Bearish):** Letakkan `1,0` di **High tertinggi sapuan** dan `0,0` di **Origin Swing Low** sebelum naik menyapu → angka negatif otomatis memproyeksi ke **BAWAH**.'
+            'Atur tool *Fibonacci Retracement* di chart-mu pada angka: **`0`**, **`1`**, **`-1`**, **`-1,5`**, **`-2`**, **`-2,5`**, dan **`-4`**. Tarik Fib tepat pada **Manipulation Leg** (kaki sweep terakhir sebelum terjadi MSS/CISD) sehingga angka negatif memanjang **ke arah target**:',
+            '• **Untuk Target Naik (Bullish):** Letakkan `1,0` di **Low terendah sweep** dan `0,0` di **Origin Swing High** sebelum turun sweep → angka `-1`, `-2`, `-2,5`, `-4` otomatis memproyeksi ke **ATAS**.',
+            '• **Untuk Target Turun (Bearish):** Letakkan `1,0` di **High tertinggi sweep** dan `0,0` di **Origin Swing Low** sebelum naik sweep → angka negatif otomatis memproyeksi ke **BAWAH**.'
           ],
           table: {
             caption: 'Makna Institusional Setiap Level Standard Deviation pada XAU/USD',
@@ -1171,9 +1171,9 @@
           shortTitle: 'CRT & Profil OLHC/OHLC',
           paragraphs: [
             'Setiap satu batang candle **H4** atau **Daily** bukanlah balok warna yang bergerak lurus — ia adalah miniatur siklus AMD yang selalu membentuk urutan anatomi baku:',
-            '• **Candle Bullish Sehat = `O – L – H – C`:** Buka di *Open* → turun dulu di bawah Open membentuk sumbu bawah (*Low* = manipulasi murah!) → melesat naik mencetak *High* → tutup (*Close*) dekat puncak. Artinya, saat bias Bullish, **entry Buy terbaik ada di bawah atau dekat harga Open H4/Daily**, bukan mengejar pucuk di atas Open!',
-            '• **Candle Bearish Sehat = `O – H – L – C`:** Buka di *Open* → naik dulu di atas Open membentuk sumbu atas (*High* = manipulasi mahal!) → jatuh mencetak *Low* → tutup dekat dasar.',
-            '• **Pola 3-Candle CRT (*Candle Range Theory*) di H4/Daily:** **Candle 1** membentuk kotak rentang (*Range*) → **Candle 2** menyapu High atau Low Candle 1 dengan sumbu lalu **WAJIB menutup body kembali di dalam rentang Candle 1** (*Purge / Turtle Soup*) → **Candle 3** meluncur cepat menyapu ujung seberang Candle 1! Jika body Candle 2 malah tutup jauh di luar rentang Candle 1, itu ekspansi lanjutan — **bukan CRT**.'
+            '• **Candle Bullish Sehat = `O – L – H – C`:** Buka di *Open* → turun dulu di bawah Open membentuk wick bawah (*Low* = manipulasi murah!) → melesat naik mencetak *High* → tutup (*Close*) dekat puncak. Artinya, saat bias Bullish, **entry Buy terbaik ada di bawah atau dekat harga Open H4/Daily**, bukan mengejar pucuk di atas Open!',
+            '• **Candle Bearish Sehat = `O – H – L – C`:** Buka di *Open* → naik dulu di atas Open membentuk wick atas (*High* = manipulasi mahal!) → jatuh mencetak *Low* → tutup dekat dasar.',
+            '• **Pola 3-Candle CRT (*Candle Range Theory*) di H4/Daily:** **Candle 1** membentuk kotak rentang (*Range*) → **Candle 2** sweep High atau Low Candle 1 dengan wick lalu **WAJIB menutup body kembali di dalam rentang Candle 1** (*Purge / Turtle Soup*) → **Candle 3** meluncur cepat sweep ujung seberang Candle 1! Jika body Candle 2 malah tutup jauh di luar rentang Candle 1, itu ekspansi lanjutan — **bukan CRT**.'
           ]
         },
         {
@@ -1181,14 +1181,14 @@
           heading: 'Studi Kasus Lengkap XAU/USD All-Time High: Proyeksi Std Dev di Atas 2.710,00',
           shortTitle: 'Studi Kasus Std Dev ATH',
           paragraphs: [
-            'Lihat betapa presisinya perhitungan **Standard Deviation** ketika XAU/USD menembus All-Time High tanpa satu pun level likuiditas di sebelah kiri:'
+            'Lihat betapa presisinya perhitungan **Standard Deviation** ketika XAU/USD menembus All-Time High tanpa satu pun level Liquidity di sebelah kiri:'
           ],
           exampleBox: {
             title: 'Proyeksi Target All-Time High XAU/USD (Manipulation Leg = $8,00)',
             rows: [
               {
                 label: '1. Mengukur Manipulation Leg',
-                detail: 'Sebelum MSS Bullish, Gold turun dari **Origin `2.708,00` (`0,0`)** menyapu SSL ke **Low Manipulasi `2.700,00` (`1,0`)** → ukuran leg = **`$8,00`**.'
+                detail: 'Sebelum MSS Bullish, Gold turun dari **Origin `2.708,00` (`0,0`)** sweep SSL ke **Low Manipulasi `2.700,00` (`1,0`)** → ukuran leg = **`$8,00`**.'
               },
               {
                 label: '2. Proyeksi Otomatis Standard Deviation ke Atas',
@@ -1211,7 +1211,7 @@
       keyTakeaways: [
         'Saat XAU/USD mencetak **All-Time High** tanpa swing di sebelah kiri, tarik **Fibonacci Standard Deviation** dari **Manipulation Leg** (`1,0` di ujung sweep, `0,0` di Origin) memproyeksi ke arah target.',
         'Zona **`-2,0` s.d. `-2,5` Std Dev** adalah **Sweet Spot Terminus** utama (`70%+` ekspansi harian selesai di sini); `-1,0` untuk evaluasi Partial/BEP; `-4,0` khusus bonus ekspansi ekstrem.',
-        'Hukum anatomi candle H4/Daily: Bullish = **`O–L–H–C`** (beli di bawah/dekat Open saat sumbu manipulasi), Bearish = **`O–H–L–C`** (jual di atas/dekat Open); pola **CRT** wajib ditutup kembali di dalam rentang Candle 1.'
+        'Hukum anatomi candle H4/Daily: Bullish = **`O–L–H–C`** (beli di bawah/dekat Open saat wick manipulasi), Bearish = **`O–H–L–C`** (jual di atas/dekat Open); pola **CRT** wajib ditutup kembali di dalam rentang Candle 1.'
       ],
       bridgeNext: 'Seluruh **35 bab ilmu trading** dari nol mutlak hingga senjata ICT institusional lanjutan kini sudah berada penuh di kepalamu! Tinggal satu tantangan pamungkas untuk membuktikan bahwa kamu bukan lagi "pengikut indikator", melainkan **trader mandiri sejati**: mari tutup buku ini di **Bab 36 — Ujian Praktik Akhir (Capstone): Protokol Mapping Mandiri dari Chart Kosong**.',
       practiceCta: {
@@ -1223,15 +1223,15 @@
         {
           heading: 'Standard Deviation Projections & CRT / OLHC',
           paragraphs: [
-            'Tarik Fib Standard Deviation dari Manipulation Leg ke arah target: -1,0 (Partial/BEP), -2,0 s.d. -2,5 (Sweet Spot TP Utama), -4,0 (ekstrem). Candle Bullish sehat mengikuti OLHC (beli di bawah Open), Bearish OHLC, dan CRT valid jika Candle 2 menyapu ujung Candle 1 lalu menutup body kembali di dalam range.'
+            'Tarik Fib Standard Deviation dari Manipulation Leg ke arah target: -1,0 (Partial/BEP), -2,0 s.d. -2,5 (Sweet Spot TP Utama), -4,0 (ekstrem). Candle Bullish sehat mengikuti OLHC (beli di bawah Open), Bearish OHLC, dan CRT valid jika Candle 2 sweep ujung Candle 1 lalu menutup body kembali di dalam range.'
           ]
         }
       ],
       mappingSteps: [
-        'Tentukan Manipulation Leg (kaki sapuan terakhir sebelum MSS/CISD).',
+        'Tentukan Manipulation Leg (kaki sweep terakhir sebelum MSS/CISD).',
         'Tarik Fib (0, 1, -1, -2, -2.5, -4) sehingga angka negatif memanjang ke arah target.',
         'Tandai zona -2,0 s.d. -2,5 Std Dev sebagai TP Utama dan cek pertemuan angka bulat Gold.',
-        'Di H4/Daily, tunggu harga membuat sumbu manipulasi di bawah Open (Bullish OLHC) atau atas Open (Bearish OHLC) sebelum turun ke M5.'
+        'Di H4/Daily, tunggu harga membuat wick manipulasi di bawah Open (Bullish OLHC) atau atas Open (Bearish OHLC) sebelum turun ke M5.'
       ],
       decisionTree: [
         {
@@ -1239,13 +1239,13 @@
           action: 'Amankan mayoritas profit (70%–80%) di zona -2,0 s.d. -2,5 Std Dev.'
         },
         {
-          condition: 'Candle 2 H4 menyapu Low Candle 1 tetapi body ditutup jauh di BAWAH Low Candle 1.',
+          condition: 'Candle 2 H4 sweep Low Candle 1 tetapi body ditutup jauh di BAWAH Low Candle 1.',
           action: 'BUKAN CRT Bullish — penutupan body di luar menandakan ekspansi turun lanjutan.'
         }
       ],
       validRules: [
         'Standard Deviation WAJIB ditarik dari Manipulation Leg sebelum MSS.',
-        'CRT valid jika Candle 2 menyapu ujung Candle 1 lalu menutup body kembali di dalam rentang Candle 1.'
+        'CRT valid jika Candle 2 sweep ujung Candle 1 lalu menutup body kembali di dalam rentang Candle 1.'
       ],
       invalidRules: [
         'Memaksa 100% posisi menunggu -4,0 Std Dev tanpa mengamankan profit di -2,0/-2,5.',
@@ -1272,7 +1272,7 @@
           question: 'Dari bagian grafik mana proyeksi **Fibonacci Standard Deviation** ICT wajib ditarik untuk menghitung target TP?',
           options: [
             'Dari candle tertinggi tahun lalu ke terendah bulan ini',
-            'Dari **Manipulation Leg** (kaki sapuan likuiditas terakhir tepat sebelum terjadi MSS/CISD balik arah)',
+            'Dari **Manipulation Leg** (kaki Liquidity Sweep terakhir tepat sebelum terjadi MSS/CISD balik arah)',
             'Dari lebar kotak Asia dikali 10',
             'Dari sembarang 2 candle berwarna sama di M1'
           ],
@@ -1294,23 +1294,23 @@
           question: 'Dalam profil candle **`OLHC`** (Candle H4/Daily Bullish yang sehat), di area mana entry Buy memiliki probabilitas dan R:R terbaik?',
           options: [
             'Jauh di atas harga Open setelah candle sudah naik panjang',
-            '**Di bawah atau dekat harga Open** (saat candle sedang membentuk sumbu bawah / Low manipulasi)',
+            '**Di bawah atau dekat harga Open** (saat candle sedang membentuk wick bawah / Low manipulasi)',
             'Tepat 1 menit sebelum candle tutup di puncak',
             'Harga Open tidak berpengaruh sama sekali'
           ],
           answerIndex: 1,
-          explanation: 'Pada candle Bullish (O-L-H-C), fase turun di bawah Open membentuk sumbu bawah adalah manipulasi beli murah sebelum ekspansi naik.'
+          explanation: 'Pada candle Bullish (O-L-H-C), fase turun di bawah Open membentuk wick bawah adalah manipulasi beli murah sebelum ekspansi naik.'
         },
         {
-          question: 'Apa syarat utama agar pola 3-candle **CRT (*Candle Range Theory*)** pada H4 valid sebagai sinyal pembalikan Bullish?',
+          question: 'Apa syarat utama agar pola 3-candle **CRT (*Candle Range Theory*)** pada H4 valid sebagai sinyal reversal Bullish?',
           options: [
-            '**Candle 2 menyapu Low Candle 1 dengan sumbu lalu menutup body kembali di dalam rentang Candle 1**',
+            '**Candle 2 sweep Low Candle 1 dengan wick lalu menutup body kembali di dalam rentang Candle 1**',
             'Candle 2 menutup body merah panjang jauh di bawah Low Candle 1',
             'Candle 1 dan Candle 2 sama-sama Doji tanpa menyentuh ujung mana pun',
             'Candle 2 menembus High Candle 1 lalu langsung turun'
           ],
           answerIndex: 0,
-          explanation: 'Purge/Sweep diikuti penutupan body kembali di dalam rentang Candle 1 membuktikan penolakan likuiditas bawah, memicu Candle 3 membidik High Candle 1.'
+          explanation: 'Purge/Sweep diikuti penutupan body kembali di dalam rentang Candle 1 membuktikan penolakan Liquidity bawah, memicu Candle 3 membidik High Candle 1.'
         },
         {
           question: 'XAU/USD mencetak All-Time High (tidak ada Swing High di kiri). Manipulation Leg turun berukuran **`$6,00`** (dari Origin `2.720,00` ke Low `2.714,00`) lalu berbalik MSS Bullish. Di mana proyeksi **`-2,0` Std Dev** berada?',
@@ -1383,7 +1383,7 @@
                 '**4. Peta M15 & Umpan** (`2 menit`)',
                 'M15',
                 'Tandai **Asia High/Low**, `EQH/EQL`, dan **Inducement (IDM)** tepat di depan HTF POI pilihanmu (Bab 12)',
-                'Peta kolam umpan yang **WAJIB disapu dulu** sebelum entry'
+                'Peta area trap/inducement yang **WAJIB di-sweep dulu** sebelum entry'
               ],
               [
                 '**5. Trigger M5 di KZ** (`2 menit`)',
@@ -1407,7 +1407,7 @@
           paragraphs: [
             'Chart yang penuh 30 garis hanya melahirkan pikiran yang kacau. Setelah 10 menit mapping selesai, di layarmu maksimal hanya boleh ada **5 elemen bersih**: (1) `PDH/PDL` & `DOL`, (2) `Asia Range / IDM`, (3) `1–2 POI Utama`, (4) `1 Garis Invalidasi Bias`, dan (5) area pemicu `M5`.',
             '• **Bagaimana Jika Ada 3–4 FVG/OB Sekaligus?** Pangkas menjadi **1 POI Terbaik** lewat **4 Saringan Kilat**: (1) searah Bias & berada di Discount/Premium, (2) masih *Fresh*, (3) punya **Inducement / Asia Low-High tepat di depannya**, dan (4) punya konfluensi ganda (`OTE 62%–79%`, `Unicorn`, atau `BPR`). Hapus kotak sisanya!',
-            '• **Bagaimana Jika Pagi Itu Chart Membingungkan (Inside Bar)?** Tulis dengan bangga: **"Bias NETRAL — Menunggu London Membuka Kartu."** Biarkan London menyapu Asia High/Low lebih dulu daripada menebak buta.',
+            '• **Bagaimana Jika Pagi Itu Chart Membingungkan (Inside Bar)?** Tulis dengan bangga: **"Bias NETRAL — Menunggu London Membuka Kartu."** Biarkan London sweep Asia High/Low lebih dulu daripada menebak buta.',
             '• **Hukum Tertinggi:** Jika semua 5 langkah teknikal sudah sempurna tetapi **8 menit lagi rilis CPI/NFP**, **Protokol News Lock (`-15m/+30m`) selalu menang di atas segalanya!**'
           ]
         },
@@ -1431,7 +1431,7 @@
               },
               {
                 label: 'Langkah 5–6 — Trigger London Macro `14:35 WITA` & Risiko Eksak (3 Menit)',
-                detail: 'Pukul `14:35 WITA` (London Macro `02:33–03:00 NY`), harga turun menyapu Asia Low `2.657,00` → masuk POI `2.655,20` (plus **Bullish SMT** di XAG/USD) → M5 cetak **CISD + BISI `2.656,00–2.657,50`**. Eksekusi **Buy `2.656,50`**, **SL `2.653,00`** (risiko **`$3,50`** = `0,75%` modal). **TP1** internal high **`2.663,50`** (**`+$7,00` / `2,00R`** → Partial + BEP) dan **TP2 DOL PDH `2.674,00`** (**`+$17,50` / `5,00R`**)!'
+                detail: 'Pukul `14:35 WITA` (London Macro `02:33–03:00 NY`), harga turun sweep Asia Low `2.657,00` → masuk POI `2.655,20` (plus **Bullish SMT** di XAG/USD) → M5 cetak **CISD + BISI `2.656,00–2.657,50`**. Eksekusi **Buy `2.656,50`**, **SL `2.653,00`** (risiko **`$3,50`** = `0,75%` modal). **TP1** internal high **`2.663,50`** (**`+$7,00` / `2,00R`** → Partial + BEP) dan **TP2 DOL PDH `2.674,00`** (**`+$17,50` / `5,00R`**)!'
               }
             ]
           },
@@ -1439,7 +1439,7 @@
             tone: 'tip',
             kicker: 'Selamat Lulus · 36 dari 36 Bab Tuntas!',
             title: 'Kamu Resmi Menuntaskan Seluruh Buku Panduan ICT XAU/USD Amy FX Academy!',
-            body: 'Dari mengenal arti 1 pip di **Bab 01–06**, memetakan struktur & likuiditas (**Bab 07–12**), kompas arah & waktu WITA (**Bab 13–17**), zona PD Array (**Bab 18–24**), model eksekusi & manajemen trade (**Bab 25–30**), hingga senjata institusional lanjutan & mapping mandiri (**Bab 31–36**) — sekarang tugasmu hanya satu: **jalankan Protokol 100 Sample dengan 1 Model Utama secara disiplin di Cockpit Mapping, Replay Lab, dan Jurnal Trading!**'
+            body: 'Dari mengenal arti 1 pip di **Bab 01–06**, memetakan struktur & Liquidity (**Bab 07–12**), kompas arah & waktu WITA (**Bab 13–17**), zona PD Array (**Bab 18–24**), model eksekusi & manajemen trade (**Bab 25–30**), hingga senjata institusional lanjutan & mapping mandiri (**Bab 31–36**) — sekarang tugasmu hanya satu: **jalankan Protokol 100 Sample dengan 1 Model Utama secara disiplin di Cockpit Mapping, Replay Lab, dan Jurnal Trading!**'
           }
         }
       ],
@@ -1472,7 +1472,7 @@
       decisionTree: [
         {
           condition: 'Daily & H1 sedang inside bar di tengah range tanpa arah jelas.',
-          action: 'Tulis Bias NETRAL — tunggu sesi London menyapu Asia High/Low untuk membuka arah.'
+          action: 'Tulis Bias NETRAL — tunggu sesi London sweep Asia High/Low untuk membuka arah.'
         },
         {
           condition: 'Semua 5 langkah cocok tetapi 8 menit lagi rilis CPI/NFP.',
@@ -1513,13 +1513,13 @@
             'Langsung tarik 15 kotak FVG di M5 lalu pilih yang paling dekat harga sekarang'
           ],
           answerIndex: 1,
-          explanation: 'Top-Down Mapping selalu dimulai dari konteks makro & likuiditas besar sebelum turun mencari presisi pemicu di M15 dan M5.'
+          explanation: 'Top-Down Mapping selalu dimulai dari konteks makro & Liquidity besar sebelum turun mencari presisi pemicu di M15 dan M5.'
         },
         {
           question: 'Pukul `08:30 WITA` saat melakukan mapping Daily & H1, chart sedang *inside bar* di tengah range tanpa arah dominan. Keputusan paling profesional adalah...',
           options: [
             'Menebak salah satu arah secara acak agar tetap punya trade pagi ini',
-            'Menetapkan **Bias NETRAL** dan menunggu sesi London menyapu Asia High/Low terlebih dahulu untuk membuka arah hari ini',
+            'Menetapkan **Bias NETRAL** dan menunggu sesi London sweep Asia High/Low terlebih dahulu untuk membuka arah hari ini',
             'Memperbesar lot supaya profit cepat meski arah tidak jelas',
             'Membuka Buy dan Sell bersamaan di M5'
           ],

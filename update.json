@@ -1,19 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.479/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.480/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Live Stream Beranda APK & Deploy Vercel 12-Fungsi: Hubungkan Peta Harga Beranda APK langsung ke bridge native TwelveDataPriceBridge (window.AmyLivePrice.connect) dan konsolidasikan endpoint Vercel menjadi 12 Serverless Functions agar deploy Hobby Plan berjalan mulus."
+    "✦ Kamus ICT Interaktif Academy: Tambahan glosarium 40+ istilah Gold/ICT lengkap dengan pencarian, filter kategori, anotasi otomatis istilah dalam bacaan bab, serta pemecahan paragraf padat agar jauh lebih nyaman dibaca di layar HP (sinkron AI Studio 8e4618b)."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.479/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.480/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950479,
-  "latest_version_name": "2.0.0-pro.479",
+  "latest_version_code": 950480,
+  "latest_version_name": "2.0.0-pro.480",
   "mandatory": false,
   "releaseDate": "2026-11-26",
   "release_notes": [
-    "✦ Live Stream Beranda APK & Deploy Vercel 12-Fungsi: Hubungkan Peta Harga Beranda APK langsung ke bridge native TwelveDataPriceBridge (window.AmyLivePrice.connect) dan konsolidasikan endpoint Vercel menjadi 12 Serverless Functions agar deploy Hobby Plan berjalan mulus."
+    "✦ Kamus ICT Interaktif Academy: Tambahan glosarium 40+ istilah Gold/ICT lengkap dengan pencarian, filter kategori, anotasi otomatis istilah dalam bacaan bab, serta pemecahan paragraf padat agar jauh lebih nyaman dibaca di layar HP (sinkron AI Studio 8e4618b)."
   ],
-  "version": "2.0.0-pro.479",
-  "versionCode": 950479,
+  "version": "2.0.0-pro.480",
+  "versionCode": 950480,
   "sha256": "2da97f77a33e81786ccc3b7d0e2c9e10f8760c153a56620d3930d0c8698e31f1"
 }

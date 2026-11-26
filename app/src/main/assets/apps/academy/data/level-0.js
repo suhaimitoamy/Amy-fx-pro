@@ -372,7 +372,7 @@
         steps: [
           'Hitung jarak dari Bid 2.650,00 ke level 2.652,00 = $2,00 (20 pips).',
           'Karena SELL ditutup di garis Ask, beri napas spread +$0,50 sehingga SL ditaruh di 2.652,50.',
-          'Jika harga Bid naik hanya sampai 2.651,80, garis Ask berada di 2.652,10 dan posisimu tetap aman dari tersapu prematur.'
+          'Jika harga Bid naik hanya sampai 2.651,80, garis Ask berada di 2.652,10 dan posisimu tetap aman dari kena sweep prematur.'
         ]
       },
       failedCase: {
@@ -693,7 +693,7 @@
             headers: ['Jenis Order', 'Letak Harga Pesanan', 'Cara Kerjanya'],
             rows: [
               ['Market Execution', 'Di harga detik ini (2.650,00)', 'Langsung membuka BUY (di Ask) atau SELL (di Bid) seketika tombol ditekan.'],
-              ['Buy Limit', 'Di BAWAH harga sekarang (mis. 2.642,00)', 'Menunggu harga turun dulu ke area murah (diskon), lalu otomatis BUY berharap memantul naik.'],
+              ['Buy Limit', 'Di BAWAH harga sekarang (mis. 2.642,00)', 'Menunggu harga turun dulu ke area murah (Discount), lalu otomatis BUY berharap memantul naik.'],
               ['Sell Limit', 'Di ATAS harga sekarang (mis. 2.658,00)', 'Menunggu harga naik dulu ke area mahal (premium), lalu otomatis SELL berharap memantul turun.'],
               ['Buy Stop', 'Di ATAS harga sekarang (mis. 2.655,00)', 'Menunggu harga menembus naik dulu, lalu otomatis ikut BUY searah dorongan ke atas.'],
               ['Sell Stop', 'Di BAWAH harga sekarang (mis. 2.645,00)', 'Menunggu harga menembus turun dulu, lalu otomatis ikut SELL searah dorongan ke bawah.']
@@ -718,7 +718,7 @@
             rows: [
               {
                 label: 'Harga Sekarang',
-                detail: '`2.650,00` — kamu ingin menunggu harga turun ke zona diskon `2.642,00`.'
+                detail: '`2.650,00` — kamu ingin menunggu harga turun ke zona Discount `2.642,00`.'
               },
               {
                 label: 'Jenis Order & Price',
@@ -777,11 +777,11 @@
       ],
       validRules: [
         'Selalu periksa ulang simbol XAUUSD, angka koma Lot, serta posisi SL/TP sebelum klik.',
-        'Gunakan Buy Limit / Sell Limit untuk antre sabar di zona diskon atau premium.'
+        'Gunakan Buy Limit / Sell Limit untuk antre sabar di zona Discount atau premium.'
       ],
       invalidRules: [
         'Membuka transaksi dulu baru "nanti saja" memasang Stop Loss.',
-        'Salah memilih Buy Stop padahal ingin menunggu harga turun dulu ke area diskon.'
+        'Salah memilih Buy Stop padahal ingin menunggu harga turun dulu ke area Discount.'
       ],
       xauScenario: {
         context: 'Harga XAU/USD saat ini 2.650,00. Kamu ingin menunggu harga turun ke zona beli 2.642,00 dengan SL $5 dan target $10.',
@@ -875,7 +875,7 @@
           paragraphs: [
             'Saat pertama kali membuka chart, deretan batang berwarna hijau (atau biru) dan merah mungkin terlihat seperti grafik rumit. Padahal, **setiap satu batang Candlestick hanyalah ringkasan cerita pertarungan antara Pembeli dan Penjual selama satu rentang waktu tertentu**.',
             'Sebatang candlestick selalu merekam **empat titik harga (OHLC)**: **Open** (harga pembukaan saat waktu dimulai), **High** (titik tertinggi yang sempat dicapai), **Low** (titik terendah yang sempat disentuh), dan **Close** (harga penutupan saat waktu habis).',
-            'Bagian kotak tebal di tengah antara Open dan Close disebut **Body (Badan Candle)**, sedangkan garis tipis yang mencuat di atas atau di bawah badan disebut **Wick / Shadow (Sumbu atau Ekor)**. Jika harga ditutup **lebih tinggi** daripada pembukaan (`Close > Open`), candle disebut **Bullish (Naik)**. Jika ditutup **lebih rendah** (`Close < Open`), candle disebut **Bearish (Turun)**.'
+            'Bagian kotak tebal di tengah antara Open dan Close disebut **Body (kotak inti candle)**, sedangkan garis tipis yang mencuat di atas atau di bawah body disebut **Wick / Shadow (garis ekor atas-bawah candle)**. Jika harga ditutup **lebih tinggi** daripada pembukaan (`Close > Open`), candle disebut **Bullish (Naik)**. Jika ditutup **lebih rendah** (`Close < Open`), candle disebut **Bearish (Turun)**.'
           ],
           exampleBox: {
             title: 'Membedah Satu Batang Candle Bullish M15 (15 Menit)',
@@ -903,7 +903,7 @@
           number: '5.2',
           heading: 'Membaca Bahasa Tubuh Candle: Body vs Wick',
           paragraphs: [
-            'Di metodologi ICT yang akan kita pelajari mulai Bab 07, kamu tidak perlu menghafal 50 nama pola candlestick Jepang yang rumit. Kamu cukup menguasai **satu prinsip bacaan yang sangat jujur**: **Body menunjukkan niat dan kekuatan nyata, sedangkan Wick (sumbu) menunjukkan penolakan atau sapuan sementara.**',
+            'Di metodologi ICT yang akan kita pelajari mulai Bab 07, kamu tidak perlu menghafal 50 nama pola candlestick Jepang yang rumit. Kamu cukup menguasai **satu prinsip bacaan yang sangat jujur**: **Body menunjukkan niat dan kekuatan nyata, sedangkan Wick menunjukkan penolakan atau sweep sementara.**',
             'Perhatikan bedanya: ketika sebuah candle mendorong menembus sebuah batas harga dan **Body-nya benar-benar ditutup di seberang batas itu**, artinya pihak pemenang punya tenaga besar untuk mempertahankan harga di sana. Sebaliknya, jika harga sempat melonjak lewat batas lalu di menit-menit terakhir ditarik pulang sampai hanya menyisakan **ekor panjang (Wick)** sementara Body tetap tutup di dalam — itu tanda **penolakan kuat (rejection)** atau jebakan!',
             'Dari sini lahir satu hukum disiplin penting: **jangan pernah mengambil keputusan dari candle yang waktunya belum habis!** Selama waktu masih berjalan, batang yang tadinya terlihat hijau penuh bisa tiba-tiba berubah merah dalam 10 detik terakhir. Di pasar, hanya **Candle Close (penutupan resmi)** yang sah dibaca sebagai fakta.'
           ],
@@ -928,7 +928,7 @@
               ['D1 (Daily)', '1 Hari Trading', '~23–24 candle H1', 'Menentukan arah besar harian (Daily Bias) & level PDH/PDL'],
               ['H4 (4 Jam)', '4 Jam', '4 candle H1 / 16 candle M15', 'Membaca struktur utama & zona institusi besar'],
               ['H1 (1 Jam)', '1 Jam', '4 candle M15 / 12 candle M5', 'Peta arena bermain (Dealing Range) & zona tunggu utama'],
-              ['M15 (15 Menit)', '15 Menit', '3 candle M5 / 15 candle M1', 'Menyaring zona entry & membaca sapuan sesi'],
+              ['M15 (15 Menit)', '15 Menit', '3 candle M5 / 15 candle M1', 'Menyaring zona entry & membaca sweep sesi'],
               ['M5 (5 Menit)', '5 Menit', '5 candle M1', 'Konfirmasi presisi waktu menekan tombol entry']
             ]
           }
@@ -936,7 +936,7 @@
       ],
       keyTakeaways: [
         'Satu batang candlestick merekam 4 fakta harga: **Open, High, Low, Close (OHLC)** selama satu rentang timeframe.',
-        '**Body** menunjukkan tenaga dan kesepakatan akhir yang sah; **Wick (ekor)** menunjukkan penolakan atau jejak sapuan sementara.',
+        '**Body** menunjukkan tenaga dan kesepakatan akhir yang sah; **Wick** menunjukkan penolakan atau jejak sweep sementara.',
         'Selalu tunggu **Candle Close** sebelum menyimpulkan sebuah level benar-benar tertembus.',
         'Timeframe besar membungkus timeframe kecil (`1 H1 = 4 M15 = 12 M5`) — nanti kita akan selalu membaca dari besar ke kecil (*Top-Down*).'
       ],
@@ -945,7 +945,7 @@
         {
           heading: 'Anatomi Candlestick OHLC, Body vs Wick & Timeframe',
           paragraphs: [
-            'Candlestick merekam Open, High, Low, dan Close. Body tebal mencerminkan dominasi tenaga nyata, sedangkan Wick panjang mencerminkan penolakan atau sapuan sementara.',
+            'Candlestick merekam Open, High, Low, dan Close. Body tebal mencerminkan dominasi tenaga nyata, sedangkan Wick panjang mencerminkan penolakan atau sweep sementara.',
             'Satu candle timeframe besar membungkus beberapa candle timeframe kecil (1 H1 = 4 M15 = 12 M5). Selalu tunggu Candle Close untuk konfirmasi sah.'
           ]
         }
@@ -1029,9 +1029,9 @@
           explanation: '60 menit ÷ 15 menit = 4 candle M15; dan 60 menit ÷ 5 menit = 12 candle M5.'
         },
         {
-          question: 'Dalam pembacaan bahasa tubuh candlestick, apa perbedaan utama antara Body tebal dan Wick (ekor) panjang?',
+          question: 'Dalam pembacaan bahasa tubuh candlestick, apa perbedaan utama antara Body tebal dan Wick panjang?',
           options: [
-            'Body menunjukkan niat & kekuatan pemenang yang sah saat penutupan, sedangkan Wick panjang menunjukkan penolakan atau sapuan sementara',
+            'Body menunjukkan niat & kekuatan pemenang yang sah saat penutupan, sedangkan Wick panjang menunjukkan penolakan atau sweep sementara',
             'Wick lebih kuat daripada Body untuk menembus tren',
             'Body hanya penting di akun Demo',
             'Keduanya tidak memiliki arti apa pun di pasar Gold'
@@ -1079,7 +1079,7 @@
             headers: ['Sesi Pasar', 'Jam WITA (EDT · +12)', 'Jam WITA (EST · +13)', 'Karakter Khas di Chart Gold'],
             rows: [
               ['Sesi Asia', '08:00 – 12:00 WITA', '09:00 – 13:00 WITA', 'Cenderung tenang dan bergerak sempit membentuk kotak rentang (Asia Range).'],
-              ['Sesi London', '14:00 – 17:00 WITA', '15:00 – 18:00 WITA', 'Volume bank Eropa masuk; mulai muncul gerak tegas & sapuan awal terhadap Asia Range.'],
+              ['Sesi London', '14:00 – 17:00 WITA', '15:00 – 18:00 WITA', 'Volume bank Eropa masuk; mulai muncul gerak tegas & sweep awal terhadap Asia Range.'],
               ['Sesi New York', '19:00 – 23:00 WITA', '20:00 – 00:00 WITA', 'Puncak volatilitas harian (pertemuan London–NY + jadwal berita ekonomi AS).']
             ]
           },
@@ -1094,7 +1094,7 @@
           heading: 'Dua Zona Merah Waktu: Jam Rollover & Tutup Akhir Pekan',
           paragraphs: [
             'Selain mengenal jam aktif, kamu wajib menghafal **dua waktu terlarang** saat pasar Gold sangat tidak sehat untuk disentuh:',
-            '**1. Jam Rollover Harian (Pergantian Hari Pasar NY 17:00–18:00 NY):** Sekitar pukul **`05:00–06:00 WITA` (EDT)** atau **`06:00–07:00 WITA` (EST)** setiap pagi, pasar tutup sejenak 1 jam untuk pergantian hari kliring bank. Menjelang dan tepat saat pasar buka kembali di jam ini, likuiditas sangat tipis sehingga **Spread bisa melonjak 5 hingga 10 kali lipat**! Posisi dengan SL ketat sangat rawan tersentuh hanya oleh lonjakan spread.',
+            '**1. Jam Rollover Harian (Pergantian Hari Pasar NY 17:00–18:00 NY):** Sekitar pukul **`05:00–06:00 WITA` (EDT)** atau **`06:00–07:00 WITA` (EST)** setiap pagi, pasar tutup sejenak 1 jam untuk pergantian hari kliring bank. Menjelang dan tepat saat pasar buka kembali di jam ini, Liquidity sangat tipis sehingga **Spread bisa melonjak 5 hingga 10 kali lipat**! Posisi dengan SL ketat sangat rawan tersentuh hanya oleh lonjakan spread.',
             '**2. Tutup Akhir Pekan (Weekend Closure):** Pasar Gold dunia resmi tutup mulai **Jumat pukul 17:00 NY** (`Sabtu 05:00 WITA` EDT / `06:00 WITA` EST) hingga **Minggu pukul 17:00 NY** (`Senin 05:00 WITA` EDT / `06:00 WITA` EST). Selama akhir pekan, harga berhenti total. Hindari menahan posisi scalping melewati akhir pekan karena pada Senin pagi harga bisa langsung melompat (*weekend gap*) melewati Stop Loss-mu.'
           ],
           callout: {
@@ -1115,7 +1115,7 @@
         {
           heading: 'Karakter Gold, 3 Sesi Pasar WITA & Aturan Rollover/Weekend',
           paragraphs: [
-            'XAU/USD bergerak agresif ($20–$40/hari) mengikuti ritme Asia (rentang awal), London (ekspansi/sapuan), dan New York (puncak volume).',
+            'XAU/USD bergerak agresif ($20–$40/hari) mengikuti ritme Asia (rentang awal), London (ekspansi/sweep), dan New York (puncak volume).',
             'Konversi WITA adalah NY +12 jam saat EDT dan NY +13 jam saat EST. Hindari jam rollover harian (spread melebar) dan tutup akhir pekan Jumat 17:00 NY s.d. Minggu 17:00 NY.'
           ]
         }
@@ -1128,7 +1128,7 @@
       decisionTree: [
         {
           condition: 'Sekarang pukul 05:15 WITA (jam rollover) dan kamu melihat setup bagus di chart.',
-          action: 'Abaikan! Spread saat rollover bisa melebar berkali lipat dan menyapu SL secara tidak wajar.'
+          action: 'Abaikan! Spread saat rollover bisa melebar berkali lipat dan sweep SL secara tidak wajar.'
         },
         {
           condition: 'Sekarang hari Sabtu/Minggu dan chart tidak bergerak.',
@@ -1147,16 +1147,16 @@
         context: 'Hari Selasa (musim EDT, +12 WITA). Sesi Asia 08:00–12:00 WITA bergerak sempit hanya $6 di antara 2.648–2.654.',
         steps: [
           'Trader tidak memaksakan entry di tengah kotak sempit Asia.',
-          'Menjelang Sesi London (14:00 WITA), trader bersiap mengamati ke arah mana harga mulai keluar dan menyapu batas Asia.'
+          'Menjelang Sesi London (14:00 WITA), trader bersiap mengamati ke arah mana harga mulai keluar dan sweep batas Asia.'
         ]
       },
       failedCase: {
-        title: 'SL Tersapu Saat Jam Rollover Subuh',
+        title: 'SL Kena Sweep Saat Jam Rollover Subuh',
         context: 'Trader membiarkan posisi scalping terbuka dengan SL $2 melewati pukul 05:00 WITA (rollover NY 17:00).',
-        whyFailed: 'Spread melonjak mendadak dari $0,30 menjadi $2,50 saat pergantian hari pasar sehingga SL langsung tersapu meski harga tengah hampir tidak bergerak.'
+        whyFailed: 'Spread melonjak mendadak dari $0,30 menjadi $2,50 saat pergantian hari pasar sehingga SL langsung kena sweep meski harga tengah hampir tidak bergerak.'
       },
       goldenRules: [
-        'Waktu sama pentingnya dengan harga: trade hanya saat likuiditas sehat di London dan New York.',
+        'Waktu sama pentingnya dengan harga: trade hanya saat Liquidity sehat di London dan New York.',
         'Jumat 17:00 NY s.d. Minggu 17:00 NY adalah tutup pasar resmi akhir pekan.'
       ],
       practiceCta: {
@@ -1191,7 +1191,7 @@
           question: 'Mengapa trader scalping Gold sangat dilarang membuka posisi atau membiarkan SL ketat terbuka tepat pada jam Rollover harian (sekitar 05:00–06:00 WITA saat EDT)?',
           options: [
             'Karena harga Gold selalu pasti turun di jam tersebut',
-            'Karena likuiditas menipis saat pergantian hari bank sehingga Spread bisa melebar 5–10 kali lipat dan menyapu SL secara tidak wajar',
+            'Karena Liquidity menipis saat pergantian hari bank sehingga Spread bisa melebar 5–10 kali lipat dan sweep SL secara tidak wajar',
             'Karena akun Demo dimatikan permanen di pagi hari',
             'Karena chart hanya menampilkan M1'
           ],

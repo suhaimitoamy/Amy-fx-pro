@@ -36,12 +36,12 @@
       id: 0,
       code: 'Bagian I',
       title: 'Fondasi Pemula & Cara Kerja Pasar Gold',
-      tagline: 'Mulai dari nol mutlak seperti membaca buku: apa itu trading Gold, pips, bid/ask, spread, rumus lot 1%, panduan MT5, candlestick, hingga ritme sesi pasar dunia.'
+      tagline: 'Mulai dari nol sampai siap buka chart: cara kerja trading Gold, pips, bid/ask, spread, rumus lot 1%, panduan MT5, candlestick, hingga ritme sesi pasar dunia.'
     },
     {
       id: 1,
       code: 'Bagian II',
-      title: 'Struktur Pasar & Peta Likuiditas',
+      title: 'Struktur Pasar & Peta Liquidity',
       tagline: 'Membaca struktur harga murni tanpa indikator, menyatukan H4/H1/M15/M5, membedakan BOS valid vs sweep palsu, Dealing Range, peta BSL/SSL, hingga Inducement.'
     },
     {
@@ -85,8 +85,8 @@
     { id: 'multi-timeframe-h1-m15-m5', stageId: 1, titleOverride: 'Multi-Timeframe (Top-Down): Menyatukan H4/H1, M15, dan M5 Tanpa Bingung' },
     { id: 'bos-valid-vs-sweep-palsu', stageId: 1, titleOverride: 'Break of Structure (BOS) Valid vs Liquidity Sweep (Breakout Palsu)' },
     { id: 'internal-external-dealing-range', stageId: 1, titleOverride: 'Dealing Range: Membaca Arena Eksternal (ERL) vs Internal (IRL)' },
-    { id: 'bsl-dan-ssl-liquidity', stageId: 1, titleOverride: 'Peta Likuiditas Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range' },
-    { id: 'inducement-idm-umpan-ritel', stageId: 1, titleOverride: 'Inducement (IDM): Mengenali Umpan Ritel Sebelum Pergerakan Asli' },
+    { id: 'bsl-dan-ssl-liquidity', stageId: 1, titleOverride: 'Peta Liquidity Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range' },
+    { id: 'inducement-idm-umpan-ritel', stageId: 1, titleOverride: 'Inducement (IDM): Mengenali Trap Ritel Sebelum Pergerakan Asli' },
 
     // Bagian III (Bab 13–17)
     { id: 'level-likuiditas-kunci-xauusd', stageId: 2, titleOverride: 'Draw on Liquidity (DOL) Tuntas: Cara Menemukan Magnet Harga Langkah demi Langkah' },
@@ -108,7 +108,7 @@
     { id: 'model-sweep-mss-fvg', stageId: 4, titleOverride: 'Model Entry Utama (ICT 2022): Merakit Sweep → MSS/CISD → FVG/OB dari Nol' },
     { id: 'model-turtle-soup-smr', stageId: 4, titleOverride: 'Model Entry Alternatif: iFVG Entry, Unicorn Setup & Turtle Soup (SMR)' },
     { id: 'memilih-1-model-dan-filter-gagal', stageId: 4, titleOverride: 'Filter Setup Gagal (5 Bendera Merah Auto-Skip) & Memilih 1 Model Fokus' },
-    { id: 'sl-struktural-napas-spread-tp', stageId: 4, titleOverride: 'Stop Loss Struktural, Napas Spread & Target Likuiditas Bertingkat (TP1/TP2)' },
+    { id: 'sl-struktural-napas-spread-tp', stageId: 4, titleOverride: 'Stop Loss Struktural, Napas Spread & Target Liquidity Bertingkat (TP1/TP2)' },
     { id: 'manajemen-trade-partial-bep-notrade', stageId: 4, titleOverride: 'Manajemen Posisi Aktif: Partial Close, Breakeven (BEP) & Batas Berhenti Harian' },
     { id: 'protokol-100-sample-mandiri', stageId: 4, titleOverride: 'Psikologi Eksekusi (Anti-FOMO/Revenge) & Protokol Jurnal 100 Sample' },
 
@@ -262,7 +262,7 @@
       explanation: 'Di Standard Gold, 0.01 lot = $1 per gerak $1. Untuk jarak SL $5: 0.02 lot × $5 × 100 = tepat $10 (1% modal).'
     },
     {
-      question: 'Harga XAU/USD sekarang di 2.658,00. Kamu ingin menunggu harga turun dulu ke area diskon 2.648,00 baru otomatis membuka posisi BUY. Jenis pending order MT5 apa yang dipilih?',
+      question: 'Harga XAU/USD sekarang di 2.658,00. Kamu ingin menunggu harga turun dulu ke area Discount 2.648,00 baru otomatis membuka posisi BUY. Jenis pending order MT5 apa yang dipilih?',
       options: [
         'Buy Stop',
         'Buy Limit',
@@ -270,7 +270,7 @@
         'Sell Stop'
       ],
       answerIndex: 1,
-      explanation: 'Buy Limit dipasang di bawah harga saat ini untuk menangkap pantulan naik di harga lebih murah (diskon).'
+      explanation: 'Buy Limit dipasang di bawah harga saat ini untuk menangkap pantulan naik di harga lebih murah (Discount).'
     }
   ]);
 
@@ -695,7 +695,7 @@
 
   function buildAmyPromptForLesson(lesson) {
     if (!lesson) {
-      return 'Bantu saya memahami Buku Panduan ICT XAU/USD di Amy FX Academy hari ini.';
+      return 'Bantu saya memahami materi ICT XAU/USD di Amy FX Academy hari ini.';
     }
     const stage = getStageById(lesson.stageId);
     const stageLabel = stage ? `${stage.code} (${stage.title})` : '';

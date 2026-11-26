@@ -1,3 +1,7 @@
+## 2.0.0-pro.480
+
+- feat(academy-glossary): Sinkronisasi fitur Kamus ICT Interaktif & peningkatan keterbacaan Academy dari `Amy-fx-ai-studio` (`8e4618b`): glosarium 40+ istilah ICT (`ict-glossary.js`), anotasi istilah otomatis, pemecahan paragraf panjang & daftar bernomor di mobile, pembaruan diagram & seluruh materi Bab (`level-0` s.d. `mastery-deep-enrichment`), serta sinkronisasi `amy-local-knowledge.js`.
+
 ## 2.0.0-pro.479
 
 - fix(apk-home-stream): Sambungkan Peta Harga Beranda (`home-price-chart.js`) ke `window.AmyLivePrice.connect()` saat berjalan di Android APK agar stream harga live langsung menyala sejak Beranda dibuka.

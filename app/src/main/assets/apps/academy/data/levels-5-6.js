@@ -46,11 +46,11 @@
           heading: 'Membelah Satu Candle Harian: Apa Itu Power of Three (AMD)?',
           paragraphs: [
             'Di Bab 14 kamu sudah belajar menentukan apakah candle harian hari ini lebih condong ditutup hijau (**Bullish Bias**) atau merah (**Bearish Bias**). Sekarang mari kita ambil kaca pembesar dan **membelah satu batang candle Daily tersebut** untuk melihat proses pembuatannya dari jam ke jam!',
-            'Perhatikan sebuah candle Daily Bullish (hijau): ia memiliki harga pembukaan (*Open*), sumbu bawah (*Low*), badan naik panjang, dan harga penutupan (*Close*) dekat puncak (*High*). Pertanyaannya: **kapan sumbu bawah itu dicetak, dan kapan badan naiknya dicetak?**',
+            'Perhatikan sebuah candle Daily Bullish (hijau): ia memiliki harga pembukaan (*Open*), wick bawah (*Low*), body bullish panjang, dan harga penutupan (*Close*) dekat puncak (*High*). Pertanyaannya: **kapan wick bawah itu dicetak, dan kapan body bullish-nya dicetak?**',
             'Dalam ajaran ICT, proses pembentukan satu candle harian itu berjalan dalam 3 babak teratur yang disebut **Power of Three (AMD)**:',
             '1. **Accumulation (Akumulasi):** Setelah hari baru dibuka, harga bergerak datar dan sempit di sekitar harga pembukaan (umumnya sepanjang sesi Asia). Di sinilah pesanan ritel menumpuk di atas dan di bawah kotak.',
-            '2. **Manipulation (Manipulasi / Judas Swing):** Begitu likuiditas London atau awal New York masuk, harga sengaja didorong cepat **ke arah yang SALAH terlebih dahulu** (pada hari Bullish, harga dibanting turun dulu membentuk sumbu bawah candle Daily!). Gerakan tipuan inilah yang dinamakan **Judas Swing**.',
-            '3. **Distribution (Distribusi):** Setelah Stop Loss di arah salah habis disapu dan pesanan institusi terisi penuh di harga murah, harga berbalik arah dan meluncur kencang menuju magnet DOL sepanjang hari — membentuk badan utama candle Daily.'
+            '2. **Manipulation (Manipulasi / Judas Swing):** Begitu Liquidity London atau awal New York masuk, harga sengaja didorong cepat **ke arah yang SALAH terlebih dahulu** (pada hari Bullish, harga dibanting turun dulu membentuk wick bawah candle Daily!). Gerakan tipuan inilah yang dinamakan **Judas Swing**.',
+            '3. **Distribution (Distribusi):** Setelah Stop Loss di arah salah habis di-sweep dan pesanan institusi terisi penuh di harga murah, harga berbalik arah dan meluncur kencang menuju magnet DOL sepanjang hari — membentuk body utama candle Daily.'
           ]
         },
         {
@@ -64,8 +64,8 @@
             caption: 'Aturan Emas NY Midnight Open (00:00 NY) Berdasarkan Daily Bias',
             headers: ['Daily Bias Hari Ini', 'Lokasi Ideal Fase Manipulasi (Judas)', 'Aturan Eksekusi Disiplin', 'Kesalahan Pemula yang Harus Dihindari'],
             rows: [
-              ['BULLISH (Target ke Atas)', 'Harga turun **DI BAWAH** garis `NY Midnight Open` (membentuk sumbu bawah Daily)', 'Cari peluang **BUY di bawah / dekat NY Midnight Open** setelah sapuan Asia Low/SSL', 'Mengejar BUY jauh di atas Midnight Open setelah harga sudah lari +$18'],
-              ['BEARISH (Target ke Bawah)', 'Harga naik **DI ATAS** garis `NY Midnight Open` (membentuk sumbu atas Daily)', 'Cari peluang **SELL di atas / dekat NY Midnight Open** setelah sapuan Asia High/BSL', 'Mengejar SELL jauh di bawah Midnight Open setelah harga sudah jatuh -$18']
+              ['BULLISH (Target ke Atas)', 'Harga turun **DI BAWAH** garis `NY Midnight Open` (membentuk wick bawah Daily)', 'Cari peluang **BUY di bawah / dekat NY Midnight Open** setelah sweep Asia Low/SSL', 'Mengejar BUY jauh di atas Midnight Open setelah harga sudah lari +$18'],
+              ['BEARISH (Target ke Bawah)', 'Harga naik **DI ATAS** garis `NY Midnight Open` (membentuk wick atas Daily)', 'Cari peluang **SELL di atas / dekat NY Midnight Open** setelah sweep Asia High/BSL', 'Mengejar SELL jauh di bawah Midnight Open setelah harga sudah jatuh -$18']
             ]
           }
         },
@@ -84,11 +84,11 @@
               },
               {
                 label: '14:15 – 15:15 WITA (Babak 2 · Manipulasi / Judas Swing London)',
-                detail: 'Sesi London dibuka! Tiba-tiba 2 candle M15 merah menjatuhkan Gold menembus `2.649` (di bawah Midnight Open) hingga menyapu **Asia Low `2.646`** sampai ke `2.642,80`. Trader breakout beramai-ramai klik SELL — tepat masuk perangkap!'
+                detail: 'Sesi London dibuka! Tiba-tiba 2 candle M15 merah menjatuhkan Gold menembus `2.649` (di bawah Midnight Open) hingga sweep **Asia Low `2.646`** sampai ke `2.642,80`. Trader breakout beramai-ramai klik SELL — tepat masuk perangkap!'
               },
               {
                 label: '15:30 – 22:30 WITA (Babak 3 · Distribusi ke DOL)',
-                detail: 'Begitu bahan bakar bawah terambil di `2.642,80`, pembeli institusi mendorong harga balik menembus ke atas. Harga melaju menembus `NY Midnight Open 2.649`, menyapu `Asia High 2.652`, lalu menuntaskan misi hingga `PDH 2.670`!'
+                detail: 'Begitu bahan bakar bawah terambil di `2.642,80`, pembeli institusi mendorong harga balik menembus ke atas. Harga melaju menembus `NY Midnight Open 2.649`, sweep `Asia High 2.652`, lalu menuntaskan misi hingga `PDH 2.670`!'
               }
             ]
           }
@@ -126,11 +126,11 @@
       mappingSteps: [
         'Tarik garis horizontal NY Midnight Open tepat pukul 00:00 NY (12:00 WITA EDT / 13:00 WITA EST).',
         'Amati kotak Akumulasi Asia (08:00–12:00 WITA EDT / 09:00–13:00 WITA EST) dan arah Daily Bias hari itu.',
-        'Tunggu fase Manipulasi (Judas Swing) membawa harga melewati Midnight Open & menyapu ujung Asia ke arah berlawanan bias sebelum mencari tanda Distribusi.'
+        'Tunggu fase Manipulasi (Judas Swing) membawa harga melewati Midnight Open & sweep ujung Asia ke arah berlawanan bias sebelum mencari tanda Distribusi.'
       ],
       decisionTree: [
         {
-          condition: 'Daily Bias Bullish dan harga baru saja turun menembus NY Midnight Open serta menyapu Asia Low di awal London.',
+          condition: 'Daily Bias Bullish dan harga baru saja turun menembus NY Midnight Open serta sweep Asia Low di awal London.',
           action: 'Fase Manipulasi (Judas Swing) kemungkinan sedang selesai — siapkan diri memantau tanda balik arah untuk menumpang Distribusi ke atas.'
         },
         {
@@ -140,7 +140,7 @@
       ],
       failedCase: {
         context: 'Pada hari Bullish, trader langsung klik SELL saat melihat 2 candle merah pembukaan London menembus ke bawah Asia Low.',
-        whyFailed: 'Dorongan turun awal sesi itu adalah Judas Swing (babak Manipulasi) untuk mengumpulkan likuiditas di bawah NY Midnight Open sebelum Distribusi naik dimulai.'
+        whyFailed: 'Dorongan turun awal sesi itu adalah Judas Swing (babak Manipulasi) untuk mengumpulkan Liquidity di bawah NY Midnight Open sebelum Distribusi naik dimulai.'
       },
       validRules: [
         'Gunakan NY Midnight Open sebagai patokan utama: Buy di bawah Midnight Open pada hari Bullish, Sell di atas Midnight Open pada hari Bearish.',
@@ -153,12 +153,12 @@
       xauScenario: {
         context: 'Hari Bullish Gold (EDT): NY Midnight Open 2.649, Asia Range 2.646–2.652.',
         steps: [
-          'Pukul 14:30 WITA Judas Swing turun ke 2.642,80 (di bawah Midnight Open & menyapu Asia Low).',
+          'Pukul 14:30 WITA Judas Swing turun ke 2.642,80 (di bawah Midnight Open & sweep Asia Low).',
           'Setelah konfirmasi balik arah, Distribusi membawa harga menembus 2.649 → 2.652 → PDH 2.670.'
         ]
       },
       goldenRules: [
-        'Gerakan pertama pembukaan sesi sering kali adalah panggung tipuan (Judas Swing); uang besar baru meluncur setelah umpan ritel selesai disapu.'
+        'Gerakan pertama pembukaan sesi sering kali adalah panggung tipuan (Judas Swing); uang besar baru meluncur setelah trap ritel selesai di-sweep.'
       ],
       practiceCta: {
         label: 'Latih Deteksi Judas Swing di 100 Kasus ICT',
@@ -192,12 +192,12 @@
           question: 'Daily Bias XAU/USD hari ini adalah **BEARISH**. Menurut hukum NY Midnight Open, di area manakah lokasi paling ideal untuk mencari peluang **SELL**?',
           options: [
             'Jauh di bawah NY Midnight Open setelah harga sudah anjlok -$25',
-            'Di **atas** garis NY Midnight Open setelah terjadi manipulasi naik (Judas Swing) menyapu likuiditas atas',
+            'Di **atas** garis NY Midnight Open setelah terjadi manipulasi naik (Judas Swing) sweep Liquidity atas',
             'Tepat di dasar terendah pekan lalu',
             'Di jam rollover ketika spread melebar'
           ],
           answerIndex: 1,
-          explanation: 'Pada hari Bearish, menjual di atas NY Midnight Open menempatkanmu di zona mahal harian tepat di ujung sumbu atas (Judas Swing).'
+          explanation: 'Pada hari Bearish, menjual di atas NY Midnight Open menempatkanmu di zona mahal harian tepat di ujung wick atas (Judas Swing).'
         },
         {
           question: 'Pada hari menjelang rilis suku bunga besar seperti **FOMC** atau **NFP**, mengapa kita tidak boleh memaksakan pola AMD pasti selesai di pagi/siang hari?',
@@ -261,10 +261,10 @@
           number: '16.3',
           heading: 'Mengenal ICT Macros: Jendela Algoritma 20 Menit (xx:50 – xx:10)',
           paragraphs: [
-            'Di dalam Killzone yang berdurasi 3 jam, algoritma penentuan harga tidak selalu meledak terus-menerus setiap menit. ICT menemukan bahwa lonjakan repricing dan sapuan likuiditas paling tajam sangat sering terjadi pada **jendela sempit 20 menit** — terutama mulai **10 menit sebelum pergantian jam hingga 10 menit sesudahnya (`xx:50 – xx:10 NY`)** serta momen pembukaan berita/bursa saham AS:',
+            'Di dalam Killzone yang berdurasi 3 jam, algoritma penentuan harga tidak selalu meledak terus-menerus setiap menit. ICT menemukan bahwa lonjakan repricing dan Liquidity Sweep paling tajam sangat sering terjadi pada **jendela sempit 20 menit** — terutama mulai **10 menit sebelum pergantian jam hingga 10 menit sesudahnya (`xx:50 – xx:10 NY`)** serta momen pembukaan berita/bursa saham AS:',
             '• **Macro London Utama:** `02:33–03:00 NY` (`14:33–15:00 WITA` EDT) dan `04:03–04:23 NY` (`16:03–16:23 WITA` EDT).',
             '• **Macro NY AM Paling Tajam:** `08:50–09:10 NY` (`20:50–21:10 WITA` EDT — pasca berita 08:30 NY), **`09:50–10:10 NY` (`21:50–22:10 WITA` EDT — pemicu utama NY AM Silver Bullet!)**, dan `10:50–11:10 NY` (`22:50–23:10 WITA` EDT).',
-            'Bagaimana cara memakai Macro tanpa pusing? **Jangan memaksa entry hanya karena jam menunjukkan `xx:50`!** Gunakan Macro sebagai **alarm kewaspadaan**: jika harga sedang mendekati area tunggu penting tepat saat Macro `21:50–22:10 WITA` dimulai, itulah momen paling sering sapuan cepat terjadi dan langsung diikuti peluncuran bersih menuju DOL.'
+            'Bagaimana cara memakai Macro tanpa pusing? **Jangan memaksa entry hanya karena jam menunjukkan `xx:50`!** Gunakan Macro sebagai **alarm kewaspadaan**: jika harga sedang mendekati area tunggu penting tepat saat Macro `21:50–22:10 WITA` dimulai, itulah momen paling sering sweep cepat terjadi dan langsung diikuti peluncuran bersih menuju DOL.'
           ]
         },
         {
@@ -279,7 +279,7 @@
             rows: [
               {
                 label: 'Opsi A — Fokus London Killzone (14:00–17:00 WITA EDT / 15:00–18:00 EST)',
-                detail: 'Cocok jika kamu luang di sore hari. Pantau sapuan Asia High/Low dan ambil 1 setup bersih sebelum makan malam. Setelah jam 17:00/18:00 WITA, tutup chart dan nikmati malammu.'
+                detail: 'Cocok jika kamu luang di sore hari. Pantau sweep Asia High/Low dan ambil 1 setup bersih sebelum makan malam. Setelah jam 17:00/18:00 WITA, tutup chart dan nikmati malammu.'
               },
               {
                 label: 'Opsi B — Fokus NY AM & Silver Bullet (20:30–23:00 WITA EDT / 21:30–00:00 EST)',
@@ -295,9 +295,9 @@
         }
       ],
       keyTakeaways: [
-        'Prinsip **Time > Price**: setup terbaik hanya dicari di dalam jendela likuiditas puncak (**Killzone**, **Silver Bullet**, dan **Macro 20 menit**).',
+        'Prinsip **Time > Price**: setup terbaik hanya dicari di dalam jendela Liquidity puncak (**Killzone**, **Silver Bullet**, dan **Macro 20 menit**).',
         'Dua jendela paling tajam & sehat untuk trader WITA: **London Killzone** (`14:00–17:00 WITA` EDT / `15:00–18:00` EST) dan **NY AM Silver Bullet** (`22:00–23:00 WITA` EDT / `23:00–00:00` EST).',
-        '**ICT Macro 20 menit (`xx:50 – xx:10`)** — terutama `09:50–10:10 NY` (`21:50–22:10 WITA` EDT) — berfungsi sebagai alarm momen sapuan & peluncuran algoritma.',
+        '**ICT Macro 20 menit (`xx:50 – xx:10`)** — terutama `09:50–10:10 NY` (`21:50–22:10 WITA` EDT) — berfungsi sebagai alarm momen sweep & peluncuran algoritma.',
         'Cukup pilih **1 sesi fokus** per hari (2–3 jam maksimal) daripada memelototi chart 14 jam hingga kelelahan dan overtrading.'
       ],
       bridgeNext: 'Kamu sekarang sudah memegang peta waktu institusional paling presisi hingga hitungan menit (`Killzone`, `Silver Bullet`, dan `Macro`). Namun ada satu faktor eksternal di dalam sesi NY AM yang bisa mengacaukan semua setup teknikal dalam 3 detik jika kamu tidak memasang perisai pelindung: **rilis berita ekonomi raksasa AS!** Mari kita tuntaskan Bagian III di **Bab 17: Berita Ekonomi USD (CPI, NFP, FOMC) & Protokol News Lock**.',
@@ -306,7 +306,7 @@
           heading: 'Killzone, Silver Bullet & ICT Macros 20 Menit (Standar WITA)',
           paragraphs: [
             'Time > Price: eksekusi paling cepat dan bersih terjadi di dalam London Killzone (02:00–05:00 NY), NY AM Killzone (07:00–10:00 NY), dan jendela 60 menit Silver Bullet (03:00–04:00 NY & 10:00–11:00 NY).',
-            'ICT Macros 20 menit (seperti 09:50–10:10 NY) menandai jendela sempit saat algoritma sering melakukan sapuan likuiditas dan ekspansi menuju DOL.'
+            'ICT Macros 20 menit (seperti 09:50–10:10 NY) menandai jendela sempit saat algoritma sering melakukan Liquidity Sweep dan ekspansi menuju DOL.'
           ]
         }
       ],
@@ -321,7 +321,7 @@
           action: 'Abaikan / Skip — tunggu sesi NY AM Killzone & berita 20:30 selesai agar tidak terjebak chop.'
         },
         {
-          condition: 'Pukul 22:05 WITA (EDT · NY AM Silver Bullet) harga menyapu low M5 pasca berita 20:30 sudah tenang dan searah DOL.',
+          condition: 'Pukul 22:05 WITA (EDT · NY AM Silver Bullet) harga sweep low M5 pasca berita 20:30 sudah tenang dan searah DOL.',
           action: 'Kondisi waktu A+ terpenuhi — pantau konfirmasi entry sesuai rencana risiko.'
         }
       ],
@@ -340,7 +340,7 @@
       xauScenario: {
         context: 'Jadwal fokus NY AM Silver Bullet (EDT): berita 20:30 WITA selesai, bursa saham AS buka 21:30 WITA.',
         steps: [
-          'Pukul 21:50–22:10 WITA (Macro 09:50–10:10 NY): harga melakukan pullback menyapu swing low M5.',
+          'Pukul 21:50–22:10 WITA (Macro 09:50–10:10 NY): harga melakukan pullback sweep swing low M5.',
           'Pukul 22:15 WITA (di dalam Silver Bullet 22:00–23:00 WITA): konfirmasi arah muncul menuju DOL harian.'
         ]
       },
@@ -379,7 +379,7 @@
           question: 'Bagaimana cara paling bijak menggunakan **ICT Macro 20 Menit** (seperti `09:50–10:10 NY` / `21:50–22:10 WITA` EDT)?',
           options: [
             'Asal klik BUY atau SELL setiap kali jam menunjukkan menit `:50` tanpa melihat struktur',
-            'Sebagai alarm kewaspadaan waktu saat harga sedang mendekati area pantau dan searah DOL, karena algoritma sering memicu sapuan/peluncuran di jendela 20 menit tersebut',
+            'Sebagai alarm kewaspadaan waktu saat harga sedang mendekati area pantau dan searah DOL, karena algoritma sering memicu sweep/peluncuran di jendela 20 menit tersebut',
             'Untuk menggandakan ukuran lot menjadi 5% risiko',
             'Sebagai pengingat untuk trading di akhir pekan'
           ],
@@ -389,7 +389,7 @@
         {
           question: 'Mengapa prinsip ICT menempatkan **"Time > Price"** dan menyarankan cukup fokus pada 1 sesi utama per hari?',
           options: [
-            'Agar trader tidak kelelahan (*decision fatigue*) dan terhindar dari setup palsu yang macet di luar jam likuiditas puncak (Dead Zone)',
+            'Agar trader tidak kelelahan (*decision fatigue*) dan terhindar dari setup palsu yang macet di luar jam Liquidity puncak (Dead Zone)',
             'Karena chart harga tidak ada gunanya sama sekali',
             'Karena akun MT5 otomatis logout setelah 3 jam',
             'Karena emas hanya diperdagangkan 1 jam per minggu'
@@ -409,7 +409,7 @@
       levelId: 2,
       bookFormat: true,
       title: 'Berita Ekonomi USD (CPI, NFP, FOMC) & Protokol News Lock',
-      subtitle: 'Memahami mengapa 1 menit rilis data ekonomi AS bisa melompati Stop Loss dan menyapu dua arah sekaligus, serta cara profesional melindungi modal sekaligus memanen tren bersih sesudahnya.',
+      subtitle: 'Memahami mengapa 1 menit rilis data ekonomi AS bisa melompati Stop Loss dan sweep dua arah sekaligus, serta cara profesional melindungi modal sekaligus memanen tren bersih sesudahnya.',
       readMinutes: 9,
       diagramId: 'news-lock-shield',
       diagramAfterSection: 2,
@@ -433,9 +433,9 @@
             caption: '4 Katalis Berita Merah USD Paling Berpengaruh pada XAU/USD (WITA)',
             headers: ['Nama Berita', 'Apa yang Diukur?', 'Jam Rilis Baku NY', 'Jam WITA (EDT / EST)', 'Karakter Gerak di Gold'],
             rows: [
-              ['US CPI (Inflasi)', 'Kenaikan harga barang & jasa konsumen AS', '`08:30 NY` (pertengahan bulan)', '`20:30` (EDT) / `21:30` (EST)', 'Sangat eksplosif; sering menyapu dua arah `$15–$30` dalam 5 menit pertama'],
+              ['US CPI (Inflasi)', 'Kenaikan harga barang & jasa konsumen AS', '`08:30 NY` (pertengahan bulan)', '`20:30` (EDT) / `21:30` (EST)', 'Sangat eksplosif; sering sweep dua arah `$15–$30` dalam 5 menit pertama'],
               ['US NFP (Tenaga Kerja)', 'Jumlah lapangan kerja baru & tingkat pengangguran AS', '`08:30 NY` (Jumat pekan ke-1)', '`20:30` (EDT) / `21:30` (EST)', 'Raja volatilitas bulanan; whipsaw ganas & spread spike ekstrem'],
-              ['FOMC & Konferensi Pers', 'Keputusan suku bunga The Fed & pidato Ketua Fed', '`14:00 & 14:30 NY`', '`02:00 & 02:30` (EDT) / `03:00 & 03:30` (EST)', 'Gelombang ganda: lonjakan 1 saat rilis angka (`14:00`), pembalikan 2 saat pidato (`14:30`)'],
+              ['FOMC & Konferensi Pers', 'Keputusan suku bunga The Fed & pidato Ketua Fed', '`14:00 & 14:30 NY`', '`02:00 & 02:30` (EDT) / `03:00 & 03:30` (EST)', 'Gelombang ganda: lonjakan 1 saat rilis angka (`14:00`), reversal 2 saat pidato (`14:30`)'],
               ['Core PCE / Jobless Claims / ISM', 'Indikator inflasi favorit Fed, klaim pengangguran, & aktivitas bisnis', '`08:30` atau `10:00 NY`', '`20:30/22:00` (EDT) / `21:30/23:00` (EST)', 'Katalis mingguan/bulanan yang kerap memicu Judas Swing di awal sesi NY']
             ]
           }
@@ -444,7 +444,7 @@
           number: '17.3',
           heading: 'Tiga Monster di Detik Rilis Berita: Spread Spike, Slippage & Whipsaw',
           paragraphs: [
-            'Banyak pemula berpikir: *"Ah, kan aku sudah pasang Stop Loss $4, jadi aman saja tetap buka posisi sebelum NFP!"* **Itu adalah salah satu mitos paling mematikan di trading.** Saat detik rilis berita besar, penyedia likuiditas bank sementara menarik pesanan mereka sehingga terjadi tiga hal sekaligus:',
+            'Banyak pemula berpikir: *"Ah, kan aku sudah pasang Stop Loss $4, jadi aman saja tetap buka posisi sebelum NFP!"* **Itu adalah salah satu mitos paling mematikan di trading.** Saat detik rilis berita besar, penyedia Liquidity bank sementara menarik pesanan mereka sehingga terjadi tiga hal sekaligus:',
             '1. **Spread Spike:** Spread Gold yang biasanya `$0,25` (2,5 pips) bisa tiba-tiba melompat menjadi **`$2,00 – $5,00` (20–50 pips)** sehingga posisimu bisa terkena SL meski harga chart belum menyentuhnya.',
             '2. **Slippage (Lompatan Harga Eksekusi):** Kamu memasang SL di `2.650,00` dengan risiko rencana `$10`. Tetapi karena harga langsung melompat dari `2.654` ke `2.642` tanpa antrean di tengah, broker terpaksa menutup posisimu di `2.642,00` — **kerugianmu membengkak lebih dari 2–3 kali lipat** dari rencana awal!',
             '3. **Whipsaw Dua Arah:** Strategi pemula memasang perangkap `Buy Stop` di atas dan `Sell Stop` di bawah sebelum berita nyaris selalu berakhir tragis: harga menyambar ke atas mengaktifkan Buy Stop, lalu 5 detik kemudian terjun mengaktifkan Sell Stop sambil memakan SL Buy — dua-duanya rugi sekaligus!'
@@ -465,7 +465,7 @@
               },
               {
                 label: 'Fase 2 — Detik Rilis s.d. +30 Menit (20:30 – 21:00 WITA · TONTON SAJA)',
-                detail: 'Biarkan para penjudi berita saling membantai di tengah whipsaw dan spread spike. Tugas kita hanya mengamati: **kolam likuiditas mana (`London High/Low`, `PDH/PDL`) yang baru saja disapu oleh berita?**'
+                detail: 'Biarkan para penjudi berita saling membantai di tengah whipsaw dan spread spike. Tugas kita hanya mengamati: **Liquidity Pool mana (`London High/Low`, `PDH/PDL`) yang baru saja di-sweep oleh berita?**'
               },
               {
                 label: 'Fase 3 — Sesudah +30 Menit (21:00+ WITA · PANEN TREN BERSIH)',
@@ -476,7 +476,7 @@
           callout: {
             tone: 'info',
             title: 'Selamat — Kamu Baru Saja Menuntaskan Bagian III (Kompas Arah)!',
-            body: 'Lihat apa yang sudah kamu kuasai sampai Bab 17: kamu bukan cuma bisa membaca struktur & likuiditas (Bagian II), sekarang kamu juga tahu **ke mana magnet DOL menarik harga (Bab 13)**, **Daily Bias + garis batalnya (Bab 14)**, **siklus AMD & NY Midnight Open (Bab 15)**, **jam emas Killzone/Silver Bullet/Macro WITA (Bab 16)**, dan **perisai News Lock (Bab 17)**. Artinya, kompas arah dan waktumu sudah 100% lengkap — sekarang saatnya membangun **Mesin Zona Entry ICT** di Bagian IV!'
+            body: 'Lihat apa yang sudah kamu kuasai sampai Bab 17: kamu bukan cuma bisa membaca struktur & Liquidity (Bagian II), sekarang kamu juga tahu **ke mana magnet DOL menarik harga (Bab 13)**, **Daily Bias + garis batalnya (Bab 14)**, **siklus AMD & NY Midnight Open (Bab 15)**, **jam emas Killzone/Silver Bullet/Macro WITA (Bab 16)**, dan **perisai News Lock (Bab 17)**. Artinya, kompas arah dan waktumu sudah 100% lengkap — sekarang saatnya membangun **Mesin Zona Entry ICT** di Bagian IV!'
           }
         }
       ],
@@ -484,7 +484,7 @@
         'Empat berita merah USD wajib dicek di Kalender Ekonomi setiap pagi: **US CPI**, **US NFP**, **FOMC**, dan **Core PCE / Jobless Claims / ISM**.',
         'Jangan menebak angka rilis atau memasang jebakan `Buy Stop + Sell Stop`: detik rilis rawan **Spread Spike**, **Slippage** (rugi melampaui SL rencana), dan **Whipsaw** dua arah.',
         'Patuhi **Protokol News Lock**: **0 entry baru mulai -15 menit sebelum hingga +30 menit sesudah** rilis berita High Impact USD (khusus FOMC tunggu sampai konferensi pers usai).',
-        'Berita bukan musuh — berita adalah mesin pembuat likuiditas. Tunggu 15–30 menit sampai debu mereda dan spread normal, lalu ikuti arah bersih pasca-berita.'
+        'Berita bukan musuh — berita adalah mesin pembuat Liquidity. Tunggu 15–30 menit sampai debu mereda dan spread normal, lalu ikuti arah bersih pasca-berita.'
       ],
       bridgeNext: 'Selamat menyelesaikan seluruh **Bagian III: Kompas Arah (Bab 13–17)**! Sekarang kamu sudah tahu *ke mana* harga mau pergi (`DOL & Daily Bias`) dan *kapan* saat terbaik duduk di depan layar (`AMD, Killzone, Silver Bullet, News Lock`). Pertanyaan pamungkas yang tinggal dijawab adalah: **di titik harga mana tepatnya kita meletakkan Entry agar risikonya sekecil mungkin dan presisinya setajam sniper?** Mari kita masuki jantung teknikal ICT di **Bagian IV**, dimulai dari **Bab 18: Displacement: Mengenali Jejak Dorongan Institusi yang Sah**.',
       conceptBlocks: [
@@ -499,7 +499,7 @@
       mappingSteps: [
         'Cek tab Kalender Ekonomi di modul Market Intel setiap pagi sebelum menyusun rencana sesi.',
         'Tandai jam rilis berita High Impact USD (CPI, NFP, FOMC, Core PCE) dalam waktu WITA dan aktifkan aturan News Lock -15m s.d. +30m.',
-        'Setelah +30 menit pasca rilis dan spread kembali normal, amati kolam likuiditas yang tersapu berita untuk menyusun rencana entry.'
+        'Setelah +30 menit pasca rilis dan spread kembali normal, amati Liquidity Pool yang kena sweep berita untuk menyusun rencana entry.'
       ],
       decisionTree: [
         {
@@ -531,7 +531,7 @@
         ]
       },
       goldenRules: [
-        'Berita ekonomi adalah bahan bakar pembuat likuiditas — biarkan ia selesai menyapu dulu, baru kita panen dengan risiko tenang.'
+        'Berita ekonomi adalah bahan bakar pembuat Liquidity — biarkan ia selesai sweep dulu, baru kita panen dengan risiko tenang.'
       ],
       practiceCta: {
         label: 'Buka Kalender Ekonomi & News Lock',
@@ -554,12 +554,12 @@
           question: 'Mengapa memasang Stop Loss `$4` **tidak menjamin** kerugianmu terbatas di `$4` jika kamu nekat menahan posisi melewati detik rilis NFP atau CPI?',
           options: [
             'Karena broker menghapus tombol SL saat NFP',
-            'Karena **Slippage** & **Spread Spike**: harga bisa melompat langsung melewati harga SL-mu tanpa antrean likuiditas, membuat rugi nyata jauh lebih besar dari rencana',
+            'Karena **Slippage** & **Spread Spike**: harga bisa melompat langsung melewati harga SL-mu tanpa antrean Liquidity, membuat rugi nyata jauh lebih besar dari rencana',
             'Karena NFP hanya memengaruhi mata uang Yen Jepang',
             'Karena SL otomatis berubah menjadi Take Profit'
           ],
           answerIndex: 1,
-          explanation: 'Saat likuiditas tipis di detik rilis berita besar, order SL tereksekusi di harga pasar tersedia berikutnya (slippage), sehingga kerugian bisa berlipat.'
+          explanation: 'Saat Liquidity tipis di detik rilis berita besar, order SL tereksekusi di harga pasar tersedia berikutnya (slippage), sehingga kerugian bisa berlipat.'
         },
         {
           question: 'Jika kamu sudah memegang posisi BUY dari sesi London yang sedang profit `+$12`, lalu 20 menit lagi berita besar **US CPI (`20:30 WITA` EDT)** akan rilis, apa tindakan paling profesional?',
@@ -581,7 +581,7 @@
             'Masuk posisi tanpa Stop Loss tepat pada menit rilis'
           ],
           answerIndex: 1,
-          explanation: 'Setelah guncangan awal mereda dan likuiditas tersapu, dorongan pasca-berita sering menghasilkan tren intraday paling bersih hari itu.'
+          explanation: 'Setelah guncangan awal mereda dan Liquidity kena sweep, dorongan pasca-berita sering menghasilkan tren intraday paling bersih hari itu.'
         }
       ]
     },
@@ -621,13 +621,13 @@
             headers: ['Pola Penutupan Candle Daily Kemarin', 'Makna Psikologis Institusi', 'Daily Bias Hari Ini', 'Target DOL Awal Hari Ini'],
             rows: [
               ['1. Body Close di Atas High 2 Hari Lalu', 'Pembeli kuat menerima harga lebih tinggi dan melanjutkan ekspansi', '**BULLISH** (lanjut naik)', 'Menembus **PDH kemarin** menuju BSL / Swing High atas berikutnya'],
-              ['2. Hanya Wick Menyapu High 2 Hari Lalu, lalu Close Kembali di Bawahnya', 'Penolakan atas! Likuiditas atas baru saja disapu (Origin atas) → pembeli kelelahan', '**BEARISH** (potensi balik turun)', 'Menuju **PDL kemarin** atau area ketidakseimbangan (FVG) di bawah'],
-              ['3. Hanya Wick Menyapu Low 2 Hari Lalu, lalu Close Kembali di Atasnya', 'Penolakan bawah! Likuiditas bawah baru saja disapu (Origin bawah) → penjual kelelahan', '**BULLISH** (potensi balik naik)', 'Menuju **PDH kemarin** atau area ketidakseimbangan (FVG) di atas'],
+              ['2. Hanya Wick Sweep High 2 Hari Lalu, lalu Close Kembali di Bawahnya', 'Penolakan atas! Liquidity atas baru saja di-sweep (Origin atas) → pembeli kelelahan', '**BEARISH** (potensi balik turun)', 'Menuju **PDL kemarin** atau area Imbalance (FVG) di bawah'],
+              ['3. Hanya Wick Sweep Low 2 Hari Lalu, lalu Close Kembali di Atasnya', 'Penolakan bawah! Liquidity bawah baru saja di-sweep (Origin bawah) → penjual kelelahan', '**BULLISH** (potensi balik naik)', 'Menuju **PDH kemarin** atau area Imbalance (FVG) di atas'],
               ['4. Inside Bar (High & Low Kemarin Terjepit di Dalam Candle Sebelumnya)', 'Pasar sedang mengerucut/ragu menunggu katalis berita atau sesi besar', '**NETRAL (WAIT)**', 'Jangan menebak! Tunggu sesi London/NY menembus salah satu sisi kotak dulu']
             ]
           },
           paragraphsAfter: [
-            'Perhatikan betapa serasinya tabel ini dengan **Bab 09 (BOS vs Sweep)** dan **Bab 13 (Origin → DOL)**! Seluruh ilmu di buku ini saling mengunci seperti roda gigi: pada skala Daily pun, **Body Close** berarti kelanjutan arah, sedangkan **Wick Sweep** berarti pengambilan bahan bakar dan sinyal pembalikan arah!'
+            'Perhatikan betapa serasinya tabel ini dengan **Bab 09 (BOS vs Sweep)** dan **Bab 13 (Origin → DOL)**! Seluruh ilmu di buku ini saling mengunci seperti roda gigi: pada skala Daily pun, **Body Close** berarti kelanjutan arah, sedangkan **Wick Sweep** berarti pengambilan bahan bakar dan sinyal reversal arah!'
           ]
         },
         {
@@ -635,7 +635,7 @@
           heading: 'Filter Penguat: Mengecek Korelasi Terbalik Dolar AS (DXY)',
           paragraphs: [
             'Karena XAU/USD dipasangkan melawan Dolar AS, kamu punya satu "kaca spion" gratis yang selalu dicek trader emas profesional setiap pagi: grafik **DXY (US Dollar Index)** pada timeframe `Daily` dan `H1`.',
-            'Secara historis, DXY dan XAU/USD bergerak **berlawanan arah (korelasi negatif)**: ketika DXY menunjukkan penolakan dari atas dan mengarah turun menuju kolam `SSL`-nya, itu menjadi angin belakang yang sangat sehat bagi bias **Bullish** di XAU/USD. Sebaliknya, jika DXY melesat kuat menuju `BSL` atasnya, berhati-hatilah sebelum memaksakan BUY di Gold.',
+            'Secara historis, DXY dan XAU/USD bergerak **berlawanan arah (korelasi negatif)**: ketika DXY menunjukkan penolakan dari atas dan mengarah turun menuju area `SSL`-nya, itu menjadi angin belakang yang sangat sehat bagi bias **Bullish** di XAU/USD. Sebaliknya, jika DXY melesat kuat menuju `BSL` atasnya, berhati-hatilah sebelum memaksakan BUY di Gold.',
             '*(Penting: gunakan DXY sebagai **konfirmasi pendukung**, bukan satu-satunya alasan menekan tombol — pada momen geopolitik/perang, Gold dan DXY sesekali bisa naik bersamaan karena keduanya diburu sebagai aset aman. Selalu utamakan fakta struktur pada chart XAU/USD sendiri!)*'
           ]
         },
@@ -650,7 +650,7 @@
             rows: [
               {
                 label: 'Fakta Daily & H1 (08:30 WITA)',
-                detail: 'Kemarin candle Daily menyapu Low 2 hari lalu dengan sumbu panjang lalu ditutup hijau tegas. Struktur `H1` mencetak `HH–HL` dengan Strong Low di `2.640,00`. `PDH` masih Fresh di `2.672,00`. DXY sedang melemah menuju SSL.'
+                detail: 'Kemarin candle Daily sweep Low 2 hari lalu dengan wick panjang lalu ditutup hijau tegas. Struktur `H1` mencetak `HH–HL` dengan Strong Low di `2.640,00`. `PDH` masih Fresh di `2.672,00`. DXY sedang melemah menuju SSL.'
               },
               {
                 label: 'Kalimat Bias Resmi Hari Ini',
@@ -680,7 +680,7 @@
         {
           heading: 'Model Next-Day Expansion, DXY Filter & Garis Batal Daily Bias',
           paragraphs: [
-            'Daily Bias dibaca objektif dari penutupan candle Daily kemarin: Body Close melewati High/Low lama mendukung kelanjutan, Wick Sweep mendukung pembalikan ke sisi lawan, dan Inside Bar menandakan Bias Netral.',
+            'Daily Bias dibaca objektif dari penutupan candle Daily kemarin: Body Close melewati High/Low lama mendukung kelanjutan, Wick Sweep mendukung reversal ke sisi lawan, dan Inside Bar menandakan Bias Netral.',
             'Lengkapi Daily Bias dengan filter korelasi terbalik DXY serta satu garis Invalidasi H1 yang tegas untuk mencegah Narrative Bias.'
           ]
         }
@@ -713,7 +713,7 @@
         'Terus melawan fakta pasar setelah garis invalidasi H1 ditembus oleh body close.'
       ],
       xauScenario: {
-        context: 'Pagi 08:30 WITA: candle Daily kemarin menyapu Low 2 hari lalu lalu close hijau kuat; PDH Fresh di 2.672 dan Strong Low H1 di 2.640.',
+        context: 'Pagi 08:30 WITA: candle Daily kemarin sweep Low 2 hari lalu lalu close hijau kuat; PDH Fresh di 2.672 dan Strong Low H1 di 2.640.',
         steps: [
           'Klasifikasi Daily = Sweep bawah + close kuat → Bias BULLISH.',
           'Rumusan 1 kalimat: "Bias Bullish menuju DOL PDH 2.672; batal jika H1 body close di bawah 2.640."'
@@ -729,15 +729,15 @@
       },
       quiz: [
         {
-          question: 'Pada chart Daily (`D1`) XAU/USD, candle kemarin sempat menembus puncak 2 hari lalu hanya dengan **sumbu panjang (wick)** lalu ditutup (**body close**) kembali di bawahnya. Menurut model *Next-Day Expansion*, ke arah mana Daily Bias hari ini lebih condong?',
+          question: 'Pada chart Daily (`D1`) XAU/USD, candle kemarin sempat menembus puncak 2 hari lalu hanya dengan **wick panjang (wick)** lalu ditutup (**body close**) kembali di bawahnya. Menurut model *Next-Day Expansion*, ke arah mana Daily Bias hari ini lebih condong?',
           options: [
             'Bullish sangat kuat karena sempat menyentuh harga tinggi',
-            '**Bearish** (potensi berbalik turun menuju PDL / area bawah), karena likuiditas atas baru saja disapu dan pembeli menunjukkan penolakan',
+            '**Bearish** (potensi berbalik turun menuju PDL / area bawah), karena Liquidity atas baru saja di-sweep dan pembeli menunjukkan penolakan',
             'Pasti sideways selama 1 bulan penuh',
             'Tidak bisa dibaca di chart Daily'
           ],
           answerIndex: 1,
-          explanation: 'Wick Sweep pada puncak harian sebelumnya menandakan pengambilan likuiditas atas (Origin atas) dan memberi condong Bearish menuju kolam bawah.'
+          explanation: 'Wick Sweep pada puncak harian sebelumnya menandakan pengambilan Liquidity atas (Origin atas) dan memberi condong Bearish menuju Liquidity bawah (SSL).'
         },
         {
           question: 'Jika candle Daily kemarin membentuk **Inside Bar** (titik High dan Low-nya terjepit penuh di dalam rentang candle 2 hari lalu), sikap Daily Bias paling bijak adalah:',
@@ -787,7 +787,7 @@
           heading: 'Ritual 4 Fase Harian Terintegrasi di Amy FX Pro',
           paragraphs: [
             'Berikut alur eksekusi harian yang menghubungkan seluruh modul di aplikasimu:',
-            '• **Fase 1 — Peta Pagi (08:00–08:30 WITA, 10 menit):** Buka modul *Market Intel* cek berita merah USD. Buka modul *Mapping* tandai Daily Bias, Dealing Range H1, PDH/PDL, dan PWH/PWL. Tutup chart — jalani aktivitas normalmu.\n• **Fase 2 — London Killzone (15:00/16:00–18:30 WITA):** Tandai kotak Asia High/Low. Tunggu apakah muncul Judas Swing menyapu satu sisi Asia + konfirmasi Model Utama di M5. Jika tidak rapi, SKIP tanpa penyesalan.\n• **Fase 3 — New York AM & Silver Bullet (20:00–23:30 WITA):** Patuhi News Lock (-15m/+30m). Tandai London High/Low, lalu buru 1 setup A+ bersih searah dorongan pasca-berita.\n• **Fase 4 — Tutup Hari & Jurnal (5 menit):** Maksimal 1–2 trade per hari (atau berhenti segera jika target harian tercapai / terkena 2x SL). Catat hasilnya di modul *Jurnal Trading* lengkap dengan sesi WITA, setup, dan catatan emosi.'
+            '• **Fase 1 — Peta Pagi (08:00–08:30 WITA, 10 menit):** Buka modul *Market Intel* cek berita merah USD. Buka modul *Mapping* tandai Daily Bias, Dealing Range H1, PDH/PDL, dan PWH/PWL. Tutup chart — jalani aktivitas normalmu.\n• **Fase 2 — London Killzone (15:00/16:00–18:30 WITA):** Tandai kotak Asia High/Low. Tunggu apakah muncul Judas Swing sweep satu sisi Asia + konfirmasi Model Utama di M5. Jika tidak rapi, SKIP tanpa penyesalan.\n• **Fase 3 — New York AM & Silver Bullet (20:00–23:30 WITA):** Patuhi News Lock (-15m/+30m). Tandai London High/Low, lalu buru 1 setup A+ bersih searah dorongan pasca-berita.\n• **Fase 4 — Tutup Hari & Jurnal (5 menit):** Maksimal 1–2 trade per hari (atau berhenti segera jika target harian tercapai / terkena 2x SL). Catat hasilnya di modul *Jurnal Trading* lengkap dengan sesi WITA, setup, dan catatan emosi.'
           ]
         }
       ],
@@ -806,7 +806,7 @@
         steps: [
           '1. Apakah sekarang di dalam Killzone WITA dan bebas News Lock? (YA)',
           '2. Apakah arah entry selaras dengan Bias H1 / tidak menabrak POI H1 lawan? (YA)',
-          '3. Apakah sudah ada Sweep likuiditas nyata + konfirmasi Model Utama (MSS/CISD/FVG/IFVG)? (YA)',
+          '3. Apakah sudah ada Sweep Liquidity nyata + konfirmasi Model Utama (MSS/CISD/FVG/IFVG)? (YA)',
           '4. Apakah Stop Loss berada di luar struktur + napas spread dan R:R ≥ 1:2? (YA)',
           '5. Apakah ukuran lot pas dengan batas risiko 0,5%–1% modal? (YA → Eksekusi!)'
         ]
@@ -943,12 +943,12 @@
       id: 'sl-struktural-napas-spread-tp',
       number: 28,
       levelId: 4,
-      title: 'Stop Loss Struktural, Napas Spread & Target Likuiditas Bertingkat (TP1/TP2)',
+      title: 'Stop Loss Struktural, Napas Spread & Target Liquidity Bertingkat (TP1/TP2)',
       readMinutes: 10,
       diagramId: 'sl-tp-engineering',
       bookFormat: true,
       diagramAfterSection: 1,
-      summary: 'Stop Loss bukan musuh — ia adalah sabuk pengaman matematis. Pelajari penempatan SL di titik invalidasi struktural + buffer wick/spread Gold (termasuk jebakan Bid/Ask pada SELL) dan pemetaan objektif TP1/TP2 berbasis kolam likuiditas.',
+      summary: 'Stop Loss bukan musuh — ia adalah sabuk pengaman matematis. Pelajari penempatan SL di titik invalidasi struktural + buffer wick/spread Gold (termasuk jebakan Bid/Ask pada SELL) dan pemetaan objektif TP1/TP2 berbasis Liquidity Pool.',
       bookSections: [
         {
           number: '28.1',
@@ -972,19 +972,19 @@
             caption: 'Panduan Presisi Penempatan SL & TP pada Posisi BUY vs SELL di XAU/USD',
             headers: ['Arah Posisi', 'Jangkar SL Struktural', 'Penyesuaian Napas Spread (WAJIB)', 'Penyesuaian Garis TP'],
             rows: [
-              ['**BUY**', 'Di bawah ujung wick terendah Sweep / Swing Low / OB', 'Kurangi **`$0,60 – $1,00`** di bawah ujung wick (SL Buy tereksekusi di garis Bid)', 'Tepat di bawah kolam BSL / PDH (kurangi `$0,30–$0,50` agar tidak kurang 1 tick)'],
+              ['**BUY**', 'Di bawah ujung wick terendah Sweep / Swing Low / OB', 'Kurangi **`$0,60 – $1,00`** di bawah ujung wick (SL Buy tereksekusi di garis Bid)', 'Tepat di bawah Liquidity Pool BSL / PDH (kurangi `$0,30–$0,50` agar tidak kurang 1 tick)'],
               ['**SELL**', 'Di atas ujung wick tertinggi Sweep / Swing High / OB', 'Tambahkan **`$0,80 – $1,20`** di atas ujung wick — **wajib menampung garis Ask!**', 'Naikkan **`+$0,40 – $0,60`** di atas dasar SSL / PDL agar garis Ask benar-benar menyentuh TP!']
             ]
           }
         },
         {
           number: '28.3',
-          heading: 'Memetakan Target Likuiditas Bertingkat: TP1 (Amankan Kantong) vs TP2 (Magnet DOL)',
+          heading: 'Memetakan Target Liquidity Bertingkat: TP1 (Amankan Kantong) vs TP2 (Magnet DOL)',
           shortTitle: 'Arsitektur TP1 & TP2',
           paragraphs: [
-            'Sama seperti SL, **Take Profit tidak boleh dikarang dari angka kebutuhan pribadi** (*"pokoknya mau profit $50 hari ini"*). Pasar tidak peduli cicilanmu — pasar hanya bergerak dari satu kolam likuiditas ke kolam likuiditas berikutnya!',
+            'Sama seperti SL, **Take Profit tidak boleh dikarang dari angka kebutuhan pribadi** (*"pokoknya mau profit $50 hari ini"*). Pasar tidak peduli cicilanmu — pasar hanya bergerak dari satu Liquidity Pool ke Liquidity Pool berikutnya!',
             'Gunakan arsitektur **Target 2 Tingkat** yang juga diterapkan di Kartu Rencana Eksekusi Mapping Cockpit:',
-            '• **TP1 (Target Utama / Amankan Kantong · minimal `1,5R – 2R`):** Ditempatkan tepat di depan **kolam likuiditas terdekat / internal** (misalnya Swing High/Low M15 pertama, Asia High/Low, atau tepi HTF FVG). Di titik ini kamu mengunci mayoritas profit lewat *Partial Close* (Bab 29).',
+            '• **TP1 (Target Utama / Amankan Kantong · minimal `1,5R – 2R`):** Ditempatkan tepat di depan **Liquidity Pool terdekat / internal** (misalnya Swing High/Low M15 pertama, Asia High/Low, atau tepi HTF FVG). Di titik ini kamu mengunci mayoritas profit lewat *Partial Close* (Bab 29).',
             '• **TP2 (Target Runner / Magnet Utama DOL · `3R – 5R+`):** Ditempatkan tepat di depan **Draw on Liquidity eksternal H1** (`PDH/PDL`, `PWH/PWL`, atau `EQH/EQL` besar) — selama jaraknya masih masuk akal terhadap rentang gerak harian Gold (`ADR 5 Hari`, umumnya `$25–$55`).'
           ]
         },
@@ -993,7 +993,7 @@
           heading: 'Studi Kasus Lengkap Engineering SL & TP XAU/USD (Dengan Hitungan R:R Eksak)',
           shortTitle: 'Studi Kasus SL & TP Gold',
           paragraphs: [
-            'Perhatikan bagaimana sebuah rencana BUY XAU/USD M5 dirancang secara mekanis dengan jangkar struktur, napas spread, dan dua tingkat likuiditas:'
+            'Perhatikan bagaimana sebuah rencana BUY XAU/USD M5 dirancang secara mekanis dengan jangkar struktur, napas spread, dan dua tingkat Liquidity:'
           ],
           exampleBox: {
             title: 'Engineering SL & TP1/TP2 — Bullish Setup XAU/USD M5 (Sesi London)',
@@ -1007,7 +1007,7 @@
                 detail: 'Ujung wick sweep `2.642,00` dikurangi buffer wick & spread **`$1,00`** → **SL di `2.641,00`**. Total jarak risiko = `2.645,50 - 2.641,00` = **`$4,50` (`1R`)**. (Jika modal `$1.000` risiko `1% = $10`, maka lot = `$10 ÷ $450` = **`0,02 lot`**).'
               },
               {
-                label: 'Pemetaan TP1 & TP2 Berbasis Likuiditas',
+                label: 'Pemetaan TP1 & TP2 Berbasis Liquidity',
                 detail: '• **TP1 (Tepat di bawah Asia High `2.655,00`):** Pasang di **`2.654,50`** (`+$9,00` = tepat **`2,00R`**) → amankan kantong!\n• **TP2 (Tepat di bawah DOL PDH `2.664,00`):** Pasang di **`2.663,50`** (`+$18,00` = tepat **`4,00R`**) → biarkan runner mengalir!'
               }
             ]
@@ -1023,7 +1023,7 @@
       keyTakeaways: [
         '**Chart menentukan lebar SL (di luar titik invalidasi struktur), rumus Lot yang menyesuaikan ukuran posisi** agar risiko tetap `0,5%–1%` modal.',
         'Selalu tambahkan **Napas Spread & Buffer Wick** (`$0,60–$1,20` di luar ujung sweep/swing ekstrem); khusus **SELL**, tambahkan ruang ekstra untuk garis **Ask** pada SL maupun TP!',
-        'Petakan target secara objektif: **TP1** di kolam likuiditas terdekat (`≥ 1,5R–2R`) dan **TP2** di magnet DOL H1 (`PDH/PDL`) yang masih realistis dalam rentang ADR harian.',
+        'Petakan target secara objektif: **TP1** di Liquidity Pool terdekat (`≥ 1,5R–2R`) dan **TP2** di magnet DOL H1 (`PDH/PDL`) yang masih realistis dalam rentang ADR harian.',
         'Dilarang keras menggeser SL menjauh ketika harga mendekati titik invalidasi.'
       ],
       bridgeNext: 'Rencana Entry, SL struktural, dan TP1/TP2 kamu sekarang sudah terkunci rapi di atas kertas. Namun begitu ordermu **aktif berjalan** di pasar live XAU/USD, ujian berikutnya langsung dimulai: *kapan tepatnya kamu boleh mengambil Partial Close, kapan boleh menggeser SL ke Breakeven tanpa tertendang pullback normal, dan kapan harus menutup laptop?* Mari kita bahas di **Bab 29: Manajemen Posisi Aktif: Partial Close, Breakeven (BEP) & Batas Berhenti Harian**.',
@@ -1034,16 +1034,16 @@
       },
       conceptBlocks: [
         {
-          heading: 'Stop Loss Struktural, Napas Spread & TP1/TP2 Berbasis Likuiditas',
+          heading: 'Stop Loss Struktural, Napas Spread & TP1/TP2 Berbasis Liquidity',
           paragraphs: [
-            'SL diletakkan di luar titik invalidasi struktural ditambah buffer napas spread/wick (memperhitungkan garis Ask pada SELL), sementara TP1 dan TP2 menempel pada kolam likuiditas nyata (internal ≥1,5R–2R dan DOL H1).'
+            'SL diletakkan di luar titik invalidasi struktural ditambah buffer napas spread/wick (memperhitungkan garis Ask pada SELL), sementara TP1 dan TP2 menempel pada Liquidity Pool nyata (internal ≥1,5R–2R dan DOL H1).'
           ]
         }
       ],
       mappingSteps: [
         'Tentukan titik invalidasi struktural (ujung wick Sweep / Swing ekstrem) dan tambahkan buffer napas spread ($0,60–$1,20).',
         'Hitung ulang ukuran lot dari jarak SL aktual tersebut agar risiko tetap 0,5%–1% modal.',
-        'Pasang TP1 tepat di depan kolam likuiditas terdekat (min 1,5R–2R) dan TP2 di depan DOL H1 (PDH/PDL), dengan penyesuaian spread Ask untuk posisi SELL.'
+        'Pasang TP1 tepat di depan Liquidity Pool terdekat (min 1,5R–2R) dan TP2 di depan DOL H1 (PDH/PDL), dengan penyesuaian spread Ask untuk posisi SELL.'
       ],
       decisionTree: [
         {
@@ -1057,7 +1057,7 @@
       ],
       validRules: [
         'SL diletakkan di luar ujung wick sweep/swing invalidasi + buffer napas spread.',
-        'TP1 diarahkan ke kolam likuiditas terdekat (min 1,5R–2R); TP2 ke magnet H1 (PDH/PDL).'
+        'TP1 diarahkan ke Liquidity Pool terdekat (min 1,5R–2R); TP2 ke magnet H1 (PDH/PDL).'
       ],
       invalidRules: [
         'Memasang SL tepat menempel persis di ujung wick tanpa buffer spread.',
@@ -1092,7 +1092,7 @@
           explanation: 'Ujung wick sweep adalah titik invalidasi struktural; menambah napas spread/wick melindungi posisi dari sentuhan spread biasa.'
         },
         {
-          question: 'Mengapa pada posisi **SELL** di XAU/USD kamu wajib menaikkan garis TP sedikit di atas dasar kolam likuiditas (`+$0,40 – $0,60`) dan menambah ruang lebih pada SL?',
+          question: 'Mengapa pada posisi **SELL** di XAU/USD kamu wajib menaikkan garis TP sedikit di atas dasar Liquidity Pool (`+$0,40 – $0,60`) dan menambah ruang lebih pada SL?',
           options: [
             'Karena broker hanya membuka pasar untuk posisi BUY',
             'Karena chart standar hanya menampilkan garis **Bid**, padahal SL dan TP posisi **SELL** tereksekusi saat harga **Ask (`Bid + Spread`)** menyentuhnya',
@@ -1106,12 +1106,12 @@
           question: 'Bagaimana prinsip benar menentukan jarak **TP1** dan **TP2** secara objektif di XAU/USD?',
           options: [
             'Sesuai nominal uang yang sedang dibutuhkan hari ini',
-            '**TP1** di depan kolam likuiditas terdekat (`≥ 1,5R–2R`) untuk mengamankan profit, dan **TP2** di depan magnet **DOL H1** (`PDH/PDL`) yang masih realistis dalam rentang ADR',
+            '**TP1** di depan Liquidity Pool terdekat (`≥ 1,5R–2R`) untuk mengamankan profit, dan **TP2** di depan magnet **DOL H1** (`PDH/PDL`) yang masih realistis dalam rentang ADR',
             'Selalu pasang TP 500 pips di semua kondisi pasar',
             'Tutup acak begitu melihat angka hijau +$1'
           ],
           answerIndex: 1,
-          explanation: 'Menempelkan TP1/TP2 pada kolam likuiditas nyata menyelaraskan titik keluar kita dengan area ambil profit institusi.'
+          explanation: 'Menempelkan TP1/TP2 pada Liquidity Pool nyata menyelaraskan titik keluar kita dengan area ambil profit institusi.'
         },
         {
           question: 'Harga sedang bergerak mendekati garis Stop Loss strukturalmu. Apa tindakan yang **DILARANG KERAS** dilakukan?',
@@ -1138,7 +1138,7 @@
       diagramId: 'trade-management-scale',
       bookFormat: true,
       diagramAfterSection: 1,
-      summary: 'Banyak trader hebat dalam entry tetapi hancur saat mengelola posisi aktif: profit +2R berbalik jadi rugi karena serakah, atau BEP terlalu dini tersapu napas Gold. Kuasai aturan Partial Close, syarat sah BEP, Daily Loss Guard, dan No-Trade Days.',
+      summary: 'Banyak trader hebat dalam entry tetapi hancur saat mengelola posisi aktif: profit +2R berbalik jadi rugi karena serakah, atau BEP terlalu dini kena sweep napas Gold. Kuasai aturan Partial Close, syarat sah BEP, Daily Loss Guard, dan No-Trade Days.',
       bookSections: [
         {
           number: '29.1',
@@ -1146,7 +1146,7 @@
           shortTitle: '2 Jebakan Trade Aktif',
           paragraphs: [
             'Ada dua tragedi klasik yang hampir pasti pernah dialami setiap trader XAU/USD saat posisi sedang terbuka (*running*):',
-            '• **Tragedi #1 — Profit `+2R` Berbalik Jadi Rugi `-1R`:** Posisi sudah terbang manis melewati kolam likuiditas pertama, tetapi karena serakah mengejar `+5R` tanpa mengamankan sepeser pun, harga berbalik cepat dan menghantam SL awal. Rasanya jauh lebih menyakitkan daripada langsung kena SL!',
+            '• **Tragedi #1 — Profit `+2R` Berbalik Jadi Rugi `-1R`:** Posisi sudah terbang manis melewati Liquidity Pool pertama, tetapi karena serakah mengejar `+5R` tanpa mengamankan sepeser pun, harga berbalik cepat dan menghantam SL awal. Rasanya jauh lebih menyakitkan daripada langsung kena SL!',
             '• **Tragedi #2 — Terlalu Cepat Geser BEP (`+0,5R`):** Baru floating profit tipis `$2`, tangan sudah gatal menggeser SL ke harga entry (*Break Even*) karena takut rugi. Akibatnya, pullback napas normal Gold langsung menyentuh BEP (`$0`) lalu 10 menit kemudian harga terbang meluncur sendirian ke TP2!'
           ]
         },
@@ -1156,8 +1156,8 @@
           shortTitle: 'Protokol Partial & BEP',
           paragraphs: [
             'Obat untuk kedua tragedi di atas adalah **aturan manajemen posisi berbasis struktur yang 100% mekanis**:',
-            '1. **Jangan Sentuh SL Sebelum Bukti Struktur Baru:** Selama harga baru berjalan `+0,3R` sampai `+1,0R` di dalam ayunan yang sama, **biarkan posisi bernapas!** Jangan menggeser SL ke BEP dan **hindari Trailing Stop otomatis sempit (`10–15 pips`)**, karena wick alami XAU/USD hampir pasti langsung menyapu trailing sempit tersebut.',
-            '2. **Amankan Kantong di TP1 (`≥ 1,5R – 2R`):** Begitu harga menyentuh **TP1** (kolam likuiditas terdekat) atau memecah struktur internal baru searah tren, lakukan **Partial Close `60%–75%` volume lot** untuk langsung memindahkan profit tunai ke saldo akun!',
+            '1. **Jangan Sentuh SL Sebelum Bukti Struktur Baru:** Selama harga baru berjalan `+0,3R` sampai `+1,0R` di dalam swing yang sama, **biarkan posisi bernapas!** Jangan menggeser SL ke BEP dan **hindari Trailing Stop otomatis sempit (`10–15 pips`)**, karena wick alami XAU/USD hampir pasti langsung sweep trailing sempit tersebut.',
+            '2. **Amankan Kantong di TP1 (`≥ 1,5R – 2R`):** Begitu harga menyentuh **TP1** (Liquidity Pool terdekat) atau memecah struktur internal baru searah tren, lakukan **Partial Close `60%–75%` volume lot** untuk langsung memindahkan profit tunai ke saldo akun!',
             '3. **Geser Sisa Runner (`25%–40%`) ke `BEP+`:** Setelah Partial Close dikunci, pindahkan SL sisa lot ke **harga entry + buffer spread kecil (`BEP+`)**. Sejak detik itu, trade tersebut resmi **bebas risiko (*risk-free*)** — kamu tinggal duduk tenang membiarkan runner mengejar TP2 DOL!'
           ]
         },
@@ -1173,9 +1173,9 @@
             headers: ['Pengaman / Kondisi Pasar', 'Ciri Objektif di Layar', 'Aturan Tindakan Wajib', 'Alasan Perlindungan Modal'],
             rows: [
               ['**Daily Loss Guard**', 'Tercapai **Maks 2× SL** atau rugi harian mencapai **`-2% s.d. -3%`**', '**STOP TOTAL** untuk hari itu (kunci platform, isi Jurnal)', 'Memutus rantai *revenge trading* sebelum 1 hari buruk menghapus profit 2 minggu'],
-              ['**US Bank Holiday**', 'Hari libur bank AS (mis. *Memorial Day, Independence Day, Thanksgiving*)', '**NO-TRADE** di sesi NY (atau cukup pantau tanpa ekspektasi)', 'Likuiditas bank AS tutup → pergerakan datar, tipis, dan rawan jebakan'],
-              ['**Pagi–Sore Pra-FOMC**', 'Hari pengumuman suku bunga **FOMC** (dini hari WITA)', '**NO-TRADE / Kurangi 50%** sampai konferensi pers usai', 'Pasar sering terjepit konsolidasi menyapu atas-bawah menunggu The Fed'],
-              ['**Profil Seek & Destroy**', 'Setelah hari kemarin bergerak ekstrem (`> $60`), hari ini harga menyapu High lalu langsung menyapu Low berulang tanpa arah', '**SEGERA KELUAR & DIAM!** Jangan berdebat dengan pasar', 'Algoritma sedang menguras trader tren maupun reversal di kedua sisi']
+              ['**US Bank Holiday**', 'Hari libur bank AS (mis. *Memorial Day, Independence Day, Thanksgiving*)', '**NO-TRADE** di sesi NY (atau cukup pantau tanpa ekspektasi)', 'Liquidity bank AS tutup → pergerakan datar, tipis, dan rawan jebakan'],
+              ['**Pagi–Sore Pra-FOMC**', 'Hari pengumuman suku bunga **FOMC** (dini hari WITA)', '**NO-TRADE / Kurangi 50%** sampai konferensi pers usai', 'Pasar sering terjepit konsolidasi sweep atas-bawah menunggu The Fed'],
+              ['**Profil Seek & Destroy**', 'Setelah hari kemarin bergerak ekstrem (`> $60`), hari ini harga sweep High lalu langsung sweep Low berulang tanpa arah', '**SEGERA KELUAR & DIAM!** Jangan berdebat dengan pasar', 'Algoritma sedang menguras trader tren maupun reversal di kedua sisi']
             ]
           }
         },
@@ -1246,7 +1246,7 @@
           action: 'Biarkan posisi bernapas — JANGAN geser BEP terlalu dini agar tidak tertendang pullback normal Gold.'
         },
         {
-          condition: 'Pasar pagi–sore menjelang FOMC terus menyapu High lalu langsung menyapu Low bergantian.',
+          condition: 'Pasar pagi–sore menjelang FOMC terus sweep High lalu langsung sweep Low bergantian.',
           action: 'Kondisi Seek & Destroy — tutup platform dan tetapkan No-Trade Day.'
         }
       ],
@@ -1279,7 +1279,7 @@
           question: 'Kapan waktu paling tepat memindahkan Stop Loss ke titik impas (**BEP+**) pada scalping XAU/USD?',
           options: [
             'Segera setelah floating profit `+$1,00` (`+0,3R`)',
-            '**Setelah harga menyentuh TP1 (`≥ 1,5R–2R`) atau mencetak penembusan struktur searah baru**, idealnya disertai Partial Close `60%–75%`',
+            '**Setelah harga menyentuh TP1 (`≥ 1,5R–2R`) atau mencetak break struktur searah baru**, idealnya disertai Partial Close `60%–75%`',
             'Sebelum harga menyentuh titik entry',
             'Tidak pernah mengamankan posisi meski sudah `+4R`'
           ],
@@ -1306,18 +1306,18 @@
             'Rugi `-$8,00`'
           ],
           answerIndex: 2,
-          explanation: 'Partial Close di TP1 langsung mengamankan profit tunai ke saldo akun sehingga pembalikan harga ke BEP+ tidak pernah menghapus keuntunganmu.'
+          explanation: 'Partial Close di TP1 langsung mengamankan profit tunai ke saldo akun sehingga reversal harga ke BEP+ tidak pernah menghapus keuntunganmu.'
         },
         {
           question: 'Apa yang dimaksud kondisi pasar **"Seek & Destroy"** yang termasuk daftar wajib **No-Trade Days**?',
           options: [
             'Tren searah yang sangat rapi di sesi London',
-            'Pasar yang **menyapu High lalu langsung menyapu Low berulang kali tanpa arah** (sering muncul pra-FOMC atau sesudah hari lonjakan ekstrem `> $60`)',
+            'Pasar yang **sweep High lalu langsung sweep Low berulang kali tanpa arah** (sering muncul pra-FOMC atau sesudah hari lonjakan ekstrem `> $60`)',
             'Jendela Silver Bullet NY AM',
             'Hari ketika Daily Loss Guard aktif'
           ],
           answerIndex: 1,
-          explanation: 'Profil Seek & Destroy menyapu Stop Loss trader tren maupun reversal di kedua sisi; sikap profesional adalah diam dan melindungi modal.'
+          explanation: 'Profil Seek & Destroy sweep Stop Loss trader tren maupun reversal di kedua sisi; sikap profesional adalah diam dan melindungi modal.'
         }
       ]
     },
@@ -1471,7 +1471,7 @@
             tone: 'tip',
             kicker: 'Pencapaian Besar · Bagian V Tuntas!',
             title: 'Kamu Sekarang Sudah Punya Sistem Trading Lengkap Siap Pakai!',
-            body: 'Sampai Bab 30 ini, kamu sebenarnya sudah memiliki **seluruh sistem trading XAU/USD yang utuh** untuk menghasilkan profit konsisten: Fondasi (Bagian I) + Struktur & Likuiditas (Bagian II) + Kompas Arah & Waktu (Bagian III) + Zona PD Array (Bagian IV) + Playbook Eksekusi, Manajemen SL/TP/Partial & Protokol 100 Sample (Bagian V). Di **Bagian VI** nanti, kita naik ke tingkat **ICT Institusional Lanjutan** dan ditutup dengan **Capstone Mapping Mandiri dari Chart Kosong**!'
+            body: 'Sampai Bab 30 ini, kamu sebenarnya sudah memiliki **seluruh sistem trading XAU/USD yang utuh** untuk menghasilkan profit konsisten: Fondasi (Bagian I) + Struktur & Liquidity (Bagian II) + Kompas Arah & Waktu (Bagian III) + Zona PD Array (Bagian IV) + Playbook Eksekusi, Manajemen SL/TP/Partial & Protokol 100 Sample (Bagian V). Di **Bagian VI** nanti, kita naik ke tingkat **ICT Institusional Lanjutan** dan ditutup dengan **Capstone Mapping Mandiri dari Chart Kosong**!'
           }
         }
       ],

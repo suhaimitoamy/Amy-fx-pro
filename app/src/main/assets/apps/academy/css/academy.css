@@ -1374,6 +1374,22 @@ html, body {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .acd-glossary-top-btn {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    justify-content: center;
+  }
+
+  .acd-glossary-top-btn span {
+    display: none;
+  }
+
+  .acd-menu-toggle {
+    padding: 0 10px;
+    font-size: 12.5px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2622,7 +2638,7 @@ body.amyfx-module--academy .acd-risk-status.is-danger { color: #ff5c6c; }
 .acd-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 2147483645;
   background: rgba(2, 6, 23, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -3116,6 +3132,261 @@ body.amyfx-module--academy .acd-risk-status.is-danger { color: #ff5c6c; }
     font-size: 13px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * READABILITY LISTS & INSTANT CLICKABLE ICT GLOSSARY (DARK + LIGHT)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.acd-book-inline-list {
+  margin: 0 0 18px;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 15.5px;
+  line-height: 1.76;
+  color: var(--acd-ink-soft);
+}
+
+.acd-book-inline-list li strong {
+  color: var(--acd-ink);
+}
+
+.acd-book-inline-list:last-child {
+  margin-bottom: 0;
+}
+
+.acd-glossary-top-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Inline clickable ICT term button — subtle dotted underline, zero pill bloat */
+.acd-term-btn {
+  display: inline !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 1px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-bottom: 1.5px dotted color-mix(in srgb, var(--acd-gold) 72%, transparent) !important;
+  border-radius: 2px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  letter-spacing: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.acd-term-btn:hover {
+  background: var(--acd-gold-soft) !important;
+  color: var(--acd-ink);
+  border-bottom-style: solid !important;
+  border-bottom-color: var(--acd-gold) !important;
+}
+
+.acd-term-btn:focus-visible {
+  outline: 2px solid var(--acd-gold);
+  outline-offset: 2px;
+}
+
+/* Instant Term Sheet (centered on desktop, bottom-sheet on mobile) */
+.acd-glossary-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 86dvh;
+  overflow-y: auto;
+  border-radius: var(--acd-radius-lg);
+  background: var(--acd-surface);
+  border: 1px solid var(--acd-border-strong);
+  padding: 20px 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.acd-glossary-fullname {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--acd-muted);
+}
+
+.acd-glossary-simple {
+  margin: 14px 0;
+  font-size: 15px;
+  line-height: 1.68;
+  color: var(--acd-ink);
+}
+
+.acd-glossary-example {
+  padding: 12px 14px;
+  border-radius: var(--acd-radius-sm);
+  background: var(--acd-surface-2);
+  border: 1px solid var(--acd-border);
+  margin-bottom: 16px;
+}
+
+.acd-glossary-example-label {
+  display: block;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acd-gold);
+  margin-bottom: 4px;
+}
+
+.acd-glossary-example p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--acd-ink-soft);
+}
+
+.acd-glossary-ref-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--acd-muted);
+}
+
+/* Full Searchable Kamus Modal */
+.acd-glossary-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 88dvh;
+}
+
+.acd-glossary-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.acd-glossary-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.acd-glossary-cats .acd-tab-btn {
+  min-height: 36px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.acd-glossary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.acd-glossary-row {
+  padding: 13px 15px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-surface-2);
+  border: 1px solid var(--acd-border);
+}
+
+.acd-glossary-row-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.acd-glossary-row-term {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--acd-ink);
+}
+
+.acd-glossary-row-full {
+  margin: 1px 0 0;
+  font-size: 12.5px;
+  color: var(--acd-muted);
+}
+
+.acd-glossary-bab-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 45%, var(--acd-border));
+  background: var(--acd-gold-soft);
+  color: var(--acd-gold);
+  font-family: var(--acd-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.acd-glossary-bab-btn:hover {
+  background: var(--acd-gold);
+  color: var(--acd-gold-ink);
+}
+
+.acd-glossary-bab-ref {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--acd-muted);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.acd-glossary-row-simple {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.58;
+  color: var(--acd-ink-soft);
+}
+
+.acd-glossary-row-ex {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--acd-muted);
+}
+
+.acd-glossary-row-ex strong {
+  color: var(--acd-ink-soft);
+}
+
+@media (max-width: 640px) {
+  .acd-glossary-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .acd-glossary-sheet {
+    max-width: none;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+    padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .acd-book-inline-list {
+    font-size: 15px;
+    padding-left: 18px;
+  }
+
+  .acd-glossary-top-btn {
+    padding: 0 10px;
+  }
+}
+
 
 
 

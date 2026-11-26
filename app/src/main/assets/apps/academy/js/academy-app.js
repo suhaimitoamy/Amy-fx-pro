@@ -12,6 +12,7 @@
 
   const C = root.AmyAcademyCurriculum;
   const D = root.AmyAcademyDiagrams;
+  const G = root.AmyAcademyGlossary || null;
   if (!C || !D) return;
 
   const BOOKMARKS_KEY = 'amy_academy_bookmarks_v1';
@@ -28,6 +29,10 @@
     placementModalOpen: false,
     placementAnswers: {},
     placementResult: null,
+    glossaryTermId: null,
+    glossaryModalOpen: false,
+    glossaryQuery: '',
+    glossaryCategory: 'all',
     drawerOpen: false,
     progress: C.createEmptyProgress(),
     bookmarks: [],
@@ -53,6 +58,28 @@
       .replace(/\*\*((?:(?!\*\*).)+)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*])\*([^\s*](?:[^*\n]*[^\s*])?)\*/g, '$1<em>$2</em>')
       .replace(/`([^`]+)`/g, '<code class="acd-inline-code">$1</code>');
+  }
+
+  // Same as fmtRich + auto-link first occurrence of ICT acronyms to instant glossary popovers
+  function fmtBookRich(str) {
+    const html = fmtRich(str);
+    return G && typeof G.annotateTermsHtml === 'function' ? G.annotateTermsHtml(html) : html;
+  }
+
+  // Split dense paragraphs into breathable book-like blocks & structured inline numbered lists
+  function renderReadableParagraphs(paragraphs) {
+    const list = Array.isArray(paragraphs) ? paragraphs : [];
+    return list.map(p => {
+      const blocks = G && typeof G.splitReadableParagraph === 'function'
+        ? G.splitReadableParagraph(p)
+        : [{ type: 'p', text: p }];
+      return blocks.map(block => {
+        if (block.type === 'list' && Array.isArray(block.items)) {
+          return `<ol class="acd-book-inline-list">${block.items.map(item => `<li>${fmtBookRich(item)}</li>`).join('')}</ol>`;
+        }
+        return `<p class="acd-book-p">${fmtBookRich(block.text)}</p>`;
+      }).join('');
+    }).join('');
   }
 
   function fmtStep(lesson) {
@@ -130,7 +157,28 @@
   function closeModals() {
     state.lockModal = null;
     state.placementModalOpen = false;
+    state.glossaryTermId = null;
+    state.glossaryModalOpen = false;
     document.body.style.overflow = state.drawerOpen ? 'hidden' : '';
+    render();
+  }
+
+  function openGlossaryTerm(termId) {
+    if (!G || !termId) return;
+    const found = G.lookupTerm(termId);
+    if (!found) return;
+    state.glossaryTermId = found.id;
+    state.glossaryModalOpen = false;
+    document.body.style.overflow = 'hidden';
+    render();
+  }
+
+  function openGlossaryModal(initialQuery) {
+    if (!G) return;
+    state.glossaryTermId = null;
+    state.glossaryModalOpen = true;
+    if (typeof initialQuery === 'string') state.glossaryQuery = initialQuery;
+    document.body.style.overflow = 'hidden';
     render();
   }
 
@@ -160,6 +208,8 @@
     state.justUnlockedLessonId = null;
     state.lockModal = null;
     state.placementModalOpen = false;
+    state.glossaryTermId = null;
+    state.glossaryModalOpen = false;
     state.drawerOpen = false;
     document.body.style.overflow = '';
 
@@ -177,7 +227,8 @@
     state.activeLessonId = null;
     state.drawerOpen = false;
     state.justUnlockedLessonId = null;
-    document.body.style.overflow = state.lockModal || state.placementModalOpen ? 'hidden' : '';
+    state.glossaryTermId = null;
+    document.body.style.overflow = state.lockModal || state.placementModalOpen || state.glossaryModalOpen ? 'hidden' : '';
     if (!options.skipUrl) syncUrl(null, Boolean(options.replaceUrl));
     render();
     if (!options.skipScroll) root.scrollTo({ top: 0, behavior: 'auto' });
@@ -231,7 +282,7 @@
         <h2 id="acdLockModalTitle" class="acd-modal-title">Bab ${fmtStep(targetLesson)} Masih Terkunci</h2>
         <p class="acd-modal-subtitle">${esc(targetLesson.title)}</p>
         <p class="acd-modal-body">
-          Seperti membaca buku yang terstruktur, setiap bab baru hanya terbuka setelah kamu <strong>lulus Uji Paham (minimal ${requiredPercent}% benar)</strong> pada bab aktif saat ini:
+          Setiap bab disusun berurutan biar pondasinya kuat. Bab baru terbuka otomatis setelah kamu <strong>lulus Uji Paham (minimal ${requiredPercent}% benar)</strong> di bab aktif saat ini:
         </p>
         <div class="acd-modal-prereq">
           <span class="acd-modal-prereq-kicker">Bab Aktif Saat Ini</span>
@@ -327,9 +378,100 @@
           </div>
           <button type="button" class="acd-icon-btn" id="acdClosePlacementTopBtn" aria-label="Tutup Tes Loncat">×</button>
         </div>
-        <p class="acd-modal-body">Sudah terbiasa memakai MT5, menghitung lot XAU/USD, dan paham Bid/Ask? Jawab 4 skenario nyata ini dengan sempurna (4/4) untuk membuka langsung <strong>Bab 07 (Bagian II: Struktur Pasar &amp; Likuiditas)</strong>.</p>
+        <p class="acd-modal-body">Sudah terbiasa memakai MT5, menghitung lot XAU/USD, dan paham Bid/Ask? Jawab 4 skenario nyata ini dengan sempurna (4/4) untuk membuka langsung <strong>Bab 07 (Bagian II: Struktur Pasar &amp; Peta Liquidity)</strong>.</p>
         <div class="acd-placement-questions">${qsHtml}</div>
         ${footerHtml}
+      </div>
+    </div>`;
+  }
+
+  function renderGlossaryTermPopover() {
+    if (!G || !state.glossaryTermId) return '';
+    const item = G.lookupTerm(state.glossaryTermId);
+    if (!item) return '';
+    const catMeta = (G.CATEGORIES || []).find(c => c.id === item.category);
+    const refLesson = item.lessonId ? C.getLessonById(item.lessonId) : null;
+    const canJump = refLesson && refLesson.id !== state.activeLessonId && C.canOpenLesson(state.progress, refLesson.id);
+
+    return `<div class="acd-modal-backdrop acd-glossary-backdrop" id="acdGlossaryTermBackdrop" role="presentation">
+      <div class="acd-glossary-sheet" role="dialog" aria-modal="true" aria-labelledby="acdGlossaryTermTitle">
+        <div class="acd-modal-top-row">
+          <div>
+            <p class="acd-hero-kicker">Kamus Cepat · ${esc(catMeta ? catMeta.label : 'Istilah ICT')}</p>
+            <h2 id="acdGlossaryTermTitle" class="acd-modal-title">${esc(item.term)}</h2>
+            <p class="acd-glossary-fullname">${esc(item.fullName)}</p>
+          </div>
+          <button type="button" class="acd-icon-btn" id="acdCloseGlossaryTermBtn" aria-label="Tutup penjelasan istilah">×</button>
+        </div>
+        <p class="acd-glossary-simple">${esc(item.simple)}</p>
+        <div class="acd-glossary-example">
+          <span class="acd-glossary-example-label">Contoh di XAU/USD</span>
+          <p>${esc(item.example)}</p>
+        </div>
+        <div class="acd-modal-actions">
+          ${canJump
+            ? `<button type="button" class="acd-btn-primary" data-open-lesson="${esc(refLesson.id)}">Pelajari di Bab ${fmtStep(refLesson)} →</button>`
+            : (refLesson ? `<span class="acd-glossary-ref-note">Dibahas tuntas di Bab ${fmtStep(refLesson)}</span>` : '')}
+          <button type="button" class="acd-btn-secondary" id="acdOpenFullGlossaryFromTermBtn">Lihat Semua Istilah (${G.TERMS.length})</button>
+          <button type="button" class="acd-btn-secondary" id="acdDismissGlossaryTermBtn">Tutup</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderGlossaryModal() {
+    if (!G || !state.glossaryModalOpen) return '';
+    const filtered = G.filterGlossary(state.glossaryQuery, state.glossaryCategory);
+    const catsHtml = (G.CATEGORIES || []).map(cat => `
+      <button type="button" class="acd-tab-btn ${state.glossaryCategory === cat.id ? 'is-active' : ''}" data-glossary-cat="${esc(cat.id)}">${esc(cat.label)}</button>
+    `).join('');
+
+    const itemsHtml = filtered.length
+      ? filtered.map(item => {
+          const refLesson = item.lessonId ? C.getLessonById(item.lessonId) : null;
+          const canJump = refLesson && C.canOpenLesson(state.progress, refLesson.id);
+          return `<article class="acd-glossary-row">
+            <div class="acd-glossary-row-head">
+              <div>
+                <h3 class="acd-glossary-row-term">${esc(item.term)}</h3>
+                <p class="acd-glossary-row-full">${esc(item.fullName)}</p>
+              </div>
+              ${refLesson
+                ? (canJump
+                  ? `<button type="button" class="acd-glossary-bab-btn" data-open-lesson="${esc(refLesson.id)}">Bab ${fmtStep(refLesson)} →</button>`
+                  : `<span class="acd-glossary-bab-ref acd-nums">Bab ${fmtStep(refLesson)}</span>`)
+                : ''}
+            </div>
+            <p class="acd-glossary-row-simple">${esc(item.simple)}</p>
+            <p class="acd-glossary-row-ex"><strong>Contoh XAU/USD:</strong> ${esc(item.example)}</p>
+          </article>`;
+        }).join('')
+      : `<div class="acd-empty-state" style="padding:28px 16px;">
+          <p style="margin:0 0 10px; font-weight:700; color:var(--acd-ink);">Istilah "${esc(state.glossaryQuery)}" belum ditemukan.</p>
+          <button type="button" class="acd-btn-secondary" id="acdResetGlossaryBtn">Tampilkan Semua Istilah</button>
+        </div>`;
+
+    return `<div class="acd-modal-backdrop" id="acdGlossaryModalBackdrop" role="presentation">
+      <div class="acd-modal-sheet acd-modal-sheet--wide acd-glossary-modal" role="dialog" aria-modal="true" aria-labelledby="acdGlossaryModalTitle">
+        <div class="acd-modal-top-row">
+          <div>
+            <p class="acd-hero-kicker">Referensi Cepat · ${G.TERMS.length} Istilah Gold &amp; ICT</p>
+            <h2 id="acdGlossaryModalTitle" class="acd-modal-title">Kamus Istilah Trading &amp; ICT</h2>
+          </div>
+          <button type="button" class="acd-icon-btn" id="acdCloseGlossaryModalBtn" aria-label="Tutup Kamus Istilah">×</button>
+        </div>
+        <p class="acd-modal-body" style="margin-bottom:12px;">Lupa singkatan seperti <strong>ERL</strong>, <strong>CISD</strong>, atau <strong>OTE</strong>? Ketuk langsung istilah bergaris putus di dalam bab atau cari cepat di sini.</p>
+        <div class="acd-glossary-controls">
+          <div class="acd-search-wrap" style="flex:1 1 100%; max-width:none;">
+            <svg class="acd-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="acdGlossarySearchInput" class="acd-search-input" type="search" placeholder="Cari singkatan atau istilah (mis. CISD, BSL, OTE, FVG, SMT)..." value="${esc(state.glossaryQuery)}" autocomplete="off" aria-label="Cari istilah ICT">
+          </div>
+          <div class="acd-glossary-cats" role="tablist" aria-label="Filter kategori istilah">${catsHtml}</div>
+        </div>
+        <div class="acd-glossary-list">${itemsHtml}</div>
       </div>
     </div>`;
   }
@@ -454,19 +596,19 @@
     return `<div class="acd-overview">
       <section class="acd-hero" aria-label="Ringkasan Buku Panduan ICT">
         <div>
-          <p class="acd-hero-kicker">Buku Interaktif ${C.LESSONS.length} Bab · Nol Duplikasi · Kunci Pemahaman 80% · XAU/USD</p>
-          <h1>Buku Panduan Trading Gold &amp; ICT Mandiri</h1>
-          <p class="acd-hero-sub">Disusun mengalir seperti buku teks dari nol mutlak sampai mampu mapping chart kosong secara mandiri. Setiap bab baru terbuka setelah kamu lulus Uji Paham minimal 80%.</p>
+          <p class="acd-hero-kicker">Kurikulum Praktis ${C.LESSONS.length} Bab · XAU/USD · Lulus Uji Paham ≥80%</p>
+          <h1>Playbook Trading Gold &amp; ICT (XAU/USD)</h1>
+          <p class="acd-hero-sub">Disusun urut dari nol sampai bisa mapping chart kosong sendiri — pakai istilah trading asli biar langsung nyambung saat buka MT5. Setiap bab terbuka setelah lulus Uji Paham minimal 80%.</p>
           <p class="acd-hero-resume-meta">
             ${stats.allMastered
-              ? `Selamat — seluruh ${C.LESSONS.length} bab hingga Capstone Mapping Mandiri telah kamu kuasai.`
+              ? `Selamat — seluruh ${C.LESSONS.length} bab hingga Capstone Mapping Mandiri sudah kamu kuasai.`
               : `Bab Aktif: <strong>Bab ${fmtStep(frontier)} · ${esc(frontier.title)}</strong>`}
           </p>
         </div>
         <div class="acd-hero-right">
           <div class="acd-hero-stats">
             <div class="acd-hero-stats-row">
-              <span>Progres Bacaan</span>
+              <span>Progres Belajar</span>
               <strong class="acd-nums">${stats.completedCount} / ${stats.totalLessons} (${stats.percent}%) · ${stats.xp} XP</strong>
             </div>
             <div class="acd-progress-bar-lg" role="progressbar" aria-valuenow="${stats.percent}" aria-valuemin="0" aria-valuemax="100">
@@ -532,7 +674,7 @@
 
     return `<aside id="acdSidebar" class="acd-sidebar ${state.drawerOpen ? 'is-open' : ''}" aria-label="Daftar isi ${C.LESSONS.length} bab">
       <div class="acd-sidebar-top">
-        <button type="button" class="acd-sidebar-overview-btn" id="acdOverviewBtn">← Daftar Isi Buku</button>
+        <button type="button" class="acd-sidebar-overview-btn" id="acdOverviewBtn">← Daftar Semua Bab</button>
         <button type="button" class="acd-drawer-close" id="acdDrawerCloseBtn" aria-label="Tutup daftar isi">×</button>
       </div>
       ${groupsHtml}
@@ -622,10 +764,10 @@
       if (passedNow) {
         const nextBtn = adj.next
           ? `<button type="button" class="acd-btn-primary" id="acdUnlockedNextBtn" data-open-lesson="${esc(adj.next.id)}">Lanjut ke Bab ${fmtStep(adj.next)} →</button>`
-          : `<button type="button" class="acd-btn-primary" id="acdFinishOverviewBtn">Lihat Wisuda Buku →</button>`;
+          : `<button type="button" class="acd-btn-primary" id="acdFinishOverviewBtn">Lihat Ringkasan Progres →</button>`;
         summaryHtml = `<div class="acd-unlock-banner" role="status">
           <strong>🔓 Lulus Uji Paham (${currentCorrect}/${total}) — ${adj.next ? `Bab ${fmtStep(adj.next)} Resmi Terbuka!` : 'Seluruh 36 Bab Tuntas!'}</strong>
-          <p>Pemahamanmu terverifikasi (+${C.XP_PER_MASTERED_MODULE} XP). Progres bacaan tersimpan otomatis.</p>
+          <p>Pemahamanmu terverifikasi (+${C.XP_PER_MASTERED_MODULE} XP). Progres belajarmu tersimpan otomatis.</p>
           <div class="acd-unlock-actions">
             ${nextBtn}
             <button type="button" class="acd-btn-secondary" id="acdRetryQuizBtn">Ulangi Uji Paham</button>
@@ -721,8 +863,8 @@
 
     const sectionsHtml = sections.map((sec, idx) => {
       const secId = `acd-sec-${idx}`;
-      const paras = (sec.paragraphs || []).map(p => `<p class="acd-book-p">${fmtRich(p)}</p>`).join('');
-      const parasAfter = (sec.paragraphsAfter || []).map(p => `<p class="acd-book-p">${fmtRich(p)}</p>`).join('');
+      const paras = renderReadableParagraphs(sec.paragraphs);
+      const parasAfter = renderReadableParagraphs(sec.paragraphsAfter);
 
       const exampleHtml = sec.exampleBox && Array.isArray(sec.exampleBox.rows)
         ? `<div class="acd-book-example">
@@ -730,8 +872,8 @@
             <dl class="acd-book-example-list">
               ${sec.exampleBox.rows.map(r => `
                 <div class="acd-book-example-row">
-                  <dt>${fmtRich(r.label)}</dt>
-                  <dd>${fmtRich(r.detail)}</dd>
+                  <dt>${fmtBookRich(r.label)}</dt>
+                  <dd>${fmtBookRich(r.detail)}</dd>
                 </div>
               `).join('')}
             </dl>
@@ -746,7 +888,7 @@
                 <tr>${sec.table.headers.map(h => `<th scope="col">${esc(h)}</th>`).join('')}</tr>
               </thead>
               <tbody>
-                ${sec.table.rows.map(row => `<tr>${row.map((cell, cIdx) => `<td class="${cIdx === 0 ? 'is-lead' : ''}">${fmtRich(cell)}</td>`).join('')}</tr>`).join('')}
+                ${sec.table.rows.map(row => `<tr>${row.map((cell, cIdx) => `<td class="${cIdx === 0 ? 'is-lead' : ''}">${fmtBookRich(cell)}</td>`).join('')}</tr>`).join('')}
               </tbody>
             </table>
           </div>`
@@ -758,7 +900,7 @@
         ? `<aside class="acd-book-callout is-${esc(calloutTone)}" aria-label="${esc(calloutBadge)}">
             <p class="acd-book-callout-kicker">${esc(calloutBadge)}</p>
             <h3 class="acd-book-callout-title">${esc(sec.callout.title)}</h3>
-            <p class="acd-book-callout-body">${fmtRich(sec.callout.body)}</p>
+            <p class="acd-book-callout-body">${fmtBookRich(sec.callout.body)}</p>
           </aside>`
         : '';
 
@@ -789,14 +931,14 @@
     const takeawaysHtml = Array.isArray(lesson.keyTakeaways) && lesson.keyTakeaways.length
       ? `<section class="acd-book-takeaways" aria-label="Inti Bab ${fmtStep(lesson)}">
           <p class="acd-section-kicker">Rangkuman Inti Bab ${fmtStep(lesson)}</p>
-          <ul>${lesson.keyTakeaways.map(t => `<li>${fmtRich(t)}</li>`).join('')}</ul>
+          <ul>${lesson.keyTakeaways.map(t => `<li>${fmtBookRich(t)}</li>`).join('')}</ul>
         </section>`
       : '';
 
     const bridgeHtml = lesson.bridgeNext
       ? `<section class="acd-book-bridge" aria-label="Jembatan ke bab berikutnya">
           <p class="acd-section-kicker">Menuju Bab Berikutnya</p>
-          <p class="acd-book-p">${fmtRich(lesson.bridgeNext)}</p>
+          ${renderReadableParagraphs([lesson.bridgeNext])}
         </section>`
       : '';
 
@@ -906,8 +1048,8 @@
 
     const graduationHtml = !adj.next
       ? `<section class="acd-graduation-card" aria-label="Langkah eksekusi setelah lulus">
-          <h2>Wisuda Buku Panduan ICT Mandiri</h2>
-          <p>Kamu berada di Bab puncak ke-${C.LESSONS.length}. Lulus Uji Paham Capstone untuk menuntaskan 100% Academy, lalu buktikan langsung di Cockpit Mapping &amp; Lab 100 Kasus ICT.</p>
+          <h2>Tuntas Semua 36 Bab — Siap Mapping Mandiri</h2>
+          <p>Kamu sudah sampai di Bab terakhir (ke-${C.LESSONS.length}). Lulus Uji Paham Capstone untuk menyelesaikan 100% Academy, lalu langsung praktik di Cockpit Mapping &amp; Lab 100 Kasus ICT.</p>
           <div class="acd-graduation-links">
             <a class="acd-btn-primary" href="../mapping/index.html">Buka Cockpit Mapping →</a>
             <a class="acd-btn-secondary" href="trading-practice/index.html">Buka Latihan 100 Kasus ICT</a>
@@ -958,6 +1100,7 @@
               <button type="button" class="acd-btn-secondary" id="acdAskAmyBtn">
                 Tanya Amy Tentang Bab Ini
               </button>
+              ${G ? `<button type="button" class="acd-btn-secondary" id="acdOpenGlossaryLessonBtn">Kamus Istilah</button>` : ''}
               <button type="button" class="acd-btn-primary" data-scroll-target="acdExamSection">
                 Ke Uji Paham ↓
               </button>
@@ -984,9 +1127,9 @@
     if (!mount) return;
     updateHeaderProgress();
     const mainHtml = state.view === 'lesson' ? renderLessonWorkspace() : renderOverview();
-    mount.innerHTML = `${mainHtml}${renderLockModal()}${renderPlacementModal()}`;
+    mount.innerHTML = `${mainHtml}${renderLockModal()}${renderPlacementModal()}${renderGlossaryTermPopover()}${renderGlossaryModal()}`;
     bindViewEvents();
-    if (state.view === 'lesson') {
+    if (state.view === 'lesson' && !state.glossaryTermId && !state.glossaryModalOpen) {
       const activeNav = mount.querySelector('#acdSidebar .acd-nav-item.is-active');
       if (activeNav && typeof activeNav.scrollIntoView === 'function') {
         activeNav.scrollIntoView({ block: 'nearest' });
@@ -1142,6 +1285,73 @@
       });
     }
 
+    const openGlossaryLessonBtn = document.getElementById('acdOpenGlossaryLessonBtn');
+    if (openGlossaryLessonBtn) {
+      openGlossaryLessonBtn.addEventListener('click', () => openGlossaryModal());
+    }
+
+    // Inline clickable ICT terms -> instant popover
+    mount.querySelectorAll('[data-glossary-term]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const termId = btn.getAttribute('data-glossary-term');
+        if (termId) openGlossaryTerm(termId);
+      });
+    });
+
+    // Term popover controls
+    const closeTermBtn = document.getElementById('acdCloseGlossaryTermBtn');
+    if (closeTermBtn) closeTermBtn.addEventListener('click', () => closeModals());
+    const dismissTermBtn = document.getElementById('acdDismissGlossaryTermBtn');
+    if (dismissTermBtn) dismissTermBtn.addEventListener('click', () => closeModals());
+    const termBackdrop = document.getElementById('acdGlossaryTermBackdrop');
+    if (termBackdrop) {
+      termBackdrop.addEventListener('click', e => {
+        if (e.target === termBackdrop) closeModals();
+      });
+    }
+    const openFullFromTermBtn = document.getElementById('acdOpenFullGlossaryFromTermBtn');
+    if (openFullFromTermBtn) {
+      openFullFromTermBtn.addEventListener('click', () => openGlossaryModal(''));
+    }
+
+    // Full Kamus modal controls
+    const closeGlossaryBtn = document.getElementById('acdCloseGlossaryModalBtn');
+    if (closeGlossaryBtn) closeGlossaryBtn.addEventListener('click', () => closeModals());
+    const glossaryBackdrop = document.getElementById('acdGlossaryModalBackdrop');
+    if (glossaryBackdrop) {
+      glossaryBackdrop.addEventListener('click', e => {
+        if (e.target === glossaryBackdrop) closeModals();
+      });
+    }
+    const glossarySearch = document.getElementById('acdGlossarySearchInput');
+    if (glossarySearch) {
+      glossarySearch.addEventListener('input', e => {
+        state.glossaryQuery = e.target.value;
+        const pos = glossarySearch.selectionStart;
+        render();
+        const nextEl = document.getElementById('acdGlossarySearchInput');
+        if (nextEl) {
+          nextEl.focus();
+          if (typeof pos === 'number') nextEl.setSelectionRange(pos, pos);
+        }
+      });
+    }
+    const resetGlossaryBtn = document.getElementById('acdResetGlossaryBtn');
+    if (resetGlossaryBtn) {
+      resetGlossaryBtn.addEventListener('click', () => {
+        state.glossaryQuery = '';
+        state.glossaryCategory = 'all';
+        render();
+      });
+    }
+    mount.querySelectorAll('[data-glossary-cat]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.glossaryCategory = btn.getAttribute('data-glossary-cat') || 'all';
+        render();
+      });
+    });
+
     const retryQuizBtn = document.getElementById('acdRetryQuizBtn');
     if (retryQuizBtn) {
       retryQuizBtn.addEventListener('click', () => {
@@ -1266,8 +1476,11 @@
     const brandBtn = document.getElementById('acdBrandBtn');
     if (brandBtn) brandBtn.addEventListener('click', () => openOverview());
 
+    const glossaryTopBtn = document.getElementById('acdGlossaryTopBtn');
+    if (glossaryTopBtn) glossaryTopBtn.addEventListener('click', () => openGlossaryModal());
+
     const handleAcademyStepBack = () => {
-      if (state.lockModal || state.placementModalOpen) {
+      if (state.lockModal || state.placementModalOpen || state.glossaryTermId || state.glossaryModalOpen) {
         closeModals();
         return true;
       }
@@ -1311,7 +1524,7 @@
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        if (state.lockModal || state.placementModalOpen) closeModals();
+        if (state.lockModal || state.placementModalOpen || state.glossaryTermId || state.glossaryModalOpen) closeModals();
         else if (state.drawerOpen) setDrawerOpen(false);
       }
     });

@@ -16,7 +16,7 @@
     {
       id: 1,
       code: 'Bagian II',
-      title: 'Struktur Pasar & Peta Likuiditas',
+      title: 'Struktur Pasar & Peta Liquidity',
       tagline: 'Membaca struktur harga murni tanpa indikator, menyatukan H4/H1/M15/M5, membedakan BOS valid vs sweep palsu, Dealing Range, peta BSL/SSL, hingga Inducement.'
     }
   ];
@@ -42,7 +42,7 @@
           heading: 'Apa Itu Struktur Pasar, dan Bagaimana Cara Menentukan Swing Secara Objektif?',
           paragraphs: [
             'Selamat datang di **Bagian II**. Di Bagian I kamu sudah menguasai seluruh bahasa dasar trading Gold: pips, spread, rumus lot 1%, tombol MT5, anatomi candlestick, dan jam aktif sesi dunia. Sekarang kita masuk ke keterampilan pertama yang wajib dikuasai setiap trader sebelum memikirkan strategi entry apa pun: **membaca Struktur Pasar (Market Structure)**.',
-            'Banyak pemula merasa chart Gold terlihat seperti garis acak yang naik turun sembarangan. Padahal jika kamu mundur sedikit, harga tidak pernah bergerak lurus ke atas atau lurus ke bawah. Harga selalu bergerak seperti **gelombang berayun** — naik membentuk puncak, mundur sedikit membentuk lembah, lalu naik lagi membentuk puncak berikutnya. Puncak ayunan disebut **Swing High**, sedangkan lembah ayunan disebut **Swing Low**.',
+            'Banyak pemula merasa chart Gold terlihat seperti garis acak yang naik turun sembarangan. Padahal jika kamu mundur sedikit, harga tidak pernah bergerak lurus ke atas atau lurus ke bawah. Harga selalu bergerak seperti **gelombang berayun** — naik membentuk puncak, mundur sedikit membentuk lembah, lalu naik lagi membentuk puncak berikutnya. puncak swing disebut **Swing High**, sedangkan lembah swing disebut **Swing Low**.',
             'Masalah terbesar pemula adalah menandai Swing High dan Swing Low secara *"kira-kira pakai perasaan"*. Hari ini candle kecil dianggap puncak, besok diabaikan. Dalam metodologi ICT (mengikuti definisi baku Larry Williams), kita memakai **Aturan Mekanis 3-Candle Fraktal** yang 100% objektif:'
           ],
           exampleBox: {
@@ -113,7 +113,7 @@
           heading: 'Menghindari Jebakan "Over-Labeling" pada Noise Kecil',
           paragraphs: [
             'Saat pertama kali berlatih menandai struktur di chart kosong, pemula sering jatuh ke satu kesalahan klasik: **setiap muncul 1 candle merah kecil di tengah dorongan naik, mereka langsung melabelinya sebagai tren berbalik turun.** Akibatnya chart penuh coretan `HH/HL/LH/LL` tiap 2 menit dan kepala langsung pusing.',
-            'Solusinya sederhana: pisahkan antara **ayunan struktural utama** (gelombang yang benar-benar menciptakan penembusan puncak/lembah sebelumnya) dengan **jeda napas minor** di tengah jalan. Di **Bab 08** nanti kita akan melihat mengapa noise kecil di M5 sama sekali tidak mengubah arah besar di H1, dan di **Bab 10** kamu akan belajar membingkai satu gelombang utama dalam kotak *Dealing Range* agar matamu selalu tenang.'
+            'Solusinya sederhana: pisahkan antara **swing struktural utama** (gelombang yang benar-benar menciptakan break High/Low sebelumnya) dengan **jeda napas minor** di tengah jalan. Di **Bab 08** nanti kita akan melihat mengapa noise kecil di M5 sama sekali tidak mengubah arah besar di H1, dan di **Bab 10** kamu akan belajar membingkai satu gelombang utama dalam kotak *Dealing Range* agar matamu selalu tenang.'
           ],
           callout: {
             tone: 'info',
@@ -126,7 +126,7 @@
         '**Swing High** sah = 1 candle puncak dengan `High` lebih tinggi dari candle kiri & kanan; **Swing Low** sah = 1 candle lembah dengan `Low` lebih rendah dari kiri & kanan (tunggu candle ke-3 close).',
         'Hanya ada 3 kondisi struktur: **Bullish (`HH–HL`)**, **Bearish (`LH–LL`)**, dan **Konsolidasi** (bolak-balik dalam kotak).',
         '**Strong Low** (di tren naik) adalah titik asal dorongan yang sukses menembus puncak lama — titik inilah batas sehat tren, sedangkan **Weak High** adalah target berikutnya.',
-        'Jangan melabeli setiap 1 candle jeda kecil sebagai perubahan tren; fokus pada ayunan yang membentuk tangga utama.'
+        'Jangan melabeli setiap 1 candle jeda kecil sebagai perubahan tren; fokus pada swing yang membentuk tangga utama.'
       ],
       bridgeNext: 'Sekarang matamu sudah bisa membaca tangga `HH–HL` dan `LH–LL` pada satu layar chart. Namun, begitu kamu mengganti tombol timeframe di MT5 dari `H1` ke `M5`, kamu mungkin langsung kaget: *"Lho, kok di H1 terlihat tren naik, tapi pas aku buka M5 malah kelihatan jatuh bebas?!"* Di sinilah ratusan pemula kebingungan dan akhirnya entry melawan arus besar. Mari kita pecahkan teka-teki itu tuntas di **Bab 08: Multi-Timeframe (Top-Down): Menyatukan H4/H1, M15, dan M5 Tanpa Bingung**.',
       conceptBlocks: [
@@ -155,7 +155,7 @@
       ],
       failedCase: {
         context: 'Trader langsung panik membuka SELL hanya karena muncul 2 candle merah kecil di tengah tren naik M15 yang masih jauh di atas Strong Low.',
-        whyFailed: 'Menganggap jeda napas minor sebagai perubahan tren membuat trader melawan arus pembeli utama dan mudah tersapu SL.'
+        whyFailed: 'Menganggap jeda napas minor sebagai perubahan tren membuat trader melawan arus pembeli utama dan mudah kena sweep SL.'
       },
       validRules: [
         'Tunggu candle ke-3 selesai ditutup untuk mengonfirmasi Swing High/Low 3-candle.',
@@ -163,7 +163,7 @@
       ],
       invalidRules: [
         'Melabeli candle yang masih berjalan (belum close) sebagai swing resmi.',
-        'Menganggap setiap 1–2 candle koreksi sebagai tanda pembalikan tren penuh.'
+        'Menganggap setiap 1–2 candle koreksi sebagai tanda reversal tren penuh.'
       ],
       xauScenario: {
         context: 'Chart M15 XAU/USD naik dari 2.640 → 2.655 → koreksi 2.646 → tembus tutup di 2.662.',
@@ -196,7 +196,7 @@
           question: 'Pada struktur tren naik Gold (`2.640 → 2.655 → mundur 2.646 → tembus 2.662`), titik harga `2.646` disebut sebagai apa?',
           options: [
             'Weak Low yang pasti segera dijebol ke bawah',
-            'Strong Low — titik lembah kuat yang melahirkan penembusan puncak baru dan menjadi batas sehat tren naik',
+            'Strong Low — titik lembah kuat yang melahirkan break High baru dan menjadi batas sehat tren naik',
             'Konsolidasi akhir pekan',
             'Area spread rollover'
           ],
@@ -223,7 +223,7 @@
             'Sinyal wajib membuka 5 posisi sekaligus di tengah kotak'
           ],
           answerIndex: 2,
-          explanation: 'Puncak dan lembah yang sejajar dalam satu kotak menunjukkan pasar sedang konsolidasi/akumulasi; trader disiplin menunggu arah keluar atau sapuan batas luar.'
+          explanation: 'Puncak dan lembah yang sejajar dalam satu kotak menunjukkan pasar sedang konsolidasi/akumulasi; trader disiplin menunggu arah keluar atau sweep batas luar.'
         }
       ]
     },
@@ -272,7 +272,7 @@
               },
               {
                 label: 'Yang Terjadi Selanjutnya',
-                detail: 'Begitu Gold menyentuh area permintaan H1 di `2.658,00`, pembeli institusi masuk kembali. Dalam 15 menit harga meledak naik ke `2.685,00` — menyapu habis semua trader M5 yang nekat SELL melawan H1!'
+                detail: 'Begitu Gold menyentuh area permintaan H1 di `2.658,00`, pembeli institusi masuk kembali. Dalam 15 menit harga meledak naik ke `2.685,00` — sweep habis semua trader M5 yang nekat SELL melawan H1!'
               }
             ]
           },
@@ -311,7 +311,7 @@
               },
               {
                 label: 'Skenario 2: H1 Bullish + M15 Bullish + M5 Bearish (Fase Koreksi)',
-                detail: '**Status: SIAGA / TUNGGU.** Jangan nekat SELL di M5! M5 yang sedang turun justru kabar baik — ia sedang mengantar harga ke tempat diskon. Tunggu M5 tiba di zona M15 lalu berbalik menjadi Bullish, barulah BUY.'
+                detail: '**Status: SIAGA / TUNGGU.** Jangan nekat SELL di M5! M5 yang sedang turun justru kabar baik — ia sedang mengantar harga ke area Discount. Tunggu M5 tiba di zona M15 lalu berbalik menjadi Bullish, barulah BUY.'
               },
               {
                 label: 'Skenario 3: H1 Bullish + M15 Bearish (Konflik Arah Utama)',
@@ -332,7 +332,7 @@
         'Sinyal terkuat muncul saat **M5 selesai koreksi dan berbalik searah kembali** dengan `H1` dan `M15` (sinkronisasi 3/3).',
         'Saat `H1` dan `M15` masih bertabrakan arah, sikap paling profesional dan menguntungkan adalah **WAIT** (menjaga modal).'
       ],
-      bridgeNext: 'Sekarang kamu tahu cara menyatukan `H1`, `M15`, dan `M5` agar tidak pernah salah arah lagi. Tetapi ada satu jebakan besar berikutnya yang terjadi di SEMUA timeframe: kamu melihat harga baru saja melewati garis Swing High, kamu yakin itu adalah penembusan tren naik, lalu sedetik setelah klik BUY harga malah anjlok tajam! Mengapa bisa begitu? Mari kita bedah perbedaan paling krusial di seluruh ilmu ICT pada **Bab 09: Break of Structure (BOS) Valid vs Liquidity Sweep (Breakout Palsu)**.',
+      bridgeNext: 'Sekarang kamu tahu cara menyatukan `H1`, `M15`, dan `M5` agar tidak pernah salah arah lagi. Tetapi ada satu jebakan besar berikutnya yang terjadi di SEMUA timeframe: kamu melihat harga baru saja melewati garis Swing High, kamu yakin itu adalah break tren naik, lalu sedetik setelah klik BUY harga malah anjlok tajam! Mengapa bisa begitu? Mari kita bedah perbedaan paling krusial di seluruh ilmu ICT pada **Bab 09: Break of Structure (BOS) Valid vs Liquidity Sweep (Breakout Palsu)**.',
       conceptBlocks: [
         {
           heading: 'Alur Top-Down H4/H1 → M15 → M5 & Sifat Fraktal Pasar',
@@ -359,7 +359,7 @@
       ],
       failedCase: {
         context: 'Trader hanya memantau layar M5, melihat penurunan $18 selama 1,5 jam, lalu agresif membuka SELL tepat saat harga menyentuh zona beli H1.',
-        whyFailed: 'Lupa mengecek H1 bahwa penurunan M5 itu hanyalah koreksi sehat di dalam tren naik H1; begitu pembeli H1 masuk, posisi SELL langsung tersapu.'
+        whyFailed: 'Lupa mengecek H1 bahwa penurunan M5 itu hanyalah koreksi sehat di dalam tren naik H1; begitu pembeli H1 masuk, posisi SELL langsung kena sweep.'
       },
       validRules: [
         'Selalu baca chart dari timeframe besar ke kecil (Top-Down) sebelum mengambil keputusan.',
@@ -441,19 +441,19 @@
       levelId: 1,
       bookFormat: true,
       title: 'Break of Structure (BOS) Valid vs Liquidity Sweep (Breakout Palsu)',
-      subtitle: 'Aturan paling tegas dalam ICT untuk membedakan penembusan struktur yang asli (Body Close) dari jebakan sapuan sumbu (Wick-Only Sweep) yang sering membuat trader breakout kena Stop Loss.',
+      subtitle: 'Aturan paling tegas dalam ICT untuk membedakan break struktur yang asli (Body Close) dari jebakan Wick-Only Sweep yang sering membuat trader breakout kena Stop Loss.',
       readMinutes: 10,
       diagramId: 'bos-vs-sweep',
       diagramAfterSection: 1,
-      summary: 'Perbedaan mutlak Break of Structure (body close penuh melewati swing) vs Liquidity Sweep (hanya sumbu menembus lalu close kembali di dalam), cara menangani kasus abu-abu, dan studi kasus XAU/USD.',
+      summary: 'Perbedaan mutlak Break of Structure (body close penuh melewati swing) vs Liquidity Sweep (hanya wick menembus lalu close kembali di dalam), cara menangani kasus abu-abu, dan studi kasus XAU/USD.',
       bookSections: [
         {
           number: '9.1',
           heading: 'Kenapa Breakout "Rapi" di Gold Sering Berbalik Tepat Setelah Kamu Klik BUY?',
           paragraphs: [
-            'Hampir semua trader ritel pernah mengalami kejadian menyakitkan ini: kamu melihat garis batas atas (Swing High / Resistance) di `2.660,00`. Tiba-tiba harga melonjak menembus `2.660,00` sampai `2.662,50`. Karena takut ketinggalan kereta, kamu langsung klik **BUY** di `2.662,00`. Eh, tiga menit kemudian candle itu malah kempes, menyisakan sumbu panjang di atas, lalu harga jatuh tajam ke `2.645,00`!',
+            'Hampir semua trader ritel pernah mengalami kejadian menyakitkan ini: kamu melihat garis batas atas (Swing High / Resistance) di `2.660,00`. Tiba-tiba harga melonjak menembus `2.660,00` sampai `2.662,50`. Karena takut ketinggalan kereta, kamu langsung klik **BUY** di `2.662,00`. Eh, tiga menit kemudian candle itu malah kempes, menyisakan wick panjang di atas, lalu harga jatuh tajam ke `2.645,00`!',
             'Kenapa kejadian ini berulang terus setiap hari di XAU/USD? Jawabannya bukan karena "broker mengintip akunmu", melainkan **mekanika pesanan pasar**. Di atas puncak `2.660,00`, menumpuk dua jenis pesanan ritel: **Stop Loss** milik orang-orang yang sedang SELL, dan **Buy Stop** milik trader breakout yang ingin ikut beli.',
-            'Ketika sebuah bank besar ingin menjual emas dalam jumlah raksasa, mereka membutuhkan ratusan ribu pembeli sebagai lawan transaksi. Cara tercepat mendapatkannya adalah mendorong harga sedikit melewati `2.660,00` untuk memicu semua order beli tersebut, mengisi order jual raksasa mereka, lalu membiarkan harga meluncur turun. Peristiwa "mencolek keluar lalu kembali masuk" inilah yang disebut **Liquidity Sweep** (sapuan likuiditas).'
+            'Ketika sebuah bank besar ingin menjual emas dalam jumlah raksasa, mereka membutuhkan ratusan ribu pembeli sebagai lawan transaksi. Cara tercepat mendapatkannya adalah mendorong harga sedikit melewati `2.660,00` untuk memicu semua order beli tersebut, mengisi order jual raksasa mereka, lalu membiarkan harga meluncur turun. Peristiwa "mencolek keluar lalu kembali masuk" inilah yang disebut **Liquidity Sweep** (Liquidity Sweep).'
           ]
         },
         {
@@ -464,11 +464,11 @@
           ],
           table: {
             caption: 'Perbandingan Tegas: Break of Structure (BOS) vs Liquidity Sweep',
-            headers: ['Aspek Penilaian', 'BOS Valid (Penembusan Asli)', 'Liquidity Sweep (Breakout Palsu)'],
+            headers: ['Aspek Penilaian', 'BOS Valid (Break Valid)', 'Liquidity Sweep (Breakout Palsu)'],
             rows: [
-              ['Posisi Penutupan Candle (Close)', 'Body candle **ditutup penuh** melewati titik tertinggi/terendah swing lama', 'Hanya **sumbu (wick)** yang menembus; body candle **ditutup kembali di dalam** swing lama'],
+              ['Posisi Penutupan Candle (Close)', 'Body candle **ditutup penuh** melewati titik tertinggi/terendah swing lama', 'Hanya **wick** yang menembus; body candle **ditutup kembali di dalam** swing lama'],
               ['Makna di Balik Layar', 'Institusi menerima harga baru dan berniat **melanjutkan tren**', 'Institusi hanya mengambil "bahan bakar" Stop Loss dan berpotensi **berbalik arah**'],
-              ['Kapan Dikonfirmasi?', 'Wajib menunggu candle selesai tutup (timer candle = `00:00`)', 'Wajib menunggu candle selesai tutup dan terlihat sumbu penolakan'],
+              ['Kapan Dikonfirmasi?', 'Wajib menunggu candle selesai tutup (timer candle = `00:00`)', 'Wajib menunggu candle selesai tutup dan terlihat wick penolakan'],
               ['Respon Trader ICT', 'Ikuti arah tren baru; tunggu koreksi sehat untuk entry searah BOS', 'Dilarang mengejar breakout; justru bersiap mencari konfirmasi balik arah']
             ]
           }
@@ -478,13 +478,13 @@
           heading: 'Cara Menangani 2 Kasus Abu-Abu yang Paling Sering Membuat Bingung',
           paragraphs: [
             'Di buku teori yang terlalu dangkal, contohnya selalu sempurna. Di chart Gold sungguhan, kamu pasti akan menemui dua situasi "abu-abu" berikut — ini cara membacanya dengan kepala dingin:',
-            '**Kasus Abu-Abu 1: Candle ke-1 hanya menyapu dengan wick, lalu candle ke-2 ternyata ditutup (body close) di atas level tersebut.** Bagaimana statusnya? Selama candle ke-2 berhasil **body close** melewati titik tertinggi candle ke-1 (atau tegas di atas swing lama), maka statusnya **berubah menjadi BOS Valid**. Sebaliknya, jika candle ke-2 malah berbalik turun menjauh, maka candle ke-1 terkonfirmasi murni sebagai **Liquidity Sweep**.',
-            '**Kasus Abu-Abu 2: Body close melewati swing lama, tetapi cuma tipis `$0,15` (1,5 pips) dengan sumbu atas sangat panjang.** Pada Gold (`XAU/USD`), penutupan yang terlalu tipis (`< $0,30`) dengan sumbu penolakan raksasa di atasnya adalah tanda **tenaga penembusan lemah** (*weak break*). Trader disiplin tidak terburu-buru menganggapnya BOS kuat — tunggu 1 candle berikutnya untuk memastikan harga benar-benar diterima di luar level tersebut.'
+            '**Kasus Abu-Abu 1: Candle ke-1 hanya sweep dengan wick, lalu candle ke-2 ternyata ditutup (body close) di atas level tersebut.** Bagaimana statusnya? Selama candle ke-2 berhasil **body close** melewati titik tertinggi candle ke-1 (atau tegas di atas swing lama), maka statusnya **berubah menjadi BOS Valid**. Sebaliknya, jika candle ke-2 malah berbalik turun menjauh, maka candle ke-1 terkonfirmasi murni sebagai **Liquidity Sweep**.',
+            '**Kasus Abu-Abu 2: Body close melewati swing lama, tetapi cuma tipis `$0,15` (1,5 pips) dengan wick atas sangat panjang.** Pada Gold (`XAU/USD`), penutupan yang terlalu tipis (`< $0,30`) dengan wick penolakan raksasa di atasnya adalah tanda **tenaga break lemah** (*weak break*). Trader disiplin tidak terburu-buru menganggapnya BOS kuat — tunggu 1 candle berikutnya untuk memastikan harga benar-benar diterima di luar level tersebut.'
           ],
           callout: {
             tone: 'warn',
             title: 'Kesalahan Paling Mahal: Menganggap BOS Sebelum Candle Tutup!',
-            body: 'Di timeframe M15, pada menit ke-10 sebuah candle bisa terlihat hijau penuh +$4 di atas Swing High. Namun pada 2 menit terakhir sebelum tutup, institusi menghantamnya turun sehingga saat menit ke-15 berakhir yang tersisa hanyalah sumbu panjang! **Aturan mutlak: tidak pernah ada BOS sebelum candle resmi ditutup.**'
+            body: 'Di timeframe M15, pada menit ke-10 sebuah candle bisa terlihat hijau penuh +$4 di atas Swing High. Namun pada 2 menit terakhir sebelum tutup, institusi menghantamnya turun sehingga saat menit ke-15 berakhir yang tersisa hanyalah wick panjang! **Aturan mutlak: tidak pernah ada BOS sebelum candle resmi ditutup.**'
           }
         },
         {
@@ -502,7 +502,7 @@
               },
               {
                 label: 'Skenario B — Liquidity Sweep (Jebakan)',
-                detail: 'Candle M15 sempat melonjak ke High `2.662,90`, tetapi sebelum menit ke-15 habis tekanan jual menghantam hingga **ditutup (Close) di `2.658,40`** (di bawah `2.660,00`, menyisakan sumbu atas `$4,50`). **Aksi:** Dilarang keras BUY! Pasar baru saja menyapu pembeli breakout; bersiap memantau tanda pembalikan turun.'
+                detail: 'Candle M15 sempat melonjak ke High `2.662,90`, tetapi sebelum menit ke-15 habis tekanan jual menghantam hingga **ditutup (Close) di `2.658,40`** (di bawah `2.660,00`, menyisakan wick atas `$4,50`). **Aksi:** Dilarang keras BUY! Pasar baru saja sweep pembeli breakout; bersiap memantau tanda reversal turun.'
               }
             ]
           }
@@ -510,17 +510,17 @@
       ],
       keyTakeaways: [
         '**BOS Valid** mensyaratkan **body candle ditutup penuh** melewati Swing High/Low sebelumnya — tanda kelanjutan arus.',
-        '**Liquidity Sweep** terjadi saat hanya **sumbu (wick)** yang melewati swing, sementara body ditutup kembali di dalam — tanda pengambilan likuiditas & rawan balik arah.',
+        '**Liquidity Sweep** terjadi saat hanya **wick** yang melewati swing, sementara body ditutup kembali di dalam — tanda pengambilan Liquidity & rawan balik arah.',
         '**Haram** menyatakan BOS atau Sweep sebelum candle selesai ditutup (`close`).',
-        'Body close yang sangat tipis (`< $0,30` di Gold) disertai sumbu penolakan panjang patut dicurigai sebagai *weak break* — tunggu 1 candle penerimaan lagi.'
+        'Body close yang sangat tipis (`< $0,30` di Gold) disertai wick penolakan panjang patut dicurigai sebagai *weak break* — tunggu 1 candle penerimaan lagi.'
       ],
-      bridgeNext: 'Kini kamu memiliki filter paling tajam untuk membedakan mana penembusan asli (`BOS`) dan mana jebakan (`Sweep`). Pertanyaan lanjutan yang sangat wajar muncul sekarang adalah: *"Oke, begitu terjadi BOS Valid yang baru, area mana saja yang menjadi arena bermain harga selanjutnya? Dari titik mana sampai mana aku harus memantau koreksi?"* Jawabannya adalah konsep bingkai pasar yang sangat penting di **Bab 10: Dealing Range: Membaca Arena Eksternal (ERL) vs Internal (IRL)**.',
+      bridgeNext: 'Kini kamu memiliki filter paling tajam untuk membedakan mana break asli (`BOS`) dan mana jebakan (`Sweep`). Pertanyaan lanjutan yang sangat wajar muncul sekarang adalah: *"Oke, begitu terjadi BOS Valid yang baru, area mana saja yang menjadi arena bermain harga selanjutnya? Dari titik mana sampai mana aku harus memantau koreksi?"* Jawabannya adalah konsep bingkai pasar yang sangat penting di **Bab 10: Dealing Range: Membaca Arena Eksternal (ERL) vs Internal (IRL)**.',
       conceptBlocks: [
         {
           heading: 'Body Close (BOS Valid) vs Wick-Only (Liquidity Sweep)',
           paragraphs: [
             'BOS Valid membutuhkan body candle ditutup penuh melewati Swing High atau Swing Low sebelumnya setelah candle selesai close.',
-            'Liquidity Sweep hanya menembus level dengan sumbu (wick) lalu body ditutup kembali di dalam range, menandakan pengambilan Stop Loss ritel dan potensi pembalikan.'
+            'Liquidity Sweep hanya menembus level dengan wick lalu body ditutup kembali di dalam range, menandakan pengambilan Stop Loss ritel dan potensi reversal.'
           ]
         }
       ],
@@ -531,8 +531,8 @@
       ],
       decisionTree: [
         {
-          condition: 'Candle M15 menembus Swing High dengan sumbu panjang $3 lalu close kembali di bawah Swing High.',
-          action: 'Tandai sebagai Liquidity Sweep (bukan BOS). Batalkan niat mengejar BUY breakout dan pantau konfirmasi pembalikan.'
+          condition: 'Candle M15 menembus Swing High dengan wick panjang $3 lalu close kembali di bawah Swing High.',
+          action: 'Tandai sebagai Liquidity Sweep (bukan BOS). Batalkan niat mengejar BUY breakout dan pantau konfirmasi reversal.'
         },
         {
           condition: 'Candle M15 menutup body penuh $3,50 di atas Swing High sebelumnya.',
@@ -541,14 +541,14 @@
       ],
       failedCase: {
         context: 'Trader langsung menekan tombol BUY pada menit ke-9 candle M15 karena melihat harga melewati Swing High 2.660.',
-        whyFailed: 'Pada penutupan menit ke-15, candle kembali turun dan close di 2.658 (murni Liquidity Sweep); trader masuk tepat di puncak sumbu jebakan.'
+        whyFailed: 'Pada penutupan menit ke-15, candle kembali turun dan close di 2.658 (murni Liquidity Sweep); trader masuk tepat di puncak wick jebakan.'
       },
       validRules: [
         'Selalu tunggu candle selesai ditutup untuk membedakan BOS Valid dan Liquidity Sweep.',
         'Anggap BOS sah jika body close tegas di luar level swing lama.'
       ],
       invalidRules: [
-        'Menyebut penembusan wick-only sebagai Break of Structure.',
+        'Menyebut break wick-only sebagai Break of Structure.',
         'Mengejar breakout di tengah candle yang belum tutup.'
       ],
       xauScenario: {
@@ -559,18 +559,18 @@
         ]
       },
       goldenRules: [
-        'Sumbu (wick) mengambil bahan bakar; badan (body) menceritakan ke mana pasar sebenarnya ingin pergi.'
+        'Wick mengambil bahan bakar; body menceritakan ke mana pasar sebenarnya ingin pergi.'
       ],
       practiceCta: {
         label: 'Uji Mata: BOS Valid vs Sweep di Latihan Kasus',
-        description: 'Latih ketepatan membedakan body close BOS dan sumbu sweep pada skenario chart Gold nyata.',
+        description: 'Latih ketepatan membedakan body close BOS dan wick sweep pada skenario chart Gold nyata.',
         href: 'trading-practice/index.html'
       },
       quiz: [
         {
-          question: 'Apa syarat mekanis paling utama agar sebuah penembusan Swing High diakui sebagai **Break of Structure (BOS) Valid**?',
+          question: 'Apa syarat mekanis paling utama agar sebuah break Swing High diakui sebagai **Break of Structure (BOS) Valid**?',
           options: [
-            'Cukup ujung sumbu (wick) menyentuh $0,50 di atas Swing High',
+            'Cukup ujung wick menyentuh $0,50 di atas Swing High',
             'Body candle harus selesai ditutup (Close) di atas Swing High sebelumnya',
             'Harga bergerak cepat di menit ke-3 meski belum close',
             'Indikator RSI melewati angka 70'
@@ -582,26 +582,26 @@
           question: 'Swing High M15 XAU/USD berada di `2.660,00`. Candle M15 sempat melonjak ke `2.663,20`, namun saat menit ke-15 habis candle ditutup di `2.658,70`. Peristiwa apa ini?',
           options: [
             'Bullish BOS Valid yang sangat kuat',
-            'Liquidity Sweep (sapuan likuiditas / breakout palsu) karena hanya wick yang melewati 2.660 sementara body close kembali di dalam',
+            'Liquidity Sweep (Liquidity Sweep / breakout palsu) karena hanya wick yang melewati 2.660 sementara body close kembali di dalam',
             'Konsolidasi pasar tutup',
             'Tanda wajib langsung BUY tanpa Stop Loss'
           ],
           answerIndex: 1,
-          explanation: 'Hanya sumbu yang menembus 2.660 sementara body tutup di 2.658,70 — ini adalah definisi baku Liquidity Sweep.'
+          explanation: 'Hanya wick yang menembus 2.660 sementara body tutup di 2.658,70 — ini adalah definisi baku Liquidity Sweep.'
         },
         {
           question: 'Mengapa kamu DILARANG menyatakan sebuah gerakan sebagai BOS pada menit ke-10 candle M15?',
           options: [
             'Karena MT5 melarang klik tombol di menit ke-10',
-            'Karena sebelum candle resmi ditutup, dorongan harga masih bisa dibalikkan institusi menjadi sumbu Sweep di menit-menit terakhir',
+            'Karena sebelum candle resmi ditutup, dorongan harga masih bisa dibalikkan institusi menjadi wick Sweep di menit-menit terakhir',
             'Karena menit ke-10 selalu tidak ada spread',
             'Karena BOS hanya berlaku di hari Jumat'
           ],
           answerIndex: 1,
-          explanation: 'Status BOS atau Sweep hanya bisa diketahui dari harga Close resmi; banyak candle bullish di menit ke-10 berubah menjadi sumbu sweep saat close.'
+          explanation: 'Status BOS atau Sweep hanya bisa diketahui dari harga Close resmi; banyak candle bullish di menit ke-10 berubah menjadi wick sweep saat close.'
         },
         {
-          question: 'Jika candle ke-1 hanya menyapu Swing High dengan wick, lalu candle ke-2 justru dorong kuat dan **body close** tegas di atas puncak candle ke-1, bagaimana kita membacanya?',
+          question: 'Jika candle ke-1 hanya sweep Swing High dengan wick, lalu candle ke-2 justru dorong kuat dan **body close** tegas di atas puncak candle ke-1, bagaimana kita membacanya?',
           options: [
             'Tetap Sweep selamanya walaupun harga naik $30',
             'Pasar menerima harga di luar level — statusnya kini terkonfirmasi menjadi BOS Valid',
@@ -609,7 +609,7 @@
             'Pasar langsung masuk mode sideways'
           ],
           answerIndex: 1,
-          explanation: 'Jika candle berikutnya benar-benar menutup body secara tegas melampaui puncak sapuan pertama, penerimaan harga terjadi dan struktur sah berlanjut (BOS).'
+          explanation: 'Jika candle berikutnya benar-benar menutup body secara tegas melampaui puncak sweep pertama, penerimaan harga terjadi dan struktur sah berlanjut (BOS).'
         }
       ]
     },
@@ -648,8 +648,8 @@
             caption: 'Dua Wilayah Utama di Dalam Setiap Dealing Range',
             headers: ['Istilah ICT', 'Lokasinya di Chart', 'Isi Wilayahnya', 'Fungsinya Bagi Algoritma'],
             rows: [
-              ['ERL (External Range Liquidity)', 'Tepat di **batas paling luar** kotak Dealing Range (Swing High atas & Swing Low bawah)', 'Puncak utama (`Old High`) dan Lembah utama (`Old Low`) tempat kumpulan Stop Loss berada', 'Target ekspansi luar atau titik sapuan besar sebelum harga berbalik masuk'],
-              ['IRL (Internal Range Liquidity)', 'Di **bagian dalam** kotak Dealing Range (antara batas bawah dan batas atas)', 'Celah ketidakseimbangan harga (*Fair Value Gap*), jejak pesanan (*Order Block*), dan ayunan koreksi kecil di dalam kotak', 'Tempat harga "mengisi ulang tenaga" (koreksi) sebelum kembali meluncur menuju batas luar (ERL)']
+              ['ERL (External Range Liquidity)', 'Tepat di **batas paling luar** kotak Dealing Range (Swing High atas & Swing Low bawah)', 'Puncak utama (`Old High`) dan Lembah utama (`Old Low`) tempat kumpulan Stop Loss berada', 'Target ekspansi luar atau titik sweep besar sebelum harga berbalik masuk'],
+              ['IRL (Internal Range Liquidity)', 'Di **bagian dalam** kotak Dealing Range (antara batas bawah dan batas atas)', 'celah Imbalance (*Fair Value Gap*), jejak pesanan (*Order Block*), dan swing koreksi kecil di dalam kotak', 'Tempat harga "mengisi ulang tenaga" (koreksi) sebelum kembali meluncur menuju batas luar (ERL)']
             ]
           },
           paragraphsAfter: [
@@ -661,7 +661,7 @@
           heading: 'Hukum Pendulum ICT: Harga Selalu Bergerak ERL → IRL → ERL',
           paragraphs: [
             'Inilah salah satu rahasia terbesar dalam seluruh pengajaran ICT — begitu kamu memahaminya, pergerakan Gold tidak akan lagi terasa seperti misteri acak. Algoritma harga bergerak layaknya **bandul jam (pendulum)** yang hanya melakukan dua perjalanan secara bergantian:',
-            '1. **Setelah harga menyentuh atau menembus batas luar (`ERL`)**, bahan bakar luar baru saja diambil. Harga cenderung **masuk kembali ke dalam kotak menuju `IRL`** untuk menyeimbangkan ketidakseimbangan harga (fase koreksi/retrace).',
+            '1. **Setelah harga menyentuh atau menembus batas luar (`ERL`)**, bahan bakar luar baru saja diambil. Harga cenderung **masuk kembali ke dalam kotak menuju `IRL`** untuk menyeimbangkan Imbalance harga (fase koreksi/retrace).',
             '2. **Setelah harga selesai menyentuh area `IRL` di dalam kotak**, pesanan institusi terisi ulang. Harga cenderung **meluncur keluar kembali menuju batas luar (`ERL`)** di sisi seberangnya (fase ekspansi).',
             'Artinya, kamu bisa langsung tahu kapan sebuah pergerakan sedang **mendekati akhir** dan kapan sebuah pergerakan baru **akan dimulai**: kalau harga baru saja menembus `ERL` atas sejauh `$20`, itulah waktu TERBURUK untuk mengejar BUY, karena pendulum justru bersiap mengayun kembali ke dalam menuju `IRL`!'
           ]
@@ -702,11 +702,11 @@
       ],
       keyTakeaways: [
         '**Dealing Range** adalah kotak lapangan bermain aktif dari **Strong Point** (asal dorongan) hingga **Weak Point** (ujung gelombang) setelah terjadi BOS Valid.',
-        '**ERL** (External Range Liquidity) = batas luar atas & bawah kotak; **IRL** (Internal Range Liquidity) = area ketidakseimbangan & struktur di dalam kotak.',
+        '**ERL** (External Range Liquidity) = batas luar atas & bawah kotak; **IRL** (Internal Range Liquidity) = area Imbalance & struktur di dalam kotak.',
         'Hukum pendulum ICT: harga selalu bergerak bolak-balik **`ERL → IRL → ERL`** — jangan mengejar harga yang baru saja menghantam ERL.',
         'Begitu terjadi **BOS Valid** baru yang menembus batas kotak, segera geser Dealing Range ke kaki dorongan terbaru agar petamu tidak usang.'
       ],
-      bridgeNext: 'Kamu sekarang sudah bisa membingkai lapangan bermain (`Dealing Range`) dan tahu bahwa harga selalu mengayun antara batas dalam (`IRL`) dan batas luar (`ERL`). Nah, di luar kotak itu sebenarnya ada banyak sekali puncak dan lembah — tidak semuanya sama kuatnya! Level batas luar mana saja di pasar Gold yang menjadi "kolam uang" terfavorit bank dan institusi? Mari kita petakan semuanya dengan presisi di **Bab 11: Peta Likuiditas Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range**.',
+      bridgeNext: 'Kamu sekarang sudah bisa membingkai lapangan bermain (`Dealing Range`) dan tahu bahwa harga selalu mengayun antara batas dalam (`IRL`) dan batas luar (`ERL`). Nah, di luar kotak itu sebenarnya ada banyak sekali puncak dan lembah — tidak semuanya sama kuatnya! Level batas luar mana saja di pasar Gold yang menjadi "Liquidity Pool" terfavorit bank dan institusi? Mari kita petakan semuanya dengan presisi di **Bab 11: Peta Liquidity Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range**.',
       conceptBlocks: [
         {
           heading: 'Dealing Range Aktif & Siklus Pendulum ERL ↔ IRL',
@@ -814,18 +814,18 @@
       number: 11,
       levelId: 1,
       bookFormat: true,
-      title: 'Peta Likuiditas Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range',
-      subtitle: 'Memahami dari nol kenapa kumpulan Stop Loss adalah "bahan bakar" pergerakan harga, sekaligus memetakan 5 kolam likuiditas paling keramat di XAU/USD lengkap dengan jam WITA.',
+      title: 'Peta Liquidity Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range',
+      subtitle: 'Memahami dari nol kenapa kumpulan Stop Loss adalah "bahan bakar" pergerakan harga, sekaligus memetakan 5 Liquidity Pool paling keramat di XAU/USD lengkap dengan jam WITA.',
       readMinutes: 11,
       diagramId: 'bsl-ssl-pools',
       diagramAfterSection: 1,
-      summary: 'Logika mekanis likuiditas pasar (Stop Loss = order lawan), perbedaan BSL vs SSL, fenomena EQH/EQL, hierarki 5 kolam likuiditas XAU/USD (PWH/PWL, PDH/PDL, Asia Range WITA, Session H/L), dan status Fresh vs Taken.',
+      summary: 'Logika mekanis Liquidity pasar (Stop Loss = order lawan), perbedaan BSL vs SSL, fenomena EQH/EQL, hierarki 5 Liquidity Pool XAU/USD (PWH/PWL, PDH/PDL, Asia Range WITA, Session H/L), dan status Fresh vs Taken.',
       bookSections: [
         {
           number: '11.1',
-          heading: 'Apa Itu Likuiditas Sebenarnya? (Penjelasan Paling Membumi)',
+          heading: 'Apa Itu Liquidity Sebenarnya? (Penjelasan Paling Membumi)',
           paragraphs: [
-            'Kata **"Likuiditas"** sering diucapkan trader dengan nada misterius seolah-olah itu sihir. Padahal arti aslinya sangat sederhana dan masuk akal: **likuiditas adalah ketersediaan lawan transaksi di suatu tingkat harga.**',
+            'Kata **"Liquidity"** sering diucapkan trader dengan nada misterius seolah-olah itu sihir. Padahal arti aslinya sangat sederhana dan masuk akal: **Liquidity adalah ketersediaan lawan transaksi di suatu tingkat harga.**',
             'Ingat satu aturan hukum pasar dunia: di setiap transaksi, kalau kamu ingin **membeli 10.000 kontrak Gold**, harus ada pihak lain yang bersedia **menjual 10.000 kontrak Gold** di harga tersebut. Trader kecil dengan `0.02 lot` bisa masuk kapan saja tanpa kesulitan. Tetapi bank sentral dan dana lindung nilai (*hedge fund*) dengan ratusan juta dolar **tidak bisa** masuk sembarangan di ruang kosong — mereka membutuhkan lokasi yang padat oleh ribuan pesanan lawan.',
             'Di mana ribuan pesanan itu selalu berkumpul dengan sangat rapi setiap hari? **Di lokasi Stop Loss para trader ritel!** Perhatikan mekanikanya: seorang trader yang membuka posisi **SELL** menaruh Stop Loss di atas puncak lama. Secara teknis di mesin bursa, Stop Loss posisi SELL adalah sebuah perintah **BUY**! Sebaliknya, Stop Loss milik trader **BUY** yang ditaruh di bawah lembah lama adalah sebuah perintah **SELL**. Maka bagi institusi, kumpulan Stop Loss itu adalah "SPBU bahan bakar" siap pakai.'
           ]
@@ -834,10 +834,10 @@
           number: '11.2',
           heading: 'Buy-Side Liquidity (BSL), Sell-Side Liquidity (SSL) & Jebakan EQH/EQL',
           paragraphs: [
-            'Berdasarkan letaknya di atas atau di bawah harga sekarang, kolam likuiditas dibagi menjadi dua sisi:'
+            'Berdasarkan letaknya di atas atau di bawah harga sekarang, Liquidity Pool dibagi menjadi dua sisi:'
           ],
           exampleBox: {
-            title: 'Dua Sisi Kolam Likuiditas di Chart Gold',
+            title: 'Dua Sisi Liquidity Pool di Chart Gold',
             rows: [
               {
                 label: 'BSL (Buy-Side Liquidity)',
@@ -856,19 +856,19 @@
         },
         {
           number: '11.3',
-          heading: 'Lima Kolam Likuiditas Paling Keramat di XAU/USD (Hierarki Kekuatan)',
+          heading: 'Lima Liquidity Pool Paling Keramat di XAU/USD (Hierarki Kekuatan)',
           paragraphs: [
-            'Chart Gold memiliki puluhan puncak dan lembah kecil setiap hari. Jika kamu menggambar garis di semuanya, chart-mu akan penuh coretan seperti sarang laba-laba. Dalam praktik profesional (dan persis seperti yang dipetakan di Cockpit Mapping Amy FX Pro), cukup tandai **5 jenis kolam likuiditas berderajat tinggi** berikut dari yang terkuat ke yang paling intraday:'
+            'Chart Gold memiliki puluhan puncak dan lembah kecil setiap hari. Jika kamu menggambar garis di semuanya, chart-mu akan penuh coretan seperti sarang laba-laba. Dalam praktik profesional (dan persis seperti yang dipetakan di Cockpit Mapping Amy FX Pro), cukup tandai **5 jenis Liquidity Pool berderajat tinggi** berikut dari yang terkuat ke yang paling intraday:'
           ],
           table: {
-            caption: 'Hierarki 5 Kolam Likuiditas Utama di Pasar Gold (XAU/USD)',
+            caption: 'Hierarki 5 Liquidity Pool Utama di Pasar Gold (XAU/USD)',
             headers: ['Peringkat & Nama Level', 'Definisi Eksak', 'Jadwal / Patokan WITA', 'Peran di Chart Gold'],
             rows: [
-              ['1. PWH / PWL', 'Previous Week High / Low (Puncak & Dasar Pekan Lalu)', 'Ditutup Jumat akhir pekan NY', 'Magnet makro terkuat — sering menjadi target swing besar atau titik pembalikan mingguan'],
+              ['1. PWH / PWL', 'Previous Week High / Low (Puncak & Dasar Pekan Lalu)', 'Ditutup Jumat akhir pekan NY', 'Magnet makro terkuat — sering menjadi target swing besar atau titik reversal mingguan'],
               ['2. PDH / PDL', 'Previous Day High / Low (Puncak & Dasar Kemarin)', 'Reset harian 17:00 NY (05:00 WITA EDT / 06:00 WITA EST)', 'Magnet harian paling rutin diburu pada sesi London dan New York'],
-              ['3. Asia High / Low', 'Batas atas & bawah kotak akumulasi sesi Asia (`20:00–00:00 NY`)', '**08:00–12:00 WITA** (EDT) / **09:00–13:00 WITA** (EST)', 'Hampir setiap hari satu sisinya disapu saat pembukaan London untuk mengambil bahan bakar'],
+              ['3. Asia High / Low', 'Batas atas & bawah kotak akumulasi sesi Asia (`20:00–00:00 NY`)', '**08:00–12:00 WITA** (EDT) / **09:00–13:00 WITA** (EST)', 'Hampir setiap hari satu sisinya di-sweep saat pembukaan London untuk mengambil bahan bakar'],
               ['4. Session High / Low', 'Puncak & dasar sesi London (`02:00–05:00 NY`) atau NY AM', 'London: 14:00–17:00 WITA (EDT) / 15:00–18:00 WITA (EST)', 'Target intraday utama saat transisi dari sesi London menuju sesi New York'],
-              ['5. EQH / EQL', 'Dua puncak atau dua lembah yang nyaris sejajar pada M15/H1', 'Bisa muncul di sesi mana saja', 'Magnet sapuan tercepat karena menumpuk Stop Loss ritel Double Top/Bottom']
+              ['5. EQH / EQL', 'Dua puncak atau dua lembah yang nyaris sejajar pada M15/H1', 'Bisa muncul di sesi mana saja', 'Magnet sweep tercepat karena menumpuk Stop Loss ritel Double Top/Bottom']
             ]
           }
         },
@@ -876,36 +876,36 @@
           number: '11.4',
           heading: 'Status "Segar" (Fresh) vs "Sudah Dimakan" (Taken/Swept)',
           paragraphs: [
-            'Satu kesalahan sangat umum di lapangan adalah **terus mengincar level likuiditas yang sebenarnya sudah habis dimakan harga beberapa jam lalu**. Bayangkan kamu pergi ke sebuah toko roti pukul 10 malam setelah semua rotinya laku terjual sejak sore — tentu tidak ada lagi yang bisa diambil di sana!',
-            'Aturan kerjanya sederhana: jika `PDH` kemarin berada di `2.670,00` dan pagi ini harga masih di `2.658,00`, maka `PDH 2.670,00` berstatus **FRESH (Utuh)** — ia masih menyimpan kolam BSL dan sah dijadikan magnet target atas. Tetapi begitu jam 16:00 WITA Gold sudah sempat menyentuh `2.672,50`, maka `PDH 2.670,00` langsung berubah status menjadi **TAKEN / SWEPT (Sudah Terambil)**. Hapus target lama tersebut dari daftar magnet atasmu, lalu evaluasi: apakah setelah mengambil PDH harga akan berbalik turun atau lanjut menuju `PWH` di atasnya?'
+            'Satu kesalahan sangat umum di lapangan adalah **terus mengincar level Liquidity yang sebenarnya sudah habis dimakan harga beberapa jam lalu**. Bayangkan kamu pergi ke sebuah toko roti pukul 10 malam setelah semua rotinya laku terjual sejak sore — tentu tidak ada lagi yang bisa diambil di sana!',
+            'Aturan kerjanya sederhana: jika `PDH` kemarin berada di `2.670,00` dan pagi ini harga masih di `2.658,00`, maka `PDH 2.670,00` berstatus **FRESH (Utuh)** — ia masih menyimpan Liquidity Pool BSL dan sah dijadikan magnet target atas. Tetapi begitu jam 16:00 WITA Gold sudah sempat menyentuh `2.672,50`, maka `PDH 2.670,00` langsung berubah status menjadi **TAKEN / SWEPT (Sudah Terambil)**. Hapus target lama tersebut dari daftar magnet atasmu, lalu evaluasi: apakah setelah mengambil PDH harga akan berbalik turun atau lanjut menuju `PWH` di atasnya?'
           ],
           callout: {
             tone: 'info',
             title: 'Ritual 2 Menit Sebelum Sesi London',
-            body: 'Setiap hari sekitar pukul 13:30–14:30 WITA sebelum London ramai, cukup tarik 3 pasang garis bersih di chart XAU/USD: **PWH/PWL**, **PDH/PDL**, dan kotak **Asia High/Low**. Coret otomatis level mana saja yang sudah tersapu hari ini agar matamu hanya fokus pada kolam yang masih segar.'
+            body: 'Setiap hari sekitar pukul 13:30–14:30 WITA sebelum London ramai, cukup tarik 3 pasang garis bersih di chart XAU/USD: **PWH/PWL**, **PDH/PDL**, dan kotak **Asia High/Low**. Coret otomatis level mana saja yang sudah kena sweep hari ini agar matamu hanya fokus pada Liquidity Pool yang masih fresh.'
           }
         }
       ],
       keyTakeaways: [
-        '**Likuiditas** = kumpulan pesanan lawan (terutama Stop Loss & breakout order ritel) yang dibutuhkan institusi untuk mengisi posisi raksasa.',
+        '**Liquidity** = kumpulan pesanan lawan (terutama Stop Loss & breakout order ritel) yang dibutuhkan institusi untuk mengisi posisi raksasa.',
         '**BSL** terletak di atas puncak (SL trader Sell + Buy Stop); **SSL** terletak di bawah lembah (SL trader Buy + Sell Stop).',
-        '**EQH/EQL** (Double Top/Bottom rapi) bukanlah tembok kuat — melainkan magnet likuiditas paling tebal untuk disapu.',
-        'Cukup petakan 5 kolam utama: **PWH/PWL**, **PDH/PDL**, **Asia High/Low** (`08:00–12:00 WITA` EDT / `09:00–13:00 WITA` EST), **Session H/L**, dan **EQH/EQL** — lalu tandai statusnya **Fresh** vs **Taken**.'
+        '**EQH/EQL** (Double Top/Bottom rapi) bukanlah tembok kuat — melainkan magnet Liquidity paling tebal untuk di-sweep.',
+        'Cukup petakan 5 Liquidity Pool utama: **PWH/PWL**, **PDH/PDL**, **Asia High/Low** (`08:00–12:00 WITA` EDT / `09:00–13:00 WITA` EST), **Session H/L**, dan **EQH/EQL** — lalu tandai statusnya **Fresh** vs **Taken**.'
       ],
-      bridgeNext: 'Kamu sekarang sudah punya peta lengkap seluruh "SPBU bahan bakar" di chart Gold (`BSL/SSL`, `EQH/EQL`, `PDH/PDL`, `PWH/PWL`, `Asia Range`). Tetapi sebelum kita menutup Bagian II, ada satu bentuk likuiditas paling licik yang menjadi penyebab nomor satu trader SMC/ICT pemula kena SL padahal arahnya sudah 100% benar! Itulah yang akan kita bongkar habis di bab penutup Bagian II: **Bab 12: Inducement (IDM): Mengenali Umpan Ritel Sebelum Pergerakan Asli**.',
+      bridgeNext: 'Kamu sekarang sudah punya peta lengkap seluruh "SPBU bahan bakar" di chart Gold (`BSL/SSL`, `EQH/EQL`, `PDH/PDL`, `PWH/PWL`, `Asia Range`). Tetapi sebelum kita menutup Bagian II, ada satu bentuk Liquidity paling licik yang menjadi penyebab nomor satu trader SMC/ICT pemula kena SL padahal arahnya sudah 100% benar! Itulah yang akan kita bongkar habis di bab penutup Bagian II: **Bab 12: Inducement (IDM): Mengenali Trap Ritel Sebelum Pergerakan Asli**.',
       conceptBlocks: [
         {
-          heading: 'BSL/SSL, EQH/EQL & 5 Kolam Likuiditas Keramat XAU/USD',
+          heading: 'BSL/SSL, EQH/EQL & 5 Liquidity Pool Keramat XAU/USD',
           paragraphs: [
-            'BSL menumpuk di atas puncak (SL trader SELL + Buy Stop) dan SSL menumpuk di bawah lembah (SL trader BUY + Sell Stop). EQH/EQL menjadi magnet sapuan terkuat karena menumpuk Stop Loss ganda.',
-            'Lima kolam utama yang wajib dipetakan adalah PWH/PWL, PDH/PDL, Asia Range (20:00–00:00 NY), Session H/L, dan EQH/EQL dengan selalu memisahkan status Fresh vs Taken.'
+            'BSL menumpuk di atas puncak (SL trader SELL + Buy Stop) dan SSL menumpuk di bawah lembah (SL trader BUY + Sell Stop). EQH/EQL menjadi magnet sweep terkuat karena menumpuk Stop Loss ganda.',
+            'Lima Liquidity Pool utama yang wajib dipetakan adalah PWH/PWL, PDH/PDL, Asia Range (20:00–00:00 NY), Session H/L, dan EQH/EQL dengan selalu memisahkan status Fresh vs Taken.'
           ]
         }
       ],
       mappingSteps: [
         'Tandai PWH/PWL dan PDH/PDL pada timeframe H1/Daily.',
         'Gambar kotak Asia High/Low (08:00–12:00 WITA EDT / 09:00–13:00 WITA EST) serta tandai EQH/EQL jelas di M15.',
-        'Beri label [TAKEN] pada level yang sudah ditembus harga hari ini agar target tetap mengarah ke kolam yang masih Fresh.'
+        'Beri label [TAKEN] pada level yang sudah ditembus harga hari ini agar target tetap mengarah ke Liquidity Pool yang masih Fresh.'
       ],
       decisionTree: [
         {
@@ -919,11 +919,11 @@
       ],
       failedCase: {
         context: 'Trader melihat "Double Top" (EQH) rapi di 2.665, langsung SELL tanpa konfirmasi dan memasang SL tipis di 2.666,50.',
-        whyFailed: 'EQH adalah magnet BSL paling jelas; harga menyapu 2.667 untuk memakan seluruh SL ritel sebelum akhirnya benar-benar turun.'
+        whyFailed: 'EQH adalah magnet BSL paling jelas; harga sweep 2.667 untuk memakan seluruh SL ritel sebelum akhirnya benar-benar turun.'
       },
       validRules: [
-        'Selalu bedakan kolam likuiditas yang masih Fresh vs sudah Taken/Swept.',
-        'Jadikan kolam BSL/SSL yang masih utuh sebagai referensi target rasional.'
+        'Selalu bedakan Liquidity Pool yang masih Fresh vs sudah Taken/Swept.',
+        'Jadikan Liquidity Pool BSL/SSL yang masih utuh sebagai referensi target rasional.'
       ],
       invalidRules: [
         'Menganggap Double Top (EQH) atau Double Bottom (EQL) sebagai tembok anti-tembus untuk menaruh SL tipis.',
@@ -932,12 +932,12 @@
       xauScenario: {
         context: 'Pukul 14:30 WITA (EDT), Gold di 2.651 dengan Asia High 2.654, Asia Low 2.646, dan PDH Fresh di 2.670.',
         steps: [
-          'Tandai Asia High/Low sebagai kolam intraday pertama dan PDH 2.670 sebagai kolam harian utama.',
-          'Jika pembukaan London menyapu Asia Low 2.646 lalu berbalik naik, target alami mengarah ke Asia High (Fresh) lalu PDH 2.670.'
+          'Tandai Asia High/Low sebagai Liquidity Pool intraday pertama dan PDH 2.670 sebagai Liquidity Pool harian utama.',
+          'Jika pembukaan London sweep Asia Low 2.646 lalu berbalik naik, target alami mengarah ke Asia High (Fresh) lalu PDH 2.670.'
         ]
       },
       goldenRules: [
-        'Pasar bergerak dari satu kolam likuiditas ke kolam likuiditas berikutnya — kenali lokasi Stop Loss sebelum memasang Stop Loss milikmu sendiri.'
+        'Pasar bergerak dari satu Liquidity Pool ke Liquidity Pool berikutnya — kenali lokasi Stop Loss sebelum memasang Stop Loss milikmu sendiri.'
       ],
       practiceCta: {
         label: 'Amati PDH/PDL & Asia High/Low di Chart Gold',
@@ -954,18 +954,18 @@
             'Karena SSL selalu berada di atas puncak tertinggi tahunan'
           ],
           answerIndex: 1,
-          explanation: 'Menutup posisi BUY secara otomatis mengeksekusi order SELL. Kumpulan Stop Loss BUY di bawah lembah menciptakan kolam pesanan jual (SSL).'
+          explanation: 'Menutup posisi BUY secara otomatis mengeksekusi order SELL. Kumpulan Stop Loss BUY di bawah lembah menciptakan Liquidity Pool pesanan jual (SSL).'
         },
         {
           question: 'Dalam kacamata ICT, bagaimana kita memperlakukan dua puncak yang berhenti nyaris sejajar (**Equal Highs / EQH**) di chart Gold?',
           options: [
             'Sebagai tembok baja yang mustahil ditembus sehingga aman memasang SL SELL tepat $0,50 di atasnya',
-            'Sebagai papan magnet BSL bervolume tebal yang sangat rawan disapu untuk mengambil tumpukan Stop Loss ritel',
+            'Sebagai papan magnet BSL bervolume tebal yang sangat rawan di-sweep untuk mengambil tumpukan Stop Loss ritel',
             'Sebagai tanda pasar akhir pekan',
             'Sebagai garis batas margin call'
           ],
           answerIndex: 1,
-          explanation: 'EQH/EQL memancing ribuan trader ritel masuk Double Top/Bottom dengan SL rapat di baliknya, menjadikannya salah satu target sapuan terfavorit algoritma.'
+          explanation: 'EQH/EQL memancing ribuan trader ritel masuk Double Top/Bottom dengan SL rapat di baliknya, menjadikannya salah satu target sweep terfavorit algoritma.'
         },
         {
           question: 'Jam berapakah rentang baku **Asia Range (`20:00–00:00 NY`)** jika dikonversi ke waktu **WITA**?',
@@ -982,12 +982,12 @@
           question: 'PDH kemarin berada di `2.670,00`. Pada pukul 15:30 WITA hari ini, harga Gold sudah sempat naik ke `2.673,00` lalu turun ke `2.668,00`. Bagaimana status level `PDH 2.670,00` sekarang?',
           options: [
             'Masih Fresh dan menjadi magnet BUY paling segar',
-            'Sudah **TAKEN / SWEPT** — kolam likuiditas di atas PDH sudah terambil sehingga tidak lagi diperlakukan sebagai target magnet segar',
+            'Sudah **TAKEN / SWEPT** — Liquidity Pool di atas PDH sudah terambil sehingga tidak lagi diperlakukan sebagai target magnet segar',
             'Berubah menjadi PWL otomatis',
             'Tidak valid karena terjadi di hari kerja'
           ],
           answerIndex: 1,
-          explanation: 'Begitu harga melampaui PDH, likuiditas di atasnya sudah terambil (TAKEN/SWEPT). Trader wajib mengevaluasi arah selanjutnya daripada tetap mengejar level yang sudah kosong.'
+          explanation: 'Begitu harga melampaui PDH, Liquidity di atasnya sudah terambil (TAKEN/SWEPT). Trader wajib mengevaluasi arah selanjutnya daripada tetap mengejar level yang sudah kosong.'
         }
       ]
     },
@@ -1000,12 +1000,12 @@
       number: 12,
       levelId: 1,
       bookFormat: true,
-      title: 'Inducement (IDM): Mengenali Umpan Ritel Sebelum Pergerakan Asli',
-      subtitle: 'Membongkar alasan nomor satu kenapa analisismu sudah 100% searah tren tetapi tetap kena Stop Loss dulu sebelum harga terbang: kamu masuk sebelum Inducement disapu.',
+      title: 'Inducement (IDM): Mengenali Trap Ritel Sebelum Pergerakan Asli',
+      subtitle: 'Membongkar alasan nomor satu kenapa analisismu sudah 100% searah tren tetapi tetap kena Stop Loss dulu sebelum harga terbang: kamu masuk sebelum Inducement di-sweep.',
       readMinutes: 10,
       diagramId: 'inducement-trap',
       diagramAfterSection: 1,
-      summary: 'Definisi mekanis Inducement (pullback internal pertama sebelum zona asli), anatomi 3 langkah jebakan umpan ritel di XAU/USD, cara membedakan zona Pre-IDM vs Post-IDM, dan aturan "No IDM = You Are The Liquidity".',
+      summary: 'Definisi mekanis Inducement (pullback internal pertama sebelum zona asli), anatomi 3 langkah jebakan trap ritel di XAU/USD, cara membedakan zona Pre-IDM vs Post-IDM, dan aturan "No IDM = You Are The Liquidity".',
       bookSections: [
         {
           number: '12.1',
@@ -1013,7 +1013,7 @@
           paragraphs: [
             'Pernahkah kamu mengalami kejadian paling bikin frustrasi di dunia trading ini: arah tren sudah benar, zona belimu terlihat sangat rapi di chart, kamu klik BUY, lalu harga turun **$3 lagi** pas menyentuh Stop Loss-mu — dan **detik itu juga** harga langsung terbang `+$25` persis ke arah Take Profit yang tadinya kamu rencanakan?!',
             'Jika itu sering terjadi padamu, hampir pasti pelakunya adalah satu konsep yang jarang dijelaskan dengan jernih di luar ICT/SMC: **Inducement (IDM)**.',
-            'Secara bahasa, *induce* berarti **memancing** atau **menggoda**. Di chart Gold, **Inducement adalah ayunan koreksi kecil pertama (pullback internal pertama) yang terletak tepat di depan area beli/jual yang sebenarnya.** Tugasnya cuma satu: menggoda trader yang tidak sabar agar terburu-buru masuk duluan di area paling dekat dengan harga sekarang, sehingga Stop Loss mereka bisa disapu menjadi bahan bakar sebelum gerak asli dimulai!'
+            'Secara bahasa, *induce* berarti **memancing** atau **menggoda**. Di chart Gold, **Inducement adalah swing koreksi kecil pertama (pullback internal pertama) yang terletak tepat di depan area beli/jual yang sebenarnya.** Tugasnya cuma satu: menggoda trader yang tidak sabar agar terburu-buru masuk duluan di area paling dekat dengan harga sekarang, sehingga Stop Loss mereka bisa di-sweep menjadi bahan bakar sebelum gerak asli dimulai!'
           ]
         },
         {
@@ -1031,11 +1031,11 @@
               },
               {
                 label: 'Langkah 2 — Ritel Masuk di Zona "Terlalu Cepat" (Pre-IDM)',
-                detail: 'Ketika harga mulai turun dari `2.665`, trader yang takut ketinggalan langsung memasang Buy Limit di area atas `2.658` (tepat di atas IDM `2.656`) dengan Stop Loss di `2.654`. Di mata mereka zona itu "cantik" — padahal **belum ada satu pun likuiditas yang disapu**!'
+                detail: 'Ketika harga mulai turun dari `2.665`, trader yang takut ketinggalan langsung memasang Buy Limit di area atas `2.658` (tepat di atas IDM `2.656`) dengan Stop Loss di `2.654`. Di mata mereka zona itu "cantik" — padahal **belum ada satu pun Liquidity yang di-sweep**!'
               },
               {
-                label: 'Langkah 3 — Sapuan IDM & Peluncuran dari Zona Asli (Post-IDM)',
-                detail: 'Harga turun menembus `2.656` (IDM tersapu!), menyikat seluruh Stop Loss di `2.654`, masuk ke zona beli yang lebih dalam & lebih murah di **`2.648`** (**zona Post-IDM**), lalu dari sana melesat kencang menuju `2.675`!'
+                label: 'Langkah 3 — Sweep IDM & Peluncuran dari Zona Asli (Post-IDM)',
+                detail: 'Harga turun menembus `2.656` (IDM kena sweep!), menyikat seluruh Stop Loss di `2.654`, masuk ke zona beli yang lebih dalam & lebih murah di **`2.648`** (**zona Post-IDM**), lalu dari sana melesat kencang menuju `2.675`!'
               }
             ]
           }
@@ -1050,10 +1050,10 @@
             caption: 'Checklist Cepat: Zona Umpan (Pre-IDM) vs Zona Layak Tunggu (Post-IDM)',
             headers: ['Ciri di Chart', 'Zona Umpan (Pre-IDM / Rawan Jebol)', 'Zona Asli (Post-IDM / Probabilitas Tinggi)'],
             rows: [
-              ['Posisi Terhadap IDM', 'Berada **di atas/depan** pullback kecil pertama (belum ada sapuan)', 'Berada **tepat di belakang/bawah** IDM (menunggu IDM disapu dulu)'],
+              ['Posisi Terhadap IDM', 'Berada **di atas/depan** pullback kecil pertama (belum ada sweep)', 'Berada **tepat di belakang/bawah** IDM (menunggu IDM di-sweep dulu)'],
               ['Harga di Dalam Kotak', 'Biasanya masih di area mahal (dekat puncak gelombang)', 'Sudah masuk area lebih dalam dan lebih murah di dalam Dealing Range'],
-              ['Bahan Bakar di Depannya', '**Kosong** — justru SL orang yang masuk di zona inilah bahan bakarnya', '**Tersedia** — tumpukan SL di balik IDM tepat di depannya siap disapu'],
-              ['Tindakan Disiplin', 'Jadikan **tanda bahaya / area pantau sapuan**, bukan tempat pasang limit buta', 'Siapkan rencana pantau reaksi & konfirmasi begitu IDM selesai disapu']
+              ['Bahan Bakar di Depannya', '**Kosong** — justru SL orang yang masuk di zona inilah bahan bakarnya', '**Tersedia** — tumpukan SL di balik IDM tepat di depannya siap di-sweep'],
+              ['Tindakan Disiplin', 'Jadikan **tanda bahaya / area pantau sweep**, bukan tempat pasang limit buta', 'Siapkan rencana pantau reaksi & konfirmasi begitu IDM selesai di-sweep']
             ]
           }
         },
@@ -1062,63 +1062,63 @@
           heading: 'Aturan Emas "No Inducement = You Are The Liquidity" & Penutup Bagian II',
           paragraphs: [
             'Di kalangan trader institusional ada satu pepatah singkat yang sangat terkenal: **"If you don\'t see the liquidity, YOU are the liquidity."** (Kalau kamu tidak melihat siapa yang sedang dijadikan umpan di depan zonamu, berarti Stop Loss milikmu sendirilah yang akan dijadikan umpan!)',
-            'Dengan menuntaskan Bab 12 ini, kamu baru saja menyelesaikan seluruh **Bagian II: Struktur Pasar & Peta Likuiditas**. Coba mundur sejenak dan lihat betapa jauh kemajuanmu sejak Bab 01: sekarang kamu bisa membuka chart XAU/USD kosong, membaca tangga `HH–HL / LH–LL` secara mekanis (Bab 07), menyatukan `H1–M15–M5` (Bab 08), membedakan `BOS` vs `Sweep` (Bab 09), membingkai `Dealing Range` (Bab 10), memetakan 5 kolam likuiditas (Bab 11), dan tidak lagi tertipu umpan `Inducement` (Bab 12).'
+            'Dengan menuntaskan Bab 12 ini, kamu baru saja menyelesaikan seluruh **Bagian II: Struktur Pasar & Peta Liquidity**. Coba mundur sejenak dan lihat betapa jauh kemajuanmu sejak Bab 01: sekarang kamu bisa membuka chart XAU/USD kosong, membaca tangga `HH–HL / LH–LL` secara mekanis (Bab 07), menyatukan `H1–M15–M5` (Bab 08), membedakan `BOS` vs `Sweep` (Bab 09), membingkai `Dealing Range` (Bab 10), memetakan 5 Liquidity Pool (Bab 11), dan tidak lagi tertipu umpan `Inducement` (Bab 12).'
           ],
           callout: {
             tone: 'info',
             title: 'Satu Kepingan Besar Lagi Sebelum Masuk Zona Entry!',
-            body: 'Kamu sekarang sudah tahu **di mana** semua kolam likuiditas berada (`PWH/PWL, PDH/PDL, Asia Range, EQH/EQL, IDM`). Pertanyaan berikutnya yang paling sering bikin bingung trader adalah: *"Di atas ada BSL, di bawah ada SSL — lalu hari ini harga sebenarnya mau menuju ke atas atau ke bawah dulu, dan jam berapa pergerakan aslinya dimulai?"* Itulah fokus penuh **Bagian III**!'
+            body: 'Kamu sekarang sudah tahu **di mana** semua Liquidity Pool berada (`PWH/PWL, PDH/PDL, Asia Range, EQH/EQL, IDM`). Pertanyaan berikutnya yang paling sering bikin bingung trader adalah: *"Di atas ada BSL, di bawah ada SSL — lalu hari ini harga sebenarnya mau menuju ke atas atau ke bawah dulu, dan jam berapa pergerakan aslinya dimulai?"* Itulah fokus penuh **Bagian III**!'
           }
         }
       ],
       keyTakeaways: [
         '**Inducement (IDM)** adalah pullback internal kecil pertama di depan zona entry asli yang berfungsi memancing trader tak sabar masuk terlalu awal.',
-        'Zona **Pre-IDM** (belum ada likuiditas disapu di depannya) sangat rentan ditembus SL; zona **Post-IDM** (di belakang IDM) memiliki bahan bakar likuiditas yang jelas.',
-        'Aturan anti-SL konyol: **tunggu IDM tersapu lebih dulu** sebelum mempertimbangkan entry — jika tidak melihat siapa umpannya, kamulah umpannya.',
-        'Dengan berakhirnya Bagian II, seluruh fondasi baca struktur dan peta likuiditas di chart kosong sudah lengkap.'
+        'Zona **Pre-IDM** (belum ada Liquidity di-sweep di depannya) sangat rentan ditembus SL; zona **Post-IDM** (di belakang IDM) memiliki bahan bakar Liquidity yang jelas.',
+        'Aturan anti-SL konyol: **tunggu IDM kena sweep lebih dulu** sebelum mempertimbangkan entry — jika tidak melihat siapa umpannya, kamulah umpannya.',
+        'Dengan berakhirnya Bagian II, seluruh fondasi baca struktur dan peta Liquidity di chart kosong sudah lengkap.'
       ],
-      bridgeNext: 'Selamat telah menuntaskan **Bagian II (Bab 07–12)**! Peta struktur dan seluruh lokasi kolam likuiditas kini sudah ada di tanganmu. Di **Bagian III: Kompas Arah**, kita langsung menjawab pertanyaan terbesar yang paling banyak dicari trader ICT: dari sekian banyak kolam likuiditas di atas dan di bawah harga, **bagaimana cara memilih satu magnet tujuan utama hari ini langkah demi langkah?** Mari kita buka **Bab 13: Draw on Liquidity (DOL) Tuntas: Cara Menemukan Magnet Harga Langkah demi Langkah**.',
+      bridgeNext: 'Selamat telah menuntaskan **Bagian II (Bab 07–12)**! Peta struktur dan seluruh lokasi Liquidity Pool kini sudah ada di tanganmu. Di **Bagian III: Kompas Arah**, kita langsung menjawab pertanyaan terbesar yang paling banyak dicari trader ICT: dari sekian banyak Liquidity Pool di atas dan di bawah harga, **bagaimana cara memilih satu magnet tujuan utama hari ini langkah demi langkah?** Mari kita buka **Bab 13: Draw on Liquidity (DOL) Tuntas: Cara Menemukan Magnet Harga Langkah demi Langkah**.',
       conceptBlocks: [
         {
           heading: 'Anatomi Inducement (IDM): Zona Umpan Pre-IDM vs Zona Asli Post-IDM',
           paragraphs: [
             'Inducement adalah pullback internal pertama di depan zona entry sebenarnya yang memancing trader ritel masuk terlalu awal.',
-            'Trader disiplin menunggu Inducement disapu terlebih dahulu (mengambil SL ritel sebagai bahan bakar) sebelum mencari reaksi di zona Post-IDM yang lebih dalam.'
+            'Trader disiplin menunggu Inducement di-sweep terlebih dahulu (mengambil SL ritel sebagai bahan bakar) sebelum mencari reaksi di zona Post-IDM yang lebih dalam.'
           ]
         }
       ],
       mappingSteps: [
         'Setelah BOS Valid terjadi, tandai pullback internal kecil pertama di dalam Dealing Range sebagai kandidat IDM.',
         'Abaikan zona yang terletak di depan IDM (Pre-IDM) sebagai tempat pasang limit buta.',
-        'Tunggu harga menyapu titik IDM terlebih dahulu, lalu amati reaksi di zona Post-IDM yang berada di belakangnya.'
+        'Tunggu harga sweep titik IDM terlebih dahulu, lalu amati reaksi di zona Post-IDM yang berada di belakangnya.'
       ],
       decisionTree: [
         {
-          condition: 'Ada zona entry pertama yang sangat dekat dengan puncak gelombang dan belum ada satu pun pullback kecil yang disapu di depannya.',
-          action: 'Perlakukan zona tersebut sebagai potensi jebakan Pre-IDM; tunggu sapuan IDM menuju zona lebih dalam.'
+          condition: 'Ada zona entry pertama yang sangat dekat dengan puncak gelombang dan belum ada satu pun pullback kecil yang di-sweep di depannya.',
+          action: 'Perlakukan zona tersebut sebagai potensi jebakan Pre-IDM; tunggu sweep IDM menuju zona lebih dalam.'
         },
         {
-          condition: 'Harga baru saja menyapu titik IDM dan langsung masuk ke zona Post-IDM searah tren HTF.',
-          action: 'Bahan bakar likuiditas sudah terambil — pantau konfirmasi reaksi entry sesuai aturan.'
+          condition: 'Harga baru saja sweep titik IDM dan langsung masuk ke zona Post-IDM searah tren HTF.',
+          action: 'Bahan bakar Liquidity sudah terambil — pantau konfirmasi reaksi entry sesuai aturan.'
         }
       ],
       failedCase: {
         context: 'Di tren naik M15, trader langsung memasang Buy Limit di area paling atas (2.658) tepat di atas pullback kecil pertama (2.656).',
-        whyFailed: '2.656 adalah Inducement; harga turun menyapu 2.656 + SL trader tersebut hingga 2.648 (zona Post-IDM) sebelum akhirnya terbang ke 2.675.'
+        whyFailed: '2.656 adalah Inducement; harga turun sweep 2.656 + SL trader tersebut hingga 2.648 (zona Post-IDM) sebelum akhirnya terbang ke 2.675.'
       },
       validRules: [
         'Identifikasi titik Inducement (pullback internal pertama) sebelum memilih zona tunggu.',
         'Utamakan zona yang memiliki Inducement jelas tepat di depannya.'
       ],
       invalidRules: [
-        'Memasang Limit Order agresif pada zona pertama tanpa mengecek apakah sudah ada sapuan likuiditas.',
+        'Memasang Limit Order agresif pada zona pertama tanpa mengecek apakah sudah ada Liquidity Sweep.',
         'Menganggap setiap zona paling dekat harga saat ini sebagai zona terbaik.'
       ],
       xauScenario: {
         context: 'Gold M15 Bullish 2.640 → 2.665 dengan pullback internal pertama (IDM) di 2.656 dan zona dalam di 2.648.',
         steps: [
           'Tandai 2.656 sebagai IDM — hindari terburu-buru BUY di 2.658.',
-          'Tunggu harga menyapu 2.656 masuk ke 2.648 (Post-IDM), lalu cari konfirmasi BUY menuju 2.675.'
+          'Tunggu harga sweep 2.656 masuk ke 2.648 (Post-IDM), lalu cari konfirmasi BUY menuju 2.675.'
         ]
       },
       goldenRules: [
@@ -1134,45 +1134,45 @@
           question: 'Apa definisi paling tepat dari **Inducement (IDM)** dalam struktur pasar ICT/SMC?',
           options: [
             'Indikator garis rata-rata 200 hari',
-            'Pullback internal pertama di depan zona entry sebenarnya yang berfungsi memancing trader tak sabar masuk lebih awal agar SL mereka disapu sebagai bahan bakar',
+            'Pullback internal pertama di depan zona entry sebenarnya yang berfungsi memancing trader tak sabar masuk lebih awal agar SL mereka di-sweep sebagai bahan bakar',
             'Jam penutupan pasar di akhir pekan',
             'Batas minimal deposit pada Akun Cent'
           ],
           answerIndex: 1,
-          explanation: 'Inducement adalah ayunan koreksi kecil pertama di depan area asli; sapuan atas IDM memberi bahan bakar likuiditas sebelum gerak utama berlanjut.'
+          explanation: 'Inducement adalah swing koreksi kecil pertama di depan area asli; sweep atas IDM memberi bahan bakar Liquidity sebelum gerak utama berlanjut.'
         },
         {
           question: 'Pada tren naik Gold (`2.640 → 2.665`), terdapat pullback kecil pertama (`IDM`) di `2.656` dan zona beli dalam di `2.648`. Di manakah posisi zona yang berisiko menjadi **jebakan Pre-IDM**?',
           options: [
-            'Area beli di `2.658` (tepat di atas IDM `2.656` sebelum IDM tersapu)',
-            'Area beli di `2.648` setelah IDM `2.656` selesai disapu',
+            'Area beli di `2.658` (tepat di atas IDM `2.656` sebelum IDM kena sweep)',
+            'Area beli di `2.648` setelah IDM `2.656` selesai di-sweep',
             'Target Take Profit di atas `2.665`',
             'Batas Strong Low di `2.640`'
           ],
           answerIndex: 0,
-          explanation: 'Area 2.658 terletak di depan IDM 2.656 tanpa ada bahan bakar likuiditas di depannya — sangat rawan ditembus saat harga menyapu 2.656.'
+          explanation: 'Area 2.658 terletak di depan IDM 2.656 tanpa ada bahan bakar Liquidity di depannya — sangat rawan ditembus saat harga sweep 2.656.'
         },
         {
           question: 'Apa makna praktis dari pepatah trading: *"If you don\'t see the liquidity, YOU are the liquidity"*?',
           options: [
             'Trader harus selalu menaikkan lot menjadi 10 kali lipat',
-            'Jika kamu masuk di sebuah zona tanpa ada umpan/likuiditas jelas yang disapu di depannya, maka Stop Loss milikmu sendirilah yang sangat berisiko disapu pasar',
+            'Jika kamu masuk di sebuah zona tanpa ada umpan/Liquidity jelas yang di-sweep di depannya, maka Stop Loss milikmu sendirilah yang sangat berisiko di-sweep pasar',
             'Trader tidak perlu memasang Stop Loss sama sekali',
             'Hanya bank besar yang boleh membuka chart Gold'
           ],
           answerIndex: 1,
-          explanation: 'Tanpa sapuan Inducement/likuiditas sebelumnya, posisi awal ritel justru menjadi kolam Stop Loss pertama yang diincar sebelum gerak asli terjadi.'
+          explanation: 'Tanpa sweep Inducement/Liquidity sebelumnya, posisi awal ritel justru menjadi Liquidity Pool Stop Loss pertama yang diincar sebelum gerak asli terjadi.'
         },
         {
           question: 'Setelah melihat sebuah zona Post-IDM di `2.648` dengan IDM jelas di `2.656`, sikap paling disiplin bagi trader adalah:',
           options: [
             'Tetap klik BUY sekarang di `2.662` karena takut ketinggalan',
-            'Sabar menunggu harga menyapu `2.656` (IDM) terlebih dahulu baru memantau reaksi di zona `2.648`',
+            'Sabar menunggu harga sweep `2.656` (IDM) terlebih dahulu baru memantau reaksi di zona `2.648`',
             'Memasang SELL tanpa Stop Loss di `2.648`',
             'Menghapus semua garis struktur dan menebak arah koin'
           ],
           answerIndex: 1,
-          explanation: 'Kesabaran menunggu IDM tersapu memastikan kamu masuk bersama arus institusi setelah umpan ritel selesai dibersihkan.'
+          explanation: 'Kesabaran menunggu IDM kena sweep memastikan kamu masuk bersama arus institusi setelah trap ritel selesai dibersihkan.'
         }
       ]
     },
@@ -1186,7 +1186,7 @@
       levelId: 2,
       bookFormat: true,
       title: 'Draw on Liquidity (DOL) Tuntas: Cara Menemukan Magnet Harga Langkah demi Langkah',
-      subtitle: 'Menjawab kebingungan terbesar trader ICT: di atas ada kolam BSL, di bawah ada kolam SSL — lalu bagaimana cara memastikan SATU magnet tujuan utama (DOL) hari ini tanpa menebak?',
+      subtitle: 'Menjawab kebingungan terbesar trader ICT: di atas ada Liquidity Pool BSL, di bawah ada Liquidity Pool SSL — lalu bagaimana cara memastikan SATU magnet tujuan utama (DOL) hari ini tanpa menebak?',
       readMinutes: 11,
       diagramId: 'key-liquidity-levels',
       diagramAfterSection: 1,
@@ -1196,11 +1196,11 @@
           number: '13.1',
           heading: 'Apa Itu Draw on Liquidity (DOL) Sebenarnya? (Analogi Magnet Besi)',
           paragraphs: [
-            'Selamat datang di **Bagian III: Kompas Arah**. Di Bab 11 kamu sudah memetakan di mana saja kolam likuiditas berada (`PWH/PWL`, `PDH/PDL`, `Asia High/Low`, `EQH/EQL`). Sekarang muncul pertanyaan paling jujur sekaligus paling sering bikin trader ICT bingung: *"Oke, di atas harga ada PDH dan EQH. Di bawah harga ada PDL dan Asia Low. Dua-duanya kan likuiditas — lalu dari mana aku tahu hari ini harga mau ditarik ke ATAS dulu atau ke BAWAH dulu?!"*',
+            'Selamat datang di **Bagian III: Kompas Arah**. Di Bab 11 kamu sudah memetakan di mana saja Liquidity Pool berada (`PWH/PWL`, `PDH/PDL`, `Asia High/Low`, `EQH/EQL`). Sekarang muncul pertanyaan paling jujur sekaligus paling sering bikin trader ICT bingung: *"Oke, di atas harga ada PDH dan EQH. Di bawah harga ada PDL dan Asia Low. Dua-duanya kan Liquidity — lalu dari mana aku tahu hari ini harga mau ditarik ke ATAS dulu atau ke BAWAH dulu?!"*',
             'Jawabannya ada pada konsep terpenting di seluruh kurikulum ICT: **Draw on Liquidity (DOL)**. Kata *Draw* di sini bukan berarti "menggambar", melainkan **"tarikan / magnet"**. **Draw on Liquidity adalah satu tujuan spesifik yang sedang menarik harga Gold bergerak menuju ke sana.**',
             'Dalam prinsip ICT, harga di pasar tidak pernah berjalan tanpa tujuan. Pada setiap jam dan setiap hari, harga hanya melakukan **satu dari dua misi berikut**:',
-            '1. **Misi Eksternal (Menuju Kolam Stop Loss):** Harga sedang ditarik menuju `Old High / EQH / PDH / PWH` (BSL) atau menuju `Old Low / EQL / PDL / PWL` (SSL) yang masih segar (*Fresh*).',
-            '2. **Misi Internal (Menutup Ketidakseimbangan):** Harga sedang ditarik masuk kembali ke dalam *Dealing Range* menuju area ketidakseimbangan kosong (*Fair Value Gap / Imbalance* di H1/H4) untuk menyeimbangkan harga sebelum meluncur lagi ke misi eksternal.'
+            '1. **Misi Eksternal (Menuju Liquidity Pool Stop Loss):** Harga sedang ditarik menuju `Old High / EQH / PDH / PWH` (BSL) atau menuju `Old Low / EQL / PDL / PWL` (SSL) yang masih segar (*Fresh*).',
+            '2. **Misi Internal (Menutup Imbalance):** Harga sedang ditarik masuk kembali ke dalam *Dealing Range* menuju area Imbalance (*Fair Value Gap* di H1/H4) untuk menyeimbangkan harga sebelum meluncur lagi ke misi eksternal.'
           ]
         },
         {
@@ -1213,9 +1213,9 @@
             caption: 'Mesin 4-Langkah Menemukan Draw on Liquidity (DOL) Tanpa Bingung',
             headers: ['Langkah', 'Pertanyaan Kunci di Chart', 'Cara Membaca Fakta Harga', 'Hasil Keputusan'],
             rows: [
-              ['1. Cek Origin (Asal Tolakan)', 'Kolam likuiditas atau zona mana yang **BARU SAJA** disentuh/disapu harga?', 'Jika harga baru menyapu **SSL / PDL / Asia Low** lalu menolak tajam → bahan bakar bawah baru diambil', 'Magnet aktif (`DOL`) berpindah **ke sisi lawan (ATAS / BSL)**'],
+              ['1. Cek Origin (Asal Tolakan)', 'Liquidity Pool atau zona mana yang **BARU SAJA** disentuh/di-sweep harga?', 'Jika harga baru sweep **SSL / PDL / Asia Low** lalu menolak tajam → bahan bakar bawah baru diambil', 'Magnet aktif (`DOL`) berpindah **ke sisi lawan (ATAS / BSL)**'],
               ['2. Cek Arus HTF (H4 & H1)', 'Apakah struktur H4/H1 mendukung arah tarikan tersebut?', 'H1 sedang `HH–HL` (Bullish) dan harga memantul di atas Strong Low', 'Tarikan ke atas (**BSL**) mendapat dukungan penuh arus besar'],
-              ['3. Pilih Magnet Terdekat yang FRESH', 'Dari daftar kolam segar di arah tujuan, mana yang paling bersih & belum tersapu?', 'Urutan prioritas wajar intraday: `Asia H/L` → `Session H/L` → `EQH/EQL` → `PDH/PDL` → `PWH/PWL`', 'Kunci 1 target terdekat (**DOL 1**) dan 1 target utama (**DOL 2**)'],
+              ['3. Pilih Magnet Terdekat yang FRESH', 'Dari daftar Liquidity Pool fresh di arah tujuan, mana yang paling bersih & belum kena sweep?', 'Urutan prioritas wajar intraday: `Asia H/L` → `Session H/L` → `EQH/EQL` → `PDH/PDL` → `PWH/PWL`', 'Kunci 1 target terdekat (**DOL 1**) dan 1 target utama (**DOL 2**)'],
               ['4. Cek Penghalang & Batas Batal', 'Apakah ada tembok besar di tengah jalan atau level invalidasi?', 'Pastikan jarak ke DOL cukup luas (minimal R:R 1:2) dan tandai titik asal sweep sebagai batas batal', 'Jika harga justru **body close** menembus titik asal sweep → DOL lama **BATAL**!']
             ]
           },
@@ -1227,14 +1227,14 @@
           number: '13.3',
           heading: 'Kasus Abu-Abu DOL: Bagaimana Jika Harga Terjepit di Tengah Range?',
           paragraphs: [
-            'Ada satu situasi nyata yang paling sering menjebak pemula: kamu membuka chart pukul 13:30 WITA, lalu melihat harga Gold berada **persis di tengah-tengah (50%)** antara `PDH` di atas (`+$16`) dan `PDL` di bawah (`-$16`), sementara Asia Low belum tersapu dan Asia High juga belum tersapu. Di posisi seperti ini, **ke mana DOL-nya?**',
-            'Jawabannya tegas dan jujur: **di tengah kotak tanpa Origin, DOL belum terkonfirmasi!** Jangan memaksakan opini. Terapkan aturan **Wait for First Sweep (Tunggu Sapuan Pertama)**: biarkan pembukaan sesi London atau New York memilih duluan dinding mana yang mau disapu.',
-            'Begitu harga turun duluan menyapu `Asia Low` (atau `PDL`) lalu memantul kuat dengan body close kembali ke dalam range, saat itulah misteri selesai 100%: **Origin = Sweep Bawah**, maka **DOL resmi terkunci ke ATAS (`Asia High` → `PDH`)**! Sebaliknya, jika `Asia High` yang disapu duluan lalu ditolak turun, maka **DOL resmi terkunci ke BAWAH (`Asia Low` → `PDL`)**.'
+            'Ada satu situasi nyata yang paling sering menjebak pemula: kamu membuka chart pukul 13:30 WITA, lalu melihat harga Gold berada **persis di tengah-tengah (50%)** antara `PDH` di atas (`+$16`) dan `PDL` di bawah (`-$16`), sementara Asia Low belum kena sweep dan Asia High juga belum kena sweep. Di posisi seperti ini, **ke mana DOL-nya?**',
+            'Jawabannya tegas dan jujur: **di tengah kotak tanpa Origin, DOL belum terkonfirmasi!** Jangan memaksakan opini. Terapkan aturan **Wait for First Sweep (Tunggu Sweep Pertama)**: biarkan pembukaan sesi London atau New York memilih duluan dinding mana yang mau di-sweep.',
+            'Begitu harga turun duluan sweep `Asia Low` (atau `PDL`) lalu memantul kuat dengan body close kembali ke dalam range, saat itulah misteri selesai 100%: **Origin = Sweep Bawah**, maka **DOL resmi terkunci ke ATAS (`Asia High` → `PDH`)**! Sebaliknya, jika `Asia High` yang di-sweep duluan lalu ditolak turun, maka **DOL resmi terkunci ke BAWAH (`Asia Low` → `PDL`)**.'
           ],
           callout: {
             tone: 'warn',
             title: 'Kesalahan Klasik: Memilih DOL yang Terlalu Jauh atau Sudah Basi',
-            body: 'Jangan menargetkan PWH yang berjarak `$65` untuk entry scalping M5 ketika ada `EQH` dan `PDH` yang hanya berjarak `$14` di depan mata. Selain itu, selalu ingat aturan Bab 11: jika `PDH` sudah berstatus **TAKEN** pagi tadi, jangan memakainya lagi sebagai DOL atas — cari kolam segar berikutnya!'
+            body: 'Jangan menargetkan PWH yang berjarak `$65` untuk entry scalping M5 ketika ada `EQH` dan `PDH` yang hanya berjarak `$14` di depan mata. Selain itu, selalu ingat aturan Bab 11: jika `PDH` sudah berstatus **TAKEN** pagi tadi, jangan memakainya lagi sebagai DOL atas — cari Liquidity Pool fresh berikutnya!'
           }
         },
         {
@@ -1252,7 +1252,7 @@
               },
               {
                 label: 'Reaksi Pukul 15:15 WITA (Lahirnya Origin)',
-                detail: 'Sesi London dibuka; Gold turun cepat ke `2.643,50` **menyapu Asia Low `2.646` dengan sumbu panjang**, lalu candle M15 ditutup kembali di atas `2.647,50` (Sweep valid!). Sekarang kita punya **Origin = Sweep Asia Low**.'
+                detail: 'Sesi London dibuka; Gold turun cepat ke `2.643,50` **sweep Asia Low `2.646` dengan wick panjang**, lalu candle M15 ditutup kembali di atas `2.647,50` (Sweep valid!). Sekarang kita punya **Origin = Sweep Asia Low**.'
               },
               {
                 label: 'Penguncian DOL 2 Tahap',
@@ -1260,57 +1260,57 @@
               },
               {
                 label: 'Garis Batal DOL',
-                detail: 'Jika M15/H1 ternyata berbalik dan **body close di bawah `2.643,50`** (ujung sapuan tadi), maka skenario DOL ke atas **batal** dan magnet langsung beralih mengincar `PDL 2.638` di bawah.'
+                detail: 'Jika M15/H1 ternyata berbalik dan **body close di bawah `2.643,50`** (ujung sweep tadi), maka skenario DOL ke atas **batal** dan magnet langsung beralih mengincar `PDL 2.638` di bawah.'
               }
             ]
           }
         }
       ],
       keyTakeaways: [
-        '**Draw on Liquidity (DOL)** adalah satu magnet tujuan spesifik yang menarik harga — hanya ada 2 misi: **menuju kolam likuiditas eksternal (BSL/SSL Fresh)** atau **menutup ketidakseimbangan internal (FVG H1/H4)**.',
-        'Selalu gunakan **4 Langkah DOL**: (1) Cek **Origin** (dari mana harga baru saja menyapu/memantul), (2) Cek keselarasan **HTF**, (3) Pilih **magnet terdekat yang masih Fresh** (DOL 1 & DOL 2), (4) Tetapkan **garis batal**.',
-        'Jika harga terjepit di tengah range tanpa sapuan Origin, **jangan menebak** — tunggu sisi pertama tersapu (*Wait for First Sweep*), lalu sisi seberangnya otomatis menjadi DOL.',
+        '**Draw on Liquidity (DOL)** adalah satu magnet tujuan spesifik yang menarik harga — hanya ada 2 misi: **menuju Liquidity Pool eksternal (BSL/SSL Fresh)** atau **menutup Imbalance internal (FVG H1/H4)**.',
+        'Selalu gunakan **4 Langkah DOL**: (1) Cek **Origin** (dari mana harga baru saja sweep/memantul), (2) Cek keselarasan **HTF**, (3) Pilih **magnet terdekat yang masih Fresh** (DOL 1 & DOL 2), (4) Tetapkan **garis batal**.',
+        'Jika harga terjepit di tengah range tanpa sweep Origin, **jangan menebak** — tunggu sisi pertama kena sweep (*Wait for First Sweep*), lalu sisi seberangnya otomatis menjadi DOL.',
         'Begitu magnet DOL utama sudah tercapai (`TAKEN`), hentikan kebiasaan mengejar tren yang baru selesai menuntaskan misinya.'
       ],
-      bridgeNext: 'Luar biasa — sekarang **Draw on Liquidity (DOL)** tidak lagi terasa kabur atau abstrak! Kamu tahu cara membaca dari mana harga melompat (`Origin`) dan ke kolam mana harga ditarik (`DOL`). Nah, bagaimana cara menggabungkan peta DOL ini dengan **bentuk candle harian (Daily) kemarin** agar setiap pagi dalam 2 menit kamu sudah tahu arah prioritas hari ini? Mari lanjut ke **Bab 14: Menentukan Daily Bias & Membaca Arah Candle Harian (Next-Day Expansion)**.',
+      bridgeNext: 'Luar biasa — sekarang **Draw on Liquidity (DOL)** tidak lagi terasa kabur atau abstrak! Kamu tahu cara membaca dari mana harga melompat (`Origin`) dan ke Liquidity Pool mana harga ditarik (`DOL`). Nah, bagaimana cara menggabungkan peta DOL ini dengan **bentuk candle harian (Daily) kemarin** agar setiap pagi dalam 2 menit kamu sudah tahu arah prioritas hari ini? Mari lanjut ke **Bab 14: Menentukan Daily Bias & Membaca Arah Candle Harian (Next-Day Expansion)**.',
       conceptBlocks: [
         {
           heading: 'Mesin 4 Langkah Menentukan Draw on Liquidity (DOL)',
           paragraphs: [
             'Draw on Liquidity adalah satu target magnet utama (External BSL/SSL Fresh atau Internal Imbalance HTF) yang sedang menarik pergerakan harga.',
-            'Tentukan DOL melalui 4 langkah: cek Origin sapuan/pantulan terbaru, cek arah HTF, kunci magnet terdekat yang masih Fresh (DOL 1 & DOL 2), dan pasang garis batal jika titik Origin ditembus body close.'
+            'Tentukan DOL melalui 4 langkah: cek Origin sweep/pantulan terbaru, cek arah HTF, kunci magnet terdekat yang masih Fresh (DOL 1 & DOL 2), dan pasang garis batal jika titik Origin ditembus body close.'
           ]
         }
       ],
       mappingSteps: [
-        'Identifikasi Origin terbaru: kolam likuiditas atau zona HTF mana yang baru saja disapu atau menolak harga.',
+        'Identifikasi Origin terbaru: Liquidity Pool atau zona HTF mana yang baru saja di-sweep atau menolak harga.',
         'Konfirmasi keselarasan arus struktur H4/H1 terhadap arah pantulan dari Origin tersebut.',
         'Kunci DOL 1 (magnet intraday terdekat yang Fresh seperti Asia H/L atau EQH/EQL) dan DOL 2 (magnet harian seperti PDH/PDL), beserta garis batalnya.'
       ],
       decisionTree: [
         {
-          condition: 'Harga berada persis di tengah (50%) antara PDH dan PDL serta belum menyapu Asia High maupun Asia Low.',
-          action: 'Jangan menebak arah DOL. Terapkan Wait for First Sweep hingga salah satu ujung kotak Asia disapu lebih dulu.'
+          condition: 'Harga berada persis di tengah (50%) antara PDH dan PDL serta belum sweep Asia High maupun Asia Low.',
+          action: 'Jangan menebak arah DOL. Terapkan Wait for First Sweep hingga salah satu ujung kotak Asia di-sweep lebih dulu.'
         },
         {
-          condition: 'Harga baru saja menyapu Asia Low dengan sumbu penolakan tegas sementara struktur H1 Bullish dan PDH masih Fresh.',
-          action: 'Kunci DOL ke atas: Asia High sebagai DOL 1 (TP1) dan PDH sebagai DOL 2 (TP2), dengan titik batal di bawah ujung sapuan.'
+          condition: 'Harga baru saja sweep Asia Low dengan wick penolakan tegas sementara struktur H1 Bullish dan PDH masih Fresh.',
+          action: 'Kunci DOL ke atas: Asia High sebagai DOL 1 (TP1) dan PDH sebagai DOL 2 (TP2), dengan titik batal di bawah ujung sweep.'
         }
       ],
       failedCase: {
-        context: 'Trader memilih PDH sebagai DOL Buy padahal harga baru saja menyapu PDH 30 menit sebelumnya dan ditutup balik di bawahnya dengan wick panjang.',
-        whyFailed: 'Lupa bahwa PDH sudah berubah status menjadi TAKEN sekaligus menjadi Origin sapuan atas — magnet DOL justru sudah berbalik mengarah ke bawah.'
+        context: 'Trader memilih PDH sebagai DOL Buy padahal harga baru saja sweep PDH 30 menit sebelumnya dan ditutup balik di bawahnya dengan wick panjang.',
+        whyFailed: 'Lupa bahwa PDH sudah berubah status menjadi TAKEN sekaligus menjadi Origin sweep atas — magnet DOL justru sudah berbalik mengarah ke bawah.'
       },
       validRules: [
-        'Selalu hubungkan Origin (sisi yang baru disapu) dengan DOL (kolam Fresh di sisi lawan).',
+        'Selalu hubungkan Origin (sisi yang baru di-sweep) dengan DOL (Liquidity Pool Fresh di sisi lawan).',
         'Bedakan DOL 1 (target terdekat/TP1) dan DOL 2 (target harian utama/TP2).'
       ],
       invalidRules: [
-        'Menebak arah DOL saat harga masih di tengah range tanpa sapuan Origin.',
-        'Tetap membidik level likuiditas yang sudah TAKEN sebagai magnet baru.'
+        'Menebak arah DOL saat harga masih di tengah range tanpa sweep Origin.',
+        'Tetap membidik level Liquidity yang sudah TAKEN sebagai magnet baru.'
       ],
       xauScenario: {
-        context: 'Pukul 15:15 WITA, H1 Bullish, Gold menyapu Asia Low 2.646 sampai 2.643,50 lalu close kembali di atas 2.647,50.',
+        context: 'Pukul 15:15 WITA, H1 Bullish, Gold sweep Asia Low 2.646 sampai 2.643,50 lalu close kembali di atas 2.647,50.',
         steps: [
           'Origin terkonfirmasi = Sweep Asia Low.',
           'DOL 1 terkunci ke Asia High 2.654 dan DOL 2 ke PDH Fresh 2.672; batal jika close di bawah 2.643,50.'
@@ -1321,7 +1321,7 @@
       ],
       practiceCta: {
         label: 'Lihat Target DOL Live di Cockpit Mapping',
-        description: 'Bandingkan langsung target DOL aktif, kolam BSL/SSL Fresh, dan status Dealing Range Gold di Cockpit Mapping.',
+        description: 'Bandingkan langsung target DOL aktif, Liquidity Pool BSL/SSL Fresh, dan status Dealing Range Gold di Cockpit Mapping.',
         href: '../mapping/index.html'
       },
       quiz: [
@@ -1329,45 +1329,45 @@
           question: 'Dalam kerangka ICT, hanya ada **dua misi** yang menarik pergerakan harga (**Draw on Liquidity**). Apa saja keduanya?',
           options: [
             'Mengejar garis Moving Average 50 dan menunggu indikator RSI jenuh',
-            'Menuju kolam likuiditas eksternal yang masih Fresh (Old High/Low, PDH/PDL, EQH/EQL) atau menuju area ketidakseimbangan internal (FVG/Imbalance HTF)',
+            'Menuju Liquidity Pool eksternal yang masih Fresh (Old High/Low, PDH/PDL, EQH/EQL) atau menuju area Imbalance internal (FVG/Imbalance HTF)',
             'Naik setiap hari Senin dan turun setiap hari Jumat',
             'Hanya bergerak saat spread melebar di jam rollover'
           ],
           answerIndex: 1,
-          explanation: 'Algoritma pasar hanya menggerakkan harga menuju dua tujuan: kolam likuiditas eksternal (ERL) atau menyeimbangkan celah internal (IRL).'
+          explanation: 'Algoritma pasar hanya menggerakkan harga menuju dua tujuan: Liquidity Pool eksternal (ERL) atau menyeimbangkan celah internal (IRL).'
         },
         {
-          question: 'Struktur H1 Gold sedang Bullish, `PDH 2.672` masih Fresh, dan saat pembukaan London harga turun menyapu **Asia Low `2.646`** dengan sumbu lalu close kembali di atasnya. Ke manakah **DOL 1 dan DOL 2** yang paling rasional?',
+          question: 'Struktur H1 Gold sedang Bullish, `PDH 2.672` masih Fresh, dan saat pembukaan London harga turun sweep **Asia Low `2.646`** dengan wick lalu close kembali di atasnya. Ke manakah **DOL 1 dan DOL 2** yang paling rasional?',
           options: [
-            'Menuju bawah ke `2.600` karena tadi sempat muncul sumbu turun',
-            'DOL 1 ke `Asia High` (kolam Fresh terdekat di sisi lawan) dan DOL 2 ke `PDH 2.672`',
+            'Menuju bawah ke `2.600` karena tadi sempat muncul wick turun',
+            'DOL 1 ke `Asia High` (Liquidity Pool Fresh terdekat di sisi lawan) dan DOL 2 ke `PDH 2.672`',
             'Tidak ada target sama sekali karena Asia Low sudah hilang',
             'Menuju PWL 3 bulan lalu dalam 15 menit'
           ],
           answerIndex: 1,
-          explanation: 'Setelah Origin sapuan bawah (Asia Low) terbentuk selaras tren H1 Bullish, magnet harga berpindah ke kolam Fresh di atas: Asia High (DOL 1) lalu PDH (DOL 2).'
+          explanation: 'Setelah Origin sweep bawah (Asia Low) terbentuk selaras tren H1 Bullish, magnet harga berpindah ke Liquidity Pool Fresh di atas: Asia High (DOL 1) lalu PDH (DOL 2).'
         },
         {
-          question: 'Pukul 13:30 WITA, harga Gold duduk persis di tengah-tengah antara PDH dan PDL, serta belum menyapu Asia High maupun Asia Low. Apa aturan paling disiplin untuk menentukan DOL?',
+          question: 'Pukul 13:30 WITA, harga Gold duduk persis di tengah-tengah antara PDH dan PDL, serta belum sweep Asia High maupun Asia Low. Apa aturan paling disiplin untuk menentukan DOL?',
           options: [
             'Langsung buka BUY dan SELL bersamaan supaya pasti kena salah satu',
-            'Menerapkan aturan **Wait for First Sweep** — tidak menebak arah sampai pasar menyapu salah satu ujung kotak lebih dulu untuk memberi Origin jelas',
+            'Menerapkan aturan **Wait for First Sweep** — tidak menebak arah sampai pasar sweep salah satu ujung kotak lebih dulu untuk memberi Origin jelas',
             'Menebak turun karena merasa harga sudah mahal',
             'Memperbesar lot 3 kali lipat di tengah kotak'
           ],
           answerIndex: 1,
-          explanation: 'Di tengah range tanpa Origin, arah DOL belum terkunci. Menunggu sapuan pertama memberi fakta objektif ke sisi mana magnet berpindah.'
+          explanation: 'Di tengah range tanpa Origin, arah DOL belum terkunci. Menunggu sweep pertama memberi fakta objektif ke sisi mana magnet berpindah.'
         },
         {
-          question: 'Kapan skenario DOL ke atas pasca sapuan Asia Low `2.643,50` dinyatakan **resmi BATAL**?',
+          question: 'Kapan skenario DOL ke atas pasca sweep Asia Low `2.643,50` dinyatakan **resmi BATAL**?',
           options: [
             'Saat muncul 1 candle merah kecil di M1',
-            'Saat candle timeframe kerja (M15/H1) berbalik dan **body close** menembus ke bawah titik asal sapuan `2.643,50`',
+            'Saat candle timeframe kerja (M15/H1) berbalik dan **body close** menembus ke bawah titik asal sweep `2.643,50`',
             'Saat harga baru naik $2 menuju Asia High',
             'Saat spread berada di angka normal $0,25'
           ],
           answerIndex: 1,
-          explanation: 'Jika titik asal sapuan (Origin) justru ditembus oleh body close, artinya tolakan gagal dan magnet harga beralih ke kolam likuiditas bawah berikutnya.'
+          explanation: 'Jika titik asal sweep (Origin) justru ditembus oleh body close, artinya tolakan gagal dan magnet harga beralih ke Liquidity Pool bawah berikutnya.'
         }
       ]
     }

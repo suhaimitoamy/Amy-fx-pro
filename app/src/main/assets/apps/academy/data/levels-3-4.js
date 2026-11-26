@@ -46,9 +46,9 @@
           heading: 'Mengapa Tanpa Displacement Semua Zona ICT Mudah Jebol?',
           shortTitle: 'Kenapa Displacement Wajib',
           paragraphs: [
-            'Selamat datang di **Bagian IV: Mesin Zona Entry ICT (PD Arrays)**. Di Bagian II dan III kamu sudah menguasai struktur, peta likuiditas, target DOL, Daily Bias, siklus AMD, hingga jam emas Killzone WITA. Sekarang kita masuk ke mesin utamanya: **titik harga persis di mana bank dan institusi menaruh pesanan mereka**.',
-            'Bayangkan kamu berjalan di pantai yang pasirnya basah. Kalau seekor kucing lewat, jejaknya tipis dan langsung hilang tersapu ombak kecil. Tetapi kalau seekor **gajah** berlari lewat sana, jejak kakinya dalam, tegas, dan jelas terlihat arah larinya. Di chart XAU/USD, jejak kaki gajah itulah yang disebut **Displacement**.',
-            '**Displacement** adalah lonjakan harga yang **cepat, agresif, dan tegas ke satu arah**, dibentuk oleh satu hingga tiga batang candlestick berbadan tebal dengan sedikit perlawanan, yang **memecahkan level kunci** dan **meninggalkan celah ketidakseimbangan (Fair Value Gap)**. Tanpa Displacement, sebuah penembusan atau pantulan hanyalah gerakan ragu-ragu yang sangat rawan berbalik menghantam Stop Loss-mu.'
+            'Selamat datang di **Bagian IV: Mesin Zona Entry ICT (PD Arrays)**. Di Bagian II dan III kamu sudah menguasai struktur, peta Liquidity, target DOL, Daily Bias, siklus AMD, hingga jam emas Killzone WITA. Sekarang kita masuk ke mesin utamanya: **titik harga persis di mana bank dan institusi menaruh pesanan mereka**.',
+            'Bayangkan kamu berjalan di pantai yang pasirnya basah. Kalau seekor kucing lewat, jejaknya tipis dan langsung hilang kena sweep ombak kecil. Tetapi kalau seekor **gajah** berlari lewat sana, jejak kakinya dalam, tegas, dan jelas terlihat arah larinya. Di chart XAU/USD, jejak kaki gajah itulah yang disebut **Displacement**.',
+            '**Displacement** adalah lonjakan harga yang **cepat, agresif, dan tegas ke satu arah**, dibentuk oleh satu hingga tiga batang candlestick berbadan tebal dengan sedikit perlawanan, yang **memecahkan level kunci** dan **meninggalkan celah Imbalance (Fair Value Gap)**. Tanpa Displacement, sebuah break atau pantulan hanyalah gerakan ragu-ragu yang sangat rawan berbalik menghantam Stop Loss-mu.'
           ]
         },
         {
@@ -62,10 +62,10 @@
             caption: 'Perbandingan Visual: Displacement Sah vs Gerakan Merayap Ritel',
             headers: ['Pilar Evaluasi', 'Displacement Institusi (VALID)', 'Gerakan Merayap Ritel (SKIP)', 'Makna di Balik Layar'],
             rows: [
-              ['Ukuran & Proporsi Body', 'Body tebal dominan (`≥ 65%` total tinggi candle), `1,5×–2×` lebih besar dari candle konsolidasi sebelumnya', 'Deretan 5–8 candle kecil saling bertumpuk dengan banyak sumbu (wick) atas-bawah', 'Institusi menyuntikkan volume besar sekali hentak, bukan mencicil ragu-ragu'],
+              ['Ukuran & Proporsi Body', 'Body tebal dominan (`≥ 65%` total tinggi candle), `1,5×–2×` lebih besar dari candle konsolidasi sebelumnya', 'Deretan 5–8 candle kecil saling bertumpuk dengan banyak wick atas-bawah', 'Institusi menyuntikkan volume besar sekali hentak, bukan mencicil ragu-ragu'],
               ['Celah Harga (FVG)', 'WAJIB meninggalkan celah kosong (**Fair Value Gap**) di belakangnya', 'Tidak meninggalkan celah; setiap candle langsung ditutup rapat oleh candle sebelah', 'Harga melesat terlalu cepat sehingga pihak lawan tidak sempat mengisi pesanan'],
               ['Dampak Struktural', 'Langsung memecah Swing High/Low (BOS/MSS) atau Open rangkaian candle lawan (CISD)', 'Hanya bergerak bolak-balik di dalam rentang lama tanpa memecah apa pun', 'Menunjukkan niat nyata memindahkan harga menuju DOL'],
-              ['Konteks Pemicu', 'Muncul tepat setelah **Sweep likuiditas** atau menyentuh **POI HTF** di jam Killzone', 'Muncul acak di tengah sesi sepi (Asia chop) tanpa alasan likuiditas', 'Bahan bakar sudah terambil sebelum mesin dinyalakan']
+              ['Konteks Pemicu', 'Muncul tepat setelah **Sweep Liquidity** atau menyentuh **POI HTF** di jam Killzone', 'Muncul acak di tengah sesi sepi (Asia chop) tanpa alasan Liquidity', 'Bahan bakar sudah terambil sebelum mesin dinyalakan']
             ]
           }
         },
@@ -82,7 +82,7 @@
             rows: [
               {
                 label: 'Situasi Chart (M5 Sesi London · 15:20 WITA)',
-                detail: 'XAU/USD baru saja menyapu Asia Low di `2.642,00`. Muncul 2 candle bullish M5 tebal melesat dari `2.642,00` ke `2.649,00` (`+$7,00` dalam 10 menit), memecah Swing High `2.646,50` dan meninggalkan Bullish FVG di `2.644,00 – 2.646,50`. Target DOL di Asia High `2.656,00`.'
+                detail: 'XAU/USD baru saja sweep Asia Low di `2.642,00`. Muncul 2 candle bullish M5 tebal melesat dari `2.642,00` ke `2.649,00` (`+$7,00` dalam 10 menit), memecah Swing High `2.646,50` dan meninggalkan Bullish FVG di `2.644,00 – 2.646,50`. Target DOL di Asia High `2.656,00`.'
               },
               {
                 label: 'Trader A (FOMO Kejar di Pucuk 2.649,00)',
@@ -102,7 +102,7 @@
           paragraphs: [
             'Tidak semua candle raksasa di layar layak dianggap sinyal hijau. Ada **tiga pengecualian kritis** di XAU/USD yang wajib langsung kamu saring:',
             '1. **Candle Detik Rilis Berita Merah (CPI / NFP / FOMC):** Lonjakan `$15` dalam 1 menit saat berita bukan Displacement normal — itu kekosongan buku order (whipsaw). Patuhi **Protokol News Lock** dari Bab 17: tunggu minimal 15–30 menit hingga debu mereda.',
-            '2. **Candle Tunggal di Tengah Konsolidasi Asia Tanpa Sweep:** Sesekali muncul satu candle agak besar di jam `10:30 WITA` yang tidak menyapu likuiditas mana pun lalu langsung mati langkah. Tanpa konteks sweep/POI dan Killzone, lewati saja.',
+            '2. **Candle Tunggal di Tengah Konsolidasi Asia Tanpa Sweep:** Sesekali muncul satu candle agak besar di jam `10:30 WITA` yang tidak sweep Liquidity mana pun lalu langsung mati langkah. Tanpa konteks sweep/POI dan Killzone, lewati saja.',
             '3. **Exhaustion Move (Candle Besar Tepat Menabrak Target DOL):** Jika harga sudah naik `$25` seharian lalu mencetak satu candle besar terakhir yang tepat menabrak atap `PDH/PWH` — itu bukan awal tren baru, melainkan **pengurasan bahan bakar terakhir** sebelum berbalik arah!'
           ],
           callout: {
@@ -129,19 +129,19 @@
         {
           heading: 'Displacement Sebagai Tanda Tangan Institusi',
           paragraphs: [
-            'Displacement adalah lonjakan 1–3 candle berbadan dominan yang memecah struktur dan meninggalkan Fair Value Gap (FVG) pasca-sweep likuiditas.'
+            'Displacement adalah lonjakan 1–3 candle berbadan dominan yang memecah struktur dan meninggalkan Fair Value Gap (FVG) pasca-sweep Liquidity.'
           ]
         }
       ],
       mappingSteps: [
-        'Pastikan harga baru saja menyapu likuiditas (Asia/PDH/PDL) atau menyentuh POI HTF di dalam Killzone.',
+        'Pastikan harga baru saja sweep Liquidity (Asia/PDH/PDL) atau menyentuh POI HTF di dalam Killzone.',
         'Cari 1–3 candle berbadan dominan (≥65% body) yang menembus struktur terdekat dan mencetak celah FVG.',
         'Jangan kejar ujung candle; tandai FVG/OB yang lahir di belakang Displacement untuk rencana pullback.'
       ],
       decisionTree: [
         {
           condition: 'Harga menembus Swing High dengan 6 candle kecil saling tumpang tindih tanpa FVG.',
-          action: 'SKIP — tidak ada Displacement sejati; penembusan merayap sangat rentan gagal.'
+          action: 'SKIP — tidak ada Displacement sejati; break merayap sangat rentan gagal.'
         },
         {
           condition: 'Muncul candle besar $15 tepat pada menit rilis US CPI 20:30 WITA.',
@@ -153,7 +153,7 @@
         'Meninggalkan Fair Value Gap (FVG) bersih dan memecahkan struktur (BOS/MSS/CISD).'
       ],
       invalidRules: [
-        'Penembusan merayap tanpa FVG atau di tengah konsolidasi Asia tanpa sweep.',
+        'Break merayap tanpa FVG atau di tengah konsolidasi Asia tanpa sweep.',
         'Mengejar Market Order di ujung candle Displacement yang sudah melesat jauh.'
       ],
       xauScenario: {
@@ -182,7 +182,7 @@
             'Indikator RSI menyentuh angka 70'
           ],
           answerIndex: 1,
-          explanation: 'Displacement asli selalu meninggalkan tiga jejak serentak: badan candle dominan, celah ketidakseimbangan (FVG), dan pematahan struktur.'
+          explanation: 'Displacement asli selalu meninggalkan tiga jejak serentak: body candle dominan, celah Imbalance (FVG), dan pematahan struktur.'
         },
         {
           question: 'Harga XAU/USD menembus Swing High M5 dengan 7 candle kecil merayap yang saling bertumpuk tanpa meninggalkan FVG. Apa keputusan scalper ICT?',
@@ -193,10 +193,10 @@
             'Menghapus Stop Loss agar tidak tersentuh'
           ],
           answerIndex: 1,
-          explanation: 'Tanpa Displacement dan FVG, penembusan merayap adalah ciri dorongan ritel lemah yang mudah gagal.'
+          explanation: 'Tanpa Displacement dan FVG, break merayap adalah ciri dorongan ritel lemah yang mudah gagal.'
         },
         {
-          question: 'Setelah menyapu Asia Low `2.642,00`, XAU/USD melesat dengan Displacement ke `2.649,00` (FVG di `2.644,00–2.646,50`, target Asia High `2.656,00`). Mengapa kita menunggu pullback ke FVG alih-alih mengejar Market Buy di `2.649,00`?',
+          question: 'Setelah sweep Asia Low `2.642,00`, XAU/USD melesat dengan Displacement ke `2.649,00` (FVG di `2.644,00–2.646,50`, target Asia High `2.656,00`). Mengapa kita menunggu pullback ke FVG alih-alih mengejar Market Buy di `2.649,00`?',
           options: [
             'Karena MT5 melarang tombol Market Buy di sesi London',
             'Karena mengejar di pucuk memperlebar jarak SL menjadi `$7,50` dan merusak R:R (< 1:1), sedangkan menunggu pullback ke FVG menekan risiko menjadi `$4,00` dengan R:R > 1:2,5',
@@ -304,7 +304,7 @@
       ],
       keyTakeaways: [
         '**BISI (Bullish FVG)** = celah antara `High Candle 1` dan `Low Candle 3`; **SIBI (Bearish FVG)** = celah antara `Low Candle 1` dan `High Candle 3`.',
-        '**Consequent Encroachment (CE)** adalah titik tengah `50%` kotak FVG: sumbu (*wick*) boleh menusuk CE, tetapi **Body Close** harus tetap menghormatinya.',
+        '**Consequent Encroachment (CE)** adalah titik tengah `50%` kotak FVG: Wick boleh menusuk CE, tetapi **Body Close** harus tetap menghormatinya.',
         'Saat muncul **Multi-FVG** dalam satu kaki dorongan, abaikan FVG dangkal di zona mahal (sering jadi Inducement) dan utamakan FVG **Fresh** yang berada di sisi **Discount (Buy) / Premium (Sell)**.',
         'Hindari **Exhaustion Gap** yang terbentuk tepat di depan target DOL akhir — ruang profitnya sudah habis.'
       ],
@@ -355,7 +355,7 @@
       failedCase: {
         title: 'Kasus Gagal: Entry di FVG Dangkal Area Premium',
         context: 'Trader memasang Buy Limit di FVG #1 (2.649,00) padahal di bawahnya ada FVG #2 di Discount.',
-        whyFailed: 'FVG #1 bertindak sebagai Inducement; harga turun menjebol FVG #1 untuk menjemput likuiditas dan FVG #2 sebelum benar-benar naik.'
+        whyFailed: 'FVG #1 bertindak sebagai Inducement; harga turun menjebol FVG #1 untuk menjemput Liquidity dan FVG #2 sebelum benar-benar naik.'
       },
       goldenRules: [
         'Hanya ambil FVG yang lahir dari Sweep + Displacement di lokasi Discount/Premium yang tepat.',
@@ -371,7 +371,7 @@
             'Dari High hari kemarin ke Low hari ini'
           ],
           answerIndex: 1,
-          explanation: 'Pada BISI (dorongan naik), ruang ketidakseimbangan berada di antara puncak (High) Candle 1 dan dasar (Low) Candle 3.'
+          explanation: 'Pada BISI (dorongan naik), ruang Imbalance berada di antara puncak (High) Candle 1 dan dasar (Low) Candle 3.'
         },
         {
           question: 'Sebuah Bullish FVG XAU/USD memiliki batas bawah `2.644,00` dan batas atas `2.648,00`. Di harga berapa garis **50% Consequent Encroachment (CE)** berada, dan bagaimana syarat sehatnya?',
@@ -425,7 +425,7 @@
           shortTitle: 'Definisi Asli Order Block',
           paragraphs: [
             'Istilah **Order Block (OB)** mungkin adalah istilah paling populer — sekaligus **paling sering disalahpahami** — di seluruh komunitas trading. Banyak pemula berpikir bahwa setiap candle merah sebelum candle hijau adalah Bullish Order Block. Hasilnya? Chart penuh puluhan kotak warna-warni dan 8 dari 10 kotak itu jebol begitu saja!',
-            'Mari kita luruskan dari akarnya. Institusi bermodal raksasa tidak bisa langsung membeli jutaan dolar emas dalam 1 klik karena tidak ada cukup penjual di satu harga. Caranya? Mereka **mendorong harga turun sebentar** untuk memicu kepanikan jual ritel (dan menyapu Stop Loss), lalu **membeli seluruh barang yang dijual ritel tersebut** sebelum menerbangkan harga ke atas!',
+            'Mari kita luruskan dari akarnya. Institusi bermodal raksasa tidak bisa langsung membeli jutaan dolar emas dalam 1 klik karena tidak ada cukup penjual di satu harga. Caranya? Mereka **mendorong harga turun sebentar** untuk memicu kepanikan jual ritel (dan sweep Stop Loss), lalu **membeli seluruh barang yang dijual ritel tersebut** sebelum menerbangkan harga ke atas!',
             'Jejak candle tempat institusi "menampung barang" itulah **Order Block**:',
             '• **Bullish Order Block (+OB):** **Satu candle turun** (*down-close*) atau **rangkaian 2–3 candle turun berurutan** tepat sebelum dorongan **Displacement naik** yang agresif.',
             '• **Bearish Order Block (-OB):** **Satu candle naik** (*up-close*) atau **rangkaian 2–3 candle naik berurutan** tepat sebelum dorongan **Displacement turun** yang agresif.',
@@ -434,7 +434,7 @@
         },
         {
           number: '21.2',
-          heading: 'Membedakan High-Probability OB vs Trap OB (Umpan Ritel)',
+          heading: 'Membedakan High-Probability OB vs Trap OB (Trap Ritel)',
           shortTitle: 'High-Prob OB vs Trap OB',
           paragraphs: [
             'Supaya kamu tidak lagi menandai puluhan OB palsu, saring setiap calon Order Block memakai **4 syarat wajib High-Probability OB** berikut. Jika syarat ini absen, hampir pasti itu hanyalah **Trap OB (Inducement)** yang sengaja dibuat untuk ditembus!'
@@ -443,7 +443,7 @@
             caption: 'Filter Ketat: High-Probability Order Block vs Trap OB (Umpan)',
             headers: ['Kriteria Uji', 'High-Probability OB (LAYAK)', 'Trap OB / Inducement (SKIP)', 'Alasan Institusional'],
             rows: [
-              ['1. Pemicu Likuiditas', 'Candle OB tersebut **baru saja menyapu likuiditas** (Asia/PDL/Swing) atau terbentuk di dalam **POI HTF**', 'Terbentuk di ruang kosong tengah range tanpa menyapu apa pun', 'Tanpa sweep, bank belum mengumpulkan bahan bakar order lawan'],
+              ['1. Pemicu Liquidity', 'Candle OB tersebut **baru saja sweep Liquidity** (Asia/PDL/Swing) atau terbentuk di dalam **POI HTF**', 'Terbentuk di ruang kosong tengah range tanpa sweep apa pun', 'Tanpa sweep, bank belum mengumpulkan bahan bakar order lawan'],
               ['2. Jejak Kecepatan', 'Langsung diikuti **Displacement tegas yang mencetak FVG** tepat keluar dari OB', 'Keluar pelan tanpa FVG, atau candle langsung bertumpuk merayap', 'FVG adalah bukti sah adanya suntikan modal besar di OB itu'],
               ['3. Dampak Struktur', 'Dorongannya **mematahkan struktur (BOS / MSS)** atau menembus level kunci', 'Gagal mematahkan swing mana pun', 'Membuktikan OB itu punya tenaga mengubah arah pasar'],
               ['4. Kesegaran & Ukuran', 'Masih **Fresh** (belum disentuh) dan lebarnya wajar (`≤ $6–$8` di M5/M15 Gold)', 'Sudah disentuh berkali-kali atau terlalu raksasa (`> $12` di M5)', 'OB raksasa memaksa SL terlalu lebar dan merusak R:R']
@@ -456,9 +456,9 @@
           shortTitle: '50% Mean Threshold vs CE',
           paragraphs: [
             'Jangan pernah tertukar antara dua istilah "titik 50%" paling penting di buku ICT: di Bab 19 kita belajar **50% Consequent Encroachment (CE)** yang diukur dari **kotak FVG** (antar-wick). Khusus untuk **Order Block**, titik tengah 50% memiliki nama dan cara ukur berbeda: **Mean Threshold (MT)**.',
-            '**Cara Mengukur Mean Threshold (MT):** Ukur titik tengah **50% HANYA dari BADAN** (*Open ke Close*) candle Order Block (bukan dari ujung wick terjauh!). **Rumus:** `MT = (Open OB + Close OB) ÷ 2`.',
+            '**Cara Mengukur Mean Threshold (MT):** Ukur titik tengah **50% HANYA dari BODY** (*Open ke Close*) candle Order Block (bukan dari ujung wick terjauh!). **Rumus:** `MT = (Open OB + Close OB) ÷ 2`.',
             'Contoh angka nyata: sebuah candle Bullish OB M15 memiliki `Open = 2.646,00`, `Close = 2.642,00`, dan ekor bawah (`Low`) di `2.640,00`. Maka garis **50% Mean Threshold** berada tepat di **`(2.646,00 + 2.642,00) ÷ 2 = 2.644,00`**.',
-            '**Aturan Validitas MT:** Saat harga kembali menguji Bullish OB, **sumbu boleh menyentuh Mean Threshold (`2.644,00`)**, bahkan masuk tipis di bawahnya, tetapi **Body Close candle wajib bertahan di atas Mean Threshold**. Jika Body Close jebol menembus jauh di bawah 50% MT hingga keluar bawah OB, OB tersebut resmi gagal — dan siap berubah peran menjadi **Breaker Block** di Bab 22!'
+            '**Aturan Validitas MT:** Saat harga kembali menguji Bullish OB, **wick boleh menyentuh Mean Threshold (`2.644,00`)**, bahkan masuk tipis di bawahnya, tetapi **Body Close candle wajib bertahan di atas Mean Threshold**. Jika Body Close jebol menembus jauh di bawah 50% MT hingga keluar bawah OB, OB tersebut resmi gagal — dan siap berubah peran menjadi **Breaker Block** di Bab 22!'
           ]
         },
         {
@@ -473,7 +473,7 @@
             rows: [
               {
                 label: 'Opsi 1 — Entry di Open OB (`2.646,00` · Gaya Konservatif)',
-                detail: 'Pasang Buy Limit tepat di batas atas badan OB (`2.646,00`). SL struktural di bawah wick sweep (`2.639,20` → risiko **`$6,80`**). Target Asia High `2.660,00` (`+$14,00` → **R:R 1 : 2,06**). **Kelebihan:** Peluang terjemput sangat tinggi (jarang ketinggalan bus).'
+                detail: 'Pasang Buy Limit tepat di batas atas body OB (`2.646,00`). SL struktural di bawah wick sweep (`2.639,20` → risiko **`$6,80`**). Target Asia High `2.660,00` (`+$14,00` → **R:R 1 : 2,06**). **Kelebihan:** Peluang terjemput sangat tinggi (jarang ketinggalan bus).'
               },
               {
                 label: 'Opsi 2 — Entry di 50% Mean Threshold (`2.644,00` · Gaya Sniper)',
@@ -481,7 +481,7 @@
               },
               {
                 label: 'Rekomendasi Praktis',
-                detail: 'Jika lebar badan OB masih ringkas (`≤ $3,50`), pilih **Open OB** agar tidak sering ketinggalan. Jika badan OB agak lebar (`$4–$6`), pilih **50% Mean Threshold** agar SL tetap ramping dan R:R minimal `1:2` terjaga.'
+                detail: 'Jika lebar body OB masih ringkas (`≤ $3,50`), pilih **Open OB** agar tidak sering ketinggalan. Jika body OB agak lebar (`$4–$6`), pilih **50% Mean Threshold** agar SL tetap ramping dan R:R minimal `1:2` terjaga.'
               }
             ]
           }
@@ -489,8 +489,8 @@
       ],
       keyTakeaways: [
         '**Bullish OB** adalah 1 atau rangkaian candle turun terakhir sebelum Displacement naik; **Bearish OB** adalah 1 atau rangkaian candle naik terakhir sebelum Displacement turun.',
-        'Order Block bermutu tinggi WAJIB memenuhi 3 bukti: **menyapu likuiditas / POI HTF**, **melahirkan Displacement + FVG**, dan **mematahkan struktur (BOS/MSS)**.',
-        '**50% Mean Threshold (MT)** diukur dari **badan (Open–Close)** OB — berbeda dengan **50% CE** yang diukur dari kotak FVG.',
+        'Order Block bermutu tinggi WAJIB memenuhi 3 bukti: **sweep Liquidity / POI HTF**, **melahirkan Displacement + FVG**, dan **mematahkan struktur (BOS/MSS)**.',
+        '**50% Mean Threshold (MT)** diukur dari **body (Open–Close)** OB — berbeda dengan **50% CE** yang diukur dari kotak FVG.',
         'Gunakan **Open OB** untuk peluang terjemput lebih tinggi saat OB ringkas, atau **50% MT** untuk R:R lebih tajam saat OB agak lebar.'
       ],
       bridgeNext: 'Kita baru saja melihat bahwa sebuah Order Block yang jebol penuh oleh Displacement berlawanan artinya pihak institusi sebelumnya telah kalah atau mengubah posisi. Sama seperti FVG gagal yang berubah menjadi iFVG, **Order Block yang jebol pasca-sweep** pun berubah menjadi salah satu zona terkuat di seluruh ICT — dan saat bertumpuk dengan FVG melahirkan model legendaris. Mari kita bedah di **Bab 22: Breaker Block (BB), Mitigation Block & ICT Unicorn Model**.',
@@ -503,27 +503,27 @@
         {
           heading: 'High-Probability OB & 50% Mean Threshold',
           paragraphs: [
-            'Order Block valid adalah candle/rangkaian candle berlawanan terakhir yang menyapu likuiditas dan langsung melahirkan Displacement + FVG, dengan 50% Mean Threshold pada badannya sebagai batas uji validitas.'
+            'Order Block valid adalah candle/rangkaian candle berlawanan terakhir yang sweep Liquidity dan langsung melahirkan Displacement + FVG, dengan 50% Mean Threshold pada badannya sebagai batas uji validitas.'
           ]
         }
       ],
       mappingSteps: [
-        'Tandai candle atau rangkaian 2–3 candle berlawanan terakhir tepat di ujung Sweep likuiditas sebelum Displacement.',
+        'Tandai candle atau rangkaian 2–3 candle berlawanan terakhir tepat di ujung Sweep Liquidity sebelum Displacement.',
         'Verifikasi ada celah FVG yang langsung lahir keluar dari OB dan memecah struktur.',
-        'Tarik garis 50% Mean Threshold di tengah badan (Open–Close) OB dan tempatkan SL di luar ujung wick OB.'
+        'Tarik garis 50% Mean Threshold di tengah body (Open–Close) OB dan tempatkan SL di luar ujung wick OB.'
       ],
       decisionTree: [
         {
-          condition: 'Ada candle merah sebelum candle hijau, tetapi tidak menyapu likuiditas dan tidak mencetak FVG.',
+          condition: 'Ada candle merah sebelum candle hijau, tetapi tidak sweep Liquidity dan tidak mencetak FVG.',
           action: 'SKIP — itu Trap OB (rawan menjadi Inducement), bukan High-Probability Order Block.'
         },
         {
-          condition: 'Badan OB terlalu lebar ($5–$6 di M5 Gold) sehingga entry di Open OB membuat R:R di bawah 1:2.',
+          condition: 'Body OB terlalu lebar ($5–$6 di M5 Gold) sehingga entry di Open OB membuat R:R di bawah 1:2.',
           action: 'Gunakan titik 50% Mean Threshold (MT) sebagai batas entry atau tunggu konfirmasi M5 di dalam OB.'
         }
       ],
       validRules: [
-        'OB menyapu likuiditas atau berada di POI HTF, diikuti Displacement + FVG, dan memecah struktur.',
+        'OB sweep Liquidity atau berada di POI HTF, diikuti Displacement + FVG, dan memecah struktur.',
         'Body candle menghormati batas Open OB atau garis 50% Mean Threshold saat diuji ulang.'
       ],
       invalidRules: [
@@ -540,20 +540,20 @@
       failedCase: {
         title: 'Kasus Gagal: Entry di Trap OB Tanpa Sweep & FVG',
         context: 'Trader menandai candle merah biasa di tengah tren tanpa sweep dan tanpa FVG.',
-        whyFailed: 'OB tersebut berfungsi sebagai umpan Inducement bagi ritel; harga langsung menembusnya untuk menjemput likuiditas dan OB asli di bawahnya.'
+        whyFailed: 'OB tersebut berfungsi sebagai umpan Inducement bagi ritel; harga langsung menembusnya untuk menjemput Liquidity dan OB asli di bawahnya.'
       },
       goldenRules: [
         'Tanpa Sweep dan tanpa FVG setelahnya, sebuah candle bukanlah High-Probability Order Block.',
-        'Bedakan dua titik 50%: CE untuk kotak FVG, Mean Threshold untuk badan Order Block.'
+        'Bedakan dua titik 50%: CE untuk kotak FVG, Mean Threshold untuk body Order Block.'
       ],
       quiz: [
         {
-          question: 'Kombinasi syarat manakah yang membedakan **High-Probability Order Block** dari **Trap OB (umpan ritel)**?',
+          question: 'Kombinasi syarat manakah yang membedakan **High-Probability Order Block** dari **Trap OB (trap ritel)**?',
           options: [
             'Candle kecil di tengah sesi Asia tanpa FVG dan tanpa break struktur',
-            '**Menyapu likuiditas / menyentuh POI HTF** + langsung diikuti **Displacement yang mencetak FVG** + **mematahkan struktur (BOS/MSS)**',
+            '**Sweep Liquidity / menyentuh POI HTF** + langsung diikuti **Displacement yang mencetak FVG** + **mematahkan struktur (BOS/MSS)**',
             'Sudah diuji harga sebanyak 4 kali di hari yang sama',
-            'Memiliki tinggi badan lebih dari $15 di M5'
+            'Memiliki tinggi body lebih dari $15 di M5'
           ],
           answerIndex: 1,
           explanation: 'Tiga bukti institusional (Sweep + Displacement/FVG + Structural Break) menyaring sebagian besar Order Block palsu.'
@@ -562,12 +562,12 @@
           question: 'Sebuah candle Bullish Order Block M15 XAU/USD memiliki `Open = 2.650,00`, `Close = 2.646,00`, dan ujung ekor bawah (`Low`) = `2.643,00`. Di harga berapakah garis **50% Mean Threshold (MT)** berada?',
           options: [
             '`2.646,50` (tengah dari Open ke Wick Low)',
-            '**`2.648,00`** — yaitu titik tengah `50%` dari **badan (Open ke Close)**: `(2.650 + 2.646) ÷ 2`',
+            '**`2.648,00`** — yaitu titik tengah `50%` dari **body (Open ke Close)**: `(2.650 + 2.646) ÷ 2`',
             '`2.644,50` (tengah dari Close ke Wick Low)',
             '`2.652,00` (di atas Open)'
           ],
           answerIndex: 1,
-          explanation: 'Mean Threshold diukur tepat di 50% badan (Open ke Close) candle Order Block, bukan termasuk ujung wick.'
+          explanation: 'Mean Threshold diukur tepat di 50% body (Open ke Close) candle Order Block, bukan termasuk ujung wick.'
         },
         {
           question: 'Jika tepat sebelum Displacement naik terdapat **3 candle merah berurutan** tanpa diselingi candle hijau, bagaimana cara menandai Bullish Order Block yang benar dalam ICT?',
@@ -602,26 +602,26 @@
       diagramId: 'cisd-vs-mss',
       bookFormat: true,
       diagramAfterSection: 1,
-      summary: 'Pahami dua pemicu pembalikan paling vital di ICT: CISD memberi sinyal dini perpindahan kontrol di level candle, sedangkan MSS memberi konfirmasi struktur penuh di level swing.',
+      summary: 'Pahami dua pemicu reversal paling vital di ICT: CISD memberi sinyal dini perubahan kontrol di level candle, sedangkan MSS memberi konfirmasi struktur penuh di level swing.',
       bookSections: [
         {
           number: '23.1',
           heading: 'Kenapa Menunggu Swing Struktur Jauh Sering Membuatmu Terlambat di Gold?',
           shortTitle: 'Kenapa Butuh CISD',
           paragraphs: [
-            'Pernahkah kamu mengalami situasi menyebalkan ini di XAU/USD: harga turun tajam menyapu `PDL`, lalu kamu dengan sabar menunggu Swing High terakhir ditembus untuk konfirmasi **MSS**. Masalahnya, Swing High terakhir jaraknya **`$12` di atas dasar**! Begitu candle akhirnya menembus Swing High itu, harga sudah terbang jauh dan langsung menabrak target sebelum sempat pullback?',
+            'Pernahkah kamu mengalami situasi menyebalkan ini di XAU/USD: harga turun tajam sweep `PDL`, lalu kamu dengan sabar menunggu Swing High terakhir ditembus untuk konfirmasi **MSS**. Masalahnya, Swing High terakhir jaraknya **`$12` di atas dasar**! Begitu candle akhirnya menembus Swing High itu, harga sudah terbang jauh dan langsung menabrak target sebelum sempat pullback?',
             'Itulah alasan ICT memperkenalkan dua tingkatan sinyal balik arah yang saling melengkapi: **CISD** (*Change in State of Delivery*) sebagai **lampu peringatan dini di level candle**, dan **MSS** (*Market Structure Shift*) sebagai **lampu hijau penuh di level struktur swing**.'
           ]
         },
         {
           number: '23.2',
-          heading: 'Change in State of Delivery (CISD): Cara Membaca Pembalikan di Level Candle',
+          heading: 'Change in State of Delivery (CISD): Cara Membaca Reversal di Level Candle',
           shortTitle: 'Cara Membaca CISD',
           paragraphs: [
             'Istilah *State of Delivery* artinya "mode pengiriman harga" yang sedang aktif — apakah algoritma sedang dalam mode **kirim turun** (deretan candle merah) atau mode **kirim naik** (deretan candle hijau). **CISD** terjadi tepat pada detik algoritma memindahkan sakelar kontrol dari satu sisi ke sisi lawannya, **bahkan sebelum Swing struktur utama tertembus**.',
             '**Aturan Mekanis 3 Langkah Membaca CISD (100% Objektif):**',
-            '1. **Wajib Ada Pemicu Dulu:** Harga baru saja menyapu likuiditas penting (`BSL/SSL`, `PDH/PDL`, `Asia High/Low`) atau menyentuh **POI HTF**.',
-            '2. **Tandai Garis Open Rangkaian Candle Lawan:** Untuk **Bullish CISD**, lihat rangkaian candle turun (*down-close*) terakhir yang mendorong harga ke dasar sweep → tarik garis horizontal tepat di **Harga Open candle merah pertama** pada rangkaian itu. (Untuk **Bearish CISD**, tarik garis di **Harga Open candle hijau pertama** dari rangkaian naik yang menyapu puncak).',
+            '1. **Wajib Ada Pemicu Dulu:** Harga baru saja sweep Liquidity penting (`BSL/SSL`, `PDH/PDL`, `Asia High/Low`) atau menyentuh **POI HTF**.',
+            '2. **Tandai Garis Open Rangkaian Candle Lawan:** Untuk **Bullish CISD**, lihat rangkaian candle turun (*down-close*) terakhir yang mendorong harga ke dasar sweep → tarik garis horizontal tepat di **Harga Open candle merah pertama** pada rangkaian itu. (Untuk **Bearish CISD**, tarik garis di **Harga Open candle hijau pertama** dari rangkaian naik yang sweep puncak).',
             '3. **Tunggu Body Close Melewati Garis Open:** Begitu satu candle lawan berhasil **menutup badannya (Body Close)** melewati garis Open tersebut — **CISD sah terkonfirmasi!** Kontrol pengiriman harga resmi berpindah.'
           ]
         },
@@ -630,14 +630,14 @@
           heading: 'Market Structure Shift (MSS) & Perbandingan Head-to-Head CISD vs MSS',
           shortTitle: 'CISD vs MSS',
           paragraphs: [
-            'Sementara CISD membaca perpindahan kontrol di tingkat **rangkaian candle**, **Market Structure Shift (MSS)** menuntut bukti lebih berat di tingkat **struktur pasar**: harga harus menembus **Swing High/Low struktural** dengan **Displacement (body close tegas + FVG)** sehingga arah tren timeframe tersebut resmi berbalik.',
+            'Sementara CISD membaca perubahan kontrol di tingkat **rangkaian candle**, **Market Structure Shift (MSS)** menuntut bukti lebih berat di tingkat **struktur pasar**: harga harus menembus **Swing High/Low struktural** dengan **Displacement (body close tegas + FVG)** sehingga arah tren timeframe tersebut resmi berbalik.',
             'Agar tidak pernah bingung harus memakai yang mana, simpan tabel perbandingan berikut:'
           ],
           table: {
             caption: 'Perbandingan Langsung: CISD vs Market Structure Shift (MSS)',
             headers: ['Aspek', 'CISD (Level Candle)', 'MSS (Level Struktur Swing)', 'Kombinasi Grade A+'],
             rows: [
-              ['Acuan yang Ditembus', '**Harga Open** rangkaian candle searah terakhir yang menyapu likuiditas', '**Swing High / Swing Low** struktural yang jelas (aturan 3-candle)', 'CISD terjadi dulu → segera diikuti MSS + FVG searah'],
+              ['Acuan yang Ditembus', '**Harga Open** rangkaian candle searah terakhir yang sweep Liquidity', '**Swing High / Swing Low** struktural yang jelas (aturan 3-candle)', 'CISD terjadi dulu → segera diikuti MSS + FVG searah'],
               ['Syarat Konfirmasi', 'WAJIB **Body Close** (bukan wick) pasca-Sweep / POI HTF', 'WAJIB **Body Close + Displacement (FVG)** pasca-Sweep / POI HTF', 'Keduanya menolak tembusan wick-only'],
               ['Kecepatan & R:R', '**Lebih cepat** (masuk lebih dini dekat dasar/puncak → R:R lebih lebar)', 'Sedikit lebih lambat, tetapi struktur pasar sudah benar-benar patah', 'Menangkap kecepatan CISD dengan keamanan MSS'],
               ['Tingkat Keamanan', 'Sedang–Tinggi (rawan gagal jika dipakai di tengah range tanpa Sweep HTF)', '**Sangat Tinggi** — standar paling aman bagi pemula hingga menengah', 'Standar utama scalper Gold profesional']
@@ -649,14 +649,14 @@
           heading: 'Studi Kasus Berurutan XAU/USD M5: CISD Dini → Diikuti MSS Penuh',
           shortTitle: 'Studi Kasus CISD + MSS',
           paragraphs: [
-            'Perhatikan bagaimana CISD dan MSS bekerja seperti dua tahap roket di chart M5 XAU/USD setelah harga menyapu `PDL`:'
+            'Perhatikan bagaimana CISD dan MSS bekerja seperti dua tahap roket di chart M5 XAU/USD setelah harga sweep `PDL`:'
           ],
           exampleBox: {
             title: 'Urutan Real-Time XAU/USD M5 Pasca-Sweep PDL 2.638,00',
             rows: [
               {
                 label: 'Tahap 1 — Sweep & Titik Acuan',
-                detail: 'XAU/USD turun menyapu `PDL 2.638,00` dengan rangkaian **2 candle merah berurutan** yang dimulai dari **`Open = 2.641,50`**. Sementara itu, Swing High struktural M5 terdekat berada lebih tinggi di **`2.645,00`**.'
+                detail: 'XAU/USD turun sweep `PDL 2.638,00` dengan rangkaian **2 candle merah berurutan** yang dimulai dari **`Open = 2.641,50`**. Sementara itu, Swing High struktural M5 terdekat berada lebih tinggi di **`2.645,00`**.'
               },
               {
                 label: 'Tahap 2 — Bullish CISD Terkonfirmasi Dini',
@@ -677,9 +677,9 @@
         }
       ],
       keyTakeaways: [
-        '**CISD** (*Change in State of Delivery*) terjadi saat **Body Close** menembus **Harga Open** rangkaian candle searah terakhir yang menyapu likuiditas — memberi sinyal balik arah lebih dini.',
-        '**MSS** (*Market Structure Shift*) terjadi saat **Body Close + Displacement (FVG)** mematahkan **Swing High/Low struktural** — memberi konfirmasi pembalikan paling kuat.',
-        'Baik CISD maupun MSS **WAJIB terjadi setelah Sweep likuiditas atau sentuhan POI HTF**; di tengah konsolidasi tanpa konteks, keduanya hanyalah jebakan noise.',
+        '**CISD** (*Change in State of Delivery*) terjadi saat **Body Close** menembus **Harga Open** rangkaian candle searah terakhir yang sweep Liquidity — memberi sinyal balik arah lebih dini.',
+        '**MSS** (*Market Structure Shift*) terjadi saat **Body Close + Displacement (FVG)** mematahkan **Swing High/Low struktural** — memberi konfirmasi reversal paling kuat.',
+        'Baik CISD maupun MSS **WAJIB terjadi setelah Sweep Liquidity atau sentuhan POI HTF**; di tengah konsolidasi tanpa konteks, keduanya hanyalah jebakan noise.',
         'Kombinasi terkuat (Grade A+) adalah **CISD muncul lebih dulu**, lalu segera dikonfirmasi oleh **MSS + FVG** searah.'
       ],
       bridgeNext: 'Kamu sekarang sudah memegang seluruh "bata bangunan" PD Array ICT: Displacement (Bab 18), FVG/CE (Bab 19), iFVG (Bab 20), Order Block/MT (Bab 21), Breaker/Mitigation/Unicorn (Bab 22), serta pemicu CISD/MSS (Bab 23). Tinggal satu pertanyaan penutup Bagian IV: **di area harga mana zona-zona ini boleh dieksekusi, dan jika muncul bersamaan di chart, mana yang harus diprioritaskan?** Semua terjawab di **Bab 24: Premium, Discount, Equilibrium (50%), OTE (62%–79%) & Hierarki PD Array**.',
@@ -692,19 +692,19 @@
         {
           heading: 'CISD vs MSS',
           paragraphs: [
-            'CISD membaca perpindahan kontrol di level Open rangkaian candle lawan terakhir, sedangkan MSS menuntut penembusan Swing struktural dengan Displacement + FVG.'
+            'CISD membaca perubahan kontrol di level Open rangkaian candle lawan terakhir, sedangkan MSS menuntut break Swing struktural dengan Displacement + FVG.'
           ]
         }
       ],
       mappingSteps: [
-        'Tunggu Sweep likuiditas (PDH/PDL/Asia) atau sentuhan POI HTF terlebih dahulu.',
+        'Tunggu Sweep Liquidity (PDH/PDL/Asia) atau sentuhan POI HTF terlebih dahulu.',
         'Tandai garis Open rangkaian candle terakhir menuju ekstrem sweep (acuan CISD) dan Swing terdekat (acuan MSS).',
         'Tunggu Body Close sah menembus acuan tersebut sebelum menyiapkan rencana pullback ke FVG/OB.'
       ],
       decisionTree: [
         {
           condition: 'Ada candle hijau menelan 1 candle merah di tengah konsolidasi Asia tanpa Sweep atau POI HTF.',
-          action: 'SKIP — bukan CISD valid; CISD wajib lahir dari Sweep likuiditas atau POI HTF.'
+          action: 'SKIP — bukan CISD valid; CISD wajib lahir dari Sweep Liquidity atau POI HTF.'
         },
         {
           condition: 'Masih membangun konsistensi 30 trade pertama dan melihat CISD tipis tanpa MSS.',
@@ -713,7 +713,7 @@
       ],
       validRules: [
         'CISD dan MSS keduanya mensyaratkan Body Close, bukan sekadar tusukan wick.',
-        'Wajib didahului Sweep likuiditas atau sentuhan POI timeframe besar.'
+        'Wajib didahului Sweep Liquidity atau sentuhan POI timeframe besar.'
       ],
       invalidRules: [
         'Menganggap setiap engulfing kecil di tengah range sebagai CISD.',
@@ -729,7 +729,7 @@
       failedCase: {
         title: 'Kasus Gagal: CISD di Ruang Hampa',
         context: 'Trader memakai CISD M5 di tengah Dealing Range tanpa sweep dan melawan bias H1.',
-        whyFailed: 'Tanpa bahan bakar likuiditas, pantulan kecil langsung habis dan tren H1 menelan SL.'
+        whyFailed: 'Tanpa bahan bakar Liquidity, pantulan kecil langsung habis dan tren H1 menelan SL.'
       },
       goldenRules: [
         'CISD = lampu peringatan dini di level candle; MSS = lampu hijau penuh di level struktur.',
@@ -737,10 +737,10 @@
       ],
       quiz: [
         {
-          question: 'Secara mekanis, titik harga manakah yang harus ditembus oleh **Body Close** agar **Bullish CISD** sah terkonfirmasi setelah harga menyapu `PDL`?',
+          question: 'Secara mekanis, titik harga manakah yang harus ditembus oleh **Body Close** agar **Bullish CISD** sah terkonfirmasi setelah harga sweep `PDL`?',
           options: [
             'Ujung ekor bawah candle paling rendah',
-            '**Harga Open** dari candle turun (*down-close*) pertama pada rangkaian candle merah terakhir yang mendorong menyapu `PDL`',
+            '**Harga Open** dari candle turun (*down-close*) pertama pada rangkaian candle merah terakhir yang mendorong sweep `PDL`',
             'Harga penutupan pekan lalu',
             'Titik tertinggi sesi Asia 3 hari yang lalu'
           ],
@@ -756,10 +756,10 @@
             'Keduanya hanya berlaku di timeframe Bulanan'
           ],
           answerIndex: 1,
-          explanation: 'CISD mendeteksi perubahan kontrol delivery di level candle lebih dini; MSS mengonfirmasi patah struktur di level swing.'
+          explanation: 'CISD mendeteksi perubahan kontrol delivery di level candle lebih dini; MSS mengonfirmasi break struktur di level swing.'
         },
         {
-          question: 'Harga menyapu `PDL 2.638,00` dengan 2 candle merah (Open awal `2.641,50`), lalu candle hijau M5 sempat menyentuh `2.643,00` tetapi **ditutup (Close) di `2.640,80`**. Apakah Bullish CISD sudah valid?',
+          question: 'Harga sweep `PDL 2.638,00` dengan 2 candle merah (Open awal `2.641,50`), lalu candle hijau M5 sempat menyentuh `2.643,00` tetapi **ditutup (Close) di `2.640,80`**. Apakah Bullish CISD sudah valid?',
           options: [
             'Sudah valid karena wick-nya sempat naik ke `2.643,00`',
             '**Belum valid** — karena CISD mensyaratkan **Body Close** di atas `2.641,50`, bukan sekadar tusukan wick',
@@ -767,10 +767,10 @@
             'Otomatis berubah menjadi Bearish MSS'
           ],
           answerIndex: 1,
-          explanation: 'Sama seperti BOS dan MSS, CISD mewajibkan penutupan badan (Body Close) melewati garis Open, bukan sekadar ekor.'
+          explanation: 'Sama seperti BOS dan MSS, CISD mewajibkan Body Close melewati garis Open, bukan sekadar ekor.'
         },
         {
-          question: 'Untuk trader yang sedang membangun konsistensi di 30–50 trade pertamanya, standar pemicu pembalikan mana yang paling aman digunakan?',
+          question: 'Untuk trader yang sedang membangun konsistensi di 30–50 trade pertamanya, standar pemicu reversal mana yang paling aman digunakan?',
           options: [
             'Masuk sebelum candle selesai tutup',
             'Menjadikan **Sweep + MSS + Displacement + FVG** sebagai standar wajib sebelum menggunakan CISD agresif sendirian',
@@ -828,7 +828,7 @@
             caption: 'Urutan Kekuatan PD Array (PD Array Matrix · Dari Terkuat ke Standar)',
             headers: ['Peringkat', 'Jenis PD Array', 'Alasan Kekuatan', 'Catatan Eksekusi XAU/USD'],
             rows: [
-              ['#1 (S+)', '**ICT Unicorn (Breaker + FVG)**', 'Pertemuan ganda: bekas benteng gagal (mitigasi BEP) + celah ketidakseimbangan di 1 koordinat', 'Prioritas mutlak saat ada di Discount/Premium & searah DOL'],
+              ['#1 (S+)', '**ICT Unicorn (Breaker + FVG)**', 'Pertemuan ganda: bekas benteng gagal (mitigasi BEP) + celah Imbalance di 1 koordinat', 'Prioritas mutlak saat ada di Discount/Premium & searah DOL'],
               ['#2 (A+)', '**Breaker Block (BB)**', 'Terbentuk dari Sweep + jebol balik keras; pantulan jauh lebih agresif dari OB biasa', 'Perhatikan label `+BB` / `-BB` pada Chart Gold Mapping'],
               ['#3 (A+)', '**Inversion FVG (iFVG)**', 'Bukti langsung pihak lawan baru saja dihancurkan pasca-Sweep/POI HTF', 'Sangat presisi saat sesi NY AM bergerak cepat tanpa pullback dalam'],
               ['#4 (A)', '**High-Prob Order Block + FVG**', 'Jejak akumulasi institusi di pangkal dorongan + validasi kecepatan FVG', 'Gunakan Open OB (ringkas) atau 50% Mean Threshold (OB lebar)'],
@@ -873,7 +873,7 @@
         '**Hukum Lokasi:** Cari **BUY** hanya di zona **Discount (`< 50%`)** dan cari **SELL** hanya di zona **Premium (`> 50%`)** dari Dealing Range impulsif.',
         '**Zona OTE** (*Optimal Trade Entry*) terletak di retracement **`61,8% – 78,6%`** dengan titik manis **`70,5%`** — namun WAJIB berhimpitan dengan PD Array (bukan klik buta di garis Fibonacci).',
         '**Hierarki PD Array:** `Unicorn (BB+FVG) > Breaker Block > iFVG > Order Block + FVG > FVG Fresh > Mitigation Block`.',
-        'Jika harga tidak mau memberikan diskon di bawah 50%, biarkan ia pergi — disiplin menolak entry mahal adalah pelindung terbesar modalmu.'
+        'Jika harga tidak mau kasih area Discount di bawah 50%, biarkan ia pergi — disiplin menolak entry mahal adalah pelindung terbesar modalmu.'
       ],
       bridgeNext: 'Selamat menuntaskan **Bagian IV: Mesin Zona Entry ICT (Bab 18–24)**! Kamu sudah tahu *ke mana* harga mau pergi (Bagian III) dan *di titik mana* institusi menaruh pesanan mereka (Bagian IV). Sekarang saatnya merakit seluruh mesin itu ke dalam **SOP Eksekusi Langkah demi Langkah** di **Bagian V**, dimulai dari model paling terkenal di seluruh dunia ICT: **Bab 25: Model Entry Utama (ICT 2022): Merakit Sweep → MSS/CISD → FVG/OB dari Nol**.',
       practiceCta: {
@@ -897,7 +897,7 @@
       decisionTree: [
         {
           condition: 'Muncul Bullish FVG rapi di 70% Premium saat tren naik.',
-          action: 'SKIP — posisi terlalu mahal; tunggu diskon di bawah 50% atau biarkan harga pergi.'
+          action: 'SKIP — posisi terlalu mahal; tunggu Discount di bawah 50% atau biarkan harga pergi.'
         },
         {
           condition: 'Harga menyentuh garis 70,5% OTE, tetapi di situ tidak ada FVG, OB, maupun Breaker.',
@@ -925,7 +925,7 @@
         whyFailed: 'Tanpa PD Array dan konfirmasi, harga langsung menembus 70,5% menuju High baru.'
       },
       goldenRules: [
-        'Jika harga tidak mau memberi diskon di bawah 50%, biarkan ia pergi — selalu ada peluang berikutnya.',
+        'Jika harga tidak mau kasih area Discount di bawah 50%, biarkan ia pergi — selalu ada peluang berikutnya.',
         'PD Array bermutu tinggi + Zona OTE (61,8%–78,6%) adalah kombinasi presisi tertinggi scalper.'
       ],
       quiz: [
@@ -966,7 +966,7 @@
           question: 'Harga XAU/USD baru saja menyentuh tepat garis `70,5%` OTE, tetapi di sekitar titik tersebut **tidak ada FVG, Order Block, ataupun Breaker Block**. Apa tindakan yang benar?',
           options: [
             'Langsung Market Order karena `70,5%` pasti memantul 100%',
-            '**Tidak langsung entry** — karena OTE hanyalah filter lokasi diskon/premium; tetap wajib ada PD Array dan konfirmasi struktur yang valid',
+            '**Tidak langsung entry** — karena OTE hanyalah filter lokasi Discount/Premium; tetap wajib ada PD Array dan konfirmasi struktur yang valid',
             'Menggandakan ukuran lot agar cepat balik modal',
             'Memindahkan Fibonacci ke candle acak agar cocok'
           ],
@@ -995,8 +995,8 @@
           heading: 'Mengapa Model ICT 2022 Menjadi Senjata Utama #1 Scalper XAU/USD?',
           shortTitle: 'Kenapa Model ICT 2022 #1',
           paragraphs: [
-            'Selamat datang di **Bagian V: Model Eksekusi, Filter Gagal & Manajemen Trade**. Di Bagian II–IV kamu sudah membangun seluruh suku cadangnya: struktur & likuiditas, kompas DOL/Bias/Killzone, serta seluruh PD Array (Displacement, FVG, iFVG, OB, Breaker, CISD/MSS, OTE). Sekarang kita merakit suku cadang itu menjadi **kendaraan siap jalan**!',
-            '**Model ICT 2022** adalah playbook paling terkenal dan paling banyak diaudit di seluruh dunia ICT karena satu alasan sederhana: **urutan sebab-akibatnya 100% mekanis dan tanpa ruang menebak.** Kamu tidak pernah menerka kapan harga akan berbalik — kamu justru **membiarkan institusi menunjukkan kartunya lebih dulu** lewat sapuan likuiditas (*Sweep*) dan dorongan patah struktur (*Displacement + MSS*), baru masuk dengan tenang saat harga pulang menjemput diskon di FVG atau Order Block.',
+            'Selamat datang di **Bagian V: Model Eksekusi, Filter Gagal & Manajemen Trade**. Di Bagian II–IV kamu sudah membangun seluruh suku cadangnya: struktur & Liquidity, kompas DOL/Bias/Killzone, serta seluruh PD Array (Displacement, FVG, iFVG, OB, Breaker, CISD/MSS, OTE). Sekarang kita merakit suku cadang itu menjadi **kendaraan siap jalan**!',
+            '**Model ICT 2022** adalah playbook paling terkenal dan paling banyak diaudit di seluruh dunia ICT karena satu alasan sederhana: **urutan sebab-akibatnya 100% mekanis dan tanpa ruang menebak.** Kamu tidak pernah menerka kapan harga akan berbalik — kamu justru **membiarkan institusi menunjukkan kartunya lebih dulu** lewat Liquidity Sweep dan dorongan break struktur (*Displacement + MSS*), baru masuk dengan tenang saat harga pulang jemput area Discount di FVG atau Order Block.',
             'Keuntungan psikologisnya luar biasa: jika **salah satu** dari rantai wajibnya belum muncul di chart, tanganmu otomatis tetap tenang di samping keyboard — tidak ada lagi keraguan *"masuk nggak ya?"*.'
           ]
         },
@@ -1011,10 +1011,10 @@
             caption: 'Rantai Eksekusi Mekanis Model Utama ICT 2022 (XAU/USD · H1 → M15 → M5)',
             headers: ['Tahap', 'Timeframe & Fokus', 'Syarat Wajib Terpenuhi (Bukan Perkiraan)', 'Jika Tidak Ada?'],
             rows: [
-              ['**1. Konteks & Bahan Bakar**', 'H1 / M15 (Killzone WITA)', 'Daily Bias & DOL jelas + **Liquidity Sweep** nyata pada kolam kunci (`Asia H/L`, `London H/L`, `PDH/PDL`, `EQH/EQL`) atau sentuhan **POI HTF**', '**TUNGGU!** Tanpa Sweep/POI HTF, semua sinyal M5 hanyalah noise'],
+              ['**1. Konteks & Bahan Bakar**', 'H1 / M15 (Killzone WITA)', 'Daily Bias & DOL jelas + **Liquidity Sweep** nyata pada level Liquidity kunci (`Asia H/L`, `London H/L`, `PDH/PDL`, `EQH/EQL`) atau sentuhan **POI HTF**', '**TUNGGU!** Tanpa Sweep/POI HTF, semua sinyal M5 hanyalah noise'],
               ['**2. Bukti Balik Arah**', 'M5 (atau M15)', 'Muncul **Displacement tegas** (`≥ 65%` body) yang menutup **Body Close** mematahkan Swing (**MSS**) atau Open rangkaian sweep (**CISD**) dan **mencetak FVG segar**', '**SKIP!** Gerakan merayap tanpa Displacement + FVG = dilarang entry'],
-              ['**3. Titik Antre Diskon**', 'M5 (Dealing Range Kaki MSS)', 'Tarik Fib kaki dorongan → pastikan **FVG / OB** berada di sisi **Discount (`< 50%`)** untuk Buy atau **Premium (`> 50%`)** untuk Sell (ideal di OTE `61,8%–78,6%`). Pasang Limit Order di tepi FVG atau `50% CE`', 'Jika FVG hanya ada di area mahal (`> 50%` untuk Buy), **biarkan pergi**'],
-              ['**4. Proteksi & Target**', 'M5 → H1 DOL', 'SL di luar ujung wick ekstrem sweep (+ napas spread) · TP1 di kolam likuiditas terdekat (`≥ 1,5R–2R`) · TP2 di magnet DOL utama (`PDH/PDL` / H1 Pool)', 'Jika R:R ke target realistis `< 1:2`, **batalkan setup!**']
+              ['**3. Titik Antre Discount**', 'M5 (Dealing Range Kaki MSS)', 'Tarik Fib kaki dorongan → pastikan **FVG / OB** berada di sisi **Discount (`< 50%`)** untuk Buy atau **Premium (`> 50%`)** untuk Sell (ideal di OTE `61,8%–78,6%`). Pasang Limit Order di tepi FVG atau `50% CE`', 'Jika FVG hanya ada di area mahal (`> 50%` untuk Buy), **biarkan pergi**'],
+              ['**4. Proteksi & Target**', 'M5 → H1 DOL', 'SL di luar ujung wick ekstrem sweep (+ napas spread) · TP1 di Liquidity Pool terdekat (`≥ 1,5R–2R`) · TP2 di magnet DOL utama (`PDH/PDL` / H1 Pool)', 'Jika R:R ke target realistis `< 1:2`, **batalkan setup!**']
             ]
           }
         },
@@ -1024,7 +1024,7 @@
           shortTitle: 'Aturan Batal Limit Order',
           paragraphs: [
             'Ada satu jebakan halus yang sering memakan korban di Model ICT 2022: trader sudah memasang `Sell Limit` rapi di Bearish FVG, lalu harga ternyata langsung terjun kencang **menyentuh target DOL (SSL/PDL)** tanpa sempat naik menjemput ordernya. Lima belas menit kemudian harga baru memantul naik menyentuh `Sell Limit` lama itu — dan langsung bablas menembus Stop Loss!',
-            'Kenapa bisa begitu? Karena **tujuan perjalanan harga (DOL) sudah selesai tercapai!** Begitu kolam likuiditas target sudah disapu, bahan bakar dorongan tadi sudah habis dan algoritma siap berbalik arah. Maka hafalkan **3 Aturan Wajib Cancel Pending Order** berikut:',
+            'Kenapa bisa begitu? Karena **tujuan perjalanan harga (DOL) sudah selesai tercapai!** Begitu Liquidity Pool target sudah di-sweep, bahan bakar dorongan tadi sudah habis dan algoritma siap berbalik arah. Maka hafalkan **3 Aturan Wajib Cancel Pending Order** berikut:',
             '1. **Target Terlebih Dahulu Tercapai:** Jika harga menyentuh minimal `80%–100%` jarak ke TP1/DOL sebelum menjemput Limit Order-mu → **segera Cancel!**',
             '2. **Melewati Jam Killzone / Masuk News Lock:** Jika Limit Order belum terjemput hingga jendela Killzone berakhir atau tinggal 15 menit menjelang berita merah USD (CPI/NFP/FOMC) → **segera Cancel!**',
             '3. **Struktur Baru Berlawanan Muncul:** Jika sebelum menyentuh ordermu, harga malah membentuk MSS berlawanan arah yang mematahkan titik invalidasi → **segera Cancel!**'
@@ -1042,7 +1042,7 @@
             rows: [
               {
                 label: 'Tahap 1 — Konteks & Sweep (Bahan Bakar)',
-                detail: 'Daily Bias & H1 **Bearish** menuju DOL **`PDL 2.632,00`**. Bebas News Lock. Pukul `20:35 WITA`, harga melonjak tajam menyapu **London High `2.652,50`** hingga ujung wick **`2.654,00`** lalu langsung ditolak.'
+                detail: 'Daily Bias & H1 **Bearish** menuju DOL **`PDL 2.632,00`**. Bebas News Lock. Pukul `20:35 WITA`, harga melonjak tajam sweep **London High `2.652,50`** hingga ujung wick **`2.654,00`** lalu langsung ditolak.'
               },
               {
                 label: 'Tahap 2 — Displacement + MSS + FVG',
@@ -1050,7 +1050,7 @@
               },
               {
                 label: 'Tahap 3 & 4 — Limit Order, SL Struktural & Target Bertingkat',
-                detail: 'Pasang **Sell Limit** di **`2.650,50`** (tepi dalam SIBI di zona Premium). **SL** di atas ujung wick sweep **`2.654,80`** (jarak risiko **`$4,30`** termasuk napas spread `$0,80`). **TP1** di kolam SSL internal **`2.641,50`** (`+$9,00` → **2,09R**), **TP2** runner di **`PDL 2.632,50`** (`+$18,00` → **4,19R**).'
+                detail: 'Pasang **Sell Limit** di **`2.650,50`** (tepi dalam SIBI di zona Premium). **SL** di atas ujung wick sweep **`2.654,80`** (jarak risiko **`$4,30`** termasuk napas spread `$0,80`). **TP1** di Liquidity Pool SSL internal **`2.641,50`** (`+$9,00` → **2,09R**), **TP2** runner di **`PDL 2.632,50`** (`+$18,00` → **4,19R**).'
               }
             ]
           },
@@ -1065,10 +1065,10 @@
       keyTakeaways: [
         '**Model ICT 2022** berjalan dalam 4 tahap berurutan tanpa lompat: **Konteks/Sweep (Killzone) → Displacement + MSS/CISD → Retracement Discount/Premium ke FVG/OB → SL di luar Sweep + TP di DOL**.',
         'Jika salah satu rantai wajib tidak ada (misalnya tidak ada Sweep atau tidak ada Displacement/FVG), keputusan mekanisnya otomatis **SKIP**.',
-        '**Cancel Rule Wajib:** Segera hapus Pending Limit Order jika target likuiditas (TP1/DOL) terlanjur tersentuh sebelum ordermu terjemput, atau saat mendekati News Lock / akhir Killzone.',
-        'Pastikan R:R ke target likuiditas realistis minimal **`1:2`** sebelum tombol order dipasang.'
+        '**Cancel Rule Wajib:** Segera hapus Pending Limit Order jika target Liquidity (TP1/DOL) terlanjur tersentuh sebelum ordermu terjemput, atau saat mendekati News Lock / akhir Killzone.',
+        'Pastikan R:R ke target Liquidity realistis minimal **`1:2`** sebelum tombol order dipasang.'
       ],
-      bridgeNext: 'Model ICT 2022 adalah tulang punggung yang luar biasa rapi. Namun di XAU/USD yang terkenal eksplosif, ada kalanya harga melesat terlalu kencang sehingga tidak memberi pullback dalam ke FVG baru, atau justru membentuk irisan Unicorn / pembalikan ekstrem di PWL/PWH. Kapan kita memakai tiga playbook pelengkap tersebut? Mari kita bedah di **Bab 26: Model Entry Alternatif: iFVG Entry, Unicorn Setup & Turtle Soup (SMR)**.',
+      bridgeNext: 'Model ICT 2022 adalah tulang punggung yang luar biasa rapi. Namun di XAU/USD yang terkenal eksplosif, ada kalanya harga melesat terlalu kencang sehingga tidak memberi pullback dalam ke FVG baru, atau justru membentuk irisan Unicorn / reversal ekstrem di PWL/PWH. Kapan kita memakai tiga playbook pelengkap tersebut? Mari kita bedah di **Bab 26: Model Entry Alternatif: iFVG Entry, Unicorn Setup & Turtle Soup (SMR)**.',
       practiceCta: {
         label: 'Latih Model ICT 2022 di Replay Lab',
         description: 'Praktikkan alur Sweep → MSS → FVG bar-by-bar di Backtest Replay Lab XAU/USD pada sesi London & NY WITA.',
@@ -1083,7 +1083,7 @@
         }
       ],
       mappingSteps: [
-        'Tunggu Sweep likuiditas nyata (Asia/London/PDH/PDL) atau sentuhan POI HTF di dalam Killzone WITA.',
+        'Tunggu Sweep Liquidity nyata (Asia/London/PDH/PDL) atau sentuhan POI HTF di dalam Killzone WITA.',
         'Konfirmasi Displacement + Body Close MSS/CISD di M5 yang meninggalkan FVG segar.',
         'Pasang Limit Order pada FVG/OB di zona Discount (Buy) atau Premium (Sell) dengan SL di balik ujung Sweep (+ napas spread) dan TP minimal 1:2.',
         'Segera Cancel Limit Order jika harga terlanjur menyentuh target TP1/DOL sebelum order terjemput.'
@@ -1094,17 +1094,17 @@
           action: 'Segera CANCEL Sell Limit — bahan bakar target sudah habis dan rawan berbalik menembus SL.'
         },
         {
-          condition: 'Muncul FVG M5 rapi, tetapi sebelumnya tidak ada Sweep likuiditas maupun sentuhan POI HTF.',
+          condition: 'Muncul FVG M5 rapi, tetapi sebelumnya tidak ada Sweep Liquidity maupun sentuhan POI HTF.',
           action: 'SKIP — rantai tahap 1 Model 2022 tidak terpenuhi.'
         }
       ],
       validRules: [
-        'Wajib ada Sweep likuiditas nyata (Asia High/Low, PDH/PDL, atau EQH/EQL) sebelum MSS.',
+        'Wajib ada Sweep Liquidity nyata (Asia High/Low, PDH/PDL, atau EQH/EQL) sebelum MSS.',
         'MSS terjadi dengan candle Displacement tegas yang menciptakan FVG segar di dalam Killzone WITA.'
       ],
       invalidRules: [
-        'Membiarkan pending Limit Order aktif setelah harga sudah mencapai target likuiditas (DOL).',
-        'Masuk di setup dengan R:R ke kolam likuiditas terdekat kurang dari 1:2.'
+        'Membiarkan pending Limit Order aktif setelah harga sudah mencapai target Liquidity (DOL).',
+        'Masuk di setup dengan R:R ke Liquidity Pool terdekat kurang dari 1:2.'
       ],
       xauScenario: {
         context: 'Sesi NY AM (20:45 WITA EDT), Bias H1 Bearish menuju PDL 2.632.',
@@ -1115,11 +1115,11 @@
       },
       failedCase: {
         title: 'Kasus Gagal: Lupa Membatalkan Limit Order Kadaluarsa',
-        context: 'Trader membiarkan Sell Limit aktif padahal harga sudah terlebih dahulu menyapu PDL target dan mulai memantul naik.',
-        whyFailed: 'Order terjemput saat fase pembalikan baru sehingga langsung terseret menembus SL.'
+        context: 'Trader membiarkan Sell Limit aktif padahal harga sudah terlebih dahulu sweep PDL target dan mulai memantul naik.',
+        whyFailed: 'Order terjemput saat fase reversal baru sehingga langsung terseret menembus SL.'
       },
       goldenRules: [
-        'Jika harga sudah menyentuh target likuiditas SEBELUM menjemput limit order FVG kamu, segera batalkan order!',
+        'Jika harga sudah menyentuh target Liquidity SEBELUM menjemput limit order FVG kamu, segera batalkan order!',
         'Kuasai Model ICT 2022 ini minimal 30 trade sebelum sibuk mengeksplorasi model lain.'
       ],
       quiz: [
@@ -1127,12 +1127,12 @@
           question: 'Manakah urutan 4 tahap mekanis yang benar pada **Model Entry Utama (ICT 2022)**?',
           options: [
             'Pasang Limit dulu → baru tunggu Sweep → baru cek News',
-            '**Konteks/Sweep Likuiditas di Killzone → Displacement + MSS/CISD + FVG → Retracement ke FVG/OB di Discount/Premium → SL di luar Sweep + TP di DOL**',
+            '**Konteks/Sweep Liquidity di Killzone → Displacement + MSS/CISD + FVG → Retracement ke FVG/OB di Discount/Premium → SL di luar Sweep + TP di DOL**',
             'Cari 5 indikator oversold → langsung Market Order di sesi Asia',
             'Tunggu berita CPI → pasang Buy Stop dan Sell Stop bersamaan'
           ],
           answerIndex: 1,
-          explanation: 'Model ICT 2022 menunggu bahan bakar (Sweep), bukti niat institusi (Displacement + MSS + FVG), baru masuk saat diskon dengan SL struktural dan target DOL.'
+          explanation: 'Model ICT 2022 menunggu bahan bakar (Sweep), bukti niat institusi (Displacement + MSS + FVG), baru masuk saat Discount dengan SL struktural dan target DOL.'
         },
         {
           question: 'Kamu sudah memasang `Sell Limit` di Bearish FVG `2.650,50`, tetapi harga langsung terjun mencapai target `TP1 / PDL` tanpa sempat naik menjemput ordermu. Apa tindakan wajib sesuai **Cancel Rule**?',
@@ -1143,7 +1143,7 @@
             'Mengganti SL menjadi lebih lebar'
           ],
           answerIndex: 1,
-          explanation: 'Begitu target Draw on Liquidity tercapai sebelum pullback, setup lama kadaluarsa dan rawan menjadi bahan bakar pembalikan jika dibiarkan aktif.'
+          explanation: 'Begitu target Draw on Liquidity tercapai sebelum pullback, setup lama kadaluarsa dan rawan menjadi bahan bakar reversal jika dibiarkan aktif.'
         },
         {
           question: 'Dalam studi kasus Bearish ICT 2022 (`Sell Limit 2.650,50`, ujung wick sweep `2.654,00`, SL `2.654,80` = risiko `$4,30`), mengapa SL diletakkan di `2.654,80` bukan tepat di `2.654,00`?',
@@ -1157,15 +1157,15 @@
           explanation: 'Menambahkan buffer napas spread di luar ujung ekstrem sweep melindungi posisi dari sentuhan spread Ask tanpa mengubah logika invalidasi struktur.'
         },
         {
-          question: 'Terjadi Sweep Asia Low + MSS M5 + Bullish FVG, namun jarak dari titik entry ke kolam likuiditas lawan terdekat hanya menghasilkan **R:R `1 : 1,2`**. Apa keputusan mekanis yang benar?',
+          question: 'Terjadi Sweep Asia Low + MSS M5 + Bullish FVG, namun jarak dari titik entry ke Liquidity Pool lawan terdekat hanya menghasilkan **R:R `1 : 1,2`**. Apa keputusan mekanis yang benar?',
           options: [
             'Tetap masuk dengan lot 2× lebih besar',
             '**Batalkan / Skip setup** karena R:R di bawah standar minimal `1:2` — ruang profitnya terlalu sempit dibanding risikonya',
-            'Geser TP jauh melampaui ADR harian tanpa dasar likuiditas',
+            'Geser TP jauh melampaui ADR harian tanpa dasar Liquidity',
             'Geser SL masuk ke tengah kotak FVG agar R:R terlihat besar'
           ],
           answerIndex: 1,
-          explanation: 'Jangan pernah memanipulasi SL/TP demi memaksakan R:R; jika ruang likuiditas aktual di bawah 1:2, lewati saja.'
+          explanation: 'Jangan pernah memanipulasi SL/TP demi memaksakan R:R; jika ruang Liquidity aktual di bawah 1:2, lewati saja.'
         }
       ]
     },
@@ -1181,8 +1181,8 @@
         {
           heading: 'Kapan Memakai Model Order Block Dibanding FVG?',
           paragraphs: [
-            'Sering kali pada XAU/USD, harga menyapu likuiditas lalu melesat dengan FVG kecil yang berada di atas OB, atau harga melakukan koreksi sedikit lebih dalam menembus FVG untuk menjemput Order Block di pangkal dorongan.',
-            'Model 2 membidik reaksi di Open Order Block atau tepat di garis 50% Mean Threshold (MT) dari badan OB. Karena posisinya lebih dalam ke arah ekstrem, jarak Stop Loss jauh lebih ketat — menghasilkan R:R 1:3 hingga 1:5.'
+            'Sering kali pada XAU/USD, harga sweep Liquidity lalu melesat dengan FVG kecil yang berada di atas OB, atau harga melakukan koreksi sedikit lebih dalam menembus FVG untuk menjemput Order Block di pangkal dorongan.',
+            'Model 2 membidik reaksi di Open Order Block atau tepat di garis 50% Mean Threshold (MT) dari body OB. Karena posisinya lebih dalam ke arah ekstrem, jarak Stop Loss jauh lebih ketat — menghasilkan R:R 1:3 hingga 1:5.'
           ]
         },
         {
@@ -1193,7 +1193,7 @@
         }
       ],
       validRules: [
-        'OB adalah candle berlawanan terakhir yang langsung menyapu likuiditas sebelum Displacement.',
+        'OB adalah candle berlawanan terakhir yang langsung sweep Liquidity sebelum Displacement.',
         'Terdapat FVG yang terbentuk persis keluar dari OB tersebut.',
         'Entry di Open OB (konservatif) atau 50% Mean Threshold (sniper) dengan SL di luar wick OB.'
       ],
@@ -1203,7 +1203,7 @@
         'Ukuran candle OB terlalu raksasa (misal >$10 di M5) sehingga risiko terlalu besar.'
       ],
       xauScenario: {
-        context: 'Sesi London (16:15 WITA), XAU/USD menyapu PDL 2.635 dengan 1 candle bearish M5 (Open 2.638,50, Close 2.636,00, Wick Low 2.634,50) lalu meledak naik mencetak MSS + FVG.',
+        context: 'Sesi London (16:15 WITA), XAU/USD sweep PDL 2.635 dengan 1 candle bearish M5 (Open 2.638,50, Close 2.636,00, Wick Low 2.634,50) lalu meledak naik mencetak MSS + FVG.',
         steps: [
           'Tandai Bullish OB: Open 2.638,50, Mean Threshold (50% body) = 2.637,25.',
           'Saat harga turun mengisi FVG dan menusuk masuk ke 2.637,50 (dekat MT) dengan ekor penolakan, Buy Limit terjemput.',
@@ -1211,7 +1211,7 @@
         ]
       },
       goldenRules: [
-        'OB terbaik selalu menjadi "pelaku" yang menyapu likuiditas dan melahirkan FVG.',
+        'OB terbaik selalu menjadi "pelaku" yang sweep Liquidity dan melahirkan FVG.',
         'Gunakan Open OB jika ingin peluang terjemput lebih tinggi; gunakan 50% MT jika ingin R:R lebih tajam.'
       ],
       quiz: [
@@ -1229,7 +1229,7 @@
         {
           question: 'Ciri apa yang wajib menyertai sebuah Order Block pada Model 2 agar tidak terjebak OB palsu?',
           options: [
-            'OB tersebut menyapu likuiditas dan langsung melahirkan Displacement + FVG',
+            'OB tersebut sweep Liquidity dan langsung melahirkan Displacement + FVG',
             'OB berada di atas 80% Premium untuk posisi Buy',
             'OB sudah pernah diuji 3 kali sebelumnya',
             'OB terbentuk saat spread rollover subuh'
@@ -1266,7 +1266,7 @@
           heading: 'Logika Balik Kutub: Kenapa FVG Lawan yang Hancur Justru Sinyal Sangat Kuat?',
           shortTitle: 'Logika Balik Kutub iFVG',
           paragraphs: [
-            'Di Bab 19 kamu belajar bahwa sebuah **Bearish FVG (SIBI)** seharusnya berfungsi sebagai **atap pertahanan penjual** yang menolak harga kembali ke bawah. Sekarang bayangkan sebuah skenario nyata: XAU/USD baru saja turun menyapu `Asia Low` atau `PDL` sambil meninggalkan sebuah Bearish FVG kecil di kaki penurunan terakhirnya.',
+            'Di Bab 19 kamu belajar bahwa sebuah **Bearish FVG (SIBI)** seharusnya berfungsi sebagai **atap pertahanan penjual** yang menolak harga kembali ke bawah. Sekarang bayangkan sebuah skenario nyata: XAU/USD baru saja turun sweep `Asia Low` atau `PDL` sambil meninggalkan sebuah Bearish FVG kecil di kaki penurunan terakhirnya.',
             'Secara logika, kalau penjual memang masih berkuasa, Bearish FVG itu **wajib** menahan harga. Tetapi tiba-tiba muncul candle hijau tebal yang **menghancurkan dan menutup badannya (Body Close) telak di atas seluruh kotak Bearish FVG tersebut**! Pesannya sejelas siang bolong: **pertahanan penjual baru saja jebol dan pihak pembeli mengambil alih panggung.**',
             'Pada detik itulah Bearish FVG yang gagal berubah kutub menjadi **Bullish Inversion Fair Value Gap (`+iFVG`)** — atap yang gagal kini berubah menjadi **lantai pijakan baru** untuk meluncur ke atas! (Di Chart Gold Mapping Cockpit Amy FX Pro, zona ini otomatis digambar sebagai **`+iFVG` ungu** untuk Buy dan **`-iFVG` amber** untuk Sell).'
           ]
@@ -1276,7 +1276,7 @@
           heading: 'Syarat Mutlak iFVG Valid vs FVG Bocor Biasa di Tengah Sideways',
           shortTitle: 'Syarat Mutlak iFVG',
           paragraphs: [
-            'Kesalahan terbesar trader yang baru mengenal iFVG adalah menandai **setiap** FVG yang tertembus di tengah pasar sideways sebagai iFVG. Ingat: tanpa konteks likuiditas, FVG di tengah pasar datar memang akan ditembus naik-turun sepanjang hari. Gunakan tabel penyaring mutlak berikut:'
+            'Kesalahan terbesar trader yang baru mengenal iFVG adalah menandai **setiap** FVG yang tertembus di tengah pasar sideways sebagai iFVG. Ingat: tanpa konteks Liquidity, FVG di tengah pasar datar memang akan ditembus naik-turun sepanjang hari. Gunakan tabel penyaring mutlak berikut:'
           ],
           table: {
             caption: 'Aturan Sah Pembentukan +iFVG (Bullish) dan -iFVG (Bearish)',
@@ -1293,8 +1293,8 @@
           heading: 'Kapan iFVG Menjadi Senjata Favorit Scalper Gold?',
           shortTitle: 'Kapan Memakai iFVG',
           paragraphs: [
-            'XAU/USD pada **NY AM Killzone (`19:00–22:00 WITA` EDT / `20:00–23:00 WITA` EST)** dan **NY AM Silver Bullet** terkenal sangat agresif. Sering kali setelah menyapu likuiditas, harga langsung melesat kencang tanpa pernah kembali menjemput FVG atau Order Block jauh di bawah.',
-            'Di sinilah **iFVG** bersinar: begitu candle penembus FVG lawan resmi *close*, kamu sudah mendapatkan sinyal perpindahan arus order (*order flow shift*) yang lebih dini dibanding menunggu MSS jauh — sehingga kamu bisa ikut naik kereta di retest singkat tepi luar kotak iFVG (atau garis 50% CE-nya) tanpa harus FOMO mengejar di udara.'
+            'XAU/USD pada **NY AM Killzone (`19:00–22:00 WITA` EDT / `20:00–23:00 WITA` EST)** dan **NY AM Silver Bullet** terkenal sangat agresif. Sering kali setelah sweep Liquidity, harga langsung melesat kencang tanpa pernah kembali menjemput FVG atau Order Block jauh di bawah.',
+            'Di sinilah **iFVG** bersinar: begitu candle penembus FVG lawan resmi *close*, kamu sudah mendapatkan sinyal perubahan order flow (*order flow shift*) yang lebih dini dibanding menunggu MSS jauh — sehingga kamu bisa ikut naik kereta di retest singkat tepi luar kotak iFVG (atau garis 50% CE-nya) tanpa harus FOMO mengejar di udara.'
           ]
         },
         {
@@ -1309,7 +1309,7 @@
             rows: [
               {
                 label: 'Tahap 1 — Sweep & FVG Lawan',
-                detail: 'Bias H1 sedang Bullish menuju NY High `2.658,50`. Harga turun cepat menyapu **Asia Low `2.644,00`** (ekor menyentuh `2.643,80`) sambil meninggalkan **Bearish FVG (SIBI)** di **`2.646,50 – 2.648,00`**.'
+                detail: 'Bias H1 sedang Bullish menuju NY High `2.658,50`. Harga turun cepat sweep **Asia Low `2.644,00`** (ekor menyentuh `2.643,80`) sambil meninggalkan **Bearish FVG (SIBI)** di **`2.646,50 – 2.648,00`**.'
               },
               {
                 label: 'Tahap 2 — Penghancuran SIBI (Body Close)',
@@ -1325,14 +1325,14 @@
             tone: 'warn',
             kicker: 'Peringatan Anti-Jebakan',
             title: 'iFVG Tanpa Sweep / HTF POI = Rasio Gagal Tinggi',
-            body: 'Jangan pernah mengklik iFVG hanya karena melihat sebuah kotak FVG tertembus di tengah konsolidasi tanpa alasan. **Sweep likuiditas atau sentuhan POI H1/H4** adalah bahan bakar wajib yang membuat perubahan kutub iFVG benar-benar meledak ke target.'
+            body: 'Jangan pernah mengklik iFVG hanya karena melihat sebuah kotak FVG tertembus di tengah konsolidasi tanpa alasan. **Sweep Liquidity atau sentuhan POI H1/H4** adalah bahan bakar wajib yang membuat perubahan kutub iFVG benar-benar meledak ke target.'
           }
         }
       ],
       keyTakeaways: [
         '**Inversion FVG (iFVG)** terjadi saat sebuah FVG lawan gagal menahan harga dan ditembus penuh oleh **Body Close** (bukan sekadar wick).',
         'Bekas **Bearish FVG (SIBI)** yang ditembus Body Close ke atas berubah menjadi **Bullish `+iFVG`** (lantai Buy); bekas **Bullish FVG (BISI)** yang ditembus Body Close ke bawah berubah menjadi **Bearish `-iFVG`** (atap Sell).',
-        'Syarat mutlak iFVG berkualitas tinggi: **terjadi tepat setelah Sweep likuiditas (BSL/SSL) atau sentuhan POI HTF**.',
+        'Syarat mutlak iFVG berkualitas tinggi: **terjadi tepat setelah Sweep Liquidity (BSL/SSL) atau sentuhan POI HTF**.',
         'iFVG adalah pemicu dini favorit scalper Gold di sesi NY AM saat momentum terlalu cepat untuk menunggu pullback dalam.'
       ],
       bridgeNext: 'Kamu sudah menguasai dua wajah celah harga: FVG normal (Bab 19) dan FVG yang berbalik kutub menjadi iFVG (Bab 20). Sekarang kita mundur satu langkah ke **pangkal dorongan** tempat institusi pertama kali menanamkan pesanan raksasa sebelum celah FVG itu tercipta. Mari kita bedah secara tuntas di **Bab 21: Order Block (OB) Bermutu Tinggi vs Trap OB & 50% Mean Threshold**.',
@@ -1345,12 +1345,12 @@
         {
           heading: 'Mekanisme Balik Kutub Inversion FVG (iFVG)',
           paragraphs: [
-            'Saat FVG lawan ditembus penuh oleh Body Close pasca-sweep likuiditas atau sentuhan POI HTF, fungsinya berbalik kutub menjadi Inversion FVG (+iFVG atau -iFVG).'
+            'Saat FVG lawan ditembus penuh oleh Body Close pasca-sweep Liquidity atau sentuhan POI HTF, fungsinya berbalik kutub menjadi Inversion FVG (+iFVG atau -iFVG).'
           ]
         }
       ],
       mappingSteps: [
-        'Pastikan harga baru saja menyapu kolam likuiditas (BSL/SSL) atau menyentuh POI HTF.',
+        'Pastikan harga baru saja sweep Liquidity Pool (BSL/SSL) atau menyentuh POI HTF.',
         'Tandai FVG lawan terakhir di kaki sweep, lalu tunggu candle menutup Body Close menembus penuh seluruh kotak FVG itu.',
         'Gunakan retest ke sisi luar kotak iFVG (atau 50% CE) sebagai titik entry dengan SL di balik ujung sweep.'
       ],
@@ -1361,11 +1361,11 @@
         },
         {
           condition: 'FVG tertembus penuh di tengah konsolidasi Asia tanpa ada Sweep atau POI HTF.',
-          action: 'SKIP — tanpa bahan bakar likuiditas, iFVG di tengah choppy sangat rawan whipsaw.'
+          action: 'SKIP — tanpa bahan bakar Liquidity, iFVG di tengah choppy sangat rawan whipsaw.'
         }
       ],
       validRules: [
-        'Didahului Sweep likuiditas atau sentuhan POI H1/M15.',
+        'Didahului Sweep Liquidity atau sentuhan POI H1/M15.',
         'FVG lawan ditembus penuh oleh Body Close (bukan sekadar wick).'
       ],
       invalidRules: [
@@ -1398,29 +1398,29 @@
             'Terbentuk 3 candle merah baru di bawahnya'
           ],
           answerIndex: 1,
-          explanation: 'Perubahan kutub iFVG mewajibkan penutupan badan (Body Close) menembus penuh sisi seberang kotak FVG lawan pasca-Sweep/POI.'
+          explanation: 'Perubahan kutub iFVG mewajibkan Body Close menembus penuh sisi seberang kotak FVG lawan pasca-Sweep/POI.'
         },
         {
           question: 'Mengapa **iFVG** menjadi senjata favorit scalper XAU/USD saat sesi NY AM / Silver Bullet?',
           options: [
             'Karena tidak membutuhkan Stop Loss',
-            'Karena memberi pemicu perpindahan order flow yang lebih cepat saat Gold melaju kencang tanpa sempat pullback dalam ke FVG baru',
+            'Karena memberi pemicu perubahan order flow yang lebih cepat saat Gold melaju kencang tanpa sempat pullback dalam ke FVG baru',
             'Karena bisa dipakai saat pasar tutup akhir pekan',
             'Karena akurasinya selalu 100% tanpa pernah kena SL'
           ],
           answerIndex: 1,
-          explanation: 'Pada momentum cepat XAU/USD, iFVG menangkap pergeseran order flow pasca-sweep lebih awal dibanding menunggu MSS jauh.'
+          explanation: 'Pada momentum cepat XAU/USD, iFVG menangkap perubahan order flow pasca-sweep lebih awal dibanding menunggu MSS jauh.'
         },
         {
           question: 'Kapan sebuah FVG yang tertembus penuh **TIDAK BOLEH** dieksekusi sebagai sinyal iFVG?',
           options: [
             'Saat muncul tepat setelah sweep Asia Low di NY AM Killzone',
-            'Saat muncul di tengah pasar sideways/choppy tanpa latar belakang **Sweep likuiditas** maupun **POI HTF**',
+            'Saat muncul di tengah pasar sideways/choppy tanpa latar belakang **Sweep Liquidity** maupun **POI HTF**',
             'Saat searah dengan Daily Bias dan R:R di atas 1:2',
             'Saat terjadi retest bersih di tepi luar kotak iFVG'
           ],
           answerIndex: 1,
-          explanation: 'Tanpa Sweep likuiditas atau POI HTF, FVG di area choppy memang sering ditembus bolak-balik tanpa arah institusional.'
+          explanation: 'Tanpa Sweep Liquidity atau POI HTF, FVG di area choppy memang sering ditembus bolak-balik tanpa arah institusional.'
         },
         {
           question: 'Dalam studi kasus XAU/USD di atas (`+iFVG` di `2.646,50–2.648,00` pasca-sweep Asia Low `2.643,80`), di mana penempatan Stop Loss paling logis saat masuk Buy di retest `2.648,00`?',
@@ -1431,7 +1431,7 @@
             'Tidak perlu memasang Stop Loss'
           ],
           answerIndex: 1,
-          explanation: 'Ujung ekstrem sweep adalah batas invalidasi struktural sejati — jika harga kembali menembusnya, skenario pembalikan resmi batal.'
+          explanation: 'Ujung ekstrem sweep adalah batas invalidasi struktural sejati — jika harga kembali menembusnya, skenario reversal resmi batal.'
         }
       ]
     },
@@ -1444,7 +1444,7 @@
       levelId: 4,
       bookFormat: true,
       title: 'Model Entry Alternatif: iFVG Entry, Unicorn Setup & Turtle Soup (SMR)',
-      subtitle: 'Tiga playbook cadangan saat pasar bergerak terlalu kencang untuk pullback FVG biasa atau berbalik tajam langsung dari puncak/dasar likuiditas ekstrem.',
+      subtitle: 'Tiga playbook cadangan saat pasar bergerak terlalu kencang untuk pullback FVG biasa atau berbalik tajam langsung dari puncak/dasar Liquidity ekstrem.',
       readMinutes: 10,
       diagramId: 'model-turtle-soup',
       diagramAfterSection: 1,
@@ -1454,11 +1454,11 @@
           number: '26.1',
           heading: 'Kapan Model Utama (ICT 2022) Tidak Terjemput? Peran 3 Playbook Alternatif',
           paragraphs: [
-            'Di Bab 25 kamu sudah menguasai **Model Utama ICT 2022 (`Sweep → MSS/CISD → Retest FVG/OB`)**. Model ini adalah tulang punggung paling jernih bagi 80% hari trading normal. Namun, pasar XAU/USD punya karakter momentum yang kadang sangat agresif: harga menyapu likuiditas, lalu langsung melesat kencang menuju target tanpa pernah mundur cukup dalam untuk menjemput limit order FVG klasik.',
-            'Di sinilah kamu mengenal **3 Model Entry Alternatif** yang semuanya tetap dibangun dari fondasi yang sama — **Killzone + HTF Bias + Sweep Likuiditas** — hanya berbeda pada **pemicu eksekusi (*trigger*)** di LTF M5/M1:',
-            '• **1. iFVG Momentum Entry:** Memanfaatkan kegagalan FVG lawan yang ditembus penuh oleh *Body Close* (merujuk **Bab 24**) sebagai sinyal perpindahan order flow paling dini.',
+            'Di Bab 25 kamu sudah menguasai **Model Utama ICT 2022 (`Sweep → MSS/CISD → Retest FVG/OB`)**. Model ini adalah tulang punggung paling jernih bagi 80% hari trading normal. Namun, pasar XAU/USD punya karakter momentum yang kadang sangat agresif: harga sweep Liquidity, lalu langsung melesat kencang menuju target tanpa pernah mundur cukup dalam untuk menjemput limit order FVG klasik.',
+            'Di sinilah kamu mengenal **3 Model Entry Alternatif** yang semuanya tetap dibangun dari fondasi yang sama — **Killzone + HTF Bias + Sweep Liquidity** — hanya berbeda pada **pemicu eksekusi (*trigger*)** di LTF M5/M1:',
+            '• **1. iFVG Momentum Entry:** Memanfaatkan kegagalan FVG lawan yang ditembus penuh oleh *Body Close* (merujuk **Bab 24**) sebagai sinyal perubahan order flow paling dini.',
             '• **2. ICT Unicorn Setup:** Memanfaatkan pertemuan tumpang-tindih antara **Breaker Block** (Bab 23) dan **Fair Value Gap** (Bab 21) pada satu pita harga sempit untuk akurasi retracement tingkat tinggi.',
-            '• **3. Turtle Soup / Smart Money Reversal (SMR):** Menangkap pembalikan ekstrem tepat di luar level likuiditas besar (**PWH/PWL, PDH/PDL, Asia High/Low**) yang berhimpitan dengan POI H1/H4.'
+            '• **3. Turtle Soup / Smart Money Reversal (SMR):** Menangkap reversal ekstrem tepat di luar level Liquidity besar (**PWH/PWL, PDH/PDL, Asia High/Low**) yang berhimpitan dengan POI H1/H4.'
           ]
         },
         {
@@ -1500,7 +1500,7 @@
           paragraphs: [
             'Nama **"Turtle Soup"** berasal dari strategi legendaris *Turtle Traders* yang selalu membeli saat harga menembus High 20 periode. Dalam kacamata institusional ICT, **Smart Money Reversal (SMR)** adalah kebalikannya: institusi sengaja mendorong harga menembus High/Low besar untuk memicu *buy-stop/sell-stop* trader breakout, menyerap seluruh likuiditasnya, lalu membalikkan harga tajam menuju sisi range seberang.',
             'Kesalahan paling mematikan pemula yang tergiur R:R `1:5` dari Turtle Soup adalah **langsung menekan Buy/Sell saat candle masih meledak kencang menembus level!** Itu bukan Turtle Soup — itu bunuh diri melawan kereta ekspres. Agar Turtle Soup tetap aman dan terukur, kamu wajib melewati **3 Benteng Keamanan Mutlak**:',
-            '• **Benteng 1 — Lokasi Keramat Saja:** Hanya eksekusi di level likuiditas besar (**PWH/PWL**, **PDH/PDL**, atau **Asia High/Low**) yang **berhimpitan langsung dengan POI H1/H4** (OB/FVG HTF). Haram memakai Turtle Soup pada swing kecil acak di tengah range.',
+            '• **Benteng 1 — Lokasi Keramat Saja:** Hanya eksekusi di level Liquidity besar (**PWH/PWL**, **PDH/PDL**, atau **Asia High/Low**) yang **berhimpitan langsung dengan POI H1/H4** (OB/FVG HTF). Haram memakai Turtle Soup pada swing kecil acak di tengah range.',
             '• **Benteng 2 — Bukti Penyerapan Nyata (Absorption + CISD):** Wajib melihat ekor penolakan panjang (*Absorption Wick*) yang gagal menutup body di luar level ekstrem, lalu diikuti penutupan candle M5 yang merebut kembali kendali (**CISD M5**).',
             '• **Benteng 3 — Hukum 1 Peluru (*One Bullet Rule*):** Kamu hanya berhak menembak **maksimal 1 kali** di sebuah level ekstrem. Jika Stop Loss tersentuh karena institusi benar-benar mendorong ekspansi lanjutan, terima kenyataan — **dilarang keras** re-entry berkali-kali melawan tren!'
           ]
@@ -1509,7 +1509,7 @@
           number: '26.4',
           heading: 'Studi Kasus Lengkap XAU/USD: Turtle Soup (SMR) di PWL 2.618,00 + H4 Bullish OB',
           paragraphs: [
-            'Mari kita bedah angka nyata eksekusi Turtle Soup (SMR) pada XAU/USD di pembukaan **London Silver Bullet (`15:00 WITA` EDT / `03:00 NY`)** dengan konteks **H4 Bullish** yang menyentuh lantai likuiditas mingguan:'
+            'Mari kita bedah angka nyata eksekusi Turtle Soup (SMR) pada XAU/USD di pembukaan **London Silver Bullet (`15:00 WITA` EDT / `03:00 NY`)** dengan konteks **H4 Bullish** yang menyentuh lantai Liquidity mingguan:'
           ],
           exampleBox: {
             title: 'Anatomi Eksekusi Turtle Soup (SMR) XAU/USD — Risiko 1% Terukur',
@@ -1540,16 +1540,16 @@
         }
       ],
       keyTakeaways: [
-        '**iFVG Momentum** dipakai saat harga melesat kencang di NY AM/Silver Bullet tanpa pullback dalam; **ICT Unicorn** adalah pertemuan irisan **Breaker Block + FVG**; **Turtle Soup (SMR)** menangkap pembalikan tepat di ujung likuiditas ekstrem HTF.',
+        '**iFVG Momentum** dipakai saat harga melesat kencang di NY AM/Silver Bullet tanpa pullback dalam; **ICT Unicorn** adalah pertemuan irisan **Breaker Block + FVG**; **Turtle Soup (SMR)** menangkap reversal tepat di ujung Liquidity ekstrem HTF.',
         'Turtle Soup profesional **bukan menangkap pisau jatuh** — wajib memenuhi **3 Benteng**: lokasi keramat (PWH/PWL/PDH/PDL + POI H1/H4), bukti penyerapan (*Absorption Wick* + gagal Body Close + CISD M5), dan **One Bullet Rule**.',
-        'Jika candle M15 menutup body penuh dan tebal jauh di luar level likuiditas, itu pertanda breakout kuat — skenario Turtle Soup resmi **BATAL**.'
+        'Jika candle M15 menutup body penuh dan tebal jauh di luar level Liquidity, itu pertanda breakout kuat — skenario Turtle Soup resmi **BATAL**.'
       ],
       bridgeNext: 'Sekarang di kepalamu sudah ada 4 senjata eksekusi (ICT 2022, iFVG, Unicorn, dan Turtle Soup). Ironisnya, di fase inilah banyak trader justru mulai rugi karena **serakah mencoba memakai keempatnya setiap hari!** Di **Bab 27**, kita akan mengunci **1 Model Fokus** terbaik untukmu dan memasang **5 Bendera Merah (Auto-Skip)** untuk membuang 70% setup jebakan.',
       conceptBlocks: [
         {
           heading: '3 Model Alternatif: iFVG, Unicorn & Turtle Soup (SMR)',
           paragraphs: [
-            'Selain Model Utama ICT 2022, trader dapat memakai iFVG saat momentum terlalu cepat untuk retracement, ICT Unicorn saat Breaker Block dan FVG berhimpitan, atau Turtle Soup (SMR) di level likuiditas ekstrem (PWH/PWL/PDH/PDL + POI H1/H4).',
+            'Selain Model Utama ICT 2022, trader dapat memakai iFVG saat momentum terlalu cepat untuk retracement, ICT Unicorn saat Breaker Block dan FVG berhimpitan, atau Turtle Soup (SMR) di level Liquidity ekstrem (PWH/PWL/PDH/PDL + POI H1/H4).',
             'Turtle Soup wajib menunggu bukti penolakan nyata (Absorption Wick + gagal Body Close di luar + CISD M5) dan dibatasi 1 peluru per level ekstrem.'
           ]
         }
@@ -1565,7 +1565,7 @@
         'Melakukan re-entry berkali-kali di level yang sama setelah peluru pertama terkena SL.'
       ],
       xauScenario: {
-        context: 'XAU/USD menyapu PWL 2.618,00 yang berhimpitan dengan H4 Bullish OB pada London Silver Bullet (15:00 WITA EDT).',
+        context: 'XAU/USD sweep PWL 2.618,00 yang berhimpitan dengan H4 Bullish OB pada London Silver Bullet (15:00 WITA EDT).',
         steps: [
           'Harga menusuk ke 2.616,00 lalu ditarik keras membentuk ekor bawah panjang dan menutup body M5 di 2.619,80.',
           'Candle M5 berikutnya membentuk Bullish CISD; Buy di 2.619,50, SL 2.615,20 ($4,30 risiko).',
@@ -1578,7 +1578,7 @@
       ],
       practiceCta: {
         label: 'Latih Pola iFVG, Unicorn & Turtle Soup di Practice Arena',
-        description: 'Uji ketajaman matamu membedakan pembalikan SMR asli melawan breakout palsu pada skenario XAU/USD interaktif.',
+        description: 'Uji ketajaman matamu membedakan reversal SMR asli melawan breakout palsu pada skenario XAU/USD interaktif.',
         href: 'trading-practice/index.html'
       },
       quiz: [
@@ -1597,7 +1597,7 @@
           question: 'Apa perbedaan paling tegas antara **Turtle Soup (SMR)** profesional dengan tindakan berbahaya "menangkap pisau jatuh"?',
           options: [
             'Turtle Soup memakai ukuran lot 10× lebih besar',
-            'Turtle Soup hanya dilakukan di level likuiditas besar + POI H1/H4 dengan bukti penyerapan (**Absorption Wick** + gagal Body Close + **CISD M5**) dan maksimal 1 peluru',
+            'Turtle Soup hanya dilakukan di level Liquidity besar + POI H1/H4 dengan bukti penyerapan (**Absorption Wick** + gagal Body Close + **CISD M5**) dan maksimal 1 peluru',
             'Turtle Soup tidak memerlukan Stop Loss',
             'Turtle Soup dilakukan di tengah range sideways setiap 10 menit'
           ],
@@ -1698,10 +1698,10 @@
           heading: '5 Bendera Merah (Auto-Skip) yang Membatalkan Setup Seketika',
           paragraphs: [
             'Mengetahui *kapan harus masuk* baru separuh permainan. Separuh sisanya yang menyelamatkan akun dari kehancuran adalah mengetahui **kapan WAJIB MENOLAK**. Sebelum mengklik Buy/Sell pada model mana pun, cek **5 Bendera Merah** ini. Jika **SATU SAJA** menyala merah, tutup jari dan lewati tanpa kompromi:',
-            '• **Bendera Merah 1 — Harga di Tengah Range (`40%–60%` Equilibrium) Tanpa Sweep:** Tidak ada likuiditas segar yang baru disapu; peluang terjebak gergaji dua arah sangat tinggi.',
+            '• **Bendera Merah 1 — Harga di Tengah Range (`40%–60%` Equilibrium) Tanpa Sweep:** Tidak ada Liquidity segar yang baru di-sweep; peluang terjebak gergaji dua arah sangat tinggi.',
             '• **Bendera Merah 2 — Entry Menabrak POI H1/H4 Lawan:** Misalnya kamu mau Buy M5 padahal harga baru saja menyentuh H4 Bearish Order Block atau PDH. Jangan menabrak tembok beton HTF!',
             '• **Bendera Merah 3 — Di Dalam Jendela News Lock (`-15 menit` s.d. `+30 menit`):** Menjelang/tepat saat rilis berita merah USD (CPI, NFP, FOMC — merujuk **Bab 17**), spread melebar dan slippage bisa melompati Stop Loss.',
-            '• **Bendera Merah 4 — R:R ke Target Likuiditas Terdekat `< 1:1,8`:** Risiko terlalu besar dibanding ruang gerak yang tersisa ke tembok likuiditas terdekat (merujuk **Bab 04**).',
+            '• **Bendera Merah 4 — R:R ke Target Liquidity Terdekat `< 1:1,8`:** Risiko terlalu besar dibanding ruang gerak yang tersisa ke tembok Liquidity terdekat (merujuk **Bab 04**).',
             '• **Bendera Merah 5 — Batas Loss Harian (`2× SL` / `-2%`) Sudah Tercapai:** Emosi mulai bergeser ke mode balas dendam (*revenge trading*). Pasar tetap buka besok — akhiri sesi sekarang!'
           ]
         },
@@ -1740,7 +1740,7 @@
         'Patuhi **5 Bendera Merah (Auto-Skip)**: tengah range tanpa sweep, menabrak POI H1/H4 lawan, jendela News Lock (`-15m/+30m`), R:R `< 1:1,8`, atau sudah terkena `2× SL` hari ini.',
         'Jalankan **Checklist 30 Detik (`5× YA`)** sebelum menekan tombol — jika ada satu saja jawaban "TIDAK", lewati setup tanpa penyesalan.'
       ],
-      bridgeNext: 'Kamu sekarang sudah tahu **model mana** yang kamu pilih dan **setup buruk mana** yang wajib kamu tolak. Kini tiba fase paling krusial saat pelatuk siap ditarik: **di mana persisnya meletakkan Stop Loss agar tidak tersapu napas spread, dan di mana menaruh TP1/TP2 secara struktural?** Mari masuk ke **Bab 28: Stop Loss Struktural, Napas Spread & Target Likuiditas Bertingkat (TP1/TP2)**.',
+      bridgeNext: 'Kamu sekarang sudah tahu **model mana** yang kamu pilih dan **setup buruk mana** yang wajib kamu tolak. Kini tiba fase paling krusial saat pelatuk siap ditarik: **di mana persisnya meletakkan Stop Loss agar tidak kena sweep napas spread, dan di mana menaruh TP1/TP2 secara struktural?** Mari masuk ke **Bab 28: Stop Loss Struktural, Napas Spread & Target Liquidity Bertingkat (TP1/TP2)**.',
       conceptBlocks: [
         {
           heading: '1 Model Fokus & 5 Bendera Merah (Auto-Skip)',
@@ -1782,7 +1782,7 @@
           options: [
             'Karena aturan broker melarang mengganti indikator sebelum 30 hari',
             'Agar data statistik **Win Rate** dan **Expectancy** murni serta valid secara probabilitas, bebas dari bias emosi (*System Hopping*) akibat 1–2 kali loss',
-            'Supaya bisa menghafal semua warna lilin di chart',
+            'Supaya bisa menghafal semua warna candle di chart',
             'Karena model lain hanya bekerja di hari Jumat'
           ],
           answerIndex: 1,
@@ -1808,7 +1808,7 @@
             'Menebak pucuk melawan candle berita NFP'
           ],
           answerIndex: 0,
-          explanation: 'iFVG Momentum dirancang khusus menangkap pergeseran order flow cepat tanpa menunggu pullback dalam.'
+          explanation: 'iFVG Momentum dirancang khusus menangkap perubahan order flow cepat tanpa menunggu pullback dalam.'
         },
         {
           question: 'Saat menjalankan **Checklist 30 Detik (`5× YA`)**, ternyata 4 poin menjawab YA tetapi 1 poin menjawab **TIDAK** (entry tepat menabrak H4 Bearish Order Block). Keputusan profesionalnya adalah...',

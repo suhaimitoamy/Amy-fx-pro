@@ -240,7 +240,7 @@
       stages: [
         {
           label: '4 Titik Harga (OHLC)',
-          caption: 'Lilin Hijau = harga tutup (Close) lebih tinggi dari buka (Open). Lilin Merah = tutup lebih rendah dari buka. Garis tipis = High & Low.',
+          caption: 'Candle Hijau = harga tutup (Close) lebih tinggi dari buka (Open). Candle Merah = tutup lebih rendah dari buka. Garis tipis = High & Low.',
           candles: [
             [28, 30, 86, 16, 72, 'bull'],
             [70, 72, 86, 16, 30, 'bear']
@@ -259,10 +259,10 @@
           ]
         },
         {
-          label: '1 Lilin H1 = 4 Lilin M15',
-          caption: 'Timeframe besar (H1) merangkum perjalanan 4 batang lilin M15 (atau 12 lilin M5) di dalamnya. Lihat H1 untuk arah, M15/M5 untuk detail.',
+          label: '1 Candle H1 = 4 Candle M15',
+          caption: 'Timeframe besar (H1) merangkum perjalanan 4 candle M15 (atau 12 candle M5) di dalamnya. Lihat H1 untuk arah, M15/M5 untuk detail.',
           zones: [
-            { x1: 8, x2: 32, y1: 14, y2: 86, tone: 'gold', label: '1 LILIN H1 (60 MNT)', labelPos: 'tl' },
+            { x1: 8, x2: 32, y1: 14, y2: 86, tone: 'gold', label: '1 CANDLE H1 (60 MNT)', labelPos: 'tl' },
             { x1: 42, x2: 92, y1: 14, y2: 86, tone: 'cyan', label: 'ISI DI M15 (4 × 15 MNT)', labelPos: 'tl' }
           ],
           candles: [
@@ -388,7 +388,7 @@
         },
         {
           label: 'Wick Sweep / Penolakan',
-          caption: 'Sumbu panjang di zona kunci menandakan Stop Hunt: harga sempat menembus level lalu ditolak keras kembali masuk sebelum candle tutup.',
+          caption: 'Wick panjang di zona kunci menandakan Stop Hunt: harga sempat menembus level lalu ditolak keras kembali masuk sebelum candle tutup.',
           lines: [
             { x1: 8, x2: 92, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'SUPPORT / SSL', labelSide: 'right' },
             { x1: 8, x2: 92, y1: 72, y2: 72, style: 'dashed', tone: 'sweep', label: 'RESISTANCE / BSL', labelSide: 'right' }
@@ -416,7 +416,7 @@
       stages: [
         {
           label: 'Peta 24 Jam WITA',
-          caption: 'Likuiditas & akurasi struktur XAU/USD memuncak pada Sesi London (15:00–18:00) dan NY Overlap (20:30–23:30 WITA). Hindari jam Rollover (05:00–07:00).',
+          caption: 'Liquidity & akurasi struktur XAU/USD memuncak pada Sesi London (15:00–18:00) dan NY Overlap (20:30–23:30 WITA). Hindari jam Rollover (05:00–07:00).',
           bars: [
             { x1: 4, x2: 18, y1: 10, y2: 26, tone: 'danger', label: 'Rollover', sub: '05-07 · Spread Lebar' },
             { x1: 21, x2: 40, y1: 10, y2: 48, tone: 'asia', label: 'Sesi Asia', sub: '08-12 · Akumulasi' },
@@ -500,8 +500,8 @@
       stages: [
         {
           label: '1. H1 Arah & Bias',
-          caption: 'H1 adalah kompas utama: struktur naik menuju liquidity atas (BSL). Hari ini kita hanya mencari posisi BUY di area diskon.',
-          zones: [{ x1: 38, x2: 92, y1: 22, y2: 44, tone: 'discount', label: 'ZONA DISKON H1 / M15', labelPos: 'tr' }],
+          caption: 'H1 adalah kompas utama: struktur naik menuju liquidity atas (BSL). Hari ini kita hanya mencari posisi BUY di area Discount.',
+          zones: [{ x1: 38, x2: 92, y1: 22, y2: 44, tone: 'discount', label: 'zona Discount H1 / M15', labelPos: 'tr' }],
           lines: [{ x1: 12, x2: 92, y1: 86, y2: 86, style: 'dashed', tone: 'gold', label: 'TARGET H1 (BSL)', labelSide: 'right' }],
           candles: [
             [14, 18, 32, 16, 30], [24, 30, 54, 28, 52], [34, 52, 78, 50, 76],
@@ -511,9 +511,9 @@
         },
         {
           label: '2. M15 Area & M5/M1 Entry',
-          caption: 'Zoom-in ke dalam zona diskon H1: M5/M1 mencetak Sweep SSL + MSS Bullish + FVG. SL cukup di M5/M1, tapi TP membidik H1!',
+          caption: 'Zoom-in ke dalam zona Discount H1: M5/M1 mencetak Sweep SSL + MSS Bullish + FVG. SL cukup di M5/M1, tapi TP membidik H1!',
           zones: [
-            { x1: 8, x2: 94, y1: 14, y2: 48, tone: 'discount', label: 'DI DALAM ZONA DISKON H1', labelPos: 'tr' },
+            { x1: 8, x2: 94, y1: 14, y2: 48, tone: 'discount', label: 'DI DALAM zona Discount H1', labelPos: 'tr' },
             { x1: 54, x2: 92, y1: 30, y2: 42, tone: 'fvg', label: 'M5 FVG ENTRY', labelPos: 'tr' }
           ],
           lines: [
@@ -547,7 +547,7 @@
         },
         {
           label: 'Sweep Palsu (Wick Raid)',
-          caption: 'Hanya sumbu (wick) yang menusuk ke atas swing high untuk menyapu SL, lalu body tutup KEMBALI di bawah garis. Waspada pembalikan tajam!',
+          caption: 'Hanya wick yang menusuk ke atas swing high untuk sweep SL, lalu body tutup KEMBALI di bawah garis. Waspada reversal tajam!',
           lines: [{ x1: 12, x2: 92, y1: 60, y2: 60, style: 'dashed', tone: 'sweep', label: 'BSL (SWING HIGH)', labelSide: 'left' }],
           candles: [
             [18, 36, 60, 34, 56], [28, 56, 58, 44, 46], [38, 46, 58, 44, 55],
@@ -582,9 +582,9 @@
         },
         {
           label: '2. IRL FVG → ERL High',
-          caption: 'Algoritma selalu bolak-balik: turun mengambil IRL (FVG di Diskon), lalu melesat naik menyapu ERL (Swing High lama).',
+          caption: 'Algoritma selalu bolak-balik: turun mengambil IRL (FVG di Discount), lalu melesat naik sweep ERL (Swing High lama).',
           zones: [
-            { x1: 24, x2: 72, y1: 26, y2: 40, tone: 'fvg', label: 'IRL (FVG DISKON)', labelPos: 'tr' }
+            { x1: 24, x2: 72, y1: 26, y2: 40, tone: 'fvg', label: 'IRL (FVG DISCOUNT)', labelPos: 'tr' }
           ],
           lines: [
             { x1: 12, x2: 92, y1: 86, y2: 86, style: 'dashed', tone: 'gold', label: 'ERL HIGH (BSL)', labelSide: 'left' },
@@ -601,12 +601,12 @@
     },
 
     'bsl-ssl-pools': {
-      title: 'Peta Likuiditas: Equal Highs (BSL) & Equal Lows (SSL)',
-      pairTag: 'XAU/USD · KOLAM STOP LOSS',
+      title: 'Peta Liquidity: Equal Highs (BSL) & Equal Lows (SSL)',
+      pairTag: 'XAU/USD · Liquidity Pool STOP LOSS',
       priceLabels: ['BSL $$$', 'Range', 'SSL $$$'],
       stages: [
         {
-          label: 'Kolam BSL (Atas)',
+          label: 'BSL Pool (Atas)',
           caption: 'Equal Highs (Double/Triple Top rapi) terlihat seperti tembok kuat bagi retail, padahal di atasnya menumpuk ribuan Stop Loss Seller (BSL) yang jadi magnet institusi.',
           lines: [{ x1: 16, x2: 88, y1: 72, y2: 72, style: 'dashed', tone: 'sweep', label: 'EQH · BSL $$$', labelSide: 'right' }],
           candles: [
@@ -614,24 +614,24 @@
             [48, 69, 71, 52, 54], [58, 54, 72, 52, 68], [68, 68, 88, 64, 66, 'sweep'],
             [78, 66, 68, 34, 36, 'bear']
           ],
-          callouts: [{ x: 68, y: 94, text: 'BSL Disapu → Harga Berbalik Turun', tone: 'sweep' }]
+          callouts: [{ x: 68, y: 94, text: 'BSL Di-sweep → Harga Berbalik Turun', tone: 'sweep' }]
         },
         {
-          label: 'Kolam SSL (Bawah)',
-          caption: 'Equal Lows (Double Bottom) menyimpan tumpukan Stop Loss Buyer (SSL). Tunggu SSL disapu lebih dulu sebelum mencari Buy.',
+          label: 'SSL Pool (Bawah)',
+          caption: 'Equal Lows (Double Bottom) menyimpan tumpukan Stop Loss Buyer (SSL). Tunggu SSL di-sweep lebih dulu sebelum mencari Buy.',
           lines: [{ x1: 16, x2: 88, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'EQL · SSL $$$', labelSide: 'right' }],
           candles: [
             [18, 58, 62, 30, 34], [28, 34, 52, 32, 50], [38, 50, 52, 30, 34],
             [48, 34, 50, 32, 48], [58, 48, 50, 30, 35], [68, 35, 38, 12, 36, 'sweep'],
             [78, 36, 72, 35, 70, 'bull']
           ],
-          callouts: [{ x: 68, y: 7, text: 'SSL Disapu → Bahan Bakar Rally', tone: 'bull' }]
+          callouts: [{ x: 68, y: 7, text: 'SSL Di-sweep → Bahan Bakar Rally', tone: 'bull' }]
         }
       ]
     },
 
     'key-liquidity-levels': {
-      title: 'Level Likuiditas Wajib: PDH/PDL, PWH/PWL & Asia Range',
+      title: 'Level Liquidity Wajib: PDH/PDL, PWH/PWL & Asia Range',
       pairTag: 'XAU/USD · LEVEL INSTITUSI',
       priceLabels: ['PWH/PDH', 'Asia', 'PDL'],
       stages: [
@@ -652,9 +652,9 @@
         },
         {
           label: 'Reaksi di PDH (Rejection)',
-          caption: 'Saat harga menyapu PDH (Previous Day High) dengan wick lalu mematahkan struktur M5 ke bawah, PDH menjadi bahan bakar Sell menuju Asia Low / PDL.',
+          caption: 'Saat harga sweep PDH (Previous Day High) dengan wick lalu mematahkan struktur M5 ke bawah, PDH menjadi bahan bakar Sell menuju Asia Low / PDL.',
           lines: [
-            { x1: 8, x2: 94, y1: 76, y2: 76, style: 'dashed', tone: 'sweep', label: 'PDH DISAPU', labelSide: 'left' },
+            { x1: 8, x2: 94, y1: 76, y2: 76, style: 'dashed', tone: 'sweep', label: 'PDH SWEPT', labelSide: 'left' },
             { x1: 8, x2: 94, y1: 24, y2: 24, style: 'dashed', tone: 'cyan', label: 'TARGET: PDL', labelSide: 'left' }
           ],
           candles: [
@@ -686,13 +686,13 @@
           callouts: [{ x: 66, y: 70, text: 'Buyer di IDM langsung kena SL!', tone: 'bear' }]
         },
         {
-          label: 'Sabar Tunggu IDM Disapu',
-          caption: 'Setelah Inducement disapu dan harga menyentuh Extreme OB/FVG di bawahnya, barulah energi institusi mendorong harga terbang.',
+          label: 'Sabar Tunggu IDM Di-sweep',
+          caption: 'Setelah Inducement di-sweep dan harga menyentuh Extreme OB/FVG di bawahnya, barulah energi institusi mendorong harga terbang.',
           zones: [
             { x1: 12, x2: 90, y1: 18, y2: 32, tone: 'ob', label: 'OB ASLI (SETELAH IDM)', labelPos: 'tr' }
           ],
           lines: [
-            { x1: 30, x2: 74, y1: 52, y2: 52, style: 'dashed', tone: 'sweep', label: 'IDM DISAPU ✓', labelSide: 'right' }
+            { x1: 30, x2: 74, y1: 52, y2: 52, style: 'dashed', tone: 'sweep', label: 'IDM SWEPT ✓', labelSide: 'right' }
           ],
           candles: [
             [16, 22, 32, 18, 30], [26, 30, 58, 28, 56], [36, 56, 60, 52, 54],
@@ -723,7 +723,7 @@
         },
         {
           label: 'Gerakan Lemah (Skip)',
-          caption: 'Candle kecil saling tumpang tindih dengan banyak sumbu (choppy). Tidak ada FVG = bukan Displacement, hindari entry.',
+          caption: 'Candle kecil saling tumpang tindih dengan banyak wick (choppy). Tidak ada FVG = bukan Displacement, hindari entry.',
           lines: [{ x1: 14, x2: 88, y1: 62, y2: 62, style: 'dashed', tone: 'muted', label: 'LEVEL STRUKTUR', labelSide: 'left' }],
           candles: [
             [18, 44, 62, 40, 42], [28, 42, 48, 34, 38], [38, 38, 52, 36, 44],
@@ -741,7 +741,7 @@
       stages: [
         {
           label: '1. Celah 3 Candle',
-          caption: 'Bullish FVG adalah celah kosong antara High Candle 1 dan Low Candle 3 yang tidak tertutup oleh sumbu. Di tengahnya terdapat titik 50% CE.',
+          caption: 'Bullish FVG adalah celah kosong antara High Candle 1 dan Low Candle 3 yang tidak tertutup oleh wick. Di tengahnya terdapat titik 50% CE.',
           zones: [{ x1: 22, x2: 88, y1: 38, y2: 62, tone: 'fvg', label: 'BULLISH FVG (BISI)', labelPos: 'tr' }],
           lines: [
             { x1: 22, x2: 88, y1: 62, y2: 62, style: 'solid', tone: 'cyan', label: 'LOW C3', labelSide: 'left' },
@@ -902,7 +902,7 @@
       stages: [
         {
           label: '1. Sweep SSL',
-          caption: 'Tahap 1: Harga menyapu kolam SSL (Asia Low / PDL) dengan wick tajam di dalam jam Killzone WITA. Belum entry — baru siaga!',
+          caption: 'Tahap 1: Harga sweep Liquidity Pool SSL (Asia Low / PDL) dengan wick tajam di dalam jam Killzone WITA. Belum entry — baru siaga!',
           lines: [
             { x1: 10, x2: 90, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'SSL (ASIA LOW)', labelSide: 'right' },
             { x1: 24, x2: 72, y1: 54, y2: 54, style: 'dotted', tone: 'muted', label: 'SWING HIGH (MSS)', labelSide: 'right' }
@@ -954,7 +954,7 @@
       stages: [
         {
           label: '1. Identifikasi OB + FVG',
-          caption: 'Pilih candle berlawanan terakhir yang menyapu likuiditas lalu langsung memicu Displacement + FVG. Tandai Open OB dan garis 50% MT.',
+          caption: 'Pilih candle berlawanan terakhir yang sweep Liquidity lalu langsung memicu Displacement + FVG. Tandai Open OB dan garis 50% MT.',
           zones: [
             { x1: 30, x2: 90, y1: 18, y2: 36, tone: 'ob', label: 'HIGH-PROB BULLISH OB', labelPos: 'tr' },
             { x1: 40, x2: 76, y1: 40, y2: 54, tone: 'fvg', label: 'FVG DI ATAS OB', labelPos: 'tr' }
@@ -994,7 +994,7 @@
       stages: [
         {
           label: '1. Bearish FVG Gagal',
-          caption: 'Harga turun menyapu SSL sambil mencetak Bearish FVG. Normalnya Bearish FVG menahan harga turun — tetapi kali ini buyer justru membalas keras!',
+          caption: 'Harga turun sweep SSL sambil mencetak Bearish FVG. Normalnya Bearish FVG menahan harga turun — tetapi kali ini buyer justru membalas keras!',
           zones: [{ x1: 24, x2: 88, y1: 40, y2: 56, tone: 'danger', label: 'BEARISH FVG LAMA', labelPos: 'tr' }],
           lines: [{ x1: 10, x2: 52, y1: 24, y2: 24, style: 'dashed', tone: 'sweep', label: 'SSL SWEEP', labelSide: 'left' }],
           candles: [
@@ -1081,7 +1081,7 @@
         },
         {
           label: 'Reversal di Level Ekstrem',
-          caption: 'Saat harga menyapu PDH/PDL/PWH/PWL lalu menolak tajam: pilih Model 4 (Turtle Soup SMR) atau Model 2 (Order Block Sniper) untuk R:R maksimal.',
+          caption: 'Saat harga sweep PDH/PDL/PWH/PWL lalu menolak tajam: pilih Model 4 (Turtle Soup SMR) atau Model 2 (Order Block Sniper) untuk R:R maksimal.',
           bars: [
             { x1: 6, x2: 47, y1: 52, y2: 88, tone: 'neutral', label: 'Model 1: Sweep-FVG', sub: 'Opsi konfirmasi lanjutan' },
             { x1: 53, x2: 94, y1: 52, y2: 88, tone: 'neutral', label: 'Model 3: IFVG Flip', sub: 'Trigger sekunder M1' },
@@ -1100,7 +1100,7 @@
       stages: [
         {
           label: '1. Accumulation (Asia)',
-          caption: 'Babak 1 (08:00–12:00 WITA): Harga bergerak rapat di sekitar Daily Open membangun kolam likuiditas atas & bawah.',
+          caption: 'Babak 1 (08:00–12:00 WITA): Harga bergerak rapat di sekitar Daily Open membangun Liquidity Pool atas & bawah.',
           zones: [{ x1: 10, x2: 40, y1: 38, y2: 54, tone: 'asia', label: 'A · ACCUMULATION', labelPos: 'tl' }],
           lines: [{ x1: 8, x2: 94, y1: 46, y2: 46, style: 'dashed', tone: 'gold', label: 'DAILY OPEN', labelSide: 'right' }],
           candles: [
@@ -1109,7 +1109,7 @@
         },
         {
           label: '2. Manipulation (Judas Swing)',
-          caption: 'Babak 2 (Awal London/NY): Harga sengaja dibanting turun DI BAWAH Daily Open menyapu Asia Low untuk menipu seller breakout.',
+          caption: 'Babak 2 (Awal London/NY): Harga sengaja dibanting turun DI BAWAH Daily Open sweep Asia Low untuk menipu seller breakout.',
           zones: [
             { x1: 10, x2: 40, y1: 38, y2: 54, tone: 'asia', label: 'A · ASIA', labelPos: 'tl' },
             { x1: 41, x2: 60, y1: 14, y2: 46, tone: 'sweep', label: 'M · JUDAS SWING', labelPos: 'tl' }
@@ -1207,10 +1207,10 @@
       stages: [
         {
           label: 'Bias Bullish → DOL Atas',
-          caption: 'Jika candle kemarin tutup kuat di atas High sebelumnya atau baru saja menyapu PDL dan memantul keras, Draw on Liquidity (magnet harga) mengarah ke PDH.',
+          caption: 'Jika candle kemarin tutup kuat di atas High sebelumnya atau baru saja sweep PDL dan memantul keras, Draw on Liquidity (magnet harga) mengarah ke PDH.',
           lines: [
             { x1: 10, x2: 92, y1: 84, y2: 84, style: 'dashed', tone: 'gold', label: 'DOL TARGET: PDH', labelSide: 'right' },
-            { x1: 10, x2: 92, y1: 24, y2: 24, style: 'dashed', tone: 'sweep', label: 'PDL DISAPU ✓', labelSide: 'left' }
+            { x1: 10, x2: 92, y1: 24, y2: 24, style: 'dashed', tone: 'sweep', label: 'PDL SWEPT ✓', labelSide: 'left' }
           ],
           candles: [
             [18, 58, 62, 24, 28], [30, 28, 42, 16, 38, 'sweep'],
@@ -1220,7 +1220,7 @@
         },
         {
           label: 'Netral / Inside Bar (No Bias)',
-          caption: 'Jika harga terjebak di tengah range kemarin (Equilibrium) tanpa menyapu PDH maupun PDL, jangan paksa menebak arah. Tunggu salah satu ujung disapu lebih dulu.',
+          caption: 'Jika harga terjebak di tengah range kemarin (Equilibrium) tanpa sweep PDH maupun PDL, jangan paksa menebak arah. Tunggu salah satu ujung di-sweep lebih dulu.',
           zones: [{ x1: 24, x2: 86, y1: 34, y2: 68, tone: 'neutral', label: 'ZONA NETRAL / CHOP', labelPos: 'tr' }],
           lines: [
             { x1: 10, x2: 92, y1: 82, y2: 82, style: 'dotted', tone: 'muted', label: 'PDH', labelSide: 'right' },
@@ -1290,13 +1290,13 @@
     },
 
     'sl-tp-engineering': {
-      title: 'Rekayasa SL Struktural (+Napas Spread) & TP Berbasis Likuiditas',
+      title: 'Rekayasa SL Struktural (+Napas Spread) & TP Berbasis Liquidity',
       pairTag: 'XAU/USD · SL & TP PRESISI',
       priceLabels: ['TP2 BSL', 'TP1 2R', 'SL+Napas'],
       stages: [
         {
           label: 'Penempatan SL & TP Valid',
-          caption: 'SL ditaruh di balik swing invalidasi ditambah napas $0.50–$1.00. TP1 di likuiditas terdekat (min 1:2 R:R), TP2 di PDH/BSL mayor.',
+          caption: 'SL ditaruh di balik swing invalidasi ditambah napas $0.50–$1.00. TP1 di Liquidity terdekat (min 1:2 R:R), TP2 di PDH/BSL mayor.',
           zones: [
             { x1: 42, x2: 90, y1: 42, y2: 88, tone: 'tp', label: 'TP2 BSL (3.2R)', labelPos: 'tr' },
             { x1: 42, x2: 90, y1: 22, y2: 42, tone: 'sl', label: 'SL STRUKTURAL + NAPAS', labelPos: 'tr' }
@@ -1313,7 +1313,7 @@
         },
         {
           label: 'Kesalahan SL Terlalu Sempit',
-          caption: 'SL yang ditempel tepat di dalam FVG atau persis di ujung wick tanpa napas spread sering tersapu 0.30 poin sebelum harga terbang ke TP.',
+          caption: 'SL yang ditempel tepat di dalam FVG atau persis di ujung wick tanpa napas spread sering kena sweep 0.30 poin sebelum harga terbang ke TP.',
           lines: [
             { x1: 14, x2: 92, y1: 34, y2: 34, style: 'dashed', tone: 'bear', label: 'SL TERLALU SEMPIT (KENA!)', labelSide: 'right' },
             { x1: 14, x2: 92, y1: 22, y2: 22, style: 'solid', tone: 'bull', label: 'SL STRUKTURAL (SELAMAT)', labelSide: 'right' }
@@ -1433,7 +1433,7 @@
       stages: [
         {
           label: '1. Sweep → Jebol Struktur',
-          caption: 'Harga menyapu BSL (puncak baru) lalu langsung dibanting menembus Swing Low dengan Displacement keras — melahirkan Bearish Breaker Block.',
+          caption: 'Harga sweep BSL (puncak baru) lalu langsung dibanting menembus Swing Low dengan Displacement keras — melahirkan Bearish Breaker Block.',
           zones: [
             { x1: 28, x2: 92, y1: 60, y2: 72, tone: 'ob', label: 'BEARISH BREAKER BLOCK', labelPos: 'tr' }
           ],
@@ -1474,12 +1474,12 @@
         },
         {
           label: '3. Beda Mitigation Block',
-          caption: 'Pada Mitigation Block, puncak kedua GAGAL menyapu High lama (membentuk Lower High) sebelum jebol turun. Tetap valid, namun wajib disertai FVG searah H1.',
+          caption: 'Pada Mitigation Block, puncak kedua GAGAL sweep High lama (membentuk Lower High) sebelum jebol turun. Tetap valid, namun wajib disertai FVG searah H1.',
           zones: [
             { x1: 34, x2: 92, y1: 56, y2: 68, tone: 'cyan', label: 'MITIGATION BLOCK (TANPA SWEEP)', labelPos: 'tr' }
           ],
           lines: [
-            { x1: 8, x2: 56, y1: 84, y2: 84, style: 'dotted', tone: 'muted', label: 'High Lama (Tidak Disapu)', labelSide: 'left' }
+            { x1: 8, x2: 56, y1: 84, y2: 84, style: 'dotted', tone: 'muted', label: 'High Lama (Tidak Di-sweep)', labelSide: 'left' }
           ],
           candles: [
             [14, 52, 84, 50, 78], [24, 78, 80, 46, 48], [34, 48, 68, 46, 66, 'cyan'],
@@ -1544,7 +1544,7 @@
       stages: [
         {
           label: '1. Bullish SMT (Gold vs Silver)',
-          caption: 'Pada jam Killzone yang sama di PDL: XAU/USD menyapu SSL membuat Lower Low, sementara XAG/USD (Silver) gagal turun lebih rendah (Higher Low) → sidik jari manipulasi beli!',
+          caption: 'Pada jam Killzone yang sama di PDL: XAU/USD sweep SSL membuat Lower Low, sementara XAG/USD (Silver) gagal turun lebih rendah (Higher Low) → sidik jari manipulasi beli!',
           zones: [
             { x1: 8, x2: 48, y1: 12, y2: 88, tone: 'gold', label: 'XAU/USD (GOLD)', labelPos: 'tl' },
             { x1: 52, x2: 92, y1: 12, y2: 88, tone: 'cyan', label: 'XAG/USD (SILVER)', labelPos: 'tl' }
@@ -1563,7 +1563,7 @@
         },
         {
           label: '2. Bearish SMT (Gold vs DXY)',
-          caption: 'Korelasi terbalik: saat Gold cetak Higher High menyapu PDH, seharusnya DXY cetak Lower Low. Ketika DXY justru cetak Higher Low, Dolar mulai menguat & Gold siap banting turun!',
+          caption: 'Korelasi terbalik: saat Gold cetak Higher High sweep PDH, seharusnya DXY cetak Lower Low. Ketika DXY justru cetak Higher Low, Dolar mulai menguat & Gold siap banting turun!',
           zones: [
             { x1: 8, x2: 48, y1: 12, y2: 88, tone: 'gold', label: 'XAU/USD (GOLD)', labelPos: 'tl' },
             { x1: 52, x2: 92, y1: 12, y2: 88, tone: 'bear', label: 'DXY (INDEKS DOLAR)', labelPos: 'tl' }
@@ -1607,7 +1607,7 @@
         },
         {
           label: '2. SMR → Re-Accumulation → LRLR',
-          caption: 'Di HTF PD Array terjadi Smart Money Reversal (SMR). Harga berpindah ke Buy-Side of the Curve, jeda 1× Re-Accumulation, lalu melesat cepat (LRLR) menyapu Terminus (OC)!',
+          caption: 'Di HTF PD Array terjadi Smart Money Reversal (SMR). Harga berpindah ke Buy-Side of the Curve, jeda 1× Re-Accumulation, lalu melesat cepat (LRLR) sweep Terminus (OC)!',
           zones: [
             { x1: 8, x2: 92, y1: 76, y2: 86, tone: 'tp', label: 'TERMINUS (TARGET AKHIR OC)', labelPos: 'tr' },
             { x1: 36, x2: 62, y1: 10, y2: 24, tone: 'bull', label: 'SMR (TAHAP 1)', labelPos: 'tl' },
@@ -1694,13 +1694,13 @@
         },
         {
           label: '2. Profil Candle OLHC & CRT',
-          caption: 'Candle Bullish H4/Daily sehat mengikuti OLHC: buka di Open → turun menyapu Low Candle 1 (sumbu manipulasi) lalu body tutup kembali di dalam range → Candle 3 melesat ke High!',
+          caption: 'Candle Bullish H4/Daily sehat mengikuti OLHC: buka di Open → turun sweep Low Candle 1 (wick manipulasi) lalu body tutup kembali di dalam range → Candle 3 melesat ke High!',
           zones: [
             { x1: 16, x2: 88, y1: 34, y2: 74, tone: 'asia', label: 'RANGE CANDLE 1 (CRT)', labelPos: 'tr' }
           ],
           lines: [
             { x1: 14, x2: 90, y1: 74, y2: 74, style: 'dashed', tone: 'tp', label: 'Target CRT (High C1)', labelSide: 'left' },
-            { x1: 14, x2: 90, y1: 34, y2: 34, style: 'dashed', tone: 'sweep', label: 'Low C1 (Disapu C2)', labelSide: 'left' }
+            { x1: 14, x2: 90, y1: 34, y2: 34, style: 'dashed', tone: 'sweep', label: 'Low C1 (Di-sweep C2)', labelSide: 'left' }
           ],
           candles: [
             [26, 42, 74, 34, 68, 'cyan'],
