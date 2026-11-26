@@ -417,9 +417,11 @@ const requestHandler = async (req, res) => {
     }
 
     if (pathname === '/api/live-price') {
+      const modeParam = parsedUrl.searchParams.get('mode');
       if (getTwelveDataKeys().length > 0 && typeof WebSocket === 'function') {
         try {
           const handler = (await import('../api/live-price.js')).default;
+          req.__amyPersistent = true;
           res.status = (code) => {
             res.statusCode = code;
             return {
@@ -439,33 +441,152 @@ const requestHandler = async (req, res) => {
           }
         }
       }
+
+      // Single shared upstream relay when local TwelveData key is not configured
+      // (prevents multiple tabs from opening multiple upstream connections to Vercel/TwelveData).
+      const relay = globalThis.__amyFxUpstreamLiveRelay || (globalThis.__amyFxUpstreamLiveRelay = {
+        clients: new Set(),
+        running: false,
+        abortCtrl: null,
+        lastTick: null,
+        lastTickAt: 0,
+        lastStatus: 'CONNECTING',
+        totalTicks: 0,
+        idleTimer: null
+      });
+
+      if (modeParam === 'status') {
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          ok: true,
+          mode: 'SHARED_UPSTREAM_RELAY',
+          source: 'TWELVE_DATA_WEBSOCKET',
+          upstream: 'https://amy-fx.vercel.app/api/live-price',
+          status: relay.lastStatus,
+          connectedClients: relay.clients.size,
+          totalTicks: relay.totalTicks,
+          lastPrice: relay.lastTick?.price ?? null,
+          lastTickAt: relay.lastTick?.timestamp ?? null,
+          keysConfigured: false
+        }));
+        return;
+      }
+
+      const broadcastRelay = (obj) => {
+        const line = `data: ${JSON.stringify(obj)}\n\n`;
+        for (const clientRes of [...relay.clients]) {
+          if (clientRes.destroyed || clientRes.writableEnded) {
+            relay.clients.delete(clientRes);
+            continue;
+          }
+          try { clientRes.write(line); } catch (_) { relay.clients.delete(clientRes); }
+        }
+      };
+
+      const ensureRelayLoop = () => {
+        if (relay.running || relay.clients.size === 0) return;
+        relay.running = true;
+        (async () => {
+          let backoffMs = 1500;
+          while (relay.clients.size > 0) {
+            const ctrl = new AbortController();
+            relay.abortCtrl = ctrl;
+            try {
+              const upstream = await fetch('https://amy-fx.vercel.app/api/live-price', {
+                headers: { 'Accept': 'text/event-stream' },
+                signal: ctrl.signal
+              });
+              if (!upstream.ok || !upstream.body) {
+                relay.lastStatus = 'ERROR';
+                await new Promise(r => setTimeout(r, backoffMs));
+                backoffMs = Math.min(15000, backoffMs * 2);
+                continue;
+              }
+              backoffMs = 1500;
+              const reader = upstream.body.getReader();
+              const decoder = new TextDecoder();
+              let buf = '';
+              while (relay.clients.size > 0) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                const parts = buf.split('\n\n');
+                buf = parts.pop() || '';
+                for (const chunk of parts) {
+                  const dataLine = chunk.split('\n').find(l => l.startsWith('data:'));
+                  if (!dataLine) continue;
+                  try {
+                    const parsed = JSON.parse(dataLine.slice(5).trim());
+                    if (parsed?.event === 'price' && Number.isFinite(Number(parsed.price))) {
+                      relay.lastTick = parsed;
+                      relay.lastTickAt = Date.now();
+                      relay.lastStatus = 'SUBSCRIBED';
+                      relay.totalTicks += 1;
+                    } else if (parsed?.event === 'status' && parsed.status) {
+                      relay.lastStatus = parsed.status;
+                    }
+                    broadcastRelay(parsed);
+                  } catch (_) {}
+                }
+              }
+              try { reader.cancel(); } catch (_) {}
+            } catch (_) {
+              if (relay.clients.size > 0) {
+                await new Promise(r => setTimeout(r, backoffMs));
+                backoffMs = Math.min(15000, backoffMs * 2);
+              }
+            }
+          }
+          relay.abortCtrl = null;
+          relay.running = false;
+        })();
+      };
+
       res.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-store',
         'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
         'Access-Control-Allow-Origin': '*'
       });
-      try {
-        const upstream = await fetch('https://amy-fx.vercel.app/api/live-price', {
-          headers: { 'Accept': 'text/event-stream' }
-        });
-        if (!upstream.ok || !upstream.body) {
-          res.end(': upstream unavailable\n\n');
-          return;
-        }
-        const reader = upstream.body.getReader();
-        req.on('close', () => {
-          try { reader.cancel(); } catch (_) {}
-        });
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(value);
-        }
-        res.end();
-      } catch (_) {
-        if (!res.writableEnded) res.end();
+
+      if (relay.idleTimer) {
+        clearTimeout(relay.idleTimer);
+        relay.idleTimer = null;
       }
+      relay.clients.add(res);
+
+      // Replay latest fresh tick immediately so new tabs don't wait
+      if (relay.lastTick && (Date.now() - relay.lastTickAt) <= 90_000) {
+        try { res.write(`data: ${JSON.stringify(relay.lastTick)}\n\n`); } catch (_) {}
+      }
+
+      const clientHb = setInterval(() => {
+        if (!res.destroyed && !res.writableEnded) {
+          try { res.write(': heartbeat\n\n'); } catch (_) {}
+        }
+      }, 15_000);
+
+      const cleanupClient = () => {
+        clearInterval(clientHb);
+        relay.clients.delete(res);
+        if (relay.clients.size === 0 && !relay.idleTimer) {
+          relay.idleTimer = setTimeout(() => {
+            relay.idleTimer = null;
+            if (relay.clients.size === 0) {
+              try { relay.abortCtrl?.abort(); } catch (_) {}
+            }
+          }, 20_000);
+        }
+      };
+
+      req.on('close', cleanupClient);
+      res.on('close', cleanupClient);
+      ensureRelayLoop();
       return;
     }
 

@@ -1,27 +1,25 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.477/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.478/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Audit Total Mapping Cockpit & Riwayat POI: Perbaikan penyelarasan index candle openTime, deduplikasi cross-TF M15/M5, SL/TP zona cadangan independen, persistence reset floor, dan proteksi konteks/tick akhir pekan.",
-    "✦ Kalkulator Lot & Sync Profil Aman: Guard anti-duplikasi listener O(2^N), dukung cashflow negatif, sinkronisasi GitHub Cloud Sync untuk Custom Price Alerts, Mastery Academy, & Riwayat Baca.",
-    "✦ Jurnal, Market Intel & Academy: Perbaikan tombol mode asisten & ekspor PDF/Markdown Jurnal, pembersihan sisa endpoint Supabase di Market Intel, filter candle sintetis heatmap, serta fallback endpoint APK.",
-    "✦ AMY Assistant, Tema & Navigasi Global: Pemulihan skor Daily Loss Guard & ringkasan POI Trading, deteksi tema sistem OS otomatis, serta tombol kembali 1-langkah untuk layar penuh & modal.",
-    "✦ Server Lokal, API & Android Native: Validasi allowlist interval heatmap/liquidity & SQLite lokal, limit POST body 2MB, rule ProGuard AmyFxAiBridge, dan alias bridge MainActivity."
+    "✦ Shared Twelve Data WebSocket Hub: Implementasi singleton Hub WebSocket untuk stream harga live XAU/USD tanpa melanggar batas 1 koneksi Twelve Data Basic 8.",
+    "✦ Optimasi Vercel Serverless SSE: Upgrade endpoint /api/live-price ke arsitektur Shared Hub 50 detik dengan heartbeat 12s dan failover multi-key otomatis.",
+    "✦ Sinkronisasi Peta Harga Beranda & Chart Gold Mapping: Stream same-origin dengan fallback bertahap dan deduplikasi tick live.",
+    "✦ Server Lokal Always-On: Dukungan upstream relay tunggal dan mode persisten pada tools/serve-local.mjs."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.477/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.478/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950477,
-  "latest_version_name": "2.0.0-pro.477",
+  "latest_version_code": 950478,
+  "latest_version_name": "2.0.0-pro.478",
   "mandatory": false,
-  "releaseDate": "2026-11-25",
+  "releaseDate": "2026-11-26",
   "release_notes": [
-    "✦ Audit Total Mapping Cockpit & Riwayat POI: Perbaikan penyelarasan index candle openTime, deduplikasi cross-TF M15/M5, SL/TP zona cadangan independen, persistence reset floor, dan proteksi konteks/tick akhir pekan.",
-    "✦ Kalkulator Lot & Sync Profil Aman: Guard anti-duplikasi listener O(2^N), dukung cashflow negatif, sinkronisasi GitHub Cloud Sync untuk Custom Price Alerts, Mastery Academy, & Riwayat Baca.",
-    "✦ Jurnal, Market Intel & Academy: Perbaikan tombol mode asisten & ekspor PDF/Markdown Jurnal, pembersihan sisa endpoint Supabase di Market Intel, filter candle sintetis heatmap, serta fallback endpoint APK.",
-    "✦ AMY Assistant, Tema & Navigasi Global: Pemulihan skor Daily Loss Guard & ringkasan POI Trading, deteksi tema sistem OS otomatis, serta tombol kembali 1-langkah untuk layar penuh & modal.",
-    "✦ Server Lokal, API & Android Native: Validasi allowlist interval heatmap/liquidity & SQLite lokal, limit POST body 2MB, rule ProGuard AmyFxAiBridge, dan alias bridge MainActivity."
+    "✦ Shared Twelve Data WebSocket Hub: Implementasi singleton Hub WebSocket untuk stream harga live XAU/USD tanpa melanggar batas 1 koneksi Twelve Data Basic 8.",
+    "✦ Optimasi Vercel Serverless SSE: Upgrade endpoint /api/live-price ke arsitektur Shared Hub 50 detik dengan heartbeat 12s dan failover multi-key otomatis.",
+    "✦ Sinkronisasi Peta Harga Beranda & Chart Gold Mapping: Stream same-origin dengan fallback bertahap dan deduplikasi tick live.",
+    "✦ Server Lokal Always-On: Dukungan upstream relay tunggal dan mode persisten pada tools/serve-local.mjs."
   ],
-  "version": "2.0.0-pro.477",
-  "versionCode": 950477,
+  "version": "2.0.0-pro.478",
+  "versionCode": 950478,
   "sha256": "95714131b5f1f3880ae62a0d313eb97a21926885a073009beb755a140ec8dbdc"
 }

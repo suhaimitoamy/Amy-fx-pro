@@ -1,3 +1,10 @@
+## 2.0.0-pro.478
+
+- feat(live-price-hub): Implementasi singleton Shared Twelve Data WebSocket Hub (`lib/live-price-ws-hub.mjs`) untuk XAU/USD guna mencegah bentrok limit 1 koneksi Basic 8 dan menyiarkan tick real-time ke banyak klien tanpa duplikasi koneksi.
+- feat(api-vercel): Upgrade endpoint `/api/live-price.js` ke arsitektur Shared Hub 50 detik dengan SSE heartbeat 12 detik dan rotasi failover multi-key `twelvedata-key-pool.mjs`.
+- feat(frontend-stream): Integrasi stream live-price same-origin dengan fallback bertahap di Beranda (`home-price-chart.js`) dan Chart Gold Mapping (`apps/mapping/js/ict-workspace/app.js`).
+- feat(server-local): Pembaruan `tools/serve-local.mjs` dengan mode persistent hub dan upstream relay terpadu saat running offline/lokal.
+
 ## 2.0.0-pro.477
 
 - fix(mapping-poi): Perbaikan menyeluruh Cockpit Mapping & Riwayat POI (`ict-presentation.js`, `chart-view.js`, `context-panel.js`, `dashboard-v2.js`, `mapping-history-engine.js`, `trade-lifecycle-tracker.js`): penyelarasan index `formedIndex` via `openTime`, deduplikasi cross-TF M15/M5 (window 90 menit), SL/TP zona cadangan independen, persistence `historyResetFloorMs`, proteksi tick & konteks akhir pekan, serta normalisasi timestamp ms/detik.

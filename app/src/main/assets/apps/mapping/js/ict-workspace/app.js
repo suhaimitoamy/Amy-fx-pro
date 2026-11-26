@@ -389,26 +389,47 @@ function startBrowserLivePriceStream(){
   if(typeof window==='undefined'||window.Android||window.AmyLivePrice||window.__amyFxSseStarted)return;
   if(typeof EventSource!=='function')return;
   window.__amyFxSseStarted=true;
-  try{
-    const host=typeof location!=='undefined'?String(location.hostname||''):'';
-    const isLocal=/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
-    const url=isLocal?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
-    const es=new EventSource(url);
-    es.onmessage=(event)=>{
-      try{
-        if(!isGoldMarketOpen(Date.now()/1000))return;
-        const data=JSON.parse(event.data);
-        const liveNum=Number(data?.price);
-        if(data&&Number.isFinite(liveNum)&&liveNum>0){
-          const ts=Number(data.timestamp)||Date.now();
-          applyLivePrice(liveNum,ts);
-          window.dispatchEvent(new CustomEvent('amyfx:live-price-display',{
-            detail:{price:liveNum,capturedAt:ts,source:'mapping-sse'}
-          }));
+  const proto=typeof location!=='undefined'?String(location.protocol||''):'';
+  const isHttpOrigin=proto==='http:'||proto==='https:';
+  const primaryUrl=isHttpOrigin?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
+  const fallbackUrl='https://amy-fx.vercel.app/api/live-price';
+  let usingFallback=!isHttpOrigin;
+  let errorCount=0;
+  let es=null;
+  const connectStream=(streamUrl)=>{
+    try{
+      if(es){try{es.close();}catch(_){}}
+      es=new EventSource(streamUrl);
+      es.onmessage=(event)=>{
+        try{
+          const data=JSON.parse(event.data);
+          if(data&&data.event==='status'){
+            window.__amyFxLiveWsStatus=data;
+            return;
+          }
+          if(!isGoldMarketOpen(Date.now()/1000))return;
+          const liveNum=Number(data?.price);
+          if(data&&Number.isFinite(liveNum)&&liveNum>0){
+            errorCount=0;
+            const ts=Number(data.timestamp)||Date.now();
+            window.__amyFxLiveWsStatus={status:'SUBSCRIBED',source:data.source||'TWELVE_DATA_WEBSOCKET',price:liveNum,timestamp:ts};
+            applyLivePrice(liveNum,ts);
+            window.dispatchEvent(new CustomEvent('amyfx:live-price-display',{
+              detail:{price:liveNum,capturedAt:ts,source:'mapping-sse'}
+            }));
+          }
+        }catch(_){}
+      };
+      es.onerror=()=>{
+        errorCount+=1;
+        if(!usingFallback&&errorCount>=3&&streamUrl!==fallbackUrl){
+          usingFallback=true;
+          connectStream(fallbackUrl);
         }
-      }catch(_){}
-    };
-  }catch(_){}
+      };
+    }catch(_){}
+  };
+  connectStream(primaryUrl);
 }
 startBrowserLivePriceStream();
 window.addEventListener('amyfx:driver-plan',event=>{driverPlan=event.detail||null;draw();});

@@ -14,14 +14,18 @@ test('live quote uses one native Twelve Data WebSocket while Mapping keeps REST 
   assert.doesNotMatch(source, /LIVE_POLL_MS|outputsize=1/);
   assert.doesNotMatch(source, /localStorage\.(?:getItem|setItem)\(['"]twelve_api_key/);
   const relay = read('api/live-price.js');
+  const hub = read('lib/live-price-ws-hub.mjs');
+  const keyPool = read('lib/twelvedata-key-pool.mjs');
   assert.match(bridge, /https:\/\/amy-fx\.vercel\.app\/api\/live-price/);
   assert.match(bridge, /text\/event-stream/);
   assert.doesNotMatch(bridge, /configuredApiKey|BuildConfig\.TWELVE_DATA_API_KEY/);
-  assert.match(relay, /process\.env\.TWELVEDATA_API_KEY/);
-  assert.match(relay, /new WebSocket/);
+  assert.match(keyPool, /TWELVEDATA_API_KEY/);
+  assert.match(relay, /getDefaultLivePriceWsHub/);
+  assert.match(hub, /new WebSocketImpl/);
 
-  // Item 1.10 & 1.55: 13-15s tolerance margin prevents race condition and freeze on rotation
-  assert.match(relay, /setTimeout\(finish,\s*(?:20000|22000)\)/);
+  // 50s stream lifetime under vercel.json maxDuration: 60 + 12s SSE heartbeat under 35s OkHttp readTimeout
+  assert.match(relay, /SERVERLESS_STREAM_LIFETIME_MS\s*=\s*50_000/);
+  assert.match(relay, /SSE_HEARTBEAT_MS\s*=\s*12_000/);
   assert.match(bridge, /\.readTimeout\(35,\s*TimeUnit\.SECONDS\)/);
 });
 test('duplicate candle keys collapse before Supabase upsert', () => {

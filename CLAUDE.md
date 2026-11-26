@@ -521,3 +521,11 @@ When developing or modifying UI components for the **Amy FX** project, strictly 
 
 
 
+
+## 16. Rencana Arsitektur Live-Price Hub Persisten (Pasca-Push `Amy-fx-ai-studio`)
+- **Status:** DIJADWALKAN (Menunggu Sayang selesai tes Preview & push `Amy-fx-ai-studio`).
+- **Konteks:** Paket Twelve Data Basic 8 membatasi maksimal `1 WS connection`, sedangkan serverless Vercel (`/api/live-price`) memiliki batas eksekusi (~50–60 detik) dan berpotensi membuka koneksi per instance.
+- **Keputusan (Opsi 2):** Setelah `Amy-fx-ai-studio` di-push:
+  1. Audit & porting perubahan Hub 1-koneksi dari `Amy-fx-ai-studio` ke `Amy-fx-pro` (termasuk `tools/serve-local.mjs`, `api/live-price.js`, dan aset Beranda/Mapping).
+  2. Siapkan **1 server Node.js persisten (always-on)** di luar Vercel (Railway/Fly.io/VPS) sebagai Hub WebSocket Twelve Data tunggal 24 jam agar web Vercel maupun APK Android menembak ke 1 Hub permanen tanpa putus dan tanpa bentrok limit `1 WS connection`.
+- **Acuan Rollback Sebelum Rombak:** Tag `rollback-pro-477` (`2.0.0-pro.477` / `3b924b7e`) di `Amy-fx-pro` dan `rollback-studio-pro-477` (`83da747`) di `Amy-fx-ai-studio`.

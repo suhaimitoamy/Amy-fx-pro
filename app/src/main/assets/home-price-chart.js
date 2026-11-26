@@ -310,23 +310,47 @@ export function mountHomeChart(root) {
     if(typeof window==='undefined'||window.Android||window.AmyLivePrice||window.__amyFxHomeSseStarted)return;
     if(typeof EventSource!=='function')return;
     window.__amyFxHomeSseStarted=true;
-    try{
-      const host=typeof location!=='undefined'?String(location.hostname||''):'';
-      const isLocal=/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
-      const url=isLocal?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
-      es=new EventSource(url);
-      es.onmessage=(event)=>{
-        try{
-          const data=JSON.parse(event.data);
-          if(data&&Number.isFinite(Number(data.price))){
-            handleLiveTick({detail:{price:Number(data.price),timestamp:Number(data.timestamp)||Date.now()}});
+    const proto=typeof location!=='undefined'?String(location.protocol||''):'';
+    const isHttpOrigin=proto==='http:'||proto==='https:';
+    const primaryUrl=isHttpOrigin?'/api/live-price':'https://amy-fx.vercel.app/api/live-price';
+    const fallbackUrl='https://amy-fx.vercel.app/api/live-price';
+    let usingFallback=!isHttpOrigin;
+    let errorCount=0;
+    const connectStream=(streamUrl)=>{
+      try{
+        if(es){try{es.close();}catch(_){}}
+        es=new EventSource(streamUrl);
+        es.onmessage=(event)=>{
+          try{
+            const data=JSON.parse(event.data);
+            if(data&&data.event==='status'){
+              window.__amyFxLiveWsStatus=data;
+              return;
+            }
+            const liveNum=Number(data?.price);
+            if(data&&Number.isFinite(liveNum)&&liveNum>0){
+              errorCount=0;
+              const ts=Number(data.timestamp)||Date.now();
+              window.__amyFxLiveWsStatus={status:'SUBSCRIBED',source:data.source||'TWELVE_DATA_WEBSOCKET',price:liveNum,timestamp:ts};
+              handleLiveTick({detail:{price:liveNum,timestamp:ts,source:'home-sse'}});
+              try{
+                window.dispatchEvent(new CustomEvent('amyfx:live-price-display',{
+                  detail:{price:liveNum,capturedAt:ts,source:'home-sse'}
+                }));
+              }catch(_){}
+            }
+          }catch(_){}
+        };
+        es.onerror=()=>{
+          errorCount+=1;
+          if(!usingFallback&&errorCount>=3&&streamUrl!==fallbackUrl){
+            usingFallback=true;
+            connectStream(fallbackUrl);
           }
-        }catch(_){}
-      };
-      es.onerror=()=>{
-        // Browser automatically retries EventSource connection
-      };
-    }catch(_){}
+        };
+      }catch(_){}
+    };
+    connectStream(primaryUrl);
   }
   function render(degraded=false){
     const tf=$('home-chart-tf').value;
@@ -456,6 +480,7 @@ export function mountHomeChart(root) {
     refresh();
   }
   function handleLiveTick(event){
+    if(event?.type==='amyfx:live-price-display'&&event?.detail?.source==='home-sse')return;
     if(!isGoldMarketOpen(Date.now()/1000))return;
     const detail=event?.detail;
     const price=Number(detail?.price);
