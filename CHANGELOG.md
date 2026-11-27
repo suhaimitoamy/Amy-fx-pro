@@ -1,3 +1,7 @@
+## 2.0.0-pro.482
+
+- feat(academy-diagrams): Sinkronisasi finalisasi mesin candlestick SVG Academy (`diagram-engine.js`, `chart-drills.js`, `academy.css`) dari `Amy-fx-ai-studio` (`cd29dac`): upgrade seluruh 36/36 diagram bab & 10/10 Latihan Mata Chart ke candlestick OHLC kontinu realistis, primitif panel ganda SMT (`renderDualAssetPanels`), garis event vertikal (`seriesVLines`), overlay bukti pasca-jawab (`proof.zone`/`proof.fvg`/`proof.wickPin`), serta verifikasi `academy-chart-drills.test.mjs`.
+
 ## 2.0.0-pro.481
 
 - feat(academy-mastery): Sinkronisasi kurikulum Academy 36/36 tuntas dari `Amy-fx-ai-studio` (`ce208ac`): Kartu Contekan 1 Layar Bagian I–VI (`academy-cheatsheets.js`), 10 Latihan Mata Chart candlestick (`chart-drills.js`), deep-link topik bab & mode Review Salah di Latihan 100 Kasus, pembersihan total istilah SMC/IDM ke ICT murni + Bab 12 baru (*Liquidity Sweep vs Liquidity Run*), kode buka bebas baca pemilik (`281098`), serta pembaruan `amy-local-knowledge.js`.

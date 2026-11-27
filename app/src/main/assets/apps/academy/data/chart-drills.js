@@ -71,48 +71,57 @@
       title: 'Latihan Mata: Temukan Candle Rejection / Sweep Wick',
       prompt: 'Harga turun mendekati support $2,645. Klik area di chart yang menunjukkan penolakan keras oleh buyer (Wick bawah panjang, Body tutup kembali di atas garis).',
       candles: [
-        { o: 2652.0, h: 2653.2, l: 2649.8, c: 2650.2 },
-        { o: 2650.2, h: 2651.0, l: 2648.0, c: 2648.5 },
-        { o: 2648.5, h: 2649.1, l: 2646.2, c: 2646.6 },
-        { o: 2646.6, h: 2647.5, l: 2645.4, c: 2647.0 },
-        { o: 2647.0, h: 2647.4, l: 2645.2, c: 2645.7 },
-        { o: 2645.7, h: 2647.8, l: 2641.2, c: 2647.3 },
-        { o: 2647.3, h: 2650.6, l: 2647.0, c: 2650.1 },
-        { o: 2650.1, h: 2652.8, l: 2649.6, c: 2652.3 },
-        { o: 2652.3, h: 2654.0, l: 2651.7, c: 2653.4 },
-        { o: 2653.4, h: 2654.4, l: 2652.2, c: 2652.9 }
+        { o: 2653.6, h: 2654.4, l: 2652.4, c: 2652.7 },
+        { o: 2652.7, h: 2653.2, l: 2651.1, c: 2651.5 },
+        { o: 2651.5, h: 2652.1, l: 2649.8, c: 2650.2 },
+        { o: 2650.2, h: 2650.9, l: 2648.6, c: 2649.0 },
+        { o: 2649.0, h: 2649.6, l: 2647.3, c: 2647.7 },
+        { o: 2647.7, h: 2648.3, l: 2646.0, c: 2646.4 },
+        { o: 2646.4, h: 2647.2, l: 2645.4, c: 2646.8 },
+        { o: 2646.8, h: 2647.1, l: 2645.2, c: 2645.7 },
+        { o: 2645.7, h: 2648.0, l: 2641.2, c: 2647.5 },
+        { o: 2647.5, h: 2650.4, l: 2647.1, c: 2650.0 },
+        { o: 2650.0, h: 2652.1, l: 2649.5, c: 2651.7 },
+        { o: 2651.7, h: 2652.3, l: 2650.6, c: 2651.0 },
+        { o: 2651.0, h: 2653.2, l: 2650.8, c: 2652.9 },
+        { o: 2652.9, h: 2654.2, l: 2652.3, c: 2653.7 },
+        { o: 2653.7, h: 2654.6, l: 2652.8, c: 2653.2 },
+        { o: 2653.2, h: 2654.8, l: 2652.9, c: 2654.4 }
       ],
       levels: [
-        { price: 2645.0, label: 'Support $2,645', tone: 'gold', dashed: true }
+        { price: 2645.0, label: 'Support $2,645', tone: 'gold', dashed: true, align: 'right' }
       ],
+      proof: {
+        wickPin: { idx: 8, which: 'low', label: 'Sweep Wick $2,641.2' }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 0.5,
-          toIdx: 2.5,
-          low: 2645.8,
-          high: 2651.6,
+          fromIdx: 1.5,
+          toIdx: 4.5,
+          low: 2647.0,
+          high: 2653.4,
           isCorrect: false,
           feedback: 'Belum tepat. Area A adalah rangkaian candle merah berbadan penuh yang masih dikuasai seller—belum ada perlawanan atau wick penolakan.'
         },
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 4.4,
-          toIdx: 5.6,
+          fromIdx: 7.3,
+          toIdx: 8.7,
           low: 2640.7,
-          high: 2648.3,
+          high: 2648.5,
           isCorrect: true,
-          feedback: 'Tepat! Candle di Area B menusuk ke bawah $2,645 hanya dengan wick panjang lalu menutup body kuat di atas garis—ciri klasik Rejection / Sweep oleh buyer.'
+          feedback: 'Tepat! Candle di Area B menusuk ke bawah $2,645 hanya dengan wick panjang sampai $2,641.2 lalu menutup body kuat di atas garis—ciri klasik Rejection / Sweep oleh buyer.'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 7.5,
-          toIdx: 9.5,
-          low: 2651.2,
-          high: 2654.8,
+          fromIdx: 12.2,
+          toIdx: 15.0,
+          low: 2651.8,
+          high: 2655.2,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah lanjutan kenaikan setelah harga sudah jauh meninggalkan support, bukan titik candle penolakan utamanya.'
         }
@@ -127,27 +136,36 @@
       title: 'Latihan Mata: Tunjuk Swing Low (Higher Low / HL) Valid',
       prompt: 'Pada tren naik XAU/USD ini, klik area yang membentuk Swing Low (HL) valid secara fraktal 3-candle (low tengah lebih rendah dari kiri dan kanannya) sebelum mencetak HH baru.',
       candles: [
-        { o: 2640.5, h: 2643.0, l: 2639.8, c: 2642.6 },
-        { o: 2642.6, h: 2646.2, l: 2642.2, c: 2645.8 },
-        { o: 2645.8, h: 2648.6, l: 2645.2, c: 2648.0 },
-        { o: 2648.0, h: 2648.4, l: 2645.5, c: 2646.0 },
-        { o: 2646.0, h: 2646.4, l: 2643.8, c: 2644.2 },
-        { o: 2644.2, h: 2645.8, l: 2642.4, c: 2645.3 },
-        { o: 2645.3, h: 2648.2, l: 2644.8, c: 2647.9 },
-        { o: 2647.9, h: 2651.8, l: 2647.5, c: 2651.3 },
-        { o: 2651.3, h: 2654.2, l: 2650.8, c: 2653.6 },
-        { o: 2653.6, h: 2654.6, l: 2651.9, c: 2652.5 }
+        { o: 2639.8, h: 2641.6, l: 2639.2, c: 2641.2 },
+        { o: 2641.2, h: 2643.8, l: 2640.9, c: 2643.4 },
+        { o: 2643.4, h: 2646.4, l: 2643.0, c: 2646.0 },
+        { o: 2646.0, h: 2648.6, l: 2645.6, c: 2648.1 },
+        { o: 2648.1, h: 2648.4, l: 2646.2, c: 2646.6 },
+        { o: 2646.6, h: 2647.0, l: 2644.6, c: 2645.0 },
+        { o: 2645.0, h: 2645.4, l: 2643.6, c: 2644.1 },
+        { o: 2644.1, h: 2645.8, l: 2642.4, c: 2645.4 },
+        { o: 2645.4, h: 2647.6, l: 2644.8, c: 2647.2 },
+        { o: 2647.2, h: 2650.2, l: 2646.9, c: 2649.8 },
+        { o: 2649.8, h: 2652.0, l: 2649.4, c: 2651.6 },
+        { o: 2651.6, h: 2652.4, l: 2650.6, c: 2651.0 },
+        { o: 2651.0, h: 2653.4, l: 2650.7, c: 2653.0 },
+        { o: 2653.0, h: 2654.6, l: 2652.4, c: 2654.1 },
+        { o: 2654.1, h: 2655.0, l: 2653.2, c: 2653.6 },
+        { o: 2653.6, h: 2655.2, l: 2653.1, c: 2654.7 }
       ],
       levels: [
-        { price: 2648.6, label: 'Previous High (BOS)', tone: 'bull', dashed: true }
+        { price: 2648.6, label: 'Previous High (BOS)', tone: 'bull', dashed: true, align: 'right' }
       ],
+      proof: {
+        wickPin: { idx: 7, which: 'low', label: 'HL Valid $2,642.4', labelOffsetX: 54 }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 1.5,
-          toIdx: 3.2,
-          low: 2645.0,
+          fromIdx: 2.2,
+          toIdx: 4.3,
+          low: 2645.4,
           high: 2649.2,
           isCorrect: false,
           feedback: 'Belum tepat. Area A adalah puncak Swing High (HH) awal sebelum koreksi, bukan titik lembah Swing Low (HL).'
@@ -155,20 +173,20 @@
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 4.3,
-          toIdx: 5.8,
-          low: 2641.8,
-          high: 2646.3,
+          fromIdx: 6.2,
+          toIdx: 8.2,
+          low: 2641.9,
+          high: 2646.5,
           isCorrect: true,
           feedback: 'Tepat! Area B adalah Higher Low (HL) valid: low candle tengah ($2,642.4) lebih rendah dari candle kiri dan kanannya, lalu mendorong harga memecahkan High lama (BOS).'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 7.4,
-          toIdx: 9.4,
-          low: 2650.4,
-          high: 2655.0,
+          fromIdx: 12.2,
+          toIdx: 15.0,
+          low: 2652.0,
+          high: 2655.6,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah puncak Higher High (HH) baru di atas garis BOS, bukan titik pijakan Higher Low.'
         }
@@ -183,26 +201,35 @@
       title: 'Latihan Mata: Mana Liquidity Sweep (Wick-Only), Bukan BOS?',
       prompt: 'Garis merah adalah Swing High lama di $2,654. Klik area yang merupakan Liquidity Sweep palsu (hanya tusukan wick tanpa Body Close di atas garis).',
       candles: [
-        { o: 2649.5, h: 2652.4, l: 2649.0, c: 2652.0 },
-        { o: 2652.0, h: 2654.0, l: 2651.4, c: 2653.1 },
-        { o: 2653.1, h: 2653.4, l: 2650.2, c: 2650.6 },
-        { o: 2650.6, h: 2651.5, l: 2649.0, c: 2651.1 },
-        { o: 2651.1, h: 2653.3, l: 2650.8, c: 2652.9 },
-        { o: 2652.9, h: 2656.2, l: 2652.4, c: 2653.3 },
-        { o: 2653.3, h: 2653.7, l: 2649.4, c: 2649.9 },
-        { o: 2649.9, h: 2650.5, l: 2646.8, c: 2647.3 },
-        { o: 2647.3, h: 2648.6, l: 2646.2, c: 2648.0 },
-        { o: 2648.0, h: 2648.4, l: 2645.0, c: 2645.6 }
+        { o: 2648.8, h: 2650.8, l: 2648.4, c: 2650.4 },
+        { o: 2650.4, h: 2652.6, l: 2650.0, c: 2652.2 },
+        { o: 2652.2, h: 2654.0, l: 2651.6, c: 2653.1 },
+        { o: 2653.1, h: 2653.5, l: 2651.0, c: 2651.4 },
+        { o: 2651.4, h: 2651.9, l: 2649.8, c: 2650.2 },
+        { o: 2650.2, h: 2651.4, l: 2649.5, c: 2651.0 },
+        { o: 2651.0, h: 2652.8, l: 2650.6, c: 2652.4 },
+        { o: 2652.4, h: 2653.6, l: 2652.0, c: 2653.2 },
+        { o: 2653.2, h: 2656.4, l: 2652.2, c: 2652.8 },
+        { o: 2652.8, h: 2653.2, l: 2650.0, c: 2650.4 },
+        { o: 2650.4, h: 2650.9, l: 2647.8, c: 2648.2 },
+        { o: 2648.2, h: 2649.2, l: 2647.4, c: 2648.8 },
+        { o: 2648.8, h: 2649.1, l: 2646.4, c: 2646.8 },
+        { o: 2646.8, h: 2647.4, l: 2645.2, c: 2645.6 },
+        { o: 2645.6, h: 2646.4, l: 2644.6, c: 2645.9 },
+        { o: 2645.9, h: 2646.2, l: 2644.0, c: 2644.4 }
       ],
       levels: [
-        { price: 2654.0, label: 'Swing High $2,654', tone: 'bear', dashed: true }
+        { price: 2654.0, label: 'Swing High $2,654', tone: 'bear', dashed: true, align: 'right' }
       ],
+      proof: {
+        wickPin: { idx: 8, which: 'high', label: 'Sweep Wick $2,656.4' }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 0.4,
-          toIdx: 1.8,
+          fromIdx: 1.2,
+          toIdx: 3.1,
           low: 2651.0,
           high: 2654.6,
           isCorrect: false,
@@ -211,20 +238,20 @@
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 4.4,
-          toIdx: 5.7,
-          low: 2652.0,
-          high: 2656.8,
+          fromIdx: 7.3,
+          toIdx: 8.8,
+          low: 2651.8,
+          high: 2656.9,
           isCorrect: true,
-          feedback: 'Tepat! Di Area B wick menusuk sampai $2,656.2 menyapu SL seller, namun Body Close tetap di $2,653.3 (di bawah $2,654). Itu murni Liquidity Sweep, bukan BOS naik!'
+          feedback: 'Tepat! Di Area B wick menusuk sampai $2,656.4 menyapu SL seller, namun Body Close tetap di $2,652.8 (di bawah $2,654). Itu murni Liquidity Sweep, bukan BOS naik!'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 6.4,
-          toIdx: 8.2,
-          low: 2646.0,
-          high: 2650.8,
+          fromIdx: 10.2,
+          toIdx: 13.5,
+          low: 2645.0,
+          high: 2649.6,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah dorongan turun (Displacement) yang terjadi SETELAH Liquidity Sweep selesai menjebak buyer breakout.'
         }
@@ -239,48 +266,61 @@
       title: 'Latihan Mata: Tandai Kolam Equal Highs (EQH / BSL)',
       prompt: 'Trader ritel sering memasang Stop Loss di atas puncak kembar (double top). Klik area yang menjadi magnet Buy-Side Liquidity (EQH / BSL) paling jelas di chart ini.',
       candles: [
-        { o: 2646.0, h: 2649.5, l: 2645.6, c: 2649.0 },
-        { o: 2649.0, h: 2652.8, l: 2648.8, c: 2652.2 },
-        { o: 2652.2, h: 2652.5, l: 2649.1, c: 2649.6 },
-        { o: 2649.6, h: 2650.2, l: 2647.8, c: 2648.4 },
-        { o: 2648.4, h: 2651.2, l: 2648.0, c: 2650.8 },
-        { o: 2650.8, h: 2652.9, l: 2650.4, c: 2651.7 },
-        { o: 2651.7, h: 2652.0, l: 2648.6, c: 2649.1 },
-        { o: 2649.1, h: 2649.8, l: 2646.9, c: 2647.5 },
-        { o: 2647.5, h: 2650.4, l: 2647.2, c: 2650.0 },
-        { o: 2650.0, h: 2651.9, l: 2649.6, c: 2651.4 }
+        { o: 2646.2, h: 2648.6, l: 2645.8, c: 2648.2 },
+        { o: 2648.2, h: 2650.8, l: 2647.8, c: 2650.4 },
+        { o: 2650.4, h: 2652.8, l: 2650.0, c: 2651.8 },
+        { o: 2651.8, h: 2652.2, l: 2649.4, c: 2649.8 },
+        { o: 2649.8, h: 2650.2, l: 2648.0, c: 2648.4 },
+        { o: 2648.4, h: 2649.6, l: 2647.8, c: 2649.2 },
+        { o: 2649.2, h: 2651.4, l: 2648.8, c: 2651.0 },
+        { o: 2651.0, h: 2652.9, l: 2650.4, c: 2651.7 },
+        { o: 2651.7, h: 2652.1, l: 2649.2, c: 2649.6 },
+        { o: 2649.6, h: 2650.0, l: 2647.6, c: 2648.0 },
+        { o: 2648.0, h: 2648.6, l: 2646.4, c: 2647.0 },
+        { o: 2647.0, h: 2648.8, l: 2646.6, c: 2648.4 },
+        { o: 2648.4, h: 2650.4, l: 2648.0, c: 2650.0 },
+        { o: 2650.0, h: 2651.6, l: 2649.6, c: 2651.2 },
+        { o: 2651.2, h: 2652.2, l: 2650.4, c: 2650.9 },
+        { o: 2650.9, h: 2652.0, l: 2650.2, c: 2651.6 }
       ],
       levels: [
-        { price: 2652.9, label: 'EQH / BSL $2,652.9', tone: 'gold', dashed: true }
+        { price: 2652.9, label: 'EQH / BSL $2,652.9', tone: 'gold', dashed: true, align: 'right' }
       ],
+      proof: {
+        wickPins: [
+          { idx: 2, which: 'high' },
+          { idx: 7, which: 'high' }
+        ],
+        connectLine: true
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 0.7,
-          toIdx: 5.7,
-          low: 2651.8,
-          high: 2654.3,
+          fromIdx: 1.6,
+          toIdx: 7.7,
+          low: 2651.6,
+          high: 2653.8,
           isCorrect: true,
           feedback: 'Tepat! Dua puncak hampir sejajar di $2,652.8–$2,652.9 membentuk Equal Highs (EQH). Tepat di atas garis ini bertumpuk Stop Loss seller (BSL) yang sangat rawan di-sweep.'
         },
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 2.5,
-          toIdx: 4.2,
-          low: 2647.3,
-          high: 2650.4,
+          fromIdx: 3.6,
+          toIdx: 6.0,
+          low: 2647.4,
+          high: 2650.6,
           isCorrect: false,
           feedback: 'Belum tepat. Area B berada di tengah range internal—bukan kumpulan puncak kembar EQH tempat BSL menumpuk.'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 6.4,
-          toIdx: 8.2,
-          low: 2646.3,
-          high: 2649.5,
+          fromIdx: 9.4,
+          toIdx: 11.8,
+          low: 2646.0,
+          high: 2649.2,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah lembah bawah (SSL), bukan zona Equal Highs / Buy-Side Liquidity (BSL) yang diminta.'
         }
@@ -295,49 +335,58 @@
       title: 'Latihan Mata: Bedakan Liquidity Sweep (Purge) vs Liquidity Run',
       prompt: 'Daily Bias BULLISH menuju PDH $2,665. Pada pembukaan London, Asia Low ($2,646) disapu lalu Asia High ($2,652) ditembus body penuh. Klik area yang merupakan Liquidity Sweep (Purge & Revert) sah—bukan Liquidity Run!',
       candles: [
-        { o: 2648.8, h: 2651.8, l: 2648.2, c: 2651.4 },
-        { o: 2651.4, h: 2652.0, l: 2647.2, c: 2647.8 },
-        { o: 2647.8, h: 2648.4, l: 2646.0, c: 2646.6 },
-        { o: 2646.6, h: 2648.2, l: 2642.8, c: 2647.7 },
-        { o: 2647.7, h: 2651.4, l: 2647.3, c: 2650.9 },
-        { o: 2650.9, h: 2654.8, l: 2650.4, c: 2654.3 },
-        { o: 2654.3, h: 2655.0, l: 2652.6, c: 2653.4 },
-        { o: 2653.4, h: 2657.6, l: 2653.0, c: 2657.1 },
-        { o: 2657.1, h: 2660.5, l: 2656.6, c: 2659.9 },
-        { o: 2659.9, h: 2662.2, l: 2659.2, c: 2661.5 }
+        { o: 2648.6, h: 2651.0, l: 2648.0, c: 2650.6 },
+        { o: 2650.6, h: 2652.0, l: 2649.2, c: 2649.6 },
+        { o: 2649.6, h: 2650.2, l: 2647.6, c: 2648.0 },
+        { o: 2648.0, h: 2649.2, l: 2647.2, c: 2648.6 },
+        { o: 2648.6, h: 2649.0, l: 2646.0, c: 2646.8 },
+        { o: 2646.8, h: 2648.2, l: 2642.8, c: 2647.8 },
+        { o: 2647.8, h: 2651.4, l: 2647.4, c: 2651.0 },
+        { o: 2651.0, h: 2654.4, l: 2650.6, c: 2654.0 },
+        { o: 2654.0, h: 2655.2, l: 2652.8, c: 2653.4 },
+        { o: 2653.4, h: 2656.6, l: 2653.0, c: 2656.2 },
+        { o: 2656.2, h: 2658.4, l: 2655.8, c: 2658.0 },
+        { o: 2658.0, h: 2658.8, l: 2656.8, c: 2657.4 },
+        { o: 2657.4, h: 2660.2, l: 2657.0, c: 2659.8 },
+        { o: 2659.8, h: 2661.8, l: 2659.2, c: 2661.4 },
+        { o: 2661.4, h: 2662.6, l: 2660.6, c: 2662.0 },
+        { o: 2662.0, h: 2663.6, l: 2661.4, c: 2663.2 }
       ],
       levels: [
-        { price: 2652.0, label: 'Asia High $2,652 (Liquidity Run)', tone: 'bull', dashed: true },
-        { price: 2646.0, label: 'Asia Low $2,646 (SSL)', tone: 'gold', dashed: true }
+        { price: 2652.0, label: 'Asia High $2,652', tone: 'bull', dashed: true, align: 'right' },
+        { price: 2646.0, label: 'Asia Low $2,646 (SSL)', tone: 'gold', dashed: true, align: 'right' }
       ],
+      proof: {
+        wickPin: { idx: 5, which: 'low', label: 'Purge Wick $2,642.8', labelOffsetX: 40 }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 0.0,
-          toIdx: 1.5,
-          low: 2647.8,
-          high: 2652.2,
+          fromIdx: 0.2,
+          toIdx: 2.2,
+          low: 2647.4,
+          high: 2652.6,
           isCorrect: false,
           feedback: 'Belum tepat. Area A baru membentuk batas atas Asia High ($2,652) sebelum London Open menyapu likuiditas.'
         },
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 2.4,
-          toIdx: 4.2,
+          fromIdx: 4.3,
+          toIdx: 5.8,
           low: 2642.2,
-          high: 2648.8,
+          high: 2649.0,
           isCorrect: true,
-          feedback: 'Tepat! Area B adalah Liquidity Sweep (Purge & Revert): wick menusuk ke $2,642.8 menyapu SSL di bawah Asia Low ($2,646), Body Close kembali di dalam range ($2,647.7), lalu langsung diikuti Displacement naik.'
+          feedback: 'Tepat! Area B adalah Liquidity Sweep (Purge & Revert): wick menusuk ke $2,642.8 menyapu SSL di bawah Asia Low ($2,646), Body Close kembali di dalam range ($2,647.8), lalu langsung diikuti Displacement naik.'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 5.0,
-          toIdx: 8.2,
-          low: 2652.0,
-          high: 2659.0,
+          fromIdx: 7.0,
+          toIdx: 11.4,
+          low: 2653.4,
+          high: 2659.2,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah Liquidity Run (Expansion): Body Close penuh di atas Asia High ($2,652) searah Daily Bias Bullish menuju PDH—bukan Sweep untuk dilawan Sell.'
         }
@@ -350,52 +399,68 @@
       timeframe: 'M5',
       symbol: 'XAU/USD',
       title: 'Latihan Mata: Klik Celah Bullish FVG (BISI) yang Benar',
-      prompt: 'Ingat aturan 3-candle Bullish FVG: celah kosong antara High Candle 1 dan Low Candle 3 yang tidak tertutup wick. Klik area FVG yang valid pada impuls naik ini!',
+      prompt: 'Ingat aturan 3-candle Bullish FVG: celah kosong antara ujung High wick Candle 1 dan ujung Low wick Candle 3 yang tidak saling tumpang tindih. Klik area FVG yang valid pada impuls naik ini!',
       candles: [
-        { o: 2644.2, h: 2645.2, l: 2643.6, c: 2644.0 },
-        { o: 2644.0, h: 2645.6, l: 2643.8, c: 2645.1 },
-        { o: 2645.1, h: 2646.2, l: 2644.6, c: 2645.8 },
-        { o: 2645.8, h: 2651.4, l: 2645.6, c: 2651.0 },
-        { o: 2651.0, h: 2653.4, l: 2649.6, c: 2652.8 },
-        { o: 2652.8, h: 2653.8, l: 2651.6, c: 2652.0 },
-        { o: 2652.0, h: 2652.5, l: 2650.4, c: 2650.8 },
-        { o: 2650.8, h: 2651.2, l: 2649.8, c: 2650.2 },
-        { o: 2650.2, h: 2650.6, l: 2648.1, c: 2649.5 },
-        { o: 2649.5, h: 2653.2, l: 2649.2, c: 2652.8 }
+        { o: 2645.2, h: 2646.1, l: 2644.4, c: 2644.7 },
+        { o: 2644.7, h: 2645.8, l: 2644.1, c: 2645.4 },
+        { o: 2645.4, h: 2646.3, l: 2644.6, c: 2644.9 },
+        { o: 2644.9, h: 2645.9, l: 2643.8, c: 2644.3 },
+        { o: 2644.3, h: 2645.6, l: 2644.0, c: 2645.2 },
+        { o: 2645.2, h: 2646.4, l: 2644.8, c: 2646.0 },
+        { o: 2646.0, h: 2652.0, l: 2645.5, c: 2651.5 },
+        { o: 2651.5, h: 2653.4, l: 2650.0, c: 2652.8 },
+        { o: 2652.8, h: 2653.9, l: 2651.8, c: 2652.2 },
+        { o: 2652.2, h: 2652.7, l: 2650.9, c: 2651.3 },
+        { o: 2651.3, h: 2651.9, l: 2649.8, c: 2650.2 },
+        { o: 2650.2, h: 2650.9, l: 2648.1, c: 2649.5 },
+        { o: 2649.5, h: 2652.4, l: 2649.2, c: 2652.0 },
+        { o: 2652.0, h: 2654.2, l: 2650.9, c: 2653.8 },
+        { o: 2653.8, h: 2655.6, l: 2652.4, c: 2655.1 },
+        { o: 2655.1, h: 2656.0, l: 2654.1, c: 2654.6 }
       ],
       levels: [
-        { price: 2647.9, label: '50% CE FVG', tone: 'bull', dashed: true }
+        { price: 2646.3, label: 'Swing High $2,646.3', tone: 'muted', dashed: true, align: 'right' }
       ],
+      proof: {
+        fvg: {
+          c1Idx: 5,
+          c3Idx: 7,
+          type: 'bull',
+          extendToIdx: 12,
+          label: 'FVG VALID ($2,646.4–$2,650.0)',
+          ceLabel: '50% CE $2,648.2'
+        }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 0.2,
-          toIdx: 2.3,
-          low: 2643.4,
-          high: 2646.2,
+          fromIdx: 0.4,
+          toIdx: 4.3,
+          low: 2643.8,
+          high: 2646.5,
           isCorrect: false,
-          feedback: 'Belum tepat. Di Area A wick candle 1, 2, dan 3 saling tumpang tindih rapat—tidak ada celah imbalance (FVG) di sana.'
+          feedback: 'Belum tepat. Di Area A wick seluruh candle saling bertumpuk rapat (overlap)—tidak ada celah kosong antara High C1 dan Low C3, jadi BUKAN FVG.'
         },
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 2.4,
-          toIdx: 4.5,
-          low: 2646.2,
-          high: 2649.6,
+          fromIdx: 5.0,
+          toIdx: 8.2,
+          low: 2646.4,
+          high: 2650.0,
           isCorrect: true,
-          feedback: 'Tepat! Celah kosong dari High Candle 1 ($2,646.2) sampai Low Candle 3 ($2,649.6) adalah Bullish FVG (BISI) yang bersih—lihat bagaimana harga kemudian pullback menyentuh 50% CE lalu terbang!'
+          feedback: 'Tepat! Celah bersih antara High wick C1 ($2,646.4) dan Low wick C3 ($2,650.0) adalah Bullish FVG (BISI) yang valid. Lihat bukti garis & lingkaran wick: pullback menyentuh tepat 50% CE ($2,648.2) lalu melanjutkan rally!'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 4.8,
-          toIdx: 7.4,
+          fromIdx: 7.5,
+          toIdx: 10.6,
           low: 2650.4,
-          high: 2654.0,
+          high: 2654.2,
           isCorrect: false,
-          feedback: 'Belum tepat. Area C adalah konsolidasi di pucuk Premium di atas FVG, bukan ruang celah FVG-nya.'
+          feedback: 'Belum tepat. Area C adalah fase koreksi di atas celah dengan wick yang saling bersentuhan—bukan ruang celah FVG-nya.'
         }
       ]
     },
@@ -408,49 +473,66 @@
       title: 'Latihan Mata: Pilih Order Block (OB) Bullish yang Valid',
       prompt: 'Mana candle Order Block Bullish yang valid? Ingat syaratnya: candle bearish terakhir tepat sebelum dorongan Displacement kuat yang meninggalkan FVG & BOS.',
       candles: [
-        { o: 2650.0, h: 2650.5, l: 2647.4, c: 2647.8 },
-        { o: 2647.8, h: 2648.4, l: 2646.2, c: 2646.6 },
-        { o: 2646.6, h: 2647.1, l: 2644.8, c: 2645.2 },
-        { o: 2645.2, h: 2645.7, l: 2642.8, c: 2643.3 },
-        { o: 2643.3, h: 2648.6, l: 2643.1, c: 2648.2 },
-        { o: 2648.2, h: 2652.0, l: 2647.9, c: 2651.5 },
-        { o: 2651.5, h: 2652.6, l: 2650.1, c: 2650.6 },
-        { o: 2650.6, h: 2651.0, l: 2648.0, c: 2648.5 },
-        { o: 2648.5, h: 2648.9, l: 2645.0, c: 2646.2 },
-        { o: 2646.2, h: 2646.8, l: 2644.2, c: 2646.5 }
+        { o: 2651.6, h: 2652.2, l: 2649.8, c: 2650.2 },
+        { o: 2650.2, h: 2650.6, l: 2648.2, c: 2648.6 },
+        { o: 2648.6, h: 2649.2, l: 2647.0, c: 2647.4 },
+        { o: 2647.4, h: 2648.0, l: 2646.0, c: 2646.5 },
+        { o: 2646.5, h: 2646.9, l: 2645.2, c: 2645.6 },
+        { o: 2645.6, h: 2646.0, l: 2642.4, c: 2643.2 },
+        { o: 2643.2, h: 2647.4, l: 2643.0, c: 2647.0 },
+        { o: 2647.0, h: 2652.2, l: 2646.8, c: 2651.6 },
+        { o: 2651.6, h: 2653.4, l: 2649.6, c: 2652.8 },
+        { o: 2652.8, h: 2653.2, l: 2650.8, c: 2651.2 },
+        { o: 2651.2, h: 2651.6, l: 2648.4, c: 2648.8 },
+        { o: 2648.8, h: 2649.2, l: 2646.2, c: 2646.6 },
+        { o: 2646.6, h: 2647.2, l: 2644.4, c: 2646.4 },
+        { o: 2646.4, h: 2649.8, l: 2646.0, c: 2649.4 },
+        { o: 2649.4, h: 2652.4, l: 2649.0, c: 2652.0 },
+        { o: 2652.0, h: 2654.2, l: 2651.6, c: 2653.6 }
       ],
       levels: [
-        { price: 2645.2, label: 'OB Open', tone: 'bull', dashed: true },
-        { price: 2644.25, label: '50% Mean Threshold', tone: 'gold', dashed: true }
+        { price: 2645.6, label: 'OB Open $2,645.6', tone: 'bull', dashed: true, align: 'left' },
+        { price: 2644.4, label: '50% MT $2,644.4', tone: 'gold', dashed: true, align: 'left', labelPos: 'below' }
       ],
+      proof: {
+        zone: {
+          fromIdx: 4.7,
+          toIdx: 12.6,
+          low: 2642.4,
+          high: 2645.6,
+          midPrice: 2644.4,
+          label: 'BULLISH OB ($2,645.6–$2,642.4)'
+        },
+        wickPin: { idx: 12, which: 'low', label: 'Retest 50% MT $2,644.4', labelOffsetX: 16 }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 0.2,
-          toIdx: 1.8,
-          low: 2646.0,
-          high: 2650.8,
+          fromIdx: 0.4,
+          toIdx: 2.6,
+          low: 2646.8,
+          high: 2652.4,
           isCorrect: false,
           feedback: 'Belum tepat. Area A memang candle bearish, tetapi belum memicu Displacement naik atau BOS—itu masih bagian dari gelombang turun biasa.'
         },
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 2.5,
-          toIdx: 3.6,
-          low: 2642.4,
-          high: 2645.9,
+          fromIdx: 4.5,
+          toIdx: 5.7,
+          low: 2642.0,
+          high: 2646.3,
           isCorrect: true,
-          feedback: 'Tepat! Candle bearish terakhir di dasar ($2,645.2–$2,642.8) tepat sebelum ledakan Displacement hijau beruntun adalah Bullish Order Block yang valid, dengan titik presisi di 50% Mean Threshold.'
+          feedback: 'Tepat! Candle bearish terakhir di dasar (Open $2,645.6 · Close $2,643.2 · Low $2,642.4) tepat sebelum ledakan Displacement + FVG adalah Bullish Order Block valid, dengan 50% Mean Threshold body tepat di $2,644.4.'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 5.5,
-          toIdx: 7.4,
+          fromIdx: 8.5,
+          toIdx: 11.2,
           low: 2647.8,
-          high: 2652.8,
+          high: 2653.6,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah candle pullback merah di pucuk atas, bukan titik awal (origin) dorongan institusi.'
         }
@@ -465,51 +547,67 @@
       title: 'Latihan Mata: Klik Candle Konfirmasi MSS Setelah Sweep SSL',
       prompt: 'Harga sudah menyapu SSL di $2,644. Klik area candle yang mengonfirmasi perubahan arah (MSS Bullish) karena Body Close tegas menembus Swing High internal di $2,648.5.',
       candles: [
-        { o: 2650.4, h: 2650.8, l: 2647.6, c: 2648.0 },
-        { o: 2648.0, h: 2648.5, l: 2646.0, c: 2646.4 },
-        { o: 2646.4, h: 2648.5, l: 2646.2, c: 2647.9 },
-        { o: 2647.9, h: 2648.2, l: 2644.8, c: 2645.2 },
-        { o: 2645.2, h: 2646.2, l: 2642.2, c: 2645.8 },
-        { o: 2645.8, h: 2648.1, l: 2645.5, c: 2647.6 },
-        { o: 2647.6, h: 2651.8, l: 2647.4, c: 2651.2 },
-        { o: 2651.2, h: 2652.6, l: 2650.4, c: 2652.0 },
-        { o: 2652.0, h: 2652.3, l: 2649.0, c: 2649.4 },
-        { o: 2649.4, h: 2649.8, l: 2647.8, c: 2649.2 }
+        { o: 2650.6, h: 2651.2, l: 2648.6, c: 2649.0 },
+        { o: 2649.0, h: 2649.4, l: 2646.6, c: 2647.0 },
+        { o: 2647.0, h: 2647.8, l: 2645.8, c: 2646.6 },
+        { o: 2646.6, h: 2648.5, l: 2646.2, c: 2647.9 },
+        { o: 2647.9, h: 2648.2, l: 2645.6, c: 2646.0 },
+        { o: 2646.0, h: 2646.4, l: 2644.4, c: 2644.8 },
+        { o: 2644.8, h: 2645.8, l: 2641.8, c: 2645.2 },
+        { o: 2645.2, h: 2647.8, l: 2644.9, c: 2647.4 },
+        { o: 2647.4, h: 2652.0, l: 2647.2, c: 2651.5 },
+        { o: 2651.5, h: 2653.4, l: 2650.0, c: 2652.8 },
+        { o: 2652.8, h: 2653.2, l: 2651.0, c: 2651.4 },
+        { o: 2651.4, h: 2651.8, l: 2649.6, c: 2650.0 },
+        { o: 2650.0, h: 2650.6, l: 2648.6, c: 2649.8 },
+        { o: 2649.8, h: 2652.6, l: 2649.4, c: 2652.2 },
+        { o: 2652.2, h: 2654.2, l: 2651.8, c: 2653.8 },
+        { o: 2653.8, h: 2655.0, l: 2653.2, c: 2654.6 }
       ],
       levels: [
-        { price: 2648.5, label: 'Level MSS $2,648.5', tone: 'bull', dashed: true },
-        { price: 2644.0, label: 'SSL $2,644', tone: 'gold', dashed: true }
+        { price: 2648.5, label: 'Level MSS $2,648.5', tone: 'bull', dashed: true, align: 'left', labelPos: 'below' },
+        { price: 2644.0, label: 'SSL $2,644', tone: 'gold', dashed: true, align: 'right' }
       ],
+      proof: {
+        fvg: {
+          c1Idx: 7,
+          c3Idx: 9,
+          type: 'bull',
+          extendToIdx: 15,
+          ceLabel: 'FVG 50% CE'
+        },
+        wickPin: { idx: 6, which: 'low', label: 'SSL Sweep $2,641.8', labelOffsetX: 30 }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A',
-          fromIdx: 3.4,
-          toIdx: 4.6,
-          low: 2641.8,
-          high: 2646.5,
+          fromIdx: 5.3,
+          toIdx: 6.7,
+          low: 2641.4,
+          high: 2646.4,
           isCorrect: false,
           feedback: 'Belum tepat. Area A adalah momen Sweep SSL-nya (Langkah 1), bukan konfirmasi balik arah (MSS). Entry langsung di sini tanpa menunggu struktur patah sangat berisiko.'
         },
         {
           id: 'B',
           label: 'Area B',
-          fromIdx: 5.5,
-          toIdx: 6.7,
-          low: 2647.1,
-          high: 2652.2,
+          fromIdx: 7.5,
+          toIdx: 8.7,
+          low: 2647.0,
+          high: 2652.4,
           isCorrect: true,
-          feedback: 'Tepat! Candle hijau panjang di Area B melakukan Displacement & Body Close tegas di atas $2,648.5 sekaligus mencetak FVG—inilah konfirmasi MSS Bullish yang valid.'
+          feedback: 'Tepat! Candle hijau panjang di Area B melakukan Displacement & Body Close tegas di atas $2,648.5 sekaligus mencetak FVG ($2,647.8–$2,650.0)—inilah konfirmasi MSS Bullish yang valid.'
         },
         {
           id: 'C',
           label: 'Area C',
-          fromIdx: 7.8,
-          toIdx: 9.5,
-          low: 2647.4,
-          high: 2652.5,
+          fromIdx: 10.2,
+          toIdx: 12.6,
+          low: 2648.2,
+          high: 2653.5,
           isCorrect: false,
-          feedback: 'Belum tepat. Area C adalah fase pullback menuju zona entry setelah MSS sudah terbentuk lebih dulu di Area B.'
+          feedback: 'Belum tepat. Area C adalah fase pullback menuju zona entry FVG setelah MSS sudah terbentuk lebih dulu di Area B.'
         }
       ]
     },
@@ -522,28 +620,45 @@
       title: 'Latihan Mata: Klik Zona Discount + OTE (61,8%–78,6%) untuk Buy',
       prompt: 'Dealing Range naik ditarik dari Swing Low $2,640 (1) ke Swing High $2,660 (0) dengan garis tengah 50% di $2,650. Klik zona paling sehat untuk antre Buy Limit (Discount + OTE)!',
       candles: [
-        { o: 2641.0, h: 2642.2, l: 2640.0, c: 2642.0 },
-        { o: 2642.0, h: 2646.5, l: 2641.8, c: 2646.0 },
-        { o: 2646.0, h: 2651.5, l: 2645.8, c: 2651.0 },
-        { o: 2651.0, h: 2656.5, l: 2650.8, c: 2656.0 },
-        { o: 2656.0, h: 2660.0, l: 2655.6, c: 2659.2 },
-        { o: 2659.2, h: 2659.6, l: 2655.0, c: 2655.6 },
-        { o: 2655.6, h: 2656.2, l: 2651.8, c: 2652.4 },
-        { o: 2652.4, h: 2653.0, l: 2648.6, c: 2649.0 },
-        { o: 2649.0, h: 2649.6, l: 2645.5, c: 2646.2 },
-        { o: 2646.2, h: 2647.4, l: 2644.8, c: 2647.0 }
+        { o: 2641.2, h: 2642.8, l: 2640.0, c: 2642.4 },
+        { o: 2642.4, h: 2645.8, l: 2642.0, c: 2645.4 },
+        { o: 2645.4, h: 2649.2, l: 2645.0, c: 2648.8 },
+        { o: 2648.8, h: 2652.8, l: 2648.4, c: 2652.4 },
+        { o: 2652.4, h: 2656.6, l: 2652.0, c: 2656.2 },
+        { o: 2656.2, h: 2660.0, l: 2655.8, c: 2659.2 },
+        { o: 2659.2, h: 2659.6, l: 2656.4, c: 2656.8 },
+        { o: 2656.8, h: 2657.4, l: 2654.0, c: 2654.4 },
+        { o: 2654.4, h: 2654.8, l: 2651.4, c: 2651.8 },
+        { o: 2651.8, h: 2652.2, l: 2648.8, c: 2649.2 },
+        { o: 2649.2, h: 2649.8, l: 2647.2, c: 2647.6 },
+        { o: 2647.6, h: 2648.0, l: 2645.9, c: 2646.8 },
+        { o: 2646.8, h: 2648.8, l: 2646.4, c: 2648.4 },
+        { o: 2648.4, h: 2651.4, l: 2648.0, c: 2651.0 },
+        { o: 2651.0, h: 2654.0, l: 2650.6, c: 2653.6 },
+        { o: 2653.6, h: 2656.2, l: 2653.2, c: 2655.8 }
       ],
       levels: [
-        { price: 2650.0, label: '50% Equilibrium ($2,650)', tone: 'muted', dashed: true },
-        { price: 2645.9, label: 'OTE 70.5% ($2,645.9)', tone: 'gold', dashed: true }
+        { price: 2650.0, label: '50% EQ ($2,650)', tone: 'muted', dashed: true, align: 'left' },
+        { price: 2645.9, label: 'OTE 70.5% ($2,645.9)', tone: 'gold', dashed: true, align: 'left', labelPos: 'below' }
       ],
+      proof: {
+        zone: {
+          fromIdx: 6.8,
+          toIdx: 14.5,
+          low: 2644.3,
+          high: 2647.6,
+          midPrice: 2645.9,
+          label: 'OTE 61.8%–78.6%'
+        },
+        wickPin: { idx: 11, which: 'low', label: '70.5% ($2,645.9)', labelOffsetX: 12 }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A (Premium)',
-          fromIdx: 5.2,
-          toIdx: 9.6,
-          low: 2651.2,
+          fromIdx: 6.8,
+          toIdx: 14.5,
+          low: 2651.4,
           high: 2659.8,
           isCorrect: false,
           feedback: 'Belum tepat. Area A berada di atas 50% Equilibrium ($2,650), artinya masih zona mahal (Premium). Membeli di sini membuat jarak SL terlalu jauh dan rawan tersapu koreksi.'
@@ -551,8 +666,8 @@
         {
           id: 'B',
           label: 'Area B (OTE Discount)',
-          fromIdx: 5.2,
-          toIdx: 9.6,
+          fromIdx: 6.8,
+          toIdx: 14.5,
           low: 2644.2,
           high: 2647.8,
           isCorrect: true,
@@ -561,10 +676,10 @@
         {
           id: 'C',
           label: 'Area C (Di Bawah SL)',
-          fromIdx: 5.2,
-          toIdx: 9.6,
-          low: 2639.2,
-          high: 2642.0,
+          fromIdx: 6.8,
+          toIdx: 14.5,
+          low: 2639.4,
+          high: 2642.2,
           isCorrect: false,
           feedback: 'Belum tepat. Jika harga sudah menembus ke bawah Swing Low $2,640 (Level 1), struktur bullish batal (Invalidation)—bukan tempat antre Buy lagi.'
         }
@@ -579,37 +694,60 @@
       title: 'Latihan Mata: Pilih Titik Entry Limit ICT 2022 Paling Ideal',
       prompt: 'Lengkap sudah: (1) Sweep SSL di $2,642, (2) Displacement + MSS di atas $2,647 sambil mencetak FVG. Di area mana kamu menaruh Buy Limit yang disiplin sesuai SOP ICT 2022?',
       candles: [
-        { o: 2648.4, h: 2648.8, l: 2646.0, c: 2646.4 },
-        { o: 2646.4, h: 2647.0, l: 2644.4, c: 2644.8 },
-        { o: 2644.8, h: 2645.4, l: 2641.2, c: 2644.9 },
-        { o: 2644.9, h: 2646.4, l: 2644.5, c: 2646.0 },
-        { o: 2646.0, h: 2650.8, l: 2645.8, c: 2650.4 },
-        { o: 2650.4, h: 2652.6, l: 2649.4, c: 2652.1 },
-        { o: 2652.1, h: 2652.8, l: 2650.2, c: 2650.6 },
-        { o: 2650.6, h: 2651.0, l: 2648.6, c: 2649.0 },
-        { o: 2649.0, h: 2649.4, l: 2647.5, c: 2648.4 },
-        { o: 2648.4, h: 2653.4, l: 2648.2, c: 2653.0 }
+        { o: 2647.8, h: 2648.2, l: 2645.4, c: 2646.0 },
+        { o: 2646.0, h: 2646.8, l: 2644.6, c: 2645.2 },
+        { o: 2645.2, h: 2647.0, l: 2644.8, c: 2646.6 },
+        { o: 2646.6, h: 2646.9, l: 2643.8, c: 2644.4 },
+        { o: 2644.4, h: 2645.0, l: 2642.2, c: 2643.2 },
+        { o: 2643.2, h: 2645.2, l: 2641.2, c: 2644.8 },
+        { o: 2644.8, h: 2646.4, l: 2644.4, c: 2646.0 },
+        { o: 2646.0, h: 2651.2, l: 2645.8, c: 2650.8 },
+        { o: 2650.8, h: 2653.0, l: 2649.4, c: 2652.4 },
+        { o: 2652.4, h: 2653.2, l: 2650.6, c: 2651.0 },
+        { o: 2651.0, h: 2651.4, l: 2649.2, c: 2649.6 },
+        { o: 2649.6, h: 2650.0, l: 2647.6, c: 2649.4 },
+        { o: 2649.4, h: 2652.2, l: 2649.0, c: 2651.8 },
+        { o: 2651.8, h: 2654.0, l: 2651.4, c: 2653.4 },
+        { o: 2653.4, h: 2655.2, l: 2653.0, c: 2654.6 },
+        { o: 2654.6, h: 2656.0, l: 2654.2, c: 2655.6 }
       ],
       levels: [
-        { price: 2647.0, label: 'MSS $2,647', tone: 'bull', dashed: true },
-        { price: 2642.0, label: 'SSL Sweep', tone: 'gold', dashed: true }
+        { price: 2647.0, label: 'MSS $2,647', tone: 'bull', dashed: true, align: 'left' },
+        { price: 2642.0, label: 'SSL $2,642', tone: 'gold', dashed: true, align: 'left' }
       ],
+      proof: {
+        fvg: {
+          c1Idx: 6,
+          c3Idx: 8,
+          type: 'bull',
+          extendToIdx: 15,
+          showCE: true,
+          ceLabel: 'FVG 50% CE'
+        },
+        wickPin: {
+          idx: 5,
+          which: 'low',
+          label: 'SSL Sweep $2,641.2',
+          tone: 'gold',
+          labelOffsetX: 22
+        }
+      },
       hotspots: [
         {
           id: 'A',
           label: 'Area A (Kejar Pucuk)',
-          fromIdx: 5.0,
-          toIdx: 6.7,
-          low: 2650.2,
-          high: 2653.2,
+          fromIdx: 7.8,
+          toIdx: 10.0,
+          low: 2650.4,
+          high: 2653.6,
           isCorrect: false,
           feedback: 'Belum tepat. Masuk di Area A berarti kamu mengejar candle hijau di pucuk (FOMO)—SL harus terlalu lebar ke bawah $2,641 dan langsung kena floating merah saat pullback.'
         },
         {
           id: 'B',
           label: 'Area B (FVG Pullback)',
-          fromIdx: 7.4,
-          toIdx: 9.0,
+          fromIdx: 10.4,
+          toIdx: 12.6,
           low: 2646.4,
           high: 2649.4,
           isCorrect: true,
@@ -618,10 +756,10 @@
         {
           id: 'C',
           label: 'Area C (Ujung Sweep)',
-          fromIdx: 1.5,
-          toIdx: 3.1,
+          fromIdx: 4.1,
+          toIdx: 6.1,
           low: 2640.8,
-          high: 2644.6,
+          high: 2644.4,
           isCorrect: false,
           feedback: 'Belum tepat. Area C adalah titik saat Sweep baru terjadi (sebelum ada konfirmasi MSS) sekaligus lokasi penempatan Stop Loss struktural kita—bukan titik entry model ICT 2022.'
         }
@@ -798,12 +936,18 @@
       const dash = lv.dashed !== false ? ' stroke-dasharray="5 4"' : '';
       levelLinesHtml += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" class="acd-drill-level is-${tone}"${dash} />`;
       const pillW = Math.min(180, Math.max(66, lv.label.length * 6.5 + 14));
-      levelLabelsHtml += `<rect x="${padL + 6}" y="${r1(y - 16)}" width="${r1(pillW)}" height="15" rx="4" class="acd-drill-level-pill is-${tone}" />`;
-      levelLabelsHtml += `<text x="${padL + 12}" y="${r1(y - 5)}" class="acd-drill-level-text is-${tone}">${esc(lv.label)}</text>`;
+      const isRight = lv.align === 'right';
+      const isBelow = lv.labelPos === 'below';
+      const pillX = isRight ? r1(W - padR - pillW - 6) : (padL + 6);
+      const pillY = isBelow ? r1(y + 2.5) : r1(y - 16);
+      const textX = isRight ? r1(pillX + pillW - 6) : (padL + 12);
+      const anchor = isRight ? ' text-anchor="end"' : '';
+      levelLabelsHtml += `<rect x="${pillX}" y="${pillY}" width="${r1(pillW)}" height="15" rx="4" class="acd-drill-level-pill is-${tone}" />`;
+      levelLabelsHtml += `<text x="${textX}" y="${r1(pillY + 11)}"${anchor} class="acd-drill-level-text is-${tone}">${esc(lv.label)}</text>`;
     }
 
-    // Candles
-    const bodyW = Math.max(10, Math.min(24, stepX * 0.52));
+    // TradingView-density Candles (74% body ratio so Close->Open continuity reads cleanly)
+    const bodyW = Math.max(8, Math.min(28, stepX * 0.74));
     let candlesHtml = '';
     drill.candles.forEach((c, idx) => {
       const cx = r1(idxToX(idx));
@@ -813,11 +957,90 @@
       const yC = r1(priceToY(c.c));
       const isBull = c.c >= c.o;
       const top = Math.min(yO, yC);
-      const bh = Math.max(2.5, Math.abs(yC - yO));
+      const bh = Math.max(2, Math.abs(yC - yO));
       const cls = isBull ? 'is-bull' : 'is-bear';
       candlesHtml += `<line x1="${cx}" y1="${yH}" x2="${cx}" y2="${yL}" class="acd-drill-wick ${cls}" />`;
-      candlesHtml += `<rect x="${r1(cx - bodyW / 2)}" y="${r1(top)}" width="${r1(bodyW)}" height="${r1(bh)}" rx="2" class="acd-drill-body ${cls}" />`;
+      candlesHtml += `<rect x="${r1(cx - bodyW / 2)}" y="${r1(top)}" width="${r1(bodyW)}" height="${r1(bh)}" rx="1" class="acd-drill-body ${cls}" />`;
     });
+
+    // Post-answer visual proof overlay (revealed ONLY once user answers or solved, never before)
+    let proofBackHtml = '';
+    let proofFrontHtml = '';
+    const revealProof = Boolean(selectedId || state.solved);
+    if (revealProof && drill.proof && drill.proof.fvg) {
+      const pf = drill.proof.fvg;
+      const c1 = drill.candles[pf.c1Idx];
+      const c3 = drill.candles[pf.c3Idx];
+      if (c1 && c3) {
+        const isBear = pf.type === 'bear';
+        const lowP = isBear ? c3.h : c1.h;
+        const highP = isBear ? c1.l : c3.l;
+        if (highP > lowP) {
+          const xC1 = r1(idxToX(pf.c1Idx));
+          const xC3 = r1(idxToX(pf.c3Idx));
+          const xEnd = pf.extendToIdx != null ? r1(Math.min(W - padR - 4, idxToX(pf.extendToIdx) + bodyW / 2)) : r1(W - padR - 4);
+          const yTop = r1(priceToY(highP));
+          const yBot = r1(priceToY(lowP));
+          const ceY = r1(priceToY((highP + lowP) / 2));
+          const yC1Wick = isBear ? yTop : yBot;
+          const yC3Wick = isBear ? yBot : yTop;
+
+          proofBackHtml += `<rect x="${xC1}" y="${yTop}" width="${r1(Math.max(10, xEnd - xC1))}" height="${r1(Math.max(4, yBot - yTop))}" rx="2" class="acd-drill-proof-zone" />`;
+          proofBackHtml += `<line x1="${xC1}" y1="${ceY}" x2="${xEnd}" y2="${ceY}" class="acd-drill-proof-ce" />`;
+
+          proofFrontHtml += `<g class="acd-drill-proof">
+            <line x1="${xC1}" y1="${yC1Wick}" x2="${r1(xC3 + bodyW / 2 + 10)}" y2="${yC1Wick}" class="acd-drill-proof-wickline" />
+            <line x1="${r1(xC1 - bodyW / 2 - 4)}" y1="${yC3Wick}" x2="${r1(xC3 + bodyW / 2 + 10)}" y2="${yC3Wick}" class="acd-drill-proof-wickline" />
+            <circle cx="${xC1}" cy="${yC1Wick}" r="6.5" class="acd-drill-proof-ring" />
+            <circle cx="${xC3}" cy="${yC3Wick}" r="6.5" class="acd-drill-proof-ring" />
+            ${pf.ceLabel ? `<rect x="${r1(xEnd - 96)}" y="${r1(ceY - 14)}" width="94" height="13" rx="3" class="acd-drill-level-pill" /><text x="${r1(xEnd - 4)}" y="${r1(ceY - 4.5)}" text-anchor="end" class="acd-drill-level-text is-gold">${esc(pf.ceLabel)}</text>` : ''}
+          </g>`;
+        }
+      }
+    }
+    if (revealProof && drill.proof && drill.proof.zone) {
+      const pz = drill.proof.zone;
+      const x1 = r1(Math.max(padL + 4, idxToX(pz.fromIdx)));
+      const x2 = r1(Math.min(W - padR - 4, idxToX(pz.toIdx)));
+      const yTop = r1(priceToY(pz.high));
+      const yBot = r1(priceToY(pz.low));
+      proofBackHtml += `<g class="acd-drill-proof">
+        <rect x="${x1}" y="${yTop}" width="${r1(Math.max(10, x2 - x1))}" height="${r1(Math.max(4, yBot - yTop))}" rx="3" class="acd-drill-proof-zone" />
+        ${pz.midPrice != null ? `<line x1="${x1}" y1="${r1(priceToY(pz.midPrice))}" x2="${x2}" y2="${r1(priceToY(pz.midPrice))}" class="acd-drill-proof-ce" />` : ''}
+      </g>`;
+    }
+    if (revealProof && drill.proof && drill.proof.wickPin) {
+      const wp = drill.proof.wickPin;
+      const target = drill.candles[wp.idx];
+      if (target) {
+        const cx = r1(idxToX(wp.idx));
+        const cy = r1(priceToY(wp.which === 'high' ? target.h : target.l));
+        const pillW = wp.label ? r1(Math.min(180, Math.max(76, wp.label.length * 6.3 + 14))) : 0;
+        const offsetX = Number.isFinite(wp.labelOffsetX) ? wp.labelOffsetX : 32;
+        const pillX = r1(Math.min(W - padR - pillW - 6, cx + offsetX));
+        const pillY = r1(Math.max(padT + 4, Math.min(H - padB - 18, cy - 7)));
+        proofFrontHtml += `<g class="acd-drill-proof">
+          <circle cx="${cx}" cy="${cy}" r="7.5" class="acd-drill-proof-ring" />
+          ${wp.label ? `<line x1="${r1(cx + 8)}" y1="${cy}" x2="${pillX}" y2="${cy}" class="acd-drill-proof-wickline" /><rect x="${pillX}" y="${pillY}" width="${pillW}" height="14.5" rx="3.5" class="acd-drill-level-pill is-gold" /><text x="${r1(pillX + 6)}" y="${r1(pillY + 10.2)}" class="acd-drill-level-text is-gold">${esc(wp.label)}</text>` : ''}
+        </g>`;
+      }
+    }
+    if (revealProof && drill.proof && Array.isArray(drill.proof.wickPins) && drill.proof.wickPins.length > 0) {
+      const pts = [];
+      let ringsMarkup = '';
+      for (const wp of drill.proof.wickPins) {
+        const target = drill.candles[wp.idx];
+        if (!target) continue;
+        const cx = r1(idxToX(wp.idx));
+        const cy = r1(priceToY(wp.which === 'high' ? target.h : target.l));
+        pts.push({ cx, cy });
+        ringsMarkup += `<circle cx="${cx}" cy="${cy}" r="7" class="acd-drill-proof-ring" />`;
+      }
+      const lineMarkup = (drill.proof.connectLine && pts.length >= 2)
+        ? `<line x1="${pts[0].cx}" y1="${pts[0].cy}" x2="${pts[pts.length - 1].cx}" y2="${pts[pts.length - 1].cy}" class="acd-drill-proof-wickline" />`
+        : '';
+      proofFrontHtml += `<g class="acd-drill-proof">${lineMarkup}${ringsMarkup}</g>`;
+    }
 
     // Clickable hotspots overlaid cleanly
     let hotspotsHtml = '';
@@ -852,7 +1075,9 @@
       <rect x="0" y="0" width="${W}" height="${H}" rx="10" class="acd-drill-bg" />
       ${gridHtml}
       ${levelLinesHtml}
+      ${proofBackHtml}
       ${candlesHtml}
+      ${proofFrontHtml}
       ${levelLabelsHtml}
       ${hotspotsHtml}
       <text x="${padL + 4}" y="${H - 6}" class="acd-drill-watermark">${esc(drill.symbol)} · ${esc(drill.timeframe)} · Ketuk area A / B / C langsung di chart</text>

@@ -1,19 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.481/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.482/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Sinkronisasi Penuh AI Studio (`ce208ac`..`27439e3`): Academy 36/36 tuntas (Kartu Contekan 1 Layar, 10 Latihan Mata Chart, Deep-Link & Review Salah 100 Kasus, Kode Buka Bebas Baca, Bab 12 ICT murni), perbaikan 7 bug akurasi Mapping (continuation BOS/Dealing Range, News Lock ±30m, DST Killzone/Sesi), serta penyelarasan aturan kualitas POI & perbaikan look-ahead bias backfill + wajib isi 50% CE."
+    "✦ Upgrade Penuh Mesin Candlestick SVG Academy (36/36 Bab & 10/10 Latihan Mata): Seluruh diagram & latihan mata Academy kini menggunakan candlestick realistis kontinu bergaya TradingView/Flux Charts, dilengkapi panel ganda SMT Divergence (XAU/USD vs XAG/USD & DXY), BPR/NWOG, serta pembuktian visual interaktif pasca-jawab (sinkron AI Studio cd29dac)."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.481/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.482/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950481,
-  "latest_version_name": "2.0.0-pro.481",
+  "latest_version_code": 950482,
+  "latest_version_name": "2.0.0-pro.482",
   "mandatory": false,
   "releaseDate": "2026-11-27",
   "release_notes": [
-    "✦ Sinkronisasi Penuh AI Studio (`ce208ac`..`27439e3`): Academy 36/36 tuntas (Kartu Contekan 1 Layar, 10 Latihan Mata Chart, Deep-Link & Review Salah 100 Kasus, Kode Buka Bebas Baca, Bab 12 ICT murni), perbaikan 7 bug akurasi Mapping (continuation BOS/Dealing Range, News Lock ±30m, DST Killzone/Sesi), serta penyelarasan aturan kualitas POI & perbaikan look-ahead bias backfill + wajib isi 50% CE."
+    "✦ Upgrade Penuh Mesin Candlestick SVG Academy (36/36 Bab & 10/10 Latihan Mata): Seluruh diagram & latihan mata Academy kini menggunakan candlestick realistis kontinu bergaya TradingView/Flux Charts, dilengkapi panel ganda SMT Divergence (XAU/USD vs XAG/USD & DXY), BPR/NWOG, serta pembuktian visual interaktif pasca-jawab (sinkron AI Studio cd29dac)."
   ],
-  "version": "2.0.0-pro.481",
-  "versionCode": 950481,
+  "version": "2.0.0-pro.482",
+  "versionCode": 950482,
   "sha256": "802e89a9b58ebab5bc94ecbb545757173a43aa9c1abb8f82c8848d1276f59f22"
 }

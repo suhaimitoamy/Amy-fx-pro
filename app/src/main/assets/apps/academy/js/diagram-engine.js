@@ -111,39 +111,65 @@
       stages: [
         {
           label: 'Bid vs Ask & Spread',
-          caption: 'BUY dibuka di garis ASK (atas) dan ditutup di BID (bawah), sehingga posisi baru langsung minus tipis sebesar Spread ($0,30).',
-          zones: [
-            { x1: 10, x2: 90, y1: 48, y2: 62, tone: 'sweep', label: 'SPREAD ($0.30 / 3 PIPS)', labelPos: 'tr' }
+          caption: 'BUY dibuka di garis ASK (atas) dan ditutup di BID (bawah), sehingga posisi baru langsung minus tipis sebesar Spread ($0,30 / 3 Pips).',
+          priceDecimals: 2,
+          series: [
+            { o: 2649.20, h: 2649.55, l: 2649.00, c: 2649.45 },
+            { o: 2649.45, h: 2649.70, l: 2649.30, c: 2649.35 },
+            { o: 2649.35, h: 2649.85, l: 2649.25, c: 2649.75 },
+            { o: 2649.75, h: 2650.10, l: 2649.60, c: 2649.95 },
+            { o: 2649.95, h: 2650.20, l: 2649.70, c: 2649.80 },
+            { o: 2649.80, h: 2650.15, l: 2649.65, c: 2650.05 },
+            { o: 2650.05, h: 2650.28, l: 2649.90, c: 2650.00 },
+            { o: 2650.00, h: 2650.38, l: 2649.88, c: 2650.25 },
+            { o: 2650.25, h: 2650.70, l: 2650.15, c: 2650.60 },
+            { o: 2650.60, h: 2650.85, l: 2650.45, c: 2650.50 },
+            { o: 2650.50, h: 2651.05, l: 2650.40, c: 2650.95 },
+            { o: 2650.95, h: 2651.25, l: 2650.80, c: 2650.85 },
+            { o: 2650.85, h: 2651.40, l: 2650.75, c: 2651.30 },
+            { o: 2651.30, h: 2651.55, l: 2651.15, c: 2651.45 }
           ],
-          lines: [
-            { x1: 8, x2: 92, y1: 62, y2: 62, style: 'solid', tone: 'bear', label: 'ASK 2.650,30 (Buka BUY / Tutup SELL)', labelSide: 'left' },
-            { x1: 8, x2: 92, y1: 48, y2: 48, style: 'solid', tone: 'bull', label: 'BID 2.650,00 (Buka SELL / Tutup BUY)', labelSide: 'left' }
+          seriesZones: [
+            { low: 2650.00, high: 2650.30, tone: 'sweep', label: 'SPREAD $0,30 (3 PIPS)', labelPos: 'tr', labelFront: true }
           ],
-          candles: [
-            [18, 36, 46, 32, 44], [30, 44, 52, 40, 48, 'gold'], [42, 48, 56, 45, 52],
-            [56, 52, 72, 50, 68], [70, 68, 82, 65, 78]
+          seriesLevels: [
+            { price: 2650.30, tone: 'bear', style: 'solid', label: 'ASK 2.650,30 (Buka BUY)', labelSide: 'left', labelPos: 'above' },
+            { price: 2650.00, tone: 'bull', style: 'solid', label: 'BID 2.650,00 (Buka SELL)', labelSide: 'left', labelPos: 'below' }
           ],
-          callouts: [
-            { x: 50, y: 16, text: 'Aktifkan Ask Price Line di MT5 agar SL Sell tidak mengejutkan', tone: 'gold' }
+          seriesCallouts: [
+            { idx: 9.5, price: 2649.25, text: 'Aktifkan Ask Line di MT5 agar SL Sell tidak mengejutkan', tone: 'gold' }
           ]
         },
         {
           label: 'Hitung Pips & Point Gold',
           caption: 'Di XAU/USD, perubahan $1,00 = 10 Pips = 100 Points. Naik $5,00 (2.650,00 → 2.655,00) = 50 Pips (500 Points).',
-          zones: [
-            { x1: 24, x2: 84, y1: 28, y2: 78, tone: 'tp', label: '+$5,00 = 50 PIPS (500 POINTS)', labelPos: 'tr' }
+          priceDecimals: 2,
+          series: [
+            { o: 2649.40, h: 2649.90, l: 2649.10, c: 2649.70 },
+            { o: 2649.70, h: 2650.10, l: 2649.40, c: 2649.55 },
+            { o: 2649.55, h: 2650.25, l: 2649.45, c: 2650.00 },
+            { o: 2650.00, h: 2650.90, l: 2649.85, c: 2650.70 },
+            { o: 2650.70, h: 2651.35, l: 2650.50, c: 2651.10 },
+            { o: 2651.10, h: 2651.45, l: 2650.75, c: 2650.90 },
+            { o: 2650.90, h: 2652.20, l: 2650.80, c: 2652.00 },
+            { o: 2652.00, h: 2652.95, l: 2651.80, c: 2652.75 },
+            { o: 2652.75, h: 2653.15, l: 2652.25, c: 2652.45 },
+            { o: 2652.45, h: 2653.65, l: 2652.35, c: 2653.45 },
+            { o: 2653.45, h: 2654.35, l: 2653.25, c: 2654.15 },
+            { o: 2654.15, h: 2654.50, l: 2653.70, c: 2653.95 },
+            { o: 2653.95, h: 2655.15, l: 2653.85, c: 2655.00 },
+            { o: 2655.00, h: 2655.50, l: 2654.70, c: 2655.30 }
           ],
-          lines: [
-            { x1: 10, x2: 90, y1: 78, y2: 78, style: 'dashed', tone: 'bull', label: '2.655,00 (Target)', labelSide: 'left' },
-            { x1: 10, x2: 90, y1: 38, y2: 38, style: 'dotted', tone: 'cyan', label: '2.651,00 (+$1 = 10 Pips)', labelSide: 'right' },
-            { x1: 10, x2: 90, y1: 28, y2: 28, style: 'solid', tone: 'gold', label: '2.650,00 (Entry)', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 2, toIdx: 12, low: 2650.00, high: 2655.00, tone: 'tp', label: '+$5,00 = 50 PIPS (500 PTS)', labelPos: 'tl', labelFront: true }
           ],
-          candles: [
-            [20, 24, 30, 20, 28], [32, 28, 40, 26, 38, 'bull'], [46, 38, 54, 36, 52],
-            [60, 52, 66, 49, 64], [74, 64, 80, 62, 78, 'bull']
+          seriesLevels: [
+            { price: 2655.00, tone: 'bull', style: 'dashed', label: 'TARGET 2.655,00 (+50 Pips)', labelSide: 'left', labelPos: 'above' },
+            { price: 2651.00, tone: 'cyan', style: 'dotted', label: '2.651,00 (+$1 = 10 Pips)', labelSide: 'right', labelPos: 'below' },
+            { price: 2650.00, tone: 'gold', style: 'solid', label: 'ENTRY 2.650,00', labelSide: 'left', labelPos: 'below' }
           ],
-          callouts: [
-            { x: 48, y: 12, text: 'Hafalkan: $1,00 di Gold = 10 Pips = 100 Points', tone: 'bull' }
+          seriesCallouts: [
+            { idx: 9.2, price: 2649.35, text: 'Hafalkan: $1,00 Gold = 10 Pips = 100 Points', tone: 'bull' }
           ]
         }
       ]
@@ -193,41 +219,56 @@
         {
           label: 'Buy Limit & Sell Limit',
           caption: 'LIMIT = tunggu harga menjemput lebih bagus lalu MEMANTUL. Buy Limit dipasang DI BAWAH harga sekarang; Sell Limit DI ATAS harga sekarang.',
-          lines: [
-            { x1: 8, x2: 92, y1: 78, y2: 78, style: 'dashed', tone: 'bear', label: 'SELL LIMIT (Di Atas)', labelSide: 'left' },
-            { x1: 8, x2: 92, y1: 48, y2: 48, style: 'solid', tone: 'gold', label: 'HARGA SEKARANG 2.655', labelSide: 'left' },
-            { x1: 8, x2: 92, y1: 18, y2: 18, style: 'dashed', tone: 'bull', label: 'BUY LIMIT (Di Bawah)', labelSide: 'left' }
+          seriesSlots: 15,
+          series: [
+            { o: 2653.6, h: 2655.2, l: 2653.1, c: 2654.8 },
+            { o: 2654.8, h: 2656.4, l: 2654.4, c: 2656.0 },
+            { o: 2656.0, h: 2656.8, l: 2654.8, c: 2655.1 },
+            { o: 2655.1, h: 2655.6, l: 2653.5, c: 2653.9 },
+            { o: 2653.9, h: 2655.4, l: 2653.6, c: 2655.0 },
+            { o: 2655.0, h: 2656.5, l: 2654.7, c: 2656.1 },
+            { o: 2656.1, h: 2656.5, l: 2654.5, c: 2654.8 },
+            { o: 2654.8, h: 2655.8, l: 2654.2, c: 2655.4 },
+            { o: 2655.4, h: 2655.9, l: 2654.6, c: 2655.0 }
           ],
-          candles: [
-            [14, 44, 50, 40, 48], [22, 48, 52, 44, 48, 'gold']
+          seriesLevels: [
+            { price: 2662.0, tone: 'bear', style: 'dashed', label: 'SELL LIMIT 2.662,0 (Di Atas)', labelSide: 'left', labelPos: 'above' },
+            { price: 2655.0, tone: 'gold', style: 'solid', label: 'HARGA SEKARANG 2.655,0', labelSide: 'left', labelPos: 'above' },
+            { price: 2648.0, tone: 'bull', style: 'dashed', label: 'BUY LIMIT 2.648,0 (Di Bawah)', labelSide: 'left', labelPos: 'below' }
           ],
-          arrows: [
-            { x1: 46, y1: 50, x2: 64, y2: 76, tone: 'muted', label: 'Naik' },
-            { x1: 66, y1: 76, x2: 88, y2: 56, tone: 'bear', label: 'Pantul Sell' },
-            { x1: 46, y1: 46, x2: 64, y2: 20, tone: 'muted', label: 'Turun' },
-            { x1: 66, y1: 20, x2: 88, y2: 40, tone: 'bull', label: 'Pantul Buy' }
-          ],
-          callouts: [
-            { x: 52, y: 94, text: 'LIMIT = tunggu harga menjemput lalu memantul', tone: 'cyan' }
+          seriesArrows: [
+            { fromIdx: 8.7, fromPrice: 2655.5, toIdx: 11.4, toPrice: 2661.6, tone: 'muted', label: 'Jemput', labelDx: -16, labelDy: -6 },
+            { fromIdx: 11.7, fromPrice: 2661.6, toIdx: 14.3, toPrice: 2656.8, tone: 'bear', label: 'Pantul Sell', labelDx: 12, labelDy: -10 },
+            { fromIdx: 8.7, fromPrice: 2654.5, toIdx: 11.4, toPrice: 2648.4, tone: 'muted', label: 'Jemput', labelDx: -16, labelDy: 10 },
+            { fromIdx: 11.7, fromPrice: 2648.4, toIdx: 14.3, toPrice: 2653.2, tone: 'bull', label: 'Pantul Buy', labelDx: 12, labelDy: 12 }
           ]
         },
         {
           label: 'Buy Stop & Sell Stop',
           caption: 'STOP = ikut searah TEMBUSAN (breakout). Buy Stop dipasang DI ATAS harga sekarang; Sell Stop DI BAWAH harga sekarang.',
-          lines: [
-            { x1: 8, x2: 92, y1: 72, y2: 72, style: 'dashed', tone: 'bull', label: 'BUY STOP (Tembus Atas)', labelSide: 'left' },
-            { x1: 8, x2: 92, y1: 48, y2: 48, style: 'solid', tone: 'gold', label: 'HARGA SEKARANG', labelSide: 'left' },
-            { x1: 8, x2: 92, y1: 24, y2: 24, style: 'dashed', tone: 'bear', label: 'SELL STOP (Tembus Bawah)', labelSide: 'left' }
+          seriesSlots: 15,
+          series: [
+            { o: 2653.6, h: 2655.2, l: 2653.1, c: 2654.8 },
+            { o: 2654.8, h: 2656.4, l: 2654.4, c: 2656.0 },
+            { o: 2656.0, h: 2656.8, l: 2654.8, c: 2655.1 },
+            { o: 2655.1, h: 2655.6, l: 2653.5, c: 2653.9 },
+            { o: 2653.9, h: 2655.4, l: 2653.6, c: 2655.0 },
+            { o: 2655.0, h: 2656.5, l: 2654.7, c: 2656.1 },
+            { o: 2656.1, h: 2656.5, l: 2654.5, c: 2654.8 },
+            { o: 2654.8, h: 2655.8, l: 2654.2, c: 2655.4 },
+            { o: 2655.4, h: 2655.9, l: 2654.6, c: 2655.0 }
           ],
-          candles: [
-            [14, 44, 52, 42, 48], [22, 48, 51, 45, 48, 'gold']
+          seriesLevels: [
+            { price: 2660.0, tone: 'bull', style: 'dashed', label: 'BUY STOP 2.660,0 (Tembus Atas)', labelSide: 'left', labelPos: 'above' },
+            { price: 2655.0, tone: 'gold', style: 'solid', label: 'HARGA SEKARANG 2.655,0', labelSide: 'left', labelPos: 'above' },
+            { price: 2650.0, tone: 'bear', style: 'dashed', label: 'SELL STOP 2.650,0 (Tembus Bawah)', labelSide: 'left', labelPos: 'below' }
           ],
-          arrows: [
-            { x1: 46, y1: 50, x2: 84, y2: 84, tone: 'bull', label: 'Tembus → Buy' },
-            { x1: 46, y1: 46, x2: 84, y2: 12, tone: 'bear', label: 'Tembus → Sell' }
+          seriesArrows: [
+            { fromIdx: 8.7, fromPrice: 2655.5, toIdx: 14.2, toPrice: 2663.6, tone: 'bull', label: 'Tembus → Buy', labelDx: -8, labelDy: -16 },
+            { fromIdx: 8.7, fromPrice: 2654.5, toIdx: 14.2, toPrice: 2646.4, tone: 'bear', label: 'Tembus → Sell', labelDx: -8, labelDy: 18 }
           ],
-          callouts: [
-            { x: 52, y: 95, text: 'Selalu lengkapi order dengan SL dan TP sebelum Place', tone: 'gold' }
+          seriesCallouts: [
+            { idx: 4.5, price: 2647.1, text: 'Selalu lengkapi SL & TP sebelum klik Place', tone: 'gold' }
           ]
         }
       ]
@@ -364,47 +405,66 @@
     },
 
     'candlestick-anatomy': {
-      title: 'Anatomi Candlestick: Body Komitmen vs Wick Penolakan',
+      title: 'Anatomi Candlestick: 4 Titik OHLC, Wick Sweep & Pecahan Timeframe',
       pairTag: 'XAU/USD · BACA PRICE ACTION',
       priceLabels: ['High', 'Mid', 'Low'],
       stages: [
         {
-          label: 'Bullish vs Bearish Body',
-          caption: 'Body tebal (close dekat ujung) menunjukkan dominasi buyer/seller penuh. Harga dibuka di Open dan ditutup tegas di Close.',
-          candles: [
-            [26, 24, 86, 16, 78, 'bull'],
-            [70, 78, 86, 16, 24, 'bear']
-          ],
-          lines: [
-            { x1: 12, x2: 26, y1: 78, y2: 78, style: 'dashed', tone: 'bull', label: 'CLOSE', labelSide: 'left' },
-            { x1: 12, x2: 26, y1: 24, y2: 24, style: 'dashed', tone: 'muted', label: 'OPEN', labelSide: 'left' },
-            { x1: 70, x2: 88, y1: 78, y2: 78, style: 'dashed', tone: 'muted', label: 'OPEN', labelSide: 'right' },
-            { x1: 70, x2: 88, y1: 24, y2: 24, style: 'dashed', tone: 'bear', label: 'CLOSE', labelSide: 'right' }
-          ],
-          callouts: [
-            { x: 26, y: 92, text: 'BULLISH (Buyer Kuat)', tone: 'bull' },
-            { x: 70, y: 92, text: 'BEARISH (Seller Kuat)', tone: 'bear' }
-          ]
+          label: 'Anatomi 4 Titik OHLC',
+          caption: 'Candle Hijau (Bullish) ditutup di atas Open — bukti buyer mendominasi. Candle Merah (Bearish) ditutup di bawah Open — seller mendominasi. Garis tipis atas/bawah adalah Wick (High & Low).',
+          ohlcAnatomy: {
+            bull: { o: 26, h: 92, l: 10, c: 76, title: 'BULLISH CANDLE', sub: 'Close > Open (Naik)' },
+            bear: { o: 76, h: 92, l: 10, c: 26, title: 'BEARISH CANDLE', sub: 'Close < Open (Turun)' }
+          }
         },
         {
           label: 'Wick Sweep / Penolakan',
-          caption: 'Wick panjang di zona kunci menandakan Stop Hunt: harga sempat menembus level lalu ditolak keras kembali masuk sebelum candle tutup.',
-          lines: [
-            { x1: 8, x2: 92, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'SUPPORT / SSL', labelSide: 'right' },
-            { x1: 8, x2: 92, y1: 72, y2: 72, style: 'dashed', tone: 'sweep', label: 'RESISTANCE / BSL', labelSide: 'right' }
+          caption: 'Wick panjang menembus Support (SSL) atau Resistance (BSL) lalu menutup body kembali masuk menandakan Stop Hunt & penolakan keras — bukan breakout sejati.',
+          series: [
+            { o: 2650.2, h: 2651.2, l: 2648.8, c: 2649.1 },
+            { o: 2649.1, h: 2649.6, l: 2647.4, c: 2647.7 },
+            { o: 2647.7, h: 2648.4, l: 2645.9, c: 2646.3 },
+            { o: 2646.3, h: 2646.9, l: 2645.2, c: 2645.6 },
+            { o: 2645.6, h: 2648.2, l: 2641.6, c: 2647.8 },
+            { o: 2647.8, h: 2650.4, l: 2647.4, c: 2650.0 },
+            { o: 2650.0, h: 2651.8, l: 2649.4, c: 2651.4 },
+            { o: 2651.4, h: 2652.0, l: 2650.3, c: 2650.7 },
+            { o: 2650.7, h: 2652.8, l: 2650.4, c: 2652.5 },
+            { o: 2652.5, h: 2653.4, l: 2651.8, c: 2652.1 },
+            { o: 2652.1, h: 2653.6, l: 2651.9, c: 2653.3 },
+            { o: 2653.3, h: 2653.9, l: 2652.6, c: 2653.6 },
+            { o: 2653.6, h: 2657.4, l: 2650.9, c: 2651.3 },
+            { o: 2651.3, h: 2651.9, l: 2649.0, c: 2649.4 },
+            { o: 2649.4, h: 2649.9, l: 2647.2, c: 2647.6 },
+            { o: 2647.6, h: 2648.3, l: 2646.2, c: 2646.8 }
           ],
-          candles: [
-            [18, 46, 50, 34, 36],
-            [30, 36, 48, 12, 44, 'bull'],
-            [42, 44, 62, 42, 60],
-            [62, 58, 68, 56, 66],
-            [74, 66, 90, 52, 56, 'bear'],
-            [86, 56, 58, 40, 42]
+          seriesLevels: [
+            { price: 2654.0, tone: 'sweep', style: 'dashed', label: 'RESISTANCE / BSL 2.654,0', labelSide: 'left', labelPos: 'above' },
+            { price: 2645.0, tone: 'sweep', style: 'dashed', label: 'SUPPORT / SSL 2.645,0', labelSide: 'right', labelPos: 'below' }
           ],
-          callouts: [
-            { x: 30, y: 8, text: 'Wick Bawah Panjang = Sweep SSL', tone: 'bull' },
-            { x: 74, y: 94, text: 'Wick Atas Panjang = Sweep BSL', tone: 'bear' }
+          seriesWickRings: [
+            { idx: 4, which: 'low', tone: 'ink' },
+            { idx: 12, which: 'high', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 4.8, price: 2639.0, text: 'Wick Bawah Panjang = Sweep SSL', tone: 'bull' },
+            { idx: 11.4, price: 2659.9, text: 'Wick Atas Panjang = Sweep BSL', tone: 'bear' }
           ]
+        },
+        {
+          label: '1 Candle H1 = 4 Candle M15',
+          caption: 'Satu candle H1 (60 menit) merangkum persis 4 candle M15 (4 × 15 menit): Open, High, Low, dan Close identik. Gunakan H1 untuk peta besar, M15/M5 untuk detail eksekusi.',
+          mtfSplit: {
+            htfLabel: '1 CANDLE H1 (60 MNT)',
+            ltfLabel: 'ISI DI M15 (4 × 15 MNT)',
+            htf: { o: 2648.0, h: 2656.0, l: 2646.0, c: 2654.4 },
+            ltf: [
+              { label: '15:00', o: 2648.0, h: 2649.8, l: 2646.0, c: 2647.2 },
+              { label: '15:15', o: 2647.2, h: 2651.6, l: 2647.0, c: 2651.2 },
+              { label: '15:30', o: 2651.2, h: 2653.8, l: 2650.4, c: 2653.2 },
+              { label: '15:45', o: 2653.2, h: 2656.0, l: 2652.8, c: 2654.4 }
+            ]
+          }
         }
       ]
     },
@@ -429,20 +489,37 @@
         },
         {
           label: 'Dampak Spread pada SL',
-          caption: 'Posisi Sell ditutup oleh harga ASK (lebih tinggi sebesar spread). Wajib tambah napas $0.50–$1.00 di luar swing high agar tidak tersentuh spread.',
-          lines: [
-            { x1: 12, x2: 88, y1: 66, y2: 66, style: 'solid', tone: 'gold', label: 'SWING HIGH (2.650,00)', labelSide: 'left' },
-            { x1: 12, x2: 88, y1: 74, y2: 74, style: 'dashed', tone: 'sweep', label: 'HARGA ASK (+SPREAD $0.30)', labelSide: 'right' },
-            { x1: 12, x2: 88, y1: 86, y2: 86, style: 'solid', tone: 'bear', label: 'SL AMAN (+NAPAS $1.00 = 2.651,00)', labelSide: 'left' }
+          caption: 'Posisi Sell ditutup oleh harga ASK (lebih tinggi sebesar spread). Wajib tambah napas $0,50–$1,00 di atas Swing High agar SL tidak tersentuh spread saat retest.',
+          series: [
+            { o: 2646.2, h: 2647.6, l: 2645.8, c: 2647.4 },
+            { o: 2647.4, h: 2649.1, l: 2647.1, c: 2648.9 },
+            { o: 2648.9, h: 2650.0, l: 2648.4, c: 2649.3 },
+            { o: 2649.3, h: 2649.6, l: 2647.2, c: 2647.5 },
+            { o: 2647.5, h: 2648.2, l: 2646.9, c: 2648.0 },
+            { o: 2648.0, h: 2649.1, l: 2647.7, c: 2648.8 },
+            { o: 2648.8, h: 2649.8, l: 2647.4, c: 2647.7 },
+            { o: 2647.7, h: 2648.1, l: 2646.0, c: 2646.3 },
+            { o: 2646.3, h: 2646.8, l: 2645.1, c: 2645.4 },
+            { o: 2645.4, h: 2646.1, l: 2645.0, c: 2645.8 },
+            { o: 2645.8, h: 2646.0, l: 2644.2, c: 2644.5 },
+            { o: 2644.5, h: 2645.0, l: 2643.6, c: 2643.9 },
+            { o: 2643.9, h: 2644.4, l: 2643.2, c: 2644.1 },
+            { o: 2644.1, h: 2644.3, l: 2642.8, c: 2643.2 }
           ],
-          zones: [
-            { x1: 12, x2: 88, y1: 66, y2: 86, tone: 'sl', label: 'BUFFER SPREAD', labelPos: 'tr' }
+          seriesZones: [
+            { low: 2650.0, high: 2651.2, tone: 'sl', label: 'BUFFER SPREAD ($1,20)', labelPos: 'tr', labelFront: true }
           ],
-          candles: [
-            [26, 48, 66, 45, 62], [38, 62, 65, 44, 46], [50, 46, 65, 44, 52],
-            [62, 52, 55, 32, 34], [74, 34, 38, 18, 22]
+          seriesLevels: [
+            { price: 2651.2, tone: 'bear', style: 'solid', label: 'SL AMAN 2.651,2 (+Buffer)', labelSide: 'left', labelPos: 'above' },
+            { price: 2650.3, tone: 'sweep', style: 'dashed', label: 'ASK (+Spread $0,30)', labelSide: 'right', labelPos: 'below' },
+            { price: 2650.0, tone: 'gold', style: 'solid', label: 'SWING HIGH 2.650,0', labelSide: 'left', labelPos: 'below' }
           ],
-          callouts: [{ x: 50, y: 12, text: 'SL terlalu nempel = kena spread lalu harga tetap turun', tone: 'sweep' }]
+          seriesWickRings: [
+            { idx: 6, which: 'high', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 4.5, price: 2643.4, text: 'Retest BID 2.649,8 → ASK 2.650,1 (SL nempel kena!)', tone: 'sweep' }
+          ]
         }
       ]
     },
@@ -454,40 +531,72 @@
       stages: [
         {
           label: 'Uptrend (HH – HL)',
-          caption: 'Selama Higher Low (HL) terakhir bertahan, tren tetap Bullish. Pullback ke HL adalah peluang beli, bukan alasan melawan tren.',
-          candles: [
-            [10, 18, 26, 14, 24], [18, 24, 40, 22, 38], [26, 38, 42, 30, 32],
-            [34, 32, 35, 26, 34], [42, 34, 58, 33, 56], [50, 56, 62, 46, 48],
-            [58, 48, 52, 42, 50], [66, 50, 78, 49, 76], [74, 76, 82, 64, 66],
-            [82, 66, 92, 65, 88]
+          caption: 'Selama Higher Low (HL) terakhir bertahan, tren tetap Bullish. Pullback ke HL adalah peluang beli mengikuti arah BOS naik, bukan alasan melawan tren.',
+          series: [
+            { o: 2641.2, h: 2642.8, l: 2640.5, c: 2642.5 },
+            { o: 2642.5, h: 2645.2, l: 2642.1, c: 2644.9 },
+            { o: 2644.9, h: 2646.4, l: 2644.5, c: 2646.0 },
+            { o: 2646.0, h: 2646.3, l: 2644.4, c: 2644.7 },
+            { o: 2644.7, h: 2645.1, l: 2643.2, c: 2643.6 },
+            { o: 2643.6, h: 2645.4, l: 2642.6, c: 2645.0 },
+            { o: 2645.0, h: 2647.8, l: 2644.7, c: 2647.5 },
+            { o: 2647.5, h: 2650.2, l: 2647.2, c: 2649.8 },
+            { o: 2649.8, h: 2650.5, l: 2648.4, c: 2648.7 },
+            { o: 2648.7, h: 2649.1, l: 2647.0, c: 2647.4 },
+            { o: 2647.4, h: 2648.8, l: 2646.2, c: 2648.5 },
+            { o: 2648.5, h: 2651.6, l: 2648.2, c: 2651.2 },
+            { o: 2651.2, h: 2653.8, l: 2650.9, c: 2653.4 },
+            { o: 2653.4, h: 2654.4, l: 2652.0, c: 2652.4 },
+            { o: 2652.4, h: 2655.6, l: 2652.1, c: 2655.2 },
+            { o: 2655.2, h: 2656.8, l: 2654.6, c: 2656.2 }
           ],
-          lines: [
-            { x1: 18, x2: 46, y1: 42, y2: 42, style: 'dashed', tone: 'bull', label: 'BOS', labelSide: 'right' },
-            { x1: 48, x2: 70, y1: 62, y2: 62, style: 'dashed', tone: 'bull', label: 'BOS', labelSide: 'right' }
+          seriesLevels: [
+            { price: 2646.4, fromIdx: 2, toIdx: 7, tone: 'bull', style: 'dashed', label: 'BOS 1', labelSide: 'left', labelPos: 'above' },
+            { price: 2650.5, fromIdx: 8, toIdx: 12, tone: 'bull', style: 'dashed', label: 'BOS 2', labelSide: 'left', labelPos: 'above' }
           ],
-          callouts: [
-            { x: 34, y: 18, text: 'HL 1', tone: 'bull' },
-            { x: 58, y: 34, text: 'HL 2 (Valid)', tone: 'bull' },
-            { x: 82, y: 95, text: 'HH Baru', tone: 'gold' }
+          seriesWickRings: [
+            { idx: 5, which: 'low', tone: 'bull' },
+            { idx: 10, which: 'low', tone: 'bull' }
+          ],
+          seriesCallouts: [
+            { idx: 5, price: 2640.4, text: 'HL 1', tone: 'bull' },
+            { idx: 10, price: 2643.9, text: 'HL 2 (Valid)', tone: 'bull' },
+            { idx: 14.3, price: 2657.6, text: 'HH Baru', tone: 'gold' }
           ]
         },
         {
           label: 'Downtrend (LH – LL)',
-          caption: 'Dalam Downtrend, harga mencetak Lower High (LH) dan Lower Low (LL). Cari peluang Sell saat retrace naik mendekati LH.',
-          candles: [
-            [10, 84, 88, 74, 76], [18, 76, 78, 58, 60], [26, 60, 72, 59, 70],
-            [34, 70, 74, 50, 52], [42, 52, 54, 38, 40], [50, 40, 56, 39, 54],
-            [58, 54, 58, 32, 34], [66, 34, 36, 20, 22], [74, 22, 38, 21, 35],
-            [82, 35, 37, 10, 14]
+          caption: 'Dalam Downtrend, harga mencetak Lower High (LH) dan Lower Low (LL) berturut-turut. Cari peluang Sell saat retrace naik mendekati LH.',
+          series: [
+            { o: 2656.8, h: 2657.5, l: 2654.8, c: 2655.2 },
+            { o: 2655.2, h: 2655.6, l: 2652.4, c: 2652.8 },
+            { o: 2652.8, h: 2653.2, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2653.6, l: 2651.4, c: 2653.2 },
+            { o: 2653.2, h: 2655.0, l: 2652.8, c: 2654.2 },
+            { o: 2654.2, h: 2654.6, l: 2651.8, c: 2652.1 },
+            { o: 2652.1, h: 2652.5, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2647.4, c: 2647.8 },
+            { o: 2647.8, h: 2649.8, l: 2647.5, c: 2649.4 },
+            { o: 2649.4, h: 2651.2, l: 2649.0, c: 2650.4 },
+            { o: 2650.4, h: 2650.8, l: 2648.0, c: 2648.3 },
+            { o: 2648.3, h: 2648.7, l: 2645.6, c: 2646.0 },
+            { o: 2646.0, h: 2646.5, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2645.6, l: 2643.9, c: 2645.1 },
+            { o: 2645.1, h: 2645.4, l: 2642.2, c: 2642.6 },
+            { o: 2642.6, h: 2643.1, l: 2640.8, c: 2641.2 }
           ],
-          lines: [
-            { x1: 18, x2: 46, y1: 58, y2: 58, style: 'dashed', tone: 'bear', label: 'BOS', labelSide: 'right' },
-            { x1: 42, x2: 70, y1: 38, y2: 38, style: 'dashed', tone: 'bear', label: 'BOS', labelSide: 'right' }
+          seriesLevels: [
+            { price: 2651.2, fromIdx: 2, toIdx: 7, tone: 'bear', style: 'dashed', label: 'BOS 1', labelSide: 'left', labelPos: 'below' },
+            { price: 2647.4, fromIdx: 7, toIdx: 12, tone: 'bear', style: 'dashed', label: 'BOS 2', labelSide: 'left', labelPos: 'below' }
           ],
-          callouts: [
-            { x: 26, y: 80, text: 'LH 1', tone: 'bear' },
-            { x: 50, y: 64, text: 'LH 2', tone: 'bear' },
-            { x: 82, y: 6, text: 'LL Baru', tone: 'gold' }
+          seriesWickRings: [
+            { idx: 4, which: 'high', tone: 'bear' },
+            { idx: 9, which: 'high', tone: 'bear' }
+          ],
+          seriesCallouts: [
+            { idx: 4, price: 2657.2, text: 'LH 1', tone: 'bear' },
+            { idx: 9.2, price: 2653.4, text: 'LH 2 (Valid)', tone: 'bear' },
+            { idx: 14.3, price: 2640.0, text: 'LL Baru', tone: 'gold' }
           ]
         }
       ]
@@ -500,31 +609,68 @@
       stages: [
         {
           label: '1. H1 Arah & Bias',
-          caption: 'H1 adalah kompas utama: struktur naik menuju liquidity atas (BSL). Hari ini kita hanya mencari posisi BUY di area Discount.',
-          zones: [{ x1: 38, x2: 92, y1: 22, y2: 44, tone: 'discount', label: 'zona Discount H1 / M15', labelPos: 'tr' }],
-          lines: [{ x1: 12, x2: 92, y1: 86, y2: 86, style: 'dashed', tone: 'gold', label: 'TARGET H1 (BSL)', labelSide: 'right' }],
-          candles: [
-            [14, 18, 32, 16, 30], [24, 30, 54, 28, 52], [34, 52, 78, 50, 76],
-            [46, 76, 78, 54, 56], [58, 56, 58, 34, 36]
+          caption: 'H1 adalah kompas utama: struktur naik menuju liquidity atas (BSL). Hari ini kita sabar menunggu harga retrace ke Zona Discount H1 untuk mencari BUY.',
+          seriesSlots: 15,
+          series: [
+            { o: 2644.8, h: 2647.4, l: 2644.2, c: 2647.0 },
+            { o: 2647.0, h: 2650.2, l: 2646.6, c: 2649.8 },
+            { o: 2649.8, h: 2654.0, l: 2649.4, c: 2653.5 },
+            { o: 2653.5, h: 2658.4, l: 2653.1, c: 2657.8 },
+            { o: 2657.8, h: 2662.2, l: 2657.2, c: 2661.4 },
+            { o: 2661.4, h: 2662.6, l: 2658.6, c: 2659.0 },
+            { o: 2659.0, h: 2659.6, l: 2655.4, c: 2656.0 },
+            { o: 2656.0, h: 2656.8, l: 2652.8, c: 2653.2 },
+            { o: 2653.2, h: 2653.8, l: 2649.6, c: 2650.2 },
+            { o: 2650.2, h: 2650.8, l: 2647.6, c: 2648.6 }
           ],
-          arrows: [{ x1: 60, y1: 36, x2: 86, y2: 82, tone: 'bull', label: 'Target H1' }]
+          seriesZones: [
+            { fromIdx: 6, toIdx: 14, low: 2646.2, high: 2651.5, tone: 'discount', label: 'ZONA DISCOUNT H1 / M15', labelPos: 'br', labelFront: true }
+          ],
+          seriesLevels: [
+            { price: 2662.6, tone: 'gold', style: 'dashed', label: 'TARGET H1 (BSL 2.662,6)', labelSide: 'right', labelPos: 'above' }
+          ],
+          seriesArrows: [
+            { fromIdx: 9.8, fromPrice: 2648.8, toIdx: 14.0, toPrice: 2661.8, tone: 'bull', label: 'Target H1', labelDx: -10, labelDy: -10 }
+          ],
+          seriesCallouts: [
+            { idx: 3.5, price: 2644.6, text: 'Impulse H1 Bullish · Fokus BUY di Discount', tone: 'bull' }
+          ]
         },
         {
           label: '2. M15 Area & M5/M1 Entry',
-          caption: 'Zoom-in ke dalam zona Discount H1: M5/M1 mencetak Sweep SSL + MSS Bullish + FVG. SL cukup di M5/M1, tapi TP membidik H1!',
-          zones: [
-            { x1: 8, x2: 94, y1: 14, y2: 48, tone: 'discount', label: 'DI DALAM zona Discount H1', labelPos: 'tr' },
-            { x1: 54, x2: 92, y1: 30, y2: 42, tone: 'fvg', label: 'M5 FVG ENTRY', labelPos: 'tr' }
+          caption: 'Zoom-in ke dalam zona Discount H1: M5 mencetak Sweep SSL + MSS Bullish + FVG (BISI). SL cukup ketat di bawah low M5, sementara TP membidik target H1!',
+          series: [
+            { o: 2651.2, h: 2651.6, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.3, l: 2648.0, c: 2648.4 },
+            { o: 2648.4, h: 2649.2, l: 2647.8, c: 2648.9 },
+            { o: 2648.9, h: 2649.1, l: 2647.1, c: 2647.4 },
+            { o: 2647.4, h: 2647.9, l: 2646.2, c: 2646.6 },
+            { o: 2646.6, h: 2647.4, l: 2644.4, c: 2646.8 },
+            { o: 2646.8, h: 2648.0, l: 2646.4, c: 2647.8 },
+            { o: 2647.8, h: 2652.0, l: 2647.6, c: 2651.6 },
+            { o: 2651.6, h: 2653.2, l: 2650.2, c: 2652.4 },
+            { o: 2652.4, h: 2652.7, l: 2650.5, c: 2650.8 },
+            { o: 2650.8, h: 2651.2, l: 2649.0, c: 2650.9 },
+            { o: 2650.9, h: 2653.8, l: 2650.6, c: 2653.4 },
+            { o: 2653.4, h: 2655.6, l: 2653.0, c: 2655.2 },
+            { o: 2655.2, h: 2657.2, l: 2654.8, c: 2656.8 },
+            { o: 2656.8, h: 2658.4, l: 2656.2, c: 2658.0 }
           ],
-          lines: [
-            { x1: 16, x2: 62, y1: 42, y2: 42, style: 'dashed', tone: 'bull', label: 'M5 MSS', labelSide: 'left' }
+          seriesZones: [
+            { low: 2644.0, high: 2651.5, tone: 'discount', label: 'DI DALAM DISCOUNT H1', labelPos: 'bl', labelFront: false }
           ],
-          candles: [
-            [18, 44, 46, 28, 30], [28, 30, 42, 29, 40], [38, 40, 41, 18, 22],
-            [48, 22, 32, 14, 28, 'gold'], [56, 28, 56, 27, 54, 'bull'],
-            [66, 54, 56, 34, 38], [76, 38, 72, 36, 70], [86, 70, 92, 68, 88]
+          autoFvgs: [
+            { c1Idx: 6, c3Idx: 8, type: 'bull', showCE: true, label: 'M5 FVG ENTRY', ceLabel: '50% CE', extendToIdx: 14, showWickMarkers: false }
           ],
-          callouts: [{ x: 48, y: 8, text: 'SL kecil LTF · Target besar HTF', tone: 'gold' }]
+          seriesLevels: [
+            { price: 2649.2, fromIdx: 2, toIdx: 8, tone: 'bull', style: 'dashed', label: 'M5 MSS', labelSide: 'left', labelPos: 'above' }
+          ],
+          seriesWickRings: [
+            { idx: 5, which: 'low', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 5.5, price: 2642.8, text: 'Sweep SSL + SL Ketat LTF · Target Besar HTF', tone: 'gold' }
+          ]
         }
       ]
     },
@@ -537,23 +683,58 @@
       stages: [
         {
           label: 'BOS Valid (Body Close)',
-          caption: 'Body candle menutup TEGAS di atas swing high sebelumnya dengan momentum. Menandakan kelanjutan tren sah.',
-          lines: [{ x1: 12, x2: 92, y1: 60, y2: 60, style: 'solid', tone: 'bull', label: 'SWING HIGH', labelSide: 'left' }],
-          candles: [
-            [18, 34, 60, 32, 56], [28, 56, 58, 42, 44], [38, 44, 48, 36, 46],
-            [50, 46, 78, 45, 74, 'bull'], [62, 74, 84, 68, 82], [74, 82, 88, 76, 86]
+          caption: 'Body candle menutup TEGAS di atas Swing High sebelumnya ($2.654,0) dengan dorongan kuat — menandakan kelanjutan tren Bullish sah.',
+          series: [
+            { o: 2648.6, h: 2650.8, l: 2648.2, c: 2650.4 },
+            { o: 2650.4, h: 2652.6, l: 2650.0, c: 2652.2 },
+            { o: 2652.2, h: 2654.0, l: 2651.8, c: 2653.4 },
+            { o: 2653.4, h: 2653.7, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2652.0, l: 2649.8, c: 2650.2 },
+            { o: 2650.2, h: 2651.6, l: 2649.4, c: 2651.2 },
+            { o: 2651.2, h: 2653.5, l: 2650.9, c: 2653.2 },
+            { o: 2653.2, h: 2658.0, l: 2652.9, c: 2657.4 },
+            { o: 2657.4, h: 2659.2, l: 2656.8, c: 2658.6 },
+            { o: 2658.6, h: 2659.0, l: 2656.4, c: 2656.9 },
+            { o: 2656.9, h: 2658.8, l: 2656.6, c: 2658.4 },
+            { o: 2658.4, h: 2660.6, l: 2658.0, c: 2660.1 },
+            { o: 2660.1, h: 2661.4, l: 2659.5, c: 2660.8 },
+            { o: 2660.8, h: 2662.2, l: 2660.2, c: 2661.8 }
           ],
-          callouts: [{ x: 52, y: 88, text: 'VALID BOS · Body Close Jelas di Atas Garis', tone: 'bull' }]
+          seriesLevels: [
+            { price: 2654.0, fromIdx: 2, toIdx: 13, tone: 'bull', style: 'solid', label: 'SWING HIGH 2.654,0 (BOS ✓)', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesCallouts: [
+            { idx: 7.0, price: 2661.8, text: 'VALID BOS · Body Close Tegas di Atas Garis', tone: 'bull' }
+          ]
         },
         {
           label: 'Sweep Palsu (Wick Raid)',
-          caption: 'Hanya wick yang menusuk ke atas swing high untuk sweep SL, lalu body tutup KEMBALI di bawah garis. Waspada reversal tajam!',
-          lines: [{ x1: 12, x2: 92, y1: 60, y2: 60, style: 'dashed', tone: 'sweep', label: 'BSL (SWING HIGH)', labelSide: 'left' }],
-          candles: [
-            [18, 36, 60, 34, 56], [28, 56, 58, 44, 46], [38, 46, 58, 44, 55],
-            [50, 55, 82, 50, 52, 'sweep'], [62, 52, 54, 34, 36, 'bear'], [74, 36, 38, 18, 22, 'bear']
+          caption: 'Hanya wick yang menusuk ke atas Swing High ($2.654,0) untuk sweep Stop Loss, lalu Body tutup KEMBALI di bawah garis. Waspada reversal tajam!',
+          series: [
+            { o: 2649.0, h: 2651.2, l: 2648.6, c: 2650.8 },
+            { o: 2650.8, h: 2652.9, l: 2650.4, c: 2652.4 },
+            { o: 2652.4, h: 2654.0, l: 2651.8, c: 2653.2 },
+            { o: 2653.2, h: 2653.6, l: 2651.0, c: 2651.4 },
+            { o: 2651.4, h: 2652.0, l: 2650.2, c: 2650.8 },
+            { o: 2650.8, h: 2652.8, l: 2650.5, c: 2652.5 },
+            { o: 2652.5, h: 2653.9, l: 2652.1, c: 2653.4 },
+            { o: 2653.4, h: 2657.8, l: 2651.8, c: 2652.4 },
+            { o: 2652.4, h: 2652.8, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.4, l: 2647.4, c: 2647.8 },
+            { o: 2647.8, h: 2649.0, l: 2647.5, c: 2648.6 },
+            { o: 2648.6, h: 2649.0, l: 2646.0, c: 2646.4 },
+            { o: 2646.4, h: 2646.9, l: 2644.4, c: 2644.8 },
+            { o: 2644.8, h: 2645.4, l: 2643.4, c: 2643.8 }
           ],
-          callouts: [{ x: 52, y: 90, text: 'LIQUIDITY SWEEP · Wick Tembus, Body Tutup Bawah', tone: 'sweep' }]
+          seriesLevels: [
+            { price: 2654.0, fromIdx: 2, toIdx: 13, tone: 'sweep', style: 'dashed', label: 'BSL / SWING HIGH 2.654,0', labelSide: 'right', labelPos: 'above' }
+          ],
+          seriesWickRings: [
+            { idx: 7, which: 'high', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 7.2, price: 2659.6, text: 'LIQUIDITY SWEEP · Wick Tembus, Body Tutup Bawah', tone: 'sweep' }
+          ]
         }
       ]
     },
@@ -565,67 +746,140 @@
       stages: [
         {
           label: '1. Tarik Dealing Range',
-          caption: 'Tentukan batas atas (Swing High / ERL) dan batas bawah (Swing Low / ERL) impuls terakhir. Garis tengah 50% adalah Equilibrium.',
-          zones: [
-            { x1: 12, x2: 92, y1: 50, y2: 86, tone: 'premium', label: 'PREMIUM (>50%)', labelPos: 'tr' },
-            { x1: 12, x2: 92, y1: 14, y2: 50, tone: 'discount', label: 'DISCOUNT (<50%)', labelPos: 'tr' }
+          caption: 'Tentukan batas atas (Swing High / ERL) dan batas bawah (Swing Low / ERL) impuls terakhir. Garis tengah 50% (Equilibrium) memisahkan Premium dan Discount.',
+          series: [
+            { o: 2645.2, h: 2646.2, l: 2644.0, c: 2645.8 },
+            { o: 2645.8, h: 2647.6, l: 2645.4, c: 2647.2 },
+            { o: 2647.2, h: 2651.2, l: 2646.9, c: 2650.8 },
+            { o: 2650.8, h: 2654.2, l: 2650.4, c: 2653.8 },
+            { o: 2653.8, h: 2656.8, l: 2653.4, c: 2656.4 },
+            { o: 2656.4, h: 2658.8, l: 2656.0, c: 2658.4 },
+            { o: 2658.4, h: 2660.0, l: 2657.8, c: 2659.2 },
+            { o: 2659.2, h: 2659.6, l: 2656.8, c: 2657.2 },
+            { o: 2657.2, h: 2657.6, l: 2654.8, c: 2655.2 },
+            { o: 2655.2, h: 2655.8, l: 2653.2, c: 2653.6 },
+            { o: 2653.6, h: 2654.0, l: 2651.4, c: 2651.8 },
+            { o: 2651.8, h: 2652.3, l: 2649.6, c: 2650.0 },
+            { o: 2650.0, h: 2650.6, l: 2648.2, c: 2648.8 },
+            { o: 2648.8, h: 2650.2, l: 2648.0, c: 2649.6 }
           ],
-          lines: [
-            { x1: 12, x2: 92, y1: 86, y2: 86, style: 'solid', tone: 'gold', label: 'ERL HIGH (TARGET)', labelSide: 'left' },
-            { x1: 12, x2: 92, y1: 50, y2: 50, style: 'dotted', tone: 'muted', label: 'EQ 50%', labelSide: 'left' },
-            { x1: 12, x2: 92, y1: 14, y2: 14, style: 'solid', tone: 'muted', label: 'ERL LOW (INVALIDASI)', labelSide: 'left' }
+          seriesZones: [
+            { low: 2652.0, high: 2660.0, tone: 'premium', label: 'PREMIUM (>50% · MAHAL)', labelPos: 'tr', labelFront: true },
+            { low: 2644.0, high: 2652.0, tone: 'discount', label: 'DISCOUNT (<50% · MURAH)', labelPos: 'br', labelFront: true }
           ],
-          candles: [
-            [18, 18, 28, 14, 26], [28, 26, 52, 24, 50], [38, 50, 86, 48, 84],
-            [50, 84, 85, 62, 64], [62, 64, 66, 36, 38]
+          seriesLevels: [
+            { price: 2660.0, tone: 'gold', style: 'solid', label: 'ERL HIGH 2.660,0 (TARGET)', labelSide: 'left', labelPos: 'above' },
+            { price: 2652.0, tone: 'muted', style: 'dotted', label: 'EQ 50% (2.652,0)', labelSide: 'left', labelPos: 'above' },
+            { price: 2644.0, tone: 'muted', style: 'solid', label: 'ERL LOW 2.644,0 (INVALIDASI)', labelSide: 'left', labelPos: 'below' }
           ]
         },
         {
           label: '2. IRL FVG → ERL High',
-          caption: 'Algoritma selalu bolak-balik: turun mengambil IRL (FVG di Discount), lalu melesat naik sweep ERL (Swing High lama).',
-          zones: [
-            { x1: 24, x2: 72, y1: 26, y2: 40, tone: 'fvg', label: 'IRL (FVG DISCOUNT)', labelPos: 'tr' }
+          caption: 'Algoritma selalu bergerak bolak-balik: retrace mengambil IRL (Bullish FVG di Discount), lalu melesat naik menembus ERL (Swing High lama).',
+          series: [
+            { o: 2645.2, h: 2646.2, l: 2644.0, c: 2645.8 },
+            { o: 2645.8, h: 2647.2, l: 2645.4, c: 2646.8 },
+            { o: 2646.8, h: 2652.4, l: 2646.6, c: 2652.0 },
+            { o: 2652.0, h: 2654.8, l: 2650.4, c: 2654.4 },
+            { o: 2654.4, h: 2657.2, l: 2654.0, c: 2656.8 },
+            { o: 2656.8, h: 2659.2, l: 2656.4, c: 2658.8 },
+            { o: 2658.8, h: 2660.0, l: 2658.0, c: 2658.6 },
+            { o: 2658.6, h: 2659.0, l: 2655.6, c: 2656.0 },
+            { o: 2656.0, h: 2656.4, l: 2653.0, c: 2653.4 },
+            { o: 2653.4, h: 2653.8, l: 2650.8, c: 2651.2 },
+            { o: 2651.2, h: 2652.0, l: 2648.7, c: 2651.4 },
+            { o: 2651.4, h: 2655.0, l: 2651.0, c: 2654.6 },
+            { o: 2654.6, h: 2658.0, l: 2654.2, c: 2657.6 },
+            { o: 2657.6, h: 2660.8, l: 2657.2, c: 2660.4 },
+            { o: 2660.4, h: 2662.2, l: 2659.8, c: 2661.8 }
           ],
-          lines: [
-            { x1: 12, x2: 92, y1: 86, y2: 86, style: 'dashed', tone: 'gold', label: 'ERL HIGH (BSL)', labelSide: 'left' },
-            { x1: 12, x2: 92, y1: 50, y2: 50, style: 'dotted', tone: 'muted', label: 'EQ 50%', labelSide: 'left' }
+          autoFvgs: [
+            { c1Idx: 1, c3Idx: 3, type: 'bull', showCE: true, label: 'IRL · FVG DISCOUNT', ceLabel: '50% CE', extendToIdx: 13, showWickMarkers: false }
           ],
-          candles: [
-            [18, 18, 28, 14, 26], [28, 26, 52, 24, 50], [38, 50, 86, 48, 84],
-            [50, 84, 85, 58, 60], [60, 60, 62, 30, 34, 'gold'], [70, 34, 62, 32, 60],
-            [80, 60, 92, 58, 90, 'bull']
+          seriesLevels: [
+            { price: 2660.0, fromIdx: 6, toIdx: 14, tone: 'gold', style: 'dashed', label: 'ERL HIGH (BSL) SWEPT', labelSide: 'left', labelPos: 'above' },
+            { price: 2652.0, tone: 'muted', style: 'dotted', label: 'EQ 50%', labelSide: 'left', labelPos: 'above' }
           ],
-          arrows: [{ x1: 60, y1: 32, x2: 82, y2: 88, tone: 'bull', label: 'IRL → ERL' }]
+          seriesWickRings: [
+            { idx: 10, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 9.5, price: 2644.6, text: 'Retrace Ambil IRL (50% CE) → Melesat ke ERL High', tone: 'bull' }
+          ]
         }
       ]
     },
 
     'bsl-ssl-pools': {
       title: 'Peta Liquidity: Equal Highs (BSL) & Equal Lows (SSL)',
-      pairTag: 'XAU/USD · Liquidity Pool STOP LOSS',
+      pairTag: 'XAU/USD · LIQUIDITY POOL STOP LOSS',
       priceLabels: ['BSL $$$', 'Range', 'SSL $$$'],
       stages: [
         {
           label: 'BSL Pool (Atas)',
-          caption: 'Equal Highs (Double/Triple Top rapi) terlihat seperti tembok kuat bagi retail, padahal di atasnya menumpuk ribuan Stop Loss Seller (BSL) yang jadi magnet institusi.',
-          lines: [{ x1: 16, x2: 88, y1: 72, y2: 72, style: 'dashed', tone: 'sweep', label: 'EQH · BSL $$$', labelSide: 'right' }],
-          candles: [
-            [18, 42, 72, 40, 68], [28, 68, 70, 48, 50], [38, 50, 72, 49, 69],
-            [48, 69, 71, 52, 54], [58, 54, 72, 52, 68], [68, 68, 88, 64, 66, 'sweep'],
-            [78, 66, 68, 34, 36, 'bear']
+          caption: 'Equal Highs (puncak kembar rapi) tampak seperti tembok resistance kuat bagi ritel, padahal di atasnya menumpuk Stop Loss Seller (BSL) yang jadi magnet sweep.',
+          series: [
+            { o: 2648.4, h: 2651.2, l: 2648.0, c: 2650.8 },
+            { o: 2650.8, h: 2653.6, l: 2650.4, c: 2653.2 },
+            { o: 2653.2, h: 2655.0, l: 2652.4, c: 2652.8 },
+            { o: 2652.8, h: 2653.2, l: 2650.4, c: 2650.8 },
+            { o: 2650.8, h: 2651.4, l: 2649.6, c: 2650.4 },
+            { o: 2650.4, h: 2653.2, l: 2650.0, c: 2652.8 },
+            { o: 2652.8, h: 2655.0, l: 2652.2, c: 2652.6 },
+            { o: 2652.6, h: 2653.0, l: 2650.6, c: 2651.0 },
+            { o: 2651.0, h: 2653.4, l: 2650.7, c: 2653.0 },
+            { o: 2653.0, h: 2654.9, l: 2652.4, c: 2653.6 },
+            { o: 2653.6, h: 2658.4, l: 2652.8, c: 2653.2 },
+            { o: 2653.2, h: 2653.6, l: 2650.0, c: 2650.4 },
+            { o: 2650.4, h: 2650.8, l: 2647.8, c: 2648.2 },
+            { o: 2648.2, h: 2649.2, l: 2647.6, c: 2648.8 },
+            { o: 2648.8, h: 2649.1, l: 2646.0, c: 2646.4 },
+            { o: 2646.4, h: 2647.0, l: 2644.6, c: 2645.0 }
           ],
-          callouts: [{ x: 68, y: 94, text: 'BSL Di-sweep → Harga Berbalik Turun', tone: 'sweep' }]
+          seriesLevels: [
+            { price: 2655.0, fromIdx: 2, toIdx: 15, tone: 'sweep', style: 'dashed', label: 'EQH · BSL $$$ (2.655,0)', labelSide: 'right', labelPos: 'above' }
+          ],
+          seriesWickRings: [
+            { idx: 2, which: 'high', tone: 'gold', r: 5.5 },
+            { idx: 6, which: 'high', tone: 'gold', r: 5.5 },
+            { idx: 10, which: 'high', tone: 'ink', r: 7.5 }
+          ],
+          seriesCallouts: [
+            { idx: 9.2, price: 2660.2, text: 'BSL Di-sweep → Harga Berbalik Turun Tajam', tone: 'sweep' }
+          ]
         },
         {
           label: 'SSL Pool (Bawah)',
-          caption: 'Equal Lows (Double Bottom) menyimpan tumpukan Stop Loss Buyer (SSL). Tunggu SSL di-sweep lebih dulu sebelum mencari Buy.',
-          lines: [{ x1: 16, x2: 88, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'EQL · SSL $$$', labelSide: 'right' }],
-          candles: [
-            [18, 58, 62, 30, 34], [28, 34, 52, 32, 50], [38, 50, 52, 30, 34],
-            [48, 34, 50, 32, 48], [58, 48, 50, 30, 35], [68, 35, 38, 12, 36, 'sweep'],
-            [78, 36, 72, 35, 70, 'bull']
+          caption: 'Equal Lows (lembah kembar) menyimpan tumpukan Stop Loss Buyer (SSL). Sabar tunggu SSL di-sweep lebih dulu sebelum mencari konfirmasi Buy.',
+          series: [
+            { o: 2652.0, h: 2652.6, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2647.0, c: 2647.4 },
+            { o: 2647.4, h: 2648.2, l: 2645.0, c: 2647.6 },
+            { o: 2647.6, h: 2650.0, l: 2647.2, c: 2649.6 },
+            { o: 2649.6, h: 2650.2, l: 2647.8, c: 2648.2 },
+            { o: 2648.2, h: 2648.6, l: 2646.0, c: 2646.4 },
+            { o: 2646.4, h: 2647.8, l: 2645.0, c: 2647.4 },
+            { o: 2647.4, h: 2649.6, l: 2647.0, c: 2649.0 },
+            { o: 2649.0, h: 2649.4, l: 2646.4, c: 2646.8 },
+            { o: 2646.8, h: 2647.2, l: 2645.1, c: 2646.2 },
+            { o: 2646.2, h: 2647.8, l: 2641.6, c: 2647.2 },
+            { o: 2647.2, h: 2650.4, l: 2646.9, c: 2650.0 },
+            { o: 2650.0, h: 2652.6, l: 2649.6, c: 2652.2 },
+            { o: 2652.2, h: 2652.8, l: 2651.0, c: 2651.5 },
+            { o: 2651.5, h: 2654.4, l: 2651.2, c: 2654.0 },
+            { o: 2654.0, h: 2655.8, l: 2653.4, c: 2655.2 }
           ],
-          callouts: [{ x: 68, y: 7, text: 'SSL Di-sweep → Bahan Bakar Rally', tone: 'bull' }]
+          seriesLevels: [
+            { price: 2645.0, fromIdx: 2, toIdx: 15, tone: 'sweep', style: 'dashed', label: 'EQL · SSL $$$ (2.645,0)', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 2, which: 'low', tone: 'gold', r: 5.5 },
+            { idx: 6, which: 'low', tone: 'gold', r: 5.5 },
+            { idx: 10, which: 'low', tone: 'ink', r: 7.5 }
+          ],
+          seriesCallouts: [
+            { idx: 9.2, price: 2639.8, text: 'SSL Di-sweep → Bahan Bakar Rally Bullish', tone: 'bull' }
+          ]
         }
       ]
     },
@@ -638,31 +892,74 @@
         {
           label: 'Peta Harian Lengkap',
           caption: 'Tandai 6 garis kunci sebelum London buka: PWH/PWL, PDH/PDL, dan kotak Asia High/Low. 80% pergerakan Gold harian berputar di level ini.',
-          zones: [{ x1: 10, x2: 46, y1: 42, y2: 60, tone: 'asia', label: 'ASIA RANGE (08-12 WITA)', labelPos: 'tl' }],
-          lines: [
-            { x1: 8, x2: 94, y1: 88, y2: 88, style: 'solid', tone: 'gold', label: 'PWH (Weekly High)', labelSide: 'right' },
-            { x1: 8, x2: 94, y1: 76, y2: 76, style: 'dashed', tone: 'sweep', label: 'PDH (Daily High)', labelSide: 'right' },
-            { x1: 8, x2: 94, y1: 22, y2: 22, style: 'dashed', tone: 'cyan', label: 'PDL (Daily Low)', labelSide: 'right' }
+          series: [
+            { o: 2651.2, h: 2653.2, l: 2650.6, c: 2652.8 },
+            { o: 2652.8, h: 2653.4, l: 2649.8, c: 2650.4 },
+            { o: 2650.4, h: 2653.0, l: 2649.6, c: 2652.2 },
+            { o: 2652.2, h: 2652.8, l: 2649.4, c: 2650.0 },
+            { o: 2650.0, h: 2652.4, l: 2649.2, c: 2651.6 },
+            { o: 2651.6, h: 2652.0, l: 2649.0, c: 2649.6 },
+            { o: 2649.6, h: 2651.4, l: 2646.2, c: 2650.8 },
+            { o: 2650.8, h: 2655.0, l: 2650.4, c: 2654.6 },
+            { o: 2654.6, h: 2657.4, l: 2654.0, c: 2656.8 },
+            { o: 2656.8, h: 2657.2, l: 2654.6, c: 2655.4 },
+            { o: 2655.4, h: 2658.8, l: 2655.0, c: 2658.4 },
+            { o: 2658.4, h: 2661.0, l: 2658.0, c: 2660.4 },
+            { o: 2660.4, h: 2660.8, l: 2658.6, c: 2659.2 },
+            { o: 2659.2, h: 2662.8, l: 2658.8, c: 2662.2 },
+            { o: 2662.2, h: 2665.2, l: 2661.8, c: 2664.6 },
+            { o: 2664.6, h: 2666.6, l: 2664.2, c: 2666.0 }
           ],
-          candles: [
-            [16, 48, 58, 44, 56], [24, 56, 60, 46, 48], [32, 48, 58, 42, 52], [40, 52, 57, 45, 50],
-            [52, 50, 52, 34, 42, 'sweep'], [62, 42, 68, 40, 66, 'bull'], [74, 66, 82, 64, 78, 'bull']
+          seriesZones: [
+            { fromIdx: 0, toIdx: 5, low: 2649.0, high: 2655.4, tone: 'asia', label: 'ASIA RANGE (08–12)', labelPos: 'tl', labelFront: true }
           ],
-          callouts: [{ x: 52, y: 28, text: 'Sweep Asia Low → Target PDH', tone: 'bull' }]
+          seriesLevels: [
+            { price: 2666.5, tone: 'gold', style: 'solid', label: 'PWH 2.666,5 (Weekly High)', labelSide: 'left', labelPos: 'above' },
+            { price: 2662.0, tone: 'sweep', style: 'dashed', label: 'PDH 2.662,0 (DOL Utama)', labelSide: 'left', labelPos: 'above' },
+            { price: 2642.0, tone: 'cyan', style: 'dashed', label: 'PDL 2.642,0 (Daily Low)', labelSide: 'right', labelPos: 'above' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'low', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 7.4, price: 2644.6, text: 'Sweep Asia Low → Target PDH & PWH', tone: 'bull' }
+          ]
         },
         {
           label: 'Reaksi di PDH (Rejection)',
           caption: 'Saat harga sweep PDH (Previous Day High) dengan wick lalu mematahkan struktur M5 ke bawah, PDH menjadi bahan bakar Sell menuju Asia Low / PDL.',
-          lines: [
-            { x1: 8, x2: 94, y1: 76, y2: 76, style: 'dashed', tone: 'sweep', label: 'PDH SWEPT', labelSide: 'left' },
-            { x1: 8, x2: 94, y1: 24, y2: 24, style: 'dashed', tone: 'cyan', label: 'TARGET: PDL', labelSide: 'left' }
+          series: [
+            { o: 2650.4, h: 2653.0, l: 2649.8, c: 2652.6 },
+            { o: 2652.6, h: 2655.8, l: 2652.2, c: 2655.2 },
+            { o: 2655.2, h: 2655.6, l: 2653.4, c: 2654.0 },
+            { o: 2654.0, h: 2657.8, l: 2653.6, c: 2657.4 },
+            { o: 2657.4, h: 2660.8, l: 2657.0, c: 2660.2 },
+            { o: 2660.2, h: 2661.8, l: 2659.6, c: 2661.4 },
+            { o: 2661.4, h: 2665.2, l: 2659.8, c: 2660.2 },
+            { o: 2660.2, h: 2660.6, l: 2654.4, c: 2655.0 },
+            { o: 2655.0, h: 2656.4, l: 2653.4, c: 2654.0 },
+            { o: 2654.0, h: 2658.2, l: 2653.6, c: 2657.2 },
+            { o: 2657.2, h: 2657.6, l: 2652.6, c: 2653.2 },
+            { o: 2653.2, h: 2653.8, l: 2649.8, c: 2650.4 },
+            { o: 2650.4, h: 2652.0, l: 2649.8, c: 2651.4 },
+            { o: 2651.4, h: 2651.8, l: 2648.0, c: 2648.6 },
+            { o: 2648.6, h: 2649.2, l: 2646.2, c: 2646.8 },
+            { o: 2646.8, h: 2647.4, l: 2644.8, c: 2645.4 }
           ],
-          candles: [
-            [18, 44, 58, 42, 56], [28, 56, 72, 54, 70], [38, 70, 88, 66, 68, 'sweep'],
-            [48, 68, 70, 50, 52, 'bear'], [58, 52, 62, 50, 58], [68, 58, 60, 36, 38, 'bear'],
-            [78, 38, 40, 22, 24, 'bear']
+          autoFvgs: [
+            { c1Idx: 6, c3Idx: 8, type: 'bear', showCE: true, label: 'SIBI (FVG)', ceLabel: '50% CE', extendToIdx: 15, showWickMarkers: false }
           ],
-          arrows: [{ x1: 42, y1: 78, x2: 78, y2: 26, tone: 'bear', label: 'Distribusi ke PDL' }]
+          seriesLevels: [
+            { price: 2662.0, tone: 'sweep', style: 'dashed', label: 'PDH 2.662,0 SWEPT ✓', labelSide: 'left', labelPos: 'above' },
+            { price: 2646.0, tone: 'cyan', style: 'dashed', label: 'TARGET: PDL 2.646,0', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'high', tone: 'ink' },
+            { idx: 9, which: 'high', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 11.4, price: 2664.6, text: 'Sweep PDH + Retest 50% CE → Distribusi ke PDL', tone: 'bear' }
+          ]
         }
       ]
     },
@@ -674,38 +971,72 @@
       stages: [
         {
           label: '1. Liquidity Sweep (Purge & Revert)',
-          caption: 'Melawan HTF Bias di awal sesi: wick menusuk Asia Low (SSL), Body Close kembali di dalam range, lalu 1–3 candle aftermath mencetak Displacement naik + CISD/MSS.',
-          zones: [
-            { x1: 10, x2: 44, y1: 34, y2: 64, tone: 'neutral', label: 'ASIA RANGE', labelPos: 'tl' },
-            { x1: 52, x2: 92, y1: 42, y2: 52, tone: 'fvg', label: 'BISI', labelPos: 'tr' }
+          caption: 'Melawan HTF Bias di awal sesi: wick menusuk Asia Low (SSL), Body Close kembali di dalam range, lalu 1–3 candle aftermath mencetak Displacement naik + BISI.',
+          series: [
+            { o: 2648.6, h: 2650.8, l: 2648.0, c: 2650.4 },
+            { o: 2650.4, h: 2651.2, l: 2648.4, c: 2648.8 },
+            { o: 2648.8, h: 2650.2, l: 2647.4, c: 2647.8 },
+            { o: 2647.8, h: 2649.6, l: 2647.2, c: 2649.2 },
+            { o: 2649.2, h: 2649.8, l: 2646.4, c: 2647.0 },
+            { o: 2647.0, h: 2647.8, l: 2646.0, c: 2646.8 },
+            { o: 2646.8, h: 2647.6, l: 2642.8, c: 2647.4 },
+            { o: 2647.4, h: 2652.4, l: 2647.2, c: 2652.0 },
+            { o: 2652.0, h: 2653.8, l: 2650.2, c: 2653.0 },
+            { o: 2653.0, h: 2653.4, l: 2650.6, c: 2651.0 },
+            { o: 2651.0, h: 2652.2, l: 2648.8, c: 2651.6 },
+            { o: 2651.6, h: 2654.4, l: 2651.2, c: 2654.0 },
+            { o: 2654.0, h: 2656.2, l: 2653.6, c: 2655.8 },
+            { o: 2655.8, h: 2657.6, l: 2655.2, c: 2657.2 },
+            { o: 2657.2, h: 2658.8, l: 2656.8, c: 2658.4 },
+            { o: 2658.4, h: 2659.6, l: 2657.8, c: 2659.2 }
           ],
-          lines: [
-            { x1: 10, x2: 92, y1: 34, y2: 34, style: 'dashed', tone: 'sweep', label: 'Asia Low (SSL) SWEPT ✓', labelSide: 'right' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 5, low: 2646.0, high: 2651.2, tone: 'asia', label: 'ASIA RANGE', labelPos: 'bl', labelFront: true }
           ],
-          candles: [
-            [18, 44, 54, 41, 51], [28, 51, 53, 38, 40], [38, 40, 46, 35, 37],
-            [48, 37, 42, 18, 39, 'gold'], [58, 39, 64, 38, 62, 'bull'],
-            [68, 62, 65, 47, 52], [78, 52, 80, 50, 78, 'bull']
+          autoFvgs: [
+            { c1Idx: 6, c3Idx: 8, type: 'bull', showCE: true, label: 'BISI (FVG)', ceLabel: '50% CE', extendToIdx: 15, showWickMarkers: false }
           ],
-          callouts: [{ x: 48, y: 12, text: 'Wick Sweep + Body Close Balik + CISD ↑', tone: 'bull' }]
+          seriesLevels: [
+            { price: 2646.0, fromIdx: 0, toIdx: 15, tone: 'sweep', style: 'dashed', label: 'Asia Low 2.646,0 SWEPT ✓', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'low', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 6.5, price: 2640.8, text: 'Wick Sweep + Body Close Balik + CISD ↑', tone: 'bull' }
+          ]
         },
         {
           label: '2. Liquidity Run (Expansion)',
-          caption: 'Searah HTF Bias menuju DOL PDH: Asia High ditembus oleh Body Close penuh (acceptance) tanpa CISD turun — harga lanjut melesat ke PDH, JANGAN dilawan Sell!',
-          zones: [
-            { x1: 12, x2: 44, y1: 24, y2: 46, tone: 'neutral', label: 'ASIA RANGE', labelPos: 'tl' }
+          caption: 'Searah HTF Bias menuju DOL PDH: Asia High ($2.652,0) ditembus oleh Body Close penuh (acceptance) tanpa CISD turun — harga lanjut melesat ke PDH, JANGAN dilawan Sell!',
+          series: [
+            { o: 2648.6, h: 2651.0, l: 2648.5, c: 2650.6 },
+            { o: 2650.6, h: 2652.0, l: 2648.7, c: 2649.0 },
+            { o: 2649.0, h: 2649.8, l: 2647.0, c: 2647.6 },
+            { o: 2647.6, h: 2650.2, l: 2647.2, c: 2649.8 },
+            { o: 2649.8, h: 2651.6, l: 2649.0, c: 2651.2 },
+            { o: 2651.2, h: 2651.8, l: 2649.6, c: 2650.4 },
+            { o: 2650.4, h: 2655.2, l: 2650.0, c: 2654.8 },
+            { o: 2654.8, h: 2656.4, l: 2654.0, c: 2655.6 },
+            { o: 2655.6, h: 2656.0, l: 2653.6, c: 2654.2 },
+            { o: 2654.2, h: 2657.4, l: 2653.8, c: 2657.0 },
+            { o: 2657.0, h: 2659.6, l: 2656.6, c: 2659.2 },
+            { o: 2659.2, h: 2660.2, l: 2658.0, c: 2658.6 },
+            { o: 2658.6, h: 2661.4, l: 2658.2, c: 2661.0 },
+            { o: 2661.0, h: 2663.2, l: 2660.6, c: 2662.8 },
+            { o: 2662.8, h: 2664.2, l: 2662.0, c: 2663.8 },
+            { o: 2663.8, h: 2664.8, l: 2663.0, c: 2664.4 }
           ],
-          lines: [
-            { x1: 12, x2: 90, y1: 86, y2: 86, style: 'solid', tone: 'tp', label: 'DOL UTAMA: PDH', labelSide: 'left' },
-            { x1: 12, x2: 88, y1: 46, y2: 46, style: 'dashed', tone: 'bull', label: 'Asia High TEMBUS BODY (RUN)', labelSide: 'right' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 5, low: 2647.0, high: 2652.0, tone: 'asia', label: 'ASIA RANGE', labelPos: 'bl', labelFront: true }
           ],
-          candles: [
-            [18, 34, 45, 30, 42], [28, 42, 44, 25, 28], [38, 28, 36, 16, 32, 'gold'],
-            [48, 32, 60, 31, 58, 'bull'], [58, 58, 62, 50, 54],
-            [68, 54, 76, 53, 74, 'bull'], [78, 74, 88, 72, 86, 'bull']
+          seriesLevels: [
+            { price: 2664.0, tone: 'tp', style: 'solid', label: 'DOL UTAMA: PDH 2.664,0', labelSide: 'left', labelPos: 'above' },
+            { price: 2652.0, fromIdx: 0, toIdx: 15, tone: 'bull', style: 'dashed', label: 'Asia High 2.652,0 TEMBUS BODY (RUN)', labelSide: 'right', labelPos: 'below' }
           ],
-          arrows: [{ x1: 52, y1: 56, x2: 80, y2: 86, tone: 'bull', label: 'Ekspansi ke PDH' }],
-          callouts: [{ x: 54, y: 14, text: 'Acceptance di Atas Asia High = Liquidity Run', tone: 'gold' }]
+          seriesCallouts: [
+            { idx: 9.5, price: 2647.8, text: 'Acceptance di Atas Asia High = Liquidity Run', tone: 'gold' }
+          ]
         }
       ]
     },
@@ -713,145 +1044,359 @@
     // ── LEVEL 3 ──────────────────────────────────────────────────────────
     'displacement-signature': {
       title: 'Displacement Valid (Energi Institusi) vs Gerakan Lemah',
-      pairTag: 'XAU/USD · JEJAK ALGORITMA',
+      pairTag: 'XAU/USD · M5 · JEJAK ALGORITMA',
       priceLabels: ['Break', 'FVG', 'Base'],
       stages: [
         {
-          label: 'Displacement Valid',
-          caption: '1–3 candle berbadan penuh yang menembus struktur dengan cepat sekaligus meninggalkan Fair Value Gap (FVG) yang jelas.',
-          zones: [{ x1: 38, x2: 88, y1: 42, y2: 58, tone: 'fvg', label: 'FVG TERBENTUK', labelPos: 'tr' }],
-          lines: [{ x1: 14, x2: 88, y1: 62, y2: 62, style: 'dashed', tone: 'bull', label: 'MSS / BOS', labelSide: 'left' }],
-          candles: [
-            [18, 44, 62, 40, 42], [28, 42, 46, 22, 26], [38, 26, 42, 24, 40],
-            [48, 40, 82, 39, 80, 'bull'], [58, 80, 90, 58, 86, 'bull']
+          label: '1. Displacement Valid',
+          caption: 'Pasca-sweep Asia Low ($2,642.0), candle berbadan penuh (≥ 65% body) memecah Swing High MSS ($2,646.5) sekaligus mencetak Bullish FVG bersih ($2,644.0–$2,646.6) yang langsung diuji tepat di 50% CE.',
+          series: [
+            { o: 2645.4, h: 2646.2, l: 2644.8, c: 2645.0 },
+            { o: 2645.0, h: 2646.5, l: 2644.6, c: 2645.9 },
+            { o: 2645.9, h: 2646.1, l: 2644.2, c: 2644.5 },
+            { o: 2644.5, h: 2645.1, l: 2643.2, c: 2643.6 },
+            { o: 2643.6, h: 2644.0, l: 2641.8, c: 2642.6 },
+            { o: 2642.6, h: 2644.0, l: 2642.3, c: 2643.8 },
+            { o: 2643.8, h: 2648.6, l: 2643.6, c: 2648.2 },
+            { o: 2648.2, h: 2650.8, l: 2646.6, c: 2650.2 },
+            { o: 2650.2, h: 2651.2, l: 2648.8, c: 2649.1 },
+            { o: 2649.1, h: 2649.5, l: 2647.2, c: 2647.6 },
+            { o: 2647.6, h: 2648.0, l: 2645.3, c: 2647.1 },
+            { o: 2647.1, h: 2649.8, l: 2646.8, c: 2649.4 },
+            { o: 2649.4, h: 2652.0, l: 2649.0, c: 2651.6 },
+            { o: 2651.6, h: 2653.8, l: 2651.2, c: 2653.4 },
+            { o: 2653.4, h: 2654.6, l: 2652.8, c: 2654.2 }
           ],
-          callouts: [{ x: 48, y: 94, text: 'Body Panjang + FVG = Modal Besar Masuk', tone: 'bull' }]
+          autoFvgs: [
+            {
+              c1Idx: 5,
+              c3Idx: 7,
+              type: 'bull',
+              extendToIdx: 14,
+              showCE: true,
+              showWickMarkers: true,
+              label: 'FVG TERBENTUK (BISI)',
+              ceLabel: '50% CE · 2645.3'
+            }
+          ],
+          seriesLevels: [
+            { price: 2646.5, toIdx: 8, tone: 'bull', style: 'dashed', label: 'MSS / BOS 2.646,5', labelSide: 'left' },
+            { price: 2642.0, toIdx: 6, tone: 'sweep', style: 'dotted', label: 'ASIA LOW 2.642,0', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 4, which: 'low', tone: 'sweep' },
+            { idx: 10, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 7.4, price: 2653.2, text: 'Body ≥65% + Pecah MSS + FVG = Valid', tone: 'bull' }
+          ]
         },
         {
-          label: 'Gerakan Lemah (Skip)',
-          caption: 'Candle kecil saling tumpang tindih dengan banyak wick (choppy). Tidak ada FVG = bukan Displacement, hindari entry.',
-          lines: [{ x1: 14, x2: 88, y1: 62, y2: 62, style: 'dashed', tone: 'muted', label: 'LEVEL STRUKTUR', labelSide: 'left' }],
-          candles: [
-            [18, 44, 62, 40, 42], [28, 42, 48, 34, 38], [38, 38, 52, 36, 44],
-            [48, 44, 58, 40, 50], [58, 50, 64, 46, 56], [68, 56, 66, 50, 54]
+          label: '2. Gerakan Lemah (Skip)',
+          caption: 'Candle kecil saling tumpang tindih dengan wick panjang di sekitar level struktur ($2,646.5) tanpa satu pun celah FVG. Bukan Displacement — hindari entry.',
+          series: [
+            { o: 2644.8, h: 2646.2, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2646.5, l: 2643.5, c: 2645.1 },
+            { o: 2645.1, h: 2646.3, l: 2643.9, c: 2644.4 },
+            { o: 2644.4, h: 2645.8, l: 2643.4, c: 2644.9 },
+            { o: 2644.9, h: 2646.4, l: 2644.0, c: 2645.3 },
+            { o: 2645.3, h: 2646.7, l: 2644.5, c: 2645.7 },
+            { o: 2645.7, h: 2647.1, l: 2644.8, c: 2645.4 },
+            { o: 2645.4, h: 2647.3, l: 2644.9, c: 2646.1 },
+            { o: 2646.1, h: 2647.6, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2647.8, l: 2645.3, c: 2646.4 },
+            { o: 2646.4, h: 2648.0, l: 2645.6, c: 2646.0 },
+            { o: 2646.0, h: 2648.1, l: 2645.5, c: 2646.7 },
+            { o: 2646.7, h: 2648.2, l: 2645.9, c: 2646.3 },
+            { o: 2646.3, h: 2647.9, l: 2645.4, c: 2645.9 },
+            { o: 2645.9, h: 2647.6, l: 2645.1, c: 2646.5 }
           ],
-          callouts: [{ x: 52, y: 82, text: 'Overlapping / Choppy · Tanpa FVG → NO TRADE', tone: 'bear' }]
+          seriesZones: [
+            { fromIdx: 4, toIdx: 14, low: 2644.5, high: 2648.4, tone: 'danger', label: 'CHOPPY / WICK OVERLAP', labelPos: 'tr' }
+          ],
+          seriesLevels: [
+            { price: 2646.5, tone: 'muted', style: 'dashed', label: 'LEVEL STRUKTUR 2.646,5', labelSide: 'left' }
+          ],
+          seriesCallouts: [
+            { idx: 7.5, price: 2642.1, text: 'Overlapping / Choppy · Tanpa FVG → NO TRADE', tone: 'bear' }
+          ]
         }
       ]
     },
 
     'fvg-ce-anatomy': {
-      title: 'Anatomi Fair Value Gap (3 Candle) & 50% Consequent Encroachment',
-      pairTag: 'XAU/USD · FVG & 50% CE',
-      priceLabels: ['C3 Low', '50% CE', 'C1 High'],
+      title: 'Fair Value Gap (FVG / BISI & SIBI): Valid vs Invalid & 50% CE',
+      pairTag: 'XAU/USD · FVG ANATOMY',
+      priceLabels: ['C3', '50% CE', 'C1'],
       stages: [
         {
-          label: '1. Celah 3 Candle',
-          caption: 'Bullish FVG adalah celah kosong antara High Candle 1 dan Low Candle 3 yang tidak tertutup oleh wick. Di tengahnya terdapat titik 50% CE.',
-          zones: [{ x1: 22, x2: 88, y1: 38, y2: 62, tone: 'fvg', label: 'BULLISH FVG (BISI)', labelPos: 'tr' }],
-          lines: [
-            { x1: 22, x2: 88, y1: 62, y2: 62, style: 'solid', tone: 'cyan', label: 'LOW C3', labelSide: 'left' },
-            { x1: 22, x2: 88, y1: 50, y2: 50, style: 'dashed', tone: 'gold', label: '50% CE (SNIPER)', labelSide: 'right' },
-            { x1: 22, x2: 88, y1: 38, y2: 38, style: 'solid', tone: 'cyan', label: 'HIGH C1', labelSide: 'left' }
-          ],
-          candles: [
-            [24, 18, 38, 14, 34],
-            [36, 34, 78, 32, 74, 'bull'],
-            [48, 74, 88, 62, 84]
-          ],
-          callouts: [
-            { x: 24, y: 8, text: 'C1', tone: 'muted' },
-            { x: 36, y: 8, text: 'C2 (Impuls)', tone: 'bull' },
-            { x: 48, y: 8, text: 'C3', tone: 'muted' }
+          label: '1. Bearish FVG (Valid vs Invalid)',
+          caption: 'Bearish FVG (SIBI) VALID hanya jika ada celah bersih antara Low wick Candle 1 dan High wick Candle 3. Jika wick C1 & C3 saling tumpang tindih (kanan), itu BUKAN FVG.',
+          splitPanels: [
+            {
+              heading: 'BEARISH FVG',
+              badgeTitle: 'VALID',
+              badgeSub: 'BEARISH FVG (SIBI)',
+              verdict: 'valid',
+              fvgType: 'bear',
+              fvgLabel: 'CELAH FVG (SIBI)',
+              showCE: true,
+              candles: [
+                { o: 84, h: 84, l: 55, c: 63 },
+                { o: 63, h: 63, l: 28, c: 32 },
+                { o: 32, h: 37, l: 9, c: 17 }
+              ]
+            },
+            {
+              heading: 'BEARISH FVG',
+              badgeTitle: 'INVALID',
+              badgeSub: 'WICK TUMPANG TINDIH',
+              verdict: 'invalid',
+              fvgType: 'bear',
+              overlapLabel: 'OVERLAP · BUKAN FVG',
+              candles: [
+                { o: 88, h: 88, l: 48, c: 67 },
+                { o: 67, h: 67, l: 33, c: 37 },
+                { o: 37, h: 52, l: 13, c: 22 }
+              ]
+            }
           ]
         },
         {
-          label: '2. Retrace ke 50% CE',
-          caption: 'Harga kembali mengisi celah FVG hingga garis 50% CE, menghormati batas bawah tanpa body close menembus, lalu melesat melanjutkan tren.',
-          zones: [{ x1: 22, x2: 88, y1: 38, y2: 62, tone: 'fvg', label: 'FVG TERHORMATI', labelPos: 'tr' }],
-          lines: [
-            { x1: 22, x2: 88, y1: 50, y2: 50, style: 'dashed', tone: 'gold', label: '50% CE ENTRY', labelSide: 'right' }
+          label: '2. Bullish FVG (Valid vs Invalid)',
+          caption: 'Bullish FVG (BISI) VALID jika High wick Candle 1 lebih rendah dari Low wick Candle 3 sehingga menyisakan ruang imbalance murni di badan Candle 2. Bila wick saling menyentuh/tumpang tindih, tidak valid.',
+          splitPanels: [
+            {
+              heading: 'BULLISH FVG',
+              badgeTitle: 'VALID',
+              badgeSub: 'BULLISH FVG (BISI)',
+              verdict: 'valid',
+              fvgType: 'bull',
+              fvgLabel: 'CELAH FVG (BISI)',
+              showCE: true,
+              candles: [
+                { o: 16, h: 45, l: 16, c: 37 },
+                { o: 37, h: 72, l: 37, c: 68 },
+                { o: 68, h: 91, l: 63, c: 83 }
+              ]
+            },
+            {
+              heading: 'BULLISH FVG',
+              badgeTitle: 'INVALID',
+              badgeSub: 'WICK TUMPANG TINDIH',
+              verdict: 'invalid',
+              fvgType: 'bull',
+              overlapLabel: 'OVERLAP · BUKAN FVG',
+              candles: [
+                { o: 12, h: 52, l: 12, c: 33 },
+                { o: 33, h: 67, l: 33, c: 63 },
+                { o: 63, h: 87, l: 48, c: 78 }
+              ]
+            }
+          ]
+        },
+        {
+          label: '3. Retrace 50% CE di Chart Gold',
+          caption: 'Di chart M5 XAU/USD, harga kembali masuk ke celah Bullish FVG (High C1 $2,647.20 – Low C3 $2,651.00), wick menyentuh persis garis 50% CE ($2,649.10), body tutup di atas CE, lalu melesat naik.',
+          series: [
+            { o: 2645.8, h: 2646.5, l: 2645.1, c: 2645.4 },
+            { o: 2645.4, h: 2646.3, l: 2644.7, c: 2646.0 },
+            { o: 2646.0, h: 2646.8, l: 2645.2, c: 2645.5 },
+            { o: 2645.5, h: 2646.2, l: 2644.3, c: 2645.8 },
+            { o: 2645.8, h: 2647.2, l: 2645.4, c: 2646.7 },
+            { o: 2646.7, h: 2652.8, l: 2646.1, c: 2652.3 },
+            { o: 2652.3, h: 2654.2, l: 2651.0, c: 2653.6 },
+            { o: 2653.6, h: 2654.6, l: 2652.6, c: 2653.0 },
+            { o: 2653.0, h: 2653.4, l: 2651.7, c: 2652.1 },
+            { o: 2652.1, h: 2652.6, l: 2650.5, c: 2650.9 },
+            { o: 2650.9, h: 2651.4, l: 2649.0, c: 2650.1 },
+            { o: 2650.1, h: 2652.9, l: 2649.8, c: 2652.5 },
+            { o: 2652.5, h: 2654.8, l: 2651.4, c: 2654.3 },
+            { o: 2654.3, h: 2656.5, l: 2652.9, c: 2656.1 },
+            { o: 2656.1, h: 2657.8, l: 2654.8, c: 2657.3 },
+            { o: 2657.3, h: 2658.2, l: 2656.4, c: 2656.9 }
           ],
-          candles: [
-            [20, 18, 38, 14, 34], [30, 34, 78, 32, 74, 'bull'], [40, 74, 86, 62, 82],
-            [52, 82, 84, 60, 64], [62, 64, 66, 48, 56, 'gold'],
-            [74, 56, 82, 54, 80, 'bull'], [84, 80, 94, 78, 92, 'bull']
+          autoFvgs: [
+            {
+              c1Idx: 4,
+              c3Idx: 6,
+              type: 'bull',
+              extendToIdx: 15,
+              showCE: true,
+              showWickMarkers: true,
+              label: 'BULLISH FVG (BISI)',
+              ceLabel: '50% CE · 2649.1'
+            }
           ],
-          callouts: [{ x: 62, y: 26, text: 'Wick menyentuh 50% CE → Reaksi Instan', tone: 'gold' }]
+          seriesCallouts: [
+            { idx: 3.1, price: 2643.8, text: 'C1', tone: 'muted' },
+            { idx: 5.5, price: 2643.8, text: 'C2 Impuls', tone: 'bull' },
+            { idx: 6, price: 2655.6, text: 'C3', tone: 'muted' },
+            { idx: 11.2, price: 2645.2, text: 'Wick sentuh 50% CE → Reaksi Instan', tone: 'gold' }
+          ]
         }
       ]
     },
 
     'order-block-mt': {
       title: 'Order Block Institusi & 50% Mean Threshold (MT)',
-      pairTag: 'XAU/USD · BULLISH OB',
+      pairTag: 'XAU/USD · M15 · BULLISH OB',
       priceLabels: ['OB Open', '50% MT', 'OB Low'],
       stages: [
         {
           label: '1. Syarat OB Valid',
-          caption: 'Bullish OB adalah candle turun terakhir SEBELUM Displacement kuat yang mematahkan struktur (MSS) dan meninggalkan FVG. Tanpa Displacement, itu bukan OB!',
-          zones: [
-            { x1: 24, x2: 88, y1: 22, y2: 40, tone: 'ob', label: 'BULLISH ORDER BLOCK', labelPos: 'tr' },
-            { x1: 36, x2: 66, y1: 44, y2: 58, tone: 'fvg', label: 'FVG', labelPos: 'tr' }
+          caption: 'Bullish OB adalah candle turun terakhir (Open $2,646.0 · Close $2,642.0 · Low $2,640.0) SEBELUM Displacement kuat yang memecah MSS ($2,651.8) dan mencetak FVG. Garis 50% MT diukur tepat di tengah BODY ($2,644.0).',
+          seriesSlots: 16,
+          series: [
+            { o: 2651.4, h: 2652.2, l: 2650.0, c: 2650.4 },
+            { o: 2650.4, h: 2651.8, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2647.4, c: 2647.8 },
+            { o: 2647.8, h: 2648.2, l: 2645.6, c: 2646.0 },
+            { o: 2646.0, h: 2646.4, l: 2640.0, c: 2642.0 },
+            { o: 2642.0, h: 2647.6, l: 2641.8, c: 2647.2 },
+            { o: 2647.2, h: 2653.4, l: 2646.9, c: 2652.8 },
+            { o: 2652.8, h: 2655.2, l: 2650.2, c: 2654.6 },
+            { o: 2654.6, h: 2655.8, l: 2653.6, c: 2654.0 }
           ],
-          lines: [
-            { x1: 24, x2: 88, y1: 31, y2: 31, style: 'dashed', tone: 'gold', label: '50% MEAN THRESHOLD', labelSide: 'right' },
-            { x1: 14, x2: 72, y1: 64, y2: 64, style: 'dashed', tone: 'bull', label: 'MSS VALID', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 4, toIdx: 15, low: 2640.0, high: 2646.0, tone: 'ob', label: 'BULLISH ORDER BLOCK', labelPos: 'tr' }
           ],
-          candles: [
-            [16, 52, 64, 48, 50], [26, 40, 44, 22, 26, 'gold'],
-            [38, 26, 76, 25, 74, 'bull'], [48, 74, 84, 58, 80]
+          autoFvgs: [
+            {
+              c1Idx: 5,
+              c3Idx: 7,
+              type: 'bull',
+              extendToIdx: 14,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'FVG (BISI)'
+            }
+          ],
+          seriesLevels: [
+            { price: 2644.0, fromIdx: 4, tone: 'gold', style: 'dashed', label: '50% MT 2.644,0 (BODY)', labelSide: 'right', labelPos: 'below' },
+            { price: 2651.8, toIdx: 10, tone: 'bull', style: 'dashed', label: 'MSS VALID 2.651,8', labelSide: 'left' }
+          ],
+          seriesWickRings: [
+            { idx: 4, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 11.4, price: 2654.8, text: 'Syarat OB: Sweep + FVG + MSS', tone: 'bull' }
           ]
         },
         {
           label: '2. Mitigasi OB & Filter MT',
-          caption: 'Entry di Open OB atau 50% MT. Jika body candle retrace menutup DI BAWAH 50% Mean Threshold, kualitas OB melemah — bersiap cut/validasi ulang.',
-          zones: [{ x1: 24, x2: 88, y1: 22, y2: 40, tone: 'ob', label: 'BULLISH OB', labelPos: 'tr' }],
-          lines: [
-            { x1: 24, x2: 88, y1: 40, y2: 40, style: 'solid', tone: 'gold', label: 'OPEN OB (ENTRY)', labelSide: 'left' },
-            { x1: 24, x2: 88, y1: 31, y2: 31, style: 'dashed', tone: 'sweep', label: '50% MT (BATAS BODY)', labelSide: 'right' }
+          caption: 'Retrace masuk ke Open OB ($2,646.0), wick menyentuh persis 50% Mean Threshold ($2,644.0), namun Body Close tetap bertahan di atas MT — pertanda OB kuat dan siap melesat naik.',
+          seriesSlots: 16,
+          series: [
+            { o: 2651.4, h: 2652.2, l: 2650.0, c: 2650.4 },
+            { o: 2650.4, h: 2651.8, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2647.4, c: 2647.8 },
+            { o: 2647.8, h: 2648.2, l: 2645.6, c: 2646.0 },
+            { o: 2646.0, h: 2646.4, l: 2640.0, c: 2642.0 },
+            { o: 2642.0, h: 2647.6, l: 2641.8, c: 2647.2 },
+            { o: 2647.2, h: 2653.4, l: 2646.9, c: 2652.8 },
+            { o: 2652.8, h: 2655.2, l: 2650.2, c: 2654.6 },
+            { o: 2654.6, h: 2655.8, l: 2653.6, c: 2654.0 },
+            { o: 2654.0, h: 2654.4, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2652.0, l: 2648.2, c: 2648.6 },
+            { o: 2648.6, h: 2649.0, l: 2645.6, c: 2646.2 },
+            { o: 2646.2, h: 2648.4, l: 2644.0, c: 2647.8 },
+            { o: 2647.8, h: 2651.8, l: 2647.4, c: 2651.4 },
+            { o: 2651.4, h: 2655.4, l: 2651.0, c: 2655.0 },
+            { o: 2655.0, h: 2658.4, l: 2654.6, c: 2657.8 }
           ],
-          candles: [
-            [16, 52, 64, 48, 50], [26, 40, 44, 22, 26, 'gold'], [36, 26, 76, 25, 74, 'bull'],
-            [46, 74, 82, 60, 62], [56, 62, 64, 42, 44], [66, 44, 46, 30, 38, 'bull'],
-            [76, 38, 72, 36, 70, 'bull'], [86, 70, 92, 68, 88, 'bull']
+          seriesZones: [
+            { fromIdx: 4, toIdx: 15, low: 2640.0, high: 2646.0, tone: 'ob', label: 'BULLISH OB', labelPos: 'bl' }
           ],
-          callouts: [{ x: 66, y: 12, text: 'Body bertahan di atas 50% MT = OB Kuat', tone: 'bull' }]
+          seriesLevels: [
+            { price: 2646.0, fromIdx: 4, tone: 'gold', style: 'solid', label: 'OPEN OB 2.646,0', labelSide: 'right' },
+            { price: 2644.0, fromIdx: 4, tone: 'sweep', style: 'dashed', label: '50% MT 2.644,0 (BATAS BODY)', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 12, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 10.2, price: 2638.4, text: 'Body bertahan di atas 50% MT = OB Kuat', tone: 'bull' }
+          ]
         }
       ]
     },
 
     'cisd-vs-mss': {
       title: 'CISD (Sinyal Awal Cepat) vs MSS (Konfirmasi Struktural)',
-      pairTag: 'XAU/USD · PERUBAHAN ARAH',
+      pairTag: 'XAU/USD · M5 · PERUBAHAN ARAH',
       priceLabels: ['MSS', 'CISD', 'Sweep'],
       stages: [
         {
           label: '1. CISD Lebih Cepat',
-          caption: 'Setelah sweep SSL, candle bullish langsung menutup di atas harga OPEN rangkaian candle turun terakhir → inilah CISD (Change in State of Delivery).',
-          lines: [
-            { x1: 14, x2: 44, y1: 24, y2: 24, style: 'dashed', tone: 'sweep', label: 'SSL SWEEP', labelSide: 'left' },
-            { x1: 34, x2: 88, y1: 52, y2: 52, style: 'solid', tone: 'cyan', label: 'CISD (OPEN DOWN-CLOSE)', labelSide: 'right' },
-            { x1: 14, x2: 88, y1: 72, y2: 72, style: 'dotted', tone: 'muted', label: 'SWING HIGH (MSS)', labelSide: 'right' }
+          caption: 'Setelah sweep SSL ($2,644.2), candle bullish langsung menutup Body di atas harga OPEN rangkaian candle turun terakhir ($2,649.2) → inilah CISD, terpicu lebih dulu sebelum MSS ($2,652.6).',
+          seriesSlots: 15,
+          series: [
+            { o: 2651.2, h: 2652.0, l: 2649.8, c: 2650.2 },
+            { o: 2650.2, h: 2652.6, l: 2649.8, c: 2651.8 },
+            { o: 2651.8, h: 2652.2, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2648.2, c: 2649.2 },
+            { o: 2649.2, h: 2649.6, l: 2646.8, c: 2647.2 },
+            { o: 2647.2, h: 2647.5, l: 2644.6, c: 2645.0 },
+            { o: 2645.0, h: 2645.8, l: 2641.8, c: 2644.6 },
+            { o: 2644.6, h: 2648.2, l: 2644.2, c: 2647.8 },
+            { o: 2647.8, h: 2651.4, l: 2647.4, c: 2650.8 }
           ],
-          candles: [
-            [18, 60, 72, 54, 56], [28, 56, 58, 38, 40], [38, 52, 54, 30, 32, 'bear'],
-            [46, 32, 34, 14, 22, 'sweep'], [56, 22, 62, 20, 58, 'bull']
+          seriesLevels: [
+            { price: 2652.6, fromIdx: 1, tone: 'muted', style: 'dotted', label: 'SWING HIGH (MSS) 2.652,6', labelSide: 'right' },
+            { price: 2649.2, fromIdx: 4, tone: 'cyan', style: 'solid', label: 'CISD 2.649,2 (OPEN DOWN)', labelSide: 'right', labelPos: 'below' },
+            { price: 2644.2, toIdx: 7, tone: 'sweep', style: 'dashed', label: 'SSL SWEEP 2.644,2', labelSide: 'left', labelPos: 'below' }
           ],
-          callouts: [{ x: 56, y: 88, text: 'CISD terpicu lebih dulu dari MSS!', tone: 'cyan' }]
+          seriesWickRings: [
+            { idx: 6, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 10.6, price: 2643.4, text: 'CISD terpicu lebih dulu dari MSS!', tone: 'cyan' }
+          ]
         },
         {
           label: '2. Konfirmasi Penuh MSS',
-          caption: 'Candle berikutnya menembus Swing High sebelumnya dengan body close + FVG (MSS). Kombinasi Sweep + CISD + MSS memberi probabilitas tertinggi.',
-          zones: [{ x1: 52, x2: 88, y1: 42, y2: 56, tone: 'fvg', label: 'FVG ENTRY', labelPos: 'tr' }],
-          lines: [
-            { x1: 34, x2: 72, y1: 52, y2: 52, style: 'dotted', tone: 'cyan', label: 'CISD ✓', labelSide: 'left' },
-            { x1: 14, x2: 88, y1: 72, y2: 72, style: 'solid', tone: 'bull', label: 'MSS VALID ✓', labelSide: 'left' }
+          caption: 'Candle berikutnya menembus Swing High ($2,652.6) dengan Body Close penuh + mencetak FVG Entry ($2,648.2–$2,650.4). Retest ke 50% CE lalu ekspansi naik — probabilitas tertinggi.',
+          seriesSlots: 17,
+          series: [
+            { o: 2651.2, h: 2652.0, l: 2649.8, c: 2650.2 },
+            { o: 2650.2, h: 2652.6, l: 2649.8, c: 2651.8 },
+            { o: 2651.8, h: 2652.2, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2648.2, c: 2649.2 },
+            { o: 2649.2, h: 2649.6, l: 2646.8, c: 2647.2 },
+            { o: 2647.2, h: 2647.5, l: 2644.6, c: 2645.0 },
+            { o: 2645.0, h: 2645.8, l: 2641.8, c: 2644.6 },
+            { o: 2644.6, h: 2648.2, l: 2644.2, c: 2647.8 },
+            { o: 2647.8, h: 2651.4, l: 2647.4, c: 2650.8 },
+            { o: 2650.8, h: 2655.2, l: 2650.4, c: 2654.6 },
+            { o: 2654.6, h: 2655.6, l: 2652.8, c: 2653.2 },
+            { o: 2653.2, h: 2653.6, l: 2650.8, c: 2651.2 },
+            { o: 2651.2, h: 2651.8, l: 2649.2, c: 2651.4 },
+            { o: 2651.4, h: 2655.4, l: 2651.0, c: 2655.0 },
+            { o: 2655.0, h: 2658.2, l: 2654.6, c: 2657.6 }
           ],
-          candles: [
-            [18, 60, 72, 54, 56], [28, 56, 58, 38, 40], [38, 52, 54, 30, 32],
-            [46, 32, 34, 14, 22], [56, 22, 62, 20, 58, 'bull'], [66, 58, 84, 56, 82, 'bull'],
-            [76, 82, 84, 48, 52, 'gold'], [86, 52, 92, 50, 90, 'bull']
+          autoFvgs: [
+            {
+              c1Idx: 7,
+              c3Idx: 9,
+              type: 'bull',
+              extendToIdx: 16.4,
+              showCE: true,
+              showWickMarkers: false,
+              label: 'FVG ENTRY',
+              ceLabel: '50% CE · 2649.3'
+            }
+          ],
+          seriesLevels: [
+            { price: 2652.6, toIdx: 10, tone: 'bull', style: 'solid', label: 'MSS VALID ✓ 2.652,6', labelSide: 'left' },
+            { price: 2649.2, fromIdx: 4, toIdx: 9, tone: 'cyan', style: 'dotted', label: 'CISD ✓', labelSide: 'left' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'low', tone: 'sweep' },
+            { idx: 12, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 12.2, price: 2644.4, text: 'Sweep + CISD + MSS + FVG = A+', tone: 'bull' }
           ]
         }
       ]
@@ -859,42 +1404,75 @@
 
     'premium-discount-ote': {
       title: 'Matriks Premium / Discount & Zona OTE (61.8% – 78.6%)',
-      pairTag: 'XAU/USD · FILTER HARGA MURAH',
+      pairTag: 'XAU/USD · M15 · FILTER HARGA MURAH',
       priceLabels: ['100% High', '50% EQ', '0% Low'],
       stages: [
         {
-          label: 'Zona Buy (Discount + OTE)',
-          caption: 'Dalam tren naik, JANGAN Buy di Premium (>50%). Tunggu harga turun di bawah Equilibrium ke zona OTE (61.8%–78.6%, sweet spot 70.5%).',
-          zones: [
-            { x1: 14, x2: 92, y1: 50, y2: 88, tone: 'premium', label: 'PREMIUM · NO BUY', labelPos: 'tr' },
-            { x1: 14, x2: 92, y1: 12, y2: 50, tone: 'discount', label: 'DISCOUNT', labelPos: 'tr' },
-            { x1: 42, x2: 92, y1: 24, y2: 38, tone: 'gold', label: 'OTE (61.8%–78.6%)', labelPos: 'tr' }
+          label: '1. Zona Buy (Discount + OTE)',
+          caption: 'Dealing Range $2,640–$2,660 (50% EQ di $2,650). Jangan Buy di Premium (>50%); tunggu harga turun masuk zona Discount + OTE (61.8%–78.6%, sweet spot 70.5% di $2,645.9) lalu melesat naik.',
+          series: [
+            { o: 2641.2, h: 2643.8, l: 2640.0, c: 2643.4 },
+            { o: 2643.4, h: 2647.8, l: 2643.0, c: 2647.4 },
+            { o: 2647.4, h: 2652.2, l: 2647.0, c: 2651.8 },
+            { o: 2651.8, h: 2656.4, l: 2651.4, c: 2655.8 },
+            { o: 2655.8, h: 2660.0, l: 2655.4, c: 2659.2 },
+            { o: 2659.2, h: 2659.6, l: 2656.2, c: 2656.6 },
+            { o: 2656.6, h: 2657.2, l: 2653.8, c: 2654.2 },
+            { o: 2654.2, h: 2654.8, l: 2651.4, c: 2651.8 },
+            { o: 2651.8, h: 2652.2, l: 2649.0, c: 2649.4 },
+            { o: 2649.4, h: 2650.0, l: 2647.2, c: 2647.6 },
+            { o: 2647.6, h: 2648.2, l: 2645.9, c: 2647.4 },
+            { o: 2647.4, h: 2651.6, l: 2647.0, c: 2651.2 },
+            { o: 2651.2, h: 2655.4, l: 2650.8, c: 2655.0 },
+            { o: 2655.0, h: 2658.8, l: 2654.6, c: 2658.4 },
+            { o: 2658.4, h: 2661.4, l: 2658.0, c: 2661.0 },
+            { o: 2661.0, h: 2663.0, l: 2660.4, c: 2662.4 }
           ],
-          lines: [
-            { x1: 14, x2: 92, y1: 50, y2: 50, style: 'dashed', tone: 'muted', label: '50% EQ', labelSide: 'left' },
-            { x1: 42, x2: 92, y1: 31, y2: 31, style: 'dotted', tone: 'gold', label: '70.5% SWEET SPOT', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 15, low: 2650.0, high: 2660.0, tone: 'premium', label: 'PREMIUM · NO BUY', labelPos: 'tl' },
+            { fromIdx: 0, toIdx: 15, low: 2640.0, high: 2650.0, tone: 'discount', label: 'DISCOUNT', labelPos: 'br' },
+            { fromIdx: 5, toIdx: 15, low: 2644.3, high: 2647.6, tone: 'gold', label: 'OTE 61.8%–78.6%', labelPos: 'tl', labelFront: true }
           ],
-          candles: [
-            [18, 16, 34, 12, 32], [28, 32, 62, 30, 60], [38, 60, 88, 58, 86],
-            [48, 86, 87, 62, 64], [58, 64, 66, 44, 46], [68, 46, 48, 28, 32, 'gold'],
-            [78, 32, 68, 30, 66, 'bull'], [88, 66, 94, 64, 92, 'bull']
+          seriesLevels: [
+            { price: 2650.0, tone: 'muted', style: 'dashed', label: '50% EQ 2.650,0', labelSide: 'left' },
+            { price: 2645.9, fromIdx: 5, tone: 'gold', style: 'dotted', label: '70.5% SWEET SPOT 2.645,9', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 10, which: 'low', tone: 'gold' }
           ]
         },
         {
-          label: 'Zona Sell (Premium + OTE)',
-          caption: 'Sebaliknya saat Downtrend, tunggu pullback naik melewati 50% EQ masuk ke zona OTE Premium (61.8%–78.6%) sebelum menekan tombol Sell.',
-          zones: [
-            { x1: 14, x2: 92, y1: 50, y2: 88, tone: 'premium', label: 'PREMIUM · AREA SELL', labelPos: 'tr' },
-            { x1: 42, x2: 92, y1: 62, y2: 76, tone: 'gold', label: 'OTE SELL (61.8%–78.6%)', labelPos: 'tr' },
-            { x1: 14, x2: 92, y1: 12, y2: 50, tone: 'discount', label: 'DISCOUNT · NO SELL', labelPos: 'tr' }
+          label: '2. Zona Sell (Premium + OTE)',
+          caption: 'Saat Downtrend ($2,660→$2,640), tunggu pullback naik melewati 50% EQ ($2,650) masuk ke zona OTE Premium (61.8%–78.6%, sweet spot 70.5% di $2,654.1) sebelum eksekusi Sell.',
+          series: [
+            { o: 2658.8, h: 2660.0, l: 2656.2, c: 2656.6 },
+            { o: 2656.6, h: 2657.0, l: 2652.2, c: 2652.6 },
+            { o: 2652.6, h: 2653.0, l: 2647.8, c: 2648.2 },
+            { o: 2648.2, h: 2648.6, l: 2643.6, c: 2644.2 },
+            { o: 2644.2, h: 2644.6, l: 2640.0, c: 2640.8 },
+            { o: 2640.8, h: 2643.8, l: 2640.4, c: 2643.4 },
+            { o: 2643.4, h: 2646.2, l: 2642.8, c: 2645.8 },
+            { o: 2645.8, h: 2648.6, l: 2645.2, c: 2648.2 },
+            { o: 2648.2, h: 2651.0, l: 2647.8, c: 2650.6 },
+            { o: 2650.6, h: 2652.8, l: 2650.0, c: 2652.4 },
+            { o: 2652.4, h: 2654.1, l: 2651.8, c: 2652.6 },
+            { o: 2652.6, h: 2653.0, l: 2648.4, c: 2648.8 },
+            { o: 2648.8, h: 2649.2, l: 2644.6, c: 2645.0 },
+            { o: 2645.0, h: 2645.4, l: 2641.2, c: 2641.6 },
+            { o: 2641.6, h: 2642.0, l: 2638.6, c: 2639.0 },
+            { o: 2639.0, h: 2639.6, l: 2637.0, c: 2637.6 }
           ],
-          lines: [
-            { x1: 14, x2: 92, y1: 50, y2: 50, style: 'dashed', tone: 'muted', label: '50% EQ', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 15, low: 2650.0, high: 2660.0, tone: 'premium', label: 'PREMIUM · AREA SELL', labelPos: 'tr' },
+            { fromIdx: 5, toIdx: 15, low: 2652.4, high: 2655.7, tone: 'gold', label: 'OTE SELL 61.8%–78.6%', labelPos: 'bl', labelFront: true },
+            { fromIdx: 0, toIdx: 15, low: 2640.0, high: 2650.0, tone: 'discount', label: 'DISCOUNT · NO SELL', labelPos: 'bl' }
           ],
-          candles: [
-            [18, 84, 88, 62, 64], [28, 64, 66, 38, 40], [38, 40, 42, 12, 16],
-            [48, 16, 44, 14, 42], [58, 42, 58, 40, 56], [68, 56, 74, 54, 68, 'gold'],
-            [78, 68, 70, 34, 36, 'bear'], [88, 36, 38, 10, 14, 'bear']
+          seriesLevels: [
+            { price: 2650.0, tone: 'muted', style: 'dashed', label: '50% EQ 2.650,0', labelSide: 'left', labelPos: 'below' },
+            { price: 2654.1, fromIdx: 5, tone: 'gold', style: 'dotted', label: '70.5% SWEET SPOT 2.654,1', labelSide: 'right' }
+          ],
+          seriesWickRings: [
+            { idx: 10, which: 'high', tone: 'gold' }
           ]
         }
       ]
@@ -903,51 +1481,118 @@
     // ── LEVEL 4 (4 MODEL ENTRY SCALPER A+) ───────────────────────────────
     'model-sweep-fvg': {
       title: 'Model 1 (Core): Liquidity Sweep → MSS/CISD → FVG Entry',
-      pairTag: 'XAU/USD · MODEL #1 CORE',
-      priceLabels: ['2.665', '2.650', '2.642'],
+      pairTag: 'XAU/USD · M5 · MODEL #1 CORE',
+      priceLabels: ['2.660', '2.650', '2.641'],
       stages: [
         {
           label: '1. Sweep SSL',
-          caption: 'Tahap 1: Harga sweep Liquidity Pool SSL (Asia Low / PDL) dengan wick tajam di dalam jam Killzone WITA. Belum entry — baru siaga!',
-          lines: [
-            { x1: 10, x2: 90, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'SSL (ASIA LOW)', labelSide: 'right' },
-            { x1: 24, x2: 72, y1: 54, y2: 54, style: 'dotted', tone: 'muted', label: 'SWING HIGH (MSS)', labelSide: 'right' }
+          caption: 'Tahap 1: Harga menyapu Liquidity Pool SSL (Asia Low $2,644.0 → $2,641.2) dengan wick tajam di dalam Killzone WITA lalu tutup kembali di atas level. Belum entry — baru siaga!',
+          seriesSlots: 16,
+          series: [
+            { o: 2647.8, h: 2648.6, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2647.4, l: 2644.6, c: 2647.0 },
+            { o: 2647.0, h: 2648.4, l: 2646.4, c: 2648.0 },
+            { o: 2648.0, h: 2648.2, l: 2645.0, c: 2645.6 },
+            { o: 2645.6, h: 2646.2, l: 2644.2, c: 2644.6 },
+            { o: 2644.6, h: 2645.8, l: 2644.0, c: 2645.4 },
+            { o: 2645.4, h: 2645.6, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2645.4, l: 2641.2, c: 2645.0 }
           ],
-          candles: [
-            [16, 46, 54, 32, 34], [26, 34, 54, 32, 50], [36, 50, 52, 34, 36],
-            [46, 36, 42, 14, 34, 'sweep']
+          seriesLevels: [
+            { price: 2648.4, fromIdx: 2, toIdx: 14, tone: 'muted', style: 'dotted', label: 'SWING HIGH (MSS) 2.648,4', labelSide: 'right' },
+            { price: 2644.0, toIdx: 14, tone: 'sweep', style: 'dashed', label: 'SSL (ASIA LOW) 2.644,0', labelSide: 'right', labelPos: 'below' }
           ],
-          callouts: [{ x: 46, y: 7, text: '1. SWEEP SSL ✓', tone: 'sweep' }]
+          seriesWickRings: [
+            { idx: 7, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 11.4, price: 2641.2, text: '1. SWEEP SSL ✓ · Tunggu MSS', tone: 'sweep' }
+          ]
         },
         {
           label: '2. Displacement & MSS + FVG',
-          caption: 'Tahap 2: Muncul candle dorongan kuat (Displacement) yang mematahkan Swing High (MSS) dan mencetak kotak FVG bersih di bawah 50%.',
-          zones: [{ x1: 50, x2: 90, y1: 38, y2: 50, tone: 'fvg', label: 'FVG ENTRY ZONE', labelPos: 'tr' }],
-          lines: [
-            { x1: 10, x2: 56, y1: 30, y2: 30, style: 'dashed', tone: 'sweep', label: 'SSL', labelSide: 'left' },
-            { x1: 24, x2: 88, y1: 54, y2: 54, style: 'solid', tone: 'bull', label: '2. MSS VALID ✓', labelSide: 'right' }
+          caption: 'Tahap 2: Muncul candle dorongan kuat (Displacement) yang mematahkan Swing High ($2,648.4 → MSS Valid) sambil mencetak kotak FVG bersih ($2,646.2–$2,649.4) di area Discount.',
+          seriesSlots: 16,
+          series: [
+            { o: 2647.8, h: 2648.6, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2647.4, l: 2644.6, c: 2647.0 },
+            { o: 2647.0, h: 2648.4, l: 2646.4, c: 2648.0 },
+            { o: 2648.0, h: 2648.2, l: 2645.0, c: 2645.6 },
+            { o: 2645.6, h: 2646.2, l: 2644.2, c: 2644.6 },
+            { o: 2644.6, h: 2645.8, l: 2644.0, c: 2645.4 },
+            { o: 2645.4, h: 2645.6, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2645.4, l: 2641.2, c: 2645.0 },
+            { o: 2645.0, h: 2646.2, l: 2644.6, c: 2645.8 },
+            { o: 2645.8, h: 2652.2, l: 2645.6, c: 2651.6 },
+            { o: 2651.6, h: 2654.4, l: 2649.4, c: 2653.8 }
           ],
-          candles: [
-            [16, 46, 54, 32, 34], [26, 34, 54, 32, 50], [36, 50, 52, 34, 36],
-            [46, 36, 42, 14, 38], [56, 38, 72, 36, 68, 'bull'], [66, 68, 76, 50, 72]
+          autoFvgs: [
+            {
+              c1Idx: 8,
+              c3Idx: 10,
+              type: 'bull',
+              extendToIdx: 15,
+              showCE: true,
+              showWickMarkers: true,
+              label: 'FVG ENTRY',
+              ceLabel: '50% CE · 2647.8'
+            }
+          ],
+          seriesLevels: [
+            { price: 2648.4, fromIdx: 2, toIdx: 11, tone: 'bull', style: 'solid', label: '2. MSS VALID ✓', labelSide: 'left' },
+            { price: 2644.0, toIdx: 8, tone: 'sweep', style: 'dashed', label: 'SSL 2.644,0', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 7, which: 'low', tone: 'sweep' }
           ]
         },
         {
           label: '3. Retrace Entry + SL/TP',
-          caption: 'Tahap 3: Limit Buy di atas/50% CE FVG, SL di bawah wick sweep (+napas spread), TP membidik BSL atas minimal 1:2 R:R.',
-          zones: [
-            { x1: 50, x2: 92, y1: 38, y2: 50, tone: 'fvg', label: 'FVG', labelPos: 'tl' },
-            { x1: 72, x2: 92, y1: 44, y2: 88, tone: 'tp', label: 'TP BSL (+2.5R)', labelPos: 'tr' },
-            { x1: 72, x2: 92, y1: 12, y2: 44, tone: 'sl', label: 'SL (-1R)', labelPos: 'tr' }
+          caption: 'Tahap 3: Buy Limit di 50% CE FVG ($2,647.8), SL struktural di bawah wick sweep ($2,640.6 + napas spread), TP membidik BSL atas ($2,660.0) minimal 1:2 R:R.',
+          seriesSlots: 16,
+          series: [
+            { o: 2647.8, h: 2648.6, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2647.4, l: 2644.6, c: 2647.0 },
+            { o: 2647.0, h: 2648.4, l: 2646.4, c: 2648.0 },
+            { o: 2648.0, h: 2648.2, l: 2645.0, c: 2645.6 },
+            { o: 2645.6, h: 2646.2, l: 2644.2, c: 2644.6 },
+            { o: 2644.6, h: 2645.8, l: 2644.0, c: 2645.4 },
+            { o: 2645.4, h: 2645.6, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2645.4, l: 2641.2, c: 2645.0 },
+            { o: 2645.0, h: 2646.2, l: 2644.6, c: 2645.8 },
+            { o: 2645.8, h: 2652.2, l: 2645.6, c: 2651.6 },
+            { o: 2651.6, h: 2654.4, l: 2649.4, c: 2653.8 },
+            { o: 2653.8, h: 2654.0, l: 2650.4, c: 2650.8 },
+            { o: 2650.8, h: 2651.2, l: 2647.6, c: 2650.2 },
+            { o: 2650.2, h: 2654.8, l: 2649.8, c: 2654.2 },
+            { o: 2654.2, h: 2657.8, l: 2653.6, c: 2657.2 },
+            { o: 2657.2, h: 2660.6, l: 2656.6, c: 2660.0 }
           ],
-          lines: [
-            { x1: 24, x2: 72, y1: 54, y2: 54, style: 'dashed', tone: 'bull', label: 'MSS', labelSide: 'left' },
-            { x1: 50, x2: 92, y1: 44, y2: 44, style: 'solid', tone: 'gold', label: 'ENTRY 50% CE', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 12, toIdx: 15, low: 2647.8, high: 2660.0, tone: 'tp', label: 'TP BSL (+2.5R)', labelPos: 'tl', labelFront: true },
+            { fromIdx: 12, toIdx: 15, low: 2640.6, high: 2647.8, tone: 'sl', label: 'SL (-1R)', labelPos: 'br', labelFront: true }
           ],
-          candles: [
-            [16, 46, 54, 32, 34], [26, 34, 54, 32, 50], [36, 50, 52, 34, 36],
-            [46, 36, 42, 14, 38], [56, 38, 72, 36, 68, 'bull'], [64, 68, 74, 50, 70],
-            [74, 70, 72, 42, 48, 'gold'], [82, 48, 76, 46, 74, 'bull'], [90, 74, 92, 72, 90, 'bull']
+          autoFvgs: [
+            {
+              c1Idx: 8,
+              c3Idx: 10,
+              type: 'bull',
+              extendToIdx: 12,
+              showCE: true,
+              showWickMarkers: false,
+              label: 'FVG',
+              labelSide: 'left'
+            }
+          ],
+          seriesLevels: [
+            { price: 2660.0, fromIdx: 6, tone: 'bull', style: 'dashed', label: 'BSL 2.660,0', labelSide: 'left' },
+            { price: 2640.6, fromIdx: 7, toIdx: 15, tone: 'bear', style: 'solid', label: 'SL 2.640,6', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 12, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 4.2, price: 2655.6, text: 'Entry 50% CE · 2.647,8', tone: 'gold' }
           ]
         }
       ]
@@ -994,77 +1639,211 @@
     },
 
     'model-ifvg-flip': {
-      title: 'Model 3: Inversion Fair Value Gap (IFVG) — Senjata Cepat M1/M5',
-      pairTag: 'XAU/USD · MODEL #3 IFVG',
-      priceLabels: ['Target', 'IFVG', 'SSL'],
+      title: 'Inversion Fair Value Gap (iFVG) — Pembalikan Kutub M1/M5',
+      pairTag: 'XAU/USD · M5 · IFVG FLIP',
+      priceLabels: ['Target', 'iFVG', 'SSL'],
       stages: [
         {
           label: '1. Bearish FVG Gagal',
-          caption: 'Harga turun sweep SSL sambil mencetak Bearish FVG. Normalnya Bearish FVG menahan harga turun — tetapi kali ini buyer justru membalas keras!',
-          zones: [{ x1: 24, x2: 88, y1: 40, y2: 56, tone: 'danger', label: 'BEARISH FVG LAMA', labelPos: 'tr' }],
-          lines: [{ x1: 10, x2: 52, y1: 24, y2: 24, style: 'dashed', tone: 'sweep', label: 'SSL SWEEP', labelSide: 'left' }],
-          candles: [
-            [16, 70, 74, 56, 58], [26, 58, 60, 30, 32, 'bear'], [36, 32, 40, 14, 22, 'sweep'],
-            [46, 22, 46, 20, 42, 'bull']
+          caption: 'Harga turun mencetak Bearish FVG ($2,648.2–$2,651.2) lalu menyapu SSL ($2,644.0). Normalnya kotak merah menahan harga turun, tetapi buyer justru membalas keras masuk kembali ke celah tersebut.',
+          seriesSlots: 15,
+          series: [
+            { o: 2653.8, h: 2654.4, l: 2652.6, c: 2653.0 },
+            { o: 2653.0, h: 2653.4, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2651.9, l: 2646.8, c: 2647.2 },
+            { o: 2647.2, h: 2648.2, l: 2645.4, c: 2645.8 },
+            { o: 2645.8, h: 2646.4, l: 2644.4, c: 2644.8 },
+            { o: 2644.8, h: 2645.6, l: 2641.6, c: 2644.9 },
+            { o: 2644.9, h: 2647.8, l: 2644.6, c: 2647.4 },
+            { o: 2647.4, h: 2649.8, l: 2647.0, c: 2649.2 }
+          ],
+          autoFvgs: [
+            {
+              c1Idx: 1,
+              c3Idx: 3,
+              type: 'bear',
+              extendToIdx: 14,
+              showCE: false,
+              showWickMarkers: true,
+              label: 'BEARISH FVG LAMA (SIBI)'
+            }
+          ],
+          seriesLevels: [
+            { price: 2644.0, toIdx: 7, tone: 'sweep', style: 'dashed', label: 'SSL SWEEP 2.644,0', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 5, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 10.6, price: 2644.2, text: 'Buyer balas masuk ke kotak merah', tone: 'gold' }
           ]
         },
         {
-          label: '2. Body Close Tembus → IFVG!',
-          caption: 'Body candle bullish menutup TEGAS DI ATAS Bearish FVG. Seketika kotak merah berbalik fungsi menjadi Bullish IFVG (lantai peluncuran).',
-          zones: [{ x1: 24, x2: 90, y1: 40, y2: 56, tone: 'fvg', label: 'BULLISH IFVG (FLIPPED!)', labelPos: 'tr' }],
-          lines: [{ x1: 48, x2: 90, y1: 56, y2: 56, style: 'solid', tone: 'bull', label: 'BODY CLOSE DI ATAS ✓', labelSide: 'right' }],
-          candles: [
-            [16, 70, 74, 56, 58], [26, 58, 60, 30, 32, 'bear'], [36, 32, 40, 14, 22, 'sweep'],
-            [46, 22, 46, 20, 42, 'bull'], [56, 42, 68, 40, 64, 'bull']
+          label: '2. Body Close Tembus → iFVG!',
+          caption: 'Candle bullish menutup Body TEGAS DI ATAS batas atas Bearish FVG ($2,651.2). Seketika kotak merah berbalik kutub menjadi Bullish iFVG (+iFVG) sebagai lantai peluncuran.',
+          seriesSlots: 15,
+          series: [
+            { o: 2653.8, h: 2654.4, l: 2652.6, c: 2653.0 },
+            { o: 2653.0, h: 2653.4, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2651.9, l: 2646.8, c: 2647.2 },
+            { o: 2647.2, h: 2648.2, l: 2645.4, c: 2645.8 },
+            { o: 2645.8, h: 2646.4, l: 2644.4, c: 2644.8 },
+            { o: 2644.8, h: 2645.6, l: 2641.6, c: 2644.9 },
+            { o: 2644.9, h: 2647.8, l: 2644.6, c: 2647.4 },
+            { o: 2647.4, h: 2649.8, l: 2647.0, c: 2649.2 },
+            { o: 2649.2, h: 2652.4, l: 2648.8, c: 2651.8 },
+            { o: 2651.8, h: 2654.4, l: 2651.4, c: 2653.8 }
+          ],
+          autoFvgs: [
+            {
+              c1Idx: 1,
+              c3Idx: 3,
+              type: 'bear',
+              tone: 'fvg',
+              extendToIdx: 14,
+              showCE: false,
+              showWickMarkers: true,
+              label: 'BULLISH iFVG (FLIPPED!)'
+            }
+          ],
+          seriesLevels: [
+            { price: 2651.2, fromIdx: 7, tone: 'bull', style: 'solid', label: 'BODY CLOSE DI ATAS ✓', labelSide: 'right' },
+            { price: 2644.0, toIdx: 7, tone: 'sweep', style: 'dashed', label: 'SSL SWEPT', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 5, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 11.0, price: 2644.2, text: 'Kutub berbalik: Resist → Support iFVG', tone: 'bull' }
           ]
         },
         {
-          label: '3. Retest Kotak IFVG → Terbang',
-          caption: 'Entry Buy saat retest ke sisi atas kotak IFVG (atau langsung saat close jika momentum tinggi), SL di bawah kotak/swing low, TP ke BSL.',
-          zones: [
-            { x1: 24, x2: 90, y1: 40, y2: 56, tone: 'fvg', label: 'IFVG SUPPORT', labelPos: 'tl' },
-            { x1: 68, x2: 92, y1: 56, y2: 90, tone: 'tp', label: 'TP BSL (+2.5R)', labelPos: 'tr' }
+          label: '3. Retest Kotak iFVG → Terbang',
+          caption: 'Pullback menyentuh kotak +iFVG ($2,649.7) dengan body tetap bertahan di atas $2,651.2 — sinyal entry Buy presisi dengan SL di bawah kotak/swing low menuju TP BSL ($2,659.5).',
+          seriesSlots: 15,
+          series: [
+            { o: 2653.8, h: 2654.4, l: 2652.6, c: 2653.0 },
+            { o: 2653.0, h: 2653.4, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2651.9, l: 2646.8, c: 2647.2 },
+            { o: 2647.2, h: 2648.2, l: 2645.4, c: 2645.8 },
+            { o: 2645.8, h: 2646.4, l: 2644.4, c: 2644.8 },
+            { o: 2644.8, h: 2645.6, l: 2641.6, c: 2644.9 },
+            { o: 2644.9, h: 2647.8, l: 2644.6, c: 2647.4 },
+            { o: 2647.4, h: 2649.8, l: 2647.0, c: 2649.2 },
+            { o: 2649.2, h: 2652.4, l: 2648.8, c: 2651.8 },
+            { o: 2651.8, h: 2654.4, l: 2651.4, c: 2653.8 },
+            { o: 2653.8, h: 2654.2, l: 2651.6, c: 2652.0 },
+            { o: 2652.0, h: 2652.6, l: 2649.7, c: 2651.7 },
+            { o: 2651.7, h: 2655.0, l: 2651.5, c: 2654.6 },
+            { o: 2654.6, h: 2657.6, l: 2654.2, c: 2657.2 },
+            { o: 2657.2, h: 2659.8, l: 2656.8, c: 2659.2 }
           ],
-          candles: [
-            [16, 70, 74, 56, 58], [26, 58, 60, 30, 32], [36, 32, 40, 14, 22],
-            [46, 22, 46, 20, 42, 'bull'], [56, 42, 68, 40, 64, 'bull'],
-            [68, 64, 66, 48, 56, 'gold'], [78, 56, 82, 54, 80, 'bull'], [88, 80, 94, 78, 92, 'bull']
+          seriesZones: [
+            { fromIdx: 11, toIdx: 14.3, low: 2651.2, high: 2659.5, tone: 'tp', label: 'TP BSL (+2.5R)', labelPos: 'tl' }
           ],
-          callouts: [{ x: 68, y: 30, text: 'Retest IFVG = Entry Instan', tone: 'gold' }]
+          autoFvgs: [
+            {
+              c1Idx: 1,
+              c3Idx: 3,
+              type: 'bear',
+              tone: 'fvg',
+              extendToIdx: 14,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'iFVG SUPPORT'
+            }
+          ],
+          seriesLevels: [
+            { price: 2659.5, fromIdx: 7, tone: 'bull', style: 'dashed', label: 'BSL 2.659,5', labelSide: 'left' },
+            { price: 2644.0, toIdx: 7, tone: 'muted', style: 'dotted', label: 'SSL 2.644,0', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 11, which: 'low', tone: 'gold' }
+          ],
+          seriesArrows: [
+            { fromIdx: 11.4, fromPrice: 2652.2, toIdx: 14.0, toPrice: 2658.4, tone: 'bull', label: 'Entry → TP', labelDx: -18, labelDy: -10 }
+          ],
+          seriesCallouts: [
+            { idx: 11.0, price: 2644.2, text: 'Retest iFVG → Entry Instan', tone: 'gold' }
+          ]
         }
       ]
     },
 
     'model-turtle-soup': {
       title: 'Model Alternatif: Turtle Soup & Smart Money Reversal (SMR)',
-      pairTag: 'XAU/USD · SMR REVERSAL',
+      pairTag: 'XAU/USD · M5 · SMR REVERSAL',
       priceLabels: ['PDH/BSL', 'CISD', 'Target'],
       stages: [
         {
           label: '1. Jebakan False Breakout',
-          caption: 'Harga sengaja mendorong naik menembus PDH/Asia High di pembukaan Killzone agar trader breakout terperangkap Buy tepat di puncak.',
-          lines: [{ x1: 10, x2: 92, y1: 70, y2: 70, style: 'dashed', tone: 'sweep', label: 'PDH / BSL (TRAP)', labelSide: 'left' }],
-          candles: [
-            [16, 44, 68, 42, 64], [26, 64, 66, 52, 56], [36, 56, 70, 54, 68],
-            [46, 68, 88, 64, 66, 'sweep']
+          caption: 'Harga sengaja mendorong naik menyapu PDH / Asia High ($2,658.0 → $2,661.4) di pembukaan Killzone lalu tutup kembali di bawah garis, menjebak buyer breakout di puncak.',
+          seriesSlots: 15,
+          series: [
+            { o: 2651.2, h: 2653.6, l: 2650.8, c: 2653.0 },
+            { o: 2653.0, h: 2655.6, l: 2652.6, c: 2655.2 },
+            { o: 2655.2, h: 2657.6, l: 2654.8, c: 2657.0 },
+            { o: 2657.0, h: 2657.8, l: 2654.4, c: 2655.0 },
+            { o: 2655.0, h: 2656.4, l: 2654.0, c: 2656.0 },
+            { o: 2656.0, h: 2658.0, l: 2655.6, c: 2657.6 },
+            { o: 2657.6, h: 2661.4, l: 2657.0, c: 2657.4 },
+            { o: 2657.4, h: 2658.2, l: 2655.6, c: 2656.0 }
           ],
-          callouts: [{ x: 46, y: 94, text: 'Turtle Soup Sweep di Atas PDH!', tone: 'sweep' }]
+          seriesLevels: [
+            { price: 2658.0, toIdx: 14, tone: 'sweep', style: 'dashed', label: 'PDH / BSL (TRAP) 2.658,0', labelSide: 'right' },
+            { price: 2654.0, fromIdx: 3, toIdx: 14, tone: 'muted', style: 'dotted', label: 'BATAS CISD 2.654,0', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'high', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 10.6, price: 2661.2, text: 'Turtle Soup Sweep di Atas PDH!', tone: 'sweep' }
+          ]
         },
         {
           label: '2. Rejection + CISD / M1 Shift',
-          caption: 'Setelah sweep, harga langsung banting masuk kembali di bawah PDH dan mematahkan CISD M1/M5. Entry Sell di retest dengan SL di atas puncak sweep.',
-          zones: [
-            { x1: 64, x2: 92, y1: 66, y2: 90, tone: 'sl', label: 'SL DI ATAS WICK', labelPos: 'tr' },
-            { x1: 64, x2: 92, y1: 14, y2: 66, tone: 'tp', label: 'TP OPPOSING SSL (+3R)', labelPos: 'tr' }
+          caption: 'Pasca sweep, harga banting menembus CISD ($2,654.0) sambil meninggalkan SIBI ($2,652.8–$2,655.6). Entry Sell saat retest dengan SL di atas puncak sweep menuju Opposing SSL (+3R).',
+          seriesSlots: 15,
+          series: [
+            { o: 2651.2, h: 2653.6, l: 2650.8, c: 2653.0 },
+            { o: 2653.0, h: 2655.6, l: 2652.6, c: 2655.2 },
+            { o: 2655.2, h: 2657.6, l: 2654.8, c: 2657.0 },
+            { o: 2657.0, h: 2657.8, l: 2654.4, c: 2655.0 },
+            { o: 2655.0, h: 2656.4, l: 2654.0, c: 2656.0 },
+            { o: 2656.0, h: 2658.0, l: 2655.6, c: 2657.6 },
+            { o: 2657.6, h: 2661.4, l: 2657.0, c: 2657.4 },
+            { o: 2657.4, h: 2658.2, l: 2655.6, c: 2656.0 },
+            { o: 2656.0, h: 2656.4, l: 2650.6, c: 2651.2 },
+            { o: 2651.2, h: 2652.8, l: 2649.2, c: 2649.8 },
+            { o: 2649.8, h: 2654.6, l: 2649.4, c: 2653.0 },
+            { o: 2653.0, h: 2653.4, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2649.8, l: 2646.4, c: 2647.0 },
+            { o: 2647.0, h: 2647.6, l: 2644.8, c: 2645.4 },
+            { o: 2645.4, h: 2646.0, l: 2643.2, c: 2643.8 }
           ],
-          lines: [
-            { x1: 10, x2: 64, y1: 70, y2: 70, style: 'dashed', tone: 'sweep', label: 'PDH', labelSide: 'left' },
-            { x1: 36, x2: 92, y1: 56, y2: 56, style: 'solid', tone: 'bear', label: 'CISD / SMR SHIFT', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 10, toIdx: 14, low: 2654.6, high: 2662.0, tone: 'sl', label: 'SL DI ATAS WICK', labelPos: 'tr', labelFront: true },
+            { fromIdx: 10, toIdx: 14, low: 2643.6, high: 2654.6, tone: 'tp', label: 'TP SSL (+3R)', labelPos: 'bl', labelFront: true }
           ],
-          candles: [
-            [16, 44, 68, 42, 64], [26, 64, 66, 52, 56], [36, 56, 70, 54, 68],
-            [46, 68, 88, 64, 66, 'sweep'], [56, 66, 68, 46, 48, 'bear'],
-            [66, 48, 66, 46, 62, 'gold'], [76, 62, 64, 30, 32, 'bear'], [86, 32, 34, 14, 16, 'bear']
+          autoFvgs: [
+            {
+              c1Idx: 7,
+              c3Idx: 9,
+              type: 'bear',
+              extendToIdx: 10.2,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'SIBI',
+              labelSide: 'right'
+            }
+          ],
+          seriesLevels: [
+            { price: 2658.0, toIdx: 8, tone: 'sweep', style: 'dashed', label: 'PDH 2.658,0', labelSide: 'left' },
+            { price: 2654.0, fromIdx: 0, toIdx: 9.5, tone: 'bear', style: 'solid', label: 'CISD / SMR SHIFT', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'high', tone: 'sweep' },
+            { idx: 10, which: 'high', tone: 'gold' }
           ]
         }
       ]
@@ -1107,39 +1886,87 @@
         {
           label: '1. Accumulation (Asia)',
           caption: 'Babak 1 (08:00–12:00 WITA): Harga bergerak rapat di sekitar Daily Open membangun Liquidity Pool atas & bawah.',
-          zones: [{ x1: 10, x2: 40, y1: 38, y2: 54, tone: 'asia', label: 'A · ACCUMULATION', labelPos: 'tl' }],
-          lines: [{ x1: 8, x2: 94, y1: 46, y2: 46, style: 'dashed', tone: 'gold', label: 'DAILY OPEN', labelSide: 'right' }],
-          candles: [
-            [14, 46, 52, 42, 50], [21, 50, 54, 40, 42], [28, 42, 51, 39, 48], [35, 48, 53, 41, 45]
+          seriesSlots: 16,
+          series: [
+            { o: 2650.0, h: 2651.5, l: 2649.4, c: 2651.0 },
+            { o: 2651.0, h: 2651.4, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.3, l: 2648.8, c: 2650.8 },
+            { o: 2650.8, h: 2651.2, l: 2648.8, c: 2649.4 },
+            { o: 2649.4, h: 2651.1, l: 2649.0, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2648.6, c: 2649.6 }
+          ],
+          seriesZones: [
+            { fromIdx: 0, toIdx: 5, low: 2648.4, high: 2653.0, tone: 'asia', label: 'A · ACCUMULATION (ASIA)', labelPos: 'tl', labelFront: true }
+          ],
+          seriesLevels: [
+            { price: 2650.0, tone: 'gold', style: 'dashed', label: 'NY MIDNIGHT OPEN 2.650,0', labelSide: 'right', labelPos: 'above' }
+          ],
+          seriesCallouts: [
+            { idx: 10.2, price: 2646.6, text: 'Sesi Asia: Bangun Liquidity Pool Atas & Bawah', tone: 'asia' }
           ]
         },
         {
           label: '2. Manipulation (Judas Swing)',
           caption: 'Babak 2 (Awal London/NY): Harga sengaja dibanting turun DI BAWAH Daily Open sweep Asia Low untuk menipu seller breakout.',
-          zones: [
-            { x1: 10, x2: 40, y1: 38, y2: 54, tone: 'asia', label: 'A · ASIA', labelPos: 'tl' },
-            { x1: 41, x2: 60, y1: 14, y2: 46, tone: 'sweep', label: 'M · JUDAS SWING', labelPos: 'tl' }
+          seriesSlots: 16,
+          series: [
+            { o: 2650.0, h: 2651.5, l: 2649.4, c: 2651.0 },
+            { o: 2651.0, h: 2651.4, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.3, l: 2648.8, c: 2650.8 },
+            { o: 2650.8, h: 2651.2, l: 2648.8, c: 2649.4 },
+            { o: 2649.4, h: 2651.1, l: 2649.0, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2648.6, c: 2649.6 },
+            { o: 2649.6, h: 2650.0, l: 2646.6, c: 2647.2 },
+            { o: 2647.2, h: 2647.6, l: 2644.2, c: 2644.8 },
+            { o: 2644.8, h: 2647.0, l: 2642.4, c: 2646.4 },
+            { o: 2646.4, h: 2648.8, l: 2645.8, c: 2648.4 }
           ],
-          lines: [{ x1: 8, x2: 94, y1: 46, y2: 46, style: 'dashed', tone: 'gold', label: 'DAILY OPEN', labelSide: 'right' }],
-          candles: [
-            [14, 46, 52, 42, 50], [21, 50, 54, 40, 42], [28, 42, 51, 39, 48], [35, 48, 53, 41, 45],
-            [45, 45, 47, 26, 28, 'bear'], [54, 28, 34, 16, 30, 'sweep']
+          seriesZones: [
+            { fromIdx: 0, toIdx: 5, low: 2648.4, high: 2653.0, tone: 'asia', label: 'A · ASIA', labelPos: 'tl', labelFront: true },
+            { fromIdx: 6, toIdx: 9, low: 2642.0, high: 2650.0, tone: 'sweep', label: 'M · JUDAS', labelPos: 'bl', labelFront: true }
           ],
-          callouts: [{ x: 54, y: 8, text: 'Buy Terbaik: DI BAWAH Daily Open!', tone: 'gold' }]
+          seriesLevels: [
+            { price: 2650.0, tone: 'gold', style: 'dashed', label: 'NY MIDNIGHT OPEN 2.650,0', labelSide: 'right', labelPos: 'above' }
+          ],
+          seriesWickRings: [
+            { idx: 8, which: 'low', tone: 'ink' }
+          ],
+          seriesCallouts: [
+            { idx: 9.8, price: 2640.4, text: 'Buy Terbaik: DI BAWAH Daily Open (Discount)!', tone: 'gold' }
+          ]
         },
         {
           label: '3. Distribution (Ekspansi Asli)',
           caption: 'Babak 3 (London/NY): Setelah manipulasi penuh, harga melesat naik menembus Daily Open dan Asia High menuju target harian.',
-          zones: [
-            { x1: 10, x2: 40, y1: 38, y2: 54, tone: 'asia', label: 'A', labelPos: 'tl' },
-            { x1: 41, x2: 58, y1: 14, y2: 46, tone: 'sweep', label: 'M', labelPos: 'tl' },
-            { x1: 59, x2: 94, y1: 46, y2: 92, tone: 'tp', label: 'D · DISTRIBUTION', labelPos: 'tr' }
+          seriesSlots: 16,
+          series: [
+            { o: 2650.0, h: 2651.5, l: 2649.4, c: 2651.0 },
+            { o: 2651.0, h: 2651.4, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.3, l: 2648.8, c: 2650.8 },
+            { o: 2650.8, h: 2651.2, l: 2648.8, c: 2649.4 },
+            { o: 2649.4, h: 2651.1, l: 2649.0, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2648.6, c: 2649.6 },
+            { o: 2649.6, h: 2650.0, l: 2646.6, c: 2647.2 },
+            { o: 2647.2, h: 2647.6, l: 2644.2, c: 2644.8 },
+            { o: 2644.8, h: 2647.0, l: 2642.4, c: 2646.4 },
+            { o: 2646.4, h: 2648.8, l: 2645.8, c: 2648.4 },
+            { o: 2648.4, h: 2654.4, l: 2648.0, c: 2653.8 },
+            { o: 2653.8, h: 2656.2, l: 2652.2, c: 2655.6 },
+            { o: 2655.6, h: 2656.0, l: 2653.2, c: 2654.2 },
+            { o: 2654.2, h: 2658.4, l: 2653.8, c: 2657.8 },
+            { o: 2657.8, h: 2661.0, l: 2657.2, c: 2660.4 },
+            { o: 2660.4, h: 2662.8, l: 2659.8, c: 2662.2 }
           ],
-          lines: [{ x1: 8, x2: 94, y1: 46, y2: 46, style: 'dashed', tone: 'gold', label: 'DAILY OPEN', labelSide: 'left' }],
-          candles: [
-            [14, 46, 52, 42, 50], [21, 50, 54, 40, 42], [28, 42, 51, 39, 48], [35, 48, 53, 41, 45],
-            [45, 45, 47, 26, 28], [54, 28, 34, 16, 32, 'gold'],
-            [64, 32, 60, 30, 58, 'bull'], [74, 58, 76, 56, 74, 'bull'], [84, 74, 92, 72, 90, 'bull']
+          seriesZones: [
+            { fromIdx: 0, toIdx: 5, low: 2648.4, high: 2654.6, tone: 'asia', label: 'A · ASIA', labelPos: 'tl', labelFront: true },
+            { fromIdx: 6, toIdx: 9, low: 2642.0, high: 2650.0, tone: 'sweep', label: 'M · JUDAS', labelPos: 'bl', labelFront: true },
+            { fromIdx: 10, toIdx: 15, low: 2650.0, high: 2663.4, tone: 'tp', label: 'D · DISTRIBUTION', labelPos: 'tl', labelFront: true }
+          ],
+          seriesLevels: [
+            { price: 2650.0, tone: 'gold', style: 'dashed', label: 'DAILY OPEN 2.650,0', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 8, which: 'low', tone: 'ink' }
           ]
         }
       ]
@@ -1155,9 +1982,9 @@
           caption: 'Hanya perlu 2–3 jam fokus per hari: London Killzone (15:00–18:00 WITA) atau New York Killzone (20:30–23:30 WITA).',
           bars: [
             { x1: 4, x2: 24, y1: 14, y2: 44, tone: 'asia', label: 'Asia (08-12)', sub: 'Tandai Range' },
-            { x1: 28, x2: 54, y1: 14, y2: 86, tone: 'killzone', label: 'London KZ', sub: '15:00–18:00 WITA' },
-            { x1: 58, x2: 68, y1: 14, y2: 32, tone: 'neutral', label: 'Lunch', sub: 'Istirahat' },
-            { x1: 72, x2: 96, y1: 14, y2: 94, tone: 'bull', label: 'NY KZ', sub: '20:30–23:30 WITA' }
+            { x1: 27, x2: 53, y1: 14, y2: 86, tone: 'killzone', label: 'London KZ', sub: '15:00–18:00 WITA' },
+            { x1: 56, x2: 70, y1: 14, y2: 38, tone: 'neutral', label: 'Lunch', sub: 'Istirahat' },
+            { x1: 73, x2: 96, y1: 14, y2: 94, tone: 'bull', label: 'NY KZ', sub: '20:30–23:30 WITA' }
           ]
         },
         {
@@ -1181,27 +2008,68 @@
         {
           label: 'Zona Bahaya (-15m s/d +30m)',
           caption: 'Saat rilis berita merah USD (20:30 / 21:30 WITA), harga Gold bisa whipsaw 2 arah sekaligus dan spread melebar 5×. Dilarang entry baru!',
-          zones: [{ x1: 30, x2: 72, y1: 10, y2: 92, tone: 'danger', label: 'NEWS LOCK (-15m / +30m)', labelPos: 'tl' }],
-          lines: [{ x1: 46, x2: 46, y1: 10, y2: 92, style: 'solid', tone: 'bear', label: 'T = 0 RILIS', labelSide: 'right' }],
-          candles: [
-            [14, 48, 54, 44, 52], [22, 52, 55, 47, 50],
-            [36, 50, 56, 46, 52], [46, 52, 90, 12, 48, 'bear'],
-            [58, 48, 76, 22, 62, 'sweep'], [68, 62, 66, 36, 40]
+          series: [
+            { o: 2650.2, h: 2651.8, l: 2649.6, c: 2651.2 },
+            { o: 2651.2, h: 2651.8, l: 2649.8, c: 2650.4 },
+            { o: 2650.4, h: 2652.0, l: 2649.8, c: 2651.4 },
+            { o: 2651.4, h: 2652.0, l: 2650.2, c: 2650.8 },
+            { o: 2650.8, h: 2652.2, l: 2650.2, c: 2651.6 },
+            { o: 2651.6, h: 2652.2, l: 2650.0, c: 2650.6 },
+            { o: 2650.6, h: 2652.0, l: 2649.8, c: 2651.2 },
+            { o: 2651.2, h: 2661.4, l: 2641.2, c: 2649.4 },
+            { o: 2649.4, h: 2657.8, l: 2644.6, c: 2654.2 },
+            { o: 2654.2, h: 2655.6, l: 2643.8, c: 2646.8 },
+            { o: 2646.8, h: 2653.4, l: 2645.4, c: 2651.4 },
+            { o: 2651.4, h: 2652.6, l: 2647.4, c: 2648.6 },
+            { o: 2648.6, h: 2650.4, l: 2648.0, c: 2649.6 },
+            { o: 2649.6, h: 2650.4, l: 2648.2, c: 2648.8 }
           ],
-          callouts: [{ x: 46, y: 6, text: 'Whipsaw 2 Arah → SL Buyer & Seller Kena Semua', tone: 'bear' }]
+          seriesZones: [
+            { fromIdx: 5, toIdx: 11, low: 2640.4, high: 2663.2, tone: 'danger', label: 'NEWS LOCK (-15m / +30m)', labelPos: 'tr', labelFront: true }
+          ],
+          seriesVLines: [
+            { idx: 7, tone: 'bear', style: 'dashed', label: 'T = 0 RILIS', labelPos: 'top' }
+          ],
+          seriesWickRings: [
+            { idx: 7, which: 'high', tone: 'bear' },
+            { idx: 7, which: 'low', tone: 'bear' }
+          ],
+          seriesCallouts: [
+            { idx: 7.0, price: 2637.8, text: 'Whipsaw 2 Arah + Spread 5× → SL Buyer & Seller Kena', tone: 'bear' }
+          ]
         },
         {
           label: 'Post-News Setup (+30m Aman)',
           caption: 'Tunggu 30 menit pasca rilis hingga spread kembali normal dan arah struktur M5 jelas. Gunakan FVG yang tercipta dari dorongan news sebagai tumpangan aman.',
-          zones: [
-            { x1: 16, x2: 50, y1: 10, y2: 92, tone: 'danger', label: 'LOCKED', labelPos: 'tl' },
-            { x1: 52, x2: 94, y1: 44, y2: 58, tone: 'fvg', label: 'POST-NEWS FVG AMAN', labelPos: 'tr' }
+          series: [
+            { o: 2647.4, h: 2649.0, l: 2646.8, c: 2648.4 },
+            { o: 2648.4, h: 2649.2, l: 2646.4, c: 2647.2 },
+            { o: 2647.2, h: 2648.8, l: 2646.6, c: 2648.0 },
+            { o: 2648.0, h: 2650.2, l: 2647.4, c: 2649.2 },
+            { o: 2649.2, h: 2656.6, l: 2644.6, c: 2655.6 },
+            { o: 2655.6, h: 2658.4, l: 2654.2, c: 2657.2 },
+            { o: 2657.2, h: 2658.0, l: 2655.0, c: 2655.8 },
+            { o: 2655.8, h: 2656.4, l: 2654.0, c: 2654.6 },
+            { o: 2654.6, h: 2655.0, l: 2652.4, c: 2653.0 },
+            { o: 2653.0, h: 2655.4, l: 2652.0, c: 2654.8 },
+            { o: 2654.8, h: 2658.0, l: 2654.4, c: 2657.4 },
+            { o: 2657.4, h: 2659.8, l: 2656.8, c: 2659.2 },
+            { o: 2659.2, h: 2659.8, l: 2657.8, c: 2658.4 },
+            { o: 2658.4, h: 2661.6, l: 2658.0, c: 2661.0 },
+            { o: 2661.0, h: 2663.2, l: 2660.4, c: 2662.6 }
           ],
-          candles: [
-            [24, 48, 52, 44, 46], [36, 46, 78, 22, 72, 'sweep'], [48, 72, 82, 58, 78],
-            [62, 78, 80, 48, 54, 'gold'], [74, 54, 84, 52, 82, 'bull'], [86, 82, 94, 80, 92, 'bull']
+          seriesZones: [
+            { fromIdx: 0, toIdx: 6, low: 2643.8, high: 2663.6, tone: 'danger', label: 'LOCKED (-15m/+30m)', labelPos: 'tl', labelFront: true }
           ],
-          callouts: [{ x: 74, y: 12, text: 'Spread Normal + Arah Jelas = Entry Berkualitas', tone: 'bull' }]
+          autoFvgs: [
+            { c1Idx: 3, c3Idx: 5, type: 'bull', showCE: true, label: 'POST-NEWS FVG AMAN', ceLabel: '50% CE', extendToIdx: 14, showWickMarkers: false }
+          ],
+          seriesWickRings: [
+            { idx: 9, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 10.6, price: 2646.2, text: 'Spread Normal + Arah Jelas = Entry Berkualitas', tone: 'bull' }
+          ]
         }
       ]
     },
@@ -1214,29 +2082,63 @@
         {
           label: 'Bias Bullish → DOL Atas',
           caption: 'Jika candle kemarin tutup kuat di atas High sebelumnya atau baru saja sweep PDL dan memantul keras, Draw on Liquidity (magnet harga) mengarah ke PDH.',
-          lines: [
-            { x1: 10, x2: 92, y1: 84, y2: 84, style: 'dashed', tone: 'gold', label: 'DOL TARGET: PDH', labelSide: 'right' },
-            { x1: 10, x2: 92, y1: 24, y2: 24, style: 'dashed', tone: 'sweep', label: 'PDL SWEPT ✓', labelSide: 'left' }
+          seriesSlots: 15,
+          series: [
+            { o: 2658.0, h: 2658.8, l: 2654.0, c: 2654.6 },
+            { o: 2654.6, h: 2655.2, l: 2649.8, c: 2650.4 },
+            { o: 2650.4, h: 2651.0, l: 2646.0, c: 2647.2 },
+            { o: 2647.2, h: 2650.2, l: 2642.8, c: 2649.6 },
+            { o: 2649.6, h: 2654.0, l: 2649.2, c: 2653.4 },
+            { o: 2653.4, h: 2656.2, l: 2652.8, c: 2655.6 },
+            { o: 2655.6, h: 2656.0, l: 2653.2, c: 2654.0 },
+            { o: 2654.0, h: 2657.4, l: 2653.6, c: 2656.8 },
+            { o: 2656.8, h: 2659.2, l: 2656.2, c: 2658.6 },
+            { o: 2658.6, h: 2659.0, l: 2656.8, c: 2657.4 },
+            { o: 2657.4, h: 2660.4, l: 2657.0, c: 2659.8 }
           ],
-          candles: [
-            [18, 58, 62, 24, 28], [30, 28, 42, 16, 38, 'sweep'],
-            [44, 38, 60, 36, 58, 'bull'], [58, 58, 72, 54, 68, 'bull']
+          seriesLevels: [
+            { price: 2664.0, tone: 'gold', style: 'dashed', label: 'DOL TARGET: PDH 2.664,0', labelSide: 'right', labelPos: 'above' },
+            { price: 2646.0, tone: 'sweep', style: 'dashed', label: 'PDL 2.646,0 SWEPT ✓', labelSide: 'right', labelPos: 'below' }
           ],
-          arrows: [{ x1: 60, y1: 68, x2: 86, y2: 84, tone: 'bull', label: 'Magnet ke PDH' }]
+          seriesWickRings: [
+            { idx: 3, which: 'low', tone: 'ink' }
+          ],
+          seriesArrows: [
+            { fromIdx: 10.6, fromPrice: 2659.8, toIdx: 14.0, toPrice: 2663.5, tone: 'bull', label: 'Magnet ke PDH', labelDx: -8, labelDy: 16 }
+          ],
+          seriesCallouts: [
+            { idx: 5.0, price: 2640.8, text: 'Sweep PDL + Tutup Kuat → Bias Bullish ke PDH', tone: 'bull' }
+          ]
         },
         {
           label: 'Netral / Inside Bar (No Bias)',
           caption: 'Jika harga terjebak di tengah range kemarin (Equilibrium) tanpa sweep PDH maupun PDL, jangan paksa menebak arah. Tunggu salah satu ujung di-sweep lebih dulu.',
-          zones: [{ x1: 24, x2: 86, y1: 34, y2: 68, tone: 'neutral', label: 'ZONA NETRAL / CHOP', labelPos: 'tr' }],
-          lines: [
-            { x1: 10, x2: 92, y1: 82, y2: 82, style: 'dotted', tone: 'muted', label: 'PDH', labelSide: 'right' },
-            { x1: 10, x2: 92, y1: 20, y2: 20, style: 'dotted', tone: 'muted', label: 'PDL', labelSide: 'right' }
+          series: [
+            { o: 2645.8, h: 2653.2, l: 2644.0, c: 2652.4 },
+            { o: 2652.4, h: 2662.0, l: 2651.8, c: 2660.6 },
+            { o: 2660.6, h: 2661.2, l: 2656.0, c: 2656.8 },
+            { o: 2656.8, h: 2657.4, l: 2651.8, c: 2652.6 },
+            { o: 2652.6, h: 2656.2, l: 2652.0, c: 2655.4 },
+            { o: 2655.4, h: 2656.0, l: 2650.4, c: 2651.2 },
+            { o: 2651.2, h: 2655.4, l: 2650.6, c: 2654.6 },
+            { o: 2654.6, h: 2655.2, l: 2649.6, c: 2650.4 },
+            { o: 2650.4, h: 2654.6, l: 2649.8, c: 2653.8 },
+            { o: 2653.8, h: 2654.4, l: 2650.8, c: 2651.6 },
+            { o: 2651.6, h: 2655.8, l: 2651.0, c: 2655.0 },
+            { o: 2655.0, h: 2655.6, l: 2651.2, c: 2652.0 },
+            { o: 2652.0, h: 2655.0, l: 2651.4, c: 2654.2 },
+            { o: 2654.2, h: 2654.8, l: 2651.8, c: 2652.8 }
           ],
-          candles: [
-            [16, 26, 82, 20, 76], [32, 74, 76, 42, 46], [46, 46, 66, 44, 62],
-            [60, 62, 64, 38, 42], [74, 42, 60, 40, 54]
+          seriesZones: [
+            { fromIdx: 3, toIdx: 13, low: 2648.8, high: 2658.2, tone: 'neutral', label: 'ZONA NETRAL / INSIDE CHOP', labelPos: 'tr', labelFront: true }
           ],
-          callouts: [{ x: 54, y: 10, text: 'Tunggu Sweep PDH atau PDL sebelum ambil posisi', tone: 'gold' }]
+          seriesLevels: [
+            { price: 2662.0, tone: 'muted', style: 'dotted', label: 'PDH 2.662,0 (Belum Tersentuh)', labelSide: 'right', labelPos: 'above' },
+            { price: 2644.0, tone: 'muted', style: 'dotted', label: 'PDL 2.644,0 (Belum Tersentuh)', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesCallouts: [
+            { idx: 8.0, price: 2646.4, text: 'Tunggu Sweep PDH atau PDL sebelum ambil posisi', tone: 'gold' }
+          ]
         }
       ]
     },
@@ -1297,73 +2199,165 @@
 
     'sl-tp-engineering': {
       title: 'Rekayasa SL Struktural (+Napas Spread) & TP Berbasis Liquidity',
-      pairTag: 'XAU/USD · SL & TP PRESISI',
+      pairTag: 'XAU/USD · M5 · SL & TP PRESISI',
       priceLabels: ['TP2 BSL', 'TP1 2R', 'SL+Napas'],
       stages: [
         {
           label: 'Penempatan SL & TP Valid',
-          caption: 'SL ditaruh di balik swing invalidasi ditambah napas $0.50–$1.00. TP1 di Liquidity terdekat (min 1:2 R:R), TP2 di PDH/BSL mayor.',
-          zones: [
-            { x1: 42, x2: 90, y1: 42, y2: 88, tone: 'tp', label: 'TP2 BSL (3.2R)', labelPos: 'tr' },
-            { x1: 42, x2: 90, y1: 22, y2: 42, tone: 'sl', label: 'SL STRUKTURAL + NAPAS', labelPos: 'tr' }
+          caption: 'SL ditaruh di balik swing invalidasi ($2,642.4) ditambah napas spread $0.80 ($2,641.6). TP1 di 2R ($2,657.8) untuk Partial, TP2 di BSL mayor ($2,664.2 = 3.2R).',
+          series: [
+            { o: 2646.4, h: 2647.0, l: 2644.6, c: 2645.0 },
+            { o: 2645.0, h: 2645.4, l: 2643.2, c: 2643.8 },
+            { o: 2643.8, h: 2644.6, l: 2642.4, c: 2644.2 },
+            { o: 2644.2, h: 2645.6, l: 2643.8, c: 2645.2 },
+            { o: 2645.2, h: 2651.4, l: 2645.0, c: 2650.8 },
+            { o: 2650.8, h: 2652.8, l: 2648.6, c: 2652.2 },
+            { o: 2652.2, h: 2652.4, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2646.8, c: 2649.2 },
+            { o: 2649.2, h: 2653.4, l: 2648.8, c: 2652.8 },
+            { o: 2652.8, h: 2655.6, l: 2652.2, c: 2655.0 },
+            { o: 2655.0, h: 2658.2, l: 2654.6, c: 2657.8 },
+            { o: 2657.8, h: 2658.2, l: 2655.8, c: 2656.4 },
+            { o: 2656.4, h: 2660.2, l: 2656.0, c: 2659.6 },
+            { o: 2659.6, h: 2662.4, l: 2659.0, c: 2661.8 },
+            { o: 2661.8, h: 2664.6, l: 2661.2, c: 2664.2 }
           ],
-          lines: [
-            { x1: 36, x2: 92, y1: 72, y2: 72, style: 'dashed', tone: 'bull', label: 'TP1 PARTIAL (2R)', labelSide: 'left' },
-            { x1: 36, x2: 92, y1: 42, y2: 42, style: 'solid', tone: 'gold', label: 'ENTRY FVG', labelSide: 'left' },
-            { x1: 14, x2: 92, y1: 22, y2: 22, style: 'solid', tone: 'bear', label: 'SL (-1R)', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 7, toIdx: 14, low: 2647.0, high: 2664.2, tone: 'tp', label: 'TP2 BSL (3.2R)', labelPos: 'tl', labelFront: true },
+            { fromIdx: 7, toIdx: 14, low: 2641.6, high: 2647.0, tone: 'sl', label: 'SL STRUKTURAL + NAPAS', labelPos: 'br', labelFront: true }
           ],
-          candles: [
-            [18, 44, 48, 28, 32], [28, 32, 62, 30, 60, 'bull'], [38, 60, 62, 40, 44, 'gold'],
-            [50, 44, 66, 42, 64, 'bull'], [62, 64, 76, 62, 74, 'bull'], [76, 74, 90, 72, 88, 'bull']
+          autoFvgs: [
+            {
+              c1Idx: 3,
+              c3Idx: 5,
+              type: 'bull',
+              extendToIdx: 10,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'FVG',
+              labelSide: 'right'
+            }
+          ],
+          seriesLevels: [
+            { price: 2657.8, fromIdx: 3, tone: 'bull', style: 'dashed', label: 'TP1 PARTIAL (2R)', labelSide: 'left' },
+            { price: 2647.0, fromIdx: 4, toIdx: 14, tone: 'gold', style: 'solid', label: 'ENTRY FVG 2.647,0', labelSide: 'right' },
+            { price: 2641.6, toIdx: 14, tone: 'bear', style: 'solid', label: 'SL 2.641,6 (-1R)', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 7, which: 'low', tone: 'gold' }
           ]
         },
         {
           label: 'Kesalahan SL Terlalu Sempit',
-          caption: 'SL yang ditempel tepat di dalam FVG atau persis di ujung wick tanpa napas spread sering kena sweep 0.30 poin sebelum harga terbang ke TP.',
-          lines: [
-            { x1: 14, x2: 92, y1: 34, y2: 34, style: 'dashed', tone: 'bear', label: 'SL TERLALU SEMPIT (KENA!)', labelSide: 'right' },
-            { x1: 14, x2: 92, y1: 22, y2: 22, style: 'solid', tone: 'bull', label: 'SL STRUKTURAL (SELAMAT)', labelSide: 'right' }
+          caption: 'SL yang ditempel tepat di dalam FVG ($2,644.6) tanpa napas spread sering kena sapu wick retest ($2,643.6) sebelum harga terbang ke TP — sedangkan SL struktural ($2,641.6) tetap selamat!',
+          series: [
+            { o: 2646.4, h: 2647.0, l: 2644.6, c: 2645.0 },
+            { o: 2645.0, h: 2645.4, l: 2643.2, c: 2643.8 },
+            { o: 2643.8, h: 2644.6, l: 2642.4, c: 2644.2 },
+            { o: 2644.2, h: 2645.6, l: 2643.8, c: 2645.2 },
+            { o: 2645.2, h: 2651.4, l: 2645.0, c: 2650.8 },
+            { o: 2650.8, h: 2652.8, l: 2648.6, c: 2652.2 },
+            { o: 2652.2, h: 2652.4, l: 2649.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.0, l: 2646.4, c: 2646.8 },
+            { o: 2646.8, h: 2648.2, l: 2643.6, c: 2647.8 },
+            { o: 2647.8, h: 2652.0, l: 2647.4, c: 2651.4 },
+            { o: 2651.4, h: 2655.4, l: 2651.0, c: 2654.8 },
+            { o: 2654.8, h: 2658.6, l: 2654.2, c: 2658.0 },
+            { o: 2658.0, h: 2661.2, l: 2657.6, c: 2660.6 },
+            { o: 2660.6, h: 2663.4, l: 2660.0, c: 2662.8 },
+            { o: 2662.8, h: 2664.6, l: 2662.2, c: 2664.2 }
           ],
-          candles: [
-            [18, 44, 48, 28, 32], [28, 32, 62, 30, 60], [38, 60, 62, 40, 44],
-            [50, 44, 46, 31, 42, 'sweep'], [64, 42, 74, 40, 72, 'bull'], [78, 72, 92, 70, 90, 'bull']
+          autoFvgs: [
+            {
+              c1Idx: 3,
+              c3Idx: 5,
+              type: 'bull',
+              extendToIdx: 14,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'FVG',
+              labelSide: 'right'
+            }
           ],
-          callouts: [{ x: 50, y: 12, text: 'Wick retest menyenggol SL sempit lalu terbang!', tone: 'sweep' }]
+          seriesLevels: [
+            { price: 2644.6, fromIdx: 3, tone: 'bear', style: 'dashed', label: 'SL TERLALU SEMPIT (KENA!)', labelSide: 'right' },
+            { price: 2641.6, tone: 'bull', style: 'solid', label: 'SL STRUKTURAL 2.641,6 (SELAMAT)', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 8, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 5.8, price: 2659.8, text: 'Wick retest menyenggol SL sempit lalu terbang!', tone: 'sweep' }
+          ]
         }
       ]
     },
 
     'trade-management-scale': {
       title: 'Manajemen Trade: Partial 50% di 1:2 R:R & BEP pada Waktu Tepat',
-      pairTag: 'XAU/USD · TRADE MANAGEMENT',
-      priceLabels: ['Runner 3R+', 'TP1 2R', 'Entry/BEP'],
+      pairTag: 'XAU/USD · M5 · TRADE MANAGEMENT',
+      priceLabels: ['Runner 3.5R', 'TP1 2R', 'Entry/BEP'],
       stages: [
         {
           label: '1. Jangan BEP Terlalu Cepat',
-          caption: 'Menggeser SL ke Break Even saat baru +0.5R membuat posisimu sering kena sapu retest wajar sebelum harga lanjut ke target.',
-          lines: [
-            { x1: 16, x2: 90, y1: 38, y2: 38, style: 'solid', tone: 'gold', label: 'ENTRY / BEP TERLALU CEPAT', labelSide: 'right' },
-            { x1: 16, x2: 90, y1: 18, y2: 18, style: 'dotted', tone: 'muted', label: 'SL ASLI (MASIH AMAN)', labelSide: 'right' }
+          caption: 'Menggeser SL ke Break Even ($2,646.0) saat baru +0.5R membuat posisimu kena sapu retest wajar ($2,644.8) dengan hasil $0 tepat sebelum harga terbang ke +3R.',
+          series: [
+            { o: 2648.2, h: 2648.6, l: 2645.6, c: 2646.2 },
+            { o: 2646.2, h: 2646.8, l: 2643.2, c: 2644.0 },
+            { o: 2644.0, h: 2646.6, l: 2642.4, c: 2646.0 },
+            { o: 2646.0, h: 2648.4, l: 2645.8, c: 2647.8 },
+            { o: 2647.8, h: 2649.2, l: 2647.2, c: 2648.6 },
+            { o: 2648.6, h: 2648.8, l: 2646.4, c: 2646.8 },
+            { o: 2646.8, h: 2647.6, l: 2644.8, c: 2647.2 },
+            { o: 2647.2, h: 2650.8, l: 2647.0, c: 2650.2 },
+            { o: 2650.2, h: 2653.4, l: 2649.8, c: 2652.8 },
+            { o: 2652.8, h: 2653.2, l: 2651.0, c: 2651.6 },
+            { o: 2651.6, h: 2655.6, l: 2651.2, c: 2655.0 },
+            { o: 2655.0, h: 2658.2, l: 2654.6, c: 2657.6 },
+            { o: 2657.6, h: 2660.4, l: 2657.2, c: 2659.8 },
+            { o: 2659.8, h: 2662.2, l: 2659.2, c: 2661.6 },
+            { o: 2661.6, h: 2663.6, l: 2661.0, c: 2663.0 }
           ],
-          candles: [
-            [20, 38, 52, 36, 50], [32, 50, 52, 36, 40, 'sweep'], [46, 40, 68, 38, 66, 'bull'],
-            [60, 66, 86, 64, 84, 'bull']
+          seriesLevels: [
+            { price: 2646.0, fromIdx: 2, tone: 'gold', style: 'solid', label: 'ENTRY / BEP TERLALU CEPAT', labelSide: 'right' },
+            { price: 2641.0, tone: 'muted', style: 'dotted', label: 'SL ASLI 2.641,0 (MASIH AMAN)', labelSide: 'right', labelPos: 'below' }
           ],
-          callouts: [{ x: 32, y: 26, text: 'Kena BEP $0, lalu nonton harga terbang', tone: 'sweep' }]
+          seriesWickRings: [
+            { idx: 6, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 5.4, price: 2656.6, text: 'Kena BEP $0, lalu nonton harga terbang', tone: 'sweep' }
+          ]
         },
         {
           label: '2. Partial di 1:2 + BEP + Runner',
-          caption: 'Tunggu BOS internal atau +1.5R/+2R tercapai → tutup 50% posisi (amankan profit pasti), geser SL ke BEP, biarkan 50% sisa lari bebas stres ke BSL!',
-          zones: [
-            { x1: 52, x2: 90, y1: 72, y2: 92, tone: 'tp', label: 'RUNNER 50% → 3.5R', labelPos: 'tr' }
+          caption: 'Tunggu TP1 +2R ($2,656.0) tercapai → tutup 50% posisi (amankan profit pasti), geser SL ke BEP ($2,646.0), lalu biarkan 50% Runner melaju bebas stres ke 3.5R ($2,663.5)!',
+          series: [
+            { o: 2647.8, h: 2648.4, l: 2644.2, c: 2644.8 },
+            { o: 2644.8, h: 2646.6, l: 2643.0, c: 2646.0 },
+            { o: 2646.0, h: 2649.6, l: 2645.6, c: 2649.0 },
+            { o: 2649.0, h: 2649.4, l: 2647.2, c: 2647.8 },
+            { o: 2647.8, h: 2651.8, l: 2647.4, c: 2651.2 },
+            { o: 2651.2, h: 2654.4, l: 2650.8, c: 2653.8 },
+            { o: 2653.8, h: 2656.4, l: 2653.4, c: 2656.0 },
+            { o: 2656.0, h: 2656.4, l: 2653.2, c: 2653.8 },
+            { o: 2653.8, h: 2654.4, l: 2651.8, c: 2652.6 },
+            { o: 2652.6, h: 2655.6, l: 2652.2, c: 2655.2 },
+            { o: 2655.2, h: 2658.4, l: 2654.8, c: 2657.8 },
+            { o: 2657.8, h: 2660.2, l: 2657.2, c: 2659.6 },
+            { o: 2659.6, h: 2660.0, l: 2658.2, c: 2658.8 },
+            { o: 2658.8, h: 2662.0, l: 2658.4, c: 2661.4 },
+            { o: 2661.4, h: 2664.2, l: 2661.0, c: 2663.6 }
           ],
-          lines: [
-            { x1: 14, x2: 90, y1: 72, y2: 72, style: 'dashed', tone: 'bull', label: 'TP1 1:2 → PARTIAL 50% & GESER BEP', labelSide: 'left' },
-            { x1: 14, x2: 90, y1: 36, y2: 36, style: 'solid', tone: 'gold', label: 'ENTRY → SL DIGESER KE SINI', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 9, toIdx: 14, low: 2656.0, high: 2664.2, tone: 'tp', label: 'RUNNER 50% → 3.5R', labelPos: 'tl', labelFront: true }
           ],
-          candles: [
-            [18, 36, 54, 34, 52, 'bull'], [30, 52, 56, 42, 46], [42, 46, 74, 44, 72, 'gold'],
-            [56, 72, 76, 62, 66], [68, 66, 84, 64, 82, 'bull'], [80, 82, 92, 80, 90, 'bull']
+          seriesLevels: [
+            { price: 2656.0, tone: 'bull', style: 'dashed', label: 'TP1 1:2 → PARTIAL 50% & BEP', labelSide: 'left' },
+            { price: 2646.0, fromIdx: 1, tone: 'gold', style: 'solid', label: 'ENTRY 2.646,0 → SL GESER BEP', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 6, which: 'high', tone: 'gold' }
           ]
         }
       ]
@@ -1434,66 +2428,132 @@
     // ── MASTERY ICT LANJUTAN & MAPPING MANDIRI (7 BLUEPRINT BARU) ──────────
     'breaker-mitigation-unicorn': {
       title: 'Breaker Block vs Mitigation Block & Konfluensi ICT Unicorn',
-      pairTag: 'XAU/USD · BREAKER & UNICORN',
-      priceLabels: ['2.656', '2.648', '2.636'],
+      pairTag: 'XAU/USD · M15 · BREAKER & UNICORN',
+      priceLabels: ['2.656', '2.648', '2.640'],
       stages: [
         {
           label: '1. Sweep → Jebol Struktur',
-          caption: 'Harga sweep BSL (puncak baru) lalu langsung dibanting menembus Swing Low dengan Displacement keras — melahirkan Bearish Breaker Block.',
-          zones: [
-            { x1: 28, x2: 92, y1: 60, y2: 72, tone: 'ob', label: 'BEARISH BREAKER BLOCK', labelPos: 'tr' }
+          caption: 'Harga sweep BSL ($2,654.0 → $2,656.4) lalu langsung dibanting menembus Swing Low ($2,648.4) dengan Displacement keras — rangkaian up-close terakhir yang gagal berubah menjadi Bearish Breaker Block.',
+          seriesSlots: 15,
+          series: [
+            { o: 2649.6, h: 2652.0, l: 2649.2, c: 2651.6 },
+            { o: 2651.6, h: 2654.0, l: 2651.2, c: 2653.4 },
+            { o: 2653.4, h: 2653.8, l: 2650.2, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2648.4, c: 2648.9 },
+            { o: 2648.9, h: 2651.4, l: 2648.6, c: 2651.0 },
+            { o: 2651.0, h: 2653.4, l: 2650.8, c: 2653.0 },
+            { o: 2653.0, h: 2656.4, l: 2652.2, c: 2652.6 },
+            { o: 2652.6, h: 2652.9, l: 2651.4, c: 2651.8 },
+            { o: 2651.8, h: 2652.0, l: 2645.6, c: 2646.0 },
+            { o: 2646.0, h: 2647.8, l: 2644.0, c: 2644.4 },
+            { o: 2644.4, h: 2645.4, l: 2643.2, c: 2644.8 }
           ],
-          lines: [
-            { x1: 8, x2: 52, y1: 80, y2: 80, style: 'dashed', tone: 'sweep', label: 'BSL (Swept)', labelSide: 'left' },
-            { x1: 22, x2: 92, y1: 48, y2: 48, style: 'dashed', tone: 'bear', label: 'MSS Jebol', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 4, toIdx: 14, low: 2649.4, high: 2653.0, tone: 'ob', label: 'BEARISH BREAKER BLOCK', labelPos: 'tr' }
           ],
-          candles: [
-            [12, 56, 78, 54, 74], [20, 74, 76, 50, 52], [28, 52, 62, 48, 60],
-            [36, 60, 73, 58, 72, 'gold'], [44, 72, 87, 70, 74, 'sweep'],
-            [52, 74, 75, 42, 44, 'bear'], [60, 44, 46, 30, 32]
+          seriesLevels: [
+            { price: 2654.0, toIdx: 7, tone: 'sweep', style: 'dashed', label: 'BSL 2.654,0 (SWEPT)', labelSide: 'left' },
+            { price: 2648.4, fromIdx: 3, tone: 'bear', style: 'dashed', label: 'MSS JEBOL 2.648,4', labelSide: 'right', labelPos: 'below' }
           ],
-          callouts: [
-            { x: 44, y: 92, text: 'Sweep BSL (Syarat Breaker)', tone: 'sweep' }
+          seriesWickRings: [
+            { idx: 6, which: 'high', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 11.2, price: 2655.6, text: 'Sweep BSL (Syarat Wajib Breaker)', tone: 'sweep' }
           ]
         },
         {
           label: '2. Irisan ICT Unicorn',
-          caption: 'Saat dorongan jatuh meninggalkan SIBI (FVG) yang bertumpuk langsung di atas kotak Breaker Block, area irisannya adalah Zona Unicorn berprobabilitas tertinggi.',
-          zones: [
-            { x1: 28, x2: 92, y1: 60, y2: 72, tone: 'ob', label: 'BREAKER', labelPos: 'tr' },
-            { x1: 52, x2: 92, y1: 54, y2: 68, tone: 'fvg', label: 'UNICORN (BB + FVG)', labelPos: 'tl' }
+          caption: 'Dorongan turun meninggalkan SIBI / FVG ($2,647.8–$2,651.4) yang bertumpuk langsung dengan Bearish Breaker Block ($2,649.4–$2,653.0). Retest di irisan keduanya = Zona ICT Unicorn berprobabilitas tertinggi.',
+          seriesSlots: 17,
+          series: [
+            { o: 2649.6, h: 2652.0, l: 2649.2, c: 2651.6 },
+            { o: 2651.6, h: 2654.0, l: 2651.2, c: 2653.4 },
+            { o: 2653.4, h: 2653.8, l: 2650.2, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2648.4, c: 2648.9 },
+            { o: 2648.9, h: 2651.4, l: 2648.6, c: 2651.0 },
+            { o: 2651.0, h: 2653.4, l: 2650.8, c: 2653.0 },
+            { o: 2653.0, h: 2656.4, l: 2652.2, c: 2652.6 },
+            { o: 2652.6, h: 2652.9, l: 2651.4, c: 2651.8 },
+            { o: 2651.8, h: 2652.0, l: 2645.6, c: 2646.0 },
+            { o: 2646.0, h: 2647.8, l: 2644.0, c: 2644.4 },
+            { o: 2644.4, h: 2645.4, l: 2643.2, c: 2644.8 },
+            { o: 2644.8, h: 2648.4, l: 2644.6, c: 2648.0 },
+            { o: 2648.0, h: 2650.8, l: 2647.6, c: 2648.4 },
+            { o: 2648.4, h: 2648.8, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2644.6, l: 2639.6, c: 2640.2 }
           ],
-          lines: [
-            { x1: 52, x2: 92, y1: 88, y2: 88, style: 'solid', tone: 'sl', label: 'SL di Atas Sweep', labelSide: 'right' }
+          seriesZones: [
+            { fromIdx: 4, toIdx: 16.4, low: 2649.4, high: 2653.0, tone: 'ob', label: 'BREAKER', labelPos: 'tr' }
           ],
-          candles: [
-            [12, 56, 78, 54, 74], [20, 74, 76, 50, 52], [36, 60, 73, 58, 72, 'gold'],
-            [44, 72, 87, 70, 74], [52, 74, 75, 40, 42, 'bear'], [60, 42, 45, 34, 38],
-            [68, 38, 65, 36, 61], [76, 61, 66, 44, 46, 'bear'], [84, 46, 48, 18, 22, 'bear']
+          autoFvgs: [
+            {
+              c1Idx: 7,
+              c3Idx: 9,
+              type: 'bear',
+              extendToIdx: 16.4,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'UNICORN (BB + FVG)',
+              labelSide: 'right'
+            }
           ],
-          arrows: [
-            { x1: 72, y1: 64, x2: 86, y2: 20, tone: 'bear', label: 'Entry Unicorn → TP' }
+          seriesLevels: [
+            { price: 2656.8, fromIdx: 6, tone: 'sl', style: 'solid', label: 'SL DI ATAS SWEEP 2.656,8', labelSide: 'right' }
           ],
-          callouts: [
-            { x: 68, y: 78, text: 'Retest Irisan Breaker + FVG', tone: 'gold' }
+          seriesWickRings: [
+            { idx: 12, which: 'high', tone: 'gold' }
+          ],
+          seriesArrows: [
+            { fromIdx: 12.6, fromPrice: 2648.8, toIdx: 14.4, toPrice: 2641.0, tone: 'bear', label: 'Unicorn → TP', labelDx: 34, labelDy: 8 }
+          ],
+          seriesCallouts: [
+            { idx: 4.8, price: 2641.6, text: 'Retest irisan Breaker + FVG = A+', tone: 'gold' }
           ]
         },
         {
           label: '3. Beda Mitigation Block',
-          caption: 'Pada Mitigation Block, puncak kedua GAGAL sweep High lama (membentuk Lower High) sebelum jebol turun. Tetap valid, namun wajib disertai FVG searah H1.',
-          zones: [
-            { x1: 34, x2: 92, y1: 56, y2: 68, tone: 'cyan', label: 'MITIGATION BLOCK (TANPA SWEEP)', labelPos: 'tr' }
+          caption: 'Pada Mitigation Block, puncak kedua GAGAL menyapu High lama ($2,655.6 → Lower High $2,652.8) sebelum jebol turun. Tetap valid sebagai resistance jika diikuti FVG searah tren H1.',
+          series: [
+            { o: 2650.4, h: 2653.2, l: 2650.0, c: 2652.8 },
+            { o: 2652.8, h: 2655.6, l: 2652.4, c: 2654.8 },
+            { o: 2654.8, h: 2655.0, l: 2651.2, c: 2651.6 },
+            { o: 2651.6, h: 2652.0, l: 2648.2, c: 2648.8 },
+            { o: 2648.8, h: 2651.4, l: 2648.5, c: 2651.0 },
+            { o: 2651.0, h: 2652.8, l: 2650.4, c: 2651.6 },
+            { o: 2651.6, h: 2652.0, l: 2650.4, c: 2650.8 },
+            { o: 2650.8, h: 2651.1, l: 2645.2, c: 2645.6 },
+            { o: 2645.6, h: 2647.4, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2645.6, l: 2643.4, c: 2645.2 },
+            { o: 2645.2, h: 2648.4, l: 2644.9, c: 2648.0 },
+            { o: 2648.0, h: 2650.2, l: 2647.4, c: 2647.8 },
+            { o: 2647.8, h: 2648.2, l: 2644.6, c: 2645.0 },
+            { o: 2645.0, h: 2645.4, l: 2642.2, c: 2642.6 },
+            { o: 2642.6, h: 2643.0, l: 2640.4, c: 2640.8 }
           ],
-          lines: [
-            { x1: 8, x2: 56, y1: 84, y2: 84, style: 'dotted', tone: 'muted', label: 'High Lama (Tidak Di-sweep)', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 4, toIdx: 14, low: 2649.4, high: 2652.6, tone: 'cyan', label: 'MITIGATION BLOCK (TANPA SWEEP)', labelPos: 'tr' }
           ],
-          candles: [
-            [14, 52, 84, 50, 78], [24, 78, 80, 46, 48], [34, 48, 68, 46, 66, 'cyan'],
-            [44, 66, 74, 62, 64], [54, 64, 65, 34, 36, 'bear'], [66, 36, 60, 34, 58],
-            [78, 58, 60, 22, 24, 'bear']
+          autoFvgs: [
+            {
+              c1Idx: 6,
+              c3Idx: 8,
+              type: 'bear',
+              extendToIdx: 13,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'SIBI (FVG)'
+            }
           ],
-          callouts: [
-            { x: 44, y: 79, text: 'Lower High (Gagal Sweep)', tone: 'cyan' }
+          seriesLevels: [
+            { price: 2655.6, fromIdx: 1, tone: 'muted', style: 'dotted', label: 'HIGH LAMA 2.655,6 (TIDAK DI-SWEEP)', labelSide: 'right' }
+          ],
+          seriesWickRings: [
+            { idx: 5, which: 'high', tone: 'cyan' },
+            { idx: 11, which: 'high', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 4.8, price: 2642.2, text: 'Lower High → Gagal Sweep High Lama', tone: 'cyan' }
           ]
         }
       ]
@@ -1501,43 +2561,99 @@
 
     'bpr-nwog-ndog': {
       title: 'Balanced Price Range (BPR), Volume Imbalance & NWOG/NDOG',
-      pairTag: 'XAU/USD · BPR / VI / NWOG',
-      priceLabels: ['2.670', '2.662', '2.654'],
+      pairTag: 'XAU/USD · M15 · BPR / VI / NWOG',
+      priceLabels: ['2.668', '2.658', '2.648'],
       stages: [
         {
           label: '1. Irisan Bearish BPR',
-          caption: 'Harga naik cepat meninggalkan BISI lalu langsung dibanting turun meninggalkan SIBI di rentang yang sama — irisan keduanya adalah dinding kaca BPR.',
-          zones: [
-            { x1: 20, x2: 52, y1: 42, y2: 64, tone: 'bull', label: 'BISI (Naik)', labelPos: 'tl' },
-            { x1: 44, x2: 92, y1: 48, y2: 70, tone: 'bear', label: 'SIBI (Turun)', labelPos: 'tr' },
-            { x1: 44, x2: 92, y1: 48, y2: 64, tone: 'gold', label: 'ZONA BPR (OVERLAP)', labelPos: 'tl' }
+          caption: 'Harga naik cepat meninggalkan BISI ($2,656.6–$2,661.4) lalu langsung dibanting meninggalkan SIBI ($2,658.2–$2,663.0). Irisan tepat keduanya ($2,658.2–$2,661.4) adalah dinding kaca BPR.',
+          series: [
+            { o: 2654.0, h: 2655.4, l: 2653.6, c: 2655.0 },
+            { o: 2655.0, h: 2656.6, l: 2654.6, c: 2656.2 },
+            { o: 2656.2, h: 2663.6, l: 2656.0, c: 2663.0 },
+            { o: 2663.0, h: 2666.8, l: 2661.4, c: 2666.2 },
+            { o: 2666.2, h: 2667.8, l: 2665.2, c: 2665.6 },
+            { o: 2665.6, h: 2666.0, l: 2663.0, c: 2663.4 },
+            { o: 2663.4, h: 2663.8, l: 2655.4, c: 2656.0 },
+            { o: 2656.0, h: 2658.2, l: 2653.4, c: 2654.0 },
+            { o: 2654.0, h: 2655.4, l: 2652.8, c: 2654.8 },
+            { o: 2654.8, h: 2657.6, l: 2654.4, c: 2657.2 },
+            { o: 2657.2, h: 2660.2, l: 2656.8, c: 2657.6 },
+            { o: 2657.6, h: 2658.0, l: 2653.8, c: 2654.2 },
+            { o: 2654.2, h: 2654.8, l: 2650.8, c: 2651.4 },
+            { o: 2651.4, h: 2652.0, l: 2648.8, c: 2649.4 },
+            { o: 2649.4, h: 2650.0, l: 2647.0, c: 2647.6 }
           ],
-          candles: [
-            [16, 26, 42, 24, 40], [26, 40, 72, 38, 70, 'bull'], [36, 70, 82, 64, 78],
-            [46, 78, 80, 42, 44, 'bear'], [56, 44, 46, 28, 30], [68, 30, 56, 28, 52],
-            [78, 52, 55, 22, 24, 'bear'], [86, 24, 26, 14, 16, 'bear']
+          autoFvgs: [
+            {
+              c1Idx: 1,
+              c3Idx: 3,
+              type: 'bull',
+              extendToIdx: 5.2,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'BISI',
+              labelSide: 'right'
+            },
+            {
+              c1Idx: 5,
+              c3Idx: 7,
+              type: 'bear',
+              extendToIdx: 14,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'SIBI (Turun)',
+              labelSide: 'right'
+            }
           ],
-          callouts: [
-            { x: 68, y: 74, text: 'Retest BPR → Pantulan Keras', tone: 'gold' }
+          seriesZones: [
+            { fromIdx: 6, toIdx: 14, low: 2658.2, high: 2661.4, tone: 'gold', label: 'BPR OVERLAP', labelPos: 'br', labelFront: true }
+          ],
+          seriesWickRings: [
+            { idx: 10, which: 'high', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 10.2, price: 2665.6, text: 'Retest BPR → Pantulan Keras', tone: 'gold' }
           ]
         },
         {
           label: '2. NWOG & Volume Imbalance',
-          caption: 'Tandai NWOG (Close Jumat → Open Senin) beserta 50% CE-nya. Saat struktur reversal terbentuk di Killzone, NWOG bekerja sebagai magnet DOL utama sepanjang minggu.',
-          zones: [
-            { x1: 8, x2: 92, y1: 22, y2: 36, tone: 'fvg', label: 'NWOG (Close Jumat – Open Senin)', labelPos: 'tr' },
-            { x1: 48, x2: 76, y1: 60, y2: 65, tone: 'gold', label: 'VI (Celah Antar-Body)', labelPos: 'tr' }
+          caption: 'Tandai NWOG (Close Jumat $2,653.6 → Open Senin $2,656.8) dan 50% CE-nya ($2,655.2), serta Volume Imbalance (celah antar-body $2,662.2–$2,663.6). NWOG bekerja sebagai magnet DOL mingguan.',
+          intentionalGapIndices: [3, 7],
+          series: [
+            { o: 2651.4, h: 2653.2, l: 2650.8, c: 2652.6 },
+            { o: 2652.6, h: 2654.4, l: 2652.0, c: 2653.8 },
+            { o: 2653.8, h: 2654.6, l: 2652.8, c: 2653.6 },
+            { o: 2656.8, h: 2659.2, l: 2656.2, c: 2658.6 },
+            { o: 2658.6, h: 2662.2, l: 2658.2, c: 2661.6 },
+            { o: 2661.6, h: 2666.0, l: 2661.0, c: 2665.2 },
+            { o: 2665.2, h: 2666.4, l: 2662.4, c: 2663.6 },
+            { o: 2662.2, h: 2663.0, l: 2658.8, c: 2659.4 },
+            { o: 2659.4, h: 2661.4, l: 2658.8, c: 2660.8 },
+            { o: 2660.8, h: 2662.8, l: 2660.2, c: 2660.6 },
+            { o: 2660.6, h: 2661.0, l: 2657.6, c: 2658.0 },
+            { o: 2658.0, h: 2658.4, l: 2655.2, c: 2655.8 },
+            { o: 2655.8, h: 2656.2, l: 2653.6, c: 2654.2 },
+            { o: 2654.2, h: 2655.6, l: 2653.2, c: 2655.2 },
+            { o: 2655.2, h: 2658.8, l: 2654.8, c: 2658.2 }
           ],
-          lines: [
-            { x1: 8, x2: 92, y1: 29, y2: 29, style: 'dashed', tone: 'gold', label: '50% CE NWOG', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 2, toIdx: 14, low: 2653.6, high: 2656.8, tone: 'fvg', label: '', labelPos: 'tl' },
+            { fromIdx: 6, toIdx: 14, low: 2662.2, high: 2663.6, tone: 'gold', label: 'VI (Celah Body)', labelPos: 'tr', labelFront: true }
           ],
-          candles: [
-            [14, 16, 24, 14, 22], [28, 36, 54, 34, 52], [38, 52, 76, 50, 74],
-            [48, 74, 78, 64, 65, 'bear'], [58, 60, 66, 44, 46, 'bear'],
-            [70, 46, 61, 44, 58], [80, 58, 59, 28, 30, 'bear'], [88, 30, 32, 20, 22, 'bear']
+          seriesLevels: [
+            { price: 2656.8, fromIdx: 3.8, toIdx: 10.5, tone: 'cyan', style: 'dotted', label: 'NWOG (Jumat–Senin)', labelSide: 'left' },
+            { price: 2655.2, fromIdx: 2, toIdx: 11.2, tone: 'gold', style: 'dashed', label: '50% CE NWOG 2.655,2', labelSide: 'left', labelPos: 'below' }
           ],
-          arrows: [
-            { x1: 72, y1: 60, x2: 86, y2: 26, tone: 'cyan', label: 'Magnet DOL: NWOG' }
+          seriesVLines: [
+            { idx: 2.5, tone: 'cyan', style: 'dotted', label: 'OPEN SENIN', labelPos: 'top' }
+          ],
+          seriesWickRings: [
+            { idx: 9, which: 'high', tone: 'gold' },
+            { idx: 13, which: 'low', tone: 'bull' }
+          ],
+          seriesArrows: [
+            { fromIdx: 9.6, fromPrice: 2661.6, toIdx: 12.6, toPrice: 2656.4, tone: 'cyan', label: 'Magnet NWOG', labelDx: 32, labelDy: -6 }
           ]
         }
       ]
@@ -1550,86 +2666,190 @@
       stages: [
         {
           label: '1. Bullish SMT (Gold vs Silver)',
-          caption: 'Pada jam Killzone yang sama di PDL: XAU/USD sweep SSL membuat Lower Low, sementara XAG/USD (Silver) gagal turun lebih rendah (Higher Low) → sidik jari manipulasi beli!',
-          zones: [
-            { x1: 8, x2: 48, y1: 12, y2: 88, tone: 'gold', label: 'XAU/USD (GOLD)', labelPos: 'tl' },
-            { x1: 52, x2: 92, y1: 12, y2: 88, tone: 'cyan', label: 'XAG/USD (SILVER)', labelPos: 'tl' }
-          ],
-          lines: [
-            { x1: 12, x2: 44, y1: 30, y2: 18, style: 'dashed', tone: 'sweep', label: 'LL (Sweep SSL)', labelSide: 'left' },
-            { x1: 56, x2: 88, y1: 24, y2: 36, style: 'dashed', tone: 'bull', label: 'HL (Menolak Turun)', labelSide: 'right' }
-          ],
-          candles: [
-            [16, 60, 64, 28, 32], [24, 32, 54, 30, 50], [32, 50, 52, 16, 22, 'sweep'], [40, 22, 66, 20, 62, 'bull'],
-            [60, 58, 62, 22, 26], [68, 26, 52, 24, 48], [76, 48, 50, 34, 38, 'bull'], [84, 38, 72, 36, 70, 'bull']
-          ],
-          callouts: [
-            { x: 50, y: 92, text: 'Timestamp Identik di Killzone → Bullish SMT Valid!', tone: 'bull' }
-          ]
+          caption: 'Pada timestamp Killzone identik di PDL: XAU/USD sweep SSL mencetak Lower Low ($2,641.2), sementara XAG/USD (Silver) gagal turun lebih rendah (Higher Low $31.12) → sidik jari akumulasi beli!',
+          dualAssetPanels: {
+            banner: { text: 'Timestamp Identik di Killzone → Bullish SMT Valid!', tone: 'bull' },
+            panels: [
+              {
+                heading: 'XAU/USD (GOLD)',
+                tone: 'gold',
+                decimals: 1,
+                series: [
+                  { o: 2648.6, h: 2649.2, l: 2646.4, c: 2647.0 },
+                  { o: 2647.0, h: 2647.4, l: 2644.8, c: 2645.2 },
+                  { o: 2645.2, h: 2646.4, l: 2644.0, c: 2646.0 },
+                  { o: 2646.0, h: 2648.6, l: 2645.6, c: 2648.2 },
+                  { o: 2648.2, h: 2648.8, l: 2646.0, c: 2646.4 },
+                  { o: 2646.4, h: 2646.8, l: 2643.8, c: 2644.2 },
+                  { o: 2644.2, h: 2645.4, l: 2641.2, c: 2645.0 },
+                  { o: 2645.0, h: 2648.8, l: 2644.8, c: 2648.4 },
+                  { o: 2648.4, h: 2651.2, l: 2648.0, c: 2650.6 },
+                  { o: 2650.6, h: 2653.4, l: 2650.2, c: 2652.8 }
+                ],
+                level: { price: 2644.0, tone: 'sweep', label: 'PDL 2.644,0' },
+                trendline: { fromIdx: 2, fromWhich: 'low', toIdx: 6, toWhich: 'low', tone: 'sweep', label: 'LL (Sweep SSL)' }
+              },
+              {
+                heading: 'XAG/USD (SILVER)',
+                tone: 'cyan',
+                decimals: 2,
+                series: [
+                  { o: 31.42, h: 31.48, l: 31.18, c: 31.22 },
+                  { o: 31.22, h: 31.26, l: 30.94, c: 30.98 },
+                  { o: 30.98, h: 31.14, l: 30.80, c: 31.10 },
+                  { o: 31.10, h: 31.44, l: 31.06, c: 31.38 },
+                  { o: 31.38, h: 31.42, l: 31.20, c: 31.24 },
+                  { o: 31.24, h: 31.28, l: 31.14, c: 31.18 },
+                  { o: 31.18, h: 31.34, l: 31.12, c: 31.30 },
+                  { o: 31.30, h: 31.66, l: 31.26, c: 31.60 },
+                  { o: 31.60, h: 31.92, l: 31.56, c: 31.86 },
+                  { o: 31.86, h: 32.14, l: 31.82, c: 32.08 }
+                ],
+                level: { price: 30.80, tone: 'muted', label: 'PDL 30.80' },
+                trendline: { fromIdx: 2, fromWhich: 'low', toIdx: 6, toWhich: 'low', tone: 'bull', label: 'HL (Menolak Turun)' }
+              }
+            ]
+          }
         },
         {
           label: '2. Bearish SMT (Gold vs DXY)',
-          caption: 'Korelasi terbalik: saat Gold cetak Higher High sweep PDH, seharusnya DXY cetak Lower Low. Ketika DXY justru cetak Higher Low, Dolar mulai menguat & Gold siap banting turun!',
-          zones: [
-            { x1: 8, x2: 48, y1: 12, y2: 88, tone: 'gold', label: 'XAU/USD (GOLD)', labelPos: 'tl' },
-            { x1: 52, x2: 92, y1: 12, y2: 88, tone: 'bear', label: 'DXY (INDEKS DOLAR)', labelPos: 'tl' }
-          ],
-          lines: [
-            { x1: 12, x2: 44, y1: 68, y2: 82, style: 'dashed', tone: 'sweep', label: 'HH (Sweep BSL)', labelSide: 'left' },
-            { x1: 56, x2: 88, y1: 22, y2: 36, style: 'dashed', tone: 'bear', label: 'HL (Gagal LL)', labelSide: 'right' }
-          ],
-          candles: [
-            [16, 40, 70, 38, 66], [24, 66, 68, 48, 50], [32, 50, 84, 48, 78, 'sweep'], [40, 78, 80, 34, 38, 'bear'],
-            [60, 54, 56, 20, 24], [68, 24, 48, 22, 46], [76, 46, 48, 34, 38, 'bull'], [84, 38, 72, 36, 70, 'bull']
-          ],
-          callouts: [
-            { x: 50, y: 92, text: 'DXY Gagal Turun = Bearish SMT untuk Gold!', tone: 'bear' }
-          ]
+          caption: 'Korelasi terbalik: saat Gold cetak Higher High sweep PDH ($2,661.4), seharusnya DXY cetak Lower Low. Ketika DXY justru cetak Higher Low (104.34), Dolar menguat & Gold siap banting turun!',
+          dualAssetPanels: {
+            banner: { text: 'DXY Gagal Cetak LL = Bearish SMT untuk Gold!', tone: 'bear' },
+            panels: [
+              {
+                heading: 'XAU/USD (GOLD)',
+                tone: 'gold',
+                decimals: 1,
+                series: [
+                  { o: 2652.0, h: 2654.8, l: 2651.6, c: 2654.4 },
+                  { o: 2654.4, h: 2657.2, l: 2654.0, c: 2656.8 },
+                  { o: 2656.8, h: 2658.0, l: 2655.4, c: 2656.0 },
+                  { o: 2656.0, h: 2656.4, l: 2653.8, c: 2654.2 },
+                  { o: 2654.2, h: 2656.6, l: 2654.0, c: 2656.2 },
+                  { o: 2656.2, h: 2658.8, l: 2655.8, c: 2658.4 },
+                  { o: 2658.4, h: 2661.4, l: 2657.2, c: 2657.6 },
+                  { o: 2657.6, h: 2658.0, l: 2653.4, c: 2654.0 },
+                  { o: 2654.0, h: 2654.6, l: 2650.8, c: 2651.4 },
+                  { o: 2651.4, h: 2652.0, l: 2648.6, c: 2649.2 }
+                ],
+                level: { price: 2658.0, tone: 'sweep', label: 'PDH 2.658,0' },
+                trendline: { fromIdx: 2, fromWhich: 'high', toIdx: 6, toWhich: 'high', tone: 'sweep', label: 'HH (Sweep BSL)' }
+              },
+              {
+                heading: 'DXY (INDEKS DOLAR)',
+                tone: 'bear',
+                decimals: 2,
+                series: [
+                  { o: 104.64, h: 104.68, l: 104.42, c: 104.46 },
+                  { o: 104.46, h: 104.50, l: 104.22, c: 104.26 },
+                  { o: 104.26, h: 104.38, l: 104.10, c: 104.34 },
+                  { o: 104.34, h: 104.62, l: 104.30, c: 104.56 },
+                  { o: 104.56, h: 104.60, l: 104.40, c: 104.44 },
+                  { o: 104.44, h: 104.48, l: 104.36, c: 104.40 },
+                  { o: 104.40, h: 104.56, l: 104.34, c: 104.52 },
+                  { o: 104.52, h: 104.84, l: 104.48, c: 104.80 },
+                  { o: 104.80, h: 105.08, l: 104.76, c: 105.02 },
+                  { o: 105.02, h: 105.26, l: 104.98, c: 105.20 }
+                ],
+                level: { price: 104.10, tone: 'muted', label: 'Low 104.10' },
+                trendline: { fromIdx: 2, fromWhich: 'low', toIdx: 6, toWhich: 'low', tone: 'bull', label: 'HL (Gagal LL)' }
+              }
+            ]
+          }
         }
       ]
     },
 
     'mmxm-market-maker-model': {
       title: 'Market Maker Buy Model (MMBM) — Siklus Kurva Lengkap',
-      pairTag: 'XAU/USD · MMXM CURVE',
+      pairTag: 'XAU/USD · M15 · MMXM CURVE',
       priceLabels: ['Terminus', 'Mid', 'HTF POI'],
       stages: [
         {
           label: '1. Sisi Kiri (Engineering)',
-          caption: 'Dari Original Consolidation (OC), harga turun bertahap menanam tangga Swing High (BSL) menuju HTF PD Array di dasar kurva.',
-          zones: [
-            { x1: 8, x2: 28, y1: 72, y2: 86, tone: 'asia', label: 'ORIGINAL CONSOLIDATION', labelPos: 'tl' },
-            { x1: 36, x2: 64, y1: 10, y2: 24, tone: 'bull', label: 'HTF PD ARRAY (PDL/H1 OB)', labelPos: 'tl' }
+          caption: 'Dari Original Consolidation (OC $2,658–$2,661), harga turun bertahap menanam tangga Swing High (BSL #1 & #2) menuju HTF PD Array di dasar kurva ($2,641–$2,644).',
+          seriesSlots: 17,
+          series: [
+            { o: 2658.8, h: 2660.8, l: 2658.2, c: 2660.2 },
+            { o: 2660.2, h: 2660.6, l: 2658.0, c: 2658.6 },
+            { o: 2658.6, h: 2660.4, l: 2658.2, c: 2659.6 },
+            { o: 2659.6, h: 2659.8, l: 2653.4, c: 2654.0 },
+            { o: 2654.0, h: 2656.0, l: 2653.6, c: 2655.4 },
+            { o: 2655.4, h: 2655.6, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.2, l: 2648.8, c: 2650.6 },
+            { o: 2650.6, h: 2650.8, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2646.4, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2644.6, l: 2641.2, c: 2643.8 }
           ],
-          candles: [
-            [12, 76, 84, 73, 81], [18, 81, 85, 74, 76], [24, 76, 82, 72, 74],
-            [32, 74, 75, 54, 56], [38, 56, 66, 54, 63], [44, 63, 64, 38, 40],
-            [50, 40, 48, 38, 46], [56, 46, 47, 14, 18, 'sweep']
+          seriesZones: [
+            { fromIdx: 0, toIdx: 2.4, low: 2658.0, high: 2661.2, tone: 'asia', label: '' },
+            { fromIdx: 7, toIdx: 15.8, low: 2641.0, high: 2644.4, tone: 'bull', label: 'HTF PD ARRAY (PDL/H1 OB)', labelPos: 'br', labelFront: true }
           ],
-          callouts: [
-            { x: 40, y: 70, text: 'Tangga BSL #1', tone: 'muted' },
-            { x: 52, y: 53, text: 'Tangga BSL #2', tone: 'muted' }
+          seriesLevels: [
+            { price: 2661.2, fromIdx: 0, toIdx: 8.5, tone: 'cyan', style: 'dotted', label: 'ORIGINAL CONSOLIDATION', labelSide: 'right' }
+          ],
+          seriesWickRings: [
+            { idx: 4, which: 'high', tone: 'muted' },
+            { idx: 6, which: 'high', tone: 'muted' },
+            { idx: 9, which: 'low', tone: 'sweep' }
+          ],
+          seriesCallouts: [
+            { idx: 8.6, price: 2656.4, text: 'Tangga BSL #1', tone: 'muted' },
+            { idx: 10.6, price: 2651.2, text: 'Tangga BSL #2', tone: 'muted' }
           ]
         },
         {
           label: '2. SMR → Re-Accumulation → LRLR',
-          caption: 'Di HTF PD Array terjadi Smart Money Reversal (SMR). Harga berpindah ke Buy-Side of the Curve, jeda 1× Re-Accumulation, lalu melesat cepat (LRLR) sweep Terminus (OC)!',
-          zones: [
-            { x1: 8, x2: 92, y1: 76, y2: 86, tone: 'tp', label: 'TERMINUS (TARGET AKHIR OC)', labelPos: 'tr' },
-            { x1: 36, x2: 62, y1: 10, y2: 24, tone: 'bull', label: 'SMR (TAHAP 1)', labelPos: 'tl' },
-            { x1: 64, x2: 78, y1: 44, y2: 56, tone: 'gold', label: 'RE-ACC (TAHAP 2)', labelPos: 'tl' }
+          caption: 'Di HTF PD Array terjadi Smart Money Reversal (SMR) dengan FVG bersih. Harga pindah ke Buy-Side of the Curve, jeda 1× Re-Accumulation, lalu melesat (LRLR) menyapu Terminus (OC)!',
+          seriesSlots: 17,
+          series: [
+            { o: 2658.8, h: 2660.8, l: 2658.2, c: 2660.2 },
+            { o: 2660.2, h: 2660.6, l: 2658.0, c: 2658.6 },
+            { o: 2658.6, h: 2660.4, l: 2658.2, c: 2659.6 },
+            { o: 2659.6, h: 2659.8, l: 2653.4, c: 2654.0 },
+            { o: 2654.0, h: 2656.0, l: 2653.6, c: 2655.4 },
+            { o: 2655.4, h: 2655.6, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.2, l: 2648.8, c: 2650.6 },
+            { o: 2650.6, h: 2650.8, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2646.4, l: 2643.8, c: 2644.2 },
+            { o: 2644.2, h: 2644.6, l: 2641.2, c: 2643.8 },
+            { o: 2643.8, h: 2648.6, l: 2643.4, c: 2648.0 },
+            { o: 2648.0, h: 2651.2, l: 2647.2, c: 2650.4 },
+            { o: 2650.4, h: 2651.4, l: 2649.2, c: 2649.8 },
+            { o: 2649.8, h: 2651.8, l: 2649.4, c: 2651.4 },
+            { o: 2651.4, h: 2655.6, l: 2651.0, c: 2655.0 },
+            { o: 2655.0, h: 2658.8, l: 2654.6, c: 2658.2 },
+            { o: 2658.2, h: 2661.6, l: 2657.8, c: 2661.0 }
           ],
-          candles: [
-            [12, 76, 84, 73, 81], [22, 81, 82, 72, 74], [32, 74, 75, 52, 56],
-            [40, 56, 64, 42, 44], [50, 44, 46, 14, 22, 'sweep'], [58, 22, 48, 20, 46, 'bull'],
-            [66, 46, 54, 44, 50], [72, 50, 55, 45, 53, 'gold'],
-            [80, 53, 74, 52, 72, 'bull'], [88, 72, 92, 70, 90, 'bull']
+          seriesZones: [
+            { fromIdx: 0, toIdx: 16, low: 2658.4, high: 2661.8, tone: 'tp', label: '' },
+            { fromIdx: 8, toIdx: 11, low: 2641.0, high: 2644.4, tone: 'bull', label: 'SMR', labelPos: 'bl', labelFront: true },
+            { fromIdx: 11.4, toIdx: 13.6, low: 2649.0, high: 2652.0, tone: 'gold', label: '' }
           ],
-          arrows: [
-            { x1: 54, y1: 22, x2: 88, y2: 88, tone: 'bull', label: 'Buy-Side LRLR' }
+          seriesLevels: [
+            { price: 2661.8, fromIdx: 3, toIdx: 14, tone: 'tp', style: 'dashed', label: 'TERMINUS (TARGET OC)', labelSide: 'left' }
           ],
-          callouts: [
-            { x: 74, y: 34, text: 'Bearish FVG Kiri Ditembus Mudah', tone: 'bull' }
+          autoFvgs: [
+            {
+              c1Idx: 9,
+              c3Idx: 11,
+              type: 'bull',
+              extendToIdx: 16,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'SMR FVG',
+              labelSide: 'right'
+            }
+          ],
+          seriesWickRings: [
+            { idx: 9, which: 'low', tone: 'sweep' }
+          ],
+          seriesArrows: [
+            { fromIdx: 13.6, fromPrice: 2652.4, toIdx: 16.0, toPrice: 2660.2, tone: 'bull', label: 'Buy-Side LRLR', labelDx: -50, labelDy: -6 }
+          ],
+          seriesCallouts: [
+            { idx: 15.2, price: 2650.4, text: 'RE-ACC', tone: 'gold' }
           ]
         }
       ]
@@ -1637,38 +2857,91 @@
 
     'ict-macros-weekly-ipda': {
       title: 'Weekly Profile (Senin–Jumat), IPDA 20/40/60 & Sinergi Macro',
-      pairTag: 'WITA (UTC+8) · TIME ENGINE',
+      pairTag: 'XAU/USD · WITA (UTC+8) · TIME ENGINE',
       priceLabels: ['Ekspansi', 'Mid', 'Akumulasi'],
       stages: [
         {
           label: '1. Weekly Profile (Senin–Jumat)',
-          caption: 'Classic Bullish Expansion: Senin akumulasi, Selasa/Rabu London membentuk Low of the Week (manipulasi), Rabu–Kamis ekspansi penuh, Jumat waspada TGIF pullback 20–30%.',
-          bars: [
-            { x1: 6, x2: 22, y1: 36, y2: 54, tone: 'asia', label: 'Senin', sub: 'Akumulasi' },
-            { x1: 25, x2: 41, y1: 16, y2: 48, tone: 'sweep', label: 'Selasa', sub: 'Low of Week' },
-            { x1: 44, x2: 60, y1: 32, y2: 76, tone: 'bull', label: 'Rabu', sub: 'Ekspansi 1' },
-            { x1: 63, x2: 79, y1: 52, y2: 92, tone: 'bull', label: 'Kamis', sub: 'Puncak Tren' },
-            { x1: 82, x2: 95, y1: 64, y2: 86, tone: 'gold', label: 'Jumat', sub: 'TGIF -25%' }
+          caption: 'Classic Bullish Expansion (H4): Senin akumulasi, Selasa London membentuk Low of the Week ($2,641.4), Rabu–Kamis ekspansi penuh menuju puncak ($2,665.2), Jumat pullback TGIF 20–30%.',
+          series: [
+            { o: 2649.0, h: 2650.8, l: 2648.2, c: 2650.2 },
+            { o: 2650.2, h: 2650.6, l: 2647.8, c: 2648.4 },
+            { o: 2648.4, h: 2650.4, l: 2648.0, c: 2649.6 },
+            { o: 2649.6, h: 2650.0, l: 2645.2, c: 2645.8 },
+            { o: 2645.8, h: 2648.2, l: 2641.4, c: 2647.6 },
+            { o: 2647.6, h: 2651.4, l: 2647.2, c: 2650.8 },
+            { o: 2650.8, h: 2654.8, l: 2650.4, c: 2654.2 },
+            { o: 2654.2, h: 2654.6, l: 2652.4, c: 2653.0 },
+            { o: 2653.0, h: 2658.4, l: 2652.6, c: 2657.8 },
+            { o: 2657.8, h: 2661.4, l: 2657.2, c: 2660.8 },
+            { o: 2660.8, h: 2663.6, l: 2660.2, c: 2663.0 },
+            { o: 2663.0, h: 2665.4, l: 2662.4, c: 2664.6 },
+            { o: 2664.6, h: 2665.0, l: 2661.2, c: 2661.8 },
+            { o: 2661.8, h: 2662.4, l: 2659.4, c: 2660.0 },
+            { o: 2660.0, h: 2661.6, l: 2659.0, c: 2661.0 }
           ],
-          callouts: [
-            { x: 52, y: 8, text: 'Fokus Panen Utama: Selasa–Kamis · Jumat Waspada TGIF', tone: 'gold' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 2, low: 2647.4, high: 2653.8, tone: 'asia', label: 'SENIN', labelPos: 'tl', labelFront: true },
+            { fromIdx: 12, toIdx: 14, low: 2656.2, high: 2665.6, tone: 'gold', label: 'TGIF -25%', labelPos: 'br', labelFront: true }
+          ],
+          seriesVLines: [
+            { idx: 2.5, tone: 'muted', style: 'dotted', label: 'SELASA', labelPos: 'top' },
+            { idx: 5.5, tone: 'muted', style: 'dotted', label: 'RABU', labelPos: 'top' },
+            { idx: 8.5, tone: 'muted', style: 'dotted', label: 'KAMIS', labelPos: 'top' },
+            { idx: 11.5, tone: 'gold', style: 'dotted', label: 'JUMAT', labelPos: 'top' }
+          ],
+          seriesWickRings: [
+            { idx: 4, which: 'low', tone: 'sweep' },
+            { idx: 11, which: 'high', tone: 'bull' }
+          ],
+          seriesCallouts: [
+            { idx: 7.4, price: 2642.2, text: 'Selasa: Low of Week · Panen Rabu–Kamis', tone: 'gold' }
           ]
         },
         {
           label: '2. Jendela ICT Macro WITA',
-          caption: 'Di dalam Killzone NY AM, mesin algoritma aktif tajam pada jendela 20 menit (:50–:10), terutama NY Open Macro 20:50–21:10 dan 21:50–22:10 WITA.',
-          zones: [
-            { x1: 18, x2: 34, y1: 12, y2: 88, tone: 'killzone', label: '20:50–21:10', labelPos: 'tl' },
-            { x1: 58, x2: 74, y1: 12, y2: 88, tone: 'gold', label: '21:50–22:10', labelPos: 'tl' }
+          caption: 'Di dalam Killzone NY AM, mesin algoritma aktif tajam pada jendela 20 menit (:50–:10): Macro 1 (20:50–21:10 WITA) menyapu SSL + cetak FVG, Macro 2 (21:50–22:10 WITA) ekspansi penuh ke DOL.',
+          series: [
+            { o: 2649.8, h: 2650.8, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2650.4, l: 2648.4, c: 2649.8 },
+            { o: 2649.8, h: 2650.2, l: 2648.0, c: 2648.4 },
+            { o: 2648.4, h: 2648.8, l: 2646.0, c: 2646.4 },
+            { o: 2646.4, h: 2647.4, l: 2642.8, c: 2646.8 },
+            { o: 2646.8, h: 2652.8, l: 2646.4, c: 2652.2 },
+            { o: 2652.2, h: 2654.2, l: 2650.0, c: 2653.4 },
+            { o: 2653.4, h: 2653.8, l: 2651.2, c: 2651.8 },
+            { o: 2651.8, h: 2652.4, l: 2649.2, c: 2650.0 },
+            { o: 2650.0, h: 2651.4, l: 2648.6, c: 2650.8 },
+            { o: 2650.8, h: 2655.4, l: 2650.4, c: 2654.8 },
+            { o: 2654.8, h: 2658.6, l: 2654.2, c: 2658.0 },
+            { o: 2658.0, h: 2661.2, l: 2657.6, c: 2660.6 },
+            { o: 2660.6, h: 2662.0, l: 2659.8, c: 2661.4 },
+            { o: 2661.4, h: 2662.2, l: 2660.2, c: 2660.8 },
+            { o: 2660.8, h: 2662.8, l: 2660.4, c: 2662.2 }
           ],
-          candles: [
-            [10, 46, 52, 44, 48], [16, 48, 50, 42, 44], [24, 44, 45, 26, 30, 'sweep'],
-            [32, 30, 58, 29, 55, 'bull'], [44, 55, 60, 48, 50], [54, 50, 54, 45, 47],
-            [64, 47, 74, 46, 72, 'bull'], [74, 72, 86, 70, 84, 'bull'], [86, 84, 90, 80, 88]
+          seriesZones: [
+            { fromIdx: 3, toIdx: 6, low: 2642.2, high: 2663.2, tone: 'killzone', label: '20:50–21:10', labelPos: 'tl', labelFront: true },
+            { fromIdx: 10, toIdx: 13, low: 2642.2, high: 2663.2, tone: 'gold', label: '21:50–22:10', labelPos: 'tl', labelFront: true }
           ],
-          callouts: [
-            { x: 26, y: 18, text: 'Macro 1: Sweep', tone: 'sweep' },
-            { x: 66, y: 18, text: 'Macro 2: Ekspansi DOL', tone: 'bull' }
+          autoFvgs: [
+            {
+              c1Idx: 4,
+              c3Idx: 6,
+              type: 'bull',
+              extendToIdx: 15,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'FVG MACRO',
+              labelSide: 'right'
+            }
+          ],
+          seriesWickRings: [
+            { idx: 4, which: 'low', tone: 'sweep' },
+            { idx: 9, which: 'low', tone: 'gold' }
+          ],
+          seriesCallouts: [
+            { idx: 4.5, price: 2641.8, text: 'Macro 1: Sweep', tone: 'sweep' },
+            { idx: 11.8, price: 2644.6, text: 'Macro 2: Ekspansi DOL', tone: 'bull' }
           ]
         }
       ]
@@ -1681,42 +2954,70 @@
       stages: [
         {
           label: '1. Proyeksi Std Dev (ATH)',
-          caption: 'Saat Gold di All-Time High tanpa swing di kiri, tarik Fib dari Manipulation Leg: -1.0 SD = Partial/BEP, -2.0 s.d. -2.5 SD = Sweet Spot TP Utama!',
-          zones: [
-            { x1: 16, x2: 36, y1: 16, y2: 36, tone: 'sweep', label: 'MANIPULATION LEG', labelPos: 'tl' },
-            { x1: 42, x2: 92, y1: 74, y2: 86, tone: 'tp', label: 'SWEET SPOT TP (-2.0 s.d. -2.5 SD)', labelPos: 'tr' }
+          caption: 'Saat Gold di All-Time High tanpa swing kiri, tarik Fib Manipulation Leg ($2,648.0 → $2,642.0, rentang $6): -1.0 SD ($2,654.0) = Partial/BEP, -2.0 s.d. -2.5 SD ($2,660–$2,663) = Sweet Spot TP!',
+          seriesSlots: 19,
+          series: [
+            { o: 2646.2, h: 2648.0, l: 2645.8, c: 2647.6 },
+            { o: 2647.6, h: 2647.8, l: 2644.6, c: 2645.2 },
+            { o: 2645.2, h: 2645.6, l: 2642.0, c: 2643.8 },
+            { o: 2643.8, h: 2649.4, l: 2643.4, c: 2648.8 },
+            { o: 2648.8, h: 2651.2, l: 2647.2, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2648.2, c: 2648.8 },
+            { o: 2648.8, h: 2652.8, l: 2648.4, c: 2652.2 },
+            { o: 2652.2, h: 2654.4, l: 2651.8, c: 2654.0 },
+            { o: 2654.0, h: 2654.4, l: 2652.2, c: 2652.8 },
+            { o: 2652.8, h: 2656.6, l: 2652.4, c: 2656.0 },
+            { o: 2656.0, h: 2659.2, l: 2655.6, c: 2658.6 },
+            { o: 2658.6, h: 2660.6, l: 2658.2, c: 2660.2 },
+            { o: 2660.2, h: 2662.8, l: 2659.8, c: 2662.2 },
+            { o: 2662.2, h: 2663.2, l: 2660.4, c: 2660.8 },
+            { o: 2660.8, h: 2661.4, l: 2658.6, c: 2659.2 },
+            { o: 2659.2, h: 2659.8, l: 2657.8, c: 2658.4 }
           ],
-          lines: [
-            { x1: 16, x2: 92, y1: 16, y2: 16, style: 'solid', tone: 'sl', label: '1.0 (Low Manipulasi)', labelSide: 'right' },
-            { x1: 16, x2: 92, y1: 36, y2: 36, style: 'solid', tone: 'muted', label: '0.0 (Origin)', labelSide: 'right' },
-            { x1: 36, x2: 92, y1: 56, y2: 56, style: 'dashed', tone: 'cyan', label: '-1.0 SD (Partial/BEP)', labelSide: 'right' },
-            { x1: 36, x2: 92, y1: 76, y2: 76, style: 'dashed', tone: 'bull', label: '-2.0 SD (Target Utama)', labelSide: 'right' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 2.6, low: 2642.0, high: 2648.0, tone: 'sweep', label: 'MANIP. LEG', labelPos: 'bl', labelFront: true },
+            { fromIdx: 6, toIdx: 18.4, low: 2660.0, high: 2663.0, tone: 'tp', label: 'SWEET SPOT TP (-2.0 / -2.5 SD)', labelPos: 'tl', labelFront: true }
           ],
-          candles: [
-            [18, 36, 38, 24, 26], [26, 26, 28, 16, 20, 'sweep'], [36, 20, 44, 19, 42, 'bull'],
-            [46, 42, 44, 34, 38], [56, 38, 58, 37, 56, 'bull'], [66, 56, 62, 50, 54],
-            [76, 54, 82, 53, 80, 'bull'], [86, 80, 86, 72, 74]
+          seriesLevels: [
+            { price: 2660.0, fromIdx: 4, tone: 'bull', style: 'dashed', label: '-2.0 SD · 2.660', labelSide: 'right', labelPos: 'below' },
+            { price: 2654.0, fromIdx: 3, tone: 'cyan', style: 'dashed', label: '-1.0 SD (BEP) · 2.654', labelSide: 'right', labelPos: 'below' },
+            { price: 2648.0, tone: 'muted', style: 'solid', label: '0.0 (Origin) · 2.648', labelSide: 'right', labelPos: 'below' },
+            { price: 2642.0, tone: 'sl', style: 'solid', label: '1.0 (Low) · 2.642', labelSide: 'right', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 2, which: 'low', tone: 'sweep' },
+            { idx: 13, which: 'high', tone: 'bull' }
           ]
         },
         {
           label: '2. Profil Candle OLHC & CRT',
-          caption: 'Candle Bullish H4/Daily sehat mengikuti OLHC: buka di Open → turun sweep Low Candle 1 (wick manipulasi) lalu body tutup kembali di dalam range → Candle 3 melesat ke High!',
-          zones: [
-            { x1: 16, x2: 88, y1: 34, y2: 74, tone: 'asia', label: 'RANGE CANDLE 1 (CRT)', labelPos: 'tr' }
+          caption: 'CRT 3-Candle (H4/Daily): C1 menetapkan Range ($2,646–$2,656) → C2 Purge Low C1 ke $2,641.6 lalu body tutup kembali DI DALAM range ($2,649.4) → C3 ekspansi OLHC menembus High C1!',
+          series: [
+            { o: 2653.4, h: 2654.2, l: 2651.2, c: 2651.8 },
+            { o: 2651.8, h: 2652.4, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.6, l: 2648.2, c: 2650.8 },
+            { o: 2650.8, h: 2651.2, l: 2647.8, c: 2648.4 },
+            { o: 2648.4, h: 2649.2, l: 2646.6, c: 2647.8 },
+            { o: 2647.8, h: 2656.0, l: 2646.0, c: 2654.2 },
+            { o: 2654.2, h: 2654.8, l: 2641.6, c: 2649.4 },
+            { o: 2649.4, h: 2658.4, l: 2648.4, c: 2657.6 },
+            { o: 2657.6, h: 2660.2, l: 2656.8, c: 2659.4 }
           ],
-          lines: [
-            { x1: 14, x2: 90, y1: 74, y2: 74, style: 'dashed', tone: 'tp', label: 'Target CRT (High C1)', labelSide: 'left' },
-            { x1: 14, x2: 90, y1: 34, y2: 34, style: 'dashed', tone: 'sweep', label: 'Low C1 (Di-sweep C2)', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 5, toIdx: 8.3, low: 2646.0, high: 2656.0, tone: 'asia', label: 'RANGE C1 (CRT)', labelPos: 'br', labelFront: true }
           ],
-          candles: [
-            [26, 42, 74, 34, 68, 'cyan'],
-            [50, 62, 66, 18, 48, 'sweep'],
-            [74, 48, 86, 44, 82, 'bull']
+          seriesLevels: [
+            { price: 2656.0, fromIdx: 0, tone: 'tp', style: 'dashed', label: 'Target CRT (High C1 · 2.656)', labelSide: 'left' },
+            { price: 2646.0, fromIdx: 0, tone: 'sweep', style: 'dashed', label: 'Low C1 · 2.646 (Di-sweep C2)', labelSide: 'left', labelPos: 'below' }
           ],
-          callouts: [
-            { x: 26, y: 18, text: 'C1: Range', tone: 'cyan' },
-            { x: 50, y: 10, text: 'C2: Purge & Tutup di Dalam', tone: 'sweep' },
-            { x: 74, y: 92, text: 'C3: Ekspansi OLHC', tone: 'bull' }
+          seriesWickRings: [
+            { idx: 6, which: 'low', tone: 'sweep' },
+            { idx: 7, which: 'high', tone: 'bull' }
+          ],
+          seriesCallouts: [
+            { idx: 5.0, price: 2659.6, text: 'C1: Range', tone: 'cyan' },
+            { idx: 6.2, price: 2639.8, text: 'C2: Purge & Tutup Dalam', tone: 'sweep' },
+            { idx: 7.5, price: 2661.4, text: 'C3: OLHC', tone: 'bull' }
           ]
         }
       ]
@@ -1731,36 +3032,65 @@
           label: '1. Alur Top-Down 6 Langkah',
           caption: 'Selalu urut dari atas ke bawah: Berita/Weekly → Daily (Origin & DOL) → H1 (Dealing Range & POI) → M15 (Asia & STH/STL) → M5 (Sweep+CISD di Killzone) → Risiko 0.5–1%.',
           bars: [
-            { x1: 6, x2: 20, y1: 60, y2: 90, tone: 'danger', label: '1. News', sub: 'Weekly' },
-            { x1: 22, x2: 36, y1: 52, y2: 84, tone: 'gold', label: '2. Daily', sub: 'Origin→DOL' },
-            { x1: 38, x2: 52, y1: 44, y2: 78, tone: 'cyan', label: '3. H1', sub: 'Range+POI' },
-            { x1: 54, x2: 68, y1: 34, y2: 70, tone: 'sweep', label: '4. M15', sub: 'Asia+SSL/BSL' },
-            { x1: 70, x2: 84, y1: 24, y2: 62, tone: 'bull', label: '5. M5', sub: 'Trigger' },
-            { x1: 86, x2: 96, y1: 14, y2: 54, tone: 'gold', label: '6. Lot', sub: '≤1% Risk' }
+            { x1: 2, x2: 16.5, y1: 60, y2: 90, tone: 'danger', label: '1. News', sub: 'Weekly' },
+            { x1: 18.2, x2: 32.7, y1: 52, y2: 84, tone: 'gold', label: '2. Daily', sub: 'Origin→DOL' },
+            { x1: 34.4, x2: 48.9, y1: 44, y2: 78, tone: 'cyan', label: '3. H1', sub: 'Range+POI' },
+            { x1: 50.6, x2: 65.1, y1: 34, y2: 70, tone: 'sweep', label: '4. M15', sub: 'Asia+SSL' },
+            { x1: 66.8, x2: 81.3, y1: 24, y2: 62, tone: 'bull', label: '5. M5', sub: 'Trigger' },
+            { x1: 83.0, x2: 97.5, y1: 14, y2: 54, tone: 'gold', label: '6. Lot', sub: '≤1% Risk' }
           ],
           callouts: [
-            { x: 50, y: 8, text: 'Chart Bersih = 1 Bias · 1 DOL · 1–2 POI · 1 Invalidasi', tone: 'gold' }
+            { x: 50, y: 7, text: 'Chart Bersih = 1 Bias · 1 DOL · 1–2 POI · 1 Invalidasi', tone: 'gold' }
           ]
         },
         {
           label: '2. Peta Akhir Siap Eksekusi',
-          caption: 'Hasil akhir chart polos setelah 10 menit mapping: hanya 5 elemen bersih (DOL di atas, Asia Low SSL di tengah, 1 POI Discount, 1 garis Invalidasi, dan Entry M5).',
-          zones: [
-            { x1: 12, x2: 90, y1: 24, y2: 36, tone: 'ob', label: '1 POI UTAMA (DISCOUNT + OTE)', labelPos: 'tr' }
+          caption: 'Hasil akhir chart polos setelah 10 menit mapping: hanya 5 elemen bersih (DOL PDH $2,662, 50% EQ H1, Asia Low SSL $2,647, 1 POI Discount + FVG M5, dan 1 garis Invalidasi $2,641).',
+          series: [
+            { o: 2650.2, h: 2651.4, l: 2648.6, c: 2649.2 },
+            { o: 2649.2, h: 2651.2, l: 2647.8, c: 2650.6 },
+            { o: 2650.6, h: 2651.0, l: 2647.2, c: 2647.8 },
+            { o: 2647.8, h: 2649.6, l: 2647.0, c: 2649.0 },
+            { o: 2649.0, h: 2649.4, l: 2645.2, c: 2645.6 },
+            { o: 2645.6, h: 2646.0, l: 2643.2, c: 2644.8 },
+            { o: 2644.8, h: 2646.2, l: 2644.4, c: 2645.8 },
+            { o: 2645.8, h: 2651.6, l: 2645.6, c: 2651.0 },
+            { o: 2651.0, h: 2653.2, l: 2648.8, c: 2652.4 },
+            { o: 2652.4, h: 2652.8, l: 2649.6, c: 2650.0 },
+            { o: 2650.0, h: 2650.4, l: 2647.4, c: 2649.6 },
+            { o: 2649.6, h: 2653.8, l: 2649.2, c: 2653.2 },
+            { o: 2653.2, h: 2656.6, l: 2652.8, c: 2656.0 },
+            { o: 2656.0, h: 2659.2, l: 2655.6, c: 2658.6 },
+            { o: 2658.6, h: 2661.4, l: 2658.0, c: 2660.8 },
+            { o: 2660.8, h: 2662.6, l: 2660.2, c: 2662.0 }
           ],
-          lines: [
-            { x1: 10, x2: 92, y1: 86, y2: 86, style: 'solid', tone: 'tp', label: 'DOL UTAMA: PDH', labelSide: 'left' },
-            { x1: 10, x2: 92, y1: 56, y2: 56, style: 'dotted', tone: 'muted', label: '50% EQ H1', labelSide: 'right' },
-            { x1: 10, x2: 62, y1: 44, y2: 44, style: 'dashed', tone: 'sweep', label: 'Asia Low (SSL $$$)', labelSide: 'left' },
-            { x1: 10, x2: 92, y1: 14, y2: 14, style: 'solid', tone: 'sl', label: 'GARIS INVALIDASI BIAS', labelSide: 'left' }
+          seriesZones: [
+            { fromIdx: 0, toIdx: 15, low: 2643.0, high: 2646.0, tone: 'ob', label: '1 POI UTAMA (DISCOUNT + OTE)', labelPos: 'br', labelFront: true }
           ],
-          candles: [
-            [18, 46, 62, 44, 58], [28, 58, 66, 46, 52], [38, 52, 54, 43, 46],
-            [48, 46, 50, 26, 30, 'sweep'], [58, 30, 48, 29, 46, 'bull'],
-            [68, 46, 52, 34, 42, 'gold'], [78, 42, 68, 40, 66, 'bull'], [88, 66, 88, 64, 86, 'bull']
+          autoFvgs: [
+            {
+              c1Idx: 6,
+              c3Idx: 8,
+              type: 'bull',
+              extendToIdx: 15,
+              showCE: false,
+              showWickMarkers: false,
+              label: 'FVG M5',
+              labelSide: 'right'
+            }
           ],
-          arrows: [
-            { x1: 68, y1: 38, x2: 88, y2: 86, tone: 'bull', label: '1:4 R:R ke DOL' }
+          seriesLevels: [
+            { price: 2662.0, tone: 'tp', style: 'solid', label: 'DOL UTAMA: PDH 2.662,0', labelSide: 'left' },
+            { price: 2652.0, tone: 'muted', style: 'dotted', label: '50% EQ H1', labelSide: 'left' },
+            { price: 2647.0, toIdx: 7, tone: 'sweep', style: 'dashed', label: 'Asia Low (SSL $$$)', labelSide: 'left' },
+            { price: 2641.0, tone: 'sl', style: 'solid', label: 'INVALIDASI BIAS 2.641,0', labelSide: 'left', labelPos: 'below' }
+          ],
+          seriesWickRings: [
+            { idx: 5, which: 'low', tone: 'sweep' },
+            { idx: 10, which: 'low', tone: 'gold' }
+          ],
+          seriesArrows: [
+            { fromIdx: 10.6, fromPrice: 2650.4, toIdx: 15.0, toPrice: 2661.2, tone: 'bull', label: '1:4 R:R ke DOL', labelDx: -38, labelDy: -10 }
           ]
         }
       ]
@@ -1935,6 +3265,727 @@
     }).join('');
   }
 
+  /**
+   * Flux-Charts Style Side-by-Side Split Panel Renderer (Valid vs Invalid Anatomy).
+   * Candles are rendered edge-to-edge flush (0px horizontal drift) so Close[i-1] === Open[i]
+   * aligns pixel-perfectly, with exact wick boundary lines and dashed wick highlight circles.
+   */
+  function renderSplitPanels(panels) {
+    if (!Array.isArray(panels) || panels.length === 0) return '';
+    const outerX = 20;
+    const outerY = 28;
+    const outerW = VIEW_W - 40;
+    const outerH = VIEW_H - 40;
+    const midX = VIEW_W / 2;
+    const panelW = outerW / 2;
+
+    let out = `<rect x="${outerX}" y="${outerY}" width="${outerW}" height="${outerH}" rx="10" fill="var(--acd-chart-bg, #131722)" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.22))" stroke-width="1"/>`;
+    out += `<line x1="${midX}" y1="${outerY + 6}" x2="${midX}" y2="${outerY + outerH - 6}" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.32))" stroke-width="1.5"/>`;
+
+    panels.slice(0, 2).forEach((p, idx) => {
+      const px = outerX + idx * panelW;
+      const py = outerY;
+      const pTop = py + 44;
+      const pBot = py + outerH - 22;
+      const pH = pBot - pTop;
+      const valToY = (v) => +(pBot - (clamp(v, 0, 100) / 100) * pH).toFixed(1);
+
+      const isValid = p.verdict === 'valid';
+      const verdictColor = isValid ? 'var(--acd-bull, #22c55e)' : 'var(--acd-bear, #ef4444)';
+      const candles = Array.isArray(p.candles) ? p.candles : [];
+      const bodyW = 24;
+      const startX = px + 26;
+
+      // Subtle panel heading (top-left)
+      if (p.heading) {
+        out += `<text x="${px + 18}" y="${py + 24}" fill="var(--acd-ink, #f8fafc)" font-size="13" font-weight="800" letter-spacing="0.04em">${esc(p.heading)}</text>`;
+      }
+
+      // Verdict status badge cleanly isolated in right column of each panel
+      const badgeCx = px + panelW - 64;
+      const badgeCy = py + 114;
+      out += `<text x="${badgeCx}" y="${badgeCy - 40}" text-anchor="middle" fill="${verdictColor}" font-size="11.5" font-weight="800" letter-spacing="0.05em">${esc(p.badgeTitle || (isValid ? 'VALID' : 'INVALID'))}</text>`;
+      if (p.badgeSub) {
+        out += `<text x="${badgeCx}" y="${badgeCy - 25}" text-anchor="middle" fill="var(--acd-muted, #94a3b8)" font-size="9" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(p.badgeSub)}</text>`;
+      }
+      out += `<circle cx="${badgeCx}" cy="${badgeCy + 6}" r="18" fill="${verdictColor}"/>`;
+      if (isValid) {
+        out += `<path d="M ${badgeCx - 7} ${badgeCy + 6.5} L ${badgeCx - 2} ${badgeCy + 11.5} L ${badgeCx + 8} ${badgeCy + 0.5}" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+      } else {
+        out += `<path d="M ${badgeCx - 6.5} ${badgeCy - 0.5} L ${badgeCx + 6.5} ${badgeCy + 12.5} M ${badgeCx + 6.5} ${badgeCy - 0.5} L ${badgeCx - 6.5} ${badgeCy + 12.5}" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>`;
+      }
+
+      // Pre-compute exact FVG / overlap geometry from C1 (idx 0) and C3 (idx 2)
+      let zoneMarkup = '';
+      let markerMarkup = '';
+      if (candles.length >= 3) {
+        const c1 = candles[0];
+        const c3 = candles[2];
+        const xC1 = +(startX + bodyW / 2).toFixed(1);
+        const xC3 = +(startX + bodyW * 2 + bodyW / 2).toFixed(1);
+        const isBear = p.fvgType === 'bear';
+        const c1WickVal = isBear ? c1.l : c1.h;
+        const c3WickVal = isBear ? c3.h : c3.l;
+        const y1 = valToY(c1WickVal);
+        const y3 = valToY(c3WickVal);
+        const topY = Math.min(y1, y3);
+        const botY = Math.max(y1, y3);
+        const hasRealGap = isBear ? (c1.l > c3.h) : (c1.h < c3.l);
+
+        const lineLeft = +(startX - 4).toFixed(1);
+        const lineRight = +(startX + bodyW * 3 + 18).toFixed(1);
+
+        if (hasRealGap && isValid) {
+          // Stop FVG band cleanly before the right verdict badge column (zero overlap!)
+          const zoneX = +(startX + bodyW).toFixed(1);
+          const zoneRight = +(px + panelW - 126).toFixed(1);
+          const zoneW = Math.max(76, +(zoneRight - zoneX).toFixed(1));
+          const fvgTone = isBear ? TONE_MAP.bear : TONE_MAP.bull;
+          zoneMarkup += `<rect x="${zoneX}" y="${topY}" width="${zoneW}" height="${Math.max(4, botY - topY).toFixed(1)}" rx="2" fill="${fvgTone.fill}" stroke="${fvgTone.stroke}" stroke-opacity="0.45" stroke-width="1"/>`;
+          if (p.showCE) {
+            const ceY = +((topY + botY) / 2).toFixed(1);
+            zoneMarkup += `<line x1="${zoneX}" y1="${ceY}" x2="${(zoneX + zoneW).toFixed(1)}" y2="${ceY}" stroke="var(--acd-gold, #f5b942)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+            zoneMarkup += `<text x="${(zoneX + zoneW - 4).toFixed(1)}" y="${(ceY - 3.5).toFixed(1)}" text-anchor="end" fill="var(--acd-gold, #f5b942)" font-size="8.6" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">50% CE</text>`;
+          }
+          if (p.fvgLabel) {
+            const shortLbl = isBear ? 'FVG (SIBI)' : 'FVG (BISI)';
+            zoneMarkup += `<text x="${(zoneX + zoneW - 4).toFixed(1)}" y="${(botY - 4).toFixed(1)}" text-anchor="end" fill="${fvgTone.text}" font-size="8.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${shortLbl}</text>`;
+          }
+        } else if (!isValid) {
+          // Overlap highlight tint between overlapping wick tips
+          const ovX = +(startX + 4).toFixed(1);
+          const ovW = +(bodyW * 3 - 4).toFixed(1);
+          zoneMarkup += `<rect x="${ovX}" y="${topY}" width="${ovW}" height="${Math.max(4, botY - topY).toFixed(1)}" fill="var(--acd-bear-soft, rgba(239,68,68,0.22))" stroke="var(--acd-bear, #ef4444)" stroke-width="0.9" stroke-dasharray="3 2"/>`;
+        }
+
+        // Exact crisp wick boundary lines + dashed circles on C1 & C3 wick endpoints (Flux Charts style)
+        const strokeInk = 'var(--acd-ink, #f8fafc)';
+        markerMarkup += `<line x1="${xC1}" y1="${y1}" x2="${lineRight}" y2="${y1}" stroke="${strokeInk}" stroke-width="1.5" stroke-opacity="0.92"/>`;
+        markerMarkup += `<line x1="${lineLeft}" y1="${y3}" x2="${(xC3 + bodyW / 2 + 16).toFixed(1)}" y2="${y3}" stroke="${strokeInk}" stroke-width="1.5" stroke-opacity="0.92"/>`;
+        markerMarkup += `<circle cx="${xC1}" cy="${y1}" r="8.5" fill="none" stroke="${strokeInk}" stroke-width="1.25" stroke-dasharray="3 2.5" opacity="0.9"/>`;
+        markerMarkup += `<circle cx="${xC3}" cy="${y3}" r="8.5" fill="none" stroke="${strokeInk}" stroke-width="1.25" stroke-dasharray="3 2.5" opacity="0.9"/>`;
+
+        // Small crisp C1/C2/C3 labels at bottom
+        ['C1', 'C2', 'C3'].forEach((lbl, ci) => {
+          const cxLbl = +(startX + ci * bodyW + bodyW / 2).toFixed(1);
+          markerMarkup += `<text x="${cxLbl}" y="${(py + outerH - 7).toFixed(1)}" text-anchor="middle" fill="var(--acd-muted, #94a3b8)" font-size="9.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${lbl}</text>`;
+        });
+
+        if (!isValid && p.overlapLabel) {
+          markerMarkup += `<text x="${badgeCx}" y="${(badgeCy + 44).toFixed(1)}" text-anchor="middle" fill="var(--acd-bear, #ef4444)" font-size="9" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(p.overlapLabel)}</text>`;
+        } else if (isValid) {
+          const hintTxt = isBear ? 'Low C1 > High C3' : 'High C1 < Low C3';
+          markerMarkup += `<text x="${badgeCx}" y="${(badgeCy + 44).toFixed(1)}" text-anchor="middle" fill="var(--acd-bull, #22c55e)" font-size="9" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${hintTxt}</text>`;
+        }
+      }
+
+      // Render flush edge-to-edge candles (bodyW = 24, gap = 0 so Close[i-1] === Open[i] snaps pixel-perfect!)
+      let candlesMarkup = '';
+      candles.forEach((c, ci) => {
+        const bx = +(startX + ci * bodyW).toFixed(1);
+        const cx = +(bx + bodyW / 2).toFixed(1);
+        const yO = valToY(c.o);
+        const yC = valToY(c.c);
+        const yH = valToY(c.h);
+        const yL = valToY(c.l);
+        const isBull = c.c >= c.o;
+        const bodyTop = Math.min(yO, yC);
+        const bodyH = Math.max(2, Math.abs(yC - yO));
+        const col = isBull ? 'var(--acd-bull, #22c55e)' : 'var(--acd-bear, #ef4444)';
+        candlesMarkup += `<g class="acd-candle">
+          <line x1="${cx}" y1="${yH}" x2="${cx}" y2="${yL}" stroke="${col}" stroke-width="2" stroke-linecap="butt"/>
+          <rect x="${bx}" y="${bodyTop.toFixed(1)}" width="${bodyW}" height="${bodyH.toFixed(1)}" rx="0.5" fill="${col}"/>
+        </g>`;
+      });
+
+      out += `<g class="acd-split-panel">${zoneMarkup}${candlesMarkup}${markerMarkup}</g>`;
+    });
+
+    return out;
+  }
+
+  /**
+   * Flux-Style 2-Candle OHLC Anatomy Renderer (Bullish vs Bearish).
+   * Pixel-aligned High/Close/Open/Low leader lines and Body/Wick callouts with zero overlaps.
+   */
+  function renderOhlcAnatomy(cfg) {
+    if (!cfg || !cfg.bull || !cfg.bear) return '';
+    const outerX = 20;
+    const outerY = 28;
+    const outerW = VIEW_W - 40;
+    const outerH = VIEW_H - 40;
+    const midX = VIEW_W / 2;
+    const panelW = outerW / 2;
+    const pTop = outerY + 46;
+    const pBot = outerY + outerH - 22;
+    const pH = pBot - pTop;
+    const valToY = (v) => +(pBot - (clamp(v, 0, 100) / 100) * pH).toFixed(1);
+
+    let out = `<rect x="${outerX}" y="${outerY}" width="${outerW}" height="${outerH}" rx="10" fill="var(--acd-chart-bg, #131722)" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.22))" stroke-width="1"/>`;
+    out += `<line x1="${midX}" y1="${outerY + 8}" x2="${midX}" y2="${outerY + outerH - 8}" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.30))" stroke-width="1.4"/>`;
+
+    const sides = [
+      { key: 'bull', data: cfg.bull, isBull: true, px: outerX, cx: outerX + 160, labelSide: 'left' },
+      { key: 'bear', data: cfg.bear, isBull: false, px: midX, cx: midX + 140, labelSide: 'right' }
+    ];
+
+    const bodyW = 34;
+    const half = bodyW / 2;
+
+    for (const s of sides) {
+      const c = s.data;
+      const col = s.isBull ? 'var(--acd-bull, #22c55e)' : 'var(--acd-bear, #ef4444)';
+      const yO = valToY(c.o);
+      const yC = valToY(c.c);
+      const yH = valToY(c.h);
+      const yL = valToY(c.l);
+      const top = Math.min(yO, yC);
+      const bot = Math.max(yO, yC);
+      const bh = Math.max(4, bot - top);
+      const midBodyY = +((top + bot) / 2).toFixed(1);
+      const upperWickY = +((yH + top) / 2).toFixed(1);
+      const lowerWickY = +((bot + yL) / 2).toFixed(1);
+
+      // Panel title & subtitle
+      const headX = s.px + panelW / 2;
+      out += `<text x="${headX}" y="${outerY + 21}" text-anchor="middle" fill="${col}" font-size="12" font-weight="800" letter-spacing="0.05em">${esc(c.title)}</text>`;
+      out += `<text x="${headX}" y="${outerY + 35}" text-anchor="middle" fill="var(--acd-muted, #94a3b8)" font-size="9.2" font-weight="600" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(c.sub)}</text>`;
+
+      // Candle wick & crisp solid body
+      out += `<g class="acd-candle">
+        <line x1="${s.cx}" y1="${yH}" x2="${s.cx}" y2="${yL}" stroke="${col}" stroke-width="2.4" stroke-linecap="butt"/>
+        <rect x="${(s.cx - half).toFixed(1)}" y="${top.toFixed(1)}" width="${bodyW}" height="${bh.toFixed(1)}" rx="1.5" fill="${col}"/>
+      </g>`;
+
+      // 4 OHLC leader lines & labels
+      const rows = s.isBull
+        ? [
+            { y: yH, lbl: 'HIGH (Tertinggi)', tone: 'var(--acd-muted, #94a3b8)', dash: '2 3', edge: s.cx },
+            { y: yC, lbl: 'CLOSE (Tutup)', tone: col, dash: '4 3', edge: s.cx - half },
+            { y: yO, lbl: 'OPEN (Buka)', tone: 'var(--acd-gold, #f5b942)', dash: '4 3', edge: s.cx - half },
+            { y: yL, lbl: 'LOW (Terendah)', tone: 'var(--acd-muted, #94a3b8)', dash: '2 3', edge: s.cx }
+          ]
+        : [
+            { y: yH, lbl: 'HIGH (Tertinggi)', tone: 'var(--acd-muted, #94a3b8)', dash: '2 3', edge: s.cx },
+            { y: yO, lbl: 'OPEN (Buka)', tone: 'var(--acd-gold, #f5b942)', dash: '4 3', edge: s.cx + half },
+            { y: yC, lbl: 'CLOSE (Tutup)', tone: col, dash: '4 3', edge: s.cx + half },
+            { y: yL, lbl: 'LOW (Terendah)', tone: 'var(--acd-muted, #94a3b8)', dash: '2 3', edge: s.cx }
+          ];
+
+      for (const r of rows) {
+        if (s.labelSide === 'left') {
+          const lx = s.px + 118;
+          out += `<line x1="${lx + 4}" y1="${r.y}" x2="${r.edge - 3}" y2="${r.y}" stroke="${r.tone}" stroke-width="1.2" stroke-dasharray="${r.dash}"/>`;
+          out += `<circle cx="${r.edge}" cy="${r.y}" r="2.5" fill="${r.tone}"/>`;
+          out += `<text x="${lx}" y="${(r.y + 3.5).toFixed(1)}" text-anchor="end" fill="${r.tone}" font-size="9.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(r.lbl)}</text>`;
+        } else {
+          const rx = s.px + panelW - 118;
+          out += `<line x1="${r.edge + 3}" y1="${r.y}" x2="${rx - 4}" y2="${r.y}" stroke="${r.tone}" stroke-width="1.2" stroke-dasharray="${r.dash}"/>`;
+          out += `<circle cx="${r.edge}" cy="${r.y}" r="2.5" fill="${r.tone}"/>`;
+          out += `<text x="${rx}" y="${(r.y + 3.5).toFixed(1)}" text-anchor="start" fill="${r.tone}" font-size="9.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(r.lbl)}</text>`;
+        }
+      }
+
+      // Opposite-side anatomy tags (Upper Wick, Body, Lower Wick)
+      const tagAnchor = s.labelSide === 'left' ? 'start' : 'end';
+      const tagX = s.labelSide === 'left' ? (s.cx + half + 14) : (s.cx - half - 14);
+      const tickX1 = s.labelSide === 'left' ? (s.cx + half + 4) : (s.cx - half - 4);
+      const tickX2 = s.labelSide === 'left' ? (tagX - 3) : (tagX + 3);
+      out += `<line x1="${tickX1}" y1="${midBodyY}" x2="${tickX2}" y2="${midBodyY}" stroke="${col}" stroke-width="1.2"/>`;
+      out += `<text x="${tagX}" y="${(upperWickY + 3).toFixed(1)}" text-anchor="${tagAnchor}" fill="var(--acd-muted, #94a3b8)" font-size="9" font-weight="600">Wick Atas</text>`;
+      out += `<text x="${tagX}" y="${(midBodyY - 1).toFixed(1)}" text-anchor="${tagAnchor}" fill="var(--acd-ink, #f8fafc)" font-size="9.5" font-weight="700">BODY</text>`;
+      out += `<text x="${tagX}" y="${(midBodyY + 11).toFixed(1)}" text-anchor="${tagAnchor}" fill="${col}" font-size="8.6" font-weight="700">${s.isBull ? '(Buyer Kuat)' : '(Seller Kuat)'}</text>`;
+      out += `<text x="${tagX}" y="${(lowerWickY + 3).toFixed(1)}" text-anchor="${tagAnchor}" fill="var(--acd-muted, #94a3b8)" font-size="9" font-weight="600">Wick Bawah</text>`;
+    }
+
+    return `<g class="acd-ohlc-anatomy">${out}</g>`;
+  }
+
+  /**
+   * Multi-Timeframe Candle Decomposition Renderer (1 Candle H1 === 4 Flush Candles M15).
+   * Draws exact dashed horizontal OHLC alignment guides proving Open/High/Low/Close parity.
+   */
+  function renderMtfSplit(cfg) {
+    if (!cfg || !cfg.htf || !Array.isArray(cfg.ltf) || cfg.ltf.length === 0) return '';
+    const outerX = 20;
+    const outerY = 28;
+    const outerW = VIEW_W - 40;
+    const outerH = VIEW_H - 40;
+
+    const all = [cfg.htf, ...cfg.ltf];
+    let minP = Infinity;
+    let maxP = -Infinity;
+    for (const c of all) {
+      if (c.l < minP) minP = c.l;
+      if (c.h > maxP) maxP = c.h;
+    }
+    const span = Math.max(2, maxP - minP);
+    const pMin = minP - span * 0.14;
+    const pMax = maxP + span * 0.14;
+
+    const plotT = outerY + 42;
+    const plotB = outerY + outerH - 28;
+    const plotH = plotB - plotT;
+    const priceToY = (p) => +(plotT + ((pMax - p) / (pMax - pMin)) * plotH).toFixed(1);
+
+    const htfBox = { x: 34, w: 158 };
+    const ltfBox = { x: 268, w: 274 };
+    const axisX = 550;
+
+    let out = `<rect x="${outerX}" y="${outerY}" width="${outerW}" height="${outerH}" rx="10" fill="var(--acd-chart-bg, #131722)" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.22))" stroke-width="1"/>`;
+    out += `<rect x="${htfBox.x}" y="${outerY + 12}" width="${htfBox.w}" height="${outerH - 24}" rx="8" fill="var(--acd-gold-soft, rgba(245, 185, 66, 0.08))" stroke="var(--acd-gold, #f5b942)" stroke-opacity="0.4" stroke-width="1"/>`;
+    out += `<rect x="${ltfBox.x}" y="${outerY + 12}" width="${ltfBox.w}" height="${outerH - 24}" rx="8" fill="var(--acd-cyan-soft, rgba(56, 189, 248, 0.07))" stroke="var(--acd-cyan, #38bdf8)" stroke-opacity="0.4" stroke-width="1"/>`;
+
+    out += `<text x="${htfBox.x + htfBox.w / 2}" y="${outerY + 29}" text-anchor="middle" fill="var(--acd-gold, #f5b942)" font-size="10" font-weight="800" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(cfg.htfLabel || '1 CANDLE H1')}</text>`;
+    out += `<text x="${ltfBox.x + ltfBox.w / 2}" y="${outerY + 29}" text-anchor="middle" fill="var(--acd-cyan, #38bdf8)" font-size="10" font-weight="800" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(cfg.ltfLabel || '4 CANDLE M15')}</text>`;
+
+    // Horizontal parity guides from H1 across to M15 & right axis
+    const guides = [
+      { price: cfg.htf.h, tag: `H ${cfg.htf.h.toFixed(1)}`, tone: 'var(--acd-muted, #94a3b8)' },
+      { price: cfg.htf.c, tag: `C ${cfg.htf.c.toFixed(1)}`, tone: 'var(--acd-bull, #22c55e)' },
+      { price: cfg.htf.o, tag: `O ${cfg.htf.o.toFixed(1)}`, tone: 'var(--acd-gold, #f5b942)' },
+      { price: cfg.htf.l, tag: `L ${cfg.htf.l.toFixed(1)}`, tone: 'var(--acd-muted, #94a3b8)' }
+    ];
+    for (const g of guides) {
+      const y = priceToY(g.price);
+      out += `<line x1="${htfBox.x + 20}" y1="${y}" x2="${axisX - 4}" y2="${y}" stroke="${g.tone}" stroke-width="1.15" stroke-dasharray="4 3" stroke-opacity="0.72"/>`;
+      out += `<text x="${axisX}" y="${(y + 3.5).toFixed(1)}" fill="${g.tone}" font-size="9.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(g.tag)}</text>`;
+    }
+
+    // Center equals / zoom badge
+    const eqCx = +((htfBox.x + htfBox.w + ltfBox.x) / 2).toFixed(1);
+    const eqCy = +((plotT + plotB) / 2).toFixed(1);
+    out += `<rect x="${(eqCx - 26).toFixed(1)}" y="${(eqCy - 14).toFixed(1)}" width="52" height="28" rx="6" fill="var(--acd-callout-bg, #0d1526)" stroke="var(--acd-gold, #f5b942)" stroke-width="1.2"/>`;
+    out += `<text x="${eqCx}" y="${(eqCy + 4).toFixed(1)}" text-anchor="middle" fill="var(--acd-gold, #f5b942)" font-size="10.5" font-weight="800" font-family="var(--acd-mono, ui-monospace, monospace)">= 4×</text>`;
+
+    // Helper to draw crisp solid candlestick
+    const drawCandle = (c, cx, bw) => {
+      const yO = priceToY(c.o);
+      const yC = priceToY(c.c);
+      const yH = priceToY(c.h);
+      const yL = priceToY(c.l);
+      const isBull = c.c >= c.o;
+      const top = Math.min(yO, yC);
+      const bh = Math.max(2, Math.abs(yC - yO));
+      const col = isBull ? 'var(--acd-bull, #22c55e)' : 'var(--acd-bear, #ef4444)';
+      return `<g class="acd-candle">
+        <line x1="${cx}" y1="${yH}" x2="${cx}" y2="${yL}" stroke="${col}" stroke-width="2" stroke-linecap="butt"/>
+        <rect x="${(cx - bw / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw}" height="${bh.toFixed(1)}" rx="1" fill="${col}"/>
+      </g>`;
+    };
+
+    // HTF single candle
+    const htfCx = +(htfBox.x + htfBox.w / 2).toFixed(1);
+    out += drawCandle(cfg.htf, htfCx, 36);
+    out += `<text x="${htfCx}" y="${(outerY + outerH - 18).toFixed(1)}" text-anchor="middle" fill="var(--acd-muted, #94a3b8)" font-size="9.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">15:00–16:00</text>`;
+
+    // 4 LTF candles (tight TradingView spacing)
+    const ltfCount = cfg.ltf.length;
+    const ltfStep = (ltfBox.w - 36) / ltfCount;
+    const ltfBw = Math.max(18, Math.min(36, +(ltfStep * 0.72).toFixed(1)));
+    cfg.ltf.forEach((c, i) => {
+      const cx = +(ltfBox.x + 18 + (i + 0.5) * ltfStep).toFixed(1);
+      out += drawCandle(c, cx, ltfBw);
+      if (c.label) {
+        out += `<text x="${cx}" y="${(outerY + outerH - 18).toFixed(1)}" text-anchor="middle" fill="var(--acd-muted, #94a3b8)" font-size="9.2" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(c.label)}</text>`;
+      }
+    });
+
+    return `<g class="acd-mtf-split">${out}</g>`;
+  }
+
+  /**
+   * TradingView-Grade OHLC Series Chart Renderer.
+   * Uniform slot pitch, 76% body density, automatic price axis, exact wick-computed Auto-FVG overlays,
+   * zones, labelled levels, wick highlight rings, and directional projection arrows.
+   */
+  function renderSeriesStage(stage) {
+    const series = Array.isArray(stage.series) ? stage.series : [];
+    if (series.length === 0) return '';
+
+    let minP = Infinity;
+    let maxP = -Infinity;
+    for (const c of series) {
+      if (c.l < minP) minP = c.l;
+      if (c.h > maxP) maxP = c.h;
+    }
+    if (Array.isArray(stage.seriesLevels)) {
+      for (const lv of stage.seriesLevels) {
+        if (lv.price < minP) minP = lv.price;
+        if (lv.price > maxP) maxP = lv.price;
+      }
+    }
+    if (Array.isArray(stage.seriesZones)) {
+      for (const z of stage.seriesZones) {
+        if (z.low < minP) minP = z.low;
+        if (z.high > maxP) maxP = z.high;
+      }
+    }
+    if (Array.isArray(stage.seriesArrows)) {
+      for (const a of stage.seriesArrows) {
+        if (a.fromPrice < minP) minP = a.fromPrice;
+        if (a.fromPrice > maxP) maxP = a.fromPrice;
+        if (a.toPrice < minP) minP = a.toPrice;
+        if (a.toPrice > maxP) maxP = a.toPrice;
+      }
+    }
+    if (Array.isArray(stage.seriesCallouts)) {
+      for (const co of stage.seriesCallouts) {
+        if (co.price < minP) minP = co.price;
+        if (co.price > maxP) maxP = co.price;
+      }
+    }
+    const span = Math.max(1.5, maxP - minP);
+    const padP = span * 0.12;
+    const pMin = minP - padP;
+    const pMax = maxP + padP;
+
+    const plotL = PLOT.left;
+    const plotR = PLOT.right;
+    const plotT = PLOT.top;
+    const plotB = PLOT.bottom;
+    const plotW = plotR - plotL;
+    const plotH = plotB - plotT;
+
+    const totalSlots = Math.max(series.length, Number(stage.seriesSlots) || series.length);
+    const padX = 12;
+    const stepX = (plotW - padX * 2) / totalSlots;
+    const bodyW = Math.max(6, Math.min(24, +(stepX * 0.76).toFixed(1)));
+    const half = bodyW / 2;
+    const idxToX = (i) => +(plotL + padX + (i + 0.5) * stepX).toFixed(1);
+    const priceToY = (p) => +(plotT + ((pMax - p) / (pMax - pMin)) * plotH).toFixed(1);
+    const decimals = Number.isInteger(stage.priceDecimals) ? stage.priceDecimals : 1;
+
+    // Background + 4 price grid ticks
+    let gridHtml = `<rect x="${plotL}" y="${plotT}" width="${plotW}" height="${plotH}" rx="8" fill="var(--acd-chart-bg, #131722)" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.18))" stroke-width="1"/>`;
+    for (let i = 0; i <= 4; i += 1) {
+      const frac = i / 4;
+      const y = +(plotT + frac * plotH).toFixed(1);
+      const price = pMax - frac * (pMax - pMin);
+      gridHtml += `<line x1="${plotL}" y1="${y}" x2="${plotR}" y2="${y}" stroke="var(--acd-grid, rgba(148, 163, 184, 0.12))" stroke-dasharray="3 4" stroke-width="1"/>`;
+      gridHtml += `<text x="${plotR + 6}" y="${(y + 3.5).toFixed(1)}" fill="var(--acd-muted, #94a3b8)" font-size="9.5" font-family="var(--acd-mono, ui-monospace, monospace)">${price.toFixed(decimals)}</text>`;
+    }
+
+    // Series shaded zones (Spread bands, TP/SL ranges, Buffers, Support/Resistance)
+    let zonesBackHtml = '';
+    let zonesFrontHtml = '';
+    for (const z of (stage.seriesZones || [])) {
+      const x1 = z.fromIdx != null ? Math.max(plotL + 2, idxToX(z.fromIdx) - half) : plotL + 3;
+      const x2 = z.toIdx != null ? Math.min(plotR - 2, idxToX(z.toIdx) + half) : plotR - 3;
+      const yTop = priceToY(z.high);
+      const yBot = priceToY(z.low);
+      const zh = Math.max(4, +(yBot - yTop).toFixed(1));
+      const t = toneOf(z.tone);
+      zonesBackHtml += `<rect x="${x1.toFixed(1)}" y="${yTop}" width="${Math.max(8, x2 - x1).toFixed(1)}" height="${zh}" rx="3" fill="${t.fill}" stroke="${t.stroke}" stroke-opacity="0.45" stroke-width="1"/>`;
+      if (z.label) {
+        const isRight = z.labelPos === 'tr' || z.labelPos === 'br';
+        const isBottom = z.labelPos === 'bl' || z.labelPos === 'br';
+        const lx = isRight ? (x2 - 6) : (x1 + 6);
+        const ly = isBottom ? (yBot - 5) : (yTop + Math.min(13, zh * 0.72));
+        const anchor = isRight ? 'end' : 'start';
+        const lblSvg = `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" fill="${t.text}" font-size="9.2" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(z.label)}</text>`;
+        if (z.labelFront) zonesFrontHtml += lblSvg;
+        else zonesBackHtml += lblSvg;
+      }
+    }
+
+    // Auto-computed FVG zones (behind candles) + crisp wick markers & labels (above candles)
+    let fvgBackHtml = '';
+    let fvgFrontHtml = '';
+    for (const fvg of (stage.autoFvgs || [])) {
+      const c1 = series[fvg.c1Idx];
+      const c3 = series[fvg.c3Idx];
+      if (!c1 || !c3) continue;
+      const isBear = fvg.type === 'bear';
+      const lowP = isBear ? c3.h : c1.h;
+      const highP = isBear ? c1.l : c3.l;
+      if (!(highP > lowP)) continue;
+
+      const xC1 = idxToX(fvg.c1Idx);
+      const xC3 = idxToX(fvg.c3Idx);
+      const xStart = xC1;
+      const xEnd = fvg.extendToIdx != null ? Math.min(plotR - 6, idxToX(fvg.extendToIdx) + half) : (plotR - 6);
+      const yTop = priceToY(highP);
+      const yBot = priceToY(lowP);
+      const ceY = priceToY((highP + lowP) / 2);
+      const t = toneOf(fvg.tone || (isBear ? 'bear' : 'fvg'));
+
+      fvgBackHtml += `<rect x="${xStart}" y="${yTop}" width="${Math.max(8, xEnd - xStart).toFixed(1)}" height="${Math.max(4, yBot - yTop).toFixed(1)}" rx="2" fill="${t.fill}" stroke="${t.stroke}" stroke-opacity="0.55" stroke-width="1"/>`;
+      if (fvg.label) {
+        const lblY = fvg.showCE ? Math.min(yTop + 10.5, ceY - 3.5) : (yTop + 11.5);
+        const isLeft = fvg.labelSide === 'left';
+        const lx = isLeft ? (xStart + 6) : (xEnd - 6);
+        const anchor = isLeft ? 'start' : 'end';
+        fvgFrontHtml += `<text x="${lx.toFixed(1)}" y="${lblY.toFixed(1)}" text-anchor="${anchor}" fill="${t.text}" font-size="9.2" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(fvg.label)}</text>`;
+      }
+      if (fvg.showCE) {
+        fvgBackHtml += `<line x1="${xStart}" y1="${ceY}" x2="${xEnd}" y2="${ceY}" stroke="var(--acd-gold, #f5b942)" stroke-width="1.35" stroke-dasharray="5 3"/>`;
+        if (fvg.ceLabel) {
+          const ceLblY = Math.max(ceY + 9.5, Math.min(yBot - 2.5, ceY + 10.5));
+          fvgFrontHtml += `<text x="${(xEnd - 6).toFixed(1)}" y="${ceLblY.toFixed(1)}" text-anchor="end" fill="var(--acd-gold, #f5b942)" font-size="8.9" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(fvg.ceLabel)}</text>`;
+        }
+      }
+      if (fvg.showWickMarkers) {
+        const yC1Wick = isBear ? yTop : yBot;
+        const yC3Wick = isBear ? yBot : yTop;
+        const ink = 'var(--acd-ink, #f8fafc)';
+        fvgFrontHtml += `<line x1="${xC1}" y1="${yC1Wick}" x2="${(xC3 + half + 8).toFixed(1)}" y2="${yC1Wick}" stroke="${ink}" stroke-width="1.25" stroke-opacity="0.85"/>`;
+        fvgFrontHtml += `<line x1="${(xC1 - half - 4).toFixed(1)}" y1="${yC3Wick}" x2="${(xC3 + half + 8).toFixed(1)}" y2="${yC3Wick}" stroke="${ink}" stroke-width="1.25" stroke-opacity="0.85"/>`;
+        fvgFrontHtml += `<circle cx="${xC1}" cy="${yC1Wick}" r="6.5" fill="none" stroke="${ink}" stroke-width="1.2" stroke-dasharray="2.5 2"/>`;
+        fvgFrontHtml += `<circle cx="${xC3}" cy="${yC3Wick}" r="6.5" fill="none" stroke="${ink}" stroke-width="1.2" stroke-dasharray="2.5 2"/>`;
+      }
+    }
+
+    // Series horizontal levels (lines behind candles, crisp pill labels above candles)
+    let levelsHtml = '';
+    let levelLabelsHtml = '';
+    for (const lv of (stage.seriesLevels || [])) {
+      const y = priceToY(lv.price);
+      const x1 = lv.fromIdx != null ? idxToX(lv.fromIdx) : plotL + 4;
+      const x2 = lv.toIdx != null ? idxToX(lv.toIdx) : plotR - 4;
+      const t = toneOf(lv.tone);
+      const dash = lv.style === 'dashed' ? '5 4' : lv.style === 'dotted' ? '2 3' : '';
+      levelsHtml += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${t.stroke}" stroke-width="1.45" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
+      if (lv.label) {
+        const txt = String(lv.label);
+        const pillW = Math.min(240, Math.max(64, txt.length * 5.8 + 14));
+        const isRight = lv.labelSide === 'right';
+        const pillX = isRight ? (x2 - pillW - 4) : (x1 + 4);
+        const isBelow = lv.labelPos === 'below';
+        const pillY = clamp(isBelow ? (y + 3) : (y - 17), plotT + 3, plotB - 17);
+        const textX = isRight ? (pillX + pillW - 6) : (pillX + 6);
+        const anchor = isRight ? 'end' : 'start';
+        levelLabelsHtml += `<g class="acd-level-pill">
+          <rect x="${pillX.toFixed(1)}" y="${pillY.toFixed(1)}" width="${pillW.toFixed(1)}" height="14.5" rx="3.5" fill="var(--acd-callout-bg, #0d1526)" fill-opacity="0.92" stroke="${t.stroke}" stroke-opacity="0.55" stroke-width="0.9"/>
+          <text x="${textX.toFixed(1)}" y="${(pillY + 10.2).toFixed(1)}" text-anchor="${anchor}" fill="${t.text}" font-size="8.8" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(txt)}</text>
+        </g>`;
+      }
+    }
+
+    // Crisp TradingView-density candlesticks
+    let candlesHtml = '';
+    series.forEach((c, i) => {
+      const cx = idxToX(i);
+      const yO = priceToY(c.o);
+      const yC = priceToY(c.c);
+      const yH = priceToY(c.h);
+      const yL = priceToY(c.l);
+      const isBull = c.c >= c.o;
+      const top = Math.min(yO, yC);
+      const bh = Math.max(2, Math.abs(yC - yO));
+      const col = isBull ? 'var(--acd-bull, #22c55e)' : 'var(--acd-bear, #ef4444)';
+      candlesHtml += `<g class="acd-candle">
+        <line x1="${cx}" y1="${yH}" x2="${cx}" y2="${yL}" stroke="${col}" stroke-width="1.65" stroke-linecap="butt"/>
+        <rect x="${(cx - half).toFixed(1)}" y="${top.toFixed(1)}" width="${bodyW}" height="${bh.toFixed(1)}" rx="1" fill="${col}"/>
+      </g>`;
+    });
+
+    // Exact wick highlight rings (dashed circles centered on sweep/rejection wick tips)
+    let ringsHtml = '';
+    for (const rg of (stage.seriesWickRings || [])) {
+      const c = series[rg.idx];
+      if (!c) continue;
+      const cx = idxToX(rg.idx);
+      const cy = priceToY(rg.which === 'high' ? c.h : c.l);
+      const stroke = rg.tone === 'ink' || !rg.tone ? 'var(--acd-ink, #f8fafc)' : toneOf(rg.tone).stroke;
+      const r = rg.r || 7;
+      ringsHtml += `<circle class="acd-wick-ring" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${stroke}" stroke-width="1.35" stroke-dasharray="3 2"/>`;
+    }
+
+    // Projection / directional arrows in exact candle-index + price space
+    let arrowsHtml = '';
+    (stage.seriesArrows || []).forEach((a, idx) => {
+      const x1 = idxToX(a.fromIdx);
+      const y1 = priceToY(a.fromPrice);
+      const x2 = idxToX(a.toIdx);
+      const y2 = priceToY(a.toPrice);
+      const t = toneOf(a.tone);
+      const txt = a.label ? String(a.label) : '';
+      const pillW = txt ? Math.min(130, Math.max(44, txt.length * 6.0 + 12)) : 0;
+      const mx = clamp(+((x1 + x2) / 2 + (a.labelDx || 0)).toFixed(1), plotL + pillW / 2 + 4, plotR - pillW / 2 - 4);
+      const my = clamp(+((y1 + y2) / 2 + (a.labelDy != null ? a.labelDy : -10)).toFixed(1), plotT + 10, plotB - 10);
+      const markerId = `acd-sarr-${idx}-${a.tone || 'gold'}`;
+      const dash = a.dashed === false ? '' : 'stroke-dasharray="5 3"';
+      arrowsHtml += `<g class="acd-arrow">
+        <defs>
+          <marker id="${markerId}" markerWidth="7.5" markerHeight="7.5" refX="6" refY="3.5" orient="auto">
+            <polygon points="0 0, 7.5 3.5, 0 7" fill="${t.stroke}"/>
+          </marker>
+        </defs>
+        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${t.stroke}" stroke-width="2" ${dash} marker-end="url(#${markerId})"/>
+        ${txt ? `<rect x="${(mx - pillW / 2).toFixed(1)}" y="${(my - 9.5).toFixed(1)}" width="${pillW.toFixed(1)}" height="14.5" rx="3.5" fill="var(--acd-callout-bg, #0d1526)" fill-opacity="0.92" stroke="${t.stroke}" stroke-opacity="0.45" stroke-width="0.8"/><text x="${mx}" y="${(my + 0.8).toFixed(1)}" text-anchor="middle" fill="${t.text}" font-size="9" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(txt)}</text>` : ''}
+      </g>`;
+    });
+
+    // Series callouts
+    let calloutsHtml = '';
+    for (const co of (stage.seriesCallouts || [])) {
+      const t = toneOf(co.tone);
+      const txt = String(co.text || '');
+      const pillW = Math.min(315, Math.max(30, txt.length * 5.9 + 16));
+      const cx = clamp(idxToX(co.idx), plotL + pillW / 2 + 4, plotR - pillW / 2 - 4);
+      const cy = clamp(priceToY(co.price), plotT + 13, plotB - 12);
+      calloutsHtml += `<g class="acd-callout">
+        <rect x="${(cx - pillW / 2).toFixed(1)}" y="${(cy - 10).toFixed(1)}" width="${pillW.toFixed(1)}" height="20" rx="5" fill="var(--acd-callout-bg, #0d1526)" stroke="${t.stroke}" stroke-width="1.15"/>
+        <text x="${cx.toFixed(1)}" y="${(cy + 3.5).toFixed(1)}" text-anchor="middle" fill="${t.text}" font-size="9.6" font-weight="700">${esc(txt)}</text>
+      </g>`;
+    }
+
+    // Vertical event guide lines (e.g. T = 0 RILIS, session opens)
+    let vLinesBackHtml = '';
+    let vLinesFrontHtml = '';
+    for (const vl of (stage.seriesVLines || [])) {
+      const x = idxToX(vl.idx);
+      const t = toneOf(vl.tone);
+      const dash = vl.style === 'dashed' ? '4 3' : vl.style === 'dotted' ? '2 3' : '';
+      vLinesBackHtml += `<line x1="${x}" y1="${plotT + 2}" x2="${x}" y2="${plotB - 2}" stroke="${t.stroke}" stroke-width="1.4" ${dash ? `stroke-dasharray="${dash}"` : ''} opacity="0.88"/>`;
+      if (vl.label) {
+        const txt = String(vl.label);
+        const pillW = Math.min(140, Math.max(58, txt.length * 5.8 + 12));
+        const px = clamp(x - pillW / 2, plotL + 4, plotR - pillW - 4);
+        const py = vl.labelPos === 'bottom' ? (plotB - 18) : (plotT + 4);
+        vLinesFrontHtml += `<g class="acd-vline-pill">
+          <rect x="${px.toFixed(1)}" y="${py.toFixed(1)}" width="${pillW.toFixed(1)}" height="14.5" rx="3.5" fill="var(--acd-callout-bg, #0d1526)" fill-opacity="0.94" stroke="${t.stroke}" stroke-width="0.95"/>
+          <text x="${(px + pillW / 2).toFixed(1)}" y="${(py + 10.2).toFixed(1)}" text-anchor="middle" fill="${t.text}" font-size="8.7" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(txt)}</text>
+        </g>`;
+      }
+    }
+
+    return `${gridHtml}${zonesBackHtml}${fvgBackHtml}${levelsHtml}${vLinesBackHtml}${candlesHtml}${zonesFrontHtml}${fvgFrontHtml}${ringsHtml}${levelLabelsHtml}${vLinesFrontHtml}${arrowsHtml}${calloutsHtml}`;
+  }
+
+  /**
+   * Dual-Asset Side-by-Side Candlestick Comparison Renderer (SMT Divergence: XAU vs XAG / DXY).
+   * Renders synchronized continuous OHLC series per asset with independent price axes,
+   * exact swing-to-swing divergence trendlines, dashed wick highlight rings, and a clean bottom banner.
+   */
+  function renderDualAssetPanels(cfg) {
+    if (!cfg || !Array.isArray(cfg.panels) || cfg.panels.length === 0) return '';
+    const outerX = 20;
+    const outerY = 28;
+    const outerW = VIEW_W - 40;
+    const outerH = VIEW_H - 40;
+    const midX = VIEW_W / 2;
+    const panelW = outerW / 2;
+
+    let out = `<rect x="${outerX}" y="${outerY}" width="${outerW}" height="${outerH}" rx="10" fill="var(--acd-chart-bg, #131722)" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.22))" stroke-width="1"/>`;
+    out += `<line x1="${midX}" y1="${outerY + 8}" x2="${midX}" y2="${outerY + outerH - 30}" stroke="var(--acd-grid-border, rgba(148, 163, 184, 0.30))" stroke-width="1.4"/>`;
+
+    cfg.panels.slice(0, 2).forEach((p, pIdx) => {
+      const px = outerX + pIdx * panelW;
+      const plotL = px + 10;
+      const plotR = px + panelW - 46;
+      const plotT = outerY + 34;
+      const plotB = outerY + outerH - 34;
+      const plotW = plotR - plotL;
+      const plotH = plotB - plotT;
+      const series = Array.isArray(p.series) ? p.series : [];
+      if (series.length === 0) return;
+
+      let minP = Infinity;
+      let maxP = -Infinity;
+      for (const c of series) {
+        if (c.l < minP) minP = c.l;
+        if (c.h > maxP) maxP = c.h;
+      }
+      if (p.level) {
+        if (p.level.price < minP) minP = p.level.price;
+        if (p.level.price > maxP) maxP = p.level.price;
+      }
+      const span = Math.max(0.4, maxP - minP);
+      const pMin = minP - span * 0.16;
+      const pMax = maxP + span * 0.16;
+      const decimals = Number.isInteger(p.decimals) ? p.decimals : 1;
+
+      const stepX = (plotW - 12) / series.length;
+      const bodyW = Math.max(6, Math.min(18, +(stepX * 0.74).toFixed(1)));
+      const half = bodyW / 2;
+      const idxToX = (i) => +(plotL + 6 + (i + 0.5) * stepX).toFixed(1);
+      const priceToY = (v) => +(plotT + ((pMax - v) / (pMax - pMin)) * plotH).toFixed(1);
+      const tHead = toneOf(p.tone);
+
+      // Panel header & subtle horizontal grid
+      out += `<text x="${plotL + 2}" y="${outerY + 21}" fill="${tHead.text}" font-size="10.2" font-weight="800" letter-spacing="0.04em" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(p.heading)}</text>`;
+      if (p.trendline && p.trendline.label) {
+        const tTr = toneOf(p.trendline.tone);
+        const lbl = String(p.trendline.label);
+        const pw = Math.min(132, Math.max(66, lbl.length * 5.6 + 12));
+        const rx = px + panelW - pw - 8;
+        out += `<rect x="${rx.toFixed(1)}" y="${outerY + 10}" width="${pw.toFixed(1)}" height="15" rx="3.5" fill="var(--acd-callout-bg, #0d1526)" stroke="${tTr.stroke}" stroke-opacity="0.65" stroke-width="0.9"/>`;
+        out += `<text x="${(rx + pw / 2).toFixed(1)}" y="${outerY + 20.5}" text-anchor="middle" fill="${tTr.text}" font-size="8.4" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(lbl)}</text>`;
+      }
+
+      for (let g = 0; g <= 3; g += 1) {
+        const frac = g / 3;
+        const y = +(plotT + frac * plotH).toFixed(1);
+        const pr = pMax - frac * (pMax - pMin);
+        out += `<line x1="${plotL}" y1="${y}" x2="${plotR}" y2="${y}" stroke="var(--acd-grid, rgba(148, 163, 184, 0.11))" stroke-dasharray="3 4" stroke-width="0.9"/>`;
+        out += `<text x="${plotR + 4}" y="${(y + 3).toFixed(1)}" fill="var(--acd-muted, #94a3b8)" font-size="8.4" font-family="var(--acd-mono, ui-monospace, monospace)">${pr.toFixed(decimals)}</text>`;
+      }
+
+      // Optional horizontal key level (PDL/PDH)
+      if (p.level) {
+        const ly = priceToY(p.level.price);
+        const tl = toneOf(p.level.tone);
+        out += `<line x1="${plotL}" y1="${ly}" x2="${plotR}" y2="${ly}" stroke="${tl.stroke}" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.82"/>`;
+        if (p.level.label) {
+          const isLow = p.level.price < (pMin + pMax) / 2;
+          const lTxtY = isLow ? (ly - 3.5) : (ly + 10);
+          out += `<text x="${plotR - 3}" y="${lTxtY.toFixed(1)}" text-anchor="end" fill="${tl.text}" font-size="8.2" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(p.level.label)}</text>`;
+        }
+      }
+
+      // Candles
+      series.forEach((c, i) => {
+        const cx = idxToX(i);
+        const yO = priceToY(c.o);
+        const yC = priceToY(c.c);
+        const yH = priceToY(c.h);
+        const yL = priceToY(c.l);
+        const isBull = c.c >= c.o;
+        const top = Math.min(yO, yC);
+        const bh = Math.max(2, Math.abs(yC - yO));
+        const col = isBull ? 'var(--acd-bull, #22c55e)' : 'var(--acd-bear, #ef4444)';
+        out += `<g class="acd-candle">
+          <line x1="${cx}" y1="${yH}" x2="${cx}" y2="${yL}" stroke="${col}" stroke-width="1.5" stroke-linecap="butt"/>
+          <rect x="${(cx - half).toFixed(1)}" y="${top.toFixed(1)}" width="${bodyW}" height="${bh.toFixed(1)}" rx="0.8" fill="${col}"/>
+        </g>`;
+      });
+
+      // Exact SMT swing-to-swing divergence trendline + wick rings
+      if (p.trendline) {
+        const tl = p.trendline;
+        const cA = series[tl.fromIdx];
+        const cB = series[tl.toIdx];
+        if (cA && cB) {
+          const x1 = idxToX(tl.fromIdx);
+          const y1 = priceToY(tl.fromWhich === 'high' ? cA.h : cA.l);
+          const x2 = idxToX(tl.toIdx);
+          const y2 = priceToY(tl.toWhich === 'high' ? cB.h : cB.l);
+          const tTr = toneOf(tl.tone);
+          out += `<line class="acd-smt-line" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${tTr.stroke}" stroke-width="2" stroke-dasharray="4 3"/>`;
+          out += `<circle class="acd-wick-ring" cx="${x1}" cy="${y1}" r="5.5" fill="none" stroke="${tTr.stroke}" stroke-width="1.3" stroke-dasharray="2.5 2"/>`;
+          out += `<circle class="acd-wick-ring" cx="${x2}" cy="${y2}" r="5.5" fill="none" stroke="${tTr.stroke}" stroke-width="1.3" stroke-dasharray="2.5 2"/>`;
+        }
+      }
+    });
+
+    // Centered bottom takeaway banner
+    if (cfg.banner && cfg.banner.text) {
+      const tb = toneOf(cfg.banner.tone);
+      const txt = String(cfg.banner.text);
+      const bw = Math.min(outerW - 24, Math.max(160, txt.length * 6.0 + 22));
+      const bx = midX - bw / 2;
+      const by = outerY + outerH - 25;
+      out += `<g class="acd-callout">
+        <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="19" rx="5" fill="var(--acd-callout-bg, #0d1526)" stroke="${tb.stroke}" stroke-width="1.15"/>
+        <text x="${midX}" y="${(by + 12.8).toFixed(1)}" text-anchor="middle" fill="${tb.text}" font-size="9.4" font-weight="700">${esc(txt)}</text>
+      </g>`;
+    }
+
+    return `<g class="acd-dual-panels">${out}</g>`;
+  }
+
   function getDiagramIds() {
     return Object.keys(BLUEPRINTS);
   }
@@ -1953,18 +4004,35 @@
     const idx = Math.max(0, Math.min(totalStages - 1, Number(stageIndex) || 0));
     const stage = bp.stages[idx];
 
+    let bodySvg = '';
+    if (Array.isArray(stage.splitPanels) && stage.splitPanels.length > 0) {
+      bodySvg = renderSplitPanels(stage.splitPanels);
+    } else if (stage.dualAssetPanels) {
+      bodySvg = renderDualAssetPanels(stage.dualAssetPanels);
+    } else if (stage.ohlcAnatomy) {
+      bodySvg = renderOhlcAnatomy(stage.ohlcAnatomy);
+    } else if (stage.mtfSplit) {
+      bodySvg = renderMtfSplit(stage.mtfSplit);
+    } else if (Array.isArray(stage.series) && stage.series.length > 0) {
+      bodySvg = renderSeriesStage(stage);
+    } else {
+      bodySvg = [
+        renderGrid(bp.priceLabels),
+        renderZones(stage.zones),
+        renderBars(stage.bars),
+        renderLines(stage.lines),
+        renderCandles(stage.candles),
+        renderLineLabels(stage.lines),
+        renderArrows(stage.arrows),
+        renderCallouts(stage.callouts)
+      ].join('');
+    }
+
     const svg = [
       `<svg class="acd-svg" viewBox="0 0 ${VIEW_W} ${VIEW_H}" role="img" aria-label="${esc(bp.title)} — ${esc(stage.label)}" xmlns="http://www.w3.org/2000/svg">`,
       `<text x="${PLOT.left}" y="19" fill="var(--acd-muted, #94a3b8)" font-size="10.5" font-weight="700" letter-spacing="0.06em" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(bp.pairTag)}</text>`,
       `<text x="${PLOT.right}" y="19" text-anchor="end" fill="var(--acd-gold, #f5b942)" font-size="10.5" font-weight="700" font-family="var(--acd-mono, ui-monospace, monospace)">${esc(stage.label.toUpperCase())}</text>`,
-      renderGrid(bp.priceLabels),
-      renderZones(stage.zones),
-      renderBars(stage.bars),
-      renderLines(stage.lines),
-      renderCandles(stage.candles),
-      renderLineLabels(stage.lines),
-      renderArrows(stage.arrows),
-      renderCallouts(stage.callouts),
+      bodySvg,
       `</svg>`
     ].join('');
 
