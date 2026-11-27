@@ -355,3 +355,56 @@ test('Amy Live local knowledge file is synced with all 36 Academy Book Chapters 
     assert.ok(entry.text.length >= 160);
   });
 });
+
+test('Owner free-read passcode unlocks all 36 chapters without faking mastery and can be locked back', () => {
+  let prog = curriculum.createEmptyProgress();
+  const bab1 = curriculum.LESSONS[0];
+  const bab12 = curriculum.getLessonById('inducement-idm-umpan-ritel');
+  const bab36 = curriculum.getLessonById('capstone-mapping-mandiri');
+  assert.ok(bab12 && bab36);
+
+  // Wrong codes are rejected and keep locked chapters locked
+  for (const bad of ['', '   ', '000000', '281099', '28109', null, undefined]) {
+    assert.equal(curriculum.verifyFreeReadPasscode(bad), false);
+    const badRes = curriculum.unlockFreeReadWithCode(prog, bad);
+    assert.equal(badRes.ok, false);
+    assert.equal(badRes.progress.freeReadUnlocked, false);
+    assert.equal(curriculum.canOpenLesson(badRes.progress, bab12.id), false);
+    assert.equal(curriculum.canOpenLesson(badRes.progress, bab36.id), false);
+  }
+
+  // Master Bab 01 first to confirm real mastery is preserved
+  prog = curriculum.recordQuizAttempt(prog, bab1.id, 4, 4);
+  assert.equal(curriculum.getModuleLockState(prog, bab1.id), 'mastered');
+  assert.equal(curriculum.canOpenLesson(prog, bab12.id), false);
+
+  // Valid owner passcode (including surrounding whitespace) unlocks all 36 chapters cleanly
+  assert.equal(curriculum.verifyFreeReadPasscode('281098'), true);
+  assert.equal(curriculum.verifyFreeReadPasscode(' 281098 '), true);
+  const okRes = curriculum.unlockFreeReadWithCode(prog, ' 281098 ');
+  assert.equal(okRes.ok, true);
+  assert.equal(okRes.progress.freeReadUnlocked, true);
+  assert.deepEqual(Array.from(okRes.progress.completedIds), [bab1.id], 'Must not fake completedIds when unlocking free-read mode');
+
+  // Every single chapter is now openable, while Bab 01 remains 'mastered'
+  assert.equal(curriculum.getModuleLockState(okRes.progress, bab1.id), 'mastered');
+  for (const lesson of curriculum.LESSONS) {
+    assert.equal(curriculum.canOpenLesson(okRes.progress, lesson.id), true, `Chapter ${lesson.id} must be openable in free-read mode`);
+  }
+  assert.equal(curriculum.getModuleLockState(okRes.progress, bab12.id), 'unlocked');
+  assert.equal(curriculum.getUnlockRequirement(okRes.progress, bab12.id).allowed, true);
+  assert.equal(curriculum.computeProgressStats(okRes.progress).freeReadUnlocked, true);
+
+  // Persistence round-trip via JSON + normalizeProgress preserves freeReadUnlocked
+  const reloaded = curriculum.normalizeProgress(JSON.parse(JSON.stringify(okRes.progress)));
+  assert.equal(reloaded.freeReadUnlocked, true);
+  assert.equal(curriculum.canOpenLesson(reloaded, bab36.id), true);
+
+  // Re-locking restores strict mastery locking while keeping real completedIds intact
+  const relocked = curriculum.disableFreeReadMode(reloaded);
+  assert.equal(relocked.freeReadUnlocked, false);
+  assert.deepEqual(Array.from(relocked.completedIds), [bab1.id]);
+  assert.equal(curriculum.getModuleLockState(relocked, bab1.id), 'mastered');
+  assert.equal(curriculum.canOpenLesson(relocked, bab12.id), false);
+  assert.equal(curriculum.canOpenLesson(relocked, bab36.id), false);
+});

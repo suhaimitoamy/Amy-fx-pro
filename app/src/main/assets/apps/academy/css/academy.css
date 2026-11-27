@@ -1351,15 +1351,29 @@ html, body {
 }
 
 @media (max-width: 520px) {
+  .acd-topbar {
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .acd-topbar-left {
+    gap: 4px;
+  }
+
+  .acd-topbar-right {
+    gap: 6px;
+  }
+
   .acd-back-link {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 36px;
+    min-height: 38px;
     padding: 0;
     justify-content: center;
   }
 
   .acd-back-link span,
-  .acd-brand-sep {
+  .acd-brand-sep,
+  .acd-brand-mark {
     display: none;
   }
 
@@ -1375,20 +1389,24 @@ html, body {
     text-overflow: ellipsis;
   }
 
-  .acd-glossary-top-btn {
-    min-width: 40px !important;
-    min-height: 40px !important;
+  .acd-glossary-top-btn,
+  .acd-cheatsheet-top-btn {
+    min-width: 38px !important;
+    min-height: 38px !important;
     padding: 0 !important;
     justify-content: center;
   }
 
-  .acd-glossary-top-btn span {
+  .acd-glossary-top-btn span,
+  .acd-cheatsheet-top-btn span {
     display: none;
   }
 
   .acd-menu-toggle {
-    padding: 0 10px;
-    font-size: 12.5px;
+    min-height: 38px !important;
+    padding: 0 8px;
+    gap: 5px;
+    font-size: 12px;
   }
 }
 
@@ -3382,10 +3400,737 @@ body.amyfx-module--academy .acd-risk-status.is-danger { color: #ff5c6c; }
     padding-left: 18px;
   }
 
-  .acd-glossary-top-btn {
+  .acd-glossary-top-btn,
+  .acd-cheatsheet-top-btn {
     padding: 0 10px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * CHEAT SHEET 1 LAYAR (BAGIAN I–VI), JEDA PRAKTIK & JALUR LANJUTAN
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.acd-cheatsheet-top-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.acd-stage-head-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.acd-stage-sheet-btn {
+  min-height: 32px !important;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 40%, var(--acd-border));
+  background: var(--acd-gold-soft);
+  color: var(--acd-gold);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.acd-stage-sheet-btn:hover {
+  background: var(--acd-gold);
+  color: var(--acd-gold-ink);
+}
+
+.acd-stage-advanced-note {
+  margin: 4px 0 2px;
+  padding: 9px 12px;
+  border-radius: var(--acd-radius-sm);
+  background: color-mix(in srgb, var(--acd-gold-soft) 58%, var(--acd-surface));
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 32%, var(--acd-border));
+  font-size: 12.5px;
+  line-height: 1.52;
+  color: var(--acd-ink-soft);
+}
+
+.acd-stage-advanced-note strong {
+  color: var(--acd-ink);
+}
+
+/* Practice Checkpoint Card ("Stop & Praktik") */
+.acd-checkpoint-card {
+  margin: 0 0 22px;
+  padding: 18px 20px;
+  border-radius: var(--acd-radius-lg);
+  background: color-mix(in srgb, var(--acd-bull-soft) 42%, var(--acd-surface));
+  border: 1px solid color-mix(in srgb, var(--acd-bull) 38%, var(--acd-border));
+}
+
+.acd-checkpoint-kicker {
+  margin: 0 0 4px;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--acd-bull);
+}
+
+.acd-checkpoint-title {
+  margin: 0 0 8px;
+  font-size: 16.5px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--acd-ink);
+}
+
+.acd-checkpoint-body {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--acd-ink-soft);
+}
+
+.acd-checkpoint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Cheat Sheet 1-Page Modal */
+.acd-cheatsheet-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 88dvh;
+  overflow: hidden;
+}
+
+.acd-cheatsheet-modal .acd-modal-head,
+.acd-cheatsheet-modal .acd-modal-foot {
+  flex-shrink: 0;
+}
+
+.acd-cheatsheet-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 6px;
+  margin: 12px 0 12px;
+}
+
+.acd-cheatsheet-tabs .acd-tab-btn {
+  flex: 0 0 auto;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 11px !important;
+  font-size: 12px !important;
+  white-space: nowrap;
+}
+
+.acd-cheatsheet-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 2px;
+}
+
+.acd-cheatsheet-block {
+  padding: 13px 15px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-surface-2);
+  border: 1px solid var(--acd-border);
+}
+
+.acd-cheatsheet-block-title {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--acd-ink);
+}
+
+.acd-cheatsheet-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.58;
+  color: var(--acd-ink-soft);
+}
+
+.acd-cheatsheet-list strong {
+  color: var(--acd-ink);
+}
+
+.acd-cheatsheet-golden {
+  padding: 12px 15px;
+  border-radius: var(--acd-radius-md);
+  background: var(--acd-gold-soft);
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 40%, var(--acd-border));
+}
+
+.acd-cheatsheet-golden-label {
+  display: block;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--acd-gold);
+  margin-bottom: 3px;
+}
+
+.acd-cheatsheet-golden p {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--acd-ink);
+}
+
+@media (max-width: 640px) {
+  .acd-checkpoint-card {
+    padding: 15px 16px;
+  }
+
+  .acd-checkpoint-actions a,
+  .acd-checkpoint-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * IN-CHAPTER INTERACTIVE CHART SPOTTING DRILLS & GUIDED PRACTICE SYNC
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.acd-hero-review-btn {
+  width: 100%;
+  justify-content: center;
+  border-color: color-mix(in srgb, var(--acd-gold) 45%, var(--acd-border));
+}
+
+.acd-practice-cta {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+.acd-practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.acd-practice-review-link {
+  border-color: color-mix(in srgb, var(--acd-gold) 45%, var(--acd-border));
+  color: var(--acd-gold);
+}
+
+.acd-book-outline-link.is-drill {
+  border-color: color-mix(in srgb, var(--acd-gold) 42%, var(--acd-border));
+  color: var(--acd-gold);
+}
+
+.acd-drill-card {
+  margin: 0 0 24px;
+  padding: 20px;
+  border-radius: var(--acd-radius-lg);
+  background: var(--acd-surface);
+  border: 1px solid color-mix(in srgb, var(--acd-gold) 36%, var(--acd-border));
+}
+
+.acd-drill-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.acd-drill-kicker {
+  margin: 0 0 4px;
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--acd-gold);
+}
+
+.acd-drill-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--acd-ink);
+}
+
+.acd-drill-progress-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--acd-surface-2);
+  border: 1px solid var(--acd-border);
+  color: var(--acd-muted);
+  white-space: nowrap;
+}
+
+.acd-drill-progress-badge.is-done {
+  background: var(--acd-bull-soft);
+  border-color: color-mix(in srgb, var(--acd-bull) 45%, var(--acd-border));
+  color: var(--acd-bull);
+}
+
+.acd-drill-prompt {
+  margin: 0 0 14px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--acd-ink-soft);
+}
+
+.acd-drill-stage {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--acd-border);
+  background: var(--acd-surface-2);
+}
+
+.acd-drill-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.acd-drill-bg {
+  fill: var(--acd-surface-2);
+}
+
+.acd-drill-grid {
+  stroke: var(--acd-border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.acd-drill-axis {
+  fill: var(--acd-muted);
+  font-family: var(--acd-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.acd-drill-watermark {
+  fill: var(--acd-muted);
+  font-family: var(--acd-mono);
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.acd-drill-level {
+  stroke-width: 1.25;
+}
+
+.acd-drill-level.is-gold { stroke: var(--acd-gold); }
+.acd-drill-level.is-bull { stroke: var(--acd-bull); }
+.acd-drill-level.is-bear { stroke: var(--acd-bear); }
+.acd-drill-level.is-muted { stroke: var(--acd-muted); }
+
+.acd-drill-level-pill {
+  fill: var(--acd-surface);
+  stroke: var(--acd-border);
+  stroke-width: 1;
+}
+
+.acd-drill-level-text {
+  font-family: var(--acd-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  fill: var(--acd-ink-soft);
+}
+
+.acd-drill-level-text.is-gold { fill: var(--acd-gold); }
+.acd-drill-level-text.is-bull { fill: var(--acd-bull); }
+.acd-drill-level-text.is-bear { fill: var(--acd-bear); }
+
+.acd-drill-wick.is-bull { stroke: #16a34a; stroke-width: 1.8; }
+.acd-drill-body.is-bull { fill: #22c55e; stroke: #15803d; stroke-width: 1; }
+.acd-drill-wick.is-bear { stroke: #dc2626; stroke-width: 1.8; }
+.acd-drill-body.is-bear { fill: #ef4444; stroke: #b91c1c; stroke-width: 1; }
+
+.acd-drill-hotspot {
+  cursor: pointer;
+  outline: none;
+}
+
+.acd-drill-zone-rect {
+  fill: color-mix(in srgb, var(--acd-gold) 13%, transparent);
+  stroke: var(--acd-gold);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 3;
+  transition: fill 0.14s ease, stroke-width 0.14s ease;
+}
+
+.acd-drill-hotspot:hover .acd-drill-zone-rect,
+.acd-drill-hotspot:focus-visible .acd-drill-zone-rect {
+  fill: color-mix(in srgb, var(--acd-gold) 24%, transparent);
+  stroke-width: 2.2;
+}
+
+.acd-drill-badge-bg {
+  fill: var(--acd-gold);
+}
+
+.acd-drill-badge-text {
+  fill: var(--acd-gold-ink);
+  font-family: var(--acd-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.acd-drill-hotspot.is-correct .acd-drill-zone-rect {
+  fill: color-mix(in srgb, var(--acd-bull) 20%, transparent);
+  stroke: var(--acd-bull);
+  stroke-dasharray: none;
+  stroke-width: 2.2;
+}
+
+.acd-drill-hotspot.is-correct .acd-drill-badge-bg {
+  fill: var(--acd-bull);
+}
+
+.acd-drill-hotspot.is-correct .acd-drill-badge-text {
+  fill: #ffffff;
+}
+
+.acd-drill-hotspot.is-wrong .acd-drill-zone-rect {
+  fill: color-mix(in srgb, var(--acd-bear) 18%, transparent);
+  stroke: var(--acd-bear);
+  stroke-dasharray: none;
+  stroke-width: 2.2;
+}
+
+.acd-drill-hotspot.is-wrong .acd-drill-badge-bg {
+  fill: var(--acd-bear);
+}
+
+.acd-drill-hotspot.is-wrong .acd-drill-badge-text {
+  fill: #ffffff;
+}
+
+.acd-drill-choice-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.acd-drill-choice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: var(--acd-radius-sm);
+  border: 1px solid var(--acd-border);
+  background: var(--acd-surface-2);
+  color: var(--acd-ink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background-color 0.14s ease;
+}
+
+.acd-drill-choice-btn:hover {
+  border-color: var(--acd-gold);
+  background: var(--acd-gold-soft);
+}
+
+.acd-drill-choice-btn.is-correct {
+  border-color: var(--acd-bull);
+  background: var(--acd-bull-soft);
+  color: var(--acd-bull);
+}
+
+.acd-drill-choice-btn.is-wrong {
+  border-color: var(--acd-bear);
+  background: color-mix(in srgb, var(--acd-bear) 14%, var(--acd-surface));
+  color: var(--acd-bear);
+}
+
+.acd-drill-choice-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-family: var(--acd-mono);
+  font-size: 11.5px;
+  font-weight: 800;
+  background: var(--acd-gold-soft);
+  color: var(--acd-gold);
+  flex-shrink: 0;
+}
+
+.acd-drill-choice-btn.is-correct .acd-drill-choice-tag {
+  background: var(--acd-bull);
+  color: #ffffff;
+}
+
+.acd-drill-choice-btn.is-wrong .acd-drill-choice-tag {
+  background: var(--acd-bear);
+  color: #ffffff;
+}
+
+.acd-drill-hint {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--acd-muted);
+}
+
+.acd-drill-feedback {
+  margin-top: 12px;
+  padding: 13px 15px;
+  border-radius: var(--acd-radius-md);
+  border: 1px solid var(--acd-border);
+}
+
+.acd-drill-feedback.is-correct {
+  background: color-mix(in srgb, var(--acd-bull-soft) 55%, var(--acd-surface));
+  border-color: color-mix(in srgb, var(--acd-bull) 45%, var(--acd-border));
+}
+
+.acd-drill-feedback.is-wrong {
+  background: color-mix(in srgb, var(--acd-bear) 10%, var(--acd-surface));
+  border-color: color-mix(in srgb, var(--acd-bear) 42%, var(--acd-border));
+}
+
+.acd-drill-feedback-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.acd-drill-feedback.is-correct .acd-drill-feedback-head strong {
+  color: var(--acd-bull);
+}
+
+.acd-drill-feedback.is-wrong .acd-drill-feedback-head strong {
+  color: var(--acd-bear);
+}
+
+.acd-drill-feedback p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.58;
+  color: var(--acd-ink-soft);
+}
+
+.acd-drill-retry-btn {
+  min-height: 30px !important;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--acd-border-strong);
+  background: var(--acd-surface);
+  color: var(--acd-ink);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .acd-drill-card {
+    padding: 15px 14px;
+  }
+
+  .acd-drill-choice-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .acd-drill-choice-btn {
+    justify-content: flex-start;
+  }
+
+  .acd-practice-actions {
+    width: 100%;
+  }
+
+  .acd-practice-actions a {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Owner Free-Read Passcode Unlock (Discreet Mode Baca Bebas) ─────────── */
+.acd-lock-code-box {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--acd-border);
+}
+
+.acd-lock-code-trigger {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: var(--acd-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.acd-lock-code-trigger:hover {
+  color: var(--acd-ink);
+}
+
+.acd-passcode-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acd-passcode-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.acd-passcode-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--acd-radius-sm);
+  border: 1px solid var(--acd-border-strong);
+  background: var(--acd-surface-2);
+  color: var(--acd-ink);
+  font-family: var(--acd-mono);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+.acd-passcode-input:focus {
+  outline: none;
+  border-color: var(--acd-gold);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--acd-gold) 24%, transparent);
+}
+
+.acd-passcode-submit {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.acd-passcode-error {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--acd-bear) !important;
+}
+
+.acd-access-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 16px;
+  margin-bottom: 16px;
+  border-radius: var(--acd-radius-md);
+  border: 1px solid color-mix(in srgb, var(--acd-bull) 36%, var(--acd-border));
+  background: color-mix(in srgb, var(--acd-bull) 8%, var(--acd-surface));
+}
+
+.acd-access-bar-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--acd-ink-soft);
+}
+
+.acd-access-bar-text strong {
+  color: var(--acd-bull) !important;
+}
+
+.acd-access-relock-btn {
+  min-height: 32px !important;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--acd-border-strong);
+  background: var(--acd-surface);
+  color: var(--acd-ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.acd-access-relock-btn:hover {
+  border-color: var(--acd-gold);
+  color: var(--acd-gold);
+}
+
+.acd-path-state-label.is-freeread {
+  background: color-mix(in srgb, var(--acd-bull) 12%, transparent);
+  color: var(--acd-bull);
+  border: 1px solid color-mix(in srgb, var(--acd-bull) 32%, transparent);
+}
+
+.acd-access-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 2px 8px;
+}
+
+.acd-access-footer-btn {
+  background: none;
+  border: 1px solid transparent;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--acd-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.acd-access-footer-btn:hover {
+  color: var(--acd-ink);
+  border-color: var(--acd-border);
+}
+
+@media (max-width: 640px) {
+  .acd-passcode-row {
+    flex-direction: column;
+  }
+
+  .acd-passcode-submit {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .acd-access-bar {
+    padding: 11px 14px;
+  }
+}
+
+
 
 
 

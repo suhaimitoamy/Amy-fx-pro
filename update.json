@@ -1,19 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.480/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.481/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Kamus ICT Interaktif Academy: Tambahan glosarium 40+ istilah Gold/ICT lengkap dengan pencarian, filter kategori, anotasi otomatis istilah dalam bacaan bab, serta pemecahan paragraf padat agar jauh lebih nyaman dibaca di layar HP (sinkron AI Studio 8e4618b)."
+    "✦ Sinkronisasi Penuh AI Studio (`ce208ac`..`27439e3`): Academy 36/36 tuntas (Kartu Contekan 1 Layar, 10 Latihan Mata Chart, Deep-Link & Review Salah 100 Kasus, Kode Buka Bebas Baca, Bab 12 ICT murni), perbaikan 7 bug akurasi Mapping (continuation BOS/Dealing Range, News Lock ±30m, DST Killzone/Sesi), serta penyelarasan aturan kualitas POI & perbaikan look-ahead bias backfill + wajib isi 50% CE."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.480/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.481/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950480,
-  "latest_version_name": "2.0.0-pro.480",
+  "latest_version_code": 950481,
+  "latest_version_name": "2.0.0-pro.481",
   "mandatory": false,
-  "releaseDate": "2026-11-26",
+  "releaseDate": "2026-11-27",
   "release_notes": [
-    "✦ Kamus ICT Interaktif Academy: Tambahan glosarium 40+ istilah Gold/ICT lengkap dengan pencarian, filter kategori, anotasi otomatis istilah dalam bacaan bab, serta pemecahan paragraf padat agar jauh lebih nyaman dibaca di layar HP (sinkron AI Studio 8e4618b)."
+    "✦ Sinkronisasi Penuh AI Studio (`ce208ac`..`27439e3`): Academy 36/36 tuntas (Kartu Contekan 1 Layar, 10 Latihan Mata Chart, Deep-Link & Review Salah 100 Kasus, Kode Buka Bebas Baca, Bab 12 ICT murni), perbaikan 7 bug akurasi Mapping (continuation BOS/Dealing Range, News Lock ±30m, DST Killzone/Sesi), serta penyelarasan aturan kualitas POI & perbaikan look-ahead bias backfill + wajib isi 50% CE."
   ],
-  "version": "2.0.0-pro.480",
-  "versionCode": 950480,
+  "version": "2.0.0-pro.481",
+  "versionCode": 950481,
   "sha256": "a051d2698d2ceb27e1bca1ef04a4a64a3b2156b80f1dd45011bd36e37770e927"
 }

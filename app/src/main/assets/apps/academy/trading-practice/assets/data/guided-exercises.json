@@ -5,7 +5,7 @@
   "pillars": [
     {
       "topic": "inducement",
-      "label": "Filter Jebakan & Inducement"
+      "label": "Stop Hunt & Liquidity Sweep"
     },
     {
       "topic": "killzone",
@@ -39,7 +39,7 @@
   "exercises": [
     {
       "id": "ict-001",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "mudah",
       "title": "FVG Tengah Konsolidasi di Atas Equal Lows",
@@ -54,10 +54,10 @@
         "Ambil Market Sell agresif dari batas atas FVG dengan target menembus Equal Lows di bawah.",
         "Pasang Buy Limit di 50% CE FVG tersebut dengan SL tepat di bawah body candle pembentuknya."
       ],
-      "principle": "FVG yang berdiri di tengah konsolidasi di atas Equal Lows yang masih utuh adalah umpan klasik (inducement). Tanpa sapuan likuiditas (SSL sweep) terlebih dahulu, harga berprobabilitas tinggi menjebol FVG tersebut untuk mengambil stop loss ritel di bawah Equal Lows.",
+      "principle": "FVG yang berdiri di tengah konsolidasi di atas Equal Lows yang masih utuh adalah area rawan sweep (stop hunt). Tanpa sapuan likuiditas (SSL sweep) terlebih dahulu, harga berprobabilitas tinggi menjebol FVG tersebut untuk mengambil stop loss ritel di bawah Equal Lows.",
       "lesson": {
         "href": "../index.html?lesson=inducement-idm-umpan-ritel",
-        "title": "Inducement (IDM): Umpan Ritel Sebelum Ekspansi"
+        "title": "Liquidity Sweep vs Liquidity Run (Purge & Revert)"
       },
       "candles": [
         {
@@ -306,7 +306,7 @@
       "levels": [
         {
           "price": 2648.1,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -333,7 +333,7 @@
     },
     {
       "id": "ict-002",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "mudah",
       "title": "FVG Bullish Pasca-Sweep SSL di Sesi NY",
@@ -346,7 +346,7 @@
         "Tunggu harga menembus swing high lama dulu lalu kejar breakout agar konfirmasi tren lebih aman.",
         "Cari peluang Sell retracement dari pucuk impulse sampai harga kembali menembus low sapuan tadi.",
         "Siapkan rencana Buy di area 50% CE FVG karena SSL sebelumnya sudah disapu dengan displacement kuat.",
-        "Abaikan FVG ini karena setiap celah harga pertama setelah penurunan selalu bertindak sebagai inducement."
+        "Abaikan FVG ini karena setiap celah harga pertama setelah penurunan selalu otomatis ditembus sebelum sweep selesai."
       ],
       "principle": "Urutan valid ICT telah terpenuhi: SSL disapu oleh wick panjang, diikuti displacement bullish yang meninggalkan FVG bersih. Retrace ke 50% CE FVG menjadi zona eksekusi berprobabilitas tinggi searah bias H1.",
       "lesson": {
@@ -632,7 +632,7 @@
     },
     {
       "id": "ict-003",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "mudah",
       "title": "SIBI Bearish di Bawah Equal Highs Utuh",
@@ -899,7 +899,7 @@
       "levels": [
         {
           "price": 2788.8,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -926,7 +926,7 @@
     },
     {
       "id": "ict-004",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "mudah",
       "title": "FVG Rapi di Jam Mati (17:45 WITA)",
@@ -941,7 +941,7 @@
         "Lewati setup ini; jam mati tanpa katalis likuiditas sering menjadikan FVG sebagai jebakan NY Open.",
         "Pasang Buy Stop tepat di atas candle terakhir untuk menangkap ekspansi awal menjelang sesi NY."
       ],
-      "principle": "Waktu selalu mendahului harga (Time before Price). FVG yang lahir pada jam mati (London Lunch) berisiko tinggi menjadi likuiditas inducement yang dihancurkan oleh manipulasi awal pembukaan New York.",
+      "principle": "Waktu selalu mendahului harga (Time before Price). FVG yang lahir pada jam mati (London Lunch) berisiko tinggi menjadi area stop hunt yang ditembus oleh manipulasi awal pembukaan New York.",
       "lesson": {
         "href": "../index.html?lesson=jadwal-killzone-wita-silver-bullet",
         "title": "Jadwal Killzone WITA & ICT Silver Bullet"
@@ -1193,7 +1193,7 @@
       "levels": [
         {
           "price": 2843.1,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -1220,7 +1220,7 @@
     },
     {
       "id": "ict-005",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "sedang",
       "title": "Decoy FVG Pertama vs Zona Ekstrem di Bawahnya",
@@ -1228,17 +1228,17 @@
       "timeframe": "M5",
       "source": "XAUUSD-ICT-Lab-v3",
       "prompt": "Di M5 muncul dua potensi area beli: FVG atas yang baru disentuh harga dan Equal Lows + zona ekstrem lebih rendah di bawahnya. Belum ada sapuan likuiditas signifikan. Pilihan terbaik?",
-      "answer": "Biarkan FVG pertama ditembus sebagai inducement; evaluasi entry hanya setelah Equal Lows tersapu.",
+      "answer": "Biarkan FVG pertama ditembus untuk sweep SSL; evaluasi entry hanya setelah Equal Lows tersapu.",
       "choices": [
-        "Biarkan FVG pertama ditembus sebagai inducement; evaluasi entry hanya setelah Equal Lows tersapu.",
+        "Biarkan FVG pertama ditembus untuk sweep SSL; evaluasi entry hanya setelah Equal Lows tersapu.",
         "Ubah bias menjadi Bearish karena adanya dua area FVG bertumpuk menandakan pembeli mulai kehabisan tenaga.",
         "Masuk di FVG pertama dengan SL diperlebar sampai jauh di bawah zona ekstrem agar tidak terkena sweep.",
         "Ambil FVG pertama dengan risiko 0.5R lalu siapkan re-entry kedua di bawah jika SL pertama tersentuh."
       ],
-      "principle": "Memasang order di FVG pertama yang masih menyisakan Equal Lows di bawahnya berarti Anda menjadi likuiditas bagi institusi. Memperlebar SL hanya merusak rasio RR — disiplin menunggu sapuan inducement jauh lebih presisi.",
+      "principle": "Memasang order di FVG pertama yang masih menyisakan Equal Lows di bawahnya berarti Anda menjadi likuiditas bagi institusi. Memperlebar SL hanya merusak rasio RR — disiplin menunggu sapuan SSL (Equal Lows) jauh lebih presisi.",
       "lesson": {
         "href": "../index.html?lesson=inducement-idm-umpan-ritel",
-        "title": "Inducement (IDM): Umpan Ritel Sebelum Ekspansi"
+        "title": "Liquidity Sweep vs Liquidity Run (Purge & Revert)"
       },
       "candles": [
         {
@@ -1487,7 +1487,7 @@
       "levels": [
         {
           "price": 2922.6,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -1514,7 +1514,7 @@
     },
     {
       "id": "ict-006",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "sedang",
       "title": "SIBI Bearish Dijebol Body Close (Inversion FVG)",
@@ -1809,7 +1809,7 @@
     },
     {
       "id": "ict-007",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "sedang",
       "title": "Rally Tanpa Displacement (Overlapping Candles)",
@@ -2105,7 +2105,7 @@
     },
     {
       "id": "ict-008",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "sedang",
       "title": "SIBI Valid Pasca-BSL Sweep di Sesi NY",
@@ -2404,7 +2404,7 @@
     },
     {
       "id": "ict-009",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "advanced",
       "title": "BISI Bullish Gagal Menjadi Bearish IFVG",
@@ -2699,7 +2699,7 @@
     },
     {
       "id": "ict-010",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "advanced",
       "title": "FVG Bullish M15 Melawan Arus Kuat H4 Bearish",
@@ -2707,12 +2707,12 @@
       "timeframe": "M15",
       "source": "XAUUSD-ICT-Lab-v3",
       "prompt": "Konteks H4 dan Daily sedang Trending Bearish deras menuju PDL yang masih jauh di bawah. Di M15 muncul FVG bullish kecil di atas EQL internal. Bagaimana memperlakukan FVG M15 ini?",
-      "answer": "Perlakukan FVG M15 ini sebagai inducement counter-trend; tunggu jebol atau fokus cari setup Sell.",
+      "answer": "Perlakukan FVG M15 ini sebagai zona counter-trend lemah; tunggu jebol atau fokus cari setup Sell.",
       "choices": [
         "Masuk Buy penuh karena FVG di timeframe M15 selalu lebih cepat bereaksi dibanding struktur H4.",
         "Pasang dua order berlawanan sekaligus (hedging) di batas atas dan bawah FVG untuk mengunci arah.",
         "Ambil Buy Limit di 50% CE FVG M15 dengan target swing panjang untuk menangkap pembalikan Daily.",
-        "Perlakukan FVG M15 ini sebagai inducement counter-trend; tunggu jebol atau fokus cari setup Sell."
+        "Perlakukan FVG M15 ini sebagai zona counter-trend lemah; tunggu jebol atau fokus cari setup Sell."
       ],
       "principle": "Timeframe lebih tinggi (H4/Daily) mendikte Draw on Liquidity. FVG counter-trend di LTF yang berdiri di atas Equal Lows tanpa menyentuh PD Array HTF hampir selalu ditembus turun oleh arus utama.",
       "lesson": {
@@ -2966,7 +2966,7 @@
       "levels": [
         {
           "price": 3268.1,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -2993,7 +2993,7 @@
     },
     {
       "id": "ict-011",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "advanced",
       "title": "Konfirmasi M5 di Dalam FVG H1 (Nested PD Array)",
@@ -3292,7 +3292,7 @@
     },
     {
       "id": "ict-012",
-      "category": "Filter Jebakan & Inducement",
+      "category": "Stop Hunt & Liquidity Sweep",
       "topic": "inducement",
       "difficulty": "advanced",
       "title": "FVG yang Sudah Termitigasi 3 Kali Beruntun",
@@ -4421,7 +4421,7 @@
       "levels": [
         {
           "price": 2787.6,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -4715,7 +4715,7 @@
       "levels": [
         {
           "price": 2842.8,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {
@@ -11452,7 +11452,7 @@
       "prompt": "Perhatikan BOS bearish pada chart di mana body candle menutup kuat di bawah Swing Low lama. Titik puncak (Swing High) yang melahirkan dorongan pemecah Swing Low itu disebut apa?",
       "answer": "Strong High — titik invalidation terlindungi selama tren bearish masih aktif.",
       "choices": [
-        "Inducement High — puncak sementara yang wajib disapu dulu agar tren bearish dianggap sah.",
+        "Short-Term High (STH) — puncak sementara yang wajib disapu dulu agar tren bearish dianggap sah.",
         "Strong High — titik invalidation terlindungi selama tren bearish masih aktif.",
         "Weak High — puncak lemah yang pasti akan segera ditembus naik sebelum penurunan berlanjut.",
         "Equilibrium High — batas tengah yang membagi area beli dan area jual secara seimbang."
@@ -13161,14 +13161,14 @@
       "timeframe": "M15",
       "source": "XAUUSD-ICT-Lab-v3",
       "prompt": "Dalam uptrend H1, harga pullback ke zona diskon dan wick tajam menembus satu internal Higher Low di M15 lalu langsung ditutup hijau di atasnya. Apakah tren naik M15 sudah patah?",
-      "answer": "Belum patah — wick tersebut hanyalah sapuan likuiditas internal (inducement) sebelum lanjut naik.",
+      "answer": "Belum patah — wick tersebut hanyalah sapuan likuiditas internal (SSL sweep) sebelum lanjut naik.",
       "choices": [
         "Sudah patah menjadi Bearish karena titik Higher Low internal telah dilewati oleh harga terendah candle.",
         "Sudah masuk fase konsolidasi permanen sehingga tidak boleh lagi mencari Buy sepanjang sesi ini.",
         "Wajib segera masuk Sell di penutupan candle karena momentum penurunan sudah terbukti menembus support.",
-        "Belum patah — wick tersebut hanyalah sapuan likuiditas internal (inducement) sebelum lanjut naik."
+        "Belum patah — wick tersebut hanyalah sapuan likuiditas internal (SSL sweep) sebelum lanjut naik."
       ],
-      "principle": "Dalam tren naik, sapuan wick di bawah internal HL yang segera di-reclaim justru membersihkan stop loss buyer awal (inducement) dan menyediakan bahan bakar untuk melanjutkan BOS bullish baru.",
+      "principle": "Dalam tren naik, sapuan wick di bawah internal HL yang segera di-reclaim justru membersihkan stop loss buyer awal (SSL sweep) dan menyediakan bahan bakar untuk melanjutkan BOS bullish baru.",
       "lesson": {
         "href": "../index.html?lesson=bos-valid-vs-sweep-palsu",
         "title": "BOS Valid vs Sweep Palsu (Breakout Trap)"
@@ -15468,7 +15468,7 @@
       "choices": [
         "Mitigation Block biasa yang tidak melibatkan sapuan likuiditas maupun pergeseran struktur.",
         "Zona Supply lama yang tetap harus dipakai mencari posisi Sell karena pernah mencetak low baru.",
-        "Inducement Block yang pasti akan kembali ditembus turun sebelum sesi New York berakhir.",
+        "Low-Probability Block yang pasti akan kembali ditembus turun sebelum sesi New York berakhir.",
         "Bullish Breaker Block — zona jebakan seller lama yang kini berubah menjadi benteng kuat untuk Buy."
       ],
       "principle": "Breaker Block lahir ketika sebuah OB yang sempat menyapu likuiditas gagal bertahan dan ditembus keras oleh MSS. Trader yang terjebak di sisi salah akan menutup posisi (BEP) saat harga retest, memicu dorongan arah baru.",
@@ -20458,7 +20458,7 @@
         "Tetap masuk karena setiap FVG pertama di jam Silver Bullet wajib diambil demi konsistensi statistik.",
         "Masuk dengan risiko kecil 0.25% dan tutup manual jika dalam 15 menit harga belum bergerak naik."
       ],
-      "principle": "Kesalahan umum pemula Silver Bullet adalah mengambil setiap FVG di jam tersebut secara mekanis. Tanpa konteks (Sweep + Narrative + Clear DOL), FVG Silver Bullet tetap hanyalah inducement.",
+      "principle": "Kesalahan umum pemula Silver Bullet adalah mengambil setiap FVG di jam tersebut secara mekanis. Tanpa konteks (Sweep + Narrative + Clear DOL), FVG Silver Bullet tetap berprobabilitas rendah dan rawan ditembus.",
       "lesson": {
         "href": "../index.html?lesson=memilih-1-model-dan-filter-gagal",
         "title": "Memilih 1 Model Utama & Filter Setup Gagal"
@@ -20710,7 +20710,7 @@
       "levels": [
         {
           "price": 3347.6,
-          "title": "FVG Tengah (Inducement)",
+          "title": "FVG Tengah (Low-Prob)",
           "color": "#fb7185"
         },
         {

@@ -104,10 +104,46 @@
     };
   }
 
+  function parseGuidedUrlParams(searchStr, validTopics) {
+    var result = { topic: null, difficulty: null, mode: null, fromLesson: null, count: null };
+    if (!searchStr || typeof searchStr !== 'string') return result;
+    var query = searchStr.charAt(0) === '?' ? searchStr.slice(1) : searchStr;
+    if (!query) return result;
+    var params;
+    try {
+      params = new URLSearchParams(query);
+    } catch (_) {
+      return result;
+    }
+    var topicSet = Array.isArray(validTopics) && validTopics.length ? new Set(validTopics) : null;
+    var rawTopic = String(params.get('topic') || '').trim();
+    if (rawTopic && (!topicSet || topicSet.has(rawTopic))) {
+      result.topic = rawTopic;
+    }
+    var rawDiff = String(params.get('difficulty') || '').trim().toLowerCase();
+    if (rawDiff === 'mudah' || rawDiff === 'sedang' || rawDiff === 'advanced') {
+      result.difficulty = rawDiff;
+    }
+    var rawMode = String(params.get('mode') || '').trim().toLowerCase();
+    if (rawMode === 'mistakes') {
+      result.mode = 'mistakes';
+    }
+    var rawLesson = String(params.get('fromLesson') || '').trim();
+    if (rawLesson && /^[a-z0-9-]+$/i.test(rawLesson)) {
+      result.fromLesson = rawLesson;
+    }
+    var rawCount = Number(params.get('count'));
+    if ([10, 20, 30, 50, 100].includes(rawCount)) {
+      result.count = rawCount;
+    }
+    return result;
+  }
+
   root.AmyGuidedSession = {
     shuffle: shuffle,
     select: select,
     summary: summary,
-    computePillarMastery: computePillarMastery
+    computePillarMastery: computePillarMastery,
+    parseGuidedUrlParams: parseGuidedUrlParams
   };
 })(typeof window === 'undefined' ? globalThis : window);

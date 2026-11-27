@@ -80,11 +80,21 @@ function extractActivePoiList(context, m15Candles, m5Candles) {
     seen.add(id);
 
     const isSell = side === 'SELL';
+    const isM5 = tf === 'M5';
+    const width = Math.max(0.5, high - low);
     const ce = Number((z.ce ?? ((low + high) / 2)).toFixed(2));
-    const sl = Number((isSell ? high + 0.40 : low - 0.40).toFixed(2));
-    const risk = Math.max(1.8, Math.abs(ce - sl));
-    const tp1 = Number((isSell ? ce - Math.max(risk * 1.6, 5.0) : ce + Math.max(risk * 1.6, 5.0)).toFixed(2));
-    const tp2 = Number((isSell ? ce - Math.max(risk * 2.8, 10.0) : ce + Math.max(risk * 2.8, 10.0)).toFixed(2));
+    const targetDist = isM5
+      ? Math.max(6.0, Math.min(8.0, 6.0 + width * 0.55))
+      : Math.max(7.0, Math.min(10.0, 7.0 + width * 0.60));
+    let slRaw = isSell ? (ce + targetDist) : (ce - targetDist);
+    if (isSell && slRaw < high + 0.80) slRaw = high + 0.80;
+    else if (!isSell && slRaw > low - 0.80) slRaw = low - 0.80;
+    const sl = Number(slRaw.toFixed(2));
+    const risk = Math.max(6.0, Math.abs(ce - sl));
+    const minTp1 = isM5 ? 9.0 : 10.5;
+    const minTp2 = isM5 ? 15.0 : 17.5;
+    const tp1 = Number((isSell ? ce - Math.max(risk * 1.5, minTp1) : ce + Math.max(risk * 1.5, minTp1)).toFixed(2));
+    const tp2 = Number((isSell ? ce - Math.max(risk * 2.5, minTp2) : ce + Math.max(risk * 2.5, minTp2)).toFixed(2));
 
     list.push({
       id,

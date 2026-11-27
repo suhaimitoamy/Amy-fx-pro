@@ -3006,4 +3006,51 @@ body.bt-guided-fullscreen {
   }
 }
 
+/* ── Academy Topic Focus & Review Salah Context Banner ── */
+.bt-context-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: var(--bt-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--bt-gold) 45%, var(--bt-border));
+  background: var(--bt-gold-soft);
+}
+
+.bt-context-banner[hidden] {
+  display: none !important;
+}
+
+.bt-context-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.bt-context-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--bt-gold);
+}
+
+.bt-context-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--bt-text);
+}
+
+.bt-context-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+
 

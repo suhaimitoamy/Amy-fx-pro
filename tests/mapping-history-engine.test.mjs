@@ -533,3 +533,138 @@ test('resolveSyncedProfileAccount syncs Lot Calculator with Profile balance, cas
   assert.equal(synced.balanceUsd, 4900);
 });
 
+test('recordLivePoiProgress checks SL_HIT before maxFavorable and classifyWitaSession adjusts for EST vs EDT DST', () => {
+  const baseState = {
+    version: 2,
+    engineVersion: 2,
+    poiRecords: [{
+      id: 'LIVE-SL-CHECK',
+      side: 'BUY',
+      tf: 'M15',
+      kind: 'FVG',
+      low: 3500,
+      high: 3504,
+      ce: 3502,
+      sl: 3494,
+      tp1: 3514,
+      tp2: 3522,
+      touchedAt: NOW_MS - 60_000,
+      status: 'TESTING',
+      maxFavorable: 0
+    }],
+    timelineEvents: [],
+    dailyArchive: {}
+  };
+
+  // Price gaps directly below SL ($3490 < $3494) -> must mark SL_HIT without inflating maxFavorable
+  const res = recordLivePoiProgress({
+    state: baseState,
+    plans: [],
+    livePrice: 3490,
+    nowMs: NOW_MS
+  });
+  const rec = res.state.poiRecords.find(r => r.id === 'LIVE-SL-CHECK');
+  assert.equal(rec.status, 'SL_HIT');
+  assert.equal(rec.maxFavorable, 0);
+
+  // DST test: 11:30 UTC in July (EDT = UTC-4 -> 07:30 NY = NY) vs January (EST = UTC-5 -> 06:30 NY = London)
+  assert.equal(classifyWitaSession(Date.UTC(2026, 6, 15, 11, 30, 0)), 'NY');
+  assert.equal(classifyWitaSession(Date.UTC(2026, 0, 15, 11, 30, 0)), 'London');
+});
+
+test('evaluateZoneLifecycleOnCandles: eliminates OB/FVG look-ahead bias, rejects unfilled edge-only grazes, and captures valid-side gap blowout SL', () => {
+  // 1) OB Look-Ahead guard: origin at idx 0 (startTime = bar 0), BOS confirmed at idx 2 (formedTime = bar 2).
+  // Bar 1 overlaps the OB before BOS; bar 2 blasts to TP2; bar 3 stays high (zone is still FRESH after BOS!).
+  const obCandles = [
+    makeBar(0, 3604, 3605, 3600, 3601), // origin candle: OB [3600, 3605], CE = 3602.5
+    makeBar(1, 3601, 3606, 3600.5, 3605.5), // BEFORE BOS confirmation -> MUST NOT count as touch!
+    makeBar(2, 3605.5, 3628, 3605, 3627),   // BOS confirmation bar (formedIndex=2, formedTime=bar 2)
+    makeBar(3, 3627, 3632, 3625, 3630)      // Never returns to OB after confirmation
+  ];
+  const obRes = evaluateZoneLifecycleOnCandles(
+    {
+      side: 'BUY',
+      tf: 'M15',
+      kind: 'OB',
+      low: 3600,
+      high: 3605,
+      ce: 3602.5,
+      startTime: obCandles[0].openTime,
+      formedIndex: 2,
+      formedTime: obCandles[2].openTime
+    },
+    obCandles,
+    48 * 3600 * 1000,
+    NOW_MS
+  );
+  assert.equal(obRes, null, 'Fresh OB never retested AFTER BOS confirmation must NEVER be recorded as a look-ahead WIN');
+
+  // 2) Unfilled outer-edge graze without touching 50% CE must NOT count as WIN
+  const edgeOnlyCandles = [
+    makeBar(0, 3600, 3606, 3599, 3605),     // confirmation bar
+    makeBar(1, 3608, 3610, 3607, 3609),     // above BUY zone [3600, 3606], CE = 3603
+    makeBar(2, 3609, 3609.5, 3605.2, 3608), // grazes upper edge (3605.2 <= 3606), NEVER touches CE (3603)!
+    makeBar(3, 3608, 3635, 3607.5, 3634)    // rockets past TP2 without ever filling CE
+  ];
+  const edgeOnlyRes = evaluateZoneLifecycleOnCandles(
+    {
+      side: 'BUY',
+      tf: 'M15',
+      kind: 'iFVG',
+      low: 3600,
+      high: 3606,
+      ce: 3603,
+      formedIndex: 0,
+      formedTime: edgeOnlyCandles[0].openTime
+    },
+    edgeOnlyCandles,
+    48 * 3600 * 1000,
+    NOW_MS
+  );
+  assert.equal(edgeOnlyRes, null, 'Edge-only graze that never touches 50% CE must NOT inflate Win Rate');
+
+  // 3) Valid-side gap blowout straight through zone & SL must honestly record SL_HIT (not return null)
+  const gapSlCandles = [
+    makeBar(0, 3600, 3603, 3599, 3602.5),  // confirmation bar
+    makeBar(1, 3606, 3608, 3605, 3607),    // valid side above BUY zone [3600, 3603], CE=3601.5, SL~3593.5
+    makeBar(2, 3598, 3599, 3590, 3591)     // news gap straight below zone & past SL!
+  ];
+  const gapSlRes = evaluateZoneLifecycleOnCandles(
+    {
+      side: 'BUY',
+      tf: 'M15',
+      kind: 'FVG',
+      low: 3600,
+      high: 3603,
+      ce: 3601.5,
+      formedIndex: 0,
+      formedTime: gapSlCandles[0].openTime
+    },
+    gapSlCandles,
+    48 * 3600 * 1000,
+    NOW_MS
+  );
+  assert.ok(gapSlRes, 'Valid-side gap blowout through SL must be recorded');
+  assert.equal(gapSlRes.status, 'SL_HIT');
+  assert.equal(gapSlRes.ceTouched, true);
+  assert.equal(gapSlRes.maxFavorable, 0);
+
+  // 4) Live tracker must NOT award TP1_HIT when only outer edge was touched (ceTouched: false)
+  const livePlan = {
+    side: 'BUY',
+    tf: 'M15',
+    kind: 'OB',
+    area: { low: 3600, high: 3606, ce: 3603 },
+    sl: 3594,
+    tp1: 3616,
+    tp2: 3625
+  };
+  let liveState = createEmptyHistoryState();
+  // Price grazes upper edge ($3605.5, above CE $3603)
+  liveState = recordLivePoiProgress({ state: liveState, plans: [livePlan], livePrice: 3605.5, nowMs: NOW_MS }).state;
+  assert.equal(liveState.poiRecords[0].ceTouched, false);
+  // Price rallies to TP1 ($3617) without ever touching CE -> must remain TESTING (no phantom WIN!)
+  liveState = recordLivePoiProgress({ state: liveState, plans: [livePlan], livePrice: 3617.0, nowMs: NOW_MS + 60_000 }).state;
+  assert.equal(liveState.poiRecords[0].status, 'TESTING');
+});
+

@@ -42,7 +42,7 @@
       id: 1,
       code: 'Bagian II',
       title: 'Struktur Pasar & Peta Liquidity',
-      tagline: 'Membaca struktur harga murni tanpa indikator, menyatukan H4/H1/M15/M5, membedakan BOS valid vs sweep palsu, Dealing Range, peta BSL/SSL, hingga Inducement.'
+      tagline: 'Membaca struktur harga murni tanpa indikator, menyatukan H4/H1/M15/M5, membedakan BOS valid vs sweep palsu, Dealing Range, peta BSL/SSL, hingga Liquidity Sweep vs Liquidity Run.'
     },
     {
       id: 2,
@@ -86,7 +86,7 @@
     { id: 'bos-valid-vs-sweep-palsu', stageId: 1, titleOverride: 'Break of Structure (BOS) Valid vs Liquidity Sweep (Breakout Palsu)' },
     { id: 'internal-external-dealing-range', stageId: 1, titleOverride: 'Dealing Range: Membaca Arena Eksternal (ERL) vs Internal (IRL)' },
     { id: 'bsl-dan-ssl-liquidity', stageId: 1, titleOverride: 'Peta Liquidity Gold: BSL/SSL, EQH/EQL, PDH/PDL, PWH/PWL & Asia Range' },
-    { id: 'inducement-idm-umpan-ritel', stageId: 1, titleOverride: 'Inducement (IDM): Mengenali Trap Ritel Sebelum Pergerakan Asli' },
+    { id: 'inducement-idm-umpan-ritel', stageId: 1, titleOverride: 'Liquidity Sweep vs Liquidity Run: Stop Hunt, Purge & Revert vs Ekspansi' },
 
     // Bagian III (Bab 13–17)
     { id: 'level-likuiditas-kunci-xauusd', stageId: 2, titleOverride: 'Draw on Liquidity (DOL) Tuntas: Cara Menemukan Magnet Harga Langkah demi Langkah' },
@@ -332,11 +332,40 @@
       .trim();
   }
 
+  const FREE_READ_HASH_DIGEST = 'cf28ddcc497315e0';
+
+  function hashFreeReadPasscode(input) {
+    const s = 'amyfx-academy-owner-v2::' + String(input ?? '').trim();
+    let h1 = 0x811c9dc5;
+    let h2 = 0x9e3779b1;
+    for (let i = 0; i < s.length; i += 1) {
+      const ch = s.charCodeAt(i);
+      h1 ^= ch;
+      h1 = Math.imul(h1, 0x01000193) >>> 0;
+      h2 = Math.imul(h2 ^ (ch + i * 31), 0x85ebca6b) >>> 0;
+      h2 ^= h2 >>> 13;
+    }
+    h1 ^= h1 >>> 16;
+    h1 = Math.imul(h1, 0x85ebca6b) >>> 0;
+    h1 ^= h1 >>> 13;
+    h2 = Math.imul(h2, 0xc2b2ae35) >>> 0;
+    h2 ^= h2 >>> 16;
+    return (h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function verifyFreeReadPasscode(code) {
+    if (typeof code !== 'string' && typeof code !== 'number') return false;
+    const trimmed = String(code).trim();
+    if (!trimmed) return false;
+    return hashFreeReadPasscode(trimmed) === FREE_READ_HASH_DIGEST;
+  }
+
   function createEmptyProgress() {
     return {
       completedIds: [],
       quizScores: {},
       placementPassed: false,
+      freeReadUnlocked: false,
       xp: 0,
       lastLessonId: null,
       updatedAt: null
@@ -380,6 +409,7 @@
     }
 
     base.placementPassed = Boolean(raw.placementPassed);
+    base.freeReadUnlocked = Boolean(raw.freeReadUnlocked);
     const computedXp = base.completedIds.length * XP_PER_MASTERED_MODULE + (base.placementPassed ? XP_PLACEMENT_BONUS : 0);
     base.xp = Math.max(computedXp, Number(raw.xp) || 0);
 
@@ -421,10 +451,28 @@
     if (idx === undefined) return 'locked';
     const norm = normalizeProgress(progress);
     if (norm.completedIds.includes(LESSONS[idx].id)) return 'mastered';
+    if (norm.freeReadUnlocked) return 'unlocked';
     const frontierIdx = getFrontierIndex(norm);
     if (idx === frontierIdx) return 'unlocked';
     if (idx === 0 || norm.completedIds.includes(LESSONS[idx - 1].id)) return 'unlocked';
     return 'locked';
+  }
+
+  function unlockFreeReadWithCode(progress, code) {
+    const norm = normalizeProgress(progress);
+    if (!verifyFreeReadPasscode(code)) {
+      return { ok: false, progress: norm };
+    }
+    norm.freeReadUnlocked = true;
+    norm.updatedAt = new Date().toISOString();
+    return { ok: true, progress: norm };
+  }
+
+  function disableFreeReadMode(progress) {
+    const norm = normalizeProgress(progress);
+    norm.freeReadUnlocked = false;
+    norm.updatedAt = new Date().toISOString();
+    return norm;
   }
 
   function canOpenLesson(progress, lessonId) {
@@ -668,6 +716,7 @@
       percent,
       xp: norm.xp,
       placementPassed: norm.placementPassed,
+      freeReadUnlocked: norm.freeReadUnlocked,
       allMastered,
       quizPassedCount,
       totalQuizQuestions,
@@ -862,6 +911,9 @@
     getModuleLockState,
     canOpenLesson,
     getUnlockRequirement,
+    verifyFreeReadPasscode,
+    unlockFreeReadWithCode,
+    disableFreeReadMode,
     evaluatePlacementAttempt,
     getRecommendedLessonForTrack,
     filterLessons,

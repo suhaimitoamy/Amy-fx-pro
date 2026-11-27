@@ -207,6 +207,66 @@ export function formatTp1Subtitle(tp1, tp2, rr1) {
  * continuation FVGs/OBs just because a giant macro Dealing Range has an old deep EQ.
  * Also returns a deeper M15 backup zone for full context in the breakdown table.
  */
+/**
+ * Shared SSOT POI Quality Filter Contract — enforced identically across:
+ *   1) Card Rencana Eksekusi POI (selectScalperDualLayerPoi)
+ *   2) Card Riwayat Reaksi & POI (backfillFromCandles)
+ *   3) Live Tick Tracker (filterTrackableLivePlans)
+ * Prevents split-brain mismatches where micro M5 traps, Asia M5 chop, or counter-trend FVGs
+ * appear in Execution Plan while being silently excluded from History.
+ */
+export const POI_QUALITY_RULES = {
+  M5: { minWidth: 1.25, maxWidth: 7.5 },
+  M15: { minWidth: 1.50, maxWidth: 10.5 }
+};
+
+export function getWitaHour(tsMs) {
+  const d = new Date(Number(tsMs) + 8 * 3600 * 1000);
+  return Number.isNaN(d.getTime()) ? 14 : d.getUTCHours();
+}
+
+export function evaluatePoiQualityGate({
+  tf = 'M15',
+  kind = 'FVG',
+  side = 'BUY',
+  width = NaN,
+  m15Dir = 0,
+  nowMs = null
+} = {}) {
+  const normTf = String(tf || 'M15').toUpperCase() === 'M5' ? 'M5' : 'M15';
+  const normKind = String(kind || 'FVG').toUpperCase();
+  const sideDir = String(side || '').toUpperCase() === 'SELL' ? -1 : 1;
+  const rules = POI_QUALITY_RULES[normTf];
+
+  if (!Number.isFinite(width) || width < rules.minWidth) {
+    return { allowed: false, reason: 'MICRO_WIDTH' };
+  }
+  if (width > rules.maxWidth) {
+    return { allowed: false, reason: 'OVERSIZED_WIDTH' };
+  }
+
+  if (Number.isFinite(Number(nowMs)) && Number(nowMs) > 0) {
+    const witaH = getWitaHour(Number(nowMs));
+    // Dead Rollover (04:00-07:00 WITA): skip all new entries
+    if (witaH >= 4 && witaH < 7) {
+      return { allowed: false, reason: 'ROLLOVER_DEAD' };
+    }
+    // Asia Session (07:00-14:00 WITA): M15 structural zones only; block noisy M5 chop
+    if (witaH >= 7 && witaH < 14 && normTf === 'M5') {
+      return { allowed: false, reason: 'ASIA_M5_BLOCKED' };
+    }
+  }
+
+  // Causal M15 trend discipline: M5 & raw M15 FVG cannot fight M15 trend;
+  // only institutional M15 reversal zones (OB / BB / iFVG) remain eligible counter-trend.
+  const isCounter = Number(m15Dir) !== 0 && Number(m15Dir) !== sideDir;
+  if (isCounter && (normTf === 'M5' || normKind === 'FVG')) {
+    return { allowed: false, reason: 'COUNTER_TREND_BLOCKED' };
+  }
+
+  return { allowed: true, reason: 'OK' };
+}
+
 export function selectScalperDualLayerPoi({
   side,
   m15Obs = [],
@@ -219,6 +279,7 @@ export function selectScalperDualLayerPoi({
   m5Bbs = [],
   livePrice = 0,
   m15Dir = 0,
+  nowMs = null,
   activeLeg = null,
   eqVal = NaN,
   protectedHigh = NaN,
@@ -234,7 +295,19 @@ export function selectScalperDualLayerPoi({
     .map((z, idx) => {
       const lo = num(z.lo ?? z.low ?? z.bot ?? z.gapLow ?? z.zoneLow);
       const hi = num(z.hi ?? z.high ?? z.top ?? z.gapHigh ?? z.zoneHigh);
-      if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi - lo < 0.05) return null;
+      const width = hi - lo;
+      const rules = POI_QUALITY_RULES[tf === 'M5' ? 'M5' : 'M15'];
+      if (!Number.isFinite(lo) || !Number.isFinite(hi) || width < rules.minWidth) return null;
+      const gate = evaluatePoiQualityGate({
+        tf,
+        kind,
+        side,
+        width,
+        m15Dir,
+        nowMs
+      });
+      // Enforce session & counter-trend SSOT gate (allow oversized check below so cleanSizedPool fallback still works cleanly)
+      if (!gate.allowed && gate.reason !== 'OVERSIZED_WIDTH') return null;
       const ce = num(z.ce ?? z.meanThreshold) || (lo + hi) / 2;
       const rawTouchCount = Number(z.touchCount ?? z.raw?.touchCount);
       const testedFlag = Boolean(z.tested ?? z.raw?.tested);
@@ -320,7 +393,8 @@ export function selectScalperDualLayerPoi({
         : false;
       const isContinuation = Boolean(!inRightHalf && (inImpulseHalf || dist <= 12.0));
       const width = z.high - z.low;
-      const oversized = z.tf === 'M5' ? width > 8.0 : width > 11.0;
+      const rules = POI_QUALITY_RULES[z.tf === 'M5' ? 'M5' : 'M15'];
+      const oversized = width > rules.maxWidth;
       return {
         ...z,
         dist,
@@ -343,9 +417,10 @@ export function selectScalperDualLayerPoi({
   const rawBasePool = unbrokenInside.length
     ? unbrokenInside
     : (unbrokenAny.length ? unbrokenAny : (insideAny.length ? insideAny : candidates));
-  // Prefer healthy scalper-sized zones over bloated $12–$17+ displacement zones whenever available
+  // Strictly enforce SSOT maxWidth cap (<= $10.5 M15 / <= $7.5 M5) so bloated zones never slip into execution
   const cleanSizedPool = rawBasePool.filter(z => !z.oversized);
-  const basePool = cleanSizedPool.length ? cleanSizedPool : rawBasePool;
+  if (!cleanSizedPool.length) return { primary: null, backup: null, allRanked: [] };
+  const basePool = cleanSizedPool;
 
   // Dual-Layer Tiering: prefer actionable scalper distance (<= $12), else swing mid (<= $22), else full pool
   const nearScalp = basePool.filter(z => z.dist <= 12.0);
@@ -357,7 +432,7 @@ export function selectScalperDualLayerPoi({
     if (z.fresh) score -= 3.0;
     if (z.touchCount >= 2) score += 1.5;
     if (z.touchCount >= 3) score += 2.0;
-    if (z.tf === 'M15') score -= 1.8; // Slight structural preference at equal distance, never overrides $10+ proximity gap
+    if (z.tf === 'M15') score -= 3.5; // Strong M15 structural preference; M5 only overrides when clearly closer & clean
     if (z.inOte) score -= 2.5;
     if (z.inRightHalf) score -= 1.5;
     else if (z.inImpulseHalf) score -= 1.2;
@@ -366,7 +441,6 @@ export function selectScalperDualLayerPoi({
     else if (z.kind === 'OB') score -= 0.8;
     if (z.oversized) score += 10.0;
     else if (z.width > 9.0) score += 2.5;
-    if (z.width < 0.8) score += 1.5;
     if (z.outsideInvalidation) score += 25.0;
     if (z.breached) score += 30.0;
     // Aligned with M15 bias favors fresher nearer M5/M15 continuation
@@ -536,6 +610,10 @@ export function evaluateScalperPoiVerdict({
     cls = 'is-skip';
     gradeText = 'SKIP · COUNTER-TREND (WAJIB MSS M5)';
     isSkip = true;
+  } else if (Number.isFinite(rr1) && rr1 < 1.2) {
+    cls = 'is-skip';
+    gradeText = `SKIP · R:R TERLALU KECIL (1:${rr1.toFixed(1)})`;
+    isSkip = true;
   } else if (isZoneFar) {
     cls = 'is-wait';
     gradeText = isCounterM15
@@ -544,6 +622,7 @@ export function evaluateScalperPoiVerdict({
   } else if (isCounterM15 && !isM5Aligned) {
     cls = 'is-wait';
     gradeText = 'WAIT · COUNTER M15 (TUNGGU MSS M5)';
+    isSkip = true;
   } else if (score === 5) {
     if (isAtZone) {
       cls = isSell ? 'is-ready-sell' : 'is-ready';
@@ -582,6 +661,9 @@ export function evaluateScalperPoiVerdict({
 
 if (typeof window !== 'undefined') {
   window.AmyMappingAccuracy = {
+    POI_QUALITY_RULES,
+    getWitaHour,
+    evaluatePoiQualityGate,
     resolveM15Direction,
     formatPdlPdhRange,
     resolveSsotTelemetry,

@@ -7,7 +7,7 @@ Kurikulum interaktif ICT khusus scalping **XAU/USD (Gold)** berbasis standar wak
 1. **Level 01 — Fondasi Nol & Anatomi XAU/USD (Pelajaran 01–05)**
    Logika profit dua arah & probabilitas, membaca body vs wick, karakter volatilitas & spread Gold per sesi WITA, struktur pasar HH-HL/LH-LL, dan Top-Down MTF (H1 → M15 → M5/M1).
 2. **Level 02 — Struktur & Peta Likuiditas (Pelajaran 06–10)**
-   BOS valid vs Liquidity Sweep, Dealing Range IRL ↔ ERL, kolam likuiditas BSL/SSL (EQH/EQL), level wajib PDH/PDL/PWH/PWL/Asia Range, serta Inducement (IDM).
+   BOS valid vs Liquidity Sweep, Dealing Range IRL ↔ ERL, kolam likuiditas BSL/SSL (EQH/EQL), level wajib PDH/PDL/PWH/PWL/Asia Range, serta Liquidity Sweep vs Liquidity Run.
 3. **Level 03 — Mesin Pengiriman Harga ICT / PD Array (Pelajaran 11–15)**
    Displacement, Fair Value Gap (FVG) + 50% CE, Order Block + 50% Mean Threshold, CISD vs MSS, dan matriks Premium/Discount + OTE (61.8%–78.6%).
 4. **Level 04 — 4 Model Entry Scalper A+ (Pelajaran 16–20)**

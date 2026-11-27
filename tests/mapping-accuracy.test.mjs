@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  evaluatePoiQualityGate,
   resolveM15Direction,
   formatPdlPdhRange,
   resolveSsotTelemetry,
@@ -21,8 +22,12 @@ import {
 } from '../lib/scalper-engine/amy-ict.mjs';
 import {
   goldSession,
-  goldSessionDetail
+  goldSessionDetail,
+  evaluateEconomicCalendar
 } from '../lib/scalper-engine/market-context.mjs';
+import {
+  evaluateMappingNewsLock
+} from '../app/src/main/assets/apps/mapping/js/engine/cockpit-bridge-helpers.js';
 
 function buildUniformBars(startUnixSec, count, stepSec, basePrice = 3550) {
   const bars = [];
@@ -380,4 +385,135 @@ test('7. dashboardEngine never produces zero-height Order Block on marubozu disp
   const eng = dashboardEngine(bars);
   assert.ok(eng.zones.bullOb, 'bullOb should be created on strong displacement');
   assert.ok(eng.zones.bullOb.high > eng.zones.bullOb.low, 'bullOb must never be zero-height');
+});
+
+test('8. dashboardEngine advances continuation BOS, protectedLow, invalidLevel, and rangeLow across multi-leg rally without duplicates', () => {
+  const start = Math.floor(Date.parse('2026-04-15T06:00:00Z') / 1000);
+  // Multi-leg bullish wave:
+  // Swing low 1 (~3560) -> Swing high 1 (~3580) -> Pullback low 2 (~3570) -> Break >3580 (MSS)
+  // -> Swing high 2 (~3620) -> Pullback low 3 (~3600) -> Break >3620 (BOS) -> Rally to 3645
+  const closes = [
+    3566, 3564, 3562, 3560, 3563, 3567, 3572, // trough at idx 3 (3560)
+    3576, 3580, 3577, 3574, 3571, 3570, 3573, // peak at idx 8 (3580), trough at idx 12 (3570)
+    3577, 3583, 3588, 3595, 3605, 3614, 3620, // break >3580 at idx 15, peak at idx 20 (3620)
+    3615, 3609, 3604, 3600, 3605, 3611, 3618, // trough at idx 24 (3600)
+    3625, 3632, 3638, 3645                    // continuation BOS >3620 at idx 28
+  ];
+  const bars = closes.map((cl, i) => {
+    const t = start + i * 900;
+    const prevCl = i > 0 ? closes[i - 1] : cl;
+    const open = prevCl;
+    const high = Math.max(open, cl) + 0.4;
+    const low = Math.min(open, cl) - 0.4;
+    return { open_time: t, close_time: t + 900, open, high, low, close: cl, is_closed: true };
+  });
+
+  const eng = dashboardEngine(bars);
+  const cur = eng.current;
+  assert.equal(cur.biasDir, 1, 'bias must remain BULLISH');
+  assert.ok(eng.events.length >= 2, `expected MSS + continuation BOS, got ${eng.events.length}`);
+  const lastEv = cur.lastBreak;
+  assert.equal(lastEv.kind, 'BOS', 'latest break must be continuation BOS');
+  assert.equal(lastEv.side, 'BUY');
+  assert.ok(lastEv.level >= 3619, `BOS level should reflect second swing high (~3620), got ${lastEv.level}`);
+  assert.ok(cur.invalidLevel >= 3598, `invalidLevel must advance to higher pullback low (~3600), got ${cur.invalidLevel}`);
+  assert.ok(cur.rangeLow >= 3598, `rangeLow must advance with protectedLow (~3600), got ${cur.rangeLow}`);
+  assert.ok(cur.rangeHigh >= 3645, `rangeHigh must track live high (>=3645), got ${cur.rangeHigh}`);
+
+  // Ensure no two break events share the exact same pivot origin (from) + side
+  const keys = eng.events.map(e => `${e.side}:${e.from}`);
+  assert.equal(new Set(keys).size, keys.length, 'must never fire duplicate BOS on the same swing pivot');
+});
+
+test('9. sessionCountdownPill matches resolveGoldSessionState on weekend closures and London Killzone without 1h drift', () => {
+  // Saturday 09:00 WITA = Saturday 01:00 UTC (2026-04-18T01:00:00Z)
+  const satMorningWita = Date.parse('2026-04-18T01:00:00Z');
+  const satPill = sessionCountdownPill(satMorningWita);
+  assert.equal(satPill.isClosed, true);
+  assert.equal(satPill.status, 'CLOSED');
+  assert.equal(satPill.activeSession, 'CLOSED');
+  assert.match(satPill.text, /Pasar Tutup/i);
+  assert.doesNotMatch(satPill.text, /Asia Aktif/i);
+
+  // Wednesday 02:30 NY EDT = 06:30 UTC (2026-04-15T06:30:00Z) -> 2h 30m left in London Killzone (02:00-05:00 NY)
+  const londonEarly = Date.parse('2026-04-15T06:30:00Z');
+  const londonState = resolveGoldSessionState(londonEarly);
+  const londonPill = sessionCountdownPill(londonEarly);
+  assert.equal(londonState.code, 'LONDON');
+  assert.equal(londonPill.code, 'LONDON');
+  assert.equal(londonPill.status, 'ACTIVE');
+  assert.equal(londonPill.remainingMs, londonState.remainingMs);
+  assert.match(londonPill.text, /London Killzone Aktif \(Sisa 2j 30m\)/);
+});
+
+test('10. Backend evaluateEconomicCalendar and Frontend evaluateMappingNewsLock share symmetrical ±30m lock and +31m..+90m warn windows', () => {
+  const nowMs = Date.parse('2026-04-15T12:00:00Z');
+  const nowSec = Math.floor(nowMs / 1000);
+
+  const mkEvent = (offsetMin) => {
+    const iso = new Date(nowMs + offsetMin * 60_000).toISOString();
+    return [{ country: 'USD', impact: 'High', title: 'Core CPI m/m', date: iso, dateIso: iso }];
+  };
+
+  // -25m (after release) -> BOTH LOCK
+  assert.equal(evaluateEconomicCalendar(mkEvent(-25), nowSec).status, 'NEWS_LOCK');
+  assert.equal(evaluateMappingNewsLock(mkEvent(-25), nowMs).level, 'LOCK');
+
+  // +25m (before release) -> BOTH LOCK
+  assert.equal(evaluateEconomicCalendar(mkEvent(25), nowSec).status, 'NEWS_LOCK');
+  assert.equal(evaluateMappingNewsLock(mkEvent(25), nowMs).level, 'LOCK');
+
+  // +45m -> BOTH WARN / UPCOMING
+  assert.equal(evaluateEconomicCalendar(mkEvent(45), nowSec).status, 'UPCOMING');
+  assert.equal(evaluateMappingNewsLock(mkEvent(45), nowMs).level, 'WARN');
+
+  // +110m -> BOTH SAFE (outside +90m window)
+  assert.equal(evaluateEconomicCalendar(mkEvent(110), nowSec).status, 'SAFE');
+  assert.equal(evaluateMappingNewsLock(mkEvent(110), nowMs).level, 'SAFE');
+});
+
+test('11. Shared SSOT POI Quality Gate blocks micro traps, Asia M5 chop, counter-trend M5/FVG, and sub-1.2R verdict', () => {
+  const londonMs = Date.UTC(2026, 10, 27, 8, 0, 0); // 16:00 WITA (London)
+  const asiaMs = Date.UTC(2026, 10, 27, 2, 0, 0);   // 10:00 WITA (Asia)
+  const rolloverMs = Date.UTC(2026, 10, 26, 21, 0, 0); // 05:00 WITA (Rollover)
+
+  // Micro $0.68 M5 OB trap (like live $3677.82-$3678.50) MUST be rejected by SSOT gate
+  assert.equal(evaluatePoiQualityGate({ tf: 'M5', kind: 'OB', side: 'BUY', width: 0.68, m15Dir: 1, nowMs: londonMs }).allowed, false);
+  // Asia M5 blocked, Asia M15 allowed
+  assert.equal(evaluatePoiQualityGate({ tf: 'M5', kind: 'OB', side: 'BUY', width: 2.5, m15Dir: 1, nowMs: asiaMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'BUY', width: 4.5, m15Dir: 1, nowMs: asiaMs }).allowed, true);
+  // Dead Rollover blocks all
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'BUY', width: 4.5, m15Dir: 1, nowMs: rolloverMs }).allowed, false);
+  // Counter-trend M5 & M15 FVG blocked; M15 institutional OB/BB allowed
+  assert.equal(evaluatePoiQualityGate({ tf: 'M5', kind: 'OB', side: 'SELL', width: 2.5, m15Dir: 1, nowMs: londonMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'FVG', side: 'SELL', width: 3.5, m15Dir: 1, nowMs: londonMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'SELL', width: 3.5, m15Dir: 1, nowMs: londonMs }).allowed, true);
+
+  // selectScalperDualLayerPoi MUST reject $0.68 micro M5 OB and pick clean M15 OB instead
+  const sel = selectScalperDualLayerPoi({
+    side: 'BUY',
+    livePrice: 3681.5,
+    m15Dir: 1,
+    nowMs: londonMs,
+    m5Obs: [{ lo: 3677.82, hi: 3678.50, ce: 3678.16, tested: false, label: '+OB M5 Micro' }],
+    m15Obs: [{ lo: 3655.0, hi: 3664.75, ce: 3659.88, tested: false, label: '+OB M15' }]
+  });
+  assert.ok(sel.primary);
+  assert.equal(sel.primary.tf, 'M15', 'Must skip $0.68 M5 micro trap and pick valid M15 OB');
+
+  // evaluateScalperPoiVerdict MUST mark R:R < 1.2 (e.g. 1:0.3) as SKIP
+  const badRr = evaluateScalperPoiVerdict({
+    side: 'BUY',
+    h1Dir: 1,
+    m15Dir: 1,
+    m5Dir: 1,
+    zone: sel.primary,
+    livePrice: 3666.0,
+    slGuard: { dist: 6.4, status: 'ideal' },
+    rr1: 0.3,
+    tp1: { v: 3668.0, name: 'Minor High', synthetic: false }
+  });
+  assert.equal(badRr.skip, true);
+  assert.equal(badRr.cls, 'is-skip');
+  assert.match(badRr.grade, /SKIP · R:R TERLALU KECIL/);
 });

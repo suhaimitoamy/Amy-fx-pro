@@ -142,7 +142,7 @@ export function evaluateMappingNewsLock(events, nowMs = Date.now()) {
     const ts = parseEventTimestampMs(ev);
     if (ts === null) continue;
     const diffMin = Math.round((ts - now) / DAY_MIN_MS);
-    // Lock window: 15 min before through 30 min after release; Warn window: up to 90 min before
+    // Lock window: symmetrical ±30 min around release; Warn window: +31 min up to +90 min before
     if (diffMin >= -30 && diffMin <= 90) {
       relevant.push({
         title: String(ev.title || ev.event || 'Berita USD High-Impact').trim(),
@@ -166,14 +166,14 @@ export function evaluateMappingNewsLock(events, nowMs = Date.now()) {
 
   // Prioritize active LOCK events first, then nearest upcoming event
   relevant.sort((a, b) => {
-    const aLock = a.diffMin <= 15 ? 0 : 1;
-    const bLock = b.diffMin <= 15 ? 0 : 1;
+    const aLock = a.diffMin <= 30 ? 0 : 1;
+    const bLock = b.diffMin <= 30 ? 0 : 1;
     if (aLock !== bLock) return aLock - bLock;
     return Math.abs(a.diffMin) - Math.abs(b.diffMin);
   });
 
   const top = relevant[0];
-  if (top.diffMin <= 15) {
+  if (top.diffMin <= 30) {
     const timing = top.diffMin > 0
       ? `rilis ${top.diffMin}m lagi`
       : top.diffMin === 0
@@ -185,7 +185,7 @@ export function evaluateMappingNewsLock(events, nowMs = Date.now()) {
       title: top.title,
       timeLabel: top.timeLabel,
       minsUntil: top.diffMin,
-      message: `News Lock ±15m · ${top.title} (${timing}, ${top.timeLabel}) — tahan eksekusi baru.`
+      message: `News Lock ±30m · ${top.title} (${timing}, ${top.timeLabel}) — tahan eksekusi baru.`
     };
   }
 

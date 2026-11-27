@@ -1,3 +1,8 @@
+## 2.0.0-pro.481
+
+- feat(academy-mastery): Sinkronisasi kurikulum Academy 36/36 tuntas dari `Amy-fx-ai-studio` (`ce208ac`): Kartu Contekan 1 Layar Bagian I–VI (`academy-cheatsheets.js`), 10 Latihan Mata Chart candlestick (`chart-drills.js`), deep-link topik bab & mode Review Salah di Latihan 100 Kasus, pembersihan total istilah SMC/IDM ke ICT murni + Bab 12 baru (*Liquidity Sweep vs Liquidity Run*), kode buka bebas baca pemilik (`281098`), serta pembaruan `amy-local-knowledge.js`.
+- fix(mapping-accuracy): Sinkronisasi perbaikan 7 bug akurasi Mapping & kualitas POI/Backfill (`27439e3`): continuation BOS & pergerakan `protectedLow`/`rangeLow` (`amy-ict.js`/`amy-ict.mjs`), sinkronisasi DST pill & sesi (`market-session-clock.js`, `ict-presentation.js`, `mapping-history-engine.js`), News Lock simetris ±30m (`market-context.mjs`, `cockpit-bridge-helpers.js`), peniadaan look-ahead bias + wajib sentuh `50% CE` + valid-side gap SL + spread MT5 `0.30` (`BACKFILL_ENGINE_VERSION = 6`), penyatuan `POI_QUALITY_RULES`/`evaluatePoiQualityGate` lintas Eksekusi/Riwayat/Live, dan perbaikan `resolveScalperTargets`/`evaluateScalperPoiVerdict`.
+
 ## 2.0.0-pro.480
 
 - feat(academy-glossary): Sinkronisasi fitur Kamus ICT Interaktif & peningkatan keterbacaan Academy dari `Amy-fx-ai-studio` (`8e4618b`): glosarium 40+ istilah ICT (`ict-glossary.js`), anotasi istilah otomatis, pemecahan paragraf panjang & daftar bernomor di mobile, pembaruan diagram & seluruh materi Bab (`level-0` s.d. `mastery-deep-enrichment`), serta sinkronisasi `amy-local-knowledge.js`.

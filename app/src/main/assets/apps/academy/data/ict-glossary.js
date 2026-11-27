@@ -93,6 +93,56 @@
       lessonId: 'membaca-chart-candlestick-nol',
       matchExact: ['OHLC']
     },
+    {
+      id: 'swap',
+      term: 'Swap',
+      fullName: 'Biaya Inap Posisi Lewat Ganti Hari (Rollover)',
+      category: 'dasar',
+      simple: 'Biaya (atau bunga) yang dikenakan broker jika kamu menahan posisi terbuka melewati jam pergantian hari pasar (sekitar 05:00/06:00 WITA). Malam Rabu ke Kamis biasanya kena Triple Swap (3× lipat).',
+      example: 'Trader intraday yang selalu menutup posisi sebelum ganti hari tidak terkena biaya Swap.',
+      lessonId: 'bid-ask-spread-pips-gold',
+      matchExact: ['Swap', 'Triple Swap']
+    },
+    {
+      id: 'komisi-raw',
+      term: 'Komisi / Raw Spread',
+      fullName: 'Biaya Tetap per Lot pada Akun Raw / ECN',
+      category: 'dasar',
+      simple: 'Akun Raw/ECN memberikan Spread jauh lebih tipis daripada Akun Standard, tetapi memotong komisi tetap per lot (misal $6–$7 per 1.00 lot pulang-pergi).',
+      example: 'Di akun Raw, 0.01 lot Gold hanya terkena komisi sekitar $0,07 dengan spread lebih ramping.',
+      lessonId: 'bid-ask-spread-pips-gold',
+      matchExact: ['Raw / ECN', 'Raw Spread']
+    },
+    {
+      id: 'slippage',
+      term: 'Slippage',
+      fullName: 'Geseran Harga Eksekusi Saat Pasar Loncat',
+      category: 'dasar',
+      simple: 'Selisih antara harga yang kamu ketik (entry atau Stop Loss) dengan harga eksekusi nyata di pasar ketika volatilitas meledak — biasanya saat berita besar USD atau pembukaan Senin.',
+      example: 'SL dipasang di 2.650,00 tetapi saat detik rilis NFP harga meloncat ke 2.652,00 sehingga tereksekusi di 2.652,00.',
+      lessonId: 'bid-ask-spread-pips-gold',
+      matchExact: ['Slippage']
+    },
+    {
+      id: 'margin-call',
+      term: 'Margin Call / Stop Out',
+      fullName: 'Peringatan & Penutupan Paksa Akun Broker',
+      category: 'dasar',
+      simple: 'Margin Call adalah peringatan saat Equity menipis akibat floating minus besar; Stop Out adalah penutupan paksa posisi oleh broker saat Margin Level menyentuh batas minimum.',
+      example: 'Bisa dicegah 100% jika selalu memakai risiko maksimal 1% per transaksi dan memasang Stop Loss.',
+      lessonId: 'lot-leverage-margin-equity',
+      matchExact: ['Margin Call', 'Stop Out']
+    },
+    {
+      id: 'rollover',
+      term: 'Rollover',
+      fullName: 'Jam Pergantian Hari Pasar Global (17:00 NY)',
+      category: 'waktu',
+      simple: 'Jeda tipis pergantian hari pasar dunia (sekitar 05:00 WITA EDT / 06:00 WITA EST) saat bank tutup buku — Spread Gold melebar drastis dan biaya Swap dihitung.',
+      example: 'Hindari membuka transaksi baru pada jam 04:00–07:00 WITA karena spread tidak wajar.',
+      lessonId: 'karakter-xauusd-spread-wita',
+      matchExact: ['Rollover']
+    },
 
     // ── Struktur & Liquidity ─────────────────────────────────────────────────
     {
@@ -226,14 +276,14 @@
       matchExact: ['IRL']
     },
     {
-      id: 'idm',
-      term: 'IDM',
-      fullName: 'Inducement (Trap Ritel)',
+      id: 'liquidity-run',
+      term: 'Liquidity Run',
+      fullName: 'Liquidity Run vs Sweep (Purge & Revert)',
       category: 'struktur',
-      simple: 'Swing koreksi kecil pertama di depan zona entry asli yang memancing trader masuk terlalu cepat. Zona asli jauh lebih aman setelah IDM di-sweep.',
-      example: 'Jangan buru-buru Buy di FVG atas kalau persis di bawahnya masih ada IDM yang belum kena sweep.',
+      simple: 'Tembusan level likuiditas (BSL/SSL) yang dilanjutkan ekspansi searah HTF Bias menuju DOL lebih jauh — kebalikan dari Liquidity Sweep (Purge & Revert) yang hanya menyapu SL lalu berbalik dengan CISD/MSS.',
+      example: 'Pada hari Bullish menuju PDH, tembusan Asia High dengan Body Close penuh adalah Liquidity Run, bukan sinyal Sell counter-trend.',
       lessonId: 'inducement-idm-umpan-ritel',
-      matchExact: ['IDM', 'Inducement']
+      matchExact: ['Liquidity Run', 'Purge & Revert', 'Stop Hunt']
     },
 
     // ── Waktu & Bias ─────────────────────────────────────────────────────────

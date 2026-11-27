@@ -13,6 +13,8 @@
   const C = root.AmyAcademyCurriculum;
   const D = root.AmyAcademyDiagrams;
   const G = root.AmyAcademyGlossary || null;
+  const CS = root.AmyAcademyCheatSheets || null;
+  const CD = root.AmyAcademyChartDrills || null;
   if (!C || !D) return;
 
   const BOOKMARKS_KEY = 'amy_academy_bookmarks_v1';
@@ -24,8 +26,13 @@
     searchQuery: '',
     diagramStageIndex: 0,
     quizAnswers: {}, // { [lessonId]: { [qIndex]: selectedOptionIndex } }
+    drillSelections: {}, // { [drillId]: 'A' | 'B' | 'C' }
+    solvedDrillIds: CD ? CD.loadSolvedDrillIds() : [],
     justUnlockedLessonId: null,
     lockModal: null, // { targetLesson, blockedByLesson, requiredPercent }
+    passcodeModalOpen: false,
+    passcodeExpandedInLock: false,
+    passcodeError: '',
     placementModalOpen: false,
     placementAnswers: {},
     placementResult: null,
@@ -33,6 +40,8 @@
     glossaryModalOpen: false,
     glossaryQuery: '',
     glossaryCategory: 'all',
+    cheatSheetModalOpen: false,
+    cheatSheetStageId: 0,
     drawerOpen: false,
     progress: C.createEmptyProgress(),
     bookmarks: [],
@@ -156,11 +165,30 @@
 
   function closeModals() {
     state.lockModal = null;
+    state.passcodeModalOpen = false;
+    state.passcodeExpandedInLock = false;
+    state.passcodeError = '';
     state.placementModalOpen = false;
     state.glossaryTermId = null;
     state.glossaryModalOpen = false;
+    state.cheatSheetModalOpen = false;
     document.body.style.overflow = state.drawerOpen ? 'hidden' : '';
     render();
+  }
+
+  function openPasscodeModal() {
+    state.lockModal = null;
+    state.placementModalOpen = false;
+    state.glossaryTermId = null;
+    state.glossaryModalOpen = false;
+    state.cheatSheetModalOpen = false;
+    state.passcodeExpandedInLock = false;
+    state.passcodeError = '';
+    state.passcodeModalOpen = true;
+    document.body.style.overflow = 'hidden';
+    render();
+    const inp = document.getElementById('acdPasscodeModalInput');
+    if (inp) inp.focus();
   }
 
   function openGlossaryTerm(termId) {
@@ -169,6 +197,7 @@
     if (!found) return;
     state.glossaryTermId = found.id;
     state.glossaryModalOpen = false;
+    state.cheatSheetModalOpen = false;
     document.body.style.overflow = 'hidden';
     render();
   }
@@ -177,7 +206,22 @@
     if (!G) return;
     state.glossaryTermId = null;
     state.glossaryModalOpen = true;
+    state.cheatSheetModalOpen = false;
     if (typeof initialQuery === 'string') state.glossaryQuery = initialQuery;
+    document.body.style.overflow = 'hidden';
+    render();
+  }
+
+  function openCheatSheetModal(stageId) {
+    if (!CS) return;
+    const activeLesson = state.activeLessonId ? C.getLessonById(state.activeLessonId) : null;
+    const resolvedStage = typeof stageId === 'number' && !Number.isNaN(stageId)
+      ? stageId
+      : (activeLesson ? activeLesson.stageId : state.cheatSheetStageId || 0);
+    state.cheatSheetStageId = resolvedStage;
+    state.cheatSheetModalOpen = true;
+    state.glossaryTermId = null;
+    state.glossaryModalOpen = false;
     document.body.style.overflow = 'hidden';
     render();
   }
@@ -190,6 +234,8 @@
     if (!C.canOpenLesson(state.progress, lesson.id)) {
       const req = C.getUnlockRequirement(state.progress, lesson.id);
       state.lockModal = req;
+      state.passcodeExpandedInLock = false;
+      state.passcodeError = '';
       state.drawerOpen = false;
       if (state.view !== 'overview') {
         state.view = 'overview';
@@ -207,9 +253,13 @@
     state.diagramStageIndex = 0;
     state.justUnlockedLessonId = null;
     state.lockModal = null;
+    state.passcodeModalOpen = false;
+    state.passcodeExpandedInLock = false;
+    state.passcodeError = '';
     state.placementModalOpen = false;
     state.glossaryTermId = null;
     state.glossaryModalOpen = false;
+    state.cheatSheetModalOpen = false;
     state.drawerOpen = false;
     document.body.style.overflow = '';
 
@@ -228,7 +278,7 @@
     state.drawerOpen = false;
     state.justUnlockedLessonId = null;
     state.glossaryTermId = null;
-    document.body.style.overflow = state.lockModal || state.placementModalOpen || state.glossaryModalOpen ? 'hidden' : '';
+    document.body.style.overflow = state.lockModal || state.passcodeModalOpen || state.placementModalOpen || state.glossaryModalOpen || state.cheatSheetModalOpen ? 'hidden' : '';
     if (!options.skipUrl) syncUrl(null, Boolean(options.replaceUrl));
     render();
     if (!options.skipScroll) root.scrollTo({ top: 0, behavior: 'auto' });
@@ -292,6 +342,43 @@
           ${blockedByLesson ? `<button type="button" class="acd-btn-primary" id="acdGoFrontierBtn" data-open-lesson="${esc(blockedByLesson.id)}">Buka Bab ${fmtStep(blockedByLesson)} Sekarang →</button>` : ''}
           <button type="button" class="acd-btn-secondary" id="acdCloseLockModalBtn">Tutup</button>
         </div>
+        <div class="acd-lock-code-box">
+          ${state.passcodeExpandedInLock
+            ? `<form id="acdLockPasscodeForm" class="acd-passcode-form" autocomplete="off">
+                <div class="acd-passcode-row">
+                  <input id="acdLockPasscodeInput" class="acd-passcode-input" type="password" inputmode="numeric" maxlength="16" placeholder="Masukkan kode akses" autocomplete="off" aria-label="Kode akses baca bebas">
+                  <button type="submit" class="acd-btn-primary acd-passcode-submit">Buka Semua</button>
+                </div>
+                ${state.passcodeError ? `<p class="acd-passcode-error" role="alert">${esc(state.passcodeError)}</p>` : ''}
+              </form>`
+            : `<button type="button" class="acd-lock-code-trigger" id="acdRevealLockPasscodeBtn">Punya kode akses?</button>`}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderPasscodeModal() {
+    if (!state.passcodeModalOpen) return '';
+    return `<div class="acd-modal-backdrop" id="acdPasscodeBackdrop" role="presentation">
+      <div class="acd-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="acdPasscodeModalTitle">
+        <div class="acd-modal-top-row">
+          <div>
+            <p class="acd-hero-kicker">Akses Khusus Pemilik</p>
+            <h2 id="acdPasscodeModalTitle" class="acd-modal-title">Mode Baca Bebas</h2>
+          </div>
+          <button type="button" class="acd-icon-btn" id="acdClosePasscodeTopBtn" aria-label="Tutup dialog kode akses">×</button>
+        </div>
+        <p class="acd-modal-body">Masukkan kode akses untuk membuka seluruh ${C.LESSONS.length} bab sekaligus agar dapat dibaca dan ditinjau tanpa terkunci Uji Paham. Progres kuis yang sudah kamu selesaikan tetap tersimpan.</p>
+        <form id="acdPasscodeModalForm" class="acd-passcode-form" autocomplete="off">
+          <div class="acd-passcode-row">
+            <input id="acdPasscodeModalInput" class="acd-passcode-input" type="password" inputmode="numeric" maxlength="16" placeholder="Masukkan kode akses" autocomplete="off" aria-label="Kode akses mode baca bebas">
+          </div>
+          ${state.passcodeError ? `<p class="acd-passcode-error" role="alert">${esc(state.passcodeError)}</p>` : ''}
+          <div class="acd-modal-actions" style="margin-top:14px;">
+            <button type="submit" class="acd-btn-primary">Buka Semua Bab</button>
+            <button type="button" class="acd-btn-secondary" id="acdClosePasscodeBtn">Batal</button>
+          </div>
+        </form>
       </div>
     </div>`;
   }
@@ -476,12 +563,78 @@
     </div>`;
   }
 
+  function renderCheatSheetModal() {
+    if (!CS || !state.cheatSheetModalOpen) return '';
+    const sheet = CS.getCheatSheetByStage(state.cheatSheetStageId);
+    if (!sheet) return '';
+
+    const tabsHtml = CS.CHEAT_SHEETS.map(s => `
+      <button type="button" class="acd-tab-btn ${s.stageId === sheet.stageId ? 'is-active' : ''}" data-cheatsheet-stage="${s.stageId}">${esc(s.code)}</button>
+    `).join('');
+
+    const blocksHtml = sheet.blocks.map(block => `
+      <section class="acd-cheatsheet-block">
+        <h3 class="acd-cheatsheet-block-title">${esc(block.title)}</h3>
+        <ul class="acd-cheatsheet-list">
+          ${block.items.map(item => `<li>${fmtBookRich(item)}</li>`).join('')}
+        </ul>
+      </section>
+    `).join('');
+
+    return `<div class="acd-modal-backdrop" id="acdCheatSheetBackdrop" role="presentation">
+      <div class="acd-modal-sheet acd-modal-sheet--wide acd-cheatsheet-modal" role="dialog" aria-modal="true" aria-labelledby="acdCheatSheetTitle">
+        <div class="acd-modal-top-row">
+          <div>
+            <p class="acd-hero-kicker">Kartu Contekan 1 Layar · ${esc(sheet.code)} (${esc(sheet.rangeLabel)})</p>
+            <h2 id="acdCheatSheetTitle" class="acd-modal-title">${esc(sheet.title)}</h2>
+            <p class="acd-glossary-fullname">${esc(sheet.subtitle)}</p>
+          </div>
+          <button type="button" class="acd-icon-btn" id="acdCloseCheatSheetBtn" aria-label="Tutup Kartu Contekan">×</button>
+        </div>
+
+        <div class="acd-cheatsheet-tabs" role="tablist" aria-label="Pilih Bagian Kartu Contekan">${tabsHtml}</div>
+
+        <div class="acd-cheatsheet-body">
+          ${blocksHtml}
+          <div class="acd-cheatsheet-golden">
+            <span class="acd-cheatsheet-golden-label">Aturan Emas ${esc(sheet.code)}</span>
+            <p>${fmtRich(sheet.goldenLine)}</p>
+          </div>
+        </div>
+
+        <div class="acd-modal-actions" style="margin-top:14px;">
+          ${G ? `<button type="button" class="acd-btn-secondary" id="acdOpenGlossaryFromSheetBtn">Buka Kamus (${G.TERMS.length} Istilah)</button>` : ''}
+          <button type="button" class="acd-btn-primary" id="acdDismissCheatSheetBtn">Selesai</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderPracticeCheckpoint(lesson) {
+    if (!CS || !lesson) return '';
+    const cp = CS.getPracticeCheckpointForLesson(lesson.id);
+    if (!cp) return '';
+    const secondaryBtn = cp.secondaryHref
+      ? `<a class="acd-btn-secondary" href="${esc(cp.secondaryHref)}">${esc(cp.secondaryLabel)}</a>`
+      : `<button type="button" class="acd-btn-secondary" data-open-cheatsheet="${cp.stageId}">${esc(cp.secondaryLabel)}</button>`;
+
+    return `<section class="acd-checkpoint-card" aria-label="Jeda praktik yang disarankan">
+      <p class="acd-checkpoint-kicker">${esc(cp.kicker)}</p>
+      <h3 class="acd-checkpoint-title">${esc(cp.title)}</h3>
+      <p class="acd-checkpoint-body">${fmtRich(cp.body)}</p>
+      <div class="acd-checkpoint-actions">
+        <a class="acd-btn-primary" href="${esc(cp.primaryHref)}">${esc(cp.primaryLabel)}</a>
+        ${secondaryBtn}
+      </div>
+    </section>`;
+  }
+
   function renderOverview() {
     const stats = C.computeProgressStats(state.progress);
     const bookmarkSet = new Set(state.bookmarks);
     const frontier = stats.frontierLesson || C.LESSONS[0];
     const prepReadiness = C.evaluateLevel0Readiness(state.progress);
-    const showPlacementBanner = !prepReadiness.readyForIct && !state.searchQuery.trim();
+    const showPlacementBanner = !stats.freeReadUnlocked && !prepReadiness.readyForIct && !state.searchQuery.trim();
 
     const baseFiltered = C.filterLessons({
       levelId: 'all',
@@ -521,22 +674,34 @@
         const isMastered = lockState === 'mastered';
         const isActive = lockState === 'unlocked';
         const isLocked = lockState === 'locked';
+        const isFrontier = frontier && lesson.id === frontier.id;
+        const isFreeReadChapter = Boolean(stats.freeReadUnlocked && isActive && !isFrontier);
         const isSaved = bookmarkSet.has(String(lesson.id));
         const quizRec = state.progress.quizScores[lesson.id];
         const stepStr = fmtStep(lesson);
 
         let statusText = `${lesson.readMinutes} mnt baca · Uji Paham ${lesson.quiz.length} soal`;
         let nodeSymbol = stepStr;
+        let stateLabel = 'Terkunci';
+        let stateLabelCls = `is-${lockState}`;
         if (isMastered) {
           nodeSymbol = '✓';
+          stateLabel = 'Tuntas';
           statusText = quizRec
             ? `Dikuasai · Skor ${quizRec.correct}/${quizRec.total} · Ketuk untuk baca ulang`
             : 'Dikuasai · Ketuk untuk baca ulang';
+        } else if (isFreeReadChapter) {
+          nodeSymbol = stepStr;
+          stateLabel = 'Baca Bebas';
+          stateLabelCls = 'is-freeread';
+          statusText = `${lesson.readMinutes} mnt baca · Terbuka via Mode Baca Bebas`;
         } else if (isActive) {
           nodeSymbol = '▶';
+          stateLabel = 'Aktif Sekarang';
           statusText = `${lesson.readMinutes} mnt baca · Lulus Uji Paham ≥80% untuk buka bab berikutnya`;
         } else {
           nodeSymbol = '🔒';
+          stateLabel = 'Terkunci';
           statusText = 'Terkunci · Tuntaskan bab aktif sebelumnya';
         }
 
@@ -549,11 +714,11 @@
             <button type="button"
               class="acd-path-card is-${lockState}"
               data-open-lesson="${esc(lesson.id)}"
-              aria-label="Bab ${stepStr}: ${esc(lesson.title)} — ${isMastered ? 'Dikuasai' : isActive ? 'Aktif' : 'Terkunci'}">
+              aria-label="Bab ${stepStr}: ${esc(lesson.title)} — ${isMastered ? 'Dikuasai' : isFreeReadChapter ? 'Baca Bebas' : isActive ? 'Aktif' : 'Terkunci'}">
               <div class="acd-path-card-head">
                 <span class="acd-path-step acd-nums">Bab ${stepStr}</span>
-                <span class="acd-path-state-label is-${lockState}">
-                  ${isMastered ? 'Tuntas' : isActive ? 'Aktif Sekarang' : 'Terkunci'}
+                <span class="acd-path-state-label ${stateLabelCls}">
+                  ${stateLabel}
                 </span>
               </div>
               <p class="acd-path-title">${esc(lesson.title)}</p>
@@ -566,16 +731,25 @@
         </div>`;
       }).join('');
 
-      return `<section class="acd-stage-block ${stageAllDone ? 'is-stage-done' : ''}" aria-labelledby="stage-heading-${stage.id}">
+      const pathMeta = CS && typeof CS.getStagePathMeta === 'function' ? CS.getStagePathMeta(stage.id) : null;
+      const advancedNoteHtml = pathMeta && pathMeta.isAdvanced && pathMeta.bannerNote
+        ? `<p class="acd-stage-advanced-note"><strong>${esc(pathMeta.trackLabel)}:</strong> ${esc(pathMeta.bannerNote)}</p>`
+        : '';
+
+      return `<section class="acd-stage-block ${stageAllDone ? 'is-stage-done' : ''} ${pathMeta && pathMeta.isAdvanced ? 'is-stage-advanced' : ''}" aria-labelledby="stage-heading-${stage.id}">
         <header class="acd-stage-head">
           <div class="acd-stage-head-top">
             <div>
-              <span class="acd-stage-code">${esc(stage.code)}</span>
+              <span class="acd-stage-code">${esc(stage.code)}${pathMeta && pathMeta.isAdvanced ? ' · Jalur Lanjutan' : ''}</span>
               <h2 id="stage-heading-${stage.id}">${esc(stage.title)}</h2>
             </div>
-            <span class="acd-stage-count acd-nums">${stageStat ? `${stageStat.completed}/${stageStat.total}` : ''}</span>
+            <div class="acd-stage-head-right">
+              ${CS ? `<button type="button" class="acd-stage-sheet-btn" data-open-cheatsheet="${stage.id}" aria-label="Buka Kartu Contekan ${esc(stage.code)}">Contekan</button>` : ''}
+              <span class="acd-stage-count acd-nums">${stageStat ? `${stageStat.completed}/${stageStat.total}` : ''}</span>
+            </div>
           </div>
           <p class="acd-stage-tagline">${esc(stage.tagline)}</p>
+          ${advancedNoteHtml}
           <div class="acd-level-bar" aria-hidden="true"><span style="width:${stagePct}%"></span></div>
         </header>
         <div class="acd-path-list">${nodesHtml}</div>
@@ -593,6 +767,10 @@
       <button type="button" class="acd-btn-secondary" id="acdResetFilterBtn">Tampilkan Seluruh Daftar Isi</button>
     </div>`;
 
+    const guidedSummary = CD ? CD.readGuidedMasterySummary() : { totalAttempted: 0, totalMastered: 0, totalMistakes: 0 };
+    const solvedDrillCount = state.solvedDrillIds.length;
+    const totalDrillCount = CD ? CD.CHART_DRILLS.length : 0;
+
     return `<div class="acd-overview">
       <section class="acd-hero" aria-label="Ringkasan Buku Panduan ICT">
         <div>
@@ -603,6 +781,7 @@
             ${stats.allMastered
               ? `Selamat — seluruh ${C.LESSONS.length} bab hingga Capstone Mapping Mandiri sudah kamu kuasai.`
               : `Bab Aktif: <strong>Bab ${fmtStep(frontier)} · ${esc(frontier.title)}</strong>`}
+            ${totalDrillCount > 0 ? ` · Latihan Mata Chart: <strong class="acd-nums">${solvedDrillCount}/${totalDrillCount}</strong>` : ''}
           </p>
         </div>
         <div class="acd-hero-right">
@@ -616,8 +795,18 @@
             </div>
           </div>
           <button type="button" class="acd-btn-primary" id="acdHeroPrimaryCta" data-open-lesson="${esc(frontier.id)}">${esc(primaryCtaLabel)} →</button>
+          ${guidedSummary.totalMistakes > 0 && CD
+            ? `<a class="acd-btn-secondary acd-hero-review-btn" href="${esc(CD.buildGuidedPracticeHref(null, { mistakesOnly: true }))}">Review ${guidedSummary.totalMistakes} Soal Salah (Latihan Kasus) →</a>`
+            : ''}
         </div>
       </section>
+
+      ${stats.freeReadUnlocked
+        ? `<div class="acd-access-bar is-unlocked" role="status">
+            <span class="acd-access-bar-text"><strong>Mode Baca Bebas Aktif</strong> · Seluruh ${C.LESSONS.length} bab terbuka untuk dibaca bebas tanpa mengubah progres kuis.</span>
+            <button type="button" class="acd-access-relock-btn" id="acdDisableFreeReadBtn">Kunci Kembali</button>
+          </div>`
+        : ''}
 
       ${placementHtml}
 
@@ -639,6 +828,12 @@
       <div class="acd-stages-stack">
         ${stagesHtml || emptyHtml}
       </div>
+
+      ${!stats.freeReadUnlocked
+        ? `<div class="acd-access-footer">
+            <button type="button" class="acd-access-footer-btn" id="acdOpenPasscodeModalBtn">Kode Akses</button>
+          </div>`
+        : ''}
     </div>`;
   }
 
@@ -928,13 +1123,6 @@
       </section>`;
     }).join('');
 
-    const takeawaysHtml = Array.isArray(lesson.keyTakeaways) && lesson.keyTakeaways.length
-      ? `<section class="acd-book-takeaways" aria-label="Inti Bab ${fmtStep(lesson)}">
-          <p class="acd-section-kicker">Rangkuman Inti Bab ${fmtStep(lesson)}</p>
-          <ul>${lesson.keyTakeaways.map(t => `<li>${fmtBookRich(t)}</li>`).join('')}</ul>
-        </section>`
-      : '';
-
     const bridgeHtml = lesson.bridgeNext
       ? `<section class="acd-book-bridge" aria-label="Jembatan ke bab berikutnya">
           <p class="acd-section-kicker">Menuju Bab Berikutnya</p>
@@ -942,7 +1130,7 @@
         </section>`
       : '';
 
-    return `${sectionsHtml}${takeawaysHtml}${bridgeHtml}`;
+    return `${sectionsHtml}${bridgeHtml}`;
   }
 
   function renderClassicSingleFlowBody(lesson) {
@@ -989,8 +1177,6 @@
         </aside>`
       : '';
 
-    const goldenItems = (lesson.goldenRules || []).map(g => `<li>${fmtRich(g)}</li>`).join('');
-
     return `${conceptsHtml}
       ${mappingStepsHtml}
       ${decisionHtml}
@@ -1001,10 +1187,6 @@
           <ol class="acd-step-list">${scenarioSteps}</ol>
         </div>
         ${failedCaseHtml}
-      </section>
-      <section class="acd-book-takeaways">
-        <p class="acd-section-kicker">Inti Bab ${fmtStep(lesson)}</p>
-        <ul>${goldenItems}</ul>
       </section>`;
   }
 
@@ -1017,32 +1199,31 @@
     const adj = C.getAdjacentLessons(lesson.id);
     const nextUnlocked = adj.next ? C.canOpenLesson(state.progress, adj.next.id) : true;
 
-    const outlineItems = lesson.bookFormat
-      ? (lesson.bookSections || []).map((s, idx) => {
-          const secNum = s.number || `${lesson.stepNumber || lesson.number}.${idx + 1}`;
-          return {
-            target: `acd-sec-${idx}`,
-            label: `${secNum} ${s.heading.split('(')[0].split(':')[0].trim()}`
-          };
-        })
-      : (lesson.conceptBlocks || []).map((b, idx) => ({
-          target: `acd-sec-${idx}`,
-          label: b.heading.split(':')[0].trim()
-        }));
+    const guidedTopic = CD ? CD.getGuidedTopicForLesson(lesson.id) : null;
+    const guidedSummary = CD ? CD.readGuidedMasterySummary() : { totalAttempted: 0, totalMastered: 0, totalMistakes: 0 };
+    const guidedTopicHref = guidedTopic && CD ? CD.buildGuidedPracticeHref(lesson.id) : null;
+    const reviewMistakesHref = guidedSummary.totalMistakes > 0 && CD
+      ? CD.buildGuidedPracticeHref(lesson.id, { mistakesOnly: true })
+      : null;
 
-    const outlineHtml = `<nav class="acd-book-outline" aria-label="Isi bab ini">
-      ${outlineItems.map(item => `<button type="button" class="acd-book-outline-link" data-scroll-target="${esc(item.target)}">${esc(item.label)}</button>`).join('')}
-      <button type="button" class="acd-book-outline-link is-exam" data-scroll-target="acdExamSection">Uji Paham ${isMastered ? '✓' : '🔓'}</button>
-    </nav>`;
-
-    const practiceCtaHtml = lesson.practiceCta
+    const practiceCtaHtml = (lesson.practiceCta || guidedTopicHref)
       ? `<section class="acd-practice-cta" aria-label="Praktik langsung di aplikasi">
           <div class="acd-practice-copy">
             <p class="acd-practice-kicker">Praktik Langsung · Amy FX Pro</p>
-            <h3>${esc(lesson.practiceCta.label)}</h3>
-            <p>${esc(lesson.practiceCta.description || lesson.practiceCta.detail || '')}</p>
+            <h3>${esc(lesson.practiceCta ? lesson.practiceCta.label : `Latihan Kasus Pilar: ${guidedTopic.label}`)}</h3>
+            <p>${esc(lesson.practiceCta ? (lesson.practiceCta.description || lesson.practiceCta.detail || '') : `Uji ketajaman matamu pada ${guidedTopic.count} studi kasus XAU/USD yang disaring khusus sesuai topik bab ini.`)}</p>
           </div>
-          <a class="acd-btn-primary acd-practice-link" href="${esc(lesson.practiceCta.href)}">Buka Fitur →</a>
+          <div class="acd-practice-actions">
+            ${lesson.practiceCta
+              ? `<a class="acd-btn-primary acd-practice-link" href="${esc(lesson.practiceCta.href)}">Buka Fitur →</a>`
+              : ''}
+            ${guidedTopicHref
+              ? `<a class="${lesson.practiceCta ? 'acd-btn-secondary' : 'acd-btn-primary'} acd-practice-link" href="${esc(guidedTopicHref)}">Latihan ${esc(guidedTopic.label)} (${guidedTopic.count} Kasus) →</a>`
+              : ''}
+            ${reviewMistakesHref
+              ? `<a class="acd-btn-secondary acd-practice-review-link" href="${esc(reviewMistakesHref)}">Review Salah (${guidedSummary.totalMistakes})</a>`
+              : ''}
+          </div>
         </section>`
       : '';
 
@@ -1100,6 +1281,7 @@
               <button type="button" class="acd-btn-secondary" id="acdAskAmyBtn">
                 Tanya Amy Tentang Bab Ini
               </button>
+              ${CS ? `<button type="button" class="acd-btn-secondary" data-open-cheatsheet="${lesson.stageId}">Kartu Contekan</button>` : ''}
               ${G ? `<button type="button" class="acd-btn-secondary" id="acdOpenGlossaryLessonBtn">Kamus Istilah</button>` : ''}
               <button type="button" class="acd-btn-primary" data-scroll-target="acdExamSection">
                 Ke Uji Paham ↓
@@ -1107,12 +1289,12 @@
             </div>
           </header>
 
-          ${outlineHtml}
-
           <div class="acd-book-flow">
             ${bodyHtml}
           </div>
 
+          ${renderChartDrillSection(lesson)}
+          ${renderPracticeCheckpoint(lesson)}
           ${practiceCtaHtml}
           ${renderQuizSection(lesson, adj)}
           ${graduationHtml}
@@ -1122,14 +1304,161 @@
     </div>`;
   }
 
+  function renderChartDrillSection(lesson) {
+    if (!CD || !lesson) return '';
+    const drill = CD.getDrillForLesson(lesson.id);
+    if (!drill) return '';
+
+    const selectedId = state.drillSelections[drill.id] || null;
+    const isSolved = state.solvedDrillIds.includes(drill.id);
+    const chosenSpot = selectedId
+      ? drill.hotspots.find(h => h.id === selectedId) || null
+      : null;
+
+    const svgHtml = CD.renderChartDrillSvg(drill, {
+      selectedId,
+      solved: isSolved
+    });
+
+    const choicesHtml = drill.hotspots.map(hs => {
+      const isSelected = selectedId === hs.id;
+      const cls = isSelected
+        ? (hs.isCorrect ? 'is-correct' : 'is-wrong')
+        : (isSolved && hs.isCorrect ? 'is-correct' : '');
+      return `<button type="button" class="acd-drill-choice-btn ${cls}" data-drill-choice="${esc(hs.id)}" data-drill-id="${esc(drill.id)}" aria-pressed="${isSelected ? 'true' : 'false'}">
+        <span class="acd-drill-choice-tag">${esc(hs.id)}</span>
+        <span>${esc(hs.label)}</span>
+      </button>`;
+    }).join('');
+
+    let feedbackHtml = `<p class="acd-drill-hint">Klik langsung area <strong>A</strong>, <strong>B</strong>, atau <strong>C</strong> pada chart candlestick di atas (atau pilih tombol di bawahnya).</p>`;
+    if (chosenSpot) {
+      feedbackHtml = `<div class="acd-drill-feedback ${chosenSpot.isCorrect ? 'is-correct' : 'is-wrong'}" role="status" aria-live="polite">
+        <div class="acd-drill-feedback-head">
+          <strong>${chosenSpot.isCorrect ? '✓ Mata Tajam — Pilihan Tepat!' : '✕ Belum Tepat — Cek Kembali Polanya'}</strong>
+          ${!chosenSpot.isCorrect ? `<button type="button" class="acd-drill-retry-btn" id="acdResetDrillBtn" data-drill-id="${esc(drill.id)}">Coba Lagi</button>` : ''}
+        </div>
+        <p>${fmtBookRich(chosenSpot.feedback)}</p>
+      </div>`;
+    } else if (isSolved) {
+      feedbackHtml = `<div class="acd-drill-feedback is-correct" role="status">
+        <div class="acd-drill-feedback-head">
+          <strong>✓ Latihan Chart Bab Ini Sudah Tuntas</strong>
+          <button type="button" class="acd-drill-retry-btn" id="acdResetDrillBtn" data-drill-id="${esc(drill.id)}">Latih Ulang</button>
+        </div>
+        <p>Area yang benar ditandai hijau pada chart. Ketuk area mana saja jika ingin menguji ulang penjelasan mentor.</p>
+      </div>`;
+    }
+
+    return `<section class="acd-drill-card" id="acdChartDrillSection" data-drill-root="${esc(drill.id)}" aria-label="${esc(drill.title)}">
+      <header class="acd-drill-head">
+        <div>
+          <p class="acd-drill-kicker">Latihan Mata Interaktif · ${esc(drill.symbol)} ${esc(drill.timeframe)}</p>
+          <h2 class="acd-drill-title">${esc(drill.title)}</h2>
+        </div>
+        <span class="acd-drill-progress-badge acd-nums ${isSolved ? 'is-done' : ''}">
+          ${isSolved ? '✓ Tuntas' : 'Belum Dicek'} · ${state.solvedDrillIds.length}/${CD.CHART_DRILLS.length}
+        </span>
+      </header>
+      <p class="acd-drill-prompt">${fmtBookRich(drill.prompt)}</p>
+      <div class="acd-drill-stage" data-drill-id="${esc(drill.id)}">
+        ${svgHtml}
+      </div>
+      <div class="acd-drill-choice-bar" role="group" aria-label="Pilihan area chart">
+        ${choicesHtml}
+      </div>
+      ${feedbackHtml}
+    </section>`;
+  }
+
+  function handleChartDrillSelect(drillId, choiceId) {
+    if (!CD || !drillId || !choiceId) return;
+    const drill = CD.getDrillById(drillId);
+    if (!drill) return;
+    const spot = drill.hotspots.find(h => h.id === choiceId);
+    if (!spot) return;
+
+    state.drillSelections[drillId] = choiceId;
+    if (spot.isCorrect) {
+      state.solvedDrillIds = CD.saveSolvedDrillId(drillId);
+    }
+
+    const section = document.getElementById('acdChartDrillSection');
+    const lesson = state.activeLessonId ? C.getLessonById(state.activeLessonId) : null;
+    if (section && lesson) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderChartDrillSection(lesson);
+      const nextSection = tmp.firstElementChild;
+      if (nextSection) {
+        section.replaceWith(nextSection);
+        bindChartDrillEvents(nextSection);
+        return;
+      }
+    }
+    render();
+  }
+
+  function bindChartDrillEvents(scope) {
+    if (!scope || !CD) return;
+    const rootDrillId = scope.getAttribute('data-drill-root') || (scope.querySelector('[data-drill-root]')?.getAttribute('data-drill-root') || '');
+    scope.querySelectorAll('[data-drill-choice]').forEach(el => {
+      const trigger = () => {
+        const choiceId = el.getAttribute('data-drill-choice');
+        const drillId = el.getAttribute('data-drill-id')
+          || el.closest('[data-drill-id]')?.getAttribute('data-drill-id')
+          || rootDrillId;
+        if (drillId && choiceId) handleChartDrillSelect(drillId, choiceId);
+      };
+      el.addEventListener('click', trigger);
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          trigger();
+        }
+      });
+    });
+
+    const resetBtn = scope.querySelector('#acdResetDrillBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        const drillId = resetBtn.getAttribute('data-drill-id') || rootDrillId;
+        if (drillId) {
+          delete state.drillSelections[drillId];
+          const section = document.getElementById('acdChartDrillSection');
+          const lesson = state.activeLessonId ? C.getLessonById(state.activeLessonId) : null;
+          if (section && lesson) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = renderChartDrillSection(lesson);
+            const nextSection = tmp.firstElementChild;
+            if (nextSection) {
+              section.replaceWith(nextSection);
+              bindChartDrillEvents(nextSection);
+              return;
+            }
+          }
+          render();
+        }
+      });
+    }
+
+    // Re-bind inline glossary terms inside feedback text
+    scope.querySelectorAll('[data-glossary-term]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const termId = btn.getAttribute('data-glossary-term');
+        if (termId) openGlossaryTerm(termId);
+      });
+    });
+  }
+
   function render() {
     const mount = document.getElementById('acdApp');
     if (!mount) return;
     updateHeaderProgress();
     const mainHtml = state.view === 'lesson' ? renderLessonWorkspace() : renderOverview();
-    mount.innerHTML = `${mainHtml}${renderLockModal()}${renderPlacementModal()}${renderGlossaryTermPopover()}${renderGlossaryModal()}`;
+    mount.innerHTML = `${mainHtml}${renderLockModal()}${renderPasscodeModal()}${renderPlacementModal()}${renderGlossaryTermPopover()}${renderGlossaryModal()}${renderCheatSheetModal()}`;
     bindViewEvents();
-    if (state.view === 'lesson' && !state.glossaryTermId && !state.glossaryModalOpen) {
+    if (state.view === 'lesson' && !state.glossaryTermId && !state.glossaryModalOpen && !state.cheatSheetModalOpen && !state.passcodeModalOpen) {
       const activeNav = mount.querySelector('#acdSidebar .acd-nav-item.is-active');
       if (activeNav && typeof activeNav.scrollIntoView === 'function') {
         activeNav.scrollIntoView({ block: 'nearest' });
@@ -1194,6 +1523,88 @@
     if (lockBackdrop) {
       lockBackdrop.addEventListener('click', e => {
         if (e.target === lockBackdrop) closeModals();
+      });
+    }
+
+    const revealLockPasscodeBtn = document.getElementById('acdRevealLockPasscodeBtn');
+    if (revealLockPasscodeBtn) {
+      revealLockPasscodeBtn.addEventListener('click', () => {
+        state.passcodeExpandedInLock = true;
+        state.passcodeError = '';
+        render();
+        const inp = document.getElementById('acdLockPasscodeInput');
+        if (inp) inp.focus();
+      });
+    }
+
+    const lockPasscodeForm = document.getElementById('acdLockPasscodeForm');
+    if (lockPasscodeForm) {
+      lockPasscodeForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const inp = document.getElementById('acdLockPasscodeInput');
+        const entered = inp ? inp.value : '';
+        const targetId = state.lockModal && state.lockModal.targetLesson ? state.lockModal.targetLesson.id : null;
+        const res = C.unlockFreeReadWithCode(state.progress, entered);
+        if (!res.ok) {
+          state.passcodeError = 'Kode akses tidak cocok.';
+          render();
+          const retryInp = document.getElementById('acdLockPasscodeInput');
+          if (retryInp) retryInp.focus();
+          return;
+        }
+        state.progress = res.progress;
+        saveProgress();
+        state.passcodeError = '';
+        state.passcodeExpandedInLock = false;
+        state.lockModal = null;
+        if (targetId) {
+          openLesson(targetId);
+        } else {
+          closeModals();
+        }
+      });
+    }
+
+    // Standalone Mode Baca Bebas passcode modal & re-lock controls
+    const openPasscodeBtn = document.getElementById('acdOpenPasscodeModalBtn');
+    if (openPasscodeBtn) {
+      openPasscodeBtn.addEventListener('click', () => openPasscodeModal());
+    }
+    const closePasscodeBtn = document.getElementById('acdClosePasscodeBtn');
+    if (closePasscodeBtn) closePasscodeBtn.addEventListener('click', () => closeModals());
+    const closePasscodeTopBtn = document.getElementById('acdClosePasscodeTopBtn');
+    if (closePasscodeTopBtn) closePasscodeTopBtn.addEventListener('click', () => closeModals());
+    const passcodeBackdrop = document.getElementById('acdPasscodeBackdrop');
+    if (passcodeBackdrop) {
+      passcodeBackdrop.addEventListener('click', e => {
+        if (e.target === passcodeBackdrop) closeModals();
+      });
+    }
+    const passcodeModalForm = document.getElementById('acdPasscodeModalForm');
+    if (passcodeModalForm) {
+      passcodeModalForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const inp = document.getElementById('acdPasscodeModalInput');
+        const entered = inp ? inp.value : '';
+        const res = C.unlockFreeReadWithCode(state.progress, entered);
+        if (!res.ok) {
+          state.passcodeError = 'Kode akses tidak cocok.';
+          render();
+          const retryInp = document.getElementById('acdPasscodeModalInput');
+          if (retryInp) retryInp.focus();
+          return;
+        }
+        state.progress = res.progress;
+        saveProgress();
+        closeModals();
+      });
+    }
+    const disableFreeReadBtn = document.getElementById('acdDisableFreeReadBtn');
+    if (disableFreeReadBtn) {
+      disableFreeReadBtn.addEventListener('click', () => {
+        state.progress = C.disableFreeReadMode(state.progress);
+        saveProgress();
+        render();
       });
     }
 
@@ -1289,6 +1700,43 @@
     if (openGlossaryLessonBtn) {
       openGlossaryLessonBtn.addEventListener('click', () => openGlossaryModal());
     }
+
+    // Cheat Sheet modal open / tab / close controls
+    mount.querySelectorAll('[data-open-cheatsheet]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const stId = Number(btn.getAttribute('data-open-cheatsheet'));
+        openCheatSheetModal(Number.isNaN(stId) ? undefined : stId);
+      });
+    });
+
+    const closeSheetBtn = document.getElementById('acdCloseCheatSheetBtn');
+    if (closeSheetBtn) closeSheetBtn.addEventListener('click', () => closeModals());
+    const dismissSheetBtn = document.getElementById('acdDismissCheatSheetBtn');
+    if (dismissSheetBtn) dismissSheetBtn.addEventListener('click', () => closeModals());
+    const sheetBackdrop = document.getElementById('acdCheatSheetBackdrop');
+    if (sheetBackdrop) {
+      sheetBackdrop.addEventListener('click', e => {
+        if (e.target === sheetBackdrop) closeModals();
+      });
+    }
+    const openGlossaryFromSheetBtn = document.getElementById('acdOpenGlossaryFromSheetBtn');
+    if (openGlossaryFromSheetBtn) {
+      openGlossaryFromSheetBtn.addEventListener('click', () => openGlossaryModal());
+    }
+    mount.querySelectorAll('[data-cheatsheet-stage]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const stId = Number(btn.getAttribute('data-cheatsheet-stage'));
+        if (!Number.isNaN(stId)) {
+          state.cheatSheetStageId = stId;
+          render();
+        }
+      });
+    });
+
+    // In-chapter Interactive Chart Spotting Drill bindings
+    const drillSection = document.getElementById('acdChartDrillSection');
+    if (drillSection) bindChartDrillEvents(drillSection);
 
     // Inline clickable ICT terms -> instant popover
     mount.querySelectorAll('[data-glossary-term]').forEach(btn => {
@@ -1476,11 +1924,14 @@
     const brandBtn = document.getElementById('acdBrandBtn');
     if (brandBtn) brandBtn.addEventListener('click', () => openOverview());
 
+    const cheatSheetTopBtn = document.getElementById('acdCheatSheetTopBtn');
+    if (cheatSheetTopBtn) cheatSheetTopBtn.addEventListener('click', () => openCheatSheetModal());
+
     const glossaryTopBtn = document.getElementById('acdGlossaryTopBtn');
     if (glossaryTopBtn) glossaryTopBtn.addEventListener('click', () => openGlossaryModal());
 
     const handleAcademyStepBack = () => {
-      if (state.lockModal || state.placementModalOpen || state.glossaryTermId || state.glossaryModalOpen) {
+      if (state.lockModal || state.passcodeModalOpen || state.placementModalOpen || state.glossaryTermId || state.glossaryModalOpen || state.cheatSheetModalOpen) {
         closeModals();
         return true;
       }
@@ -1524,7 +1975,7 @@
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        if (state.lockModal || state.placementModalOpen || state.glossaryTermId || state.glossaryModalOpen) closeModals();
+        if (state.lockModal || state.passcodeModalOpen || state.placementModalOpen || state.glossaryTermId || state.glossaryModalOpen || state.cheatSheetModalOpen) closeModals();
         else if (state.drawerOpen) setDrawerOpen(false);
       }
     });

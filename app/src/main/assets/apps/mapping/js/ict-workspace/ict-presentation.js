@@ -433,11 +433,11 @@ export function dashboardContextV4Rows(amy, context = null) {
   if (isHtfBull) {
     if (sslSwept || pdlSwept || asiaLowSwept) {
       phaseStatus = 'MANIPULASI BAWAH (SSL/PDL/Asia L Tersapu di Tren Bullish)';
-      actionGuide = 'Likuiditas Bawah Sudah Diambil — Pantau CHoCH Naik di M5';
+      actionGuide = 'Likuiditas Bawah Sudah Diambil — Pantau MSS Naik di M5';
       phaseClass = 'bias-val-gold';
     } else if (isBullPullback && inBullDemand) {
       phaseStatus = 'PULLBACK DI ZONA DEMAND (HTF Bullish, LTF Turun Masuk POI)';
-      actionGuide = 'Harga di Demand/Discount — JANGAN SELL! Tunggu M5 CHoCH Bullish';
+      actionGuide = 'Harga di Demand/Discount — JANGAN SELL! Tunggu M5 MSS Bullish';
       phaseClass = 'bias-val-gold';
     } else if (isBullPullback) {
       phaseStatus = 'FASE PULLBACK / KOREKSI TURUN (HTF Bullish vs M5 Bearish)';
@@ -445,7 +445,7 @@ export function dashboardContextV4Rows(amy, context = null) {
       phaseClass = 'bias-val-purple';
     } else if (rangePct >= 47.5 && rangePct <= 52.5) {
       phaseStatus = 'NO-TRADE ZONE (Harga di Poros Equilibrium 50%)';
-      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep Support / SSL (<47.5%) atau Resistance / BSL (>52.5%).';
+      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep Demand / SSL (<47.5%) atau Supply / BSL (>52.5%).';
       phaseClass = 'bias-val-purple';
     } else if (isFullBullAlign && isPremium) {
       phaseStatus = `EKSPANSI BULLISH DI AREA PREMIUM (${rangePct}%)`;
@@ -459,11 +459,11 @@ export function dashboardContextV4Rows(amy, context = null) {
   } else {
     if (bslSwept || pdhSwept || asiaHighSwept) {
       phaseStatus = 'MANIPULASI ATAS (BSL/PDH/Asia H Tersapu di Tren Bearish)';
-      actionGuide = 'Likuiditas Atas Sudah Diambil — Pantau CHoCH Turun di M5';
+      actionGuide = 'Likuiditas Atas Sudah Diambil — Pantau MSS Turun di M5';
       phaseClass = 'bias-val-gold';
     } else if (isBearPullback && inBearSupply) {
       phaseStatus = 'PULLBACK DI ZONA SUPPLY (HTF Bearish, LTF Naik Masuk POI)';
-      actionGuide = 'Harga di Supply/Premium — JANGAN BUY! Tunggu M5 CHoCH Bearish';
+      actionGuide = 'Harga di Supply/Premium — JANGAN BUY! Tunggu M5 MSS Bearish';
       phaseClass = 'bias-val-gold';
     } else if (isBearPullback) {
       phaseStatus = 'FASE PULLBACK / KOREKSI NAIK (HTF Bearish vs M5 Bullish)';
@@ -471,7 +471,7 @@ export function dashboardContextV4Rows(amy, context = null) {
       phaseClass = 'bias-val-purple';
     } else if (rangePct >= 47.5 && rangePct <= 52.5) {
       phaseStatus = 'NO-TRADE ZONE (Harga di Poros Equilibrium 50%)';
-      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep Support / SSL (<47.5%) atau Resistance / BSL (>52.5%).';
+      actionGuide = '🛡️ SOP ANTI-YES-MAN: DILARANG ENTRY! Diam & tunggu harga sweep Demand / SSL (<47.5%) atau Supply / BSL (>52.5%).';
       phaseClass = 'bias-val-purple';
     } else if (isFullBearAlign && isDiscount) {
       phaseStatus = `EKSPANSI BEARISH DI AREA DISCOUNT (${rangePct}%)`;
@@ -516,14 +516,14 @@ export function dashboardContextV4Rows(amy, context = null) {
   const sessInfo = `Sesi Aktif: ${sessName}  |  Asia H/L: ${n(asiaHigh)} / ${n(asiaLow)} (${asiaStat})`;
   const sessClass = (asiaHighSwept || asiaLowSwept) ? 'bias-val-gold' : '';
 
-  // Row 7: INDUCEMENT (IDM)
+  // Row 7: LIKUIDITAS INTERNAL (IRL)
   const idmVal = isHtfBull
     ? (Number(d?.protectedLow) || (poi?.side === 'BUY' ? Number(poi.low) : null))
     : (Number(d?.protectedHigh) || (poi?.side === 'SELL' ? Number(poi.high) : null));
   const idmSwept = (d?.sweepStatus === 1) || (isHtfBull ? sslSwept : bslSwept);
   const idmInfo = Number.isFinite(idmVal)
-    ? `IDM (M15): ${n(idmVal)} ${idmSwept ? '[SUDAH DISAPU — POI di Belakangnya Valid]' : '[BELUM DISAPU — Waspada Umpan Likuiditas]'}`
-    : 'Menunggu Pembentukan Swing IDM';
+    ? `IRL (M15): ${n(idmVal)} ${idmSwept ? '[SUDAH DISAPU — POI di Belakangnya Valid]' : '[BELUM DISAPU — Waspada Sapuan Internal]'}`
+    : 'Menunggu Pembentukan Swing IRL';
   const idmClass = idmSwept ? 'bias-val-bull' : 'bias-val-gold';
 
   // Row 8: ZONA SUPPLY (M15)
@@ -542,7 +542,7 @@ export function dashboardContextV4Rows(amy, context = null) {
   const demInfo = `Demand OB: ${demObTxt}  |  Bull FVG: ${demFvgTxt}${inBullDemand ? '  [HARGA DI DALAM DEMAND!]' : ''}`;
   const demClass = inBullDemand ? 'bias-val-bull' : '';
 
-  // Row 10: BATAS CHoCH (H1)
+  // Row 10: BATAS MSS (H1)
   const htfLow = Number(ctx?.h1?.swingLow ?? ctx?.h1?.protectedLevel ?? (hasRange ? rLow - 10 : 2630));
   const htfHigh = Number(ctx?.h1?.swingHigh ?? ctx?.h1?.protectedLevel ?? (hasRange ? rHigh + 10 : 2685));
   const invInfo = `HTF Bullish Batal Jika Tutup < ${n(htfLow)}  |  HTF Bearish Batal Jika Tutup > ${n(htfHigh)}`;
@@ -554,10 +554,10 @@ export function dashboardContextV4Rows(amy, context = null) {
     ['MAGNET ATAS (BSL/PDH)', bslInfo, bslClass],
     ['MAGNET BAWAH (SSL/PDL)', sslInfo, sslClass],
     ['SESI & ASIA RANGE', sessInfo, sessClass],
-    ['INDUCEMENT (IDM)', idmInfo, idmClass],
+    ['LIKUIDITAS INTERNAL (IRL)', idmInfo, idmClass],
     ['ZONA SUPPLY (M15)', supInfo, supClass],
     ['ZONA DEMAND (M15)', demInfo, demClass],
-    ['BATAS CHoCH (H1)', invInfo, ''],
+    ['BATAS MSS (H1)', invInfo, ''],
     ['PANDUAN KONTEKS', actionGuide, phaseClass]
   ];
 }
@@ -633,16 +633,23 @@ export function dashboardContextV6Rows(amy, context = null) {
   const isPremium = rawPct > 52.5;
   const zoneLabel = isDiscount ? `DISCOUNT (<47.5%) [${rangePct}%]` : isPremium ? `PREMIUM (>52.5%) [${rangePct}%]` : `EQUILIBRIUM (50%) [${rangePct}%]`;
 
-  if (typeof window !== 'undefined') {
-    window.amyfxLastDealingRange = {
-      rHigh,
-      rLow,
-      rangeHigh: rHigh,
-      rangeLow: rLow,
-      eq: eqMid,
-      equilibrium: eqMid,
-      location: isDiscount ? 'DISCOUNT' : isPremium ? 'PREMIUM' : 'EQUILIBRIUM'
-    };
+  if (typeof window !== 'undefined' && hasRange) {
+    const existing = window.amyfxLastDealingRange;
+    const hasFullSsot = Boolean(existing && Number.isFinite(existing.pct) && typeof existing.m15Dir === 'number');
+    if (!hasFullSsot) {
+      window.amyfxLastDealingRange = {
+        ...(existing || {}),
+        rHigh,
+        rLow,
+        rangeHigh: rHigh,
+        rangeLow: rLow,
+        eq: eqMid,
+        equilibrium: eqMid,
+        pct: rangePct,
+        rawPct,
+        location: isDiscount ? 'DISCOUNT' : isPremium ? 'PREMIUM' : 'EQUILIBRIUM'
+      };
+    }
   }
 
   // 3. Batas Ekspansi (Std Dev -2.0 & -4.0 ala AMY ICT V6.1)
@@ -671,7 +678,7 @@ export function dashboardContextV6Rows(amy, context = null) {
   const rejBullDemand = !inBullDemand && poi?.side === 'BUY' && currentPrice > (poi.high || 0) && (currentPrice - (poi.high || 0)) <= atrVal;
   const rejBearSupply = !inBearSupply && poi?.side === 'SELL' && currentPrice < (poi.low || 0) && ((poi.low || 0) - currentPrice) <= atrVal;
 
-  // 6. Inducement (IDM)
+  // 6. Likuiditas Internal (IRL)
   const idmVal = ind?.idm?.level ?? (isHtfBull
     ? (Number(d?.protectedLow) || (poi?.side === 'BUY' ? Number(poi.low) : (rLow + atrVal * 0.5)))
     : (Number(d?.protectedHigh) || (poi?.side === 'SELL' ? Number(poi.high) : (rHigh - atrVal * 0.5))));
@@ -684,7 +691,7 @@ export function dashboardContextV6Rows(amy, context = null) {
 
   if (isHtfBull) {
     if (inBullDemand) {
-      phaseStatus = 'DI ZONA BELI ICT: Menguji Demand / Bullish OB' + (idmSwept ? ' (IDM Swept!)' : '');
+      phaseStatus = 'DI ZONA BELI ICT: Menguji Demand / Bullish OB' + (idmSwept ? ' (IRL Swept!)' : '');
       actionGuide = 'Harga di Zona Beli — JANGAN SELL! Tunggu Konfirmasi MSS Naik M5';
       phaseClass = 'bias-val-gold';
     } else if (rejBullDemand) {
@@ -714,7 +721,7 @@ export function dashboardContextV6Rows(amy, context = null) {
     }
   } else {
     if (inBearSupply) {
-      phaseStatus = 'DI ZONA JUAL ICT: Menguji Supply / Bearish OB' + (idmSwept ? ' (IDM Swept!)' : '');
+      phaseStatus = 'DI ZONA JUAL ICT: Menguji Supply / Bearish OB' + (idmSwept ? ' (IRL Swept!)' : '');
       actionGuide = 'Harga di Zona Jual — JANGAN BUY! Tunggu Konfirmasi MSS Turun M5';
       phaseClass = 'bias-val-gold';
     } else if (rejBearSupply) {
@@ -769,15 +776,10 @@ export function dashboardContextV6Rows(amy, context = null) {
   const sslInfo = `M15 SSL: ${n(sslVal)}${sslSwept ? ' [SWEPT]' : ''}  |  PDL: ${n(pdlVal)}${pdlSwept ? ' [SWEPT]' : ''}  |  PWL: ${n(pwlVal)}`;
   const sslClass = (sslSwept || pdlSwept) ? 'bias-val-gold' : (!isHtfBull ? 'bias-val-cyan' : '');
 
-  const curDate = new Date();
-  const curHourWITA = (curDate.getUTCHours() + 8) % 24;
-  const isAsiaTime = curHourWITA >= 8 && curHourWITA < 16;
-  const isLondonTime = curHourWITA >= 16 && curHourWITA < 20;
-  const isNYTime = (curHourWITA >= 20 && curHourWITA <= 23) || curHourWITA === 0;
-  const defaultSessName = isAsiaTime ? 'ASIA' : isLondonTime ? 'LONDON' : isNYTime ? 'NEW YORK' : 'OFF_SESSION';
-  const sessName = (ctx?.session && ctx.session !== 'DI LUAR JAM INTI' && ctx.session !== 'LONDON')
-    ? ctx.session
-    : defaultSessName;
+  const liveSessionState = (typeof window !== 'undefined' && typeof window.AmySessionClock?.resolveGoldSessionState === 'function')
+    ? window.AmySessionClock.resolveGoldSessionState()
+    : null;
+  const sessName = ctx?.session || liveSessionState?.code || 'TRANSISI';
   const asiaHigh = Number(ind?.keyLevels?.asiaHigh ?? levels?.asiaHigh ?? ctx?.keyLevels?.asiaHigh);
   const asiaLow = Number(ind?.keyLevels?.asiaLow ?? levels?.asiaLow ?? ctx?.keyLevels?.asiaLow);
   const asiaStat = asiaHighSwept ? 'Asia H Swept' : asiaLowSwept ? 'Asia L Swept' : 'In Range';
@@ -785,7 +787,7 @@ export function dashboardContextV6Rows(amy, context = null) {
   const sessClass = (asiaHighSwept || asiaLowSwept) ? 'bias-val-gold' : '';
 
   const idmInfo = Number.isFinite(idmVal)
-    ? `${n(idmVal)} ${idmSwept ? '[SUDAH DISAPU — Origin OB Valid]' : '[BELUM DISAPU — Awas Inducement]'}`
+    ? `${n(idmVal)} ${idmSwept ? '[SUDAH DISAPU — Origin OB Valid]' : '[BELUM DISAPU — Awas Sapuan Internal]'}`
     : 'Menunggu Internal Pullback';
   const idmClass = idmSwept ? 'bias-val-bull' : 'bias-val-gold';
 
@@ -829,11 +831,11 @@ export function dashboardContextV6Rows(amy, context = null) {
     ['DRAW ON LIQ (BSL)', bslInfo, bslClass],
     ['DRAW ON LIQ (SSL)', sslInfo, sslClass],
     ['KILLZONE & ASIA', sessInfo, sessClass],
-    ['INDUCEMENT (IDM)', idmInfo, idmClass],
+    ['LIKUIDITAS INTERNAL (IRL)', idmInfo, idmClass],
     ['BEARISH PDA (M15)', supInfo, supClass],
     ['BULLISH PDA (M15)', demInfo, demClass],
     ['JEJAK HTF & NWOG', htfWallTxt, ''],
-    ['BATAS MSS / CHoCH', invInfo, ''],
+    ['BATAS MSS (H1)', invInfo, ''],
     ['TARGET ENTRY (2-ARAH)', entryRecTxt, recClass],
     ['PANDUAN KONTEKS ICT', actionGuide, phaseClass]
   ];

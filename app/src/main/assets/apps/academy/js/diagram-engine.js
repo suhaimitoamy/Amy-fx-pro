@@ -668,38 +668,44 @@
     },
 
     'inducement-trap': {
-      title: 'Inducement (IDM): Umpan Swing Pertama Sebelum Area Asli',
-      pairTag: 'XAU/USD · ANTI-EARLY ENTRY',
-      priceLabels: ['Target', 'IDM', 'OB Asli'],
+      title: 'Liquidity Sweep (Purge & Revert) vs Liquidity Run (Expansion)',
+      pairTag: 'XAU/USD · PURE ICT MECHANICS',
+      priceLabels: ['DOL (PDH)', 'Asia H', 'Asia L'],
       stages: [
         {
-          label: 'Jebakan Entry Terlalu Cepat',
-          caption: 'Swing minor pertama di tengah jalan sering terlihat seperti support/OB cantik. Pemula langsung Buy di sana — padahal itu hanyalah Inducement (IDM).',
+          label: '1. Liquidity Sweep (Purge & Revert)',
+          caption: 'Melawan HTF Bias di awal sesi: wick menusuk Asia Low (SSL), Body Close kembali di dalam range, lalu 1–3 candle aftermath mencetak Displacement naik + CISD/MSS.',
           zones: [
-            { x1: 28, x2: 64, y1: 52, y2: 60, tone: 'danger', label: 'JEBAKAN IDM', labelPos: 'tr' },
-            { x1: 12, x2: 90, y1: 18, y2: 32, tone: 'ob', label: 'ORDER BLOCK ASLI (EXTREME)', labelPos: 'tr' }
-          ],
-          candles: [
-            [16, 22, 32, 18, 30], [26, 30, 58, 28, 56], [36, 56, 60, 52, 54],
-            [46, 54, 86, 53, 84], [56, 84, 86, 56, 58], [66, 58, 62, 42, 44, 'bear']
-          ],
-          callouts: [{ x: 66, y: 70, text: 'Buyer di IDM langsung kena SL!', tone: 'bear' }]
-        },
-        {
-          label: 'Sabar Tunggu IDM Di-sweep',
-          caption: 'Setelah Inducement di-sweep dan harga menyentuh Extreme OB/FVG di bawahnya, barulah energi institusi mendorong harga terbang.',
-          zones: [
-            { x1: 12, x2: 90, y1: 18, y2: 32, tone: 'ob', label: 'OB ASLI (SETELAH IDM)', labelPos: 'tr' }
+            { x1: 10, x2: 44, y1: 34, y2: 64, tone: 'neutral', label: 'ASIA RANGE', labelPos: 'tl' },
+            { x1: 52, x2: 92, y1: 42, y2: 52, tone: 'fvg', label: 'BISI', labelPos: 'tr' }
           ],
           lines: [
-            { x1: 30, x2: 74, y1: 52, y2: 52, style: 'dashed', tone: 'sweep', label: 'IDM SWEPT ✓', labelSide: 'right' }
+            { x1: 10, x2: 92, y1: 34, y2: 34, style: 'dashed', tone: 'sweep', label: 'Asia Low (SSL) SWEPT ✓', labelSide: 'right' }
           ],
           candles: [
-            [16, 22, 32, 18, 30], [26, 30, 58, 28, 56], [36, 56, 60, 52, 54],
-            [46, 54, 86, 53, 84], [56, 84, 86, 46, 48], [66, 48, 50, 22, 28, 'gold'],
-            [76, 28, 62, 27, 60, 'bull'], [86, 60, 92, 58, 90, 'bull']
+            [18, 44, 54, 41, 51], [28, 51, 53, 38, 40], [38, 40, 46, 35, 37],
+            [48, 37, 42, 18, 39, 'gold'], [58, 39, 64, 38, 62, 'bull'],
+            [68, 62, 65, 47, 52], [78, 52, 80, 50, 78, 'bull']
           ],
-          callouts: [{ x: 66, y: 10, text: 'Entry Sniper Setelah IDM Dibersihkan', tone: 'bull' }]
+          callouts: [{ x: 48, y: 12, text: 'Wick Sweep + Body Close Balik + CISD ↑', tone: 'bull' }]
+        },
+        {
+          label: '2. Liquidity Run (Expansion)',
+          caption: 'Searah HTF Bias menuju DOL PDH: Asia High ditembus oleh Body Close penuh (acceptance) tanpa CISD turun — harga lanjut melesat ke PDH, JANGAN dilawan Sell!',
+          zones: [
+            { x1: 12, x2: 44, y1: 24, y2: 46, tone: 'neutral', label: 'ASIA RANGE', labelPos: 'tl' }
+          ],
+          lines: [
+            { x1: 12, x2: 90, y1: 86, y2: 86, style: 'solid', tone: 'tp', label: 'DOL UTAMA: PDH', labelSide: 'left' },
+            { x1: 12, x2: 88, y1: 46, y2: 46, style: 'dashed', tone: 'bull', label: 'Asia High TEMBUS BODY (RUN)', labelSide: 'right' }
+          ],
+          candles: [
+            [18, 34, 45, 30, 42], [28, 42, 44, 25, 28], [38, 28, 36, 16, 32, 'gold'],
+            [48, 32, 60, 31, 58, 'bull'], [58, 58, 62, 50, 54],
+            [68, 54, 76, 53, 74, 'bull'], [78, 74, 88, 72, 86, 'bull']
+          ],
+          arrows: [{ x1: 52, y1: 56, x2: 80, y2: 86, tone: 'bull', label: 'Ekspansi ke PDH' }],
+          callouts: [{ x: 54, y: 14, text: 'Acceptance di Atas Asia High = Liquidity Run', tone: 'gold' }]
         }
       ]
     },
@@ -1723,12 +1729,12 @@
       stages: [
         {
           label: '1. Alur Top-Down 6 Langkah',
-          caption: 'Selalu urut dari atas ke bawah: Berita/Weekly → Daily (Origin & DOL) → H1 (Dealing Range & POI) → M15 (Asia & IDM) → M5 (Sweep+CISD di Killzone) → Risiko 0.5–1%.',
+          caption: 'Selalu urut dari atas ke bawah: Berita/Weekly → Daily (Origin & DOL) → H1 (Dealing Range & POI) → M15 (Asia & STH/STL) → M5 (Sweep+CISD di Killzone) → Risiko 0.5–1%.',
           bars: [
             { x1: 6, x2: 20, y1: 60, y2: 90, tone: 'danger', label: '1. News', sub: 'Weekly' },
             { x1: 22, x2: 36, y1: 52, y2: 84, tone: 'gold', label: '2. Daily', sub: 'Origin→DOL' },
             { x1: 38, x2: 52, y1: 44, y2: 78, tone: 'cyan', label: '3. H1', sub: 'Range+POI' },
-            { x1: 54, x2: 68, y1: 34, y2: 70, tone: 'sweep', label: '4. M15', sub: 'Asia+IDM' },
+            { x1: 54, x2: 68, y1: 34, y2: 70, tone: 'sweep', label: '4. M15', sub: 'Asia+SSL/BSL' },
             { x1: 70, x2: 84, y1: 24, y2: 62, tone: 'bull', label: '5. M5', sub: 'Trigger' },
             { x1: 86, x2: 96, y1: 14, y2: 54, tone: 'gold', label: '6. Lot', sub: '≤1% Risk' }
           ],
@@ -1738,14 +1744,14 @@
         },
         {
           label: '2. Peta Akhir Siap Eksekusi',
-          caption: 'Hasil akhir chart polos setelah 10 menit mapping: hanya 5 elemen bersih (DOL di atas, Asia Low/IDM di tengah, 1 POI Discount, 1 garis Invalidasi, dan Entry M5).',
+          caption: 'Hasil akhir chart polos setelah 10 menit mapping: hanya 5 elemen bersih (DOL di atas, Asia Low SSL di tengah, 1 POI Discount, 1 garis Invalidasi, dan Entry M5).',
           zones: [
             { x1: 12, x2: 90, y1: 24, y2: 36, tone: 'ob', label: '1 POI UTAMA (DISCOUNT + OTE)', labelPos: 'tr' }
           ],
           lines: [
             { x1: 10, x2: 92, y1: 86, y2: 86, style: 'solid', tone: 'tp', label: 'DOL UTAMA: PDH', labelSide: 'left' },
             { x1: 10, x2: 92, y1: 56, y2: 56, style: 'dotted', tone: 'muted', label: '50% EQ H1', labelSide: 'right' },
-            { x1: 10, x2: 62, y1: 44, y2: 44, style: 'dashed', tone: 'sweep', label: 'IDM / Asia Low ($$$)', labelSide: 'left' },
+            { x1: 10, x2: 62, y1: 44, y2: 44, style: 'dashed', tone: 'sweep', label: 'Asia Low (SSL $$$)', labelSide: 'left' },
             { x1: 10, x2: 92, y1: 14, y2: 14, style: 'solid', tone: 'sl', label: 'GARIS INVALIDASI BIAS', labelSide: 'left' }
           ],
           candles: [

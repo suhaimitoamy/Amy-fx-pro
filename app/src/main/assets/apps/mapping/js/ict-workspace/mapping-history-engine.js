@@ -5,10 +5,16 @@
  * - Zero DOM dependencies so all logic is deterministically unit-tested via node:test.
  */
 
+import {
+  POI_QUALITY_RULES,
+  evaluatePoiQualityGate
+} from './mapping-accuracy.js';
+
 export const HISTORY_STORAGE_KEY = 'amyfx.mapping.reaction_history.v1';
-export const BACKFILL_ENGINE_VERSION = 5;
+export const BACKFILL_ENGINE_VERSION = 6;
 export const GOLD_SL_MIN_USD = 6.0;  // 60 pips XAU/USD ($1.00 = 10 pips)
 export const GOLD_SL_MAX_USD = 10.0; // 100 pips XAU/USD
+export const GOLD_SPREAD_USD = 0.30; // 3.0 pips realistic XAU/USD broker spread
 export const GOLD_PIPS_PER_USD = 10;
 export const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 export const MAX_RETENTION_MS = 180 * 24 * 60 * 60 * 1000; // 180 hari detail penuh POI
@@ -403,7 +409,7 @@ export function computeGoldSlPrice(side, low, high, ce, tf = 'M15', structuralSl
  * - Uses 60-100 pips ($6.00-$10.00) Gold SL & proportional TP1/TP2 when zone.sl/tp1 are not explicitly provided.
  * - Prevents phantom maxFavorable inflation from pre-entry approach extremes on the touch candle.
  */
-export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs) {
+export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs, options = {}) {
   const isSell = zone.side === 'SELL';
   const lo = num(zone.low);
   const hi = num(zone.high);
@@ -411,14 +417,30 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
 
   const tf = String(zone.tf || 'M15').toUpperCase();
   const ce = num(zone.ce) || (lo + hi) / 2;
-  const formedTimeSec = Number(zone.startTime || zone.time || 0);
-  const formedIdx = Number.isInteger(zone.formedIndex) ? zone.formedIndex : -1;
-  const idxMatchesTime = formedIdx >= 0 && formedIdx < candles.length && (formedTimeSec <= 0 || candles[formedIdx]?.openTime === formedTimeSec);
+  const spreadUsd = Number.isFinite(Number(options?.spreadUsd)) ? Math.max(0, Number(options.spreadUsd)) : GOLD_SPREAD_USD;
 
-  // Start checking strictly AFTER the zone formation candle
-  const startIdx = idxMatchesTime
-    ? formedIdx + 1
-    : candles.findIndex(c => c.openTime > formedTimeSec);
+  // ZERO LOOK-AHEAD BIAS:
+  // Always start checking strictly AFTER the confirmation candle closes:
+  // - OB: BOS confirmation bar (formedTime / formedIndex), NEVER the earlier origin candle (startTime)!
+  // - FVG: 3rd candle close (formedTime / formedIndex), NEVER candle 1 (startTime)!
+  // - iFVG / BB: breaking confirmation bar (formedTime / formedIndex).
+  const originTimeSec = Number(zone.startTime || zone.time || 0);
+  const formedTimeSec = Number(zone.formedTime || 0);
+  const formedIdx = Number.isInteger(zone.formedIndex) ? zone.formedIndex : -1;
+
+  let startIdx = -1;
+  if (formedTimeSec > 0) {
+    startIdx = candles.findIndex(c => c.openTime > formedTimeSec);
+  } else if (formedIdx >= 0 && formedIdx < candles.length) {
+    // Allow formedIdx when its candle time is at or after originTimeSec (OB/FVG origin <= confirmation bar)
+    const barTime = candles[formedIdx]?.openTime || 0;
+    if (originTimeSec <= 0 || barTime >= originTimeSec) {
+      startIdx = formedIdx + 1;
+    }
+  }
+  if (startIdx < 0 && originTimeSec > 0) {
+    startIdx = candles.findIndex(c => c.openTime > originTimeSec);
+  }
   if (startIdx < 0 || startIdx >= candles.length) return null;
 
   // Realistic 60-100 pip Gold SL when structural SL is not explicitly provided
@@ -428,13 +450,25 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     : computeGoldSlPrice(zone.side, lo, hi, ce, tf);
 
   // Find first VALID-SIDE candle touching [lo - 0.15, hi + 0.15].
-  // Rejects wrong-side touches (e.g., SELL touched from above SL, or BUY touched from below SL) and pre-broken zones.
+  // - Rejects pre-broken zones that open on the wrong side immediately after confirmation (no prior valid-side bar).
+  // - Honestly records instant SL_HIT if price WAS on the valid side and then gaps/blasts straight through CE to SL!
   let touchIdx = -1;
+  let hadValidSideBar = false;
+  let gapBlowoutSl = false;
   for (let i = startIdx; i < candles.length; i += 1) {
     const c = candles[i];
-    // If price opened already beyond the invalidation edge (wrong-side approach / already broken), zone is dead
     const openedWrongSide = isSell ? (c.open > hi + 0.25) : (c.open < lo - 0.25);
-    if (openedWrongSide) return null;
+    if (openedWrongSide) {
+      if (!hadValidSideBar) return null;
+      // Price was previously on the valid side, then gapped straight through the zone (Limit at CE fills at gap open -> SL if breached)
+      const gapHitSl = isSell ? (c.high + spreadUsd >= sl) : (c.low <= sl);
+      if (gapHitSl) {
+        touchIdx = i;
+        gapBlowoutSl = true;
+        break;
+      }
+      return null;
+    }
 
     const touched = isSell
       ? (c.high >= lo - 0.15 && c.low <= hi + 0.15)
@@ -445,9 +479,17 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
       break;
     }
 
-    // If a bar closed past the far edge without a valid retest (gap/jump over zone), zone is invalidated
     const jumpedPast = isSell ? (c.close > hi) : (c.close < lo);
-    if (jumpedPast) return null;
+    if (jumpedPast) {
+      if (hadValidSideBar && (isSell ? (c.high + spreadUsd >= sl) : (c.low <= sl))) {
+        touchIdx = i;
+        gapBlowoutSl = true;
+        break;
+      }
+      return null;
+    }
+
+    hadValidSideBar = true;
   }
   if (touchIdx < 0) return null;
 
@@ -482,9 +524,47 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
   let maxFavorable = 0;
   let touchCount = 0;
   let ceTouched = false;
+  let ceFillIdx = -1;
   let inZonePrev = false;
   let lastTouchAt = touchedAt;
   const touches = [];
+
+  if (gapBlowoutSl) {
+    const barTs = touchBar.closeTime * 1000;
+    return {
+      id: makePoiId(zone.side, tf, zone.kind, lo, hi),
+      side: zone.side,
+      tf,
+      kind: zone.kind,
+      low: Number(lo.toFixed(2)),
+      high: Number(hi.toFixed(2)),
+      ce: Number(ce.toFixed(2)),
+      sl: Number(sl.toFixed(2)),
+      tp1: Number(tp1.toFixed(2)),
+      tp2: Number(tp2.toFixed(2)),
+      touchedAt,
+      lastTouchAt: touchedAt,
+      touchCount: 1,
+      ceTouched: true,
+      touches: [{
+        index: 1,
+        time: touchBar.openTime,
+        price: Number(ce.toFixed(2)),
+        hitCe: true,
+        broken: true
+      }],
+      touchPrice: Number(ce.toFixed(2)),
+      maxFavorable: 0,
+      status: 'SL_HIT',
+      resolvedAt: barTs,
+      notifiedCe: true,
+      notifiedTp1: false,
+      notifiedTp2: false,
+      notifiedSl: true,
+      source: 'BACKFILL',
+      engineVersion: BACKFILL_ENGINE_VERSION
+    };
+  }
 
   for (let i = touchIdx; i < candles.length; i += 1) {
     const c = candles[i];
@@ -494,17 +574,17 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
       ? (c.high >= lo - 0.15 && c.low <= hi + 0.15)
       : (c.low <= hi + 0.15 && c.high >= lo - 0.15);
     const barHitCe = isSell ? (c.high >= ce) : (c.low <= ce);
-    const hitSl = isSell ? (c.high > sl) : (c.low < sl);
-    // On the touch candle itself, TP1/TP2 is only valid if candle closed favorably (avoiding pre-entry open/wick false TP)
-    const hitTp1 = i === touchIdx
-      ? (isSell ? (c.close <= tp1) : (c.close >= tp1))
-      : (isSell ? (c.low <= tp1) : (c.high >= tp1));
-    const hitTp2 = i === touchIdx
-      ? (isSell ? (c.close <= tp2) : (c.close >= tp2))
-      : (isSell ? (c.low <= tp2) : (c.high >= tp2));
+
+    // Realistic XAU/USD spread applied symmetrically:
+    // - SELL SL triggers on Ask (high + spread >= sl); SELL TP triggers on Ask (low + spread <= tp)
+    // - BUY SL triggers on Bid (low <= sl); BUY TP requires covering spread above TP (high >= tp + spread)
+    const hitSl = isSell ? (c.high + spreadUsd > sl) : (c.low < sl);
 
     if (barInZone) {
-      if (barHitCe) ceTouched = true;
+      if (barHitCe && !ceTouched) {
+        ceTouched = true;
+        ceFillIdx = i;
+      }
       const touchY = isSell ? Math.min(c.high, hi) : Math.max(c.low, lo);
       if (!inZonePrev) {
         touchCount += 1;
@@ -514,17 +594,43 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
           time: c.openTime,
           price: Number(touchY.toFixed(2)),
           hitCe: barHitCe,
-          broken: Boolean(hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT')
+          broken: Boolean(ceTouched && hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT')
         });
       } else if (touches.length > 0) {
         const cur = touches[touches.length - 1];
         if (barHitCe) cur.hitCe = true;
-        if (hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT') cur.broken = true;
+        if (ceTouched && hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT') cur.broken = true;
       }
       inZonePrev = true;
     } else {
       inZonePrev = false;
     }
+
+    // HONEST LIMIT-AT-CE FILL GATE:
+    // Rencana Eksekusi POI sets entry at 50% CE. Do NOT evaluate WIN/SL before 50% CE is actually touched!
+    // If price only grazes the outer edge and leaves without touching CE, a Limit-at-CE order was never filled.
+    if (!ceTouched) {
+      // If price somehow crossed past SL without registering barInZone, still capture SL honestly
+      if (hitSl) {
+        ceTouched = true;
+        ceFillIdx = i;
+        status = 'SL_HIT';
+        resolvedAt = barTs;
+        break;
+      }
+      continue;
+    }
+
+    // True MT5 Bid-chart mechanics:
+    // - SELL closes at Ask (high + spread > sl, low + spread <= tp)
+    // - BUY closes at Bid (low < sl, high >= tp)
+    const isFillBar = i === ceFillIdx;
+    const hitTp1 = isFillBar
+      ? (isSell ? (c.close + spreadUsd <= tp1) : (c.close >= tp1))
+      : (isSell ? (c.low + spreadUsd <= tp1) : (c.high >= tp1));
+    const hitTp2 = isFillBar
+      ? (isSell ? (c.close + spreadUsd <= tp2) : (c.close >= tp2))
+      : (isSell ? (c.low + spreadUsd <= tp2) : (c.high >= tp2));
 
     // Conservative SL-first when both hit on the same candle (unless TP1 was already secured on an earlier bar).
     // Must check SL BEFORE updating maxFavorable so a stopped-out bar never logs phantom post-SL profit!
@@ -534,9 +640,8 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
       break;
     }
 
-    // On the touch candle itself (i === touchIdx), never count pre-entry approach extremes as favorable bounce!
-    // Measure touch-bar bounce strictly from candle close (actual post-touch rejection), then full high/low on later bars.
-    const fav = i === touchIdx
+    // On the CE fill candle itself, never count pre-entry approach extremes as favorable bounce!
+    const fav = isFillBar
       ? (isSell ? Math.max(0, ce - c.close) : Math.max(0, c.close - ce))
       : (isSell ? Math.max(0, ce - c.low) : Math.max(0, c.high - ce));
     if (fav > maxFavorable) maxFavorable = fav;
@@ -549,10 +654,13 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     if (hitTp1 && status !== 'TP1_HIT') {
       status = 'TP1_HIT';
       resolvedAt = barTs;
-    } else if (status === 'TESTING' && i > touchIdx && fav >= 2.5) {
+    } else if (status === 'TESTING' && i > ceFillIdx && fav >= 2.5) {
       status = 'REACTING';
     }
   }
+
+  // Strictly reject unfilled outer-edge grazes so Riwayat never inflates WR with missed CE trades!
+  if (!ceTouched) return null;
 
   return {
     id: makePoiId(zone.side, tf, zone.kind, lo, hi),
@@ -568,7 +676,7 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs)
     touchedAt,
     lastTouchAt,
     touchCount: Math.max(1, touchCount),
-    ceTouched,
+    ceTouched: true,
     touches: touches.slice(-8),
     touchPrice: Number(touchPrice.toFixed(2)),
     maxFavorable: Number(maxFavorable.toFixed(2)),
@@ -724,10 +832,6 @@ export function backfillFromCandles({
     }
     return lastTrend;
   };
-  const getWitaHour = tsMs => {
-    const d = new Date(tsMs + 8 * 3600 * 1000);
-    return Number.isNaN(d.getTime()) ? 14 : d.getUTCHours();
-  };
 
   const candidatesEvaluated = [];
   const evalNgZones = (ng, candles, tf) => {
@@ -751,8 +855,9 @@ export function backfillFromCandles({
       ...obList.map(z => ({ ...z, kind: 'OB' })),
       ...fvgList.map(z => ({ ...z, kind: 'FVG' }))
     ];
-    const minW = tf === 'M5' ? 1.25 : 1.50;
-    const maxW = tf === 'M5' ? 7.5 : 10.5;
+    const rules = POI_QUALITY_RULES[tf === 'M5' ? 'M5' : 'M15'];
+    const minW = rules.minWidth;
+    const maxW = rules.maxWidth;
     const seenKeys = new Set();
 
     for (const z of rawZones) {
@@ -776,6 +881,7 @@ export function backfillFromCandles({
           high: hiVal,
           ce: z.ce,
           startTime: z.startTime,
+          formedTime: z.formedTime,
           formedIndex: z.formedIndex
         },
         candles,
@@ -784,20 +890,21 @@ export function backfillFromCandles({
       );
       if (!evaluated) continue;
 
-      // Causal Pre-Entry Filter 1: Dead Rollover (04:00-07:00 WITA) & Asia M5 chop (07:00-14:00 WITA)
-      // During Asia, only M15 structural zones are tracked; M5 scalper refinement activates from London Open (14:00+ WITA).
-      const witaH = getWitaHour(evaluated.touchedAt);
-      if (witaH >= 4 && witaH < 7) continue;
-      if (witaH >= 7 && witaH < 14 && tf === 'M5') continue;
-
-      // Causal Pre-Entry Filter 2: Causal M15 Trend Alignment
-      // - M5 is strictly a trend-aligned refinement timeframe (never catch a falling knife on M5 against M15 trend).
-      // - On M15, raw counter-trend FVG is skipped while institutional reversal OB/BB/iFVG remain allowed.
+      // Apply the EXACT SAME SSOT Quality Gate used by Card Rencana Eksekusi POI:
+      // (1) Width bounds, (2) Dead Rollover & Asia M5 filter, (3) Causal M15 trend alignment.
       const causalTrend = resolveCausalM15Trend(evaluated.touchedAt);
-      const isAligned = (causalTrend === 'BULL' && side === 'BUY') || (causalTrend === 'BEAR' && side === 'SELL');
-      const isCounter = (causalTrend === 'BULL' && side === 'SELL') || (causalTrend === 'BEAR' && side === 'BUY');
-      if (isCounter && (tf === 'M5' || z.kind === 'FVG')) continue;
+      const causalM15Dir = causalTrend === 'BULL' ? 1 : (causalTrend === 'BEAR' ? -1 : 0);
+      const gate = evaluatePoiQualityGate({
+        tf,
+        kind: z.kind,
+        side,
+        width: zWidth,
+        m15Dir: causalM15Dir,
+        nowMs: evaluated.touchedAt
+      });
+      if (!gate.allowed) continue;
 
+      const isAligned = (causalM15Dir === 1 && side === 'BUY') || (causalM15Dir === -1 && side === 'SELL');
       // Priority score for resolving overlapping zones at the same price & window
       const kindWeight = z.kind === 'BB' ? 4 : (z.kind === 'iFVG' ? 3 : (z.kind === 'OB' ? 2 : 1));
       const priority = (isAligned ? 10 : 0) + (tf === 'M15' ? 3 : 0) + kindWeight;
@@ -994,28 +1101,38 @@ export function recordLivePoiProgress({
     if (nowMs - rec.touchedAt > 18 * 3600 * 1000) continue;
 
     const isSell = rec.side === 'SELL';
-    const fav = isSell ? Math.max(0, rec.ce - price) : Math.max(0, price - rec.ce);
-    if (fav - (rec.maxFavorable || 0) >= 0.5) {
-      rec.maxFavorable = Number(fav.toFixed(2));
+    // Check if live price just reached 50% CE on an outer-edge live watch record
+    if (rec.ceTouched === false) {
+      const hitCeLive = isSell ? (price >= rec.ce) : (price <= rec.ce);
+      if (!hitCeLive) continue;
+      rec.ceTouched = true;
+      rec.lastTouchAt = nowMs;
       changed = true;
     }
 
-    const hitSl = Number.isFinite(rec.sl) && (isSell ? price > rec.sl : price < rec.sl);
-    const hitTp1 = Number.isFinite(rec.tp1) && (isSell ? price <= rec.tp1 : price >= rec.tp1);
-    const hitTp2 = Number.isFinite(rec.tp2) && (isSell ? price <= rec.tp2 : price >= rec.tp2);
+    const fav = isSell ? Math.max(0, rec.ce - price) : Math.max(0, price - rec.ce);
+    const hitSl = Number.isFinite(rec.sl) && (isSell ? (price + GOLD_SPREAD_USD > rec.sl) : (price < rec.sl));
+    const hitTp1 = Number.isFinite(rec.tp1) && (isSell ? (price + GOLD_SPREAD_USD <= rec.tp1) : (price >= rec.tp1));
+    const hitTp2 = Number.isFinite(rec.tp2) && (isSell ? (price + GOLD_SPREAD_USD <= rec.tp2) : (price >= rec.tp2));
 
     const prevStatus = rec.status;
     if (hitSl && rec.status !== 'TP1_HIT') {
       rec.status = 'SL_HIT';
       rec.resolvedAt = nowMs;
-    } else if (hitTp2) {
-      rec.status = 'TP2_HIT';
-      rec.resolvedAt = nowMs;
-    } else if (hitTp1 && rec.status !== 'TP1_HIT') {
-      rec.status = 'TP1_HIT';
-      rec.resolvedAt = nowMs;
-    } else if (rec.status === 'TESTING' && fav >= 2.5) {
-      rec.status = 'REACTING';
+    } else {
+      if (fav - (rec.maxFavorable || 0) >= 0.5) {
+        rec.maxFavorable = Number(fav.toFixed(2));
+        changed = true;
+      }
+      if (hitTp2) {
+        rec.status = 'TP2_HIT';
+        rec.resolvedAt = nowMs;
+      } else if (hitTp1 && rec.status !== 'TP1_HIT') {
+        rec.status = 'TP1_HIT';
+        rec.resolvedAt = nowMs;
+      } else if (rec.status === 'TESTING' && fav >= 2.5) {
+        rec.status = 'REACTING';
+      }
     }
 
     if (rec.status !== prevStatus) {
@@ -1637,11 +1754,28 @@ export function computePoiPortfolioLedger(poiRecords = [], {
 }
 
 /**
- * Classify a timestamp (ms) into WITA (UTC+8) Gold trading session buckets.
+ * Classify a timestamp (ms) into DST-aware Gold ICT session buckets (anchored to America/New_York).
  */
 export function classifyWitaSession(tsMs) {
   const n = Number(tsMs);
   if (!Number.isFinite(n) || n <= 0) return 'Lainnya';
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hour: '2-digit',
+      hour12: false
+    }).formatToParts(new Date(n));
+    const rawHour = Number(parts.find(p => p.type === 'hour')?.value);
+    const nyHour = Number.isFinite(rawHour) ? (rawHour === 24 ? 0 : rawHour) : NaN;
+    if (Number.isFinite(nyHour)) {
+      if (nyHour >= 2 && nyHour < 7) return 'London';
+      if (nyHour >= 7 && nyHour < 17) return 'NY';
+      if (nyHour >= 18 || nyHour < 2) return 'Asia';
+      return 'Transisi';
+    }
+  } catch {
+    // Fallback to fixed WITA (UTC+8) when Intl timezone data is unavailable
+  }
   const witaHour = new Date(n + 8 * 3600 * 1000).getUTCHours();
   if (witaHour >= 7 && witaHour <= 14) return 'Asia';
   if (witaHour >= 15 && witaHour <= 19) return 'London';

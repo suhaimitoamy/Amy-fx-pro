@@ -29,202 +29,204 @@
       code: '01',
       levelId: 0,
       bookFormat: true,
-      title: 'Apa Itu Trading, Cara Kerja Broker & Memilih Akun (Demo, Cent, Standard)',
-      subtitle: 'Memahami dari nol bagaimana uang bisa dihasilkan dari naik maupun turunnya harga emas dunia, peran broker, dan jenis akun paling aman untuk belajar.',
+      title: 'Apa Itu Trading, Cara Kerja Broker & Memilih Jenis Akun (Demo, Cent, Standard)',
+      subtitle: 'Dasar trading instrumen keuangan (XAU/USD), peran broker sebagai perantara pasar, dan urutan pemilihan akun dari Demo, Cent, hingga Standard.',
       readMinutes: 8,
       diagramId: 'zero-account-types',
       diagramAfterSection: 2,
-      summary: 'Pahami apa sebenarnya trading XAU/USD (Gold), logika dua arah (Buy & Sell) berbasis probabilitas, peran broker, serta kenapa pemula wajib melewati Akun Demo dan Akun Cent sebelum Akun Standard.',
+      summary: 'Pahami definisi trading dan bedanya dengan investasi, mekanisme transaksi dua arah pada XAU/USD, cara kerja serta legalitas broker, dan panduan bertahap memilih Akun Demo, Cent, atau Standard.',
       bookSections: [
         {
           number: '1.1',
-          heading: 'Apa Itu Trading Gold (XAU/USD) Sebenarnya?',
+          heading: 'Apa Itu Trading dan Bedanya dengan Investasi?',
           paragraphs: [
-            'Banyak orang mengira trading emas berarti kamu harus pergi ke toko emas, membeli emas batangan fisik, menyimpannya di lemari, lalu menunggu bertahun-tahun sampai harganya naik baru dijual kembali. Di dunia trading online, cara kerjanya berbeda.',
-            'Saat kamu membuka grafik **XAU/USD** di aplikasi trading, kode **XAU** adalah simbol internasional untuk 1 troy ounce emas murni (~31,1 gram), sedangkan **USD** adalah Dolar Amerika Serikat. Jadi, angka `2.650,00` di layar berarti **harga 1 troy ounce emas dunia saat ini setara $2.650**.',
-            'Dalam trading online, kamu tidak menyimpan emas fisik di rumah. Kamu memperdagangkan **selisih perubahan harganya**. Yang paling menarik sekaligus membedakannya dari menabung emas biasa adalah: di pasar ini kamu bisa mencari keuntungan dari **dua arah** — baik saat harga sedang naik maupun saat harga sedang turun.'
+            '**Trading** adalah aktivitas jual beli instrumen keuangan (seperti mata uang/forex, emas, saham, atau kripto) dalam jangka pendek untuk meraih keuntungan dari selisih perubahan harga. Untuk bertransaksi di pasar global, kamu membutuhkan **broker** sebagai perantara dan perlu memilih **jenis akun** yang sesuai dengan tingkat pengalaman serta modalmu.',
+            'Di Academy ini, instrumen utama yang dipelajari adalah **Emas Dunia terhadap Dolar AS (`XAU/USD`)**. Kode **XAU** mewakili 1 troy ounce emas murni (~31,1 gram) dan **USD** adalah Dolar Amerika Serikat. Jika grafik menampilkan `2.650,00`, artinya harga 1 troy ounce emas dunia saat itu sebesar **$2.650**.',
+            '1. **Fokus Utama:** Membaca pergerakan harga jangka pendek (analisis teknikal) dan dampak berita ekonomi harian. 2. **Jangka Waktu:** Hitungan menit, jam, hari, hingga minggu. 3. **Perbedaan dengan Investasi:** Investasi berfokus pada kepemilikan aset jangka panjang (tahunan) dengan harapan nilai aset atau perusahaan bertumbuh seiring waktu, sedangkan trading memanfaatkan fluktuasi harga harian secara aktif. 4. **Transaksi Dua Arah (Kontrak Derivatif):** Dalam trading online `XAU/USD`, kamu tidak menyimpan emas fisik melainkan memperdagangkan selisih harganya, sehingga profit bisa diperoleh saat harga naik maupun turun.'
           ],
           exampleBox: {
-            title: 'Dua Arah Transaksi di Pasar Gold',
+            title: 'Dua Arah Transaksi pada Gold (XAU/USD)',
             rows: [
               {
                 label: 'Posisi BUY (Beli)',
-                detail: 'Kamu memprediksi harga emas akan **naik**. Misalnya kamu buka BUY di `2.650,00` lalu menutupnya saat harga naik ke `2.660,00`. Selisih kenaikan **+$10,00** menjadi keuntunganmu.'
+                detail: 'Menghasilkan profit jika harga **naik**. Contoh: buka BUY di `2.650,00` lalu tutup di `2.660,00` → selisih kenaikan **+$10,00**.'
               },
               {
                 label: 'Posisi SELL (Jual)',
-                detail: 'Kamu memprediksi harga emas akan **turun**. Misalnya kamu buka SELL di `2.660,00` lalu menutupnya saat harga turun ke `2.650,00`. Selisih penurunan **$10,00** juga menjadi keuntunganmu.'
+                detail: 'Menghasilkan profit jika harga **turun**. Contoh: buka SELL di `2.660,00` lalu tutup di `2.650,00` → selisih penurunan **+$10,00**.'
               }
             ]
           }
         },
         {
           number: '1.2',
-          heading: 'Trading Itu Permainan Probabilitas, Bukan Tebak-Tebakan Pasti Benar',
+          heading: 'Cara Kerja Broker & Standar Keamanan Dana',
           paragraphs: [
-            'Sebelum melangkah lebih jauh, ada satu pola pikir yang harus ditanamkan sejak halaman pertama buku ini: **tidak ada satu pun trader, bank, atau strategi di dunia yang bisa menebak arah pasar 100% benar setiap saat.**',
-            'Trader pemula biasanya mencari "ilmu sakti" yang tidak pernah kalah. Begitu rugi dua kali berturut-turut, mereka panik, mengira strateginya rusak, lalu mengganti teknik atau membalas dendam dengan ukuran transaksi lebih besar. Padahal, kerugian kecil adalah **biaya operasional normal** dalam trading — persis seperti toko kopi yang harus membayar listrik dan bahan baku sebelum mencetak laba bersih.',
-            'Kunci profit jangka panjang terletak pada kombinasi **tingkat keberhasilan (Winrate)** dan **perbandingan Risiko terhadap Imbalan (Risk to Reward / R:R)**. Kalau setiap kali salah kamu hanya rugi **$10**, tetapi setiap kali benar kamu untung **$20** (rasio **1:2**), maka kamu bahkan tidak perlu benar lebih dari separuh waktu untuk tetap menghasilkan uang.'
+            'Trader ritel (individu) tidak dapat masuk langsung ke pasar keuangan global karena syarat modal dan akses antarbank sangat besar. Broker berperan sebagai jembatan resmi antara kamu dan pasar melalui empat fungsi utama:',
+            '1. **Menyediakan Platform:** Broker memberikan aplikasi (seperti **MetaTrader 5 / MT5**, MetaTrader 4, atau aplikasi resmi broker) untuk membaca grafik harga secara *real-time* serta mengeksekusi tombol Buy, Sell, Stop Loss, dan Take Profit. 2. **Meneruskan Pesanan:** Saat kamu membuka posisi, broker meneruskan pesanan ke penyedia likuiditas (bank besar atau bursa) atau mencocokkannya di sistem internal mereka. 3. **Sumber Keuntungan Broker:** Broker memperoleh pendapatan dari **Spread** (selisih harga jual dan harga beli saat transaksi dibuka), **Komisi** per transaksi, serta biaya inap (*Swap*) jika posisi ditahan melewati pergantian hari. 4. **Menyediakan Leverage (Daya Ungkit):** Fasilitas daya ungkit modal sementara dari broker sehingga dengan modal kecil (misalnya $100), kamu bisa menggerakkan nilai transaksi yang lebih besar. *Catatan: leverage memperbesar potensi keuntungan sekaligus risiko kerugian jika ukuran posisi tidak dibatasi.*'
           ],
-          exampleBox: {
-            title: 'Bukti Matematika Sederhana (10 Transaksi · R:R 1:2)',
-            rows: [
-              {
-                label: '5 Kali Kalah (50%)',
-                detail: '5 transaksi × rugi `$10` = **-$50**'
-              },
-              {
-                label: '5 Kali Menang (50%)',
-                detail: '5 transaksi × untung `$20` = **+$100**'
-              },
-              {
-                label: 'Hasil Bersih',
-                detail: '`+$100 - $50` = **+$50 Profit Bersih** — padahal separuh analisismu meleset!'
-              }
-            ]
+          callout: {
+            tone: 'warn',
+            title: 'Standar Legalitas & Keamanan Akun',
+            body: 'Untuk Indonesia, pastikan memilih broker berjangka yang terdaftar dan diawasi resmi oleh **Bappebti / OJK** sesuai regulasi terbaru, atau broker dengan regulasi kredibel yang memisahkan dana nasabah (*segregated account*). Setor dan tarik dana wajib menggunakan rekening atas namamu sendiri. Hindari skema titip dana atau pihak mana pun yang menjanjikan profit tetap harian — di pasar nyata, harga selalu berfluktuasi sehingga profit tetap tanpa risiko tidak pernah ada.'
           }
         },
         {
           number: '1.3',
-          heading: 'Apa Peran Broker, dan Bagaimana Cara Memilih Jenis Akun?',
+          heading: 'Memilih Jenis Akun: Demo, Cent, atau Standard',
           paragraphs: [
-            'Sebagai trader individu, kamu tidak bisa langsung menelpon bank besar di London atau New York untuk membeli 1 kontrak emas. Di sinilah **Broker** berperan sebagai jembatan resmi. Broker menyediakan sambungan harga langsung dari pasar dunia, aplikasi transaksi seperti **MetaTrader 5 (MT5)**, serta tempat menyimpan saldo akunmu.',
-            'Di dalam sebuah broker, kamu biasanya akan dihadapkan pada **tiga jenis akun utama**. Memilih akun yang salah di minggu pertama adalah penyebab paling umum pemula kehilangan modal sebelum sempat belajar apa-apa:'
+            'Pemula sangat disarankan mengikuti tahapan jenis akun secara berurutan agar tidak kehilangan modal akibat kesalahan teknis maupun ukuran transaksi yang terlalu besar terhadap saldo:'
           ],
           table: {
-            caption: 'Perbandingan 3 Jenis Akun Trading di Broker',
-            headers: ['Jenis Akun', 'Sumber Dana', 'Cara Tampil Saldo', 'Cocok Untuk Siapa?'],
+            caption: 'Perbandingan Jenis Akun Trading: Demo, Cent, dan Standard',
+            headers: ['Fitur / Aspek', 'Akun Demo', 'Akun Cent (USC)', 'Akun Standard'],
             rows: [
-              ['Akun Demo', 'Uang virtual gratis', 'Misal $1.000 virtual', 'Pemula nol: latihan tombol MT5, pasang SL/TP & uji aturan tanpa risiko rugi.'],
-              ['Akun Cent (USC)', 'Uang asli kecil', '$20 tampil jadi 2.000 USC', 'Tahap transisi: melatih emosi uang asli dengan risiko per transaksi hanya beberapa sen.'],
-              ['Akun Standard', 'Uang asli penuh', '$1.000 tampil $1.000 USD', 'Trader yang sudah konsisten & punya modal cukup agar risiko tetap ≤ 1% per trade.']
+              ['Jenis Dana', 'Uang virtual (simulasi)', 'Uang asli (satuan sen / USC)', 'Uang asli (Dolar / Rupiah penuh)'],
+              ['Risiko Keuangan', 'Nol (tidak bisa rugi maupun tarik profit)', 'Sangat rendah (melatih psikologi)', 'Normal hingga tinggi (sesuai modal)'],
+              ['Contoh Deposit', 'Gratis (misal saldo virtual $10.000)', '$10 tampil menjadi 1.000 Cent', '$100 tampil tetap $100'],
+              ['Tujuan Utama', 'Belajar tombol, fitur aplikasi & uji aturan', 'Menguji emosi uang asli bermodal kecil', 'Trading serius untuk target profit nyata']
             ]
           },
-          callout: {
-            tone: 'warn',
-            title: 'Cerita Nyata Jebakan Pemula: Salah Pilih Akun di Minggu Pertama',
-            body: 'Bayangkan kamu baru belajar 3 hari lalu langsung menyetor $25 ke Akun Standard. Di Akun Standard Gold, ukuran terkecil (0.01 lot) membuat setiap gerak $10 bernilai $10. Artinya, baru 2 kali salah arah sedikit saja, hampir seluruh uangmu habis! Bandingkan jika $25 itu dimasukkan ke Akun Cent (2.500 USC): 1 kali rugi $10 pergerakan harga hanya memotong 10 sen ($0,10). Kamu punya ratusan kali kesempatan belajar tanpa panik.'
-          }
+          paragraphsAfter: [
+            '1. **Mulai dari Akun Demo:** Gunakan minimal beberapa minggu sampai kamu lancar membuka transaksi, memasang **Stop Loss**, memasang **Take Profit**, dan membaca grafik tanpa salah tekan. 2. **Lanjut ke Akun Cent:** Pindah ke akun Cent setelah konsisten mengikuti aturan di akun Demo. Karena saldonya uang asli meski bernilai kecil, kamu mulai merasakan tekanan psikologis (takut rugi atau terburu-buru) yang tidak muncul di akun Demo. Di Akun Standard `XAU/USD`, ukuran terkecil (`0.01 lot`) bernilai **$1 per gerak $1** sehingga modal $10–$50 terlalu rentan habis; di Akun Cent, `0.01 cent lot` hanya bernilai **$0,01 per gerak $1** sehingga modal kecil tetap aman untuk berlatih. 3. **Naik ke Akun Standard:** Gunakan hanya jika sistem tradingmu sudah teruji di akun Cent, disiplin memakai Stop Loss, dan memakai **uang dingin** (dana di luar kebutuhan pokok dan bukan pinjaman).'
+          ]
         },
         {
           number: '1.4',
-          heading: 'Cara Mengenali Broker Sehat vs Penipuan Berkedok Trading',
+          heading: 'Prinsip Dasar: Probabilitas dan Risk to Reward (R:R)',
           paragraphs: [
-            'Sebelum membuka akun di mana pun, terapkan tiga saringan keamanan sederhana: pertama, **kamu memegang kendali penuh atas akunmu sendiri** — tidak pernah menitipkan uang kepada seseorang yang menjanjikan "profit tetap 1% setiap hari". Di pasar nyata, harga selalu berfluktuasi sehingga janji profit tetap hampir pasti adalah skema penipuan.',
-            'Kedua, pastikan broker memiliki **regulasi resmi yang bisa dicek** dan proses setor maupun tarik dana (*deposit/withdraw*) jelas ke rekening atas namamu sendiri. Ketiga, jangan pernah memakai uang kebutuhan pokok, uang kuliah, atau dana pinjaman — gunakan selalu **uang dingin** setelah kamu benar-benar lulus fase latihan di Akun Demo.'
-          ]
+            'Tidak ada strategi atau institusi yang bisa memprediksi arah pasar 100% benar di setiap transaksi. Kerugian kecil yang sudah dibatasi Stop Loss adalah bagian normal dari aktivitas trading.',
+            'Profitabilitas jangka panjang ditentukan oleh kombinasi **tingkat keberhasilan (Winrate)** dan **perbandingan Risiko terhadap Imbalan (Risk to Reward / R:R)**. Selama potensi keuntungan saat benar lebih besar daripada batas rugi saat salah, akurasi 50% pun tetap menghasilkan pertumbuhan akun.'
+          ],
+          exampleBox: {
+            title: 'Simulasi Matematis 10 Transaksi (R:R 1:2 · Winrate 50%)',
+            rows: [
+              {
+                label: '5 Transaksi Rugi (50%)',
+                detail: '5 × rugi `$10` = **-$50**'
+              },
+              {
+                label: '5 Transaksi Profit (50%)',
+                detail: '5 × untung `$20` = **+$100**'
+              },
+              {
+                label: 'Hasil Bersih',
+                detail: '`+$100 - $50` = **+$50 Profit Bersih**'
+              }
+            ]
+          }
         }
       ],
       keyTakeaways: [
-        'Trading XAU/USD memperdagangkan selisih harga 1 troy oz emas terhadap USD secara dua arah: BUY saat mengharapkan naik, SELL saat mengharapkan turun.',
-        'Trading adalah permainan probabilitas: kerugian kecil adalah biaya wajar selama rasio imbalan lebih besar daripada risiko (misalnya R:R 1:2).',
-        'Urutan aman belajar: kuasai tombol & aturan di **Akun Demo** → latih psikologi uang asli di **Akun Cent (USC)** → baru naik ke **Akun Standard** saat sudah konsisten.'
+        'Trading XAU/USD memperdagangkan selisih harga emas secara dua arah (BUY saat naik, SELL saat turun) dalam jangka pendek.',
+        'Broker menyediakan platform, meneruskan pesanan, menyediakan leverage, dan memperoleh pendapatan dari Spread/Komisi; pilih hanya broker teregulasi.',
+        'Urutan aman untuk pemula adalah Akun Demo, lalu Akun Cent (USC), kemudian Akun Standard dengan uang dingin.'
       ],
-      bridgeNext: 'Sekarang kamu sudah paham apa itu trading XAU/USD, fungsi broker, dan urutan akun yang aman. Begitu nanti kamu membuka layar aplikasi broker, hal pertama yang langsung muncul di depan matamu adalah angka harga emas seperti `2.650,00` yang berkedip naik turun — dan anehnya bukan cuma satu angka, melainkan dua angka sekaligus. Bagaimana cara membaca satuan geraknya dan kenapa ada dua harga? Mari kita bedah pelan-pelan di **Bab 02: Pips, Point, Bid, Ask, dan Spread di Gold (XAU/USD)**.',
+      bridgeNext: 'Setelah memahami dasar trading, peran broker, dan urutan pemilihan akun, langkah berikutnya adalah membaca angka harga XAU/USD yang muncul di layar aplikasi. Di **Bab 02**, kita membahas **Pips, Point, Bid, Ask, Spread**, serta komponen biaya transaksi di pasar emas.',
       conceptBlocks: [
         {
-          heading: 'Trading Gold (XAU/USD), Probabilitas & Jenis Akun',
+          heading: 'Trading Gold (XAU/USD), Broker & Jenis Akun',
           paragraphs: [
-            'Trading XAU/USD memperdagangkan selisih harga emas dunia per troy oz secara dua arah (BUY saat naik, SELL saat turun) berbasis probabilitas dan rasio Risk:Reward.',
-            'Urutan akun aman bagi pemula adalah Akun Demo (uang virtual), lalu Akun Cent/USC ($25 menjadi 2.500 USC), baru Akun Standard setelah konsisten.'
+            'Trading XAU/USD memperdagangkan selisih harga 1 troy ounce emas terhadap USD secara dua arah (BUY dan SELL) dalam jangka pendek berbasis probabilitas dan rasio Risk:Reward.',
+            'Urutan akun pemula dimulai dari Akun Demo (uang virtual), berlanjut ke Akun Cent/USC (uang asli skala kecil), lalu Akun Standard setelah sistem teruji.'
           ]
         }
       ],
       mappingSteps: [
-        'Buat Akun Demo terlebih dahulu di broker teregulasi tanpa deposit uang asli.',
+        'Buat Akun Demo di broker teregulasi tanpa deposit uang asli.',
         'Uji membuka dan menutup transaksi BUY serta SELL pada simbol XAUUSD di MT5.',
-        'Catat perbedaan saldo virtual (Demo), saldo sen (Cent/USC), dan saldo penuh (Standard) sebelum memakai dana nyata.'
+        'Pahami perbedaan skala saldo Demo, Cent (USC), dan Standard sebelum menggunakan dana asli.'
       ],
       decisionTree: [
         {
-          condition: 'Modal belajarmu baru $20–$50 dan ingin merasakan psikologi uang asli.',
-          action: 'Pilih Akun Cent (USC) agar saldo berubah menjadi 2.000–5.000 USC dan risiko tetap kecil (≤ 1%).'
+          condition: 'Modal latihan masih $10–$50 dan ingin mulai melatih psikologi dengan uang asli.',
+          action: 'Pilih Akun Cent (USC) agar risiko per transaksi tetap kecil (≤ 1% modal).'
         },
         {
           condition: 'Ada tawaran titip dana trading dengan janji profit tetap harian tanpa risiko.',
-          action: 'Tolak seketika — pasar nyata selalu bergerak probabilistik dan tidak pernah menjamin profit tetap.'
+          action: 'Tolak sepenuhnya — pasar keuangan nyata selalu bergerak probabilistik dan tidak menjamin profit tetap.'
         }
       ],
       validRules: [
-        'Mulai dari Akun Demo hingga lancar membuka transaksi, memasang SL, dan memasang TP.',
-        'Gunakan Akun Cent (USC) saat pertama kali melatih emosi dengan uang asli skala kecil.',
+        'Mulai dari Akun Demo hingga lancar mengoperasikan order, SL, dan TP.',
+        'Gunakan Akun Cent (USC) saat pertama kali melatih psikologi dengan uang asli skala kecil.',
         'Kelola akun sendiri di broker teregulasi menggunakan uang dingin.'
       ],
       invalidRules: [
-        'Langsung menyetor modal kecil ($20–$50) ke Akun Standard lalu transaksi tanpa batas risiko.',
-        'Menitipkan dana pada pihak lain yang menjanjikan profit pasti setiap hari.'
+        'Menyetor modal kecil ($10–$50) langsung ke Akun Standard untuk transaksi XAU/USD.',
+        'Menitipkan dana pada pihak lain yang menjanjikan profit tetap setiap hari.'
       ],
       xauScenario: {
-        context: 'Skenario pemula dengan modal latihan $25 yang ingin mulai memahami mekanisme pasar XAU/USD secara aman.',
+        context: 'Skenario pemula dengan modal latihan $25 yang ingin memahami mekanisme XAU/USD secara bertahap.',
         steps: [
-          'Minggu pertama: gunakan Akun Demo untuk membiasakan membaca harga XAU/USD dan membedakan tombol BUY serta SELL.',
-          'Setelah paham risiko: gunakan Akun Cent agar $25 tampil sebagai 2.500 USC sehingga setiap latihan transaksi hanya mempertaruhkan beberapa sen.'
+          'Tahap awal: gunakan Akun Demo untuk berlatih membuka posisi BUY/SELL serta mengisi Stop Loss dan Take Profit.',
+          'Tahap transisi: gunakan Akun Cent agar $25 tampil menjadi 2.500 Cent (USC) sehingga risiko latihan tetap terjaga kecil.'
         ]
       },
       failedCase: {
-        title: 'Kesalahan Klasik: Modal $25 Langsung ke Akun Standard',
-        context: 'Pemula langsung menyetor $25 ke Akun Standard lalu membuka 0.01 lot BUY XAU/USD tanpa memahami nilai pergerakan harga.',
-        whyFailed: 'Di Akun Standard Gold, 0.01 lot berarti setiap gerak $10 bernilai $10. Baru 2 kali salah analisis kecil, 80% modal langsung hilang dan mental langsung trauma.'
+        title: 'Modal Kecil Langsung ke Akun Standard',
+        context: 'Pemula menyetor $25 ke Akun Standard lalu membuka 0.01 lot BUY XAU/USD tanpa memahami nilai kontrak.',
+        whyFailed: 'Di Akun Standard Gold, 0.01 lot berarti setiap pergerakan $10 bernilai $10. Dua kali rugi $10 langsung menghabiskan 80% saldo.'
       },
       goldenRules: [
-        'Demo untuk melatih keterampilan teknis, Cent untuk melatih emosi uang asli, Standard untuk menuai konsistensi.',
-        'Kalah dengan risiko terukur adalah bagian normal dari bisnis probabilitas.'
+        'Demo untuk menguasai teknis, Cent untuk melatih psikologi, Standard untuk eksekusi sistem teruji.',
+        'Kerugian kecil yang terukur adalah bagian normal dari trading berbasis probabilitas.'
       ],
       practiceCta: {
         label: 'Buka Lab Latihan Chart Pemula',
-        description: 'Uji pemahaman dasar arah harga dan skenario chart tanpa risiko kehilangan uang sungguhan di simulator latihan.',
+        description: 'Uji pemahaman dasar arah harga dan skenario chart tanpa risiko kehilangan uang asli di simulator latihan.',
         href: 'trading-practice/index.html'
       },
       quiz: [
         {
-          question: 'Saat harga Gold (XAU/USD) kamu perkirakan akan turun dari 2.660,00 menuju 2.650,00, jenis posisi apa yang dibuka agar mendapat profit dari penurunan tersebut?',
+          question: 'Saat harga Gold (XAU/USD) diprediksi akan turun dari 2.660,00 menuju 2.650,00, jenis posisi apa yang dibuka untuk meraih profit dari penurunan tersebut?',
           options: [
-            'Posisi BUY, karena semua transaksi di trading hanya bisa untung saat harga naik',
-            'Posisi SELL, karena di trading dua arah kamu bisa mendapat keuntungan dari selisih penurunan harga',
-            'Tidak bisa transaksi sama sekali sebelum membeli emas batangan fisik',
-            'Menunggu sampai akhir pekan agar pasar tutup terlebih dahulu'
+            'Posisi BUY, karena trading hanya dapat menghasilkan profit saat harga naik',
+            'Posisi SELL, karena kontrak derivatif XAU/USD memungkinkan profit dari selisih penurunan harga',
+            'Tidak dapat bertransaksi sebelum memiliki emas fisik',
+            'Menunggu pasar tutup di akhir pekan terlebih dahulu'
           ],
           answerIndex: 1,
-          explanation: 'Trading XAU/USD bersifat dua arah: BUY mengambil keuntungan dari kenaikan harga, sedangkan SELL mengambil keuntungan dari penurunan harga.'
+          explanation: 'Trading XAU/USD bersifat dua arah: BUY menghasilkan profit saat harga naik, sedangkan SELL menghasilkan profit saat harga turun.'
         },
         {
-          question: 'Seorang trader melakukan 10 transaksi dengan rasio Risk:Reward 1:2 (kalah rugi $10, menang untung $20). Jika ia hanya menang 5 kali dan kalah 5 kali (winrate 50%), bagaimana hasil akhirnya?',
+          question: 'Seorang trader melakukan 10 transaksi dengan Risk:Reward 1:2 (rugi $10 saat salah, untung $20 saat benar). Jika hasilnya 5 kali menang dan 5 kali kalah (winrate 50%), bagaimana hasil akhirnya?',
           options: [
-            'Impas ($0) karena jumlah menang dan kalah sama banyak',
-            'Rugi bersih -$50 karena 5 kali kalah sudah terlalu banyak',
+            'Impas ($0) karena jumlah menang dan kalah sama',
+            'Rugi bersih -$50 karena kalah 5 kali',
             'Profit bersih +$50 karena total menang (+$100) lebih besar daripada total kalah (-$50)',
             'Akun otomatis ditutup oleh broker'
           ],
           answerIndex: 2,
-          explanation: '5 menang × $20 = +$100, dikurangi 5 kalah × $10 = -$50, menghasilkan profit bersih +$50. Inilah bukti kekuatan probabilitas dan R:R.'
+          explanation: '5 menang × $20 = +$100 dikurangi 5 kalah × $10 = -$50 menghasilkan profit bersih +$50.'
         },
         {
-          question: 'Kamu punya modal latihan $25 dan ingin mulai merasakan psikologi uang asli tanpa cepat habis saat salah analisis. Jenis akun mana yang paling tepat dipilih?',
+          question: 'Kamu memiliki modal latihan $25 dan ingin mulai melatih psikologi menggunakan uang asli tanpa risiko cepat habis. Jenis akun apa yang paling sesuai?',
           options: [
-            'Akun Standard agar langsung cepat kaya',
-            'Akun Cent (USC), sehingga $25 tampil sebagai 2.500 USC dan risiko per transaksi tetap sangat kecil',
-            'Menitipkan $25 ke grup titip dana yang menjanjikan profit pasti harian',
-            'Akun tanpa Stop Loss dengan modal pinjaman'
+            'Akun Standard agar cepat mendapatkan profit besar',
+            'Akun Cent (USC), karena $25 tampil menjadi 2.500 Cent sehingga risiko per transaksi sangat kecil',
+            'Menitipkan $25 ke skema titip dana profit harian tetap',
+            'Akun tanpa Stop Loss dengan dana pinjaman'
           ],
           answerIndex: 1,
-          explanation: 'Akun Cent mengubah $25 menjadi 2.500 USC sehingga pemula bisa belajar menjaga risiko kecil dengan aman sebelum siap ke Akun Standard.'
+          explanation: 'Akun Cent mengubah $25 menjadi 2.500 USC sehingga pemula dapat melatih emosi uang asli dengan risiko terkendali.'
         },
         {
-          question: 'Manakah ciri yang paling akurat untuk mengenali penipuan berkedok trading?',
+          question: 'Manakah ciri utama yang menunjukkan praktik penipuan berkedok trading?',
           options: [
-            'Menyediakan Akun Demo gratis untuk latihan',
-            'Meminta kamu belajar membaca chart dan mengatur risiko sendiri',
+            'Menyediakan Akun Demo gratis untuk simulasi',
+            'Meminta trader mengelola akun dan mengatur risiko sendiri',
             'Menjanjikan profit tetap harian secara pasti melalui sistem titip dana',
-            'Memiliki proses tarik dana ke rekening atas nama pemilik akun sendiri'
+            'Mewajibkan penarikan dana ke rekening atas nama pemilik akun'
           ],
           answerIndex: 2,
-          explanation: 'Di pasar keuangan nyata, tidak ada pihak mana pun yang bisa menjamin profit tetap harian tanpa risiko. Janji profit pasti titip dana adalah ciri utama penipuan.'
+          explanation: 'Harga pasar keuangan selalu berfluktuasi sehingga tidak ada pihak mana pun yang dapat menjamin profit tetap harian tanpa risiko.'
         }
       ]
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // BAB 02 — PIPS, POINT, BID, ASK, DAN SPREAD DI GOLD
+    // BAB 02 — PIPS, POINT, BID, ASK, SPREAD & BIAYA TRANSAKSI GOLD
     // ═══════════════════════════════════════════════════════════════════════
     {
       id: 'bid-ask-spread-pips-gold',
@@ -233,25 +235,24 @@
       levelId: 0,
       bookFormat: true,
       title: 'Pips, Point, Bid, Ask, dan Spread di Gold (XAU/USD)',
-      subtitle: 'Memahami satuan pengukur jarak harga Gold dari nol, kenapa ada dua harga di broker, dan kenapa transaksi baru klik langsung terlihat minus.',
+      subtitle: 'Satuan standar pengukur jarak harga Gold, mekanisme dua harga (Bid dan Ask), dampak Spread pada Stop Loss, serta biaya Swap, Komisi, dan Slippage.',
       readMinutes: 9,
       diagramId: 'zero-bid-ask-spread',
       diagramAfterSection: 2,
-      summary: 'Pelajari apa itu Pips dan Point pada angka harga Gold (2.650,00), cara menghitung jarak pergerakan harga langkah demi langkah, peran Bid vs Ask, serta jebakan Spread pada Stop Loss posisi SELL.',
+      summary: 'Pahami satuan Pips dan Point pada harga XAU/USD (2.650,00), cara menghitung jarak harga, aturan Bid vs Ask, dampak Spread pada posisi BUY/SELL, serta biaya Swap, Komisi Raw/ECN, dan Slippage.',
       bookSections: [
         {
           number: '2.1',
-          heading: 'Apa Itu Pips? (Mulai dari Nol)',
+          heading: 'Pengertian Pips dan Point pada Gold (XAU/USD)',
           paragraphs: [
-            'Kalau di kehidupan sehari-hari kita mengukur panjang meja memakai **sentimeter** dan jarak antarkota memakai **kilometer**, di dunia trading kita juga membutuhkan satuan baku untuk mengukur seberapa jauh harga bergerak naik atau turun. Satuan standar itulah yang disebut **Pips** (*Percentage in Point*).',
-            'Kenapa trader tidak cukup bilang *"hari ini Gold naik sedikit"* atau *"turun banyak"*? Karena kata "sedikit" dan "banyak" sifatnya subjektif. Dengan satuan Pips, semua trader di seluruh dunia berbicara dalam bahasa ukuran yang sama persis. Ketika seseorang berkata *"jarak Stop Loss saya 30 pips"*, semua orang langsung tahu persis seberapa lebar ruang risikonya.',
-            'Sekarang mari kita lihat langsung bentuk angka harga **Gold (XAU/USD)** di chart. Umumnya harga Gold ditulis dengan **dua angka di belakang koma**, contohnya: `2.650,00`. Supaya kamu tidak pernah bingung lagi, mari kita bedah arti setiap digitnya dari kanan ke kiri:'
+            'Dalam trading, perubahan harga diukur dengan satuan baku agar jarak risiko (Stop Loss) dan target (Take Profit) dapat dihitung secara presisi. Dua satuan utama tersebut adalah **Point** dan **Pip** (*Percentage in Point*).',
+            'Harga **Gold (`XAU/USD`)** di sebagian besar broker ditampilkan dengan **dua angka di belakang koma**, misalnya `2.650,00`. Rincian nilai setiap digitnya dari kanan ke kiri adalah sebagai berikut:'
           ],
           table: {
-            caption: 'Anatomi Digit Harga Gold (Contoh: 2.650,00)',
+            caption: 'Anatomi Digit Harga Gold (Contoh Acuan: 2.650,00)',
             headers: ['Perubahan Angka', 'Nama Satuan', 'Kesetaraan'],
             rows: [
-              ['0,01 (digit paling kanan)', '1 Point', 'Satuan gerak terkecil di chart Gold 2 desimal'],
+              ['0,01 (digit paling kanan)', '1 Point', 'Satuan pergerakan terkecil pada chart Gold 2 desimal'],
               ['0,10 (digit kedua dari kanan)', '1 Pip', '1 Pip = 10 Point'],
               ['$1,00 (digit satuan dolar)', '10 Pips', '$1,00 = 10 Pips = 100 Point'],
               ['$10,00 (digit puluhan dolar)', '100 Pips', '$10,00 = 100 Pips = 1.000 Point']
@@ -260,40 +261,39 @@
         },
         {
           number: '2.2',
-          heading: 'Cara Menghitung Pips di Gold (Langkah demi Langkah)',
+          heading: 'Cara Menghitung Jarak Pips di Gold',
           paragraphs: [
-            'Jangan sekadar dihafal — mari kita praktikkan langsung dengan tiga contoh angka nyata agar langsung menempel di kepala:',
-            '**Trik cepat khusus Gold (XAU/USD):** Cari dulu selisih harga dalam dolar, lalu **kalikan 10** (cukup geser tanda koma satu langkah ke kanan). Selisih `$2,30` artinya **23 Pips**. Selisih `$12,50` artinya **125 Pips**. Sesederhana itu!'
+            'Untuk menghitung jumlah Pips pada `XAU/USD`, cari selisih harga dalam dolar lalu **kalikan 10** (`Selisih Harga $ × 10 = Pips`).',
+            'Rumus ini berlaku konsisten untuk mengukur jarak entry ke Stop Loss maupun jarak entry ke Take Profit:'
           ],
           exampleBox: {
-            title: 'Latihan Pelan: Menghitung Jarak Pergerakan Harga Gold',
+            title: 'Contoh Perhitungan Jarak Pips pada XAU/USD',
             rows: [
               {
                 label: 'Contoh 1',
-                detail: 'Harga naik dari `2.650,00` ke `2.650,10` → selisih `$0,10` → `$0,10 × 10` = **1 Pip** (10 Point).'
+                detail: 'Harga bergerak dari `2.650,00` ke `2.650,10` → selisih `$0,10` → `$0,10 × 10` = **1 Pip** (10 Point).'
               },
               {
                 label: 'Contoh 2',
-                detail: 'Harga naik dari `2.650,00` ke `2.651,00` → selisih `$1,00` → `$1,00 × 10` = **10 Pips** (100 Point).'
+                detail: 'Harga bergerak dari `2.650,00` ke `2.651,00` → selisih `$1,00` → `$1,00 × 10` = **10 Pips** (100 Point).'
               },
               {
                 label: 'Contoh 3',
-                detail: 'Target profitmu dari `2.650,00` ke `2.654,50` → selisih `$4,50` → `$4,50 × 10` = **45 Pips** (450 Point).'
+                detail: 'Harga bergerak dari `2.650,00` ke `2.654,50` → selisih `$4,50` → `$4,50 × 10` = **45 Pips** (450 Point).'
               }
             ]
           }
         },
         {
           number: '2.3',
-          heading: 'Kenapa di Broker Selalu Ada Dua Harga? (Bid & Ask)',
+          heading: 'Pengertian Bid, Ask, dan Aturan Eksekusi Transaksi',
           paragraphs: [
-            'Sekarang kamu sudah bisa membaca jarak gerak harga Gold. Tetapi begitu kamu membuka aplikasi MetaTrader 5, kamu akan menemui hal yang sering membuat pemula mengernyitkan dahi: **kenapa harga Gold bukan cuma satu angka, melainkan dua angka sekaligus?**',
-            'Misalnya di layar tertulis: **Bid = `2.650,00`** dan **Ask = `2.650,30`**. Untuk memahaminya dalam 10 detik, bayangkan kamu pergi ke **toko emas** atau *money changer*. Di papan toko emas selalu terpampang dua harga: harga kalau toko **menjual** emas kepadamu (lebih mahal), dan harga kalau toko **membeli balik** emas darimu (lebih murah).',
-            'Di broker trading, mekanismenya persis sama — hanya memakai istilah bahasa Inggris:'
+            'Pada aplikasi trading seperti MetaTrader 5, setiap instrumen selalu menampilkan **dua harga sekaligus**: **Bid** dan **Ask**. Contohnya: **Bid = `2.650,00`** dan **Ask = `2.650,30`**.',
+            '**Bid** adalah harga pasar untuk membuka transaksi **SELL** (dan menutup transaksi **BUY**). **Ask** adalah harga pasar untuk membuka transaksi **BUY** (dan menutup transaksi **SELL**). Harga Ask selalu sedikit lebih tinggi daripada harga Bid.'
           ],
           table: {
-            caption: 'Aturan Baku Bid & Ask Saat Membuka dan Menutup Transaksi',
-            headers: ['Arah Transaksi', 'Harga Saat BUKA (Masuk)', 'Harga Saat TUTUP (Keluar / SL / TP)'],
+            caption: 'Aturan Baku Bid dan Ask Saat Membuka & Menutup Posisi',
+            headers: ['Arah Transaksi', 'Harga Saat BUKA (Entry)', 'Harga Saat TUTUP (Close / SL / TP)'],
             rows: [
               ['BUY (Beli)', 'Harga ASK (lebih tinggi, mis. 2.650,30)', 'Harga BID (lebih rendah)'],
               ['SELL (Jual)', 'Harga BID (lebih rendah, mis. 2.650,00)', 'Harga ASK (lebih tinggi)']
@@ -302,91 +302,108 @@
         },
         {
           number: '2.4',
-          heading: 'Apa Itu Spread, dan Dua Misteri Klasik Pemula',
+          heading: 'Spread dan Dampaknya pada Posisi BUY maupun SELL',
           paragraphs: [
-            'Lihat selisih antara Ask (`2.650,30`) dan Bid (`2.650,00`) tadi. Selisihnya adalah **`$0,30`** atau **3 Pips** (30 Point). Selisih inilah yang disebut **Spread** — yaitu biaya layanan broker setiap kali kamu membuka transaksi.',
-            'Dari konsep Spread ini, dua kejadian yang paling sering membuat trader pemula merasa "dicurangi broker" langsung terjawab tuntas secara logis:'
+            'Selisih antara harga Ask (`2.650,30`) dan harga Bid (`2.650,00`) sebesar **`$0,30` (3 Pips / 30 Point)** disebut **Spread**. Spread merupakan biaya transaksi yang dibebankan saat kamu membuka posisi.',
+            'Memahami mekanisme Spread langsung menjelaskan dua hal teknis yang sering disalahpahami pemula:'
           ],
           exampleBox: {
-            title: 'Jawaban Logis 2 Misteri Klasik di Chart Gold',
+            title: 'Dua Efek Teknis Spread di Chart XAU/USD',
             rows: [
               {
-                label: '1. Kenapa baru klik langsung minus?',
-                detail: 'Karena kamu baru membayar "tiket masuk" sebesar Spread. Saat kamu klik BUY di Ask `2.650,30`, padahal harga jual balik saat itu (Bid) baru `2.650,00`, maka jika ditutup di detik itu juga posisimu rugi 3 pips (`$0,30`). Harga harus naik minimal 3 pips dulu agar posisimu impas (*breakeven*), lalu selebihnya baru mulai biru (profit).'
+                label: '1. Posisi baru dibuka langsung minus',
+                detail: 'Saat klik BUY di Ask `2.650,30`, harga jual balik saat itu (Bid) berada di `2.650,00`. Jika langsung ditutup detik itu juga, selisihnya minus 3 pips (`-$0,30`). Harga harus bergerak searah melebihi jarak Spread dulu agar impas (*breakeven*), lalu baru mencatat profit.'
               },
               {
-                label: '2. Kenapa posisi SELL kena SL padahal candle belum menyentuh garis?',
-                detail: 'Secara bawaan, batang candle di chart hanya menggambar **garis Bid**. Padahal posisi **SELL ditutup memakai garis Ask** yang selalu melayang di atas Bid sebesar Spread! Misal SL Sell-mu di `2.652,00` dan spread `$0,30`: ketika garis Bid (ekor candle) baru naik ke `2.651,70`, garis Ask sebenarnya sudah menyentuh `2.651,70 + 0,30 = 2.652,00` — dan SL-mu pun langsung tereksekusi!'
+                label: '2. SL posisi SELL tersentuh sebelum candle menyentuh garis',
+                detail: 'Secara standar, grafik candlestick hanya menggambar **harga Bid**, sedangkan posisi **SELL ditutup menggunakan harga Ask** (yang berada di atas Bid sebesar Spread). Jika SL Sell dipasang di `2.652,00` dengan spread `$0,30`, maka saat Bid (puncak wick) baru mencapai `2.651,70`, harga Ask sudah mencapai `2.652,00` (`2.651,70 + 0,30`) dan SL langsung aktif.'
               }
             ]
           },
           callout: {
             tone: 'tip',
-            title: 'Kebiasaan Praktis Trader Gold',
-            body: 'Nyalakan fitur **"Show Ask Line"** di pengaturan chart MT5-mu agar kedua garis (Bid dan Ask) selalu terlihat jelas. Selain itu, setiap kali memasang Stop Loss untuk posisi **SELL**, selalu beri napas tambahan sedikit di atas titik struktur (misal +$0,40 sampai +$0,50) agar tidak tersentuh hanya gara-gara spread.'
+            title: 'Standar Pengaturan Chart & SL Posisi SELL',
+            body: 'Aktifkan fitur **Show Ask Line** di pengaturan chart MT5 agar posisi garis Bid dan Ask selalu terlihat bersamaan. Saat memasang Stop Loss untuk posisi **SELL**, tambahkan buffer spread (misalnya `+$0,40` hingga `+$0,50`) di atas level struktur agar tidak tereksekusi prematur akibat melebarnya spread.'
+          }
+        },
+        {
+          number: '2.5',
+          heading: 'Biaya Transaksi Lain: Swap, Komisi Akun Raw/ECN & Slippage',
+          paragraphs: [
+            'Selain Spread, terdapat tiga komponen biaya atau geseran eksekusi lain di broker yang perlu dipahami sejak awal:',
+            '1. **Swap (Biaya Inap Harian):** Jika posisi dibiarkan terbuka melewati pergantian hari pasar (**Rollover**, sekitar `05:00 WITA` EDT / `06:00 WITA` EST), broker mengenakan bunga/biaya inap yang disebut **Swap**. Khusus malam **Rabu ke Kamis**, berlaku **Triple Swap** (3× biaya harian sekaligus untuk menghitung akhir pekan). Trader harian (*intraday*) yang menutup posisi sebelum ganti hari tidak terkena Swap, atau dapat memilih akun *Swap-Free* jika tersedia. 2. **Komisi pada Akun Raw / ECN:** **Akun Standard** tidak mengenakan komisi terpisah karena seluruh biaya masuk ke dalam Spread (`±2,0–3,5 pips`). Sebaliknya, **Akun Raw / ECN** memberikan Spread sangat tipis (`±0,5–1,5 pips`) dengan tambahan **Komisi tetap** (umumnya `$6–$7` per `1.00 lot` pulang-pergi, atau sekitar `$0,06–$0,07` untuk `0.01 lot`). 3. **Slippage (Geseran Harga Eksekusi):** Pada saat rilis berita ekonomi besar (CPI, NFP, FOMC) atau pembukaan pasar Senin pagi, harga dapat melompat cepat sehingga eksekusi order atau Stop Loss terisi sedikit bergeser dari angka yang dipasang karena kekosongan likuiditas sesaat.'
+          ],
+          table: {
+            caption: 'Perbandingan Struktur Biaya Akun Standard vs Raw / ECN pada XAU/USD',
+            headers: ['Komponen Biaya', 'Akun Standard / Cent', 'Akun Raw / ECN', 'Catatan Teknis'],
+            rows: [
+              ['Spread Normal Gold', '± 2,0 – 3,5 pips', '± 0,5 – 1,5 pips', 'Total biaya efektif mirip; Raw lebih presisi untuk SL ketat'],
+              ['Komisi per Lot', '$0 (masuk ke spread)', '±$6 – $7 per 1.00 lot (PP)', 'Untuk 0.01 lot setara ±$0,06 – $0,07 per transaksi'],
+              ['Swap (Biaya Inap)', 'Berlaku lewat Rollover', 'Berlaku lewat Rollover', 'Triple Swap pada malam Rabu ke Kamis; 0 jika tutup harian'],
+              ['Slippage', 'Tinggi saat News / Rollover', 'Tinggi saat News / Rollover', 'Hindari eksekusi tepat saat rilis berita besar & pergantian hari']
+            ]
           }
         }
       ],
       keyTakeaways: [
-        'Di Gold (XAU/USD): `0,01` = 1 Point, `0,10` = 1 Pip (10 Point), dan `$1,00` = 10 Pips (100 Point).',
-        'Cara cepat menghitung pips Gold: cari selisih harga dalam dolar lalu kalikan 10.',
-        'BUY dibuka di **Ask** dan ditutup di **Bid**; SELL dibuka di **Bid** dan ditutup di **Ask**.',
-        'Selisih `Ask - Bid` adalah **Spread** — itulah alasan posisi baru dibuka langsung minus dan Stop Loss SELL wajib diberi napas spread.'
+        'Pada Gold (XAU/USD): 0,01 = 1 Point, 0,10 = 1 Pip (10 Point), dan $1,00 = 10 Pips.',
+        'BUY dibuka di harga Ask dan ditutup di Bid; SELL dibuka di Bid dan ditutup di Ask.',
+        'Selisih Ask - Bid adalah Spread; perhatikan pula biaya Swap (Triple Swap Rabu malam), Komisi Raw/ECN, dan risiko Slippage saat news.'
       ],
-      bridgeNext: 'Sekarang kamu sudah mahir mengukur jarak gerak harga Gold dengan Pips, dan sudah paham kenapa ada Bid, Ask, serta Spread. Namun, pasti muncul satu pertanyaan paling penting berikutnya: *"Kalau aku tahu jarak Stop Loss-ku 50 Pips ($5,00), berapa dolar sebenarnya uang yang berkurang jika SL itu tersentuh — $5, $50, atau $500?"* Jawabannya ditentukan oleh ukuran transaksi yang kamu pilih. Mari kita kuasai hitungannya secara tuntas di **Bab 03: Lot, Leverage, Margin, Balance vs Equity & Rumus Risiko 1%**.',
+      bridgeNext: 'Setelah mampu menghitung jarak pergerakan harga dalam Pips dan memahami biaya transaksi, pertanyaan berikutnya adalah berapa nilai uang dari setiap pergerakan Pips tersebut. Di **Bab 03**, kita membahas **Lot, Leverage, Margin, Balance vs Equity**, serta rumus eksak menghitung ukuran Lot berdasarkan batas risiko 1%.',
       conceptBlocks: [
         {
           heading: 'Pips, Point, Bid, Ask & Spread XAU/USD',
           paragraphs: [
-            'Pada Gold (XAU/USD): 0,01 = 1 Point, 0,10 = 1 Pip, dan $1,00 = 10 Pips. Selisih harga dolar dikali 10 langsung menghasilkan jumlah pips.',
+            'Pada Gold (XAU/USD): 0,01 = 1 Point, 0,10 = 1 Pip, dan $1,00 = 10 Pips. Selisih harga dolar dikali 10 menghasilkan jumlah pips.',
             'BUY dibuka di Ask dan ditutup di Bid; SELL dibuka di Bid dan ditutup di Ask. Selisih Ask - Bid adalah Spread.'
           ]
         }
       ],
       mappingSteps: [
-        'Aktifkan garis Bid dan Ask (Show Ask Line) di pengaturan chart MT5.',
-        'Latih mengukur jarak dua harga Gold menggunakan penggaris chart (Crosshair) dan konversikan selisih dolar × 10 menjadi Pips.',
-        'Selalu tambahkan napas spread di atas struktur saat menaruh Stop Loss untuk posisi SELL.'
+        'Aktifkan fitur Show Ask Line pada pengaturan chart MT5.',
+        'Ukur jarak dua level harga XAU/USD menggunakan Crosshair lalu konversikan selisih dolar × 10 menjadi Pips.',
+        'Tambahkan buffer spread di atas level struktur setiap kali memasang Stop Loss posisi SELL.'
       ],
       decisionTree: [
         {
-          condition: 'Kamu memasang posisi SELL dengan SL tepat nempel di puncak candle sebelumnya.',
-          action: 'Geser SL sedikit lebih tinggi (+$0,40 hingga +$0,50) agar garis Ask tidak menyentuh SL sebelum harga benar-benar menembus struktur.'
+          condition: 'Memasang Stop Loss posisi SELL tepat menempel pada puncak candle sebelumnya.',
+          action: 'Geser SL sedikit lebih tinggi (+$0,40 hingga +$0,50) agar garis Ask tidak memicu SL sebelum harga benar-benar menembus struktur.'
         },
         {
-          condition: 'Spread Gold tiba-tiba melebar jauh di atas normal (misal dari 3 pips melonjak jadi 15 pips saat pergantian hari atau berita).',
-          action: 'Tunda dulu klik entry sampai spread kembali normal agar biaya masuk tidak memakan potensi profit.'
+          condition: 'Spread Gold melebar jauh di atas normal (misalnya dari 3 pips menjadi 15 pips saat rollover atau rilis berita).',
+          action: 'Tunda eksekusi hingga spread kembali normal agar biaya masuk tidak menggerus rasio R:R.'
         }
       ],
       validRules: [
-        'Aktifkan garis Ask di chart agar melihat jarak spread secara nyata.',
-        'Selalu tambahkan ruang napas spread pada Stop Loss posisi SELL.',
-        'Hitung jarak SL dan TP dalam dolar & pips sebelum menekan tombol order.'
+        'Aktifkan garis Ask di chart agar jarak spread terlihat langsung.',
+        'Tambahkan buffer spread pada Stop Loss posisi SELL.',
+        'Hitung jarak SL dan TP dalam dolar dan pips sebelum menempatkan order.'
       ],
       invalidRules: [
-        'Menganggap broker curang ketika posisi SELL kena SL oleh garis Ask yang disembunyikan.',
-        'Membuka transaksi saat spread sedang melebar ekstrem pada jam rollover atau berita besar.'
+        'Memasang SL SELL tanpa memperhitungkan harga Ask.',
+        'Membuka posisi saat spread melebar ekstrem pada jam rollover atau rilis berita besar.'
       ],
       xauScenario: {
-        context: 'Harga XAU/USD menunjukkan Bid 2.650,00 dan Ask 2.650,30 (spread $0,30 / 3 pips). Kamu ingin memasang posisi SELL dengan area batal di 2.652,00.',
+        context: 'Harga XAU/USD menunjukkan Bid 2.650,00 dan Ask 2.650,30 (spread $0,30 / 3 pips). Rencana posisi SELL memiliki batas invalidasi struktur di 2.652,00.',
         steps: [
           'Hitung jarak dari Bid 2.650,00 ke level 2.652,00 = $2,00 (20 pips).',
-          'Karena SELL ditutup di garis Ask, beri napas spread +$0,50 sehingga SL ditaruh di 2.652,50.',
-          'Jika harga Bid naik hanya sampai 2.651,80, garis Ask berada di 2.652,10 dan posisimu tetap aman dari kena sweep prematur.'
+          'Karena SELL ditutup di garis Ask, tambahkan buffer spread +$0,50 sehingga SL ditempatkan di 2.652,50.',
+          'Jika Bid hanya naik sampai 2.651,80, Ask berada di 2.652,10 sehingga posisi tetap terlindungi dari aktivasi SL prematur.'
         ]
       },
       failedCase: {
-        title: 'SL Sell Tersentuh Padahal Ekor Candle Belum Sampai',
-        context: 'Trader menaruh SL Sell persis di angka 2.652,00 saat spread sedang $0,30 (3 pips).',
-        whyFailed: 'Ketika candle (garis Bid) baru menyentuh 2.651,70, garis Ask sudah mencapai 2.652,00 (2.651,70 + 0,30) sehingga SL langsung tereksekusi meski di layar tampak belum tersentuh.'
+        title: 'SL Sell Tersentuh oleh Harga Ask',
+        context: 'Trader menaruh SL Sell persis di 2.652,00 saat spread $0,30 (3 pips).',
+        whyFailed: 'Saat garis Bid baru menyentuh 2.651,70, harga Ask sudah mencapai 2.652,00 (2.651,70 + 0,30) sehingga SL langsung tereksekusi.'
       },
       goldenRules: [
-        'Di Gold, selisih $1,00 = 10 Pips = 100 Point.',
-        'BUY ditutup oleh Bid; SELL ditutup oleh Ask — selalu beri napas spread di SL Sell.'
+        'Pada Gold, selisih $1,00 = 10 Pips = 100 Point.',
+        'BUY ditutup oleh Bid; SELL ditutup oleh Ask — selalu tambahkan buffer spread pada SL Sell.'
       ],
       practiceCta: {
-        label: 'Lihat Live Bid/Ask di Cockpit Mapping',
-        description: 'Amati bagaimana angka harga Gold bergerak real-time sebelum mulai berlatih menghitung risiko di Bab 03.',
+        label: 'Amati Pergerakan Harga Live di Cockpit Mapping',
+        description: 'Perhatikan perubahan angka harga Gold secara langsung sebelum melatih perhitungan Lot dan risiko di Bab 03.',
         href: '../mapping/index.html'
       },
       quiz: [
@@ -399,21 +416,21 @@
             '4.500 Pips'
           ],
           answerIndex: 1,
-          explanation: 'Selisih harganya adalah $4,50. Karena setiap $1,00 di Gold = 10 Pips, maka $4,50 × 10 = 45 Pips (atau 450 Point).'
+          explanation: 'Selisih harganya adalah $4,50. Karena setiap $1,00 pada Gold = 10 Pips, maka $4,50 × 10 = 45 Pips (450 Point).'
         },
         {
-          question: 'Saat kamu membuka aplikasi broker, tertulis Bid = 2.650,00 dan Ask = 2.650,30. Jika kamu langsung klik BUY, di harga mana transaksi dibuka dan berapa spread-nya?',
+          question: 'Di layar broker tertera Bid = 2.650,00 dan Ask = 2.650,30. Jika kamu langsung klik BUY, pada harga berapa transaksi dibuka dan berapa besar spread-nya?',
           options: [
             'Dibuka di 2.650,00 dengan spread 30 Pips',
             'Dibuka di 2.650,30 (Ask) dengan spread $0,30 (3 Pips)',
-            'Dibuka di tengah-tengah 2.650,15 tanpa spread',
-            'Dibuka di 2.650,00 dan langsung biru profit 3 Pips'
+            'Dibuka di 2.650,15 tanpa spread',
+            'Dibuka di 2.650,00 dan langsung profit 3 Pips'
           ],
           answerIndex: 1,
-          explanation: 'Posisi BUY selalu dibuka di harga Ask (2.650,30). Selisih Ask - Bid = $0,30 atau 3 Pips.'
+          explanation: 'Posisi BUY dibuka pada harga Ask (2.650,30). Selisih Ask - Bid sebesar $0,30 sama dengan 3 Pips.'
         },
         {
-          question: 'Kamu punya posisi SELL XAU/USD dengan Stop Loss di 2.652,00. Saat spread sedang $0,30 (3 pips), pada harga Bid berapa Stop Loss-mu sebenarnya akan tersentuh?',
+          question: 'Kamu memiliki posisi SELL XAU/USD dengan Stop Loss di 2.652,00. Jika spread sedang $0,30 (3 pips), pada harga Bid berapa Stop Loss tersebut akan tereksekusi?',
           options: [
             'Saat Bid mencapai 2.652,30',
             'Saat Bid mencapai 2.652,00 persis',
@@ -421,18 +438,18 @@
             'Stop Loss SELL tidak dipengaruhi spread'
           ],
           answerIndex: 2,
-          explanation: 'Posisi SELL ditutup memakai harga Ask. Begitu Bid mencapai 2.651,70 dengan spread $0,30, harga Ask sudah tepat 2.652,00 sehingga SL langsung aktif.'
+          explanation: 'Posisi SELL ditutup memakai harga Ask. Saat Bid menyentuh 2.651,70 dengan spread $0,30, harga Ask sudah mencapai 2.652,00.'
         },
         {
-          question: 'Mengapa setiap kali kamu menekan tombol BUY atau SELL, angka profit/rugi di detik pertama selalu terlihat merah (minus)?',
+          question: 'Mengapa setiap posisi BUY atau SELL yang baru dibuka langsung menampilkan angka negatif (minus) pada detik pertama?',
           options: [
-            'Karena koneksi internet lambat',
-            'Karena kamu langsung membayar biaya Spread (selisih harga buka dan harga tutup saat itu)',
-            'Karena broker selalu memotong 10% saldo di awal',
-            'Karena harga Gold hanya boleh dibeli saat malam hari'
+            'Karena gangguan koneksi internet',
+            'Karena transaksi langsung menanggung biaya Spread (selisih antara harga buka dan harga tutup saat itu)',
+            'Karena broker otomatis memotong 10% dari modal',
+            'Karena transaksi emas hanya valid pada malam hari'
           ],
           answerIndex: 1,
-          explanation: 'Minus awal tersebut adalah Spread (selisih Ask dan Bid). Begitu harga bergerak searah melebihi jarak Spread, posisi akan berubah menjadi impas lalu biru (profit).'
+          explanation: 'Nilai minus awal adalah biaya Spread (selisih Ask dan Bid). Posisi akan impas lalu profit setelah harga bergerak searah melebihi jarak Spread.'
         }
       ]
     },
@@ -447,20 +464,19 @@
       levelId: 0,
       bookFormat: true,
       title: 'Lot, Leverage, Margin, Balance vs Equity & Rumus Risiko 1%',
-      subtitle: 'Tuntas sekali jalan: mengubah jarak Pips menjadi nilai dolar, memahami cara kerja daya ungkit (Leverage), dan rumus anti Margin Call.',
+      subtitle: 'Menentukan nilai uang per Pip melalui ukuran Lot, cara kerja Leverage dan Margin, membaca kesehatan akun di MT5, dan menghitung Lot secara eksak.',
       readMinutes: 11,
       diagramId: 'zero-lot-margin-meter',
       diagramAfterSection: 2,
       interactiveLabAfterSection: 3,
-      summary: 'Pahami ukuran transaksi (Lot) di Gold, cara kerja Leverage & Margin, perbedaan Balance vs Equity vs Free Margin, serta rumus baku menghitung Lot agar risiko selalu terjaga di 0,5%–1% modal.',
+      summary: 'Kuasai satuan kontrak Lot pada XAU/USD, fungsi Leverage & Margin, perbedaan Balance, Equity, dan Free Margin, serta rumus baku menghitung Lot agar risiko selalu berada di batas 0,5%–1% modal.',
       bookSections: [
         {
           number: '3.1',
-          heading: 'Apa Itu Lot? (Penentu Nilai Uang per Pip)',
+          heading: 'Pengertian Lot dan Nilai Uang per Pergerakan Harga Gold',
           paragraphs: [
-            'Di Bab 02 kita sudah sepakat bahwa jarak gerak harga diukur dengan **Pips** — ibarat jarak kilometer di jalan raya. Sekarang bayangkan kamu mengisi bensin: jarak 50 km di sepeda motor menghabiskan biaya jauh lebih sedikit dibandingkan 50 km di truk kontainer. Di dunia trading, ukuran "kendaraan" yang menentukan seberapa besar nilai uang per pip itu disebut **Lot**.',
-            'Pada kontrak **Akun Standard Gold (XAU/USD)**, **1.00 Lot penuh sama dengan 100 troy ounce emas**. Artinya, setiap kali harga emas bergerak naik atau turun sebesar **$1,00 (10 Pips)**, nilai transaksi 1.00 lot berubah sebesar **`100 × $1 = $100`**.',
-            'Tentu trader ritel tidak wajib memakai 1.00 lot penuh — kamu bisa memecahnya menjadi ukuran kecil hingga **0.01 lot** (Micro Lot). Simpan baik-baik tabel nilai uang berikut karena akan kamu pakai seumur hidup saat trading Gold:'
+            '**Lot** adalah satuan standar ukuran volume transaksi di pasar keuangan. Jika **Pips** mengukur seberapa jauh harga bergerak, maka **Lot** menentukan berapa nilai dolar dari setiap pergerakan Pips tersebut.',
+            'Pada kontrak **Akun Standard Gold (`XAU/USD`)**, **1.00 Lot penuh sama dengan 100 troy ounce emas**. Artinya, setiap pergerakan harga emas sebesar **$1,00 (10 Pips)** pada 1.00 Lot bernilai **`100 × $1 = $100`**. Untuk menyesuaikan dengan modal, ukuran transaksi dapat dipecah hingga **0.01 Lot** (*Micro Lot*).'
           ],
           table: {
             caption: 'Nilai Uang per Pergerakan Harga Gold (Akun Standard vs Akun Cent)',
@@ -475,143 +491,141 @@
         },
         {
           number: '3.2',
-          heading: 'Bagaimana Modal Kecil Bisa Beli Emas $2.650? (Leverage & Margin)',
+          heading: 'Cara Kerja Leverage dan Margin',
           paragraphs: [
-            'Mungkin kamu sempat heran melihat tabel di atas: *"Tunggu dulu, kalau 0.01 lot Standard setara 1 oz emas yang harganya $2.650, kok aku yang cuma punya modal $100 bisa membuka posisi 0.01 lot?"*',
-            'Jawabannya ada pada **Leverage** (daya ungkit). Leverage adalah fasilitas dari broker agar kamu cukup menyetor **uang jaminan sementara** yang disebut **Margin**, bukan membayar penuh nilai kontrak emasnya.',
-            'Contoh hitungannya sangat sederhana: nilai kontrak 0.01 lot Gold di harga `$2.650` adalah **$2.650**. Jika akunmu memakai Leverage **1:500**, maka Margin yang ditahan sementara oleh broker hanyalah **`$2.650 ÷ 500 = $5,30`**. Begitu transaksimu ditutup, uang jaminan `$5,30` itu langsung dilepaskan kembali ke saldomu.',
-            'Namun ingat jebakan terbesarnya: **Leverage memperkecil uang jaminan (Margin), BUKAN memperkecil kerugian!** Pakai Leverage 1:100 maupun 1:2000, kalau kamu membuka 0.01 lot Standard dan harga bergerak berlawanan `$5,00`, kerugianmu tetap sama persis yaitu **$5,00**. Leverage besar hanya berbahaya jika membuatmu tergoda membuka lot kegedean.'
+            'Pada harga emas `$2.650`, nilai kontrak `0.01 lot` Standard (1 troy ounce) adalah **$2.650**. Namun dengan modal `$100`, kamu tetap dapat membuka posisi tersebut berkat fasilitas **Leverage** (daya ungkit).',
+            'Dengan Leverage, broker hanya menahan sebagian kecil dari nilai kontrak sebagai **uang jaminan sementara** yang disebut **Margin**. Rumusnya adalah: **`Margin = Nilai Kontrak ÷ Leverage`**.',
+            'Sebagai contoh, dengan Leverage **1:500**, Margin yang ditahan untuk `0.01 lot` Gold pada harga `$2.650` hanyalah **`$2.650 ÷ 500 = $5,30`**. Setelah posisi ditutup, Margin `$5,30` tersebut otomatis kembali ke dana bebas akunmu.',
+            'Hal penting yang wajib dipahami: **Leverage hanya memperkecil jaminan Margin, TIDAK memperkecil nilai untung atau rugi per Pip.** Baik memakai Leverage 1:100 maupun 1:2000, jika kamu membuka `0.01 lot` Standard dan harga bergerak berlawanan `$5,00`, kerugiannya tetap sama persis sebesar **$5,00**.'
           ]
         },
         {
           number: '3.3',
-          heading: 'Membedakan Balance, Equity, Free Margin & Bahaya Margin Call',
+          heading: 'Balance, Floating P/L, Equity, Free Margin, Margin Call & Stop Out',
           paragraphs: [
-            'Di bagian atas tab **Trade** aplikasi MT5, kamu akan selalu melihat tiga angka penting yang terus bergerak setiap detik saat ada posisi terbuka: **Balance**, **Equity**, dan **Free Margin**. Banyak pemula terjebak hanya melihat Balance yang terlihat besar dan merasa akunnya aman, padahal posisi yang sedang terbuka mengalami rugi mengambang (floating loss) sangat dalam.',
-            'Agar tidak pernah salah membaca kesehatan akunmu sendiri, perhatikan simulasi angka nyata layar MT5 berikut ketika seorang trader memiliki modal $1.000 lalu sedang membuka posisi 0.02 lot Gold yang berlawanan arah sebesar $15:'
+            'Pada tab **Trade** di MetaTrader 5, terdapat empat metrik utama yang menunjukkan kondisi kesehatan akun secara *real-time*. Perhatikan simulasi akun bermodal `$1.000` yang sedang membuka posisi `0.02 lot` Gold dengan kerugian mengambang sebesar `-$30`:'
           ],
           exampleBox: {
-            title: 'Simulasi Layar MT5 Saat Posisi Sedang Berjalan',
+            title: 'Simulasi Layar Tab Trade MT5 Saat Posisi Aktif',
             rows: [
               {
                 label: 'Balance = $1.000,00',
-                detail: 'Uang tunai di akunmu dari seluruh transaksi yang **sudah ditutup**. Angka ini tidak berubah selama posisi masih berjalan.'
+                detail: 'Total saldo dari seluruh transaksi yang **sudah ditutup**. Angka ini tidak berubah selama posisi masih berjalan.'
               },
               {
-                label: 'Floating = -$30,00',
-                detail: 'Untung atau rugi sementara dari posisi yang **masih terbuka** saat ini.'
+                label: 'Floating P/L = -$30,00',
+                detail: 'Keuntungan atau kerugian sementara dari posisi yang **masih terbuka** saat ini.'
               },
               {
                 label: 'Equity = $970,00',
-                detail: 'Nilai bersih akunmu detik ini (`Balance + Floating` = `$1.000 - $30`). **Inilah nyawa asli akunmu.**'
+                detail: 'Nilai bersih akun yang sebenarnya saat ini (`Balance + Floating` = `$1.000 - $30`).'
               },
               {
                 label: 'Free Margin = $959,40',
-                detail: 'Sisa dana bebas setelah dikurangi Margin terpakai (misal `$10,60` untuk 0.02 lot): `$970,00 - $10,60 = $959,40`.'
+                detail: 'Sisa dana bebas setelah dikurangi Margin terpakai (misalnya `$10,60` untuk `0.02 lot`): `$970,00 - $10,60 = $959,40`.'
               }
             ]
           },
           callout: {
             tone: 'warn',
-            title: 'Apa Itu Margin Call & Stop Out?',
-            body: 'Jika kamu membuka lot terlalu besar tanpa Stop Loss lalu Equity terus menyusut hingga mendekati batas Margin yang ditahan, broker akan memberi peringatan (Margin Call) dan akhirnya menutup paksa seluruh posisimu dalam keadaan rugi besar (Stop Out) agar saldomu tidak minus. Satu-satunya obat anti Margin Call adalah rumus risiko di sub-bab berikutnya.'
+            title: 'Mekanisme Margin Call dan Stop Out',
+            body: 'Jika posisi dibuka dengan Lot terlalu besar tanpa Stop Loss hingga **Equity** terus menyusut mendekati batas Margin yang ditahan, broker akan mengeluarkan peringatan (**Margin Call**). Apabila penurunan berlanjut mencapai batas minimum broker (misalnya Margin Level 20%–50%), sistem akan menutup paksa seluruh posisi aktif dalam kondisi rugi (**Stop Out**) untuk mencegah saldo menjadi minus.'
           }
         },
         {
           number: '3.4',
-          heading: 'Rumus Baku Hitung Lot: Aturan Risiko 0,5% – 1% per Transaksi',
+          heading: 'Rumus Menghitung Lot Berdasarkan Batas Risiko 0,5% – 1%',
           paragraphs: [
-            'Trader amatir selalu bertanya: *"Enaknya aku pasang berapa lot ya?"* lalu menebak asal `0.05` atau `0.10`. Trader profesional tidak pernah menebak lot. Mereka **menentukan dulu batas rugi maksimal dalam dolar (0,5% hingga 1% dari modal)**, mengukur **jarak Stop Loss di chart**, lalu memasukkan keduanya ke satu rumus eksak:',
+            'Ukuran Lot tidak ditentukan secara acak. Langkah profesional adalah menetapkan terlebih dahulu **batas risiko maksimal per transaksi (0,5% hingga 1% dari modal)**, mengukur **jarak Stop Loss di chart**, lalu menghitung Lot dengan rumus baku:',
             '**Rumus Lot Akun Standard Gold:** `Lot = Risiko ($) ÷ (Jarak SL dalam $ × 100)`',
-            'Mari kita uji rumus ini pada tiga skenario modal yang berbeda supaya kamu benar-benar melihat betapa presisinya:'
+            'Berikut tiga contoh perhitungan nyata berdasarkan ukuran modal:'
           ],
           exampleBox: {
-            title: '3 Latihan Hitung Lot Eksak di Gold (XAU/USD)',
+            title: '3 Contoh Perhitungan Lot Eksak pada Gold (XAU/USD)',
             rows: [
               {
-                label: 'Skenario A (Modal $1.000 · Standard)',
-                detail: 'Batas risiko 1% = **$10**. Jarak SL di chart = **$5,00** (50 pips). Hitungan: `$10 ÷ (5 × 100) = $10 ÷ 500` = **0.02 Lot**. Cek balik: `0.02 × $5 × 100 = $10` (tepat 1%!).'
+                label: 'Modal $1.000 (Akun Standard)',
+                detail: 'Risiko 1% = **$10**. Jarak SL = **$5,00** (50 pips). Hitungan: `$10 ÷ (5 × 100)` = **0.02 Lot**. Verifikasi: `0.02 × $5 × 100 = $10` (tepat 1%).'
               },
               {
-                label: 'Skenario B (Modal $500 · Standard)',
-                detail: 'Batas risiko 1% = **$5**. Jarak SL di chart = **$5,00** (50 pips). Hitungan: `$5 ÷ (5 × 100) = $5 ÷ 500` = **0.01 Lot**. Cek balik: `0.01 × $5 × 100 = $5` (tepat 1%!).'
+                label: 'Modal $500 (Akun Standard)',
+                detail: 'Risiko 1% = **$5**. Jarak SL = **$5,00** (50 pips). Hitungan: `$5 ÷ (5 × 100)` = **0.01 Lot**. Verifikasi: `0.01 × $5 × 100 = $5` (tepat 1%).'
               },
               {
-                label: 'Skenario C (Modal $50 · Kenapa Wajib Cent?)',
-                detail: 'Batas risiko 1% = **$0,50**. Jika dipaksa di Akun Standard dengan lot terkecil `0.01 lot` dan SL `$5`, risikomu sudah **$5 = 10% modal** (10 kali lipat terlalu besar!). Tetapi di **Akun Cent** (`$50 = 5.000 USC`, 1% = `50 USC`), kamu bisa memakai **0.10 Cent Lot** → `0.10 × $5 × 100 = 50 USC ($0,50)` — persis 1%!'
+                label: 'Modal $50 (Perbandingan Standard vs Cent)',
+                detail: 'Risiko 1% = **$0,50**. Jika dipaksakan `0.01 lot` di Akun Standard dengan SL `$5`, risikonya mencapai **$5 (10% modal)** — sepuluh kali lipat di atas batas aman. Di **Akun Cent** (`$50 = 5.000 USC`, 1% = `50 USC`), kamu memakai **0.10 Cent Lot** → `0.10 × $5 × 100 = 50 USC ($0,50)`, tepat 1%.'
               }
             ]
           },
           paragraphsAfter: [
-            'Coba langsung ubah-ubah angka modal, persentase risiko, dan jarak SL pada **Lab Praktik Langsung** tepat di bawah ini sampai kamu merasakan sendiri bagaimana rumus lot bekerja otomatis:'
+            'Uji langsung perubahan modal, persentase risiko, dan jarak Stop Loss pada **Simulasi Hitung Lot** di bawah ini untuk memastikan kamu menguasai cara perhitungannya:'
           ]
         }
       ],
       keyTakeaways: [
-        'Di Akun Standard Gold: `0.01 lot` = **$1 per gerak $1** ($0,10/pip); `0.10 lot` = **$10 per gerak $1**; `1.00 lot` = **$100 per gerak $1**.',
-        'Leverage hanya memperkecil jaminan Margin — **tidak pernah** memperkecil kerugian jika lot kegedean.',
-        '**Equity** (`Balance + Floating`) adalah nilai nyata akunmu detik ini.',
-        'Jangan menebak lot! Selalu gunakan rumus: `Lot Standard = Risiko ($) ÷ (Jarak SL dalam $ × 100)` dengan batas disiplin **0,5%–1% per transaksi**.'
+        'Pada Akun Standard Gold: 0.01 lot = $1 per gerak $1, 0.10 lot = $10 per gerak $1, dan 1.00 lot = $100 per gerak $1.',
+        'Leverage hanya memperkecil jaminan Margin, bukan memperkecil nilai kerugian per Pip.',
+        'Rumus baku Lot Standard Gold: Risiko ($) dibagi (Jarak SL dalam $ × 100) dengan disiplin risiko 0,5%–1% per transaksi.'
       ],
-      bridgeNext: 'Luar biasa — sekarang kamu sudah memegang rumus terpenting untuk melindungi modalmu di pasar Gold. Ilmu ini akan menjadi pondasi setiap eksekusi sampai Bab 36 nanti, sehingga kita tidak perlu lagi mengulang rumus lot di bab belakang. Selanjutnya, bagaimana cara memasukkan angka Lot, Entry, Stop Loss, dan Take Profit tersebut ke aplikasi **MetaTrader 5** tanpa salah tekan tombol? Mari kita buka **Bab 04: Panduan Praktis MetaTrader 5 (MT5) & 5 Jenis Order**.',
+      bridgeNext: 'Setelah menguasai perhitungan Lot dan batas risiko, langkah berikutnya adalah menerapkannya langsung di aplikasi transaksi. Di **Bab 04**, kita membahas navigasi **MetaTrader 5 (MT5)**, setup chart awal, dan perbedaan **5 jenis order** (Market, Limit, dan Stop).',
       conceptBlocks: [
         {
           heading: 'Lot, Leverage, Margin & Rumus Risiko 1% XAU/USD',
           paragraphs: [
             'Pada Akun Standard XAU/USD, 1.00 lot = 100 oz ($100 per gerak $1), 0.10 lot = $10 per gerak $1, dan 0.01 lot = $1 per gerak $1.',
-            'Rumus Lot eksak: Lot = Risiko ($) dibagi (Jarak SL dalam $ × 100). Jika modal di bawah $500 dan hasil lot di bawah 0.01 Standard, wajib memakai Akun Cent.'
+            'Rumus Lot eksak: Lot = Risiko ($) dibagi (Jarak SL dalam $ × 100). Jika hasil perhitungan di bawah 0.01 Standard, gunakan Akun Cent.'
           ]
         }
       ],
       mappingSteps: [
-        'Tentukan batas risiko maksimal per transaksi terlebih dahulu (0,5% hingga 1% dari Equity).',
-        'Ukur jarak Stop Loss dalam dolar ($) dari titik entry ke titik batal di chart.',
-        'Hitung Lot dengan rumus Risiko ($) ÷ (Jarak SL $ × 100) — jika hasilnya < 0.01 pada Akun Standard, pindahkan latihan ke Akun Cent.'
+        'Tentukan batas risiko maksimal per transaksi (0,5%–1% dari Equity).',
+        'Ukur jarak Stop Loss dalam dolar ($) dari titik entry ke level invalidasi di chart.',
+        'Hitung Lot dengan rumus Risiko ($) ÷ (Jarak SL $ × 100); gunakan Akun Cent jika modal kecil menghasilkan angka di bawah 0.01 Standard.'
       ],
       decisionTree: [
         {
-          condition: 'Hasil perhitungan rumus lot untuk modalmu di Akun Standard adalah 0.004 lot (di bawah minimal 0.01 lot).',
-          action: 'Jangan membulatkan naik ke 0.01 Standard (risiko bisa melonjak 2,5x lipat). Gunakan Akun Cent (USC) agar risiko tetap presisi ≤ 1%.'
+          condition: 'Hasil perhitungan rumus lot di Akun Standard adalah 0.004 lot (di bawah batas minimum 0.01 lot).',
+          action: 'Jangan membulatkan naik ke 0.01 Standard karena risiko melonjak 2,5x lipat. Gunakan Akun Cent (USC) agar risiko tetap presisi ≤ 1%.'
         },
         {
-          condition: 'Jarak SL di sebuah setup melebar menjadi $10 (100 pips), padahal biasanya hanya $5 (50 pips).',
-          action: 'Kecilkan ukuran lot menjadi setengahnya agar total kerugian dalam dolar tetap sama persis (misal tetap $10).'
+          condition: 'Jarak SL pada satu setup melebar menjadi $10 (100 pips), dua kali lebih lebar dari biasanya ($5).',
+          action: 'Turunkan ukuran Lot menjadi setengahnya agar total risiko dalam dolar tetap sama persis.'
         }
       ],
       validRules: [
-        'Risiko per transaksi selalu dihitung mundur dari batas 0,5%–1% modal.',
-        'Selalu sesuaikan Lot ketika jarak SL berubah lebar atau sempit.',
-        'Pantau Equity, bukan hanya Balance, saat ada transaksi berjalan.'
+        'Ukuran Lot selalu dihitung mundur dari batas risiko 0,5%–1% dan jarak Stop Loss.',
+        'Sesuaikan Lot setiap kali jarak Stop Loss berubah.',
+        'Pantau Equity secara aktif saat ada posisi terbuka.'
       ],
       invalidRules: [
-        'Memakai lot tetap yang sama (misal selalu 0.10 lot) untuk SL $2 maupun SL $15.',
-        'Mengira Leverage tinggi (1:2000) membuat kerugian menjadi lebih kecil.'
+        'Menggunakan ukuran Lot tetap yang sama untuk jarak SL yang berbeda jauh.',
+        'Menganggap Leverage tinggi memperkecil risiko kerugian per Pip.'
       ],
       xauScenario: {
-        context: 'Modal Akun Standard $1.000, disiplin risiko 1% ($10), dan jarak Stop Loss struktural di chart XAU/USD sebesar $5,00 (50 pips).',
+        context: 'Modal Akun Standard $1.000, batas risiko 1% ($10), dan jarak Stop Loss di chart XAU/USD sebesar $5,00 (50 pips).',
         steps: [
-          'Hitung batas risiko uang: 1% × $1.000 = $10.',
-          'Masukkan ke rumus: $10 ÷ ($5,00 × 100) = $10 ÷ 500 = 0.02 Lot.',
-          'Verifikasi balik: jika SL tersentuh, 0.02 lot × $5 × 100 = tepat -$10 (akun masih tersisa $990 dan mental tetap tenang).'
+          'Hitung batas risiko dalam dolar: 1% × $1.000 = $10.',
+          'Hitung ukuran Lot: $10 ÷ ($5,00 × 100) = $10 ÷ 500 = 0.02 Lot.',
+          'Verifikasi risiko: 0.02 lot × $5 × 100 = tepat -$10 (sisa saldo $990).'
         ]
       },
       failedCase: {
-        title: 'Kesalahan Lot Tetap di Modal Kecil',
-        context: 'Trader bermodal $100 di Akun Standard menebak asal 0.05 lot dengan jarak SL $6,00.',
-        whyFailed: '0.05 lot × $6 × 100 = $30 atau 30% modal melayang hanya dari 1 kali kalah. Tiga kali kalah beruntun langsung menghancurkan akun.'
+        title: 'Memasang Lot Acak pada Modal Kecil',
+        context: 'Trader bermodal $100 di Akun Standard membuka 0.05 lot dengan jarak SL $6,00.',
+        whyFailed: '0.05 lot × $6 × 100 = $30 atau 30% modal hilang dalam satu transaksi.'
       },
       goldenRules: [
-        'Lot bukan ditebak, melainkan dihitung dari batas risiko dolar dan jarak SL.',
-        'Risiko 1% membuatmu sanggup melewati rentetan kalah tanpa pernah menyentuh Margin Call.'
+        'Lot selalu dihitung dari batas risiko dolar dan jarak SL, bukan ditebak.',
+        'Batas risiko 0,5%–1% menjaga akun tetap aman dari Margin Call.'
       ],
       practiceCta: {
         label: 'Catat Aturan Risiko 1% di Jurnal Trading',
-        description: 'Biasakan mencatat modal, ukuran lot, dan batas risiko harian sebelum mengeksekusi transaksi pertama.',
+        description: 'Catat modal, ukuran lot, dan batas risiko harian sebelum mengeksekusi transaksi.',
         href: '../journal/index.html'
       },
       quiz: [
         {
-          question: 'Pada Akun Standard Gold (XAU/USD), kamu membuka transaksi 0.01 lot lalu harga bergerak searah sebesar $5,00 (50 pips). Berapa dolar keuntunganmu?',
+          question: 'Pada Akun Standard Gold (XAU/USD), kamu membuka posisi 0.01 lot lalu harga bergerak searah sebesar $5,00 (50 pips). Berapa dolar keuntungannya?',
           options: [
             '$0,50',
             '$5,00',
@@ -619,10 +633,10 @@
             '$500,00'
           ],
           answerIndex: 1,
-          explanation: 'Di Akun Standard Gold, 0.01 lot bernilai $1 per setiap pergerakan $1,00. Jadi gerak $5,00 menghasilkan tepat $5,00.'
+          explanation: 'Pada Akun Standard Gold, 0.01 lot bernilai $1 per pergerakan $1,00. Pergerakan $5,00 menghasilkan tepat $5,00.'
         },
         {
-          question: 'Modal Akun Standard = $1.000, batas risiko disiplin = 1% ($10), dan jarak Stop Loss di chart = $5,00 (50 pips). Berapa ukuran Lot yang tepat menurut rumus?',
+          question: 'Modal Akun Standard = $1.000, batas risiko = 1% ($10), dan jarak Stop Loss = $5,00 (50 pips). Berapa ukuran Lot yang tepat menurut rumus?',
           options: [
             '0.20 lot',
             '0.10 lot',
@@ -630,10 +644,10 @@
             '0.50 lot'
           ],
           answerIndex: 2,
-          explanation: 'Lot = $10 ÷ (5 × 100) = $10 ÷ 500 = 0.02 lot. Cek balik: 0.02 × $5 × 100 = tepat $10.'
+          explanation: 'Lot = $10 ÷ (5 × 100) = $10 ÷ 500 = 0.02 lot. Verifikasi: 0.02 × $5 × 100 = tepat $10.'
         },
         {
-          question: 'Balance akunmu tercatat $1.000, lalu kamu punya satu transaksi terbuka yang sedang floating rugi -$30. Berapakah Equity akunmu saat ini?',
+          question: 'Balance akun tercatat $1.000, lalu ada satu posisi terbuka yang sedang floating rugi -$30. Berapakah Equity akun saat ini?',
           options: [
             '$1.030',
             '$1.000',
@@ -641,18 +655,18 @@
             '$30'
           ],
           answerIndex: 2,
-          explanation: 'Equity = Balance + Floating. Jadi $1.000 + (-$30) = $970. Equity adalah nilai bersih nyawa akunmu saat itu.'
+          explanation: 'Equity = Balance + Floating P/L. Jadi $1.000 + (-$30) = $970.'
         },
         {
-          question: 'Pernyataan manakah yang BENAR tentang Leverage 1:500 vs 1:2000 saat membuka ukuran 0.01 lot Standard yang sama?',
+          question: 'Pernyataan manakah yang BENAR mengenai Leverage 1:500 dibanding 1:2000 saat membuka ukuran 0.01 lot Standard yang sama?',
           options: [
             'Leverage 1:2000 membuat kerugian per pip menjadi 4 kali lebih kecil',
-            'Leverage 1:2000 memperkecil uang jaminan (Margin), tetapi besar untung/rugi per pip tetap sama persis',
-            'Leverage 1:2000 otomatis mencegah terjadinya Margin Call tanpa perlu Stop Loss',
-            'Leverage 1:500 membuat 0.01 lot menjadi 1.00 lot'
+            'Leverage 1:2000 memperkecil uang jaminan (Margin), tetapi nilai untung/rugi per pip tetap sama persis',
+            'Leverage 1:2000 mencegah Margin Call meski tanpa Stop Loss',
+            'Leverage 1:500 mengubah 0.01 lot menjadi 1.00 lot'
           ],
           answerIndex: 1,
-          explanation: 'Leverage hanya memperkecil Margin yang ditahan broker; nilai untung/rugi per pip tetap ditentukan sepenuhnya oleh ukuran Lot.'
+          explanation: 'Leverage hanya memperkecil jaminan Margin yang ditahan broker; nilai per Pip ditentukan sepenuhnya oleh ukuran Lot.'
         }
       ]
     },
@@ -667,147 +681,158 @@
       levelId: 0,
       bookFormat: true,
       title: 'Panduan Praktis MetaTrader 5 (MT5) & 5 Jenis Order (Market, Limit, Stop)',
-      subtitle: 'Mengenal layar kerja MT5 dan memilih jenis order yang tepat agar tidak pernah salah pencet antara Market, Limit, dan Stop.',
+      subtitle: 'Fungsi empat menu utama MT5, perbedaan Market Execution vs Pending Order, pemasangan Stop Loss dan Take Profit, serta pengaturan chart awal.',
       readMinutes: 9,
       diagramId: 'zero-mt5-order-types',
       diagramAfterSection: 1,
-      summary: 'Kuasai empat menu utama MetaTrader 5, perbedaan Market Execution vs 4 Pending Order (Buy Limit, Sell Limit, Buy Stop, Sell Stop), serta prosedur wajib mengisi Stop Loss dan Take Profit sebelum klik.',
+      summary: 'Kuasai empat tab utama MetaTrader 5, aturan lima jenis order (Market Execution, Buy Limit, Sell Limit, Buy Stop, Sell Stop), pemasangan SL/TP wajib, serta setup awal XAUUSD dan 4 alat gambar inti.',
       bookSections: [
         {
           number: '4.1',
-          heading: 'Mengenal 4 Tab Utama MetaTrader 5 (MT5)',
+          heading: 'Empat Menu Utama pada MetaTrader 5 (MT5)',
           paragraphs: [
-            'MetaTrader 5 (MT5) adalah "kokpit" standar yang dipakai jutaan trader di seluruh dunia untuk melihat grafik dan mengeksekusi transaksi. Di layar HP maupun laptop, sebenarnya kamu hanya perlu mengenal **empat bagian inti**:',
-            '1. **Quotes (Daftar Harga):** Daftar instrumen seperti `XAUUSD` beserta harga **Bid** dan **Ask** yang bergerak langsung. 2. **Chart (Grafik):** Tempat kamu membaca bentuk candle, menggambar garis, dan menentukan titik entry. 3. **Trade (Posisi Aktif):** Menampilkan Balance, Equity, Free Margin, serta transaksi yang sedang berjalan atau menunggu (*pending*). 4. **History (Riwayat):** Catatan seluruh transaksi yang sudah selesai untuk bahan evaluasi jurnalmu.'
+            '**MetaTrader 5 (MT5)** adalah platform standar yang digunakan untuk memantau grafik harga dan mengirim pesanan transaksi ke broker. Baik pada perangkat HP maupun desktop, operasional harian berpusat pada empat menu utama:',
+            '1. **Quotes (Daftar Harga):** Menampilkan daftar instrumen seperti `XAUUSD` beserta harga **Bid** dan **Ask** secara *real-time*. 2. **Chart (Grafik):** Area untuk membaca candlestick, mengganti timeframe, dan menggambar level harga. 3. **Trade (Posisi Aktif):** Menampilkan Balance, Equity, Free Margin, posisi yang sedang berjalan, serta daftar *pending order*. 4. **History (Riwayat):** Catatan lengkap transaksi yang telah ditutup sebagai bahan evaluasi jurnal.'
           ]
         },
         {
           number: '4.2',
-          heading: '5 Jenis Order di MT5: Jangan Sampai Tertukar Limit dan Stop!',
+          heading: 'Lima Jenis Order di MT5: Market Execution vs Pending Order',
           paragraphs: [
-            'Salah satu kebingungan paling sering dialami pemula saat membuka jendela *New Order* di MT5 adalah munculnya lima pilihan jenis order. Padahal, jika dipahami dari **posisi harga saat ini**, logikanya sangat sederhana.',
-            'Bayangkan harga Gold saat ini sedang berada di **`2.650,00`**. Hanya ada dua cara masuk pasar: **masuk sekarang juga** (*Market Execution*), atau **pasang jebakan otomatis di harga tertentu** (*Pending Order*) supaya kamu tidak perlu memelototi layar seharian.'
+            'Saat membuka jendela **New Order** di MT5, terdapat dua kategori pesanan: **Market Execution** (masuk seketika di harga saat ini) dan **Pending Order** (pesanan antre otomatis yang baru aktif jika harga menyentuh level tertentu).',
+            'Posisi harga pesanan terhadap harga berjalan menentukan jenis Pending Order yang dipilih. Misalkan harga Gold saat ini berada di **`2.650,00`**:'
           ],
           table: {
-            caption: 'Panduan 5 Jenis Order MT5 (Misal Harga Gold Saat Ini = 2.650,00)',
-            headers: ['Jenis Order', 'Letak Harga Pesanan', 'Cara Kerjanya'],
+            caption: 'Perbandingan 5 Jenis Order MT5 (Acuan Harga Saat Ini = 2.650,00)',
+            headers: ['Jenis Order', 'Letak Harga Pesanan', 'Mekanisme Eksekusi'],
             rows: [
-              ['Market Execution', 'Di harga detik ini (2.650,00)', 'Langsung membuka BUY (di Ask) atau SELL (di Bid) seketika tombol ditekan.'],
-              ['Buy Limit', 'Di BAWAH harga sekarang (mis. 2.642,00)', 'Menunggu harga turun dulu ke area murah (Discount), lalu otomatis BUY berharap memantul naik.'],
-              ['Sell Limit', 'Di ATAS harga sekarang (mis. 2.658,00)', 'Menunggu harga naik dulu ke area mahal (premium), lalu otomatis SELL berharap memantul turun.'],
-              ['Buy Stop', 'Di ATAS harga sekarang (mis. 2.655,00)', 'Menunggu harga menembus naik dulu, lalu otomatis ikut BUY searah dorongan ke atas.'],
-              ['Sell Stop', 'Di BAWAH harga sekarang (mis. 2.645,00)', 'Menunggu harga menembus turun dulu, lalu otomatis ikut SELL searah dorongan ke bawah.']
+              ['Market Execution', 'Di harga berjalan (2.650,00)', 'Langsung membuka BUY (di Ask) atau SELL (di Bid) saat tombol ditekan.'],
+              ['Buy Limit', 'Di BAWAH harga sekarang (mis. 2.642,00)', 'Menunggu harga turun ke level lebih rendah, lalu otomatis BUY mengharapkan harga berbalik naik.'],
+              ['Sell Limit', 'Di ATAS harga sekarang (mis. 2.658,00)', 'Menunggu harga naik ke level lebih tinggi, lalu otomatis SELL mengharapkan harga berbalik turun.'],
+              ['Buy Stop', 'Di ATAS harga sekarang (mis. 2.655,00)', 'Menunggu harga menembus naik ke level tersebut, lalu otomatis BUY mengikuti kelanjutan kenaikan.'],
+              ['Sell Stop', 'Di BAWAH harga sekarang (mis. 2.645,00)', 'Menunggu harga menembus turun ke level tersebut, lalu otomatis SELL mengikuti kelanjutan penurunan.']
             ]
           },
           callout: {
             tone: 'tip',
-            title: 'Rumus Ingatan 3 Detik (Anti Tertukar)',
-            body: 'Kata **LIMIT** selalu berarti **"tunggu harga balik dulu ke tempat yang lebih bagus, lalu tangkap pantulannya"** (seperti nawar barang lebih murah saat mau beli). Kata **STOP** selalu berarti **"tunggu harga tembus dulu, lalu ikut lari searah tembusannya"**. Di strategi ICT yang akan kita pelajari nanti, **90% pending order kita adalah Buy Limit dan Sell Limit**.'
+            title: 'Perbedaan Prinsip LIMIT vs STOP',
+            body: '**LIMIT** digunakan ketika kamu menunggu harga menjemput level yang lebih menguntungkan lalu berbalik arah (Buy Limit di bawah harga, Sell Limit di atas harga). **STOP** digunakan ketika kamu menunggu harga menembus level tertentu lalu melanjutkan arah tembusannya (Buy Stop di atas harga, Sell Stop di bawah harga). Pada strategi ICT di bab-bab berikutnya, mayoritas pending order menggunakan **Buy Limit** dan **Sell Limit**.'
           }
         },
         {
           number: '4.3',
-          heading: 'Stop Loss (SL) & Take Profit (TP): Sabuk Pengaman Wajib',
+          heading: 'Fungsi Stop Loss (SL) dan Take Profit (TP)',
           paragraphs: [
-            'Di jendela order MT5, tepat di sebelah kotak Lot ada dua kolom terpenting untuk keselamatan akunmu: **Stop Loss (SL)** dan **Take Profit (TP)**.',
-            '**Stop Loss (SL)** adalah batas harga keluar otomatis saat analisismu salah — ibarat sabuk pengaman dan rem darurat mobil. Tanpa SL, jika tiba-tiba muncul berita besar saat HP-mu mati atau sinyal putus, kerugianmu bisa terus membengkak sampai menghancurkan akun.',
-            '**Take Profit (TP)** adalah batas harga keluar otomatis untuk mengunci keuntungan saat harga menyentuh targetmu. Dengan memasang SL dan TP sejak awal, kamu tidak perlu panik menatap layar setiap detik.'
+            'Di sebelah kolom volume Lot pada jendela order MT5 terdapat dua kolom pengaman transaksi: **Stop Loss (SL)** dan **Take Profit (TP)**.',
+            '**Stop Loss (SL)** adalah batas harga keluar otomatis untuk menghentikan kerugian jika pergerakan harga berlawanan dengan analisis. SL tetap bekerja di server broker meskipun aplikasi ditutup atau koneksi internet terputus. **Take Profit (TP)** adalah batas harga keluar otomatis untuk mengunci keuntungan saat harga mencapai target.'
           ],
           exampleBox: {
-            title: 'Contoh Isian Order Lengkap di MT5 (Setup Buy Limit)',
+            title: 'Contoh Pengisian Order Lengkap di MT5 (Buy Limit)',
             rows: [
               {
-                label: 'Harga Sekarang',
-                detail: '`2.650,00` — kamu ingin menunggu harga turun ke zona Discount `2.642,00`.'
+                label: 'Harga Saat Ini',
+                detail: '`2.650,00` — rencana menunggu harga turun ke zona entry `2.642,00`.'
               },
               {
-                label: 'Jenis Order & Price',
-                detail: 'Pilih **Buy Limit** di harga `2.642,00` dengan ukuran **0.02 Lot** (risiko 1% dari modal $1.000).'
+                label: 'Jenis Order & Volume',
+                detail: 'Pilih **Buy Limit** pada harga `2.642,00` dengan volume **0.02 Lot** (risiko 1% dari modal $1.000).'
               },
               {
                 label: 'Stop Loss (SL)',
-                detail: 'Pasang di **bawah** harga entry: `2.637,00` (jarak `$5,00` = 50 pips → risiko maksimal `$10`).'
+                detail: 'Isi di **bawah** harga entry: `2.637,00` (jarak `$5,00` = 50 pips → batas rugi maksimal `$10`).'
               },
               {
                 label: 'Take Profit (TP)',
-                detail: 'Pasang di **atas** harga entry: `2.652,00` (jarak `$10,00` = 100 pips → target profit `$20`, R:R **1:2**).'
+                detail: 'Isi di **atas** harga entry: `2.652,00` (jarak `$10,00` = 100 pips → target profit `$20`, R:R **1:2**).'
               }
             ]
           }
         },
         {
           number: '4.4',
-          heading: 'Checklist 5 Detik Sebelum Menekan Tombol Place / Execute',
+          heading: 'Prosedur Verifikasi Sebelum Menekan Tombol Eksekusi',
           paragraphs: [
-            'Kesalahan konyol seperti salah ketik lot `0.10` menjadi `1.00` atau salah pilih Buy padahal niatnya Sell sering terjadi karena terburu-buru. Biasakan selalu melakukan **4 cek kilat** sebelum jari menekan tombol konfirmasi:',
-            '1. **Cek Instrumen:** Pastikan judul atas benar `XAUUSD` (bukan pair lain). 2. **Cek Angka Lot:** Baca dua kali digit komanya (`0.02`, bukan `0.20`). 3. **Cek SL & TP:** Untuk BUY, SL wajib di bawah entry & TP di atas entry; untuk SELL, SL wajib di atas entry & TP di bawah entry. 4. **Pastikan Tidak Salah Jenis Order:** Jika tombol *Place* berwarna abu-abu (tidak bisa diklik), hampir pasti kamu salah memilih antara Limit dan Stop terhadap posisi harga sekarang.'
+            'Kesalahan teknis seperti salah mengetik koma Lot (`0.20` alih-alih `0.02`) atau terbalik mengisi SL dan TP dapat dihindari dengan empat pemeriksaan singkat sebelum menekan tombol konfirmasi:',
+            '1. **Verifikasi Simbol:** Pastikan instrumen yang aktif benar-benar `XAUUSD`. 2. **Verifikasi Angka Lot:** Periksa ulang posisi desimal agar sesuai hasil rumus risiko. 3. **Verifikasi Arah SL & TP:** Pada posisi BUY, SL wajib di bawah entry dan TP di atas entry; pada posisi SELL, SL wajib di atas entry dan TP di bawah entry. 4. **Cek Status Tombol Place:** Jika tombol *Place* berwarna abu-abu (tidak aktif), penyebab utamanya adalah jenis Limit/Stop yang tertukar terhadap harga berjalan atau posisi SL/TP yang terbalik.'
           ]
+        },
+        {
+          number: '4.5',
+          heading: 'Pengaturan Awal MT5 & TradingView: Simbol XAUUSD & Alat Gambar Inti',
+          paragraphs: [
+            'Agar tampilan chart siap digunakan untuk analisis teknikal sejak hari pertama, selesaikan empat pengaturan dasar berikut:',
+            '1. **Tambahkan Simbol Gold:** Di tab **Quotes** MT5, ketuk ikon **`+`** lalu cari `XAUUSD` atau `GOLD` (beberapa broker menambahkan akhiran seperti `XAUUSDm` atau `XAUUSDc` untuk akun Cent) kemudian masukkan ke daftar aktif. 2. **Aktifkan Garis Ask & Bersihkan Chart:** Buka *Chart Settings*, centang **Ask Price Line**, atur warna candle yang jelas (misalnya hijau naik dan merah turun), lalu hapus indikator bawaan yang tidak dipakai. 3. **Gunakan 3 Alat Gambar Utama:** Di menu *Objects* MT5 atau panel alat TradingView, analisis struktur cukup membutuhkan tiga alat inti: **Crosshair** (mengukur jarak pips SL dan TP), **Horizontal Line** (menandai level harga penting seperti PDH/PDL), dan **Rectangle** (menandai area zona FVG atau Order Block). 4. **Simpan ke Favorit:** Tambahkan ketiga alat tersebut beserta **Fibonacci Retracement** (pengaturan angkanya dibahas lengkap di Bab 24) ke daftar favorit agar akses cepat dalam satu klik.'
+          ],
+          callout: {
+            tone: 'tip',
+            title: 'Efisiensi Alat Chart',
+            body: 'Kamu tidak perlu mengaktifkan puluhan indikator atau alat gambar. Empat alat standar (**Crosshair**, **Horizontal Line**, **Rectangle**, dan **Fibonacci Retracement**) sudah mencakup seluruh kebutuhan analisis ICT dari awal hingga mahir.'
+          }
         }
       ],
       keyTakeaways: [
-        'MT5 punya 4 layar inti: **Quotes** (harga Bid/Ask), **Chart** (grafik), **Trade** (posisi aktif & Equity), dan **History** (riwayat evaluasi).',
-        '**Buy Limit** dipasang di bawah harga sekarang; **Sell Limit** dipasang di atas harga sekarang (keduanya menunggu pantulan di harga lebih bagus).',
-        '**Buy Stop** dipasang di atas harga sekarang; **Sell Stop** dipasang di bawah harga sekarang (keduanya menunggu tembusan).',
-        'Jangan pernah membuka transaksi tanpa **Stop Loss** — SL adalah rem darurat yang melindungi akun dari berita mendadak atau putus sinyal.'
+        'MT5 terdiri dari 4 menu utama: Quotes, Chart, Trade, dan History.',
+        'Buy Limit di bawah harga & Sell Limit di atas harga (menunggu pantulan); Buy Stop di atas harga & Sell Stop di bawah harga (menunggu tembusan).',
+        'Isi SL dan TP sebelum eksekusi, tampilkan XAUUSD + Ask Price Line, dan siapkan 4 alat gambar inti (Crosshair, Horizontal Line, Rectangle, Fibonacci).'
       ],
-      bridgeNext: 'Sekarang kamu sudah tahu cara mengoperasikan tombol-tombol MT5 dengan benar. Namun, tombol sebagus apa pun tidak ada gunanya kalau kamu belum bisa **membaca gambar batang-batang hijau dan merah** yang bergerak di layar Chart. Apa sebenarnya yang terjadi di dalam satu batang candle, dan kenapa chart punya pilihan M5, M15, H1, hingga Daily? Mari kita bedah dari nol di **Bab 05: Membaca Chart, Anatomi Candlestick (Body vs Wick) & Konsep Timeframe**.',
+      bridgeNext: 'Setelah memahami cara mengoperasikan MT5 dan jenis-jenis order, langkah selanjutnya adalah membaca grafik harga itu sendiri. Di **Bab 05**, kita membedah **Anatomi Candlestick (OHLC, Body vs Wick)** serta hubungan matematis antar **Timeframe**.',
       conceptBlocks: [
         {
           heading: 'Navigasi MT5 & 5 Jenis Order',
           paragraphs: [
             'MT5 memiliki 4 layar utama (Quotes, Chart, Trade, History) dan 5 jenis order: Market Execution, Buy Limit, Sell Limit, Buy Stop, dan Sell Stop.',
-            'Limit menunggu harga menjemput level lebih baik untuk pantulan, sedangkan Stop menunggu harga menembus level untuk melanjutkan arah. SL dan TP wajib diisi sebelum eksekusi.'
+            'Limit menunggu harga menjemput level lebih baik untuk berbalik arah, sedangkan Stop menunggu harga menembus level untuk melanjutkan arah.'
           ]
         }
       ],
       mappingSteps: [
-        'Buka layar New Order XAUUSD di Akun Demo MT5 dan cek ulang angka Lot sebelum memilih tipe order.',
+        'Buka jendela New Order XAUUSD di Akun Demo MT5 dan periksa ulang desimal Lot.',
         'Latih memasang 1 Buy Limit di bawah harga sekarang dan 1 Sell Limit di atas harga sekarang lengkap dengan SL dan TP.',
-        'Uji membatalkan pending order lewat tab Trade agar tangan terbiasa mengendalikan pesanan tanpa panik.'
+        'Uji menghapus pending order melalui tab Trade agar terbiasa mengelola pesanan.'
       ],
       decisionTree: [
         {
-          condition: 'Tombol Place di MT5 berwarna abu-abu dan tidak bisa diklik saat memasang Pending Order.',
-          action: 'Periksa kembali letak harga pesananmu: Buy Limit wajib di bawah harga saat ini, Sell Limit wajib di atas harga saat ini, dan cek apakah SL/TP tidak terbalik.'
+          condition: 'Tombol Place di MT5 berwarna abu-abu dan tidak dapat diklik saat memasang Pending Order.',
+          action: 'Periksa kembali posisi harga pesanan (Buy Limit wajib di bawah harga berjalan, Sell Limit di atas harga berjalan) dan pastikan SL/TP tidak terbalik.'
         },
         {
-          condition: 'Kamu ingin masuk di area harga lebih murah di bawah harga sekarang, tetapi harga belum turun ke sana.',
-          action: 'Pasang Buy Limit lengkap dengan SL & TP — jangan terburu-buru menekan Market Buy di pucuk.'
+          condition: 'Ingin membeli di harga lebih rendah di bawah harga saat ini.',
+          action: 'Pasang Buy Limit lengkap dengan SL dan TP daripada langsung menekan Market Buy.'
         }
       ],
       validRules: [
-        'Selalu periksa ulang simbol XAUUSD, angka koma Lot, serta posisi SL/TP sebelum klik.',
-        'Gunakan Buy Limit / Sell Limit untuk antre sabar di zona Discount atau premium.'
+        'Periksa simbol XAUUSD, desimal Lot, serta posisi SL/TP sebelum eksekusi.',
+        'Gunakan Buy Limit / Sell Limit untuk antre di zona harga yang direncanakan.'
       ],
       invalidRules: [
-        'Membuka transaksi dulu baru "nanti saja" memasang Stop Loss.',
-        'Salah memilih Buy Stop padahal ingin menunggu harga turun dulu ke area Discount.'
+        'Membuka posisi tanpa mengisi Stop Loss sejak awal.',
+        'Memilih Buy Stop padahal ingin menunggu harga turun terlebih dahulu.'
       ],
       xauScenario: {
-        context: 'Harga XAU/USD saat ini 2.650,00. Kamu ingin menunggu harga turun ke zona beli 2.642,00 dengan SL $5 dan target $10.',
+        context: 'Harga XAU/USD berada di 2.650,00. Rencana menunggu harga turun ke 2.642,00 dengan SL $5 dan target $10.',
         steps: [
-          'Pilih tipe order Buy Limit di 2.642,00 (di bawah harga sekarang).',
-          'Isi Lot 0.02, SL di 2.637,00, dan TP di 2.652,00 (R:R 1:2).',
-          'Tekan Place dan biarkan MT5 mengeksekusi otomatis jika harga turun menjemput.'
+          'Pilih Buy Limit di harga 2.642,00 (di bawah harga berjalan).',
+          'Masukkan volume 0.02 Lot, SL 2.637,00, dan TP 2.652,00 (R:R 1:2).',
+          'Tekan Place agar pesanan tereksekusi otomatis saat harga menyentuh 2.642,00.'
         ]
       },
       failedCase: {
-        title: 'Salah Ketik Koma Lot & Lupa SL',
-        context: 'Pemula terburu-buru ingin mengejar candle naik lalu mengetik 0.20 lot alih-alih 0.02 lot tanpa mengisi SL.',
-        whyFailed: 'Risiko melonjak 10 kali lipat dari rencana awal; baru turun $5 saja akun langsung terpotong -$100.'
+        title: 'Salah Ketik Desimal Lot & Tanpa SL',
+        context: 'Trader mengetik 0.20 lot alih-alih 0.02 lot tanpa memasang Stop Loss.',
+        whyFailed: 'Risiko meningkat 10 kali lipat dari rencana awal; pergerakan $5 langsung menyebabkan kerugian -$100.'
       },
       goldenRules: [
-        'LIMIT = tunggu jemput di harga lebih bagus; STOP = ikut setelah harga tembus.',
-        'Tidak ada SL = tidak boleh klik tombol eksekusi.'
+        'LIMIT untuk menunggu pantulan di harga lebih baik; STOP untuk mengikuti arah tembusan.',
+        'Jangan pernah mengeksekusi order tanpa Stop Loss.'
       ],
       practiceCta: {
-        label: 'Latih Pemahaman Dasar di Cockpit Mapping',
-        description: 'Amati level harga kunci di chart Gold untuk membayangkan di mana Buy Limit dan Sell Limit diletakkan.',
+        label: 'Amati Level Harga di Cockpit Mapping',
+        description: 'Perhatikan level harga aktif pada chart Gold untuk mempraktikkan penentuan titik Buy Limit dan Sell Limit.',
         href: '../mapping/index.html'
       },
       quiz: [
         {
-          question: 'Harga Gold (XAU/USD) saat ini berada di 2.650,00. Kamu ingin menunggu harga turun dulu ke 2.642,00 baru otomatis membuka posisi BUY. Jenis order MT5 apa yang harus dipilih?',
+          question: 'Harga Gold (XAU/USD) saat ini berada di 2.650,00. Kamu ingin menunggu harga turun ke 2.642,00 baru otomatis membuka posisi BUY. Jenis order MT5 apa yang dipilih?',
           options: [
             'Buy Stop',
             'Buy Limit',
@@ -815,10 +840,10 @@
             'Sell Stop'
           ],
           answerIndex: 1,
-          explanation: 'Buy Limit selalu dipasang di bawah harga saat ini untuk menunggu harga turun ke area lebih murah lalu menangkap pantulan naik.'
+          explanation: 'Buy Limit dipasang di bawah harga saat ini untuk menunggu harga turun ke level lebih rendah lalu otomatis membuka BUY.'
         },
         {
-          question: 'Harga Gold saat ini 2.650,00. Kamu ingin menunggu harga naik dulu menyentuh area mahal 2.658,00 baru otomatis membuka posisi SELL. Jenis order apa yang tepat?',
+          question: 'Harga Gold saat ini 2.650,00. Kamu ingin menunggu harga naik ke 2.658,00 baru otomatis membuka posisi SELL. Jenis order apa yang tepat?',
           options: [
             'Sell Limit',
             'Sell Stop',
@@ -826,29 +851,29 @@
             'Market Execution'
           ],
           answerIndex: 0,
-          explanation: 'Sell Limit dipasang di atas harga saat ini untuk menunggu harga naik ke area premium lalu menangkap pantulan turun.'
+          explanation: 'Sell Limit dipasang di atas harga saat ini untuk menunggu harga naik ke level lebih tinggi lalu otomatis membuka SELL.'
         },
         {
           question: 'Kamu memasang Buy Limit di 2.642,00. Di mana letak Stop Loss (SL) dan Take Profit (TP) yang benar?',
           options: [
             'SL di 2.652,00 (di atas entry) dan TP di 2.637,00 (di bawah entry)',
             'SL di 2.637,00 (di bawah entry) dan TP di 2.652,00 (di atas entry)',
-            'SL dan TP keduanya ditaruh di 2.642,00',
-            'Tidak perlu mengisi SL asalkan sudah mengisi TP'
+            'SL dan TP keduanya dipasang di 2.642,00',
+            'SL tidak diperlukan selama TP sudah diisi'
           ],
           answerIndex: 1,
-          explanation: 'Pada posisi BUY, kamu untung jika harga naik (TP di atas entry) dan membatasi rugi jika harga turun (SL di bawah entry).'
+          explanation: 'Pada posisi BUY, target profit (TP) berada di atas harga entry dan batas rugi (SL) berada di bawah harga entry.'
         },
         {
-          question: 'Saat ingin memasang pending order di MT5, tombol "Place" tiba-tiba berwarna abu-abu dan tidak bisa ditekan. Apa penyebab paling umumnya?',
+          question: 'Saat memasang pending order di MT5, tombol "Place" berwarna abu-abu dan tidak bisa diklik. Apa penyebab paling umumnya?',
           options: [
-            'Aplikasi MT5 rusak permanen',
-            'Letak harga order, SL, atau TP terbalik (misalnya memilih Buy Limit tetapi memasukkan harga di atas harga sekarang)',
-            'Karena kamu memakai Akun Demo',
-            'Karena kamu mengetikkan Take Profit terlalu bagus'
+            'Aplikasi MT5 mengalami kerusakan permanen',
+            'Posisi harga order, SL, atau TP tidak sesuai aturan (misalnya memilih Buy Limit di atas harga saat ini)',
+            'Akun Demo tidak mendukung pending order',
+            'Target Take Profit terlalu tinggi'
           ],
           answerIndex: 1,
-          explanation: 'MT5 otomatis mengunci tombol Place jika posisi harga pesanan tidak sesuai aturan Limit/Stop atau posisi SL/TP terbalik.'
+          explanation: 'MT5 menonaktifkan tombol Place jika letak harga tidak sesuai jenis Limit/Stop atau posisi SL/TP terbalik.'
         }
       ]
     },
@@ -863,135 +888,134 @@
       levelId: 0,
       bookFormat: true,
       title: 'Membaca Chart, Anatomi Candlestick (Body vs Wick) & Konsep Timeframe',
-      subtitle: 'Membaca cerita pertarungan pembeli dan penjual di balik setiap batang candle, kenapa penutupan candle paling jujur, dan cara kerja timeframe.',
+      subtitle: 'Empat komponen harga OHLC pada setiap candlestick, perbedaan makna Body dan Wick, pentingnya menunggu Candle Close, serta hubungan antar Timeframe.',
       readMinutes: 10,
       diagramId: 'candlestick-anatomy',
       diagramAfterSection: 1,
-      summary: 'Pahami 4 titik harga OHLC di balik setiap candlestick, makna psikologis Body tebal vs Wick panjang, kenapa wajib menunggu candle close, serta bagaimana candle besar membungkus candle kecil lintas timeframe.',
+      summary: 'Pahami struktur OHLC pada candlestick, arti teknikal Body vs Wick, aturan wajib menunggu penutupan candle (Candle Close), dan struktur matematis hubungan antar Timeframe dari D1 hingga M5.',
       bookSections: [
         {
           number: '5.1',
-          heading: 'Apa Itu Candlestick? (Cerita 4 Titik Harga: OHLC)',
+          heading: 'Pengertian Candlestick dan Empat Komponen Harga (OHLC)',
           paragraphs: [
-            'Saat pertama kali membuka chart, deretan batang berwarna hijau (atau biru) dan merah mungkin terlihat seperti grafik rumit. Padahal, **setiap satu batang Candlestick hanyalah ringkasan cerita pertarungan antara Pembeli dan Penjual selama satu rentang waktu tertentu**.',
-            'Sebatang candlestick selalu merekam **empat titik harga (OHLC)**: **Open** (harga pembukaan saat waktu dimulai), **High** (titik tertinggi yang sempat dicapai), **Low** (titik terendah yang sempat disentuh), dan **Close** (harga penutupan saat waktu habis).',
-            'Bagian kotak tebal di tengah antara Open dan Close disebut **Body (kotak inti candle)**, sedangkan garis tipis yang mencuat di atas atau di bawah body disebut **Wick / Shadow (garis ekor atas-bawah candle)**. Jika harga ditutup **lebih tinggi** daripada pembukaan (`Close > Open`), candle disebut **Bullish (Naik)**. Jika ditutup **lebih rendah** (`Close < Open`), candle disebut **Bearish (Turun)**.'
+            '**Candlestick** adalah grafik batang yang merangkum pergerakan harga pasar dalam satu periode waktu tertentu. Setiap satu batang candlestick merekam **empat data harga (OHLC)**:',
+            '1. **Open:** Harga saat periode waktu candle dimulai. 2. **High:** Harga tertinggi yang sempat tercapai selama periode tersebut. 3. **Low:** Harga terendah yang sempat tersentuh selama periode tersebut. 4. **Close:** Harga penutupan tepat saat periode waktu candle berakhir.',
+            'Bagian persegi panjang tebal antara Open dan Close disebut **Body**, sedangkan garis tipis di atas atau di bawah body disebut **Wick** (atau *Shadow*). Jika harga ditutup lebih tinggi daripada pembukaan (`Close > Open`), candle bersifat **Bullish (Naik)**. Jika ditutup lebih rendah (`Close < Open`), candle bersifat **Bearish (Turun)**.'
           ],
           exampleBox: {
-            title: 'Membedah Satu Batang Candle Bullish M15 (15 Menit)',
+            title: 'Contoh Pembacaan 1 Batang Candle Bullish M15 (15 Menit)',
             rows: [
               {
                 label: 'Open = 2.650,00',
-                detail: 'Pukul 14:00 WITA, candle 15 menit baru mulai terbentuk di `2.650,00`.'
+                detail: 'Pukul 14:00 WITA, candle 15 menit dibuka pada harga `2.650,00`.'
               },
               {
                 label: 'Low = 2.648,50',
-                detail: 'Di menit ke-3, penjual sempat menekan turun `$1,50`, tetapi langsung dilawan balik oleh pembeli → meninggalkan **ekor bawah `$1,50`**.'
+                detail: 'Harga sempat turun `$1,50` ke `2.648,50` sebelum kembali naik → membentuk **Wick bawah sebesar `$1,50`**.'
               },
               {
                 label: 'High = 2.655,00',
-                detail: 'Di menit ke-12, pembeli mendorong harga melonjak hingga `2.655,00`.'
+                detail: 'Harga sempat mencapai titik tertinggi sesi 15 menit tersebut di `2.655,00`.'
               },
               {
                 label: 'Close = 2.654,20',
-                detail: 'Tepat pukul 14:15 WITA waktu habis dan candle ditutup di `2.654,20` → terbentuk **Body Bullish tebal `$4,20`** dengan ekor atas tipis `$0,80`. Pesannya jelas: pembeli menang telak di 15 menit ini!'
+                detail: 'Pukul 14:15 WITA candle ditutup di `2.654,20` → terbentuk **Body Bullish sebesar `$4,20`** dengan **Wick atas `$0,80`**, menunjukkan dominasi pembeli selama periode tersebut.'
               }
             ]
           }
         },
         {
           number: '5.2',
-          heading: 'Membaca Bahasa Tubuh Candle: Body vs Wick',
+          heading: 'Makna Body vs Wick dan Aturan Wajib Menunggu Candle Close',
           paragraphs: [
-            'Di metodologi ICT yang akan kita pelajari mulai Bab 07, kamu tidak perlu menghafal 50 nama pola candlestick Jepang yang rumit. Kamu cukup menguasai **satu prinsip bacaan yang sangat jujur**: **Body menunjukkan niat dan kekuatan nyata, sedangkan Wick menunjukkan penolakan atau sweep sementara.**',
-            'Perhatikan bedanya: ketika sebuah candle mendorong menembus sebuah batas harga dan **Body-nya benar-benar ditutup di seberang batas itu**, artinya pihak pemenang punya tenaga besar untuk mempertahankan harga di sana. Sebaliknya, jika harga sempat melonjak lewat batas lalu di menit-menit terakhir ditarik pulang sampai hanya menyisakan **ekor panjang (Wick)** sementara Body tetap tutup di dalam — itu tanda **penolakan kuat (rejection)** atau jebakan!',
-            'Dari sini lahir satu hukum disiplin penting: **jangan pernah mengambil keputusan dari candle yang waktunya belum habis!** Selama waktu masih berjalan, batang yang tadinya terlihat hijau penuh bisa tiba-tiba berubah merah dalam 10 detik terakhir. Di pasar, hanya **Candle Close (penutupan resmi)** yang sah dibaca sebagai fakta.'
+            'Dalam metodologi ICT yang akan dipelajari mulai Bab 07, kamu tidak perlu menghafal puluhan nama pola candlestick klasik. Pembacaan harga berfokus pada perbedaan objektif antara **Body** dan **Wick**:',
+            '1. **Body menunjukkan kendali dan penerimaan harga yang sah:** Jika harga menembus suatu level dan **Body ditutup melewati level tersebut**, artinya pihak yang dominan mampu mempertahankan harga di area baru. 2. **Wick menunjukkan penolakan harga (Rejection) atau Sweep sementara:** Jika harga sempat melewati suatu level tetapi sebelum penutupan ditarik kembali sehingga hanya menyisakan **Wick panjang** sementara Body tutup di dalam, artinya area tersebut mengalami penolakan kuat.',
+            'Konsekuensi langsung dari prinsip ini adalah aturan **wajib menunggu Candle Close**. Selama durasi waktu belum berakhir, bentuk candle masih dapat berubah drastis. Hanya harga penutupan resmi (**Candle Close**) yang dapat dijadikan dasar keputusan analisis.'
           ],
           callout: {
-            tone: 'story',
-            title: 'Kenapa Pemula Sering Tertipu "Candle Berjalan"?',
-            body: 'Di menit ke-6 sebuah candle M15, harga melonjak tajam menembus puncak lama. Pemula panik takut ketinggalan lalu langsung klik BUY. Ternyata di menit ke-14 harga dibanting turun jauh — saat candle ditutup di menit ke-15, yang tersisa hanyalah ekor panjang di atas! Andai saja ia sabar menunggu 9 menit hingga candle tutup, ia akan langsung tahu bahwa itu jebakan, bukan dorongan naik asli.'
+            tone: 'warn',
+            title: 'Risiko Mengambil Keputusan Sebelum Candle Close',
+            body: 'Pada menit ke-6 candle M15, harga dapat tampak menembus batas atas dengan body hijau penuh. Namun jika tekanan jual masuk sebelum menit ke-15, harga berbalik turun dan candle ditutup dengan wick atas panjang. Trader yang langsung BUY sebelum candle tutup terjebak pada titik puncak penolakan.'
           }
         },
         {
           number: '5.3',
-          heading: 'Apa Itu Timeframe? (Analogi Zoom Kamera & Kotak Boneka)',
+          heading: 'Konsep Timeframe dan Hubungan Matematis Antar Timeframe',
           paragraphs: [
-            'Di bagian atas chart MT5, kamu akan melihat tombol **M1, M5, M15, H1, H4, D1, W1**. Itulah **Timeframe** — durasi waktu untuk membentuk **satu batang candlestick**.',
-            'Anggaplah Timeframe seperti **lensa zoom kamera** pada peta kota. Melihat **D1 (Daily)** atau **H4/H1** ibarat melihat peta dari pesawat: kamu langsung tahu arah jalan raya besar dan tujuan akhirnya. Sementara melihat **M15** dan **M5** ibarat turun ke permukaan jalan: kamu bisa melihat tikungan dan detail presisi tempat masuknya.',
-            'Hal paling ajaib yang harus kamu sadari adalah bahwa **semua timeframe menampilkan harga yang sama — satu candle besar sebenarnya hanyalah bungkusan dari beberapa candle kecil di dalamnya**:'
+            'Pada bagian atas chart MT5 terdapat pilihan **M1, M5, M15, H1, H4, D1, W1**. Pilihan tersebut adalah **Timeframe**, yaitu durasi waktu yang dibutuhkan untuk membentuk **satu batang candlestick** (misalnya `M15` = 15 menit per candle, `H1` = 1 jam per candle, `D1` = 1 hari per candle).',
+            'Seluruh timeframe menampilkan data pergerakan harga pasar yang sama, hanya dengan tingkat rincian berbeda. Secara matematis, **satu candle timeframe besar tersusun dari gabungan beberapa candle timeframe kecil di dalamnya** (`1 H1 = 4 M15 = 12 M5`).',
+            'Dalam praktik analisis **Top-Down (dari besar ke kecil)**, timeframe besar digunakan untuk membaca arah utama dan level penting, sedangkan timeframe kecil digunakan untuk melihat detail reaksi dan waktu eksekusi:'
           ],
           table: {
-            caption: 'Hubungan Matematis Antar Timeframe (Isi di Dalam 1 Candle)',
-            headers: ['Timeframe Besar', 'Durasi 1 Candle', 'Isi Candle Kecil di Dalamnya', 'Peran Utamanya Nanti di ICT'],
+            caption: 'Hubungan Matematis & Peran Setiap Timeframe dalam Analisis ICT',
+            headers: ['Timeframe', 'Durasi 1 Candle', 'Susunan Candle di Dalamnya', 'Fungsi Utama dalam Analisis'],
             rows: [
-              ['D1 (Daily)', '1 Hari Trading', '~23–24 candle H1', 'Menentukan arah besar harian (Daily Bias) & level PDH/PDL'],
-              ['H4 (4 Jam)', '4 Jam', '4 candle H1 / 16 candle M15', 'Membaca struktur utama & zona institusi besar'],
-              ['H1 (1 Jam)', '1 Jam', '4 candle M15 / 12 candle M5', 'Peta arena bermain (Dealing Range) & zona tunggu utama'],
-              ['M15 (15 Menit)', '15 Menit', '3 candle M5 / 15 candle M1', 'Menyaring zona entry & membaca sweep sesi'],
-              ['M5 (5 Menit)', '5 Menit', '5 candle M1', 'Konfirmasi presisi waktu menekan tombol entry']
+              ['D1 (Daily)', '1 Hari Trading', '~23–24 candle H1', 'Menentukan arah harian (Daily Bias) & level PDH/PDL'],
+              ['H4 (4 Jam)', '4 Jam', '4 candle H1 / 16 candle M15', 'Membaca struktur pasar utama & zona institusional besar'],
+              ['H1 (1 Jam)', '1 Jam', '4 candle M15 / 12 candle M5', 'Menentukan Dealing Range & area tunggu utama'],
+              ['M15 (15 Menit)', '15 Menit', '3 candle M5 / 15 candle M1', 'Menyaring zona entry & membaca sweep sesi intraday'],
+              ['M5 (5 Menit)', '5 Menit', '5 candle M1', 'Konfirmasi presisi struktur kecil sebelum eksekusi order']
             ]
           }
         }
       ],
       keyTakeaways: [
-        'Satu batang candlestick merekam 4 fakta harga: **Open, High, Low, Close (OHLC)** selama satu rentang timeframe.',
-        '**Body** menunjukkan tenaga dan kesepakatan akhir yang sah; **Wick** menunjukkan penolakan atau jejak sweep sementara.',
-        'Selalu tunggu **Candle Close** sebelum menyimpulkan sebuah level benar-benar tertembus.',
-        'Timeframe besar membungkus timeframe kecil (`1 H1 = 4 M15 = 12 M5`) — nanti kita akan selalu membaca dari besar ke kecil (*Top-Down*).'
+        'Satu candlestick merekam empat titik harga: Open, High, Low, dan Close (OHLC) dalam satu periode timeframe.',
+        'Body mencerminkan hasil kendali harga saat penutupan, sedangkan Wick panjang mencerminkan penolakan atau sweep sementara.',
+        'Satu candle timeframe besar tersusun dari beberapa candle timeframe kecil (1 H1 = 4 M15 = 12 M5), dan keputusan sah selalu menunggu Candle Close.'
       ],
-      bridgeNext: 'Sekarang kamu sudah bisa membaca cerita di balik setiap batang candlestick dan memahami hubungan antar timeframe. Tinggal satu potongan terakhir di Bagian I sebelum kita resmi masuk ke dunia struktur dan ICT: **kapan jam paling sehat untuk membaca dan memperdagangkan Gold di waktu Indonesia (WITA), dan kenapa Gold tidak boleh diperlakukan sama seperti pasangan mata uang biasa?** Mari kita tuntaskan di **Bab 06: Karakter Unik Gold (XAU/USD), Sesi Pasar Dunia & Aturan Akhir Pekan**.',
+      bridgeNext: 'Setelah menguasai pembacaan candlestick dan hubungan antar timeframe, materi penutup Bagian I adalah memahami kapan waktu terbaik untuk menganalisis dan memperdagangkan emas. Di **Bab 06**, kita membahas **Karakter Volatilitas Gold (XAU/USD), Jadwal 3 Sesi Pasar Dunia (WITA), dan Aturan Akhir Pekan**.',
       conceptBlocks: [
         {
           heading: 'Anatomi Candlestick OHLC, Body vs Wick & Timeframe',
           paragraphs: [
-            'Candlestick merekam Open, High, Low, dan Close. Body tebal mencerminkan dominasi tenaga nyata, sedangkan Wick panjang mencerminkan penolakan atau sweep sementara.',
-            'Satu candle timeframe besar membungkus beberapa candle timeframe kecil (1 H1 = 4 M15 = 12 M5). Selalu tunggu Candle Close untuk konfirmasi sah.'
+            'Candlestick merekam Open, High, Low, dan Close. Body menunjukkan kendali harga saat penutupan, sedangkan Wick panjang menunjukkan penolakan atau sweep sementara.',
+            'Satu candle timeframe besar tersusun dari beberapa candle timeframe kecil (1 H1 = 4 M15 = 12 M5). Keputusan valid selalu menunggu Candle Close.'
           ]
         }
       ],
       mappingSteps: [
-        'Buka chart XAUUSD di H1 lalu amati 1 candle terakhir: tandai titik Open, High, Low, dan Close-nya.',
-        'Pindahkan ke M15 dan hitung tepat 4 batang candle yang membentuk 1 batang H1 tadi.',
-        'Bandingkan candle yang tutup dengan Body tebal vs candle yang hanya menyisakan Wick panjang.'
+        'Buka chart XAUUSD di H1 lalu identifikasi titik Open, High, Low, dan Close pada 1 candle terakhir.',
+        'Beralih ke M15 dan cocokkan 4 batang candle yang menyusun 1 candle H1 tersebut.',
+        'Bandingkan candle yang ditutup dengan Body penuh terhadap candle yang menyisakan Wick panjang.'
       ],
       decisionTree: [
         {
-          condition: 'Harga sedang menembus puncak lama, tetapi waktu candle M15 masih tersisa 8 menit lagi.',
-          action: 'Tunggu sampai waktu habis dan candle benar-benar close; jangan entry di tengah candle yang masih bergerak.'
+          condition: 'Harga menembus level atas pada candle M15, tetapi waktu candle masih tersisa 8 menit.',
+          action: 'Tunggu hingga waktu berakhir dan candle benar-benar close sebelum mengambil keputusan.'
         },
         {
-          condition: 'Candle mencoba naik melewati batas atas, lalu tutup di bawah batas dengan ekor atas sangat panjang.',
-          action: 'Baca itu sebagai penolakan (rejection) penjual, bukan tembusan naik yang sah.'
+          condition: 'Harga sempat naik melewati batas atas, lalu tutup di bawah batas dengan Wick atas panjang.',
+          action: 'Baca sebagai penolakan harga (rejection), bukan tembusan naik yang sah.'
         }
       ],
       validRules: [
-        'Tunggu Candle Close sebelum menyatakan sebuah batas harga benar-benar ditembus.',
-        'Gunakan timeframe besar (D1/H4/H1) untuk arah dan timeframe kecil (M15/M5) untuk detail.'
+        'Selalu tunggu Candle Close sebelum menyimpulkan sebuah level tertembus.',
+        'Gunakan timeframe besar (D1/H4/H1) untuk arah dan timeframe kecil (M15/M5) untuk detail eksekusi.'
       ],
       invalidRules: [
-        'Mengambil keputusan entry saat candle baru berjalan separuh waktu.',
-        'Hanya menatap M1 terus-menerus tanpa melihat konteks H1 dan M15.'
+        'Mengambil keputusan entry saat candle baru berjalan sebagian waktu.',
+        'Hanya memantau M1 tanpa membaca konteks H1 dan M15.'
       ],
       xauScenario: {
-        context: 'Candle M15 XAU/USD dibuka di 2.650,00, sempat turun ke 2.648,50, lalu melonjak ke 2.655,00 dan ditutup di 2.654,20.',
+        context: 'Candle M15 XAU/USD dibuka di 2.650,00, turun ke 2.648,50, naik ke 2.655,00, dan ditutup di 2.654,20.',
         steps: [
-          'Identifikasi ekor bawah $1,50 sebagai tanda pembeli menolak harga murah di 2.648,50.',
-          'Identifikasi Body Bullish tebal $4,20 yang membuktikan dominasi pembeli saat penutupan.'
+          'Wick bawah sebesar $1,50 menunjukkan penolakan harga di area 2.648,50.',
+          'Body Bullish sebesar $4,20 menunjukkan pembeli mendominasi hingga penutupan candle.'
         ]
       },
       failedCase: {
-        title: 'Terjebak FOMO Sebelum Candle Close',
-        context: 'Pemula melihat candle M15 hijau panjang di menit ke-5 lalu langsung BUY tanpa menunggu penutupan.',
-        whyFailed: 'Di 10 menit tersisa harga berbalik turun drastis dan candle ditutup merah dengan ekor atas panjang, membuat posisi BUY langsung terjebak di pucuk.'
+        title: 'Masuk Posisi Sebelum Candle Close',
+        context: 'Trader melihat candle M15 hijau panjang pada menit ke-5 lalu langsung BUY tanpa menunggu penutupan.',
+        whyFailed: 'Pada 10 menit tersisa harga berbalik turun dan candle ditutup merah dengan wick atas panjang, membuat posisi BUY langsung merugi.'
       },
       goldenRules: [
-        'Body menceritakan fakta akhir; Wick menceritakan penolakan atau jebakan.',
-        'Satu candle H1 selalu terdiri dari 4 candle M15 dan 12 candle M5.'
+        'Body mencerminkan hasil penutupan yang sah; Wick mencerminkan penolakan atau sweep sementara.',
+        'Satu candle H1 terdiri dari 4 candle M15 dan 12 candle M5.'
       ],
       practiceCta: {
         label: 'Amati Candlestick Live M15 & M5 di Beranda',
-        description: 'Bandingkan langsung bentuk body dan wick candle Gold pada tombol pergantian M15 dan M5.',
+        description: 'Bandingkan langsung bentuk Body dan Wick candle Gold pada tombol pergantian M15 dan M5.',
         href: '../../index.html'
       },
       quiz: [
@@ -1007,18 +1031,18 @@
           explanation: 'Body diukur dari jarak antara Open dan Close: 2.654,20 - 2.650,00 = $4,20.'
         },
         {
-          question: 'Mengapa kamu dilarang menyimpulkan sebuah level harga sudah "tembus sah" ketika candle masih berjalan (belum close)?',
+          question: 'Mengapa sebuah level harga belum boleh disimpulkan "tertembus sah" saat candle masih berjalan (belum close)?',
           options: [
-            'Karena broker tidak memperbolehkan transaksi sebelum menit ke-15',
-            'Karena sebelum waktu habis, harga bisa berbalik tajam hingga yang tersisa saat close hanyalah ekor panjang (penolakan/jebakan)',
-            'Karena candle yang masih berjalan tidak memiliki harga Bid',
-            'Karena semua candle pasti berubah warna di detik terakhir'
+            'Karena broker melarang transaksi sebelum menit ke-15',
+            'Karena sebelum waktu candle berakhir, harga masih dapat berbalik tajam hingga saat close hanya tersisa Wick penolakan',
+            'Karena candle berjalan tidak memiliki harga Bid',
+            'Karena warna candle selalu berubah di detik terakhir'
           ],
           answerIndex: 1,
-          explanation: 'Hanya penutupan candle (Candle Close) yang sah sebagai fakta. Batang yang tampak menembus di tengah waktu sering kali ditarik pulang menjadi wick penolakan.'
+          explanation: 'Hanya penutupan resmi (Candle Close) yang sah dibaca sebagai fakta. Pergerakan di tengah durasi sering berbalik menjadi wick penolakan.'
         },
         {
-          question: 'Secara matematis, satu batang candle H1 (1 Jam) dibentuk oleh berapa banyak batang candle M15 dan M5?',
+          question: 'Secara matematis, satu batang candle H1 (1 Jam) tersusun dari berapa banyak candle M15 dan M5?',
           options: [
             '2 candle M15 atau 6 candle M5',
             '4 candle M15 atau 12 candle M5',
@@ -1026,18 +1050,18 @@
             '15 candle M15 atau 60 candle M5'
           ],
           answerIndex: 1,
-          explanation: '60 menit ÷ 15 menit = 4 candle M15; dan 60 menit ÷ 5 menit = 12 candle M5.'
+          explanation: '60 menit ÷ 15 menit = 4 candle M15, dan 60 menit ÷ 5 menit = 12 candle M5.'
         },
         {
-          question: 'Dalam pembacaan bahasa tubuh candlestick, apa perbedaan utama antara Body tebal dan Wick panjang?',
+          question: 'Dalam pembacaan candlestick ICT, apa perbedaan utama antara Body dan Wick?',
           options: [
-            'Body menunjukkan niat & kekuatan pemenang yang sah saat penutupan, sedangkan Wick panjang menunjukkan penolakan atau sweep sementara',
-            'Wick lebih kuat daripada Body untuk menembus tren',
-            'Body hanya penting di akun Demo',
-            'Keduanya tidak memiliki arti apa pun di pasar Gold'
+            'Body menunjukkan kendali dan penerimaan harga yang sah saat penutupan, sedangkan Wick panjang menunjukkan penolakan atau sweep sementara',
+            'Wick lebih kuat dibandingkan Body untuk mengonfirmasi tembusan level',
+            'Body hanya berlaku pada akun Demo',
+            'Body dan Wick tidak memiliki perbedaan makna'
           ],
           answerIndex: 0,
-          explanation: 'Body tebal yang ditutup melewati suatu batas menunjukkan tenaga nyata, sedangkan Wick panjang menunjukkan harga sempat masuk lalu ditolak kembali.'
+          explanation: 'Body yang ditutup melewati level mencerminkan dominasi nyata, sedangkan Wick panjang menunjukkan harga sempat masuk lalu ditolak kembali.'
         }
       ]
     },
@@ -1052,65 +1076,64 @@
       levelId: 0,
       bookFormat: true,
       title: 'Karakter Unik Gold (XAU/USD), Sesi Pasar Dunia & Aturan Akhir Pekan',
-      subtitle: 'Mengapa Gold bergerak jauh lebih kencang daripada mata uang biasa, jadwal 3 sesi pasar dunia di waktu WITA (EDT & EST), dan jam larangan trading.',
+      subtitle: 'Faktor penggerak volatilitas XAU/USD, jadwal tiga sesi pasar dunia dalam konversi waktu WITA (EDT dan EST), risiko jam Rollover, serta aturan tutup akhir pekan.',
       readMinutes: 9,
       diagramId: 'xau-volatility-sessions',
       diagramAfterSection: 1,
-      summary: 'Kenali karakter volatilitas tinggi XAU/USD, ritme tiga sesi pasar global (Asia, London, New York) dalam konversi eksak WITA (EDT +12 / EST +13), bahaya jam rollover, serta aturan tutup akhir pekan.',
+      summary: 'Pahami karakteristik volatilitas harian XAU/USD, jadwal tiga sesi perdagangan global (Asia, London, New York) dalam waktu WITA (EDT +12 / EST +13), risiko pelebaran Spread saat Rollover, dan jadwal tutup akhir pekan.',
       bookSections: [
         {
           number: '6.1',
-          heading: 'Mengapa Gold (XAU/USD) Berbeda dari Pasangan Forex Biasa?',
+          heading: 'Karakteristik Pergerakan dan Volatilitas Gold (XAU/USD)',
           paragraphs: [
-            'Banyak trader yang datang dari pasangan mata uang seperti `EUR/USD` terkejut saat pertama kali membuka chart **Gold (`XAU/USD`)**. Jika pasangan mata uang mayor biasanya bergerak 50 hingga 80 pips dalam sehari, Gold dengan santainya bisa melaju **$20 hingga $40 (200 sampai 400 pips)** hanya dalam satu hari perdagangan — bahkan bisa menempuh $15 hanya dalam 15 menit saat berita Amerika keluar.',
-            'Kenapa Gold begitu hidup dan agresif? Karena emas bukan sekadar mata uang satu negara, melainkan **aset lindung nilai global (*safe-haven*)** yang sensitif terhadap kekuatan Dolar AS (DXY), suku bunga bank sentral AS (The Fed), inflasi, hingga ketegangan geopolitik dunia.',
-            'Karakter cepat ini ibarat pisau bermata dua: bagi trader yang punya peta jelas dan disiplin risiko 1%, Gold menawarkan peluang R:R tinggi setiap hari. Namun bagi trader yang asal klik tanpa tahu jam pasar, Gold juga tempat tercepat menghabiskan akun.'
+            'Pergerakan **Gold (`XAU/USD`)** memiliki karakter volatilitas yang jauh lebih tinggi dibandingkan pasangan mata uang mayor seperti `EUR/USD` atau `GBP/USD`. Jika pasangan mata uang mayor rata-rata bergerak 50 hingga 80 pips per hari, Gold secara rutin bergerak **$20 hingga $40 (200 hingga 400 pips)** dalam satu hari perdagangan — dan dapat menempuh $15 hanya dalam 15 menit saat rilis data ekonomi utama Amerika Serikat.',
+            'Tingginya volatilitas Gold dipengaruhi oleh empat faktor makro utama: 1. **Kekuatan Indeks Dolar AS (`DXY`):** Karena Gold dihargai dalam Dolar AS, penguatan Dolar cenderung menekan harga Gold, sedangkan pelemahan Dolar cenderung mendorong Gold naik. 2. **Kebijakan Suku Bunga The Fed:** Perubahan ekspektasi suku bunga dan imbal hasil obligasi AS (`US10Y`) berdampak langsung pada minat pasar terhadap emas. 3. **Data Inflasi & Ketenagakerjaan AS:** Rilis rutin seperti CPI, NFP, dan FOMC memicu lonjakan volume institusional. 4. **Status Aset Lindung Nilai (*Safe-Haven*):** Ketidakpastian ekonomi atau geopolitik global meningkatkan permintaan terhadap emas.',
+            'Volatilitas tinggi memberikan peluang rasio Risk-to-Reward (`R:R`) yang besar setiap hari, tetapi sekaligus mempercepat risiko kerugian jika transaksi dilakukan tanpa Stop Loss, ukuran Lot terukur, dan pemilihan waktu pasar yang tepat.'
           ]
         },
         {
           number: '6.2',
-          heading: 'Ritme 3 Sesi Pasar Dunia (Konversi Eksak New York → WITA)',
+          heading: 'Jadwal 3 Sesi Pasar Dunia dan Konversi Waktu WITA (EDT vs EST)',
           paragraphs: [
-            'Pasar emas dunia buka hampir 24 jam sehari dari Senin hingga Jumat, tetapi **tidak setiap jam layak diperdagangkan**. Pasar bergerak mengikuti jam kerja pusat keuangan terbesar dunia: **Asia (Tokyo/Sydney) → London (Eropa) → New York (Amerika Serikat)**.',
-            'Satu hal penting yang sering membuat buku trading lain meleset 1 jam: Amerika Serikat menerapkan **Daylight Saving Time**. Pada musim panas AS (**EDT**, Maret–November, UTC-4), waktu **WITA (UTC+8) lebih cepat +12 jam** dari New York. Sedangkan pada musim dingin AS (**EST**, November–Maret, UTC-5), **WITA lebih cepat +13 jam** dari New York.'
+            'Pasar Gold global beroperasi hampir 24 jam sehari dari Senin hingga Jumat, tetapi likuiditas dan kualitas pergerakan harga tidak merata sepanjang hari. Aktivitas perdagangan terkonsentrasi pada tiga sesi pusat keuangan utama secara berurutan: **Sesi Asia**, **Sesi London**, dan **Sesi New York**.',
+            'Dalam mengonversi waktu acuan New York ke **WITA (UTC+8)**, kamu wajib memperhatikan sistem **Daylight Saving Time** di Amerika Serikat yang bergeser 1 jam dua kali setahun: 1. **Musim Panas AS (`EDT`, UTC-4, Maret–November):** Waktu **WITA lebih cepat +12 jam** dari waktu New York. 2. **Musim Dingin AS (`EST`, UTC-5, November–Maret):** Waktu **WITA lebih cepat +13 jam** dari waktu New York.'
           ],
           table: {
-            caption: 'Peta Karakter 3 Sesi Pasar Gold Dunia (Patokan NY → WITA)',
-            headers: ['Sesi Pasar', 'Jam WITA (EDT · +12)', 'Jam WITA (EST · +13)', 'Karakter Khas di Chart Gold'],
+            caption: 'Jadwal dan Karakter 3 Sesi Pasar Gold Dunia (Acuan New York → WITA)',
+            headers: ['Sesi Pasar', 'Jam WITA (EDT · +12)', 'Jam WITA (EST · +13)', 'Karakteristik Pergerakan di XAU/USD'],
             rows: [
-              ['Sesi Asia', '08:00 – 12:00 WITA', '09:00 – 13:00 WITA', 'Cenderung tenang dan bergerak sempit membentuk kotak rentang (Asia Range).'],
-              ['Sesi London', '14:00 – 17:00 WITA', '15:00 – 18:00 WITA', 'Volume bank Eropa masuk; mulai muncul gerak tegas & sweep awal terhadap Asia Range.'],
-              ['Sesi New York', '19:00 – 23:00 WITA', '20:00 – 00:00 WITA', 'Puncak volatilitas harian (pertemuan London–NY + jadwal berita ekonomi AS).']
+              ['Sesi Asia', '08:00 – 12:00 WITA', '09:00 – 13:00 WITA', 'Volume relatif rendah; harga cenderung bergerak dalam rentang sempit membentuk kotak akumulasi (**Asia Range**).'],
+              ['Sesi London', '14:00 – 17:00 WITA', '15:00 – 18:00 WITA', 'Volume institusi Eropa masuk; sering diawali sweep terhadap batas Asia Range lalu diikuti pergerakan berarah.'],
+              ['Sesi New York', '19:00 – 23:00 WITA', '20:00 – 00:00 WITA', 'Puncak volume dan volatilitas harian akibat pertemuan sesi London–New York serta jadwal rilis berita ekonomi AS.']
             ]
           },
           callout: {
             tone: 'tip',
-            title: 'Jangan Terjebak "Over-Trading" di Jam Sepi',
-            body: 'Di luar jam London dan New York (terutama siang bolong menjelang London buka atau tengah malam setelah NY tutup), pergerakan Gold sering bolak-balik tanpa arah yang jelas. Nanti di Bagian III kita akan membedah jendela waktu super presisi ICT (Killzone, Silver Bullet, dan Macro 20 menit) agar kamu cukup duduk 2–3 jam sehari pada waktu paling berkualitas.'
+            title: 'Disiplin Pemilihan Waktu Transaksi',
+            body: 'Di luar jam aktif London dan New York, pergerakan Gold cenderung lambat dan sering bergerak bolak-balik tanpa arah jelas. Pembahasan jendela waktu presisi ICT (*Killzone*, *Silver Bullet*, dan *Macro 20 menit*) akan dibedah lengkap pada **Bab 16**.'
           }
         },
         {
           number: '6.3',
-          heading: 'Dua Zona Merah Waktu: Jam Rollover & Tutup Akhir Pekan',
+          heading: 'Dua Periode Waktu Berisiko Tinggi: Jam Rollover & Tutup Akhir Pekan',
           paragraphs: [
-            'Selain mengenal jam aktif, kamu wajib menghafal **dua waktu terlarang** saat pasar Gold sangat tidak sehat untuk disentuh:',
-            '**1. Jam Rollover Harian (Pergantian Hari Pasar NY 17:00–18:00 NY):** Sekitar pukul **`05:00–06:00 WITA` (EDT)** atau **`06:00–07:00 WITA` (EST)** setiap pagi, pasar tutup sejenak 1 jam untuk pergantian hari kliring bank. Menjelang dan tepat saat pasar buka kembali di jam ini, Liquidity sangat tipis sehingga **Spread bisa melonjak 5 hingga 10 kali lipat**! Posisi dengan SL ketat sangat rawan tersentuh hanya oleh lonjakan spread.',
-            '**2. Tutup Akhir Pekan (Weekend Closure):** Pasar Gold dunia resmi tutup mulai **Jumat pukul 17:00 NY** (`Sabtu 05:00 WITA` EDT / `06:00 WITA` EST) hingga **Minggu pukul 17:00 NY** (`Senin 05:00 WITA` EDT / `06:00 WITA` EST). Selama akhir pekan, harga berhenti total. Hindari menahan posisi scalping melewati akhir pekan karena pada Senin pagi harga bisa langsung melompat (*weekend gap*) melewati Stop Loss-mu.'
+            'Selain mengetahui jam aktif pasar, terdapat dua periode waktu yang wajib dihindari untuk membuka posisi maupun menahan posisi scalping dengan Stop Loss ketat:',
+            '1. **Jam Rollover Harian (`17:00–18:00 NY`):** Setara pukul **`05:00–06:00 WITA` (EDT)** atau **`06:00–07:00 WITA` (EST)**. Pada satu jam pergantian hari kliring antarbank ini, pasar tutup sementara dan likuiditas sangat menipis. Akibatnya, **Spread dapat melebar 5 hingga 10 kali lipat** dari kondisi normal dan mudah memicu Stop Loss ketat meskipun harga tengah hampir tidak bergeser. 2. **Tutup Akhir Pekan (*Weekend Closure*):** Pasar Gold dunia tutup penuh mulai **Jumat pukul 17:00 NY** (`Sabtu 05:00 WITA` EDT / `06:00 WITA` EST) hingga **Minggu pukul 17:00 NY** (`Senin 05:00 WITA` EDT / `06:00 WITA` EST). Menahan posisi jangka pendek melewati akhir pekan berisiko terkena lompatan harga pembukaan Senin pagi (**Weekend Gap**) yang dapat menembus Stop Loss di luar harga yang ditetapkan.'
           ],
           callout: {
             tone: 'warn',
-            title: 'Kenapa Chart Akhir Pekan Berhenti di Candle Jumat?',
-            body: 'Jika kamu membuka chart Gold pada hari Sabtu atau Minggu, candle terakhir yang sah adalah penutupan Jumat sore waktu New York (Sabtu subuh WITA). Tidak ada transaksi pasar global di akhir pekan — gunakan hari Sabtu dan Minggu murni untuk belajar buku ini, me-review jurnal, dan memetakan rencana pekan depan tanpa tekanan candle bergerak.'
+            title: 'Status Chart pada Hari Sabtu dan Minggu',
+            body: 'Selama pasar tutup di akhir pekan, tidak ada transaksi pasar global dan candle sah terakhir adalah penutupan Jumat 17:00 NY. Gunakan waktu akhir pekan untuk mengevaluasi jurnal transaksi, mempelajari materi, dan memetakan level penting pekan berikutnya.'
           }
         }
       ],
       keyTakeaways: [
-        'Gold (`XAU/USD`) bervolatilitas tinggi ($20–$40 per hari) karena dipengaruhi Dolar AS, suku bunga The Fed, dan sentimen aset aman dunia.',
-        'WITA (UTC+8) = **NY + 12 jam saat EDT** (Maret–Nov) dan **NY + 13 jam saat EST** (Nov–Maret).',
-        'Sesi Asia cenderung membangun rentang sempit; puncak gerak utama terjadi di **Sesi London** dan **Sesi New York**.',
-        'Hindari entry di jam **Rollover harian** (spread melebar ekstrem) dan jangan menahan posisi scalping melewati **tutup akhir pekan** (Jumat 17:00 NY – Minggu 17:00 NY).'
+        'Gold (`XAU/USD`) memiliki rentang gerak harian tinggi ($20–$40 / 200–400 pips) yang dipengaruhi DXY, suku bunga The Fed, data ekonomi AS, dan sentimen safe-haven.',
+        'Konversi WITA (UTC+8) terhadap waktu New York adalah **+12 jam saat EDT** (Maret–Nov) dan **+13 jam saat EST** (Nov–Maret).',
+        'Sesi Asia membentuk rentang awal (Asia Range), sedangkan ekspansi volume utama terjadi pada **Sesi London** dan **Sesi New York**.',
+        'Hindari transaksi saat **Jam Rollover harian** (pelebaran Spread ekstrem) dan hindari menahan posisi scalping melewati **Tutup Akhir Pekan** (Jumat 17:00 NY – Minggu 17:00 NY).'
       ],
-      bridgeNext: 'Selamat — kamu baru saja menuntaskan seluruh **Bagian I (Fondasi Pemula & Cara Kerja Pasar Gold)**! Mulai sekarang, kamu sudah punya bekal lengkap: paham broker & akun, mahir hitung Pips & Spread, pegang rumus Lot 1%, lancar pakai MT5, bisa membaca bahasa Candlestick & Timeframe, dan mengerti jam bernapasnya pasar Gold. Di **Bagian II (Bab 07)**, kita resmi membuka pintu pertama menuju pembacaan pasar profesional: **Bab 07 — Struktur Pasar Murni: Swing High/Low, Tren Naik, Tren Turun & Konsolidasi**.',
+      bridgeNext: 'Dengan berakhirnya Bab 06, seluruh fondasi operasional **Bagian I** telah selesai. Mulai **Bab 07 (Bagian II)**, kita masuk ke analisis teknikal murni tanpa indikator: **Struktur Pasar Murni: Swing High/Low, Tren Naik, Tren Turun, dan Konsolidasi**.',
       conceptBlocks: [
         {
           heading: 'Karakter Gold, 3 Sesi Pasar WITA & Aturan Rollover/Weekend',
@@ -1121,52 +1144,52 @@
         }
       ],
       mappingSteps: [
-        'Cek apakah kalender Amerika saat ini sedang musim panas (EDT, +12 WITA) atau musim dingin (EST, +13 WITA).',
-        'Tandai rentang Sesi Asia setiap pagi sebelum menunggu ekspansi di Sesi London dan New York.',
-        'Tutup seluruh posisi scalping sebelum jam rollover pagi maupun penutupan Jumat sore NY.'
+        'Periksa apakah waktu acuan Amerika saat ini berada pada musim panas (EDT, +12 WITA) atau musim dingin (EST, +13 WITA).',
+        'Tandai rentang Sesi Asia setiap pagi sebelum memantau ekspansi pada Sesi London dan New York.',
+        'Tutup posisi scalping sebelum jam rollover harian maupun penutupan pasar Jumat sore waktu New York.'
       ],
       decisionTree: [
         {
-          condition: 'Sekarang pukul 05:15 WITA (jam rollover) dan kamu melihat setup bagus di chart.',
-          action: 'Abaikan! Spread saat rollover bisa melebar berkali lipat dan sweep SL secara tidak wajar.'
+          condition: 'Waktu menunjukkan pukul 05:15 WITA (jam rollover harian) dan terlihat peluang di chart.',
+          action: 'Hindari eksekusi. Spread pada jam rollover dapat melebar beberapa kali lipat dan memicu Stop Loss secara tidak normal.'
         },
         {
-          condition: 'Sekarang hari Sabtu/Minggu dan chart tidak bergerak.',
-          action: 'Pasar tutup resmi (Jumat 17:00 NY – Minggu 17:00 NY); gunakan waktu ini untuk evaluasi jurnal dan latihan baca struktur historis.'
+          condition: 'Hari Sabtu atau Minggu dan grafik harga berhenti bergerak.',
+          action: 'Pasar sedang tutup resmi (Jumat 17:00 NY – Minggu 17:00 NY). Fokuskan waktu pada evaluasi jurnal dan latihan baca struktur historis.'
         }
       ],
       validRules: [
-        'Fokuskan energi membaca chart pada jendela aktif Sesi London dan New York.',
-        'Selalu perhatikan pergeseran 1 jam antara EDT (+12) dan EST (+13) ke WITA.'
+        'Fokuskan aktivitas analisis dan eksekusi pada jendela aktif Sesi London dan New York.',
+        'Sesuaikan jadwal sesi WITA dengan pergantian musim EDT (+12 jam) dan EST (+13 jam).'
       ],
       invalidRules: [
-        'Memaksakan transaksi saat jam rollover harian ketika spread membengkak.',
-        'Menahan posisi scalping melewati akhir pekan tanpa sadar risiko gap pembukaan Senin.'
+        'Membuka transaksi pada jam rollover harian saat Spread melebar tajam.',
+        'Menahan posisi scalping melewati penutupan akhir pekan dengan risiko Weekend Gap.'
       ],
       xauScenario: {
-        context: 'Hari Selasa (musim EDT, +12 WITA). Sesi Asia 08:00–12:00 WITA bergerak sempit hanya $6 di antara 2.648–2.654.',
+        context: 'Hari Selasa (musim EDT, +12 WITA). Sesi Asia 08:00–12:00 WITA bergerak dalam rentang sempit $6 antara 2.648,00–2.654,00.',
         steps: [
-          'Trader tidak memaksakan entry di tengah kotak sempit Asia.',
-          'Menjelang Sesi London (14:00 WITA), trader bersiap mengamati ke arah mana harga mulai keluar dan sweep batas Asia.'
+          'Tidak membuka posisi di tengah rentang sempit Sesi Asia.',
+          'Menjelang Sesi London (14:00 WITA), memantau arah penembusan atau sweep terhadap batas Asia Range.'
         ]
       },
       failedCase: {
-        title: 'SL Kena Sweep Saat Jam Rollover Subuh',
-        context: 'Trader membiarkan posisi scalping terbuka dengan SL $2 melewati pukul 05:00 WITA (rollover NY 17:00).',
-        whyFailed: 'Spread melonjak mendadak dari $0,30 menjadi $2,50 saat pergantian hari pasar sehingga SL langsung kena sweep meski harga tengah hampir tidak bergerak.'
+        title: 'Stop Loss Tersentuh Pelebaran Spread saat Rollover',
+        context: 'Trader membiarkan posisi scalping terbuka dengan SL $2,00 melewati pukul 05:00 WITA (17:00 NY).',
+        whyFailed: 'Spread melonjak mendadak dari $0,30 menjadi $2,50 pada jam pergantian hari kliring bank sehingga SL tersentuh meski harga tengah relatif stabil.'
       },
       goldenRules: [
-        'Waktu sama pentingnya dengan harga: trade hanya saat Liquidity sehat di London dan New York.',
-        'Jumat 17:00 NY s.d. Minggu 17:00 NY adalah tutup pasar resmi akhir pekan.'
+        'Kualitas transaksi bergantung pada waktu pasar: fokus pada likuiditas sehat di Sesi London dan New York.',
+        'Jumat 17:00 NY hingga Minggu 17:00 NY adalah jadwal tutup pasar resmi akhir pekan.'
       ],
       practiceCta: {
         label: 'Pantau Jam Sesi Aktif di Cockpit Mapping',
-        description: 'Lihat langsung bagaimana sesi Asia, London, dan New York terpetakan pada chart XAU/USD.',
+        description: 'Amati pembagian sesi Asia, London, dan New York secara langsung pada chart XAU/USD.',
         href: '../mapping/index.html'
       },
       quiz: [
         {
-          question: 'Saat Amerika Serikat berada pada musim panas (EDT, UTC-4), pukul 02:00 New York (pembukaan London Killzone) setara dengan jam berapa di WITA (UTC+8)?',
+          question: 'Saat Amerika Serikat berada pada musim panas (EDT, UTC-4), pukul 02:00 waktu New York setara dengan pukul berapa di WITA (UTC+8)?',
           options: [
             '12:00 WITA',
             '14:00 WITA (NY + 12 jam)',
@@ -1174,10 +1197,10 @@
             '19:00 WITA'
           ],
           answerIndex: 1,
-          explanation: 'Saat EDT (UTC-4), WITA (UTC+8) lebih cepat 12 jam. Jadi 02:00 NY + 12 jam = 14:00 WITA.'
+          explanation: 'Pada musim panas AS (EDT, UTC-4), waktu WITA (UTC+8) lebih cepat 12 jam. Jadi 02:00 NY + 12 jam = 14:00 WITA.'
         },
         {
-          question: 'Ketika Amerika beralih ke musim dingin (EST, UTC-5), bagaimana pergeseran jam sesi di WITA dibandingkan saat EDT?',
+          question: 'Ketika Amerika Serikat beralih ke musim dingin (EST, UTC-5), bagaimana pergeseran jadwal sesi di WITA dibandingkan saat EDT?',
           options: [
             'Bergeser 1 jam lebih awal di WITA (NY + 11 jam)',
             'Bergeser 1 jam lebih lambat di WITA (NY + 13 jam)',
@@ -1185,18 +1208,18 @@
             'Bergeser 5 jam lebih cepat'
           ],
           answerIndex: 1,
-          explanation: 'Saat EST (UTC-5), selisih ke WITA (UTC+8) menjadi +13 jam — sehingga seluruh sesi bergeser 1 jam lebih malam/siang di WITA.'
+          explanation: 'Saat EST (UTC-5), selisih ke WITA (UTC+8) menjadi +13 jam sehingga seluruh jadwal sesi bergeser 1 jam lebih lambat.'
         },
         {
-          question: 'Mengapa trader scalping Gold sangat dilarang membuka posisi atau membiarkan SL ketat terbuka tepat pada jam Rollover harian (sekitar 05:00–06:00 WITA saat EDT)?',
+          question: 'Mengapa trader scalping Gold wajib menghindari eksekusi atau menahan SL ketat pada jam Rollover harian (sekitar 05:00–06:00 WITA saat EDT)?',
           options: [
-            'Karena harga Gold selalu pasti turun di jam tersebut',
-            'Karena Liquidity menipis saat pergantian hari bank sehingga Spread bisa melebar 5–10 kali lipat dan sweep SL secara tidak wajar',
-            'Karena akun Demo dimatikan permanen di pagi hari',
-            'Karena chart hanya menampilkan M1'
+            'Karena harga Gold selalu turun pada jam tersebut',
+            'Karena likuiditas antarbank menipis saat pergantian hari kliring sehingga Spread dapat melebar 5–10 kali lipat dan memicu SL ketat',
+            'Karena akun Demo dinonaktifkan setiap pagi',
+            'Karena chart hanya menampilkan timeframe M1'
           ],
           answerIndex: 1,
-          explanation: 'Pada jam rollover pergantian hari kliring bank (17:00 NY), spread melebar tajam sehingga rawan menyentuh SL ketat.'
+          explanation: 'Saat jam rollover kliring harian (17:00 NY), spread melebar signifikan sehingga posisi dengan SL tipis sangat rawan tersentuh.'
         },
         {
           question: 'Kapankah jadwal tutup resmi akhir pekan (Weekend Closure) pasar Gold dunia?',
@@ -1207,7 +1230,7 @@
             'Pasar Gold tidak pernah tutup di akhir pekan'
           ],
           answerIndex: 1,
-          explanation: 'Pasar Gold dunia resmi tutup mulai Jumat pukul 17:00 waktu New York hingga Minggu pukul 17:00 waktu New York.'
+          explanation: 'Pasar Gold dunia tutup resmi mulai Jumat pukul 17:00 waktu New York hingga Minggu pukul 17:00 waktu New York.'
         }
       ]
     }

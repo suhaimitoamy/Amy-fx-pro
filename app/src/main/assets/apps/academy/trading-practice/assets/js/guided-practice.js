@@ -570,13 +570,84 @@
         throw new Error('Bank soal tidak lengkap.');
       }
 
+      var validTopics = Array.from(ui.byId('exerciseTopic').options)
+        .map(function (opt) { return opt.value; })
+        .filter(function (v) { return v && v !== 'ALL'; });
+      var urlState = typeof session.parseGuidedUrlParams === 'function'
+        ? session.parseGuidedUrlParams(window.location.search, validTopics)
+        : { topic: null, difficulty: null, mode: null, fromLesson: null, count: null };
+
+      var topicSelect = ui.byId('exerciseTopic');
+      var diffSelect = ui.byId('exerciseCategory');
+      var lenSelect = ui.byId('sessionLength');
+      if (urlState.topic && topicSelect) topicSelect.value = urlState.topic;
+      if (urlState.difficulty && diffSelect) diffSelect.value = urlState.difficulty;
+      if (urlState.count && lenSelect) lenSelect.value = String(urlState.count);
+
+      var ctxBanner = ui.byId('guidedContextBanner');
+      var ctxBadge = ui.byId('guidedContextBadge');
+      var ctxText = ui.byId('guidedContextText');
+      var returnLessonLink = ui.byId('guidedReturnLesson');
+      var resetTopicBtn = ui.byId('guidedResetTopic');
+      var backBtn = ui.byId('btBackBtn');
+
+      if (urlState.fromLesson) {
+        var lessonHref = '../index.html?lesson=' + encodeURIComponent(urlState.fromLesson);
+        if (backBtn) backBtn.setAttribute('data-back-fallback', lessonHref);
+        if (returnLessonLink) {
+          returnLessonLink.href = lessonHref;
+          returnLessonLink.hidden = false;
+        }
+      }
+
+      function updateContextBanner(isMistakeReview) {
+        if (!ctxBanner) return;
+        var activeTopicVal = topicSelect ? topicSelect.value : 'ALL';
+        var showBanner = Boolean(isMistakeReview || (activeTopicVal && activeTopicVal !== 'ALL') || urlState.fromLesson);
+        ctxBanner.hidden = !showBanner;
+        if (!showBanner) return;
+        if (isMistakeReview) {
+          if (ctxBadge) ctxBadge.textContent = 'MODE REVIEW SALAH';
+          if (ctxText) ctxText.textContent = 'Mengulang khusus kasus yang sebelumnya salah dijawab agar pola langsung menempel.';
+        } else if (activeTopicVal && activeTopicVal !== 'ALL') {
+          var selectedOpt = topicSelect.options[topicSelect.selectedIndex];
+          var labelText = selectedOpt ? selectedOpt.textContent.trim() : activeTopicVal;
+          if (ctxBadge) ctxBadge.textContent = urlState.fromLesson ? 'FOKUS BAB ACADEMY' : 'FILTER PILAR AKTIF';
+          if (ctxText) ctxText.textContent = 'Latihan fokus pada pilar: ' + labelText;
+        } else {
+          if (ctxBadge) ctxBadge.textContent = 'LATIHAN DARI ACADEMY';
+          if (ctxText) ctxText.textContent = 'Menampilkan campuran seluruh 8 pilar XAU/USD.';
+        }
+      }
+
+      if (resetTopicBtn) {
+        resetTopicBtn.addEventListener('click', function () {
+          if (topicSelect) topicSelect.value = 'ALL';
+          if (diffSelect) diffSelect.value = 'ALL';
+          updateContextBanner(false);
+          start({ mistakesOnly: false });
+        });
+      }
+
       renderPillarMastery();
 
       ui.byId('startSession').disabled = false;
-      ui.byId('startSession').addEventListener('click', function () { start({ mistakesOnly: false }); });
-      ui.byId('restartSession').addEventListener('click', function () { start({ mistakesOnly: false }); });
-      ui.byId('drillMistakesBtn').addEventListener('click', function () { start({ mistakesOnly: true }); });
-      ui.byId('drillSessionMistakes').addEventListener('click', function () { start({ mistakesOnly: true }); });
+      ui.byId('startSession').addEventListener('click', function () {
+        updateContextBanner(false);
+        start({ mistakesOnly: false });
+      });
+      ui.byId('restartSession').addEventListener('click', function () {
+        updateContextBanner(false);
+        start({ mistakesOnly: false });
+      });
+      ui.byId('drillMistakesBtn').addEventListener('click', function () {
+        updateContextBanner(true);
+        start({ mistakesOnly: true });
+      });
+      ui.byId('drillSessionMistakes').addEventListener('click', function () {
+        updateContextBanner(true);
+        start({ mistakesOnly: true });
+      });
 
       ui.byId('toggleBlindMode').addEventListener('click', function () {
         if (answered) return;
@@ -610,7 +681,23 @@
         if (e.key === 'Escape' && isFullscreen) toggleFullscreen(false);
       });
 
-      start({ mistakesOnly: false });
+      if (urlState.mode === 'mistakes') {
+        var hasAnyMistakes = bank.some(function (q) {
+          var rec = masteryMap[q.id];
+          return Boolean(rec && rec.lastCorrect === false);
+        });
+        if (hasAnyMistakes) {
+          updateContextBanner(true);
+          start({ mistakesOnly: true });
+        } else {
+          updateContextBanner(false);
+          start({ mistakesOnly: false });
+          ui.status('guidedStatus', 'Mantap! Belum ada soal salah yang tersisa. Memulai latihan reguler.');
+        }
+      } else {
+        updateContextBanner(false);
+        start({ mistakesOnly: false });
+      }
 
       // Preserve the last report after opening a lesson and returning to this page.
       try {

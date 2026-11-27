@@ -8,6 +8,7 @@
  */
 
 import {
+  evaluatePoiQualityGate,
   resolveM15Direction,
   formatPdlPdhRange,
   resolveSsotTelemetry,
@@ -934,7 +935,7 @@ import {
           scoreChipsEl.innerHTML = '';
         } else {
           const rateTxt = poiStats.respectRate !== null ? ` · Respect ${poiStats.respectRate}%` : '';
-          scoreMainEl.textContent = `${scopeLabel}: ${poiStats.total} POI Disentuh${rateTxt}`;
+          scoreMainEl.textContent = `${scopeLabel}: ${poiStats.total} POI Fill CE${rateTxt}`;
           let scopeNetUsd = 0;
           let scopeResolved = 0;
           for (const rec of poiStats.items) {
@@ -1111,20 +1112,29 @@ import {
     }
   }
 
-  function filterTrackableLivePlans(plans) {
+  let latestHistoryM15Dir = 0;
+
+  function filterTrackableLivePlans(plans, m15Dir = latestHistoryM15Dir, nowMs = Date.now()) {
     return plans.filter(p => {
       if (!p || !p.area || p.skip) return false;
       const lo = Number(p.area.low);
       const hi = Number(p.area.high);
       if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return false;
-      const tf = String(p.tf || 'M15').toUpperCase();
-      const maxW = tf === 'M5' ? 8.0 : 11.0;
-      return (hi - lo) <= maxW;
+      const gate = evaluatePoiQualityGate({
+        tf: p.tf || 'M15',
+        kind: p.kind || 'FVG',
+        side: p.side || 'BUY',
+        width: hi - lo,
+        m15Dir,
+        nowMs
+      });
+      return gate.allowed;
     });
   }
 
   function syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice) {
     const amy = ctx?.amy || ctx;
+    latestHistoryM15Dir = resolveM15Direction(ctx);
     const m15Candles = amy?.chartCandles?.M15 || [];
     const m5Candles = amy?.chartCandles?.M5 || [];
     const lastM15 = m15Candles[m15Candles.length - 1];
@@ -1157,7 +1167,7 @@ import {
       stateChanged = true;
     }
 
-    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay]);
+    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay], latestHistoryM15Dir, nowMs);
     if (Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
       const liveRes = recordLivePoiProgress({
         state: mappingHistoryState,
@@ -1779,16 +1789,16 @@ import {
         sellBadgeEl.textContent = 'High Probability HTF · Reversal Supply / PDH';
         buyBadgeEl.textContent  = 'Pullback Retest · Jemput di Demand M15';
       } else if (h1Dir === 1 && m15Dir === -1) {
-        sellBadgeEl.textContent = 'Pullback Koreksi · Resistance Ekstrem';
+        sellBadgeEl.textContent = 'Pullback Koreksi · Supply Premium';
         buyBadgeEl.textContent  = 'High Probability HTF · Reversal Demand / SSL';
       } else if (m15Dir === 1) {
-        sellBadgeEl.textContent = 'Target Pembalikan · Resistance Ekstrem / PDH';
+        sellBadgeEl.textContent = 'Target Pembalikan · Supply Premium / PDH';
         buyBadgeEl.textContent  = 'Sejalan Bias M15 · Jemput di Demand';
       } else if (m15Dir === -1) {
         sellBadgeEl.textContent = 'Sejalan Bias M15 · Supply Premium';
-        buyBadgeEl.textContent  = 'Counter-Trend · Support Ekstrem Saja';
+        buyBadgeEl.textContent  = 'Counter-Trend · Demand Diskon Saja';
       } else {
-        sellBadgeEl.textContent = 'Target Pembalikan · Resistance Ekstrem';
+        sellBadgeEl.textContent = 'Target Pembalikan · Supply Premium';
         buyBadgeEl.textContent  = 'Pijakan Retest · Jemput di Demand';
       }
     }
@@ -2076,6 +2086,7 @@ import {
         m5Bbs: isSell ? m5BearBBs : m5BullBBs,
         livePrice,
         m15Dir,
+        nowMs: Date.now(),
         activeLeg,
         eqVal,
         protectedHigh,
@@ -2200,9 +2211,15 @@ import {
           tp1 = healthyPool;
           tp2 = validPools.find(x => isSell ? (x.v < tp1.v - 2.0) : (x.v > tp1.v + 2.0)) || null;
         }
-      } else {
-        tp1 = healthyPool || validPools[Math.min(validPools.length - 1, 1)];
+      } else if (healthyPool) {
+        tp1 = healthyPool;
         tp2 = validPools.find(x => isSell ? (x.v < tp1.v - 2.0) : (x.v > tp1.v + 2.0)) || null;
+      } else {
+        // Semua pool struktural yang tersisa terlalu dekat (<1.4R, mis. 1:0.3): pakai proyeksi BEP 1:1.5 agar sejajar dengan Riwayat POI
+        const synth1 = isSell ? (entryCe - Math.max(risk * 1.5, 9.0)) : (entryCe + Math.max(risk * 1.5, 9.0));
+        const synth2 = isSell ? (entryCe - Math.max(risk * 2.5, 15.0)) : (entryCe + Math.max(risk * 2.5, 15.0));
+        tp1 = { name: 'Partial BEP (1:1.5)', k: isSell ? 'L' : 'H', v: Number(synth1.toFixed(2)), synthetic: true };
+        tp2 = { name: 'Ekspansi 2.5R', k: isSell ? 'L' : 'H', v: Number(synth2.toFixed(2)), synthetic: true };
       }
 
       const rr1 = tp1 && Number.isFinite(entryCe) ? (Math.abs(tp1.v - entryCe) / risk) : NaN;
