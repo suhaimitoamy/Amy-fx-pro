@@ -64,8 +64,11 @@ function runtime() {
      dataset:{},
      classList:{ add(){}, remove(){}, toggle(){} },
      children:[],
+     options:[],
+     selectedIndex:0,
      listeners:{},
      value:id==='exerciseCategory'?'ALL':id==='sessionLength'?'10':'',
+     setAttribute(){},
      appendChild(n){this.children.push(n)},
      replaceChildren(){this.children=[]},
      querySelectorAll(sel){
@@ -85,13 +88,15 @@ function runtime() {
  const context=vm.createContext({
    console,
    Math,
+   URLSearchParams,
    localStorage:{getItem:k=>local.get(k)||null,setItem:(k,v)=>local.set(k,v)},
-   location:{},
+   location:{search:''},
    document:{readyState:'complete',createElement:(tag)=>node('', tag),addEventListener(){}},
    fetch:async()=>({ok:true,json:async()=>({schemaVersion:3,exercises:bank})}),
    requestAnimationFrame:(cb)=>setImmediate(cb)
  });
  context.window={
+   location:{search:''},
    AmyPracticeUI:{byId,text:(id,t)=>{byId(id).textContent=t},status:(id,t)=>{byId(id).textContent=t},renderOhlc:()=>{}},
    AmyPracticeStorage:{saveGuidedResult:async r=>{saved.push(r)}},
    AmyCandleChart:{CandleChart:function(){return chart}},

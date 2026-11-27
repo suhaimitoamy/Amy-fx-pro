@@ -101,7 +101,7 @@ function advanceZone(z,c,newThisBar=false){
 }
 export function dashboardEngine(candles,options={}){
   const s={...DEFAULTS,...options},atr=wilderAtr(candles),history=[],events=[];
-  let ph=null,pl=null,protectedHigh=null,protectedLow=null,bias=0,mss=0,invalid=null,rh=null,rl=null,sweep=null,bullFvg=null,bearFvg=null,bullOb=null,bearOb=null,dolMemory=null,lastBreak=null;
+  let ph=null,pl=null,protectedHigh=null,protectedLow=null,bias=0,mss=0,invalid=null,rh=null,rl=null,sweep=null,bullFvg=null,bearFvg=null,bullOb=null,bearOb=null,dolMemory=null,lastBreak=null,lastBullBreakTime=null,lastBearBreakTime=null;
   const bslPool=[],sslPool=[];
 
   const findOriginOb=(index,side,minThick)=>{
@@ -172,9 +172,13 @@ export function dashboardEngine(candles,options={}){
     const bullDisp=contiguous&&avg!=null&&c.close>c.open&&body(c)>avg*s.dispMult&&c.close>prev.high;
     const bearDisp=contiguous&&avg!=null&&c.close<c.open&&body(c)>avg*s.dispMult&&c.close<prev.low;
 
-    const bullRef=protectedHigh||ph,bearRef=protectedLow||pl;
-    const bull=contiguous&&bullRef&&pl&&c.close>bullRef.level&&prev.close<=bullRef.level;
-    const bear=contiguous&&bearRef&&ph&&c.close<bearRef.level&&prev.close>=bearRef.level;
+    // Continuation BOS tests latest unconsumed swing pivot; reversal MSS tests protected opposing pivot
+    const bullRef=(bias===-1&&protectedHigh)?protectedHigh:ph;
+    const bearRef=(bias===1&&protectedLow)?protectedLow:pl;
+    const bullFresh=Boolean(bullRef&&bullRef.time!==lastBullBreakTime);
+    const bearFresh=Boolean(bearRef&&bearRef.time!==lastBearBreakTime);
+    const bull=contiguous&&bullFresh&&pl&&c.close>bullRef.level&&prev.close<=bullRef.level;
+    const bear=contiguous&&bearFresh&&ph&&c.close<bearRef.level&&prev.close>=bearRef.level;
 
     let invalidNow=false,changed=false;
     const oldBias=bias;
@@ -203,12 +207,32 @@ export function dashboardEngine(candles,options={}){
       changed=true;
     }else if(bull&&bias===1){
       mss=1;
-      if(pl&&(!protectedLow||pl.level>protectedLow.level)){protectedLow=pl;invalid=pl.level;}
+      let legLow=(pl&&pl.time>=bullRef.time)?pl:null;
+      if(!legLow){
+        for(let k=i;k>=0&&candles[k].open_time>=bullRef.time;k--){
+          if(!legLow||candles[k].low<legLow.level)legLow={level:candles[k].low,time:candles[k].open_time};
+        }
+      }
+      if(legLow&&(!protectedLow||legLow.level>=protectedLow.level)){
+        protectedLow=legLow;invalid=legLow.level;rl=legLow.level;
+      }else if(pl&&(!protectedLow||pl.level>protectedLow.level)){
+        protectedLow=pl;invalid=pl.level;rl=pl.level;
+      }
       protectedHigh=ph;
       rh=Math.max(rh??bullRef.level,c.high);
     }else if(bear&&bias===-1){
       mss=-1;
-      if(ph&&(!protectedHigh||ph.level<protectedHigh.level)){protectedHigh=ph;invalid=ph.level;}
+      let legHigh=(ph&&ph.time>=bearRef.time)?ph:null;
+      if(!legHigh){
+        for(let k=i;k>=0&&candles[k].open_time>=bearRef.time;k--){
+          if(!legHigh||candles[k].high>legHigh.level)legHigh={level:candles[k].high,time:candles[k].open_time};
+        }
+      }
+      if(legHigh&&(!protectedHigh||legHigh.level<=protectedHigh.level)){
+        protectedHigh=legHigh;invalid=legHigh.level;rh=legHigh.level;
+      }else if(ph&&(!protectedHigh||ph.level<protectedHigh.level)){
+        protectedHigh=ph;invalid=ph.level;rh=ph.level;
+      }
       protectedLow=pl;
       rl=Math.min(rl??bearRef.level,c.low);
     }
@@ -219,6 +243,8 @@ export function dashboardEngine(candles,options={}){
     if(bias===-1&&rh!=null&&protectedHigh&&protectedHigh.level<rh)rh=protectedHigh.level;
 
     if(bull||bear){
+      if(bull)lastBullBreakTime=bullRef.time;
+      if(bear)lastBearBreakTime=bearRef.time;
       const ev={
         kind:oldBias===(bull?1:-1)?'BOS':'MSS',
         side:bull?'BUY':'SELL',

@@ -72,10 +72,10 @@ test('dashboardContextV4Rows produces exactly 11 pure market context rows', () =
     'MAGNET ATAS (BSL/PDH)',
     'MAGNET BAWAH (SSL/PDL)',
     'SESI & ASIA RANGE',
-    'INDUCEMENT (IDM)',
+    'LIKUIDITAS INTERNAL (IRL)',
     'ZONA SUPPLY (M15)',
     'ZONA DEMAND (M15)',
-    'BATAS CHoCH (H1)',
+    'BATAS MSS (H1)',
     'PANDUAN KONTEKS'
   ]);
 });
@@ -108,7 +108,7 @@ test('dashboardContextV4Rows detects Bullish Pullback in Demand zone with Anti-S
   const guideRow = rows.find(r => r[0] === 'PANDUAN KONTEKS');
 
   assert.match(phaseRow[1], /PULLBACK DI ZONA DEMAND/);
-  assert.match(guideRow[1], /JANGAN SELL! Tunggu M5 CHoCH Bullish/);
+  assert.match(guideRow[1], /JANGAN SELL! Tunggu M5 MSS Bullish/);
 });
 
 test('dashboardContextV4Rows detects Lower Liquidity Manipulation on SSL Sweep', () => {
@@ -221,11 +221,11 @@ test('dashboardContextV6Rows produces exactly 14 pure market context rows', () =
     'DRAW ON LIQ (BSL)',
     'DRAW ON LIQ (SSL)',
     'KILLZONE & ASIA',
-    'INDUCEMENT (IDM)',
+    'LIKUIDITAS INTERNAL (IRL)',
     'BEARISH PDA (M15)',
     'BULLISH PDA (M15)',
     'JEJAK HTF & NWOG',
-    'BATAS MSS / CHoCH',
+    'BATAS MSS (H1)',
     'TARGET ENTRY (2-ARAH)',
     'PANDUAN KONTEKS ICT'
   ]);
