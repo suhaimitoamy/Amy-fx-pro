@@ -119,8 +119,16 @@ function empty(reason){
 function render(){
   const weekendClosed=!isMarketOpenNow();
   let c=failed?null:currentContext(payload);
-  if(!c&&weekendClosed&&payload?.context?.version==='amyfx-gold-context-v1'&&payload?.context?.source?.M15){
-    c=payload.context;
+  if(!failed&&!c&&weekendClosed&&payload?.context?.version==='amyfx-gold-context-v1'&&payload?.context?.source?.M15){
+    c={
+      ...payload.context,
+      execution:{
+        ...(payload.context.execution||{}),
+        status:'NOT READY',
+        aPlusReady:false,
+        reason:'Pasar Gold tutup (akhir pekan). Menunggu pembukaan sesi.'
+      }
+    };
   }
   if(!c){
     empty(failed?'Server belum berhasil dihubungi. Coba Perbarui saat koneksi pulih.':'Evaluasi server belum lengkap atau candle tertutup sudah terlambat.');

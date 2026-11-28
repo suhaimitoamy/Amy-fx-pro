@@ -22,7 +22,8 @@ const calendar=date=>[{country:'USD',impact:'High',title:'CPI',date}];
 function panel(context,storage=new Map()) {
   const nodes=new Map(),events=[],listeners=new Map();
   const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',innerHTML:'',style:{}});return nodes.get(id);};
-  const sandbox={document:{getElementById:node,addEventListener(){},hidden:false},
+  const FixedDate=class extends Date{constructor(...a){super(...(a.length?a:[now*1000]));}static now(){return now*1000;}};
+  const sandbox={document:{getElementById:node,addEventListener(){},hidden:false},Date:FixedDate,
     window:{addEventListener:(name,fn)=>listeners.set(name,fn),dispatchEvent:e=>events.push(e)},
     localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     CustomEvent:class {constructor(type,opts){this.type=type;this.detail=opts.detail;}},
