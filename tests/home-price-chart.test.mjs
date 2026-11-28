@@ -4,11 +4,16 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const read=f=>readFileSync('app/src/main/assets/'+f,'utf8');
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+const OPEN_MARKET_MS=Date.parse('2026-10-20T14:00:00Z');
+class OpenMarketDate extends Date {
+  constructor(...args){super(...(args.length?args:[OPEN_MARKET_MS]));}
+  static now(){return OPEN_MARKET_MS;}
+}
 function mount(loader){
   const nodes=new Map(),events=new Map(),timers=new Map(),draws=[];let serial=0,destroyed=0;
   const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'M15',textContent:'',disabled:false,addEventListener(n,f){this[n]=f;},removeEventListener(n){delete this[n];}});return nodes.get(id);};
   const eventTarget={addEventListener:(n,f)=>events.set(n,f),removeEventListener:n=>events.delete(n)};
-  const context={window:{...eventTarget},document:{hidden:false,...eventTarget},Date,AbortController,
+  const context={window:{...eventTarget},document:{hidden:false,...eventTarget},Date:OpenMarketDate,AbortController,
     setTimeout:(f,ms)=>{timers.set(++serial,{f,ms});return serial;},clearTimeout:id=>timers.delete(id),
     loadCandles:loader,analyze:r=>({...r,sourceTime:r.candles.at(-1)?.time||null,fresh:!r.degraded,plan:null}),
     updateDealingRangeBadge:()=>{},
