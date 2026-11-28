@@ -228,7 +228,7 @@ test('AmyLocalAssistant exports all 4 repaired bridge contracts (getLivePrice, b
   assert.equal(typeof api.riskCalc('Modal $1000 risiko 1% SL 50 pips'), 'string');
 });
 
-test('AmyLocalAssistant syncs Academy 43-modul Mastery Path, Practice 100-case v3 mastery, Calendar dateIso, and Weekend Guard', () => {
+test('AmyLocalAssistant syncs Academy 36-bab Mastery Path, Practice 100-case v3 mastery, Calendar dateIso, and Weekend Guard', () => {
   const futureIso = new Date(Date.now() + 90 * 60000).toISOString();
   const { api } = loadAmyLocalAssistantSandbox({
     amy_academy_progress_v2: {
@@ -262,7 +262,7 @@ test('AmyLocalAssistant syncs Academy 43-modul Mastery Path, Practice 100-case v
   });
 
   const acdText = api.academy();
-  assert.ok(acdText.includes('7/43 modul'), 'Should count completedIds out of 43');
+  assert.ok(acdText.includes('7/36 modul'), 'Should count completedIds out of 36');
   assert.ok(acdText.includes('6/6 modul (SIAP MASUK INTI ICT)'), 'Should detect full foundation readiness');
   assert.ok(acdText.includes('200 XP'), 'Should display earned Mastery XP');
   assert.ok(acdText.includes('2/2 lulus'), 'Should report quiz pass rate');
@@ -280,11 +280,17 @@ test('AmyLocalAssistant syncs Academy 43-modul Mastery Path, Practice 100-case v
   assert.equal(api.isWeekendClosure(new Date('2026-11-25T12:00:00Z')), false);
 });
 
-test('Zero dead apps/practice/index.html links remain in AMY Live assistant files', () => {
+test('Zero dead 404 links (practice or kalkulator-resiko) remain in AMY Live assistant files', () => {
   const localSrc = fs.readFileSync(resolveAsset('apps/shared/amy-local-assistant.js'), 'utf-8');
   const bridgeSrc = fs.readFileSync(resolveAsset('apps/shared/amy-gemini-live-bridge.js'), 'utf-8');
   assert.equal(localSrc.includes('apps/practice/index.html'), false, 'amy-local-assistant.js must not link to 404 apps/practice/index.html');
   assert.equal(bridgeSrc.includes('apps/practice/index.html'), false, 'amy-gemini-live-bridge.js must not link to 404 apps/practice/index.html');
+  assert.equal(localSrc.includes('kalkulator-resiko.html'), false, 'amy-local-assistant.js must not link to 404 kalkulator-resiko.html');
+  assert.equal(bridgeSrc.includes('kalkulator-resiko.html'), false, 'amy-gemini-live-bridge.js must not link to 404 kalkulator-resiko.html');
   assert.ok(localSrc.includes('apps/academy/trading-practice/index.html'));
   assert.ok(bridgeSrc.includes('apps/academy/trading-practice/index.html'));
+  assert.ok(localSrc.includes('apps/mapping/index.html?tool=lot-calc'));
+  assert.ok(bridgeSrc.includes('apps/mapping/index.html?tool=lot-calc'));
+  assert.ok(localSrc.includes('apps/academy/index.html?view=glossary'));
+  assert.ok(bridgeSrc.includes('apps/academy/index.html?view=glossary'));
 });

@@ -1,3 +1,8 @@
+## 2.0.0-pro.483
+
+- chore(cleanup): Pembersihan menyeluruh 303 berkas yatim & duplikat aset (`-27.11 MB` di `app/src/main/assets`, total turun menjadi `20 MB`), termasuk proyek 3D non-trading (`jalusi/`, `character3d/`), `192` gambar lama Academy, sisa Vite bundle `mapping/assets/`, `49` skrip scratch `indikator/files/`, serta folder legasi `academy/{connected,backtest-learning,admin,tools,.github}` yang disinkronkan dua arah dengan `Amy-fx-ai-studio`.
+- fix(assistant-intel): Menghapus rute mati `kalkulator-resiko.html` di AMY Assistant (`amy-local-assistant.js`, `amy-gemini-live-bridge.js`) menuju `apps/mapping/index.html?tool=lot-calc` & `apps/academy/index.html?view=glossary`, memperbaiki jumlah bab `43` → `36`, menyelaraskan label Beranda Backtest `100 Studi Kasus` (`app.js`), serta memperbaiki status awal `CEK SESI` dan pembaruan status offline Market Intel (`apps/market-intel/`).
+
 ## 2.0.0-pro.482
 
 - feat(academy-diagrams): Sinkronisasi finalisasi mesin candlestick SVG Academy (`diagram-engine.js`, `chart-drills.js`, `academy.css`) dari `Amy-fx-ai-studio` (`cd29dac`): upgrade seluruh 36/36 diagram bab & 10/10 Latihan Mata Chart ke candlestick OHLC kontinu realistis, primitif panel ganda SMT (`renderDualAssetPanels`), garis event vertikal (`seriesVLines`), overlay bukti pasca-jawab (`proof.zone`/`proof.fvg`/`proof.wickPin`), serta verifikasi `academy-chart-drills.test.mjs`.

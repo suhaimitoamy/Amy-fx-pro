@@ -17,8 +17,8 @@
     journal:['Jurnal Trading','apps/journal/index.html'],
     habits:['Disiplin & Habits','apps/journal/index.html'],
     academy:['Tutorial Trading','apps/academy/index.html'],
-    kalkulator:['Kalkulator Risiko','apps/academy/tools/kalkulator-resiko.html'],
-    glosarium:['Glosarium ICT','apps/academy/glosarium/index.html'],
+    kalkulator:['Kalkulator Risiko & Lot','apps/mapping/index.html?tool=lot-calc'],
+    glosarium:['Glosarium ICT','apps/academy/index.html?view=glossary'],
     practice:['Trading Practice','apps/academy/trading-practice/index.html'],
     home:['Beranda','index.html']
   };
@@ -30,7 +30,7 @@
     'membaca-chart-candlestick-nol',
     'dasar-tren-sr-rencana-14-hari'
   ];
-  const TOTAL_ACADEMY_LESSONS=43;
+  const TOTAL_ACADEMY_LESSONS=36;
   const TOTAL_PRACTICE_CASES=100;
   const norm=s=>String(s??'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9/\s]/g,' ').replace(/\s+/g,' ').trim();
   const list=v=>Array.isArray(v)?v:[];

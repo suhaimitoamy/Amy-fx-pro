@@ -1,19 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.482/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.483/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Upgrade Penuh Mesin Candlestick SVG Academy (36/36 Bab & 10/10 Latihan Mata): Seluruh diagram & latihan mata Academy kini menggunakan candlestick realistis kontinu bergaya TradingView/Flux Charts, dilengkapi panel ganda SMT Divergence (XAU/USD vs XAG/USD & DXY), BPR/NWOG, serta pembuktian visual interaktif pasca-jawab (sinkron AI Studio cd29dac)."
+    "✦ Pemangkasan Aset & Perbaikan Deep-Link AMY/Market Intel: Menghapus 303 berkas mati & duplikat (-27.11 MB assets), memperbaiki rute 404 kalkulator/glosarium + hitungan 36 bab Academy di AMY Assistant (?tool=lot-calc & ?view=glossary), menyinkronkan label 100 Studi Kasus, serta memperbaiki status awal CEK SESI & fallback offline di Market Intel."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.482/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.483/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950482,
-  "latest_version_name": "2.0.0-pro.482",
+  "latest_version_code": 950483,
+  "latest_version_name": "2.0.0-pro.483",
   "mandatory": false,
-  "releaseDate": "2026-11-27",
+  "releaseDate": "2026-11-28",
   "release_notes": [
-    "✦ Upgrade Penuh Mesin Candlestick SVG Academy (36/36 Bab & 10/10 Latihan Mata): Seluruh diagram & latihan mata Academy kini menggunakan candlestick realistis kontinu bergaya TradingView/Flux Charts, dilengkapi panel ganda SMT Divergence (XAU/USD vs XAG/USD & DXY), BPR/NWOG, serta pembuktian visual interaktif pasca-jawab (sinkron AI Studio cd29dac)."
+    "✦ Pemangkasan Aset & Perbaikan Deep-Link AMY/Market Intel: Menghapus 303 berkas mati & duplikat (-27.11 MB assets), memperbaiki rute 404 kalkulator/glosarium + hitungan 36 bab Academy di AMY Assistant (?tool=lot-calc & ?view=glossary), menyinkronkan label 100 Studi Kasus, serta memperbaiki status awal CEK SESI & fallback offline di Market Intel."
   ],
-  "version": "2.0.0-pro.482",
-  "versionCode": 950482,
+  "version": "2.0.0-pro.483",
+  "versionCode": 950483,
   "sha256": "c718c3f3a15b36d9edfe2a96020de0cb13cbead85d95663098d5eb5a497a0612"
 }

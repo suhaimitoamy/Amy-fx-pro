@@ -1575,6 +1575,7 @@ async function loadCalendar(silent = false) {
       loadSentiment(true);
     } else if (calendarEvents.length === 0) {
       status.textContent = 'Gagal memuat kalender. Periksa koneksi.';
+      updateSessionReadinessStrip();
       const list = document.getElementById('calendar-list');
       if (list && list.children.length === 0) {
         list.innerHTML = `
@@ -1587,7 +1588,10 @@ async function loadCalendar(silent = false) {
     }
   } catch (err) {
     if (err.name === 'AbortError') return;
-    if (calendarEvents.length === 0) status.textContent = 'Gagal memuat kalender. Coba lagi nanti.';
+    if (calendarEvents.length === 0) {
+      status.textContent = 'Gagal memuat kalender. Coba lagi nanti.';
+      updateSessionReadinessStrip();
+    }
   } finally {
     hideLoading();
   }

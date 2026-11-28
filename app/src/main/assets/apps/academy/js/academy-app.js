@@ -1992,6 +1992,12 @@
     } else {
       render();
     }
+
+    try {
+      const viewParam = new URLSearchParams(root.location.search).get('view');
+      if (viewParam === 'glossary') openGlossaryModal();
+      else if (viewParam === 'cheatsheet') openCheatSheetModal();
+    } catch {}
   }
 
   if (document.readyState === 'loading') {

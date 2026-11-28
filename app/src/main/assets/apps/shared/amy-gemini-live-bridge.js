@@ -1840,7 +1840,7 @@
         if (mod === 'mapping') addIfNotCurrent('📈 Buka Chart Gold & Mapping', 'apps/mapping/index.html');
         if (mod === 'market_intel') addIfNotCurrent('📰 Buka Berita & Kalender', 'apps/market-intel/index.html');
         if (mod === 'journal') addIfNotCurrent('📓 Buka Jurnal & Habits', 'apps/journal/index.html');
-        if (mod === 'risk_calc') addIfNotCurrent('🧮 Buka Kalkulator Lot', 'apps/academy/tools/kalkulator-resiko.html');
+        if (mod === 'risk_calc') addIfNotCurrent('🧮 Buka Kalkulator Lot', 'apps/mapping/index.html?tool=lot-calc');
         if (mod === 'practice') addIfNotCurrent('🎯 Buka Trading Practice (100 Kasus)', 'apps/academy/trading-practice/index.html');
         if (mod === 'academy') addIfNotCurrent('🎓 Buka Amy FX Academy', 'apps/academy/index.html');
       }
@@ -2101,8 +2101,8 @@
           journal: ['Jurnal & Habits', 'apps/journal/index.html'],
           practice: ['Trading Practice', 'apps/academy/trading-practice/index.html'],
           academy: ['Amy FX Academy', 'apps/academy/index.html'],
-          kalkulator: ['Kalkulator Risiko & Lot', 'apps/academy/tools/kalkulator-resiko.html'],
-          glosarium: ['Glosarium ICT', 'apps/academy/glosarium/index.html'],
+          kalkulator: ['Kalkulator Risiko & Lot', 'apps/mapping/index.html?tool=lot-calc'],
+          glosarium: ['Glosarium ICT', 'apps/academy/index.html?view=glossary'],
           indikator: ['Indikator ICT (Beranda)', 'index.html'],
           home: ['Beranda', 'index.html']
         };
@@ -2468,7 +2468,7 @@
                       `Kamu adalah ✦ AMY, asisten trading suara khusus XAU/USD (Gold) di Amy FX Pro.\n` +
                       `FOKUS 100% TRADING XAU/USD & FITUR AMY FX PRO: Tolak halus topik non-trading dan arahkan kembali ke trading Gold atau fitur aplikasi.\n` +
                       `PROFIL: Sayang adalah Pure Gold Scalper M15/M5 target 100 Pips ($10), zona waktu WITA (UTC+8). Panggil selalu "Sayang" dengan hangat, tajam, dan jujur (Anti-Yes-Man).\n` +
-                      `FITUR TERKINI AMY FX PRO: Mapping Cockpit Dual-Layer POI + 5-Point Verdict + Riwayat Reaksi/Respect Rate POI + status Pasar Tutup Akhir Pekan; Jurnal REAL vs SIM/Backtest + Evaluasi Mingguan 7H + Daily Loss Guard + Habits; Academy Jalur Penguasaan 43 Modul ICT (sistem kunci 80% ala Duolingo, Tes Loncat Dasar MT5, Unicorn/BPR/SMT/MMXM/Macros/StdDev/Capstone Chart Kosong); Trading Practice 100 Kasus ICT (8 Pilar).\n` +
+                      `FITUR TERKINI AMY FX PRO: Mapping Cockpit Dual-Layer POI + 5-Point Verdict + Riwayat Reaksi/Respect Rate POI + status Pasar Tutup Akhir Pekan; Jurnal REAL vs SIM/Backtest + Evaluasi Mingguan 7H + Daily Loss Guard + Habits; Academy Jalur Penguasaan 36 Bab ICT (sistem kunci 80% ala Duolingo, Tes Loncat Dasar MT5, Unicorn/BPR/SMT/MMXM/Macros/StdDev/Capstone Chart Kosong); Trading Practice 100 Kasus ICT (8 Pilar).\n` +
                       `ATURAN FORMAT ANGKA & LEVEL (MUTLAK):\n` +
                       `- WAJIB menuliskan dan menyebutkan SEMUA angka harga, level support/resistance, Order Block, FVG, persentase, dan pips MENGGUNAKAN DIGIT ANGKA (contoh: $3595.57, 3611.41 - 3624.32, 50%, 100 pips).\n` +
                       `- DILARANG KERAS mengeja angka menjadi huruf atau kata-kata panjang (JANGAN PERNAH tulis "tiga ribu lima ratus...", "seventeen", dll). Trader butuh melihat angka digit riil dengan cepat dan presisi.\n` +
@@ -2637,10 +2637,10 @@
                     targetPath = 'apps/academy/trading-practice/index.html';
                     title = 'Trading Practice';
                   } else if (pArg.includes('kalkulator') || pArg.includes('risiko') || pArg.includes('lot')) {
-                    targetPath = 'apps/academy/tools/kalkulator-resiko.html';
+                    targetPath = 'apps/mapping/index.html?tool=lot-calc';
                     title = 'Kalkulator Risiko & Lot';
                   } else if (pArg.includes('glosarium') || pArg.includes('kamus')) {
-                    targetPath = 'apps/academy/glosarium/index.html';
+                    targetPath = 'apps/academy/index.html?view=glossary';
                     title = 'Glosarium ICT';
                   } else if (pArg.includes('academ') || pArg.includes('akadem') || pArg.includes('tutorial') || pArg.includes('materi')) {
                     targetPath = 'apps/academy/index.html';

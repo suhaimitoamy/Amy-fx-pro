@@ -648,6 +648,13 @@ export function initLotCalculator() {
       updateSyncBanner(resolveSyncedProfileAccount());
     });
   }
+
+  try {
+    const toolParam = new URLSearchParams(window.location?.search || '').get('tool');
+    if (toolParam === 'lot-calc') {
+      setTimeout(() => openLotCalculator(), 120);
+    }
+  } catch {}
 }
 
 function updateActiveChip(val) {

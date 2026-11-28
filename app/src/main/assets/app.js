@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'Latihan',
       badge: 'Latihan',
       icon: 'academy',
-      desc: '60 Studi Kasus',
+      desc: '100 Studi Kasus',
       target: 'apps/academy/trading-practice/guided-practice.html'
     }
   ];
