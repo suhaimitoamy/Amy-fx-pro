@@ -1,5 +1,23 @@
 # TODO Memory
 
+## 2026-11-27 — Bahan Perbaikan Selanjutnya: Audit Winrate Mapping POI v6 (Kalender Live & Simulasi 1 Bulan)
+- **Temuan 48 Jam (26–28 Nov 2026, 21 selesai):** Winrate `28,6%` (`6 TP / 15 SL`, Net `-3,0R`) — ternyata merupakan fase drawdown terberat di akhir Minggu 4.
+- **Temuan Simulasi Walk-Forward 1 Bulan Penuh (2–28 Nov 2026, 1.945 M15 + 3.756 M5 + 622 H1, 370 POI selesai):**
+  - **Overall Baseline v6:** WR `39,7%` (`147 TP`: `19 TP1` + `128 TP2` vs `223 SL`), Net `+125,5R` (`+10.713 pips`), Profit Factor `1,56`. Semua 4 minggu positif (`M1: 31,6%/+2R`, `M2: 38,2%/+20R`, `M3: 45,7%/+78R`, `M4: 37,1%/+25,5R`).
+  - **TEMUAN KUNCI #1 (Filter H1 — 100% Kausal Sebelum Entry):**
+    - `H1_ALIGNED` (248 trade): WR **`44,8%`** · Net **`+128,5R`** · PF **`1,94`**.
+    - `H1_COUNTER` (122 trade — 33% dari seluruh sinyal!): WR **`29,5%`** · Net **`-3,0R`** · PF **`0,97`** (RUGI!).
+  - **TEMUAN KUNCI #2 (Counter-Trend M15 pada OB & iFVG):**
+    - `M15_ALIGNED` (330 trade): WR `41,2%` · `+129,0R` · PF `1,66`.
+    - `M15_COUNTER` (38 trade): WR `28,9%` · `-1,5R` · PF `0,94` (`OB_COUNTER`: `12,5%` / `-4,5R`; `iFVG_COUNTER`: `23,8%` / `-5,5R`). Padahal `OB_ALIGNED` sehat (`43,4%` / `+23,5R`, PF `1,78`).
+  - **TEMUAN KUNCI #3 (Jenis Zona & Sesi):** `BB` (`45,8%`, PF `2,00`) & `FVG` (`43,4%`, PF `1,88`) terbaik; `iFVG` paling lemah (`34,5%`, PF `1,22`). Sesi terbaik `NY` (`41,7%`, PF `1,68`) & `Asia` M15 (`40,7%`, PF `1,62`); `London` terendah (`34,5%`, PF `1,28` — rentan Judas Swing).
+  - **TEMUAN KUNCI #4 (Limit Buta vs Konfirmasi Rejection):** 116 trade (`31%`) yang candle entry-nya close menembus sisi salah berujung WR `26,7%` (`-9,5R`, PF `0,89`), vs `45,7%` (`+135R`) saat candle menolak/close di sisi benar.
+- **Rencana Perbaikan Selanjutnya (v7 Selesai Diterapkan & Diuji Out-of-Sample 15 Okt – 28 Nov 2026):**
+  - [x] Tambahkan filter kausal **H1 Trend Alignment** di `evaluatePoiQualityGate`, `backfillFromCandles` (`v7`), `selectScalperDualLayerPoi`, `evaluateScalperPoiVerdict`, & `filterTrackableLivePlans`.
+  - [x] Blokir **counter-trend M15 untuk `OB` dan `iFVG`** (hanya `BB` struktural M15 diizinkan saat transisi & tetap wajib tidak melawan H1).
+  - [x] Terverifikasi walk-forward 1,5 bulan (Oktober + November 2026, 310 trade): WR `45,8%`, Net `+171,0R`, PF `2,02` (Oktober out-of-sample `42,2%` / `+25,5R` / PF `1,69`; November naik dari `39,7%` PF `1,56` → `46,7%` PF `2,11`; M15 Nov `50,4%` PF `2,43`, max loss streak `4×`).
+  - [ ] Opsional berikutnya (jika dibutuhkan setelah forward-test demo): pertimbangkan mode konfirmasi **Rejection Close / M5 MSS** (uji dulu dampak pergeseran entry & R:R secara kausal).
+
 ## 2026-09-30 — Pro381 Market Intel Kompas Overhaul
 
 - [x] Local implementation completed: Kompas Fundamental default hub, Berita as supporting evidence, Kalender as upcoming catalyst.

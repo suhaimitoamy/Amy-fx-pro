@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   HISTORY_STORAGE_KEY,
+  BACKFILL_ENGINE_VERSION,
   GOLD_SL_MIN_USD,
   GOLD_SL_MAX_USD,
   SEVEN_DAYS_MS,
@@ -16,10 +17,14 @@ import {
   loadHistoryState,
   saveHistoryState,
   evaluateZoneLifecycleOnCandles,
+  detectCausalJudasAndSweepSetups,
+  selectActiveLiveJudasOrSweep,
   backfillFromCandles,
+  backfillMultiDayWalkForward,
   recordLivePoiProgress,
   mergeHistoryState,
   mergeRemoteHistoryState,
+  summarizePoiDayFromRecords,
   buildPoiCalendarMonth,
   getDayPoiRecords,
   filterByRange,
@@ -431,11 +436,32 @@ test('buildPoiCalendarMonth & getDayPoiRecords: builds 8-column month grid, week
   assert.equal(cal.monthSummary.m15RespectRate, 100); // 5/5 wins on M15
   assert.equal(cal.monthSummary.m5RespectRate, 25);   // 1 win / 4 resolved on M5
 
-  // Each week has 7 days + weekSummary
+  // Each week has 7 days + weekSummary (with Net R & profitability tone)
   for (const w of cal.weeks) {
     assert.equal(w.days.length, 7);
     assert.ok(w.weekSummary);
   }
+  assert.ok(cal.monthSummary.netR > 0, 'Profitable month must report positive netR');
+
+  // Verify sub-50% WR day that is Net R positive (1 TP2 +2.5R, 2 SL -2.0R => +0.5R) gets tone 'win'
+  const day17 = Date.UTC(2026, 3, 17, 5, 0, 0);
+  const sub50ProfitState = {
+    version: 2,
+    poiRecords: [
+      { id: 'S1', side: 'BUY', tf: 'M15', kind: 'FVG', low: 3000, high: 3002, ce: 3001, sl: 2994, tp1: 3011.5, tp2: 3018.5, touchedAt: day17, status: 'TP2_HIT' },
+      { id: 'S2', side: 'BUY', tf: 'M15', kind: 'FVG', low: 3000, high: 3002, ce: 3001, sl: 2994, tp1: 3011.5, tp2: 3018.5, touchedAt: day17 + 60000, status: 'SL_HIT' },
+      { id: 'S3', side: 'BUY', tf: 'M15', kind: 'FVG', low: 3000, high: 3002, ce: 3001, sl: 2994, tp1: 3011.5, tp2: 3018.5, touchedAt: day17 + 120000, status: 'SL_HIT' }
+    ],
+    timelineEvents: [],
+    dailyArchive: {}
+  };
+  const sub50Cal = buildPoiCalendarMonth(sub50ProfitState, 2026, 3, day17);
+  const cell17 = sub50Cal.weeks.flatMap(w => w.days).find(c => c.date === '2026-04-17');
+  assert.equal(cell17.summary.respectRate, 33);
+  assert.equal(cell17.summary.netR, 0.5);
+  assert.equal(cell17.tone, 'win', 'Net R > 0 day must be green (win) even when WR is 33%');
+  const week17 = sub50Cal.weeks.find(w => w.days.some(c => c.date === '2026-04-17'));
+  assert.equal(week17.weekSummary.tone, 'win', 'Net R > 0 week must be green (win)');
 
   // Drill-down filtering on 2026-04-15
   const all15 = getDayPoiRecords(state, '2026-04-15', 'ALL');
@@ -667,4 +693,322 @@ test('evaluateZoneLifecycleOnCandles: eliminates OB/FVG look-ahead bias, rejects
   liveState = recordLivePoiProgress({ state: liveState, plans: [livePlan], livePrice: 3617.0, nowMs: NOW_MS + 60_000 }).state;
   assert.equal(liveState.poiRecords[0].status, 'TESTING');
 });
+
+test('backfillMultiDayWalkForward walks multi-day candles, populates dailyArchive, preserves LIVE, and enforces v7 H1 trend', () => {
+  // Build 4 days of synthetic M15 candles (~384 bars) starting Nov 10 2026 00:00 UTC
+  const startSec = Math.floor(Date.UTC(2026, 10, 10, 0, 0, 0) / 1000);
+  const m15Candles = [];
+  for (let i = 0; i < 384; i += 1) {
+    const t = startSec + i * 900;
+    const base = 4000 + Math.sin(i / 12) * 18 + i * 0.08;
+    m15Candles.push({
+      time: t,
+      open: Number((base - 0.5).toFixed(2)),
+      high: Number((base + 3.2).toFixed(2)),
+      low: Number((base - 3.2).toFixed(2)),
+      close: Number((base + 0.6).toFixed(2))
+    });
+  }
+  const h1Candles = [];
+  for (let i = 0; i < 96; i += 1) {
+    const t = startSec + i * 3600;
+    const base = 4000 + i * 0.32;
+    h1Candles.push({
+      time: t,
+      open: base - 1,
+      high: base + 5,
+      low: base - 4,
+      close: base + 1.5
+    });
+  }
+
+  // Deterministic fake indicator calculator emitting a bullish FVG on valid London hours + counter-H1 SELL trap
+  const fakeCalc = (slice, { tf }) => {
+    if (tf === 'H1') {
+      return {
+        structure: {
+          trendByTime: slice.map(c => ({ time: c.time, trend: 'BULL' }))
+        },
+        poi: {},
+        liquidity: { sweeps: [] }
+      };
+    }
+    const zones = [];
+    // Pick a bar ~20 bars from the end during London/NY session
+    for (let idx = Math.max(5, slice.length - 40); idx < slice.length - 8; idx += 24) {
+      const b = slice[idx];
+      // Bullish FVG aligned with H1 BULLISH that gets touched & hits TP
+      const lo = Number((b.low - 1.5).toFixed(2));
+      const hi = Number((b.low + 1.5).toFixed(2));
+      zones.push({
+        side: 'BUY',
+        low: lo,
+        high: hi,
+        ce: Number(((lo + hi) / 2).toFixed(2)),
+        formedIndex: idx,
+        formedTime: b.time
+      });
+      // Counter-H1 SELL FVG that v7 MUST block
+      zones.push({
+        side: 'SELL',
+        low: Number((b.high - 1.0).toFixed(2)),
+        high: Number((b.high + 2.0).toFixed(2)),
+        ce: Number((b.high + 0.5).toFixed(2)),
+        formedIndex: idx,
+        formedTime: b.time
+      });
+    }
+    return {
+      structure: {
+        trendByTime: slice.map(c => ({ time: c.time, trend: 'BULL' }))
+      },
+      poi: { historyFvg: zones, fvg: zones, historyOb: [], ob: [], historyIfvg: [], ifvg: [], historyBb: [], bb: [] },
+      liquidity: { sweeps: [] }
+    };
+  };
+
+  // Make subsequent bars dip to touch the zone CE and rally +12 USD to TP1
+  for (let i = 10; i < m15Candles.length - 4; i += 24) {
+    const dip = m15Candles[i].low - 0.5;
+    m15Candles[i + 1].low = Math.min(m15Candles[i + 1].low, dip + 4.5);
+    m15Candles[i + 1].close = dip + 5.0;
+    m15Candles[i + 2].low = dip;
+    m15Candles[i + 2].high = dip + 4.0;
+    m15Candles[i + 3].high = dip + 14.0;
+    m15Candles[i + 3].close = dip + 13.0;
+  }
+
+  const endMs = m15Candles[m15Candles.length - 1].time * 1000;
+  const existingState = {
+    version: 2,
+    poiRecords: [
+      {
+        id: 'POI:M15:OB:BUY:3990.0-3993.0',
+        side: 'BUY',
+        tf: 'M15',
+        kind: 'OB',
+        low: 3990,
+        high: 3993,
+        ce: 3991.5,
+        sl: 3983.5,
+        tp1: 4003.5,
+        tp2: 4011.5,
+        touchedAt: endMs - 12 * 3600 * 1000,
+        lastTouchAt: endMs - 12 * 3600 * 1000,
+        status: 'TP1_HIT',
+        source: 'LIVE'
+      },
+      {
+        id: 'POI:M15:FVG:SELL:4010.0-4012.0',
+        side: 'SELL',
+        tf: 'M15',
+        kind: 'FVG',
+        low: 4010,
+        high: 4012,
+        ce: 4011,
+        sl: 4019,
+        tp1: 3999,
+        tp2: 3991,
+        touchedAt: endMs - 36 * 3600 * 1000,
+        lastTouchAt: endMs - 36 * 3600 * 1000,
+        status: 'SL_HIT',
+        source: 'BACKFILL',
+        engineVersion: 6
+      }
+    ],
+    timelineEvents: [],
+    dailyArchive: {}
+  };
+
+  const res = backfillMultiDayWalkForward({
+    m15Candles,
+    h1Candles,
+    calculateIndicators: fakeCalc,
+    days: 30,
+    stepHours: 12,
+    nowMs: endMs,
+    existingState
+  });
+
+  assert.ok(res.state.poiRecords.some(r => r.id === 'POI:M15:OB:BUY:3990.0-3993.0' && r.source === 'LIVE'), 'Must preserve LIVE POI records');
+  assert.ok(!res.state.poiRecords.some(r => r.id === 'POI:M15:FVG:SELL:4010.0-4012.0'), 'Must purge stale pre-v7 BACKFILL records inside window');
+  assert.ok(res.state.poiRecords.every(r => r.source === 'LIVE' || r.side === 'BUY'), 'v7 H1 BULLISH filter must block all counter-H1 SELL backfill records');
+  assert.ok(res.daysCovered >= 2, `Expected >=2 covered days, got ${res.daysCovered}`);
+  assert.ok(Object.keys(res.state.dailyArchive).length >= 2, 'dailyArchive must be rebuilt across walked days');
+  assert.ok(res.rangeStartKey && res.rangeEndKey && res.rangeStartKey <= res.rangeEndKey);
+});
+
+test('Mapping POI Engine v8: Hybrid Rejection skips falling knives and uses Smart Tight SL on clean rejection close', () => {
+  assert.equal(BACKFILL_ENGINE_VERSION, 8);
+  const t0 = Math.floor(Date.UTC(2026, 10, 20, 7, 0, 0) / 1000); // 15:00 WITA (London)
+  const makeBar = (idx, o, h, l, c) => ({
+    openTime: t0 + idx * 900,
+    closeTime: t0 + (idx + 1) * 900,
+    open: o,
+    high: h,
+    low: l,
+    close: c
+  });
+
+  const buyZone = { side: 'BUY', tf: 'M15', kind: 'FVG', low: 4000, high: 4004, ce: 4002, formedIndex: 0 };
+
+  // Case A: Falling knife (slices straight through CE and closes bearish without rejecting) -> skipped!
+  const knifeCandles = [
+    makeBar(0, 4008, 4010, 4006, 4009),
+    makeBar(1, 4009, 4010, 4005, 4007),
+    makeBar(2, 4007, 4007.5, 3999, 3999.5), // bearish close below CE
+    makeBar(3, 3999.5, 4000, 3992, 3993)    // hits SL without ever rejecting
+  ];
+  const knifeRes = evaluateZoneLifecycleOnCandles(
+    buyZone,
+    knifeCandles,
+    48 * 3600 * 1000,
+    (t0 + 5 * 900) * 1000,
+    { requireRejection: true }
+  );
+  assert.equal(knifeRes, null, 'Hybrid Rejection must skip falling-knife breakdown with no bullish close');
+
+  // Case B: Clean bullish rejection close above CE -> tight SL anchored to rejection wick - $2.00 (min 45p) -> hits TP2
+  const rejCandles = [
+    makeBar(0, 4008, 4010, 4006, 4009),
+    makeBar(1, 4009, 4010, 4005, 4007),
+    makeBar(2, 4003.0, 4005.0, 4000.5, 4004.0), // wick touches CE 4002, closes bullish at 4004 > CE
+    makeBar(3, 4004.0, 4018.5, 4003.5, 4017.5)  // rallies +$14.5 (> 2.5R on tight SL $5.5) -> TP2_HIT
+  ];
+  const rejRes = evaluateZoneLifecycleOnCandles(
+    buyZone,
+    rejCandles,
+    48 * 3600 * 1000,
+    (t0 + 5 * 900) * 1000,
+    { requireRejection: true }
+  );
+  assert.ok(rejRes, 'Clean rejection close must produce a valid v8 record');
+  assert.equal(rejRes.entryMode, 'REJECTION');
+  assert.equal(rejRes.ce, 4004);
+  assert.equal(rejRes.sl, 3998.5); // wick 4000.5 - 2.0 = 3998.5 (risk $5.50 = 55p, within 45p-100p)
+  assert.equal(rejRes.status, 'TP2_HIT');
+  assert.ok(rejRes.tp3 > rejRes.tp2, 'Must populate Runner TP3 (3.5R)');
+});
+
+test('Mapping POI Engine v8: detectCausalJudasAndSweepSetups detects H1-aligned London Judas & Turtle Soup and blocks counter-H1', () => {
+  // Build one full day: Asia 07:00-13:45 WITA (23:00Z prev - 05:45Z) then London 14:00-17:00 WITA (06:00Z - 09:00Z)
+  const asiaStartSec = Math.floor(Date.UTC(2026, 10, 19, 23, 0, 0) / 1000); // 2026-11-20 07:00 WITA
+  const bars = [];
+  // 28 Asia M15 bars (07:00-13:45 WITA) inside range [4000, 4020]
+  for (let i = 0; i < 28; i += 1) {
+    const t = asiaStartSec + i * 900;
+    const isPeak = i === 10;
+    const isTrough = i === 18;
+    bars.push({
+      openTime: t,
+      closeTime: t + 900,
+      open: 4010,
+      high: isPeak ? 4020 : 4015,
+      low: isTrough ? 4000 : 4005,
+      close: 4011
+    });
+  }
+  // Bar 28 (14:00 WITA): approaches Asia High
+  const l0 = asiaStartSec + 28 * 900;
+  bars.push({ openTime: l0, closeTime: l0 + 900, open: 4015, high: 4019.5, low: 4014, close: 4018.5 });
+  // Bar 29 (14:15 WITA): London Judas sweeps above Asia High 4020 -> 4023.0 and closes bearish inside at 4018.0
+  const l1 = asiaStartSec + 29 * 900;
+  bars.push({ openTime: l1, closeTime: l1 + 900, open: 4019.5, high: 4023.0, low: 4017.5, close: 4018.0 });
+  // Bar 30 (14:30 WITA): drops cleanly to TP2 (< 4018 - 7.0 * 2.5 = 4000.5)
+  const l2 = asiaStartSec + 30 * 900;
+  bars.push({ openTime: l2, closeTime: l2 + 900, open: 4018.0, high: 4018.5, low: 3995.0, close: 3997.0 });
+
+  const nowMs = (l2 + 1800) * 1000;
+  const h1Bear = [{ time: asiaStartSec, trend: 'BEAR' }];
+  const h1Bull = [{ time: asiaStartSec, trend: 'BULL' }];
+
+  const bearSetups = detectCausalJudasAndSweepSetups({
+    m15Candles: bars,
+    h1TrendSeries: h1Bear,
+    nowMs,
+    lookbackMs: 48 * 3600 * 1000
+  });
+  const judasSell = bearSetups.find(r => r.kind === 'JUDAS' && r.side === 'SELL');
+  assert.ok(judasSell, 'H1 BEAR must detect London Judas SELL after Asia High sweep & reclaim');
+  assert.equal(judasSell.status, 'TP2_HIT');
+  assert.equal(judasSell.entryMode, 'REJECTION');
+
+  // Same sweep under H1 BULL must be strictly blocked (never counter-H1 Judas!)
+  const bullSetups = detectCausalJudasAndSweepSetups({
+    m15Candles: bars,
+    h1TrendSeries: h1Bull,
+    nowMs,
+    lookbackMs: 48 * 3600 * 1000
+  });
+  assert.equal(bullSetups.filter(r => r.kind === 'JUDAS' && r.side === 'SELL').length, 0, 'Counter-H1 London Judas SELL must be blocked');
+
+  // Verify calendar & breakdown track JUDAS & SWEEP buckets accurately
+  const mockSweep = { ...judasSell, id: 'POI:M15:SWEEP:SELL:1', kind: 'SWEEP' };
+  const daySum = summarizePoiDayFromRecords([judasSell, mockSweep], '2026-11-20');
+  assert.equal(daySum.judasTotal, 1);
+  assert.equal(daySum.sweepTotal, 1);
+
+  const bd = summarizePoiBreakdown([judasSell, mockSweep], 'ALL', nowMs);
+  assert.ok(bd.byKind.some(k => k.key === 'JUDAS' && k.total === 1));
+  assert.ok(bd.byKind.some(k => k.key === 'SWEEP' && k.total === 1));
+});
+
+test('Mapping POI Engine v8: selectActiveLiveJudasOrSweep filters stale/resolved setups, prioritizes JUDAS, and flags chase warnings', () => {
+  const refMs = Date.UTC(2026, 10, 20, 8, 0, 0); // 16:00 WITA
+  const baseSweep = {
+    id: 'POI:M15:SWEEP:BUY:1',
+    side: 'BUY',
+    tf: 'M15',
+    kind: 'SWEEP',
+    label: 'SSL Sweep Reversal',
+    low: 4000,
+    high: 4003,
+    ce: 4004,
+    sl: 3998,
+    tp1: 4013,
+    tp2: 4019,
+    tp3: 4025,
+    touchedAt: refMs - 15 * 60 * 1000,
+    status: 'TESTING'
+  };
+  const baseJudas = {
+    ...baseSweep,
+    id: 'POI:M15:JUDAS:BUY:2',
+    kind: 'JUDAS',
+    label: 'London Judas · Sweep Asia Low',
+    touchedAt: refMs - 30 * 60 * 1000
+  };
+  const resolvedOld = { ...baseJudas, id: 'POI:M15:JUDAS:BUY:3', status: 'TP2_HIT' };
+  const staleSweep = { ...baseSweep, id: 'POI:M15:SWEEP:BUY:4', touchedAt: refMs - 5 * 3600 * 1000 };
+
+  // 1. Prioritizes fresh active JUDAS over SWEEP, ignores TP2_HIT and stale
+  const picked = selectActiveLiveJudasOrSweep([resolvedOld, staleSweep, baseSweep, baseJudas], {
+    lastCandleMs: refMs,
+    livePrice: 4004.5
+  });
+  assert.ok(picked);
+  assert.equal(picked.kind, 'JUDAS');
+  assert.equal(picked.entryState, 'READY');
+  assert.equal(picked.slPips, 60);
+
+  // 2. Chase warning when price already moved > 0.65 * risk ($3.9) in favor
+  const chased = selectActiveLiveJudasOrSweep([baseSweep], {
+    lastCandleMs: refMs,
+    livePrice: 4009.5
+  });
+  assert.equal(chased.entryState, 'CHASE_WARN');
+  assert.match(chased.stateLabel, /Jangan Kejar/);
+
+  // 3. Live SL breach returns null (never show dead trade!)
+  const dead = selectActiveLiveJudasOrSweep([baseSweep], {
+    lastCandleMs: refMs,
+    livePrice: 3997.0
+  });
+  assert.equal(dead, null);
+});
+
+
+
+
+
 

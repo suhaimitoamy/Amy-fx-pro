@@ -7,12 +7,15 @@
 
 import {
   POI_QUALITY_RULES,
+  getWitaHour,
+  requiresHybridRejection,
   evaluatePoiQualityGate
 } from './mapping-accuracy.js';
 
 export const HISTORY_STORAGE_KEY = 'amyfx.mapping.reaction_history.v1';
-export const BACKFILL_ENGINE_VERSION = 6;
+export const BACKFILL_ENGINE_VERSION = 8;
 export const GOLD_SL_MIN_USD = 6.0;  // 60 pips XAU/USD ($1.00 = 10 pips)
+export const GOLD_TIGHT_SL_MIN_USD = 4.5; // 45 pips XAU/USD (Smart Tight SL after rejection/sweep)
 export const GOLD_SL_MAX_USD = 10.0; // 100 pips XAU/USD
 export const GOLD_SPREAD_USD = 0.30; // 3.0 pips realistic XAU/USD broker spread
 export const GOLD_PIPS_PER_USD = 10;
@@ -99,6 +102,10 @@ function normalizeArchiveEntry(dateKey, raw) {
     ? Math.round((wins / resolved) * 100)
     : (total > 0 ? Math.round(((wins + reacting) / total) * 100) : null);
 
+  const fallbackNetR = Math.round(((tp2 * 2.5) + (tp1 * 1.5) - sl) * 10) / 10;
+  const netR = Number.isFinite(Number(raw.netR)) ? Math.round(Number(raw.netR) * 10) / 10 : fallbackNetR;
+  const netPips = Number.isFinite(Number(raw.netPips)) ? Math.round(Number(raw.netPips)) : null;
+
   return {
     date: dateKey,
     total,
@@ -110,6 +117,8 @@ function normalizeArchiveEntry(dateKey, raw) {
     wins,
     resolved,
     respectRate,
+    netR,
+    netPips,
     m15Total: Math.max(0, Math.round(Number(raw.m15Total) || 0)),
     m15Wins: Math.max(0, Math.round(Number(raw.m15Wins) || 0)),
     m15Sl: Math.max(0, Math.round(Number(raw.m15Sl) || 0)),
@@ -120,6 +129,8 @@ function normalizeArchiveEntry(dateKey, raw) {
     obTotal: Math.max(0, Math.round(Number(raw.obTotal) || 0)),
     ifvgTotal: Math.max(0, Math.round(Number(raw.ifvgTotal) || 0)),
     bbTotal: Math.max(0, Math.round(Number(raw.bbTotal) || 0)),
+    judasTotal: Math.max(0, Math.round(Number(raw.judasTotal) || 0)),
+    sweepTotal: Math.max(0, Math.round(Number(raw.sweepTotal) || 0)),
     updatedAt: Number(raw.updatedAt) || 0
   };
 }
@@ -150,6 +161,10 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
   let obTotal = 0;
   let ifvgTotal = 0;
   let bbTotal = 0;
+  let judasTotal = 0;
+  let sweepTotal = 0;
+  let netR = 0;
+  let netPips = 0;
   let updatedAt = 0;
 
   for (const r of records || []) {
@@ -161,6 +176,12 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
     else if (isSl) sl += 1;
     else if (r.status === 'REACTING') reacting += 1;
     else testing += 1;
+
+    if (isWin || isSl) {
+      const pnl = computePoiRecordPnl(r);
+      netR += Number(pnl.rr) || 0;
+      netPips += Number(pnl.pips) || 0;
+    }
 
     const tf = String(r.tf || 'M15').toUpperCase();
     if (tf === 'M5') {
@@ -177,6 +198,8 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
     if (kind === 'OB') obTotal += 1;
     else if (kind === 'IFVG') ifvgTotal += 1;
     else if (kind === 'BB' || kind === 'BREAKER') bbTotal += 1;
+    else if (kind === 'JUDAS') judasTotal += 1;
+    else if (kind === 'SWEEP') sweepTotal += 1;
     else fvgTotal += 1;
 
     const ts = Math.max(Number(r.resolvedAt) || 0, Number(r.lastTouchAt) || 0, Number(r.touchedAt) || 0);
@@ -201,6 +224,8 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
     wins,
     resolved,
     respectRate,
+    netR: Math.round(netR * 10) / 10,
+    netPips: Math.round(netPips),
     m15Total,
     m15Wins,
     m15Sl,
@@ -211,6 +236,8 @@ export function summarizePoiDayFromRecords(records, dateKey = '') {
     obTotal,
     ifvgTotal,
     bbTotal,
+    judasTotal,
+    sweepTotal,
     updatedAt
   };
 }
@@ -336,7 +363,7 @@ function normalizeCandles(rows) {
   if (!Array.isArray(rows)) return [];
   return rows
     .map(c => {
-      const openTime = Number(c.open_time ?? c.time);
+      const openTime = Number(c.open_time ?? c.openTime ?? c.time);
       const closeTime = Number(c.close_time) || (openTime > 0 ? openTime + 300 : NaN);
       return {
         openTime,
@@ -511,13 +538,123 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs,
       : Math.max(Math.min(touchBar.open, hi), lo);
   }
 
+  const requireRejection = Boolean(options?.requireRejection);
   const risk = hasExplicitSl ? Math.max(1.5, Math.abs(ce - sl)) : Math.max(GOLD_SL_MIN_USD, Math.abs(ce - sl));
   const tp1Mult = hasExplicitSl ? 1.6 : 1.5;
   const tp2Mult = hasExplicitSl ? 2.8 : 2.5;
+  const tp3Mult = hasExplicitSl ? 3.8 : 3.5;
   const minTp1 = hasExplicitSl ? (tf === 'M5' ? 3.2 : 4.5) : (tf === 'M5' ? 9.0 : 10.5);
   const minTp2 = hasExplicitSl ? (tf === 'M5' ? 6.0 : 8.5) : (tf === 'M5' ? 15.0 : 17.5);
+  const minTp3 = hasExplicitSl ? (tf === 'M5' ? 8.5 : 12.0) : (tf === 'M5' ? 21.0 : 24.5);
   const tp1 = num(zone.tp1) || Number((isSell ? ce - Math.max(risk * tp1Mult, minTp1) : ce + Math.max(risk * tp1Mult, minTp1)).toFixed(2));
   const tp2 = num(zone.tp2) || Number((isSell ? ce - Math.max(risk * tp2Mult, minTp2) : ce + Math.max(risk * tp2Mult, minTp2)).toFixed(2));
+  const tp3 = num(zone.tp3) || Number((isSell ? ce - Math.max(risk * tp3Mult, minTp3) : ce + Math.max(risk * tp3Mult, minTp3)).toFixed(2));
+
+  // HYBRID REJECTION ENTRY MODE (v8: M5 & London Session):
+  // Wait for a valid candle rejection close on touchIdx or touchIdx+1 (wick hits CE, body closes in trade direction, SL intact).
+  // Anchor Smart Tight SL to the rejection wick + $2.00 (clamped 45p–100p) and evaluate strictly from rejIdx + 1!
+  if (requireRejection) {
+    if (gapBlowoutSl) return null;
+    let rejIdx = -1;
+    let seenCe = false;
+    const maxRejIdx = Math.min(candles.length - 1, touchIdx + 1);
+    for (let k = touchIdx; k <= maxRejIdx; k += 1) {
+      const ck = candles[k];
+      const hitSlK = isSell ? (ck.high + spreadUsd > sl) : (ck.low < sl);
+      if (hitSlK) return null;
+      if (isSell ? (ck.high >= ce) : (ck.low <= ce)) seenCe = true;
+      const rejected = seenCe && (isSell
+        ? (ck.close < ce && ck.close < ck.open)
+        : (ck.close > ce && ck.close > ck.open));
+      if (rejected) {
+        rejIdx = k;
+        break;
+      }
+    }
+    if (rejIdx < 0) return null;
+
+    const rejBar = candles[rejIdx];
+    const rejEntry = Number(rejBar.close.toFixed(2));
+    const rejTouchedAt = rejBar.closeTime * 1000;
+    if (nowMs - rejTouchedAt > lookbackMs) return null;
+
+    let rejExtreme = isSell ? -Infinity : Infinity;
+    for (let k = touchIdx; k <= rejIdx; k += 1) {
+      if (isSell) rejExtreme = Math.max(rejExtreme, candles[k].high);
+      else rejExtreme = Math.min(rejExtreme, candles[k].low);
+    }
+    const rawTightRisk = isSell ? (rejExtreme + 2.0 - rejEntry) : (rejEntry - (rejExtreme - 2.0));
+    const tightRisk = Math.max(GOLD_TIGHT_SL_MIN_USD, Math.min(GOLD_SL_MAX_USD, rawTightRisk));
+    const effSl = Number((isSell ? (rejEntry + tightRisk) : (rejEntry - tightRisk)).toFixed(2));
+    const effTp1 = Number((isSell ? (rejEntry - tightRisk * 1.5) : (rejEntry + tightRisk * 1.5)).toFixed(2));
+    const effTp2 = Number((isSell ? (rejEntry - tightRisk * 2.5) : (rejEntry + tightRisk * 2.5)).toFixed(2));
+    const effTp3 = Number((isSell ? (rejEntry - tightRisk * 3.5) : (rejEntry + tightRisk * 3.5)).toFixed(2));
+
+    let rejStatus = 'TESTING';
+    let rejResolvedAt = null;
+    let rejMaxFav = 0;
+    for (let i = rejIdx + 1; i < candles.length; i += 1) {
+      const c = candles[i];
+      const barTs = c.closeTime * 1000;
+      const hitSl = isSell ? (c.high + spreadUsd > effSl) : (c.low < effSl);
+      if (hitSl && rejStatus !== 'TP1_HIT' && rejStatus !== 'TP2_HIT') {
+        rejStatus = 'SL_HIT';
+        rejResolvedAt = barTs;
+        break;
+      }
+      const fav = isSell ? Math.max(0, rejEntry - c.low) : Math.max(0, c.high - rejEntry);
+      if (fav > rejMaxFav) rejMaxFav = fav;
+      const hitTp2 = isSell ? (c.low + spreadUsd <= effTp2) : (c.high >= effTp2);
+      const hitTp1 = isSell ? (c.low + spreadUsd <= effTp1) : (c.high >= effTp1);
+      if (hitTp2) {
+        rejStatus = 'TP2_HIT';
+        rejResolvedAt = barTs;
+        break;
+      }
+      if (hitTp1 && rejStatus !== 'TP1_HIT') {
+        rejStatus = 'TP1_HIT';
+        rejResolvedAt = barTs;
+      } else if (rejStatus === 'TESTING' && fav >= 2.5) {
+        rejStatus = 'REACTING';
+      }
+    }
+
+    return {
+      id: makePoiId(zone.side, tf, zone.kind, lo, hi),
+      side: zone.side,
+      tf,
+      kind: zone.kind,
+      low: Number(lo.toFixed(2)),
+      high: Number(hi.toFixed(2)),
+      ce: rejEntry,
+      sl: effSl,
+      tp1: effTp1,
+      tp2: effTp2,
+      tp3: effTp3,
+      entryMode: 'REJECTION',
+      touchedAt: rejTouchedAt,
+      lastTouchAt: rejTouchedAt,
+      touchCount: 1,
+      ceTouched: true,
+      touches: [{
+        index: 1,
+        time: rejBar.openTime,
+        price: rejEntry,
+        hitCe: true,
+        broken: rejStatus === 'SL_HIT'
+      }],
+      touchPrice: rejEntry,
+      maxFavorable: Number(rejMaxFav.toFixed(2)),
+      status: rejStatus,
+      resolvedAt: rejResolvedAt,
+      notifiedCe: true,
+      notifiedTp1: rejStatus === 'TP1_HIT' || rejStatus === 'TP2_HIT',
+      notifiedTp2: rejStatus === 'TP2_HIT',
+      notifiedSl: rejStatus === 'SL_HIT',
+      source: 'BACKFILL',
+      engineVersion: BACKFILL_ENGINE_VERSION
+    };
+  }
 
   let status = 'TESTING';
   let resolvedAt = null;
@@ -542,6 +679,8 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs,
       sl: Number(sl.toFixed(2)),
       tp1: Number(tp1.toFixed(2)),
       tp2: Number(tp2.toFixed(2)),
+      tp3: Number(tp3.toFixed(2)),
+      entryMode: 'LIMIT_CE',
       touchedAt,
       lastTouchAt: touchedAt,
       touchCount: 1,
@@ -673,6 +812,8 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs,
     sl: Number(sl.toFixed(2)),
     tp1: Number(tp1.toFixed(2)),
     tp2: Number(tp2.toFixed(2)),
+    tp3: Number(tp3.toFixed(2)),
+    entryMode: 'LIMIT_CE',
     touchedAt,
     lastTouchAt,
     touchCount: Math.max(1, touchCount),
@@ -692,6 +833,345 @@ export function evaluateZoneLifecycleOnCandles(zone, candles, lookbackMs, nowMs,
 }
 
 /**
+ * Strictly causal v8 Setup Detectors on M15 candles:
+ * 1) London Judas Swing (JUDAS): 1–2 bar sweep (>= $0.50) beyond causal Asia Range (07:00–14:00 WITA)
+ *    during London/early NY (14:00–21:00 WITA) + clean reversal close back inside Asia Range.
+ * 2) BSL / SSL Sweep Reversal (SWEEP / Turtle Soup): sweep (>= $0.50) beyond a strictly causal
+ *    confirmed fractal swing (i - 3 confirmed at bar i) + same-bar reversal close back inside.
+ * Both models strictly respect causal H1 HTF trend (aligned or neutral ONLY — never counter-H1).
+ */
+export function detectCausalJudasAndSweepSetups({
+  m15Candles = [],
+  h1TrendSeries = [],
+  nowMs = Date.now(),
+  lookbackMs = 48 * 3600 * 1000,
+  spreadUsd = GOLD_SPREAD_USD
+} = {}) {
+  const candles = normalizeCandles(m15Candles);
+  if (candles.length < 12) return [];
+
+  const h1Series = Array.isArray(h1TrendSeries) ? h1TrendSeries : [];
+  const resolveH1Dir = sec => {
+    if (!h1Series.length) return 0;
+    let trend = 'NEUTRAL';
+    for (let i = 0; i < h1Series.length; i += 1) {
+      if (h1Series[i].time <= sec) trend = h1Series[i].trend || 'NEUTRAL';
+      else break;
+    }
+    if (trend === 'BULL') return 1;
+    if (trend === 'BEAR') return -1;
+    return 0;
+  };
+
+  const evaluateCloseTrade = (entryIdx, side, entryPrice, sweepExtreme, kind, zoneLo, zoneHi, metaLabel) => {
+    const isSell = side === 'SELL';
+    const entryBar = candles[entryIdx];
+    const touchedAt = entryBar.closeTime * 1000;
+    if (nowMs - touchedAt > lookbackMs || touchedAt > nowMs + 60000) return null;
+
+    const rawRisk = isSell ? (sweepExtreme + 2.0 - entryPrice) : (entryPrice - (sweepExtreme - 2.0));
+    const risk = Math.max(GOLD_TIGHT_SL_MIN_USD, Math.min(GOLD_SL_MAX_USD, rawRisk));
+    const sl = Number((isSell ? (entryPrice + risk) : (entryPrice - risk)).toFixed(2));
+    const tp1 = Number((isSell ? (entryPrice - risk * 1.5) : (entryPrice + risk * 1.5)).toFixed(2));
+    const tp2 = Number((isSell ? (entryPrice - risk * 2.5) : (entryPrice + risk * 2.5)).toFixed(2));
+    const tp3 = Number((isSell ? (entryPrice - risk * 3.5) : (entryPrice + risk * 3.5)).toFixed(2));
+
+    let status = 'TESTING';
+    let resolvedAt = null;
+    let maxFavorable = 0;
+
+    for (let j = entryIdx + 1; j < candles.length; j += 1) {
+      const c = candles[j];
+      const barTs = c.closeTime * 1000;
+      const hitSl = isSell ? (c.high + spreadUsd > sl) : (c.low < sl);
+      if (hitSl && status !== 'TP1_HIT' && status !== 'TP2_HIT') {
+        status = 'SL_HIT';
+        resolvedAt = barTs;
+        break;
+      }
+      const fav = isSell ? Math.max(0, entryPrice - c.low) : Math.max(0, c.high - entryPrice);
+      if (fav > maxFavorable) maxFavorable = fav;
+      const hitTp2 = isSell ? (c.low + spreadUsd <= tp2) : (c.high >= tp2);
+      const hitTp1 = isSell ? (c.low + spreadUsd <= tp1) : (c.high >= tp1);
+      if (hitTp2) {
+        status = 'TP2_HIT';
+        resolvedAt = barTs;
+        break;
+      }
+      if (hitTp1 && status !== 'TP1_HIT') {
+        status = 'TP1_HIT';
+        resolvedAt = barTs;
+      } else if (status === 'TESTING' && fav >= 2.5) {
+        status = 'REACTING';
+      }
+    }
+
+    const lo = Number(Math.min(zoneLo, zoneHi).toFixed(2));
+    const hi = Number(Math.max(zoneLo, zoneHi).toFixed(2));
+    return {
+      id: `POI:M15:${kind}:${side}:${entryBar.openTime}:${lo.toFixed(1)}-${hi.toFixed(1)}`,
+      side,
+      tf: 'M15',
+      kind,
+      label: metaLabel,
+      low: lo,
+      high: hi,
+      ce: Number(entryPrice.toFixed(2)),
+      sl,
+      tp1,
+      tp2,
+      tp3,
+      entryMode: 'REJECTION',
+      touchedAt,
+      lastTouchAt: touchedAt,
+      touchCount: 1,
+      ceTouched: true,
+      touches: [{
+        index: 1,
+        time: entryBar.openTime,
+        price: Number(entryPrice.toFixed(2)),
+        hitCe: true,
+        broken: status === 'SL_HIT'
+      }],
+      touchPrice: Number(entryPrice.toFixed(2)),
+      maxFavorable: Number(maxFavorable.toFixed(2)),
+      status,
+      resolvedAt,
+      notifiedCe: true,
+      notifiedTp1: status === 'TP1_HIT' || status === 'TP2_HIT',
+      notifiedTp2: status === 'TP2_HIT',
+      notifiedSl: status === 'SL_HIT',
+      source: 'BACKFILL',
+      engineVersion: BACKFILL_ENGINE_VERSION
+    };
+  };
+
+  const results = [];
+
+  // ── A. Causal Daily Asia Range + London Judas Swing (14:00–21:00 WITA) ──
+  const asiaByDay = new Map();
+  const judasFired = new Set(); // `${dayKey}:SELL` or `${dayKey}:BUY`
+
+  for (let i = 0; i < candles.length; i += 1) {
+    const c = candles[i];
+    const barMs = c.openTime * 1000;
+    const witaH = getWitaHour(barMs);
+    const dayKey = witaDateKey(barMs);
+    if (!dayKey) continue;
+
+    if (witaH >= 7 && witaH < 14) {
+      const box = asiaByDay.get(dayKey) || { high: -Infinity, low: Infinity, count: 0 };
+      if (c.high > box.high) box.high = c.high;
+      if (c.low < box.low) box.low = c.low;
+      box.count += 1;
+      asiaByDay.set(dayKey, box);
+      continue;
+    }
+
+    if (witaH >= 14 && witaH < 21) {
+      const box = asiaByDay.get(dayKey);
+      if (!box || box.count < 8) continue;
+      const asiaRange = box.high - box.low;
+      if (asiaRange < 5.0 || asiaRange > 120.0) continue;
+
+      const h1Dir = resolveH1Dir(c.openTime);
+      const prev = i > 0 ? candles[i - 1] : null;
+      const prevSameDayLondon = Boolean(prev && witaDateKey(prev.openTime * 1000) === dayKey && getWitaHour(prev.openTime * 1000) >= 14);
+
+      // SELL London Judas: sweep >= $0.50 above Asia High (1–2 bars) + bearish close back inside Asia Range (H1 <= 0)
+      if (h1Dir <= 0 && !judasFired.has(`${dayKey}:SELL`)) {
+        const sweepHigh = Math.max(c.high, prevSameDayLondon ? prev.high : -Infinity);
+        if (sweepHigh >= box.high + 0.50 && c.close < box.high && c.close < c.open && c.close > box.low) {
+          judasFired.add(`${dayKey}:SELL`);
+          const rec = evaluateCloseTrade(i, 'SELL', c.close, sweepHigh, 'JUDAS', box.high, sweepHigh, 'London Judas · Sweep Asia High');
+          if (rec) results.push(rec);
+        }
+      }
+
+      // BUY London Judas: sweep >= $0.50 below Asia Low (1–2 bars) + bullish close back inside Asia Range (H1 >= 0)
+      if (h1Dir >= 0 && !judasFired.has(`${dayKey}:BUY`)) {
+        const sweepLow = Math.min(c.low, prevSameDayLondon ? prev.low : Infinity);
+        if (sweepLow <= box.low - 0.50 && c.close > box.low && c.close > c.open && c.close < box.high) {
+          judasFired.add(`${dayKey}:BUY`);
+          const rec = evaluateCloseTrade(i, 'BUY', c.close, sweepLow, 'JUDAS', sweepLow, box.low, 'London Judas · Sweep Asia Low');
+          if (rec) results.push(rec);
+        }
+      }
+    }
+  }
+
+  // ── B. Causal BSL / SSL Sweep Reversal (Turtle Soup, M15) ──
+  const swingHighs = [];
+  const swingLows = [];
+  let lastSweepIdx = -99;
+
+  for (let i = 6; i < candles.length; i += 1) {
+    // Strictly causal fractal confirmation: pivot p = i - 3 is confirmed ONLY when bar i arrives!
+    const p = i - 3;
+    if (p >= 3) {
+      const piv = candles[p];
+      let isHigh = true;
+      let isLow = true;
+      for (let d = 1; d <= 3; d += 1) {
+        if (candles[p - d].high >= piv.high || candles[p + d].high >= piv.high) isHigh = false;
+        if (candles[p - d].low <= piv.low || candles[p + d].low <= piv.low) isLow = false;
+      }
+      if (isHigh) {
+        swingHighs.push({ idx: p, price: piv.high, swept: false });
+        if (swingHighs.length > 14) swingHighs.shift();
+      }
+      if (isLow) {
+        swingLows.push({ idx: p, price: piv.low, swept: false });
+        if (swingLows.length > 14) swingLows.shift();
+      }
+    }
+
+    const c = candles[i];
+    const witaH = getWitaHour(c.openTime * 1000);
+    if (witaH >= 4 && witaH < 7) continue; // Dead rollover blocked
+    if (i - lastSweepIdx < 4) continue;    // Cooldown prevents cluster spam
+
+    const h1Dir = resolveH1Dir(c.openTime);
+
+    // BSL Sweep → SELL (strictly H1 <= 0)
+    if (h1Dir <= 0) {
+      let targetHigh = null;
+      for (let s = swingHighs.length - 1; s >= 0; s -= 1) {
+        const sw = swingHighs[s];
+        if (sw.swept || i - sw.idx < 4) continue;
+        if (c.high >= sw.price + 0.50) {
+          sw.swept = true;
+          if (!targetHigh && c.close < sw.price && c.close < c.open) {
+            targetHigh = sw;
+          }
+        }
+      }
+      if (targetHigh) {
+        lastSweepIdx = i;
+        const rec = evaluateCloseTrade(i, 'SELL', c.close, c.high, 'SWEEP', targetHigh.price, c.high, 'BSL Sweep Reversal');
+        if (rec) results.push(rec);
+        continue;
+      }
+    }
+
+    // SSL Sweep → BUY (strictly H1 >= 0)
+    if (h1Dir >= 0) {
+      let targetLow = null;
+      for (let s = swingLows.length - 1; s >= 0; s -= 1) {
+        const sw = swingLows[s];
+        if (sw.swept || i - sw.idx < 4) continue;
+        if (c.low <= sw.price - 0.50) {
+          sw.swept = true;
+          if (!targetLow && c.close > sw.price && c.close > c.open) {
+            targetLow = sw;
+          }
+        }
+      }
+      if (targetLow) {
+        lastSweepIdx = i;
+        const rec = evaluateCloseTrade(i, 'BUY', c.close, c.low, 'SWEEP', c.low, targetLow.price, 'SSL Sweep Reversal');
+        if (rec) results.push(rec);
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Select the single freshest actionable live London Judas or BSL/SSL Sweep Reversal setup
+ * for display in the Execution Plan card. Strictly excludes resolved (SL_HIT / TP2_HIT)
+ * or stale (> maxAgeMs) setups, prioritizes JUDAS over SWEEP, and flags FOMO chase warnings.
+ */
+export function selectActiveLiveJudasOrSweep(setups = [], {
+  lastCandleMs = 0,
+  livePrice = NaN,
+  maxAgeMs = 3 * 3600 * 1000,
+  spreadUsd = GOLD_SPREAD_USD
+} = {}) {
+  if (!Array.isArray(setups) || !setups.length) return null;
+  const refMs = Number.isFinite(Number(lastCandleMs)) && Number(lastCandleMs) > 0
+    ? Number(lastCandleMs)
+    : Date.now();
+  const price = num(livePrice);
+
+  const candidates = [];
+  for (const s of setups) {
+    if (!s) continue;
+    const kind = String(s.kind || '').toUpperCase();
+    if (kind !== 'JUDAS' && kind !== 'SWEEP') continue;
+    const st = String(s.status || 'TESTING').toUpperCase();
+    if (st === 'SL_HIT' || st === 'TP2_HIT') continue;
+
+    const touchedAt = Number(s.touchedAt) || 0;
+    if (!touchedAt) continue;
+    const ageMs = refMs - touchedAt;
+    if (ageMs < -60000 || ageMs > maxAgeMs) continue;
+
+    const isSell = String(s.side || '').toUpperCase() === 'SELL';
+    const ce = num(s.ce);
+    const sl = num(s.sl);
+    const tp1 = num(s.tp1);
+    const tp2 = num(s.tp2);
+    const tp3 = num(s.tp3);
+    if (!Number.isFinite(ce) || !Number.isFinite(sl)) continue;
+
+    // Exclude if live tick has already invalidated SL or finished TP2
+    if (Number.isFinite(price)) {
+      const liveSlHit = isSell ? (price + spreadUsd > sl) : (price < sl);
+      const liveTp2Hit = Number.isFinite(tp2) && (isSell ? (price + spreadUsd <= tp2) : (price >= tp2));
+      if (liveSlHit || liveTp2Hit) continue;
+    }
+
+    const risk = Math.max(1.0, Math.abs(ce - sl));
+    const slPips = Math.round(risk * GOLD_PIPS_PER_USD);
+    const moveFromEntry = Number.isFinite(price)
+      ? (isSell ? (ce - price) : (price - ce))
+      : 0;
+    const hitTp1Live = st === 'TP1_HIT' || (
+      Number.isFinite(price) && Number.isFinite(tp1) &&
+      (isSell ? (price + spreadUsd <= tp1) : (price >= tp1))
+    );
+
+    let entryState = 'READY';
+    let stateLabel = 'Sinyal Aktif · Siap Eksekusi';
+    if (hitTp1Live) {
+      entryState = 'TP1_BEP';
+      stateLabel = 'TP1 Tercapai · Geser BEP / Runner';
+    } else if (moveFromEntry > risk * 0.65) {
+      entryState = 'CHASE_WARN';
+      stateLabel = `Sudah Jalan +$${moveFromEntry.toFixed(1)} · Jangan Kejar`;
+    } else if (moveFromEntry < -0.5) {
+      entryState = 'RETEST';
+      stateLabel = 'Retest Area Sweep · R:R Lebih Ketat';
+    }
+
+    candidates.push({
+      ...s,
+      kind,
+      side: isSell ? 'SELL' : 'BUY',
+      risk: Number(risk.toFixed(2)),
+      slPips,
+      tp3: Number.isFinite(tp3) ? tp3 : Number((isSell ? (ce - risk * 3.5) : (ce + risk * 3.5)).toFixed(2)),
+      ageMinutes: Math.max(0, Math.round(ageMs / 60000)),
+      moveFromEntry: Number(moveFromEntry.toFixed(2)),
+      entryState,
+      stateLabel
+    });
+  }
+
+  if (!candidates.length) return null;
+  // Prioritize JUDAS over SWEEP, then freshest touchedAt
+  candidates.sort((a, b) => {
+    const kwA = a.kind === 'JUDAS' ? 2 : 1;
+    const kwB = b.kind === 'JUDAS' ? 2 : 1;
+    if (kwB !== kwA) return kwB - kwA;
+    return b.touchedAt - a.touchedAt;
+  });
+  return candidates[0];
+}
+
+/**
  * Reconstruct recent (last 30h) POI touches/outcomes, Liquidity Sweeps, Structure Breaks,
  * and Key Level hits directly from M15/M5 candles so History is immediately populated on first open.
  */
@@ -701,6 +1181,7 @@ export function backfillFromCandles({
   ctx = null,
   ngM15 = null,
   ngM5 = null,
+  ngH1 = null,
   nowMs = Date.now(),
   lookbackHours = 30
 }) {
@@ -816,22 +1297,26 @@ export function backfillFromCandles({
   }
 
   // 4. POI Touches & Outcomes from M15 & M5 FVG, OB, iFVG & Breaker Block (BB) zones
-  // Applies strictly CAUSAL (pre-entry) ICT quality filters:
+  // Applies strictly CAUSAL (pre-entry) ICT v7 quality filters:
   // (a) Max zone width cap (<= $10.5 M15 / <= $7.5 M5)
-  // (b) Session discipline: skip dead Rollover (04:00-07:00 WITA) & noisy Asia M5 FVG chop (07:00-14:00 WITA)
-  // (c) Causal M15 trend alignment: raw counter-trend FVG skipped unless backed by reversal-grade OB/BB/iFVG
-  // (d) Anti-opposite-overlap dedupe: never record conflicting BUY + SELL zones at the exact same price within 30m
+  // (b) Session discipline: skip dead Rollover (04:00-07:00 WITA) & noisy Asia M5 chop (07:00-14:00 WITA)
+  // (c) Causal H1 HTF trend alignment: block all POI entries fighting the H1 structural trend
+  // (d) Causal M15 trend alignment: block counter-trend M5 and counter-trend M15 FVG/OB/iFVG (only M15 BB eligible)
+  // (e) Anti-opposite-overlap dedupe: never record conflicting BUY + SELL zones at the exact same price within 90m
   const m15TrendSeries = Array.isArray(ngM15?.structure?.trendByTime) ? ngM15.structure.trendByTime : [];
-  const resolveCausalM15Trend = touchMs => {
-    if (!m15TrendSeries.length) return 'NEUTRAL';
+  const h1TrendSeries = Array.isArray(ngH1?.structure?.trendByTime) ? ngH1.structure.trendByTime : [];
+  const resolveCausalTrendFromSeries = (series, touchMs) => {
+    if (!series.length) return 'NEUTRAL';
     const touchSec = Math.floor(touchMs / 1000);
     let lastTrend = 'NEUTRAL';
-    for (let i = 0; i < m15TrendSeries.length; i += 1) {
-      if (m15TrendSeries[i].time <= touchSec) lastTrend = m15TrendSeries[i].trend || 'NEUTRAL';
+    for (let i = 0; i < series.length; i += 1) {
+      if (series[i].time <= touchSec) lastTrend = series[i].trend || 'NEUTRAL';
       else break;
     }
     return lastTrend;
   };
+  const resolveCausalM15Trend = touchMs => resolveCausalTrendFromSeries(m15TrendSeries, touchMs);
+  const resolveCausalH1Trend = touchMs => resolveCausalTrendFromSeries(h1TrendSeries, touchMs);
 
   const candidatesEvaluated = [];
   const evalNgZones = (ng, candles, tf) => {
@@ -872,47 +1357,86 @@ export function backfillFromCandles({
       if (seenKeys.has(dedupeKey)) continue;
       seenKeys.add(dedupeKey);
 
-      const evaluated = evaluateZoneLifecycleOnCandles(
-        {
-          side,
-          tf,
-          kind: z.kind,
-          low: loVal,
-          high: hiVal,
-          ce: z.ce,
-          startTime: z.startTime,
-          formedTime: z.formedTime,
-          formedIndex: z.formedIndex
-        },
+      const zoneInput = {
+        side,
+        tf,
+        kind: z.kind,
+        low: loVal,
+        high: hiVal,
+        ce: z.ce,
+        startTime: z.startTime,
+        formedTime: z.formedTime,
+        formedIndex: z.formedIndex
+      };
+
+      // Mapping POI Engine v8 — Hybrid Rejection Gate:
+      // M5 ALWAYS requires rejection close; M15 during London (14:00–20:00 WITA) also requires rejection close.
+      let evaluated = evaluateZoneLifecycleOnCandles(
+        zoneInput,
         candles,
         lookbackMs,
-        nowMs
+        nowMs,
+        { requireRejection: tf === 'M5' }
       );
       if (!evaluated) continue;
 
+      if (tf === 'M15' && requiresHybridRejection({ tf: 'M15', nowMs: evaluated.touchedAt })) {
+        evaluated = evaluateZoneLifecycleOnCandles(
+          zoneInput,
+          candles,
+          lookbackMs,
+          nowMs,
+          { requireRejection: true }
+        );
+        if (!evaluated) continue;
+      }
+
       // Apply the EXACT SAME SSOT Quality Gate used by Card Rencana Eksekusi POI:
-      // (1) Width bounds, (2) Dead Rollover & Asia M5 filter, (3) Causal M15 trend alignment.
+      // (1) Width bounds, (2) Dead Rollover & Asia M5 filter, (3) Causal H1 + M15 trend alignment.
       const causalTrend = resolveCausalM15Trend(evaluated.touchedAt);
       const causalM15Dir = causalTrend === 'BULL' ? 1 : (causalTrend === 'BEAR' ? -1 : 0);
+      const causalH1Trend = resolveCausalH1Trend(evaluated.touchedAt);
+      const causalH1Dir = causalH1Trend === 'BULL' ? 1 : (causalH1Trend === 'BEAR' ? -1 : 0);
       const gate = evaluatePoiQualityGate({
         tf,
         kind: z.kind,
         side,
         width: zWidth,
         m15Dir: causalM15Dir,
+        h1Dir: causalH1Dir,
         nowMs: evaluated.touchedAt
       });
       if (!gate.allowed) continue;
 
       const isAligned = (causalM15Dir === 1 && side === 'BUY') || (causalM15Dir === -1 && side === 'SELL');
+      const isH1Aligned = (causalH1Dir === 1 && side === 'BUY') || (causalH1Dir === -1 && side === 'SELL');
       // Priority score for resolving overlapping zones at the same price & window
       const kindWeight = z.kind === 'BB' ? 4 : (z.kind === 'iFVG' ? 3 : (z.kind === 'OB' ? 2 : 1));
-      const priority = (isAligned ? 10 : 0) + (tf === 'M15' ? 3 : 0) + kindWeight;
-      candidatesEvaluated.push({ evaluated, priority, isAligned });
+      const priority = (isH1Aligned ? 6 : 0) + (isAligned ? 10 : 0) + (tf === 'M15' ? 3 : 0) + kindWeight;
+      candidatesEvaluated.push({ evaluated, priority, isAligned, isH1Aligned });
     }
   };
   evalNgZones(ngM15, m15, 'M15');
   evalNgZones(ngM5, m5, 'M5');
+
+  // Mapping POI Engine v8 — Causal London Judas Swing & BSL/SSL Sweep Reversal (M15, H1-aligned/neutral)
+  const judasAndSweeps = detectCausalJudasAndSweepSetups({
+    m15Candles: m15,
+    h1TrendSeries,
+    nowMs,
+    lookbackMs
+  });
+  for (const setup of judasAndSweeps) {
+    const causalTrend = resolveCausalM15Trend(setup.touchedAt);
+    const causalM15Dir = causalTrend === 'BULL' ? 1 : (causalTrend === 'BEAR' ? -1 : 0);
+    const causalH1Trend = resolveCausalH1Trend(setup.touchedAt);
+    const causalH1Dir = causalH1Trend === 'BULL' ? 1 : (causalH1Trend === 'BEAR' ? -1 : 0);
+    const isAligned = (causalM15Dir === 1 && setup.side === 'BUY') || (causalM15Dir === -1 && setup.side === 'SELL');
+    const isH1Aligned = (causalH1Dir === 1 && setup.side === 'BUY') || (causalH1Dir === -1 && setup.side === 'SELL');
+    const kindWeight = setup.kind === 'JUDAS' ? 5 : 2;
+    const priority = (isH1Aligned ? 6 : 0) + (isAligned ? 10 : 0) + 3 + kindWeight;
+    candidatesEvaluated.push({ evaluated: setup, priority, isAligned, isH1Aligned });
+  }
 
   // Anti-Overlap Dedupe (strictly pre-entry: higher causal alignment / M15 / BB / iFVG / OB wins):
   // 1) Never record conflicting opposite-side (BUY vs SELL) zones at the same price within 90m.
@@ -1408,8 +1932,11 @@ export function getWitaYearMonth(nowMs = Date.now()) {
 function resolveDayTone(summary) {
   if (!summary || summary.total <= 0) return 'empty';
   if (summary.resolved > 0) {
-    if (summary.respectRate >= 60) return 'win';
-    if (summary.respectRate < 50) return 'loss';
+    const netR = Number.isFinite(Number(summary.netR))
+      ? Number(summary.netR)
+      : ((Number(summary.tp2) || 0) * 2.5 + (Number(summary.tp1) || 0) * 1.5 - (Number(summary.sl) || 0));
+    if (netR > 0) return 'win';
+    if (netR < 0) return 'loss';
     return 'neutral';
   }
   return 'neutral';
@@ -1453,6 +1980,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
     active: 0,
     resolved: 0,
     respectRate: null,
+    netR: 0,
+    netPips: 0,
     m15Total: 0,
     m15Wins: 0,
     m15Sl: 0,
@@ -1465,6 +1994,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
     obTotal: 0,
     ifvgTotal: 0,
     bbTotal: 0,
+    judasTotal: 0,
+    sweepTotal: 0,
     activeDays: 0
   };
 
@@ -1485,6 +2016,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
       monthAgg.testing += summary.testing;
       monthAgg.active += summary.reacting + summary.testing;
       monthAgg.resolved += summary.resolved;
+      monthAgg.netR += Number(summary.netR) || 0;
+      monthAgg.netPips += Number(summary.netPips) || 0;
       monthAgg.m15Total += summary.m15Total;
       monthAgg.m15Wins += summary.m15Wins;
       monthAgg.m15Sl += summary.m15Sl;
@@ -1495,6 +2028,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
       monthAgg.obTotal += summary.obTotal;
       monthAgg.ifvgTotal += Number(summary.ifvgTotal) || 0;
       monthAgg.bbTotal += Number(summary.bbTotal) || 0;
+      monthAgg.judasTotal += Number(summary.judasTotal) || 0;
+      monthAgg.sweepTotal += Number(summary.sweepTotal) || 0;
       monthAgg.activeDays += 1;
     }
 
@@ -1514,6 +2049,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
 
   while (rawCells.length % 7 !== 0) rawCells.push({ empty: true });
 
+  monthAgg.netR = Math.round(monthAgg.netR * 10) / 10;
+  monthAgg.netPips = Math.round(monthAgg.netPips);
   monthAgg.respectRate = monthAgg.resolved > 0
     ? Math.round((monthAgg.wins / monthAgg.resolved) * 100)
     : (monthAgg.total > 0 ? Math.round(((monthAgg.wins + monthAgg.reacting) / monthAgg.total) * 100) : null);
@@ -1530,19 +2067,27 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
     let wWins = 0;
     let wSl = 0;
     let wReacting = 0;
+    let wNetR = 0;
+    let wNetPips = 0;
     for (const cell of days) {
       if (cell.summary) {
         wTotal += cell.summary.total;
         wWins += cell.summary.wins;
         wSl += cell.summary.sl;
         wReacting += cell.summary.reacting;
+        wNetR += Number(cell.summary.netR) || 0;
+        wNetPips += Number(cell.summary.netPips) || 0;
       }
     }
+    wNetR = Math.round(wNetR * 10) / 10;
+    wNetPips = Math.round(wNetPips);
     const wResolved = wWins + wSl;
     const wRate = wResolved > 0
       ? Math.round((wWins / wResolved) * 100)
       : (wTotal > 0 ? Math.round(((wWins + wReacting) / wTotal) * 100) : null);
-    const wTone = wTotal === 0 ? 'empty' : (wResolved > 0 ? (wRate >= 60 ? 'win' : (wRate < 50 ? 'loss' : 'neutral')) : 'neutral');
+    const wTone = wTotal === 0
+      ? 'empty'
+      : (wResolved > 0 ? (wNetR > 0 ? 'win' : (wNetR < 0 ? 'loss' : 'neutral')) : 'neutral');
 
     weeks.push({
       days,
@@ -1552,6 +2097,8 @@ export function buildPoiCalendarMonth(state, year, month, nowMs = Date.now()) {
         sl: wSl,
         resolved: wResolved,
         respectRate: wRate,
+        netR: wNetR,
+        netPips: wNetPips,
         tone: wTone
       }
     });
@@ -1785,6 +2332,8 @@ export function classifyWitaSession(tsMs) {
 
 function normalizePoiKindBucket(rawKind) {
   const k = String(rawKind || 'POI').trim().toUpperCase();
+  if (k.includes('JUDAS')) return 'JUDAS';
+  if (k.includes('SWEEP')) return 'SWEEP';
   if (k.includes('IFVG')) return 'iFVG';
   if (k.includes('FVG')) return 'FVG';
   if (k.includes('BB') || k.includes('BREAKER')) return 'BB';
@@ -1884,6 +2433,160 @@ export function summarizePoiBreakdown(poiRecords = [], range = 'ALL', nowMs = Da
   };
 }
 
+/**
+ * Strictly causal multi-day walk-forward backfill (e.g. 30 days) for the Mapping Calendar.
+ * Steps forward across historical M15/M5/H1 candles using rolling indicator windows
+ * (identical to daily live cockpit windows) so NextGen's per-call zone cap (.slice(-36))
+ * does not truncate older days, while enforcing all Mapping POI Engine v7 rules.
+ */
+export function backfillMultiDayWalkForward({
+  m15Candles = [],
+  m5Candles = [],
+  h1Candles = [],
+  calculateIndicators = null,
+  days = 30,
+  stepHours = 12,
+  nowMs = Date.now(),
+  existingState = null
+} = {}) {
+  const dedupeAsc = rows => {
+    const map = new Map();
+    for (const c of normalizeCandles(rows)) {
+      map.set(c.openTime, {
+        open_time: c.openTime,
+        time: c.openTime,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close
+      });
+    }
+    return Array.from(map.values()).sort((a, b) => a.time - b.time);
+  };
+
+  const m15All = dedupeAsc(m15Candles);
+  const m5All = dedupeAsc(m5Candles);
+  const h1All = dedupeAsc(h1Candles);
+
+  const baseState = existingState && typeof existingState === 'object'
+    ? {
+        version: existingState.version || 2,
+        poiRecords: Array.isArray(existingState.poiRecords) ? existingState.poiRecords.map(r => ({ ...r })) : [],
+        timelineEvents: Array.isArray(existingState.timelineEvents) ? existingState.timelineEvents.map(e => ({ ...e })) : [],
+        dailyArchive: existingState.dailyArchive ? { ...existingState.dailyArchive } : {}
+      }
+    : createEmptyHistoryState();
+
+  if (typeof calculateIndicators !== 'function' || m15All.length < 40) {
+    return {
+      state: baseState,
+      addedCount: 0,
+      totalCount: baseState.poiRecords.length,
+      daysCovered: Object.keys(baseState.dailyArchive || {}).length,
+      rangeStartKey: '',
+      rangeEndKey: ''
+    };
+  }
+
+  const safeDays = Math.max(1, Math.min(90, Number(days) || 30));
+  const safeStepMs = Math.max(4, Math.min(24, Number(stepHours) || 12)) * 3600 * 1000;
+  const lastM15Ms = m15All[m15All.length - 1].time * 1000;
+  const effectiveNowMs = Number.isFinite(nowMs) ? Math.max(nowMs, lastM15Ms) : lastM15Ms;
+  const minWarmupIdx = Math.min(60, Math.max(25, Math.floor(m15All.length * 0.15)));
+  const earliestAllowedMs = m15All[minWarmupIdx].time * 1000;
+  const requestedStartMs = lastM15Ms - safeDays * 24 * 3600 * 1000;
+  const windowStartMs = Math.max(earliestAllowedMs, requestedStartMs);
+  const windowEndMs = lastM15Ms;
+
+  // Clear stale pre-v7 BACKFILL records inside the refreshed window while keeping all LIVE records
+  const startDayKey = witaDateKey(windowStartMs);
+  const endDayKey = witaDateKey(windowEndMs);
+  const cleanedArchive = { ...(baseState.dailyArchive || {}) };
+  let state = {
+    version: baseState.version || 2,
+    poiRecords: baseState.poiRecords.filter(r => {
+      if (!r || !Number.isFinite(r.touchedAt)) return false;
+      const inWindow = r.touchedAt >= windowStartMs - 24 * 3600 * 1000 && r.touchedAt <= effectiveNowMs;
+      if (inWindow && r.source === 'BACKFILL' && Number(r.engineVersion || 0) < BACKFILL_ENGINE_VERSION) {
+        return false;
+      }
+      return true;
+    }),
+    timelineEvents: baseState.timelineEvents,
+    dailyArchive: cleanedArchive
+  };
+
+  for (const key of Object.keys(state.dailyArchive)) {
+    if (startDayKey && endDayKey && key >= startDayKey && key <= endDayKey) {
+      delete state.dailyArchive[key];
+    }
+  }
+
+  const beforeIds = new Set(state.poiRecords.map(r => r.id));
+
+  const sliceUpTo = (arr, maxSec, cap) => {
+    if (!arr.length) return [];
+    let lo = 0;
+    let hi = arr.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (arr[mid].time <= maxSec) lo = mid + 1;
+      else hi = mid;
+    }
+    if (lo <= 0) return [];
+    return arr.slice(Math.max(0, lo - cap), lo);
+  };
+
+  const stepPoints = [];
+  for (let t = windowStartMs; t < windowEndMs; t += safeStepMs) {
+    stepPoints.push(t);
+  }
+  stepPoints.push(windowEndMs);
+
+  for (const tMs of stepPoints) {
+    const tSec = Math.floor(tMs / 1000);
+    const m15Slice = sliceUpTo(m15All, tSec, 320);
+    if (m15Slice.length < 30) continue;
+    const m5Slice = sliceUpTo(m5All, tSec, 360);
+    const h1Slice = sliceUpTo(h1All, tSec, 240);
+
+    const ngM15 = calculateIndicators(m15Slice, { tf: 'M15' });
+    const ngM5 = m5Slice.length >= 30 ? calculateIndicators(m5Slice, { tf: 'M5' }) : null;
+    const ngH1 = h1Slice.length >= 10 ? calculateIndicators(h1Slice, { tf: 'H1' }) : null;
+
+    const bf = backfillFromCandles({
+      m15Candles: m15Slice,
+      m5Candles: m5Slice,
+      ngM15,
+      ngM5,
+      ngH1,
+      nowMs: tMs,
+      lookbackHours: 48
+    });
+
+    state = mergeHistoryState(state, bf, effectiveNowMs);
+  }
+
+  let addedCount = 0;
+  const coveredDaySet = new Set();
+  for (const rec of state.poiRecords) {
+    if (!beforeIds.has(rec.id)) addedCount += 1;
+    if (rec.touchedAt >= windowStartMs - 24 * 3600 * 1000 && rec.touchedAt <= effectiveNowMs) {
+      const dk = witaDateKey(rec.touchedAt);
+      if (dk) coveredDaySet.add(dk);
+    }
+  }
+
+  return {
+    state,
+    addedCount,
+    totalCount: state.poiRecords.length,
+    daysCovered: coveredDaySet.size,
+    rangeStartKey: startDayKey,
+    rangeEndKey: endDayKey
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.AmyMappingHistoryEngine = {
     HISTORY_STORAGE_KEY,
@@ -1906,6 +2609,9 @@ if (typeof window !== 'undefined') {
     loadHistoryState,
     saveHistoryState,
     backfillFromCandles,
+    detectCausalJudasAndSweepSetups,
+    selectActiveLiveJudasOrSweep,
+    backfillMultiDayWalkForward,
     recordLivePoiProgress,
     mergeHistoryState,
     mergeRemoteHistoryState,

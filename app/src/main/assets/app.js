@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="home-price-meta">
             <span id="home-chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">Equilibrium · 50%</span>
             <span class="home-price-sep" aria-hidden="true">·</span>
-            <span id="home-chart-source" role="status">Memuat…</span>
+            <span id="home-chart-source" role="status"></span>
           </div>
         </div>
         <div class="home-price-quote">
@@ -341,19 +341,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const wd = nyParts.find((p) => p.type === 'weekday')?.value || '';
       const nyHour = Number(nyParts.find((p) => p.type === 'hour')?.value || 0);
       if (wd === 'Sat' || (wd === 'Fri' && nyHour >= 17) || (wd === 'Sun' && nyHour < 17)) {
-        return { label: 'Pasar Tutup', tone: 'is-muted', detail: 'Akhir Pekan · Ref Jumat' };
+        return { label: 'Pasar Tutup', tone: 'is-muted', detail: 'Akhir Pekan' };
       }
       if (nyHour === 17) {
-        return { label: 'Rollover Harian', tone: 'is-warn', detail: 'Spread lebar · tunggu 18:00 NY' };
+        return { label: 'Rollover', tone: 'is-warn', detail: 'Spread lebar · 18:00 NY' };
       }
       const witaHour = (nowDate.getUTCHours() + 8) % 24;
-      if (witaHour >= 15 && witaHour <= 18) return { label: 'London Killzone', tone: 'is-pos', detail: 'Likuiditas aktif · WITA' };
-      if (witaHour >= 20 && witaHour <= 23) return { label: 'NY AM Killzone', tone: 'is-pos', detail: 'Volatilitas puncak · WITA' };
-      if (witaHour >= 7 && witaHour <= 14) return { label: 'Sesi Asia', tone: 'is-flat', detail: 'Range pembentukan likuiditas' };
-      if (witaHour === 19) return { label: 'Pre-NY Overlap', tone: 'is-warn', detail: 'Waspada rilis data USD' };
-      return { label: 'NY PM / Late', tone: 'is-flat', detail: 'Momentum melambat' };
+      if (witaHour >= 15 && witaHour <= 18) return { label: 'London Killzone', tone: 'is-pos', detail: 'Likuiditas aktif' };
+      if (witaHour >= 20 && witaHour <= 23) return { label: 'NY AM Killzone', tone: 'is-pos', detail: 'Volatilitas puncak' };
+      if (witaHour >= 7 && witaHour <= 14) return { label: 'Sesi Asia', tone: 'is-flat', detail: 'Range likuiditas' };
+      if (witaHour === 19) return { label: 'Pre-NY', tone: 'is-warn', detail: 'Waspada data USD' };
+      return { label: 'NY PM', tone: 'is-flat', detail: 'Momentum melambat' };
     } catch (_) {
-      return { label: 'Sesi Gold', tone: 'is-flat', detail: 'WITA aktif' };
+      return { label: 'Sesi Gold', tone: 'is-flat', detail: 'Aktif' };
     }
   }
 

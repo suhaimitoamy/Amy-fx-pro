@@ -31,7 +31,7 @@
     </div>
   </div>
   <div class="cockpit-header-right">
-    <span id="connection" role="status" class="cockpit-conn-status">Memuat</span>
+    <span id="connection" role="status" class="cockpit-conn-status" hidden></span>
     <button type="button" class="nav-arrow-btn nav-arrow-right" id="amyfxNavForward" data-amyfx-nav="forward" aria-label="Maju">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -62,7 +62,7 @@
             <div class="gold-price-meta">
               <span id="chart-dealing-range-badge" class="dr-badge dr-neutral" title="Status Dealing Range (ICT)">EQUILIBRIUM · 50%</span>
               <span class="gold-meta-sep" aria-hidden="true">·</span>
-              <span id="source" role="status">Memuat…</span>
+              <span id="source" role="status"></span>
             </div>
           </div>
           <div class="chart-price-wrap gold-price-value">
@@ -146,10 +146,10 @@
     </article>
 
     <!-- ══════════════════════════════════════
-         2. HERO RINGKAS & DEALING RANGE (2-Kolom Desktop / Stack Mobile)
+         2. HERO RINGKAS (3-TF BIAS COMPASS) & DEALING RANGE (VERTICAL LADDER)
          ══════════════════════════════════════ -->
     <div class="cockpit-hero-split">
-      <!-- Hero Ringkas — Live Bias ICT + 3-TF + Telemetri Scalper -->
+      <!-- Hero Ringkas — Live Price + 3-TF Interactive Bias Compass + ADR Energy + Telemetry -->
       <article id="hero-ict-context" class="cockpit-card hero-context-card" aria-label="Konteks Bias ICT Live">
         <div class="hero-top-row">
           <div class="hero-price-block">
@@ -165,24 +165,42 @@
           </div>
         </div>
 
-        <!-- Matriks 3-TF Horizontal Sejajar (H1 · M15 · M5) -->
-        <div class="hero-tf-grid" id="hero-tf-grid" aria-label="Bias 3 Timeframe">
-          <div class="hero-tf-cell">
-            <div class="hero-tf-head"><span class="hero-tf-name">H1 · HTF</span><span class="hero-tf-dir bias-neutral">NETRAL</span></div>
-            <span class="hero-tf-desc">Memuat struktur…</span>
+        <!-- Interactive 3-TF Institutional Bias Compass -->
+        <div class="hero-compass-stage" aria-label="Kompas Bias 3 Timeframe">
+          <div class="hero-compass-dial" id="hero-bias-compass-svg"></div>
+          <div class="hero-compass-caption" id="hero-compass-caption">Menyelaraskan struktur H1 · M15 · M5…</div>
+
+          <!-- Interactive TF Selector Strip (Tap H1 / M15 / M5) -->
+          <div class="hero-tf-tabs" id="hero-tf-tabs" role="tablist" aria-label="Pilih timeframe struktur">
+            <button type="button" class="hero-tf-tab" data-compass-tf="H1" role="tab" aria-selected="false">
+              <span class="hero-tf-tab-key">H1</span>
+              <span class="hero-tf-tab-dir bias-neutral" id="hero-tf-dir-H1">Netral</span>
+            </button>
+            <button type="button" class="hero-tf-tab is-active" data-compass-tf="M15" role="tab" aria-selected="true">
+              <span class="hero-tf-tab-key">M15</span>
+              <span class="hero-tf-tab-dir bias-neutral" id="hero-tf-dir-M15">Netral</span>
+            </button>
+            <button type="button" class="hero-tf-tab" data-compass-tf="M5" role="tab" aria-selected="false">
+              <span class="hero-tf-tab-key">M5</span>
+              <span class="hero-tf-tab-dir bias-neutral" id="hero-tf-dir-M5">Netral</span>
+            </button>
           </div>
-          <div class="hero-tf-cell">
-            <div class="hero-tf-head"><span class="hero-tf-name">M15 · MTF</span><span class="hero-tf-dir bias-neutral">NETRAL</span></div>
-            <span class="hero-tf-desc">Memuat struktur…</span>
+          <div class="hero-tf-detail" id="hero-tf-detail" aria-live="polite">Ketuk H1, M15, atau M5 untuk detail struktur.</div>
+        </div>
+
+        <!-- ADR Daily Range Energy Bar -->
+        <div class="hero-adr-meter" aria-label="Range Harian ADR">
+          <div class="hero-adr-head">
+            <span class="hero-ict-label">Range Harian (ADR)</span>
+            <strong class="hero-ict-val" id="hero-adr-val">Menghitung…</strong>
           </div>
-          <div class="hero-tf-cell">
-            <div class="hero-tf-head"><span class="hero-tf-name">M5 · LTF</span><span class="hero-tf-dir bias-neutral">NETRAL</span></div>
-            <span class="hero-tf-desc">Memuat trigger…</span>
+          <div class="hero-adr-track" aria-hidden="true">
+            <div class="hero-adr-fill is-neutral" id="hero-adr-bar-fill" style="width:0%"></div>
           </div>
         </div>
 
-        <!-- Live ICT Engine Strip: Break · Sweep · DOL -->
-        <div class="hero-ict-strip" aria-label="Telemetri Struktur, Sweep, dan DOL">
+        <!-- Compact ICT Telemetry Strip: Break · Sweep · DOL · Jarak Entry -->
+        <div class="hero-ict-strip hero-ict-strip--quad" aria-label="Telemetri Struktur, Sweep, DOL, dan Jarak Entry">
           <div class="hero-ict-metric">
             <span class="hero-ict-label">Break Terakhir</span>
             <strong class="hero-ict-val" id="hero-break-val">—</strong>
@@ -195,72 +213,53 @@
             <span class="hero-ict-label">Target DOL</span>
             <strong class="hero-ict-val" id="hero-dol-val">—</strong>
           </div>
-        </div>
-
-        <!-- Scalper Telemetry Strip: Jarak ke Entry · Range Harian (ADR) -->
-        <div class="hero-scalper-strip" aria-label="Jarak ke Entry dan Range Harian ADR">
           <div class="hero-ict-metric">
             <span class="hero-ict-label">Jarak ke Entry</span>
-            <strong class="hero-ict-val" id="hero-entry-dist-val">Menghitung POI…</strong>
-          </div>
-          <div class="hero-ict-metric">
-            <span class="hero-ict-label">Range Harian (ADR)</span>
-            <strong class="hero-ict-val" id="hero-adr-val">Menghitung…</strong>
+            <strong class="hero-ict-val" id="hero-entry-dist-val">Menghitung…</strong>
           </div>
         </div>
       </article>
 
-      <!-- Dealing Range Aktif + No-Trade Zone EQ -->
+      <!-- Dealing Range Aktif — Interactive Vertical Price Ladder -->
       <article id="card-dealing-range" class="cockpit-card dr-card" aria-label="Dealing Range Aktif">
-        <div class="cockpit-card-head">
+        <div class="cockpit-card-head dr-card-head">
           <div class="cockpit-card-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="20" x2="20" y2="20"></line><line x1="4" y1="4" x2="20" y2="4"></line><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="3 3"></line><circle cx="12" cy="12" r="2.5"></circle></svg>
             <h3>Dealing Range</h3>
           </div>
-          <span id="dr-scope-badge" class="cockpit-meta-tag">M15 · <span id="dr-pct-tag">50%</span></span>
-        </div>
-
-        <!-- Horizontal Gauge Premium / EQ / Discount -->
-        <div class="dr-gauge-wrap">
-          <div class="dr-gauge-zones">
-            <span>Diskon</span>
-            <span>EQ 50%</span>
-            <span>Premium</span>
-          </div>
-          <div class="dr-gauge-track" aria-hidden="true">
-            <div class="dr-gauge-eq-mark"></div>
-            <div class="dr-gauge-fill" id="dr-bar-fill" style="width:50%"></div>
-            <div class="dr-gauge-dot" id="dr-bar-dot" style="left:50%"></div>
+          <div class="dr-head-controls">
+            <div class="dr-mode-seg" role="group" aria-label="Pilih skala Dealing Range">
+              <button type="button" id="dr-mode-m15" class="dr-mode-btn is-active" data-dr-mode="M15" aria-pressed="true">M15</button>
+              <button type="button" id="dr-mode-major" class="dr-mode-btn" data-dr-mode="MAJOR" aria-pressed="false">PDL–PDH</button>
+            </div>
+            <span id="dr-scope-badge" class="cockpit-meta-tag"><span id="dr-pct-tag">50%</span></span>
           </div>
         </div>
 
-        <!-- 3 Level Utama -->
-        <div class="dr-metrics-row">
-          <div class="dr-metric dr-ssl">
-            <span class="dr-label-name">Range Low (SSL)</span>
-            <span class="dr-label-val" id="dr-ssl-val">—</span>
-          </div>
-          <div class="dr-metric dr-eq">
-            <span class="dr-label-name">EQ 50%</span>
-            <span class="dr-label-val" id="dr-eq-val">—</span>
-          </div>
-          <div class="dr-metric dr-bsl">
-            <span class="dr-label-name">Range High (BSL)</span>
-            <span class="dr-label-val" id="dr-bsl-val">—</span>
-          </div>
+        <!-- Interactive Vertical Institutional Price Ladder SVG -->
+        <div class="dr-ladder-stage" aria-label="Peta Harga Vertikal Dealing Range">
+          <div id="dr-ladder-svg" class="dr-ladder-svg-wrap"></div>
         </div>
 
-        <div class="dr-status-badge zone-eq" id="dr-status-badge">
+        <!-- Hidden compat spans for downstream readers -->
+        <span id="dr-ssl-val" hidden>—</span>
+        <span id="dr-eq-val" hidden>—</span>
+        <span id="dr-bsl-val" hidden>—</span>
+
+        <!-- Interactive Status / Zone Inspector Readout -->
+        <div class="dr-status-badge zone-eq" id="dr-status-badge" aria-live="polite">
           Menghitung posisi zona…
         </div>
 
-        <div class="no-trade-zone-badge dr-notrade-row" id="no-trade-label">
-          No-Trade Zone EQ: Menghitung area tengah…
-        </div>
-
-        <div id="dr-major-context" class="dr-major-row">
-          <span>PDL–PDH: <strong id="dr-major-range">—</strong></span>
-          <span>EQ Mayor: <strong id="dr-major-eq">—</strong></span>
+        <!-- Compact Footer: No-Trade EQ + PDL–PDH Context -->
+        <div class="dr-footer-meta">
+          <div class="no-trade-zone-badge dr-notrade-row" id="no-trade-label">
+            No-Trade EQ: Menghitung…
+          </div>
+          <div id="dr-major-context" class="dr-major-row">
+            <span>PDL–PDH: <strong id="dr-major-range">—</strong></span>
+            <span>EQ Mayor: <strong id="dr-major-eq">—</strong></span>
+          </div>
         </div>
       </article>
     </div>
@@ -295,6 +294,28 @@
         <a class="poi-news-lock-link" href="../market-intel/index.html#kalender">Kalender →</a>
       </div>
 
+      <aside id="poi-live-sweep-banner" class="poi-live-sweep-banner" role="region" aria-label="Sinyal Live London Judas dan Sweep Reversal" hidden>
+        <div class="poi-sweep-head">
+          <div class="poi-sweep-title-group">
+            <span class="poi-sweep-kind-tag" id="poi-sweep-kind-tag">London Judas</span>
+            <span class="poi-sweep-side-tag" id="poi-sweep-side-tag">BUY</span>
+            <strong class="poi-sweep-title" id="poi-sweep-title">Sweep Asia Low · M15</strong>
+          </div>
+          <div class="poi-sweep-actions">
+            <span class="poi-sweep-status" id="poi-sweep-status">Siap Eksekusi</span>
+            <button type="button" class="cockpit-lot-btn poi-sweep-btn" id="btn-lot-sweep">Hitung Lot</button>
+            <button type="button" class="cockpit-journal-btn poi-sweep-btn" id="btn-journal-sweep">Catat</button>
+          </div>
+        </div>
+        <div class="poi-sweep-levels">
+          <div class="poi-sweep-kv"><span>Entry Close</span><strong id="poi-sweep-entry">—</strong></div>
+          <div class="poi-sweep-kv"><span>SL Ketat</span><strong id="poi-sweep-sl">—</strong></div>
+          <div class="poi-sweep-kv"><span>TP1 (1.5R)</span><strong id="poi-sweep-tp1">—</strong></div>
+          <div class="poi-sweep-kv"><span>TP2 / Runner 3.5R</span><strong id="poi-sweep-tp2">—</strong></div>
+        </div>
+        <div class="poi-sweep-foot" id="poi-sweep-foot">—</div>
+      </aside>
+
       <!-- TAB PANEL: BUY SETUP -->
       <section id="card-poi-buy" class="poi-tab-panel" role="tabpanel" aria-labelledby="tab-poi-buy">
         <div class="poi-panel-status-row">
@@ -321,10 +342,13 @@
         <div class="poi-verdict-card is-wait" id="buy-verdict-bar" aria-label="Evaluasi Kelayakan Scalper BUY">
           <div class="poi-verdict-head">
             <div class="poi-verdict-main">
-              <strong class="poi-verdict-grade" id="buy-verdict-grade">MENGEVALUASI</strong>
+              <strong class="poi-verdict-grade" id="buy-verdict-grade">Mengevaluasi</strong>
               <span class="poi-verdict-score" id="buy-verdict-score">0/5</span>
             </div>
-            <span class="poi-session-guard" id="buy-session-guard">Memeriksa Sesi &amp; Berita…</span>
+            <div class="poi-verdict-meta">
+              <span class="poi-regime-pill" id="buy-regime-pill" hidden></span>
+              <span class="poi-session-guard" id="buy-session-guard">Memeriksa Sesi &amp; Berita…</span>
+            </div>
           </div>
           <div class="poi-checks-row" id="buy-verdict-checks"></div>
         </div>
@@ -332,17 +356,17 @@
         <!-- 3 Kartu Level Eksekusi BUY -->
         <div class="poi-levels-grid">
           <div class="poi-level-tile poi-level-tile--entry-buy">
-            <span class="poi-level-label">Entry Zona (OB/FVG)</span>
+            <span class="poi-level-label">Entry Zona</span>
             <strong class="poi-level-val" id="buy-entry-val">—</strong>
             <span class="poi-level-sub" id="buy-entry-sub">Menunggu zona demand…</span>
           </div>
           <div class="poi-level-tile poi-level-tile--tp">
-            <span class="poi-level-label">TP1 Cepat (BEP) · Runner</span>
+            <span class="poi-level-label">Target TP1 · Runner</span>
             <strong class="poi-level-val" id="buy-tp-val">—</strong>
             <span class="poi-level-sub" id="buy-tp-sub">Likuiditas BSL atas</span>
           </div>
           <div class="poi-level-tile poi-level-tile--sl">
-            <span class="poi-level-label">Batas SL Scalper</span>
+            <span class="poi-level-label">Batas SL</span>
             <strong class="poi-level-val" id="buy-sl-val">—</strong>
             <span class="poi-level-sub" id="buy-sl-sub">Protected Low · Buffer Gold</span>
           </div>
@@ -410,10 +434,13 @@
         <div class="poi-verdict-card is-wait" id="sell-verdict-bar" aria-label="Evaluasi Kelayakan Scalper SELL">
           <div class="poi-verdict-head">
             <div class="poi-verdict-main">
-              <strong class="poi-verdict-grade" id="sell-verdict-grade">MENGEVALUASI</strong>
+              <strong class="poi-verdict-grade" id="sell-verdict-grade">Mengevaluasi</strong>
               <span class="poi-verdict-score" id="sell-verdict-score">0/5</span>
             </div>
-            <span class="poi-session-guard" id="sell-session-guard">Memeriksa Sesi &amp; Berita…</span>
+            <div class="poi-verdict-meta">
+              <span class="poi-regime-pill" id="sell-regime-pill" hidden></span>
+              <span class="poi-session-guard" id="sell-session-guard">Memeriksa Sesi &amp; Berita…</span>
+            </div>
           </div>
           <div class="poi-checks-row" id="sell-verdict-checks"></div>
         </div>
@@ -421,17 +448,17 @@
         <!-- 3 Kartu Level Eksekusi SELL -->
         <div class="poi-levels-grid">
           <div class="poi-level-tile poi-level-tile--entry-sell">
-            <span class="poi-level-label">Entry Zona (OB/FVG)</span>
+            <span class="poi-level-label">Entry Zona</span>
             <strong class="poi-level-val" id="sell-entry-val">—</strong>
             <span class="poi-level-sub" id="sell-entry-sub">Menunggu zona supply…</span>
           </div>
           <div class="poi-level-tile poi-level-tile--tp">
-            <span class="poi-level-label">TP1 Cepat (BEP) · Runner</span>
+            <span class="poi-level-label">Target TP1 · Runner</span>
             <strong class="poi-level-val" id="sell-tp-val">—</strong>
             <span class="poi-level-sub" id="sell-tp-sub">Likuiditas SSL bawah</span>
           </div>
           <div class="poi-level-tile poi-level-tile--sl">
-            <span class="poi-level-label">Batas SL Scalper</span>
+            <span class="poi-level-label">Batas SL</span>
             <strong class="poi-level-val" id="sell-sl-val">—</strong>
             <span class="poi-level-sub" id="sell-sl-sub">Protected High · Buffer Gold</span>
           </div>
@@ -540,11 +567,15 @@
           </div>
           <button type="button" class="poi-cal-nav-btn" id="btn-poi-cal-next" aria-label="Bulan berikutnya">›</button>
         </div>
+        <div class="poi-cal-backfill-bar">
+          <button type="button" class="poi-cal-backfill-btn" id="btn-poi-cal-backfill-30d">Tarik Riwayat 30 Hari</button>
+          <span class="poi-cal-backfill-status" id="poi-cal-backfill-status" aria-live="polite">Isi otomatis 30 hari terakhir (H1 + M15 + M5 · v8)</span>
+        </div>
         <div class="poi-cal-grid-wrap" id="poi-cal-grid-wrap"></div>
         <div class="poi-cal-legend" aria-label="Keterangan warna kalender">
-          <span class="poi-cal-legend-item is-win">Respect &ge;60%</span>
-          <span class="poi-cal-legend-item is-neutral">50–59% / Aktif</span>
-          <span class="poi-cal-legend-item is-loss">SL Dominan (&lt;50%)</span>
+          <span class="poi-cal-legend-item is-win">Profit (+R)</span>
+          <span class="poi-cal-legend-item is-neutral">Impas / Aktif</span>
+          <span class="poi-cal-legend-item is-loss">Rugi (&minus;R)</span>
         </div>
         <div class="poi-cal-day-detail" id="poi-cal-day-detail"></div>
       </section>
@@ -555,9 +586,9 @@
       </div>
     </article>
 
-    <!-- ── Minimal Sync Timestamp Footer ── -->
-    <div class="dashboard-footer-meta">
-      <span id="dashboard-last-update">Belum diperbarui</span>
+    <!-- ── Hidden Sync Timestamp Compat ── -->
+    <div class="dashboard-footer-meta" hidden>
+      <span id="dashboard-last-update"></span>
     </div>
 
   </div><!-- /.ict-dashboard-scroll -->

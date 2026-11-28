@@ -140,8 +140,8 @@ test('4. backfillFromCandles applies causal session/trend/overlap filters, inclu
     makeBar(rolloverSec, 3598, 3601, 3597.5, 3600.5),
     makeBar(rolloverSec + 900, 3600.5, 3601, 3598.2, 3600.2), // touches rollover zone
     makeBar(londonSec, 3602, 3605, 3601.5, 3604.5),
-    makeBar(londonSec + 900, 3604.5, 3604.8, 3601.2, 3603.5), // touches BUY BB [3600.5, 3602.5]
-    makeBar(londonSec + 1800, 3603.5, 3624.0, 3603.2, 3623.0) // hits TP2 (2.5R on 82p SL)!
+    makeBar(londonSec + 900, 3602.0, 3604.8, 3601.2, 3603.5), // touches BUY BB [3600.5, 3602.5] & closes bullish rejection (v8 London gate)
+    makeBar(londonSec + 1800, 3603.5, 3624.0, 3603.2, 3623.0) // hits TP2 (2.5R)!
   ];
 
   const ngM15 = {

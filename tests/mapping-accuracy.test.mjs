@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   evaluatePoiQualityGate,
+  detectMarketRegime,
+  requiresHybridRejection,
   resolveM15Direction,
   formatPdlPdhRange,
   resolveSsotTelemetry,
@@ -484,22 +486,55 @@ test('11. Shared SSOT POI Quality Gate blocks micro traps, Asia M5 chop, counter
   assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'BUY', width: 4.5, m15Dir: 1, nowMs: asiaMs }).allowed, true);
   // Dead Rollover blocks all
   assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'BUY', width: 4.5, m15Dir: 1, nowMs: rolloverMs }).allowed, false);
-  // Counter-trend M5 & M15 FVG blocked; M15 institutional OB/BB allowed
-  assert.equal(evaluatePoiQualityGate({ tf: 'M5', kind: 'OB', side: 'SELL', width: 2.5, m15Dir: 1, nowMs: londonMs }).allowed, false);
-  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'FVG', side: 'SELL', width: 3.5, m15Dir: 1, nowMs: londonMs }).allowed, false);
-  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'SELL', width: 3.5, m15Dir: 1, nowMs: londonMs }).allowed, true);
+  // Counter-trend M5 & M15 FVG/OB/iFVG blocked; structural M15 BB allowed only when H1 is not counter
+  assert.equal(evaluatePoiQualityGate({ tf: 'M5', kind: 'OB', side: 'SELL', width: 2.5, m15Dir: 1, h1Dir: 0, nowMs: londonMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'FVG', side: 'SELL', width: 3.5, m15Dir: 1, h1Dir: 0, nowMs: londonMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'OB', side: 'SELL', width: 3.5, m15Dir: 1, h1Dir: 0, nowMs: londonMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'iFVG', side: 'SELL', width: 3.5, m15Dir: 1, h1Dir: 0, nowMs: londonMs }).allowed, false);
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'BB', side: 'SELL', width: 3.5, m15Dir: 1, h1Dir: 0, nowMs: londonMs }).allowed, true);
+  // Counter-H1 MUST block ALL zones (including OB, FVG, BB, iFVG)
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'BB', side: 'SELL', width: 3.5, m15Dir: -1, h1Dir: 1, nowMs: londonMs }).reason, 'COUNTER_H1_BLOCKED');
+  assert.equal(evaluatePoiQualityGate({ tf: 'M15', kind: 'FVG', side: 'BUY', width: 3.5, m15Dir: 1, h1Dir: -1, nowMs: londonMs }).reason, 'COUNTER_H1_BLOCKED');
 
   // selectScalperDualLayerPoi MUST reject $0.68 micro M5 OB and pick clean M15 OB instead
   const sel = selectScalperDualLayerPoi({
     side: 'BUY',
     livePrice: 3681.5,
     m15Dir: 1,
+    h1Dir: 1,
     nowMs: londonMs,
     m5Obs: [{ lo: 3677.82, hi: 3678.50, ce: 3678.16, tested: false, label: '+OB M5 Micro' }],
     m15Obs: [{ lo: 3655.0, hi: 3664.75, ce: 3659.88, tested: false, label: '+OB M15' }]
   });
   assert.ok(sel.primary);
   assert.equal(sel.primary.tf, 'M15', 'Must skip $0.68 M5 micro trap and pick valid M15 OB');
+
+  // selectScalperDualLayerPoi MUST reject counter-H1 candidates
+  const counterH1Sel = selectScalperDualLayerPoi({
+    side: 'BUY',
+    livePrice: 3681.5,
+    m15Dir: 1,
+    h1Dir: -1,
+    nowMs: londonMs,
+    m15Obs: [{ lo: 3655.0, hi: 3664.75, ce: 3659.88, tested: false, label: '+OB M15' }]
+  });
+  assert.equal(counterH1Sel.primary, null, 'Counter-H1 zones must be blocked by SSOT v7 gate');
+
+  // evaluateScalperPoiVerdict MUST mark Counter-H1 as SKIP
+  const counterVerdict = evaluateScalperPoiVerdict({
+    side: 'BUY',
+    h1Dir: -1,
+    m15Dir: 1,
+    m5Dir: 1,
+    zone: sel.primary,
+    livePrice: 3666.0,
+    slGuard: { dist: 6.4, status: 'ideal' },
+    rr1: 2.0,
+    tp1: { v: 3679.0, name: 'PDH', synthetic: false }
+  });
+  assert.equal(counterVerdict.skip, true);
+  assert.equal(counterVerdict.cls, 'is-skip');
+  assert.match(counterVerdict.grade, /SKIP · COUNTER TREN H1/);
 
   // evaluateScalperPoiVerdict MUST mark R:R < 1.2 (e.g. 1:0.3) as SKIP
   const badRr = evaluateScalperPoiVerdict({
@@ -517,3 +552,47 @@ test('11. Shared SSOT POI Quality Gate blocks micro traps, Asia M5 chop, counter
   assert.equal(badRr.cls, 'is-skip');
   assert.match(badRr.grade, /SKIP · R:R TERLALU KECIL/);
 });
+
+test('12. Mapping POI Engine v8: detectMarketRegime, requiresHybridRejection, and Runner TP3 subtitle', () => {
+  // Trending up candles with H1 BULL -> TRENDING
+  const trendingBars = Array.from({ length: 30 }, (_, i) => ({
+    high: 4000 + i * 2 + 1.5,
+    low: 4000 + i * 2 - 1.5,
+    close: 4000 + i * 2 + 0.8
+  }));
+  const trendReg = detectMarketRegime(trendingBars, 1);
+  assert.equal(trendReg.regime, 'TRENDING');
+  assert.equal(trendReg.label, 'Trending');
+
+  // Sideways choppy candles oscillating across EQ >= 4 times -> SIDEWAYS even if H1 != 0
+  const choppyBars = Array.from({ length: 30 }, (_, i) => ({
+    high: 4020,
+    low: 4000,
+    close: i % 2 === 0 ? 4015 : 4005
+  }));
+  const chopReg = detectMarketRegime(choppyBars, 1);
+  assert.equal(chopReg.regime, 'SIDEWAYS');
+  assert.ok(chopReg.eqCrosses >= 4);
+  assert.match(chopReg.label, /Sideways/);
+
+  // Neutral H1 -> SIDEWAYS
+  assert.equal(detectMarketRegime(trendingBars, 0).regime, 'SIDEWAYS');
+
+  // Hybrid Rejection: M5 always true; M15 London (14-20 WITA = 06-12 UTC) true; Asia (10 WITA = 02 UTC) & NY (22 WITA = 14 UTC) false
+  const asiaMs = Date.UTC(2026, 10, 20, 2, 0, 0);   // 10:00 WITA
+  const londonMs = Date.UTC(2026, 10, 20, 7, 30, 0); // 15:30 WITA
+  const nyMs = Date.UTC(2026, 10, 20, 14, 0, 0);     // 22:00 WITA
+  assert.equal(requiresHybridRejection({ tf: 'M5', nowMs: nyMs }), true);
+  assert.equal(requiresHybridRejection({ tf: 'M15', nowMs: londonMs }), true);
+  assert.equal(requiresHybridRejection({ tf: 'M15', nowMs: asiaMs }), false);
+  assert.equal(requiresHybridRejection({ tf: 'M15', nowMs: nyMs }), false);
+
+  // Runner TP3 subtitle support (backwards compatible)
+  const withRunner = formatTp1Subtitle({ v: 4020, name: 'BSL M15', synthetic: false }, { v: 4035 }, 1.8, { v: 4050 });
+  assert.match(withRunner, /DOL BSL M15 \(1:1\.8\)/);
+  assert.match(withRunner, /DOL \$4035\.00/);
+  assert.match(withRunner, /Runner 3\.5R \$4050\.00/);
+});
+
+
+

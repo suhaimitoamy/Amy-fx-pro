@@ -9,6 +9,8 @@
 
 import {
   evaluatePoiQualityGate,
+  detectMarketRegime,
+  requiresHybridRejection,
   resolveM15Direction,
   formatPdlPdhRange,
   resolveSsotTelemetry,
@@ -27,6 +29,9 @@ import {
   loadHistoryState,
   saveHistoryState,
   backfillFromCandles,
+  detectCausalJudasAndSweepSetups,
+  selectActiveLiveJudasOrSweep,
+  backfillMultiDayWalkForward,
   recordLivePoiProgress,
   mergeHistoryState,
   filterByRange,
@@ -43,6 +48,12 @@ import {
   buildMappingJournalPrefill,
   evaluateMappingNewsLock
 } from '../engine/cockpit-bridge-helpers.js';
+import {
+  computeBiasCompassModel,
+  renderBiasCompassSvg,
+  computeDealingLadderModel,
+  renderDealingLadderSvg
+} from './mapping-visuals.js';
 
 (function () {
   'use strict';
@@ -63,12 +74,23 @@ import {
   let userLockedTab = false;
   let latestBuyPlan = null;
   let latestSellPlan = null;
+  let latestLiveSweepPlan = null;
+  let latestLiveSweepSignal = null;
   let latestBuyOverlay = null;
   let backupBuyOverlay = null;
   let latestSellOverlay = null;
   let backupSellOverlay = null;
   let lastPublishedPlanSig = '';
-  const dualLayerCache = { m15Key: '', m15Ng: null, m5Key: '', m5Ng: null };
+  const dualLayerCache = { m15Key: '', m15Ng: null, m5Key: '', m5Ng: null, h1Key: '', h1Ng: null };
+
+  /* ── Interactive Visual Instruments State (3-TF Bias Compass + Vertical Dealing Range Ladder) ── */
+  let selectedCompassTf = 'M15';
+  let latestCompassModel = null;
+  let drLadderMode = 'M15';
+  let selectedDrZone = null;
+  let latestLadderInputs = null;
+  let latestLadderPois = { buy: null, sell: null };
+  let latestDrDefaultStatus = { cls: 'zone-eq', text: 'Menghitung posisi zona…' };
 
   /* ── Riwayat Reaksi & Hasil POI State (180 Hari Detail + Arsip Kalender Permanen + Cloud Sync) ── */
   const historyStorage = typeof window !== 'undefined' ? window.localStorage : null;
@@ -91,6 +113,7 @@ import {
   let calendarDayShowAll = false;
   let historyClearArmedUntil = 0;
   let historyClearArmTimer = null;
+  let historyBackfill30dBusy = false;
 
   function toNgCandles(rows) {
     if (!Array.isArray(rows) || rows.length < 15) return [];
@@ -148,7 +171,26 @@ import {
       }
       ngM5 = dualLayerCache.m5Ng;
     }
-    return { ngM15, ngM5 };
+    const rawH1 = Array.isArray(amy?.chartCandles?.H1) && amy.chartCandles.H1.length >= 20
+      ? amy.chartCandles.H1
+      : null;
+    const chartIsH1 = chartNg && String(chartNg.tf || '').toUpperCase() === 'H1';
+    const chartMatchesRawH1 = chartIsH1 && (
+      !Array.isArray(rawH1) || rawH1.length < 20 ||
+      (chartCandles && chartCandles.length === rawH1.length
+        && Number(chartCandles[chartCandles.length - 1]?.time) === Number(rawH1[rawH1.length - 1]?.open_time ?? rawH1[rawH1.length - 1]?.time))
+    );
+    let ngH1 = chartMatchesRawH1 ? chartNg : null;
+    if (!ngH1 && Array.isArray(rawH1) && rawH1.length >= 20) {
+      const lastBar = rawH1[rawH1.length - 1];
+      const key = `${rawH1.length}:${lastBar?.open_time ?? lastBar?.time}:${lastBar?.close}:${Boolean(amy)}`;
+      if (dualLayerCache.h1Key !== key) {
+        dualLayerCache.h1Ng = calculateNextGenIndicators(toNgCandles(rawH1), { tf: 'H1', context: amy ? { amy } : null });
+        dualLayerCache.h1Key = key;
+      }
+      ngH1 = dualLayerCache.h1Ng;
+    }
+    return { ngM15, ngM5, ngH1 };
   }
 
   /* ── Jam WITA (Pill Sesi Header dimiliki 100% oleh market-session-clock.js agar bebas bentrok timer) ── */
@@ -310,6 +352,100 @@ import {
     if (isManual) publishActiveScalperPlan();
   }
 
+  function renderBiasCompassView() {
+    const model = latestCompassModel || computeBiasCompassModel();
+    const dialWrap = $('hero-bias-compass-svg');
+    if (dialWrap) {
+      dialWrap.innerHTML = renderBiasCompassSvg(model, selectedCompassTf);
+    }
+    const captionEl = $('hero-compass-caption');
+    if (captionEl) {
+      captionEl.textContent = model.alignmentLabel;
+      captionEl.className = `hero-compass-caption is-${model.tone}`;
+    }
+    const segByKey = new Map(model.segments.map(s => [s.key, s]));
+    const tabsRoot = $('hero-tf-tabs');
+    if (tabsRoot) {
+      tabsRoot.querySelectorAll('[data-compass-tf]').forEach(btn => {
+        const tfKey = btn.getAttribute('data-compass-tf');
+        const seg = segByKey.get(tfKey);
+        const active = tfKey === selectedCompassTf;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        const dirEl = $(`hero-tf-dir-${tfKey}`);
+        if (dirEl && seg) {
+          const dirClass = seg.dir === 1 ? 'bias-bull' : (seg.dir === -1 ? 'bias-bear' : 'bias-neutral');
+          const dirTxt = seg.dir === 1 ? 'Bull' : (seg.dir === -1 ? 'Bear' : 'Netral');
+          dirEl.className = `hero-tf-tab-dir ${dirClass}`;
+          dirEl.textContent = dirTxt;
+        }
+      });
+    }
+    const detailEl = $('hero-tf-detail');
+    if (detailEl) {
+      const sel = segByKey.get(selectedCompassTf) || model.segments[1];
+      if (sel) {
+        const dirClass = sel.dir === 1 ? 'bias-bull' : (sel.dir === -1 ? 'bias-bear' : 'bias-neutral');
+        const dirTxt = sel.dir === 1 ? 'Bullish' : (sel.dir === -1 ? 'Bearish' : 'Netral');
+        detailEl.innerHTML = `<span class="hero-tf-detail-key">${esc(sel.key)} · ${esc(sel.role)}</span><span class="hero-tf-detail-sep" aria-hidden="true">·</span><span class="hero-tf-detail-dir ${dirClass}">${dirTxt}</span><span class="hero-tf-detail-sep" aria-hidden="true">—</span><span class="hero-tf-detail-desc">${esc(sel.desc)}</span>`;
+      }
+    }
+  }
+
+  function renderDealingLadderView() {
+    const inputs = latestLadderInputs || {};
+    const model = computeDealingLadderModel({
+      ...inputs,
+      mode: drLadderMode,
+      buyPoi: latestLadderPois.buy,
+      sellPoi: latestLadderPois.sell
+    });
+    const wrap = $('dr-ladder-svg');
+    if (wrap) {
+      wrap.innerHTML = renderDealingLadderSvg(model, selectedDrZone);
+    }
+
+    const btnM15 = $('dr-mode-m15');
+    const btnMajor = $('dr-mode-major');
+    if (btnM15) {
+      const isM15 = model.mode === 'M15';
+      btnM15.classList.toggle('is-active', isM15);
+      btnM15.setAttribute('aria-pressed', isM15 ? 'true' : 'false');
+    }
+    if (btnMajor) {
+      const isMajor = model.mode === 'MAJOR';
+      btnMajor.classList.toggle('is-active', isMajor);
+      btnMajor.setAttribute('aria-pressed', isMajor ? 'true' : 'false');
+      btnMajor.disabled = !model.hasMajor;
+    }
+
+    const pctTag = $('dr-pct-tag');
+    if (pctTag) pctTag.textContent = `${model.pct}%`;
+
+    const badge = $('dr-status-badge');
+    if (badge) {
+      if (selectedDrZone) {
+        const z = model.zones.find(item => item.key === selectedDrZone);
+        if (z) {
+          const zCls = selectedDrZone === 'bsl' || selectedDrZone === 'ote_sell'
+            ? 'zone-premium'
+            : (selectedDrZone === 'ssl' || selectedDrZone === 'ote_buy' ? 'zone-discount' : 'zone-eq');
+          badge.className = `dr-status-badge ${zCls} is-inspecting`;
+          badge.textContent = z.hint;
+          return;
+        }
+      }
+      if (model.mode === 'MAJOR' && model.valid) {
+        const mCls = model.zoneTone === 'bull' ? 'zone-discount' : (model.zoneTone === 'bear' ? 'zone-premium' : 'zone-eq');
+        badge.className = `dr-status-badge ${mCls}`;
+        badge.textContent = `PDL–PDH (${model.pct}%) · ${model.zoneLabel}`;
+      } else if (latestDrDefaultStatus.text) {
+        badge.className = `dr-status-badge ${latestDrDefaultStatus.cls}`;
+        badge.textContent = latestDrDefaultStatus.text;
+      }
+    }
+  }
+
   function bindCockpitInteractions() {
     document.querySelectorAll('[data-poi-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -317,6 +453,70 @@ import {
         setActivePoiTab(side, true);
       });
     });
+
+    // Interactive 3-TF Bias Compass: click/keyboard on TF tabs or concentric SVG arcs
+    const selectCompassTf = tf => {
+      if (!['H1', 'M15', 'M5'].includes(tf)) return;
+      selectedCompassTf = tf;
+      renderBiasCompassView();
+    };
+    const tfTabsEl = $('hero-tf-tabs');
+    if (tfTabsEl) {
+      tfTabsEl.addEventListener('click', ev => {
+        const btn = ev.target?.closest?.('[data-compass-tf]');
+        if (btn) selectCompassTf(btn.getAttribute('data-compass-tf'));
+      });
+    }
+    const compassDialEl = $('hero-bias-compass-svg');
+    if (compassDialEl) {
+      const handleDialPick = ev => {
+        const ring = ev.target?.closest?.('[data-bc-tf]');
+        if (ring) selectCompassTf(ring.getAttribute('data-bc-tf'));
+      };
+      compassDialEl.addEventListener('click', handleDialPick);
+      compassDialEl.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          const ring = ev.target?.closest?.('[data-bc-tf]');
+          if (ring) {
+            ev.preventDefault();
+            selectCompassTf(ring.getAttribute('data-bc-tf'));
+          }
+        }
+      });
+    }
+
+    // Interactive Vertical Dealing Range Ladder: M15 | PDL–PDH mode switch + clickable zones
+    const setDrMode = mode => {
+      drLadderMode = mode === 'MAJOR' ? 'MAJOR' : 'M15';
+      selectedDrZone = null;
+      renderDealingLadderView();
+    };
+    const btnDrM15 = $('dr-mode-m15');
+    if (btnDrM15) btnDrM15.addEventListener('click', () => setDrMode('M15'));
+    const btnDrMajor = $('dr-mode-major');
+    if (btnDrMajor) btnDrMajor.addEventListener('click', () => setDrMode('MAJOR'));
+
+    const ladderWrapEl = $('dr-ladder-svg');
+    if (ladderWrapEl) {
+      const toggleDrZone = zoneKey => {
+        if (!zoneKey) return;
+        selectedDrZone = selectedDrZone === zoneKey ? null : zoneKey;
+        renderDealingLadderView();
+      };
+      ladderWrapEl.addEventListener('click', ev => {
+        const z = ev.target?.closest?.('[data-dr-zone]');
+        if (z) toggleDrZone(z.getAttribute('data-dr-zone'));
+      });
+      ladderWrapEl.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          const z = ev.target?.closest?.('[data-dr-zone]');
+          if (z) {
+            ev.preventDefault();
+            toggleDrZone(z.getAttribute('data-dr-zone'));
+          }
+        }
+      });
+    }
 
     const openLotFor = plan => {
       if (!plan || !Number.isFinite(plan.entry) || !Number.isFinite(plan.sl)) {
@@ -368,6 +568,44 @@ import {
 
     const btnJournalSell = $('btn-journal-sell');
     if (btnJournalSell) btnJournalSell.addEventListener('click', () => triggerQuickJournal('SELL'));
+
+    const btnLotSweep = $('btn-lot-sweep');
+    if (btnLotSweep) btnLotSweep.addEventListener('click', () => openLotFor(latestLiveSweepPlan));
+
+    const btnJournalSweep = $('btn-journal-sweep');
+    if (btnJournalSweep) {
+      btnJournalSweep.addEventListener('click', () => {
+        if (!latestLiveSweepSignal || !latestLiveSweepPlan) return;
+        const sig = latestLiveSweepSignal;
+        const biasEl = $('hero-bias-banner') || $('hero-bias-pill');
+        const sessionEl = $('cockpit-session-pill');
+        const payload = buildMappingJournalPrefill(
+          latestLiveSweepPlan,
+          {
+            side: sig.side,
+            tf: 'M15',
+            kind: sig.kind,
+            label: sig.label || sig.kind,
+            area: { low: sig.low, high: sig.high, ce: sig.ce },
+            sl: sig.sl,
+            tp1: sig.tp1,
+            tp2: sig.tp2
+          },
+          {
+            side: sig.side,
+            grade: `${sig.kind === 'JUDAS' ? 'LONDON JUDAS' : 'SWEEP REVERSAL'} · M15`,
+            bias: biasEl?.textContent?.trim() || '',
+            session: sessionEl?.textContent?.trim() || '',
+            nowMs: Date.now()
+          }
+        );
+        try {
+          localStorage.setItem('amy_mapping_journal_prefill_v1', JSON.stringify(payload));
+          if (window.Android?.triggerHaptic) window.Android.triggerHaptic(35);
+        } catch (_) {}
+        window.location.href = '../journal/index.html?prefill=mapping';
+      });
+    }
 
     // News Lock banner synced with Market Intel USD High-Impact calendar
     const applyNewsLockBanner = events => {
@@ -489,11 +727,144 @@ import {
       btnCalNext.addEventListener('click', () => shiftHistoryCalendarMonth(1));
     }
 
+    const btnCalBackfill30d = $('btn-poi-cal-backfill-30d');
+    if (btnCalBackfill30d) {
+      btnCalBackfill30d.addEventListener('click', () => {
+        runCalendar30DayBackfill();
+      });
+    }
+
     // Reload local POI history whenever GitHub Cloud Sync pulls fresh data
     window.addEventListener('amyfx:cloud-sync-pulled', () => {
       mappingHistoryState = loadHistoryState(historyStorage);
       renderMappingHistory();
     });
+  }
+
+  function normalizeTwelveDataValues(values) {
+    if (!Array.isArray(values)) return [];
+    const byTime = new Map();
+    for (const v of values) {
+      if (!v || v.amyfxSyntheticCurrent) continue;
+      let sec = Number(v.open_time ?? v.time);
+      if (!Number.isFinite(sec) || sec <= 0) {
+        const rawDt = String(v.datetime || '').trim();
+        if (!rawDt) continue;
+        const iso = rawDt.includes('T')
+          ? (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(rawDt) ? rawDt : `${rawDt}Z`)
+          : `${rawDt.replace(' ', 'T')}Z`;
+        sec = Math.floor(Date.parse(iso) / 1000);
+      }
+      const open = Number(v.open);
+      const high = Number(v.high);
+      const low = Number(v.low);
+      const close = Number(v.close);
+      if (!Number.isFinite(sec) || !Number.isFinite(open) || !Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close)) {
+        continue;
+      }
+      byTime.set(sec, { open_time: sec, time: sec, open, high, low, close });
+    }
+    return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+  }
+
+  async function fetchHistoryCandles(interval, outputsize) {
+    const query = `symbol=XAU/USD&interval=${encodeURIComponent(interval)}&outputsize=${encodeURIComponent(outputsize)}`;
+    const endpoints = [];
+    if (typeof window !== 'undefined' && (window.location?.protocol === 'http:' || window.location?.protocol === 'https:')) {
+      endpoints.push(`${window.location.origin}/api/twelvedata?${query}`);
+    }
+    const vercelUrl = `https://amy-fx.vercel.app/api/twelvedata?${query}`;
+    if (!endpoints.includes(vercelUrl)) endpoints.push(vercelUrl);
+
+    let lastErr = null;
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const payload = await res.json();
+        const rows = normalizeTwelveDataValues(payload?.values);
+        if (rows.length >= 25) return rows;
+        lastErr = new Error('Data candle tidak cukup');
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('Gagal menarik candle historis');
+  }
+
+  async function runCalendar30DayBackfill() {
+    if (historyBackfill30dBusy) return;
+    historyBackfill30dBusy = true;
+
+    const btn = $('btn-poi-cal-backfill-30d');
+    const statusEl = $('poi-cal-backfill-status');
+    const setStatus = (text, tone = '') => {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      statusEl.classList.remove('is-success', 'is-error');
+      if (tone) statusEl.classList.add(tone);
+    };
+
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      btn.textContent = 'Menarik 30 Hari…';
+    }
+    setStatus('Menarik candle 30 hari (H1 · M15 · M5)…');
+
+    try {
+      const [m15Candles, m5Candles, h1Candles] = await Promise.all([
+        fetchHistoryCandles('15min', 2800),
+        fetchHistoryCandles('5min', 5000).catch(() => []),
+        fetchHistoryCandles('1h', 900)
+      ]);
+
+      setStatus(`Menghitung simulasi v${BACKFILL_ENGINE_VERSION} (${m15Candles.length} candle M15)…`);
+      await new Promise(resolve => setTimeout(resolve, 25));
+
+      const result = backfillMultiDayWalkForward({
+        m15Candles,
+        m5Candles,
+        h1Candles,
+        calculateIndicators: (slice, opts) => calculateNextGenIndicators(slice, opts),
+        days: 30,
+        stepHours: 12,
+        nowMs: Date.now(),
+        existingState: mappingHistoryState
+      });
+
+      // Explicitly pulling 30-day history clears any prior Reset Riwayat floor
+      historyResetFloorMs = 0;
+      try { historyStorage?.removeItem(HISTORY_RESET_FLOOR_KEY); } catch (_) {}
+
+      mappingHistoryState = result.state;
+      saveHistoryState(historyStorage, mappingHistoryState);
+      try { window.dispatchEvent(new CustomEvent('amyfx:poi-history-updated')); } catch (_) {}
+      try { window.AmyGitHubSync?.scheduleAutoSync?.('mapping-history', { delayMs: 5000 }); } catch (_) {}
+
+      if (result.rangeEndKey) {
+        const [yrStr, moStr] = result.rangeEndKey.split('-');
+        const yr = Number(yrStr);
+        const mo = Number(moStr) - 1;
+        if (Number.isFinite(yr) && Number.isFinite(mo) && mo >= 0 && mo <= 11) {
+          historyCalendarYear = yr;
+          historyCalendarMonth = mo;
+        }
+        selectedCalendarDate = result.rangeEndKey;
+      }
+
+      renderMappingHistory();
+      setStatus(`Selesai · ${result.totalCount} POI (${result.daysCovered} hari aktif) tersimpan`, 'is-success');
+    } catch (err) {
+      setStatus(`Gagal tarik riwayat (${err?.message || 'koneksi terputus'}) · coba lagi`, 'is-error');
+    } finally {
+      historyBackfill30dBusy = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('is-loading');
+        btn.textContent = 'Tarik Riwayat 30 Hari';
+      }
+    }
   }
 
   function shiftHistoryCalendarMonth(offset) {
@@ -707,6 +1078,8 @@ import {
       if (ms.obTotal > 0) parts.push(`OB ${ms.obTotal}`);
       if (ms.ifvgTotal > 0) parts.push(`iFVG ${ms.ifvgTotal}`);
       if (ms.bbTotal > 0) parts.push(`BB ${ms.bbTotal}`);
+      if (ms.judasTotal > 0) parts.push(`Judas ${ms.judasTotal}`);
+      if (ms.sweepTotal > 0) parts.push(`Sweep ${ms.sweepTotal}`);
       const zoneSplit = parts.length > 0 ? ` · ${parts.join(' · ')}` : '';
       subMetaEl.textContent = ms.activeDays > 0
         ? `${ms.activeDays} hari aktif${zoneSplit}`
@@ -743,13 +1116,19 @@ import {
           return `<div class="${emptyCls}"><strong class="poi-cal-day-num">${cell.day}</strong><span class="poi-cal-rate"></span></div>`;
         }
         const s = cell.summary;
-        const toneCls = s.resolved > 0
-          ? (s.respectRate >= 60 ? 'is-win' : (s.respectRate < 50 ? 'is-loss' : 'is-neutral'))
-          : 'is-neutral';
+        const toneCls = cell.tone === 'win' ? 'is-win' : (cell.tone === 'loss' ? 'is-loss' : 'is-neutral');
         const isSelected = cell.date === selectedCalendarDate;
-        const rateTxt = s.respectRate !== null ? `${s.respectRate}%` : `${s.total}p`;
+        const formatCompactR = val => {
+          const n = Math.round((Number(val) || 0) * 10) / 10;
+          if (n === 0) return '0R';
+          const sign = n > 0 ? '+' : '-';
+          const abs = Math.abs(n);
+          return `${sign}${abs >= 10 ? Math.round(abs) : (Number.isInteger(abs) ? abs : abs.toFixed(1))}R`;
+        };
+        const rateTxt = s.resolved > 0 ? formatCompactR(s.netR) : `${s.total}p`;
         const subTxt = s.resolved > 0 ? `${s.wins}/${s.sl}` : `${s.total}p`;
-        const ariaText = `${cell.date}: ${s.total} POI, Respect ${rateTxt}, ${s.wins} TP, ${s.sl} SL`;
+        const wrStr = s.respectRate !== null ? `WR ${s.respectRate}%` : 'Aktif';
+        const ariaText = `${cell.date}: ${s.total} POI, Net ${rateTxt}, ${wrStr}, ${s.wins} TP, ${s.sl} SL`;
         return `
           <button type="button"
             class="poi-cal-cell ${toneCls} is-clickable${cell.isToday ? ' is-today' : ''}${isSelected ? ' is-selected' : ''}"
@@ -766,10 +1145,18 @@ import {
 
       const ws = week.weekSummary;
       const wToneCls = ws.tone === 'win' ? 'is-win' : (ws.tone === 'loss' ? 'is-loss' : (ws.tone === 'neutral' ? 'is-neutral' : ''));
-      const wRateTxt = ws.total > 0 && ws.respectRate !== null ? `${ws.respectRate}%` : '—';
+      const formatWeekR = val => {
+        const n = Math.round((Number(val) || 0) * 10) / 10;
+        if (n === 0) return '0R';
+        const sign = n > 0 ? '+' : '-';
+        const abs = Math.abs(n);
+        return `${sign}${abs >= 10 ? Math.round(abs) : (Number.isInteger(abs) ? abs : abs.toFixed(1))}R`;
+      };
+      const wRateTxt = ws.total > 0 && ws.resolved > 0 ? formatWeekR(ws.netR) : (ws.total > 0 ? `${ws.total}p` : '—');
       const wSubTxt = ws.total > 0 ? `${ws.wins}/${ws.sl}` : '';
+      const wWrStr = ws.respectRate !== null ? `WR ${ws.respectRate}%` : 'Aktif';
       const weekCellHtml = `
-        <div class="poi-cal-cell poi-cal-week ${wToneCls}" title="Rekap mingguan: ${ws.total} POI (${ws.wins} TP / ${ws.sl} SL)">
+        <div class="poi-cal-cell poi-cal-week ${wToneCls}" title="Rekap mingguan: Net ${esc(wRateTxt)} · ${wWrStr} · ${ws.total} POI (${ws.wins} TP / ${ws.sl} SL)">
           <span class="poi-cal-week-rate">${esc(wRateTxt)}</span>
           ${wSubTxt ? `<span class="poi-cal-week-sub">${esc(wSubTxt)}</span>` : ''}
         </div>
@@ -824,8 +1211,11 @@ import {
     const dayData = getDayPoiRecords(mappingHistoryState, selectedCalendarDate, calendarDayFilter);
     const sum = dayData.summary;
     const rateTxt = sum && sum.respectRate !== null ? `Respect ${sum.respectRate}%` : 'Belum selesai';
+    const dayNetRTxt = sum && sum.resolved > 0
+      ? ` · Net ${sum.netR > 0 ? '+' : ''}${Number(sum.netR || 0).toFixed(1)}R`
+      : '';
     const metaLine = sum
-      ? `${sum.total} POI · ${rateTxt} · ${sum.wins} TP · ${sum.sl} SL${(sum.reacting + sum.testing) > 0 ? ` · ${sum.reacting + sum.testing} Aktif` : ''}`
+      ? `${sum.total} POI · ${rateTxt}${dayNetRTxt} · ${sum.wins} TP · ${sum.sl} SL${(sum.reacting + sum.testing) > 0 ? ` · ${sum.reacting + sum.testing} Aktif` : ''}`
       : 'Tidak ada data';
 
     const filters = [
@@ -863,7 +1253,7 @@ import {
             <div class="poi-cal-archive-stat"><span>M15 (${sum.m15Total})</span><strong>${m15Pct}</strong></div>
             <div class="poi-cal-archive-stat"><span>M5 (${sum.m5Total})</span><strong>${m5Pct}</strong></div>
           </div>
-          <div class="poi-cal-archive-foot">Komposisi zona: FVG ${sum.fvgTotal} · OB ${sum.obTotal}${sum.ifvgTotal ? ` · iFVG ${sum.ifvgTotal}` : ''}${sum.bbTotal ? ` · BB ${sum.bbTotal}` : ''}</div>
+          <div class="poi-cal-archive-foot">Komposisi zona: FVG ${sum.fvgTotal} · OB ${sum.obTotal}${sum.ifvgTotal ? ` · iFVG ${sum.ifvgTotal}` : ''}${sum.bbTotal ? ` · BB ${sum.bbTotal}` : ''}${sum.judasTotal ? ` · Judas ${sum.judasTotal}` : ''}${sum.sweepTotal ? ` · Sweep ${sum.sweepTotal}` : ''}</div>
         </div>
       `;
     } else if (dayData.items.length === 0) {
@@ -983,10 +1373,15 @@ import {
         } else {
           const rateTxt = ms.respectRate !== null ? ` · Respect ${ms.respectRate}%` : '';
           scoreMainEl.textContent = `${calData.label}: ${ms.total} POI${rateTxt}`;
-          const chips = [
-            `<span class="history-chip is-respect">TP1/TP2: ${ms.wins}</span>`,
-            `<span class="history-chip is-sl">Jebol SL: ${ms.sl}</span>`
-          ];
+          const chips = [];
+          if (ms.resolved > 0) {
+            const netRVal = Number(ms.netR) || 0;
+            const netRCls = netRVal > 0 ? 'is-respect' : (netRVal < 0 ? 'is-sl' : '');
+            const netRLabel = `${netRVal > 0 ? '+' : ''}${netRVal.toFixed(1)}R`;
+            chips.push(`<span class="history-chip ${netRCls}">Net ${netRLabel}</span>`);
+          }
+          chips.push(`<span class="history-chip is-respect">TP1/TP2: ${ms.wins}</span>`);
+          chips.push(`<span class="history-chip is-sl">Jebol SL: ${ms.sl}</span>`);
           if (ms.m15Total > 0 || ms.m5Total > 0) {
             const m15Txt = ms.m15RespectRate !== null ? `M15 ${ms.m15RespectRate}%` : `M15 ${ms.m15Total}`;
             const m5Txt = ms.m5RespectRate !== null ? `M5 ${ms.m5RespectRate}%` : `M5 ${ms.m5Total}`;
@@ -1113,8 +1508,19 @@ import {
   }
 
   let latestHistoryM15Dir = 0;
+  let latestHistoryH1Dir = 0;
 
-  function filterTrackableLivePlans(plans, m15Dir = latestHistoryM15Dir, nowMs = Date.now()) {
+  function resolveH1Direction(ctx, ngH1 = null) {
+    const h1BiasStr = String(ctx?.h1?.bias || '').toUpperCase();
+    if (h1BiasStr.includes('BEAR') || ctx?.h1?.trend?.dir === -1 || ctx?.h1Dir === -1) return -1;
+    if (h1BiasStr.includes('BULL') || ctx?.h1?.trend?.dir === 1 || ctx?.h1Dir === 1) return 1;
+    const ngTrend = String(ngH1?.structure?.trend || '').toUpperCase();
+    if (ngTrend === 'BEAR') return -1;
+    if (ngTrend === 'BULL') return 1;
+    return 0;
+  }
+
+  function filterTrackableLivePlans(plans, m15Dir = latestHistoryM15Dir, h1Dir = latestHistoryH1Dir, nowMs = Date.now()) {
     return plans.filter(p => {
       if (!p || !p.area || p.skip) return false;
       const lo = Number(p.area.low);
@@ -1126,20 +1532,24 @@ import {
         side: p.side || 'BUY',
         width: hi - lo,
         m15Dir,
+        h1Dir,
         nowMs
       });
       return gate.allowed;
     });
   }
 
-  function syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice) {
+  function syncMappingHistoryFromContext(ctx, ngM15, ngM5, ngH1, livePrice) {
     const amy = ctx?.amy || ctx;
     latestHistoryM15Dir = resolveM15Direction(ctx);
+    latestHistoryH1Dir = resolveH1Direction(ctx, ngH1);
     const m15Candles = amy?.chartCandles?.M15 || [];
     const m5Candles = amy?.chartCandles?.M5 || [];
+    const h1Candles = amy?.chartCandles?.H1 || [];
     const lastM15 = m15Candles[m15Candles.length - 1];
     const lastM5 = m5Candles[m5Candles.length - 1];
-    const backfillKey = `v${BACKFILL_ENGINE_VERSION}:${m15Candles.length}:${lastM15?.open_time || 0}:${m5Candles.length}:${lastM5?.open_time || 0}:${historyResetFloorMs}`;
+    const lastH1 = h1Candles[h1Candles.length - 1];
+    const backfillKey = `v${BACKFILL_ENGINE_VERSION}:${m15Candles.length}:${lastM15?.open_time || 0}:${m5Candles.length}:${lastM5?.open_time || 0}:${h1Candles.length}:${lastH1?.open_time || 0}:${historyResetFloorMs}`;
     const nowMs = Date.now();
 
     let stateChanged = false;
@@ -1151,6 +1561,7 @@ import {
         ctx,
         ngM15,
         ngM5,
+        ngH1,
         nowMs,
         lookbackHours: 48
       });
@@ -1167,7 +1578,7 @@ import {
       stateChanged = true;
     }
 
-    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay], latestHistoryM15Dir, nowMs);
+    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay], latestHistoryM15Dir, latestHistoryH1Dir, nowMs);
     if (Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
       const liveRes = recordLivePoiProgress({
         state: mappingHistoryState,
@@ -1312,21 +1723,20 @@ import {
     }
 
     if (!Number.isFinite(todayRange) || todayRange <= 0) {
-      return { text: 'Data harian belum lengkap', tone: '' };
+      return { text: 'Data harian belum lengkap', tone: '', pct: NaN };
     }
     if (!Number.isFinite(refAdr) || refAdr <= 0) {
-      return { text: `Range $${todayRange.toFixed(1)}`, tone: '' };
+      return { text: `Range $${todayRange.toFixed(1)}`, tone: '', pct: NaN };
     }
 
     const pct = Math.round((todayRange / refAdr) * 100);
-    const refTag = refLabel ? ` · ${refLabel}` : '';
     if (pct >= 120) {
-      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Ekstrem Jenuh${refTag})`, tone: 'is-bear' };
+      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Ekstrem)`, tone: 'is-bear', pct };
     }
     if (pct >= 90) {
-      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Waspada Jenuh${refTag})`, tone: 'is-gold' };
+      return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Jenuh)`, tone: 'is-gold', pct };
     }
-    return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Napas Sehat${refTag})`, tone: 'is-bull' };
+    return { text: `$${todayRange.toFixed(1)} / $${refAdr.toFixed(1)} (${pct}% · Sehat)`, tone: 'is-bull', pct };
   }
 
   /* ── Single Source of Truth: Dealing Range & EQ (Hero · Gauge · POI · Chart Badge) ── */
@@ -1594,29 +2004,13 @@ import {
       bannerEl.textContent = bannerText;
     }
 
-    // 3-TF Horizontal Grid
+    // 3-TF Interactive Bias Compass + Compat Sync
     const tfRows = [
       { tf: 'H1 · HTF', dir: h1Dir, desc: h1Desc },
       { tf: 'M15 · MTF', dir: m15Dir, desc: m15Desc },
       { tf: 'M5 · LTF', dir: m5Dir, desc: m5Desc }
     ];
 
-    const tfGrid = $('hero-tf-grid');
-    if (tfGrid) {
-      tfGrid.innerHTML = tfRows.map(r => {
-        const dirLabel = r.dir === 1 ? 'BULL' : r.dir === -1 ? 'BEAR' : 'NETRAL';
-        const dirClass = r.dir === 1 ? 'bias-bull' : r.dir === -1 ? 'bias-bear' : 'bias-neutral';
-        return `<div class="hero-tf-cell">
-          <div class="hero-tf-head">
-            <span class="hero-tf-name">${esc(r.tf)}</span>
-            <span class="hero-tf-dir ${dirClass}">${dirLabel}</span>
-          </div>
-          <span class="hero-tf-desc">${esc(r.desc)}</span>
-        </div>`;
-      }).join('');
-    }
-
-    // Sync hidden compat tbody
     const tbody = $('hero-tf-tbody');
     if (tbody) {
       tbody.innerHTML = tfRows.map(r => {
@@ -1651,6 +2045,26 @@ import {
       adrEl.textContent = adr.text;
       adrEl.className = `hero-ict-val ${adr.tone}`.trim();
     }
+
+    latestCompassModel = computeBiasCompassModel({
+      h1Dir,
+      m15Dir,
+      m5Dir,
+      h1Desc,
+      m15Desc,
+      m5Desc,
+      adrPct: adr.pct,
+      adrText: adr.text,
+      adrTone: adr.tone
+    });
+    renderBiasCompassView();
+
+    const adrBarFill = $('hero-adr-bar-fill');
+    if (adrBarFill) {
+      adrBarFill.style.width = `${latestCompassModel.adr.barPct}%`;
+      adrBarFill.className = `hero-adr-fill is-${latestCompassModel.adr.state}`;
+    }
+
     updateEntryDistanceTelemetry(livePrice);
   }
 
@@ -1707,44 +2121,55 @@ import {
     if (majorEqEl) majorEqEl.textContent = majorFmt.eqText;
 
     // Status badge ringkas (bedakan Sweep dangkal vs Breakdown/Breakout valid!)
-    const badge = $('dr-status-badge');
-    if (badge) {
-      let cls = 'zone-eq', text = '';
-      if (isBearBreakdown) {
-        cls = 'zone-breakdown';
-        text = `Breakdown Bearish (${pct}%) · Range Low $${fmt(rLow)} ditembus (-$${sslDiff.toFixed(2)}). Tunggu pullback Supply — hindari Buy tanpa MSS M5.`;
-      } else if (isBullBreakout) {
-        cls = 'zone-breakout';
-        text = `Breakout Bullish (${pct}%) · Range High $${fmt(rHigh)} ditembus (+$${bslDiff.toFixed(2)}). Tunggu koreksi Demand — hindari Sell tanpa MSS M5.`;
-      } else if (isSslSwept) {
-        cls = 'zone-discount';
-        text = `Extreme Discount (${pct}%) · SSL $${fmt(rLow)} tersapu (-$${sslDiff.toFixed(2)}). Amati reaksi rejection M5.`;
-      } else if (isBslSwept) {
-        cls = 'zone-premium';
-        text = `Extreme Premium (${pct}%) · BSL $${fmt(rHigh)} tersapu (+$${bslDiff.toFixed(2)}). Amati reaksi rejection M5.`;
-      } else if (rawPct > 75) {
-        cls = 'zone-premium';
-        text = `Extreme Premium (${pct}%) · Mendekati Range High $${fmt(rHigh)}. Prioritaskan konfirmasi Sell.`;
-      } else if (rawPct > 52.5) {
-        cls = 'zone-premium';
-        text = `Zona Premium (${pct}%) · Area ideal pencarian Supply / Sell, hindari FOMO Buy di pucuk.`;
-      } else if (rawPct < 25) {
-        cls = m15Dir === -1 ? 'zone-breakdown' : 'zone-discount';
-        text = m15Dir === -1
-          ? `Extreme Discount (${pct}%) · Tren masih Bearish — tunggu pullback Supply, jangan kejar Sell di dasar.`
-          : `Extreme Discount (${pct}%) · Mendekati Range Low $${fmt(rLow)}. Siaga konfirmasi pantulan Buy.`;
-      } else if (rawPct < 47.5) {
-        cls = 'zone-discount';
-        text = m15Dir === -1
-          ? `Zona Diskon (${pct}%) · Tren M15 Bearish — tunggu pullback ke area Supply/OTE sebelum Sell.`
-          : `Zona Diskon (${pct}%) · Area ideal pencarian Demand / Buy, tunggu sweep atau validasi M5.`;
-      } else {
-        cls = 'zone-eq';
-        text = `Equilibrium (${pct}%) · Area tengah 50% adalah No-Trade Zone, tunggu harga keluar ke Premium/Diskon.`;
-      }
-      badge.className = `dr-status-badge ${cls}`;
-      badge.textContent = text;
+    let cls = 'zone-eq', text = '';
+    if (isBearBreakdown) {
+      cls = 'zone-breakdown';
+      text = `Breakdown Bearish (${pct}%) · SSL $${fmt(rLow)} ditembus (-$${sslDiff.toFixed(2)})`;
+    } else if (isBullBreakout) {
+      cls = 'zone-breakout';
+      text = `Breakout Bullish (${pct}%) · BSL $${fmt(rHigh)} ditembus (+$${bslDiff.toFixed(2)})`;
+    } else if (isSslSwept) {
+      cls = 'zone-discount';
+      text = `Extreme Discount (${pct}%) · SSL $${fmt(rLow)} tersapu`;
+    } else if (isBslSwept) {
+      cls = 'zone-premium';
+      text = `Extreme Premium (${pct}%) · BSL $${fmt(rHigh)} tersapu`;
+    } else if (rawPct > 75) {
+      cls = 'zone-premium';
+      text = `Extreme Premium (${pct}%) · Fokus konfirmasi Sell`;
+    } else if (rawPct > 52.5) {
+      cls = 'zone-premium';
+      text = `Zona Premium (${pct}%) · Fokus Supply / Sell`;
+    } else if (rawPct < 25) {
+      cls = m15Dir === -1 ? 'zone-breakdown' : 'zone-discount';
+      text = m15Dir === -1
+        ? `Extreme Discount (${pct}%) · Tren Bearish, tunggu pullback Supply`
+        : `Extreme Discount (${pct}%) · Siaga pantulan Buy`;
+    } else if (rawPct < 47.5) {
+      cls = 'zone-discount';
+      text = m15Dir === -1
+        ? `Zona Diskon (${pct}%) · Tren Bearish, tunggu pullback Supply`
+        : `Zona Diskon (${pct}%) · Fokus Demand / Buy`;
+    } else {
+      cls = 'zone-eq';
+      text = `Equilibrium (${pct}%) · Area tengah (No-Trade)`;
     }
+    latestDrDefaultStatus = { cls, text };
+
+    // Update Interactive Vertical Price Ladder
+    latestLadderInputs = {
+      rLow,
+      rHigh,
+      eq: eqVal,
+      livePrice,
+      pdl,
+      pdh,
+      isBslSwept,
+      isSslSwept,
+      isBullBreakout,
+      isBearBreakdown
+    };
+    renderDealingLadderView();
 
     // No-Trade Zone EQ (dipindah dari Peta Skenario ke dalam Dealing Range)
     const noTradeEl = $('no-trade-label');
@@ -1754,8 +2179,8 @@ import {
       const inside = livePrice >= noTradeLow && livePrice <= noTradeHigh;
       noTradeEl.classList.toggle('is-inside-eq', inside);
       noTradeEl.textContent = inside
-        ? `No-Trade Zone Aktif ($${bLow} – $${bHigh} · EQ) · Hindari eksekusi impulsif di tengah range.`
-        : `No-Trade Zone EQ: $${bLow} – $${bHigh} (47.5%–52.5%) · Hindari entry di area tengah.`;
+        ? `Di Dalam No-Trade EQ: $${bLow} – $${bHigh}`
+        : `No-Trade EQ: $${bLow} – $${bHigh}`;
     }
   }
 
@@ -1764,7 +2189,7 @@ import {
     if (!ctx) return;
     const amy = ctx.amy || ctx;
     const dashboard = amy?.dashboard;
-    const { ngM15, ngM5 } = getDualLayerNextGen(amy, window.amyfxLastIndicators || null);
+    const { ngM15, ngM5, ngH1 } = getDualLayerNextGen(amy, window.amyfxLastIndicators || null);
     const ng = ngM15 || window.amyfxLastIndicators || null;
     const livePrice = Number(window.amyfxCurrentPrice) || Number(ctx.price) || Number(dashboard?.candle?.close) || 0;
 
@@ -2086,6 +2511,7 @@ import {
         m5Bbs: isSell ? m5BearBBs : m5BullBBs,
         livePrice,
         m15Dir,
+        h1Dir,
         nowMs: Date.now(),
         activeLeg,
         eqVal,
@@ -2141,9 +2567,9 @@ import {
       }
       const dist = Math.abs(entryCe - slPrice);
       const pips = Math.round(dist * 10);
-      if (dist < 6.0) return { dist, status: 'tight', label: `SL $${dist.toFixed(2)} (${pips}p) · Ketat (<60p)` };
-      if (dist > 10.0) return { dist, status: 'wide', label: `SL $${dist.toFixed(2)} (${pips}p) · Lebar (>100p)` };
-      return { dist, status: 'ideal', label: `SL $${dist.toFixed(2)} (${pips}p) · Ideal 60–100p` };
+      if (dist < 6.0) return { dist, status: 'tight', label: `SL $${dist.toFixed(2)} (${pips}p) · Ketat` };
+      if (dist > 10.0) return { dist, status: 'wide', label: `SL $${dist.toFixed(2)} (${pips}p) · Lebar` };
+      return { dist, status: 'ideal', label: `SL $${dist.toFixed(2)} (${pips}p)` };
     }
 
     // Helper Target 2-Tahap Scalper: TP1 Cepat (Close 60% & Geser BEP) + TP2 Runner (DOL Utama)
@@ -2172,15 +2598,18 @@ import {
         .sort((a, b) => isSell ? (b.v - a.v) : (a.v - b.v));
 
       if (!validPools.length) {
-        if (!Number.isFinite(entryCe)) return { tp1: null, tp2: null, risk, rr1: NaN, rr2: NaN };
+        if (!Number.isFinite(entryCe)) return { tp1: null, tp2: null, tp3: null, risk, rr1: NaN, rr2: NaN, rr3: NaN };
         const synth1 = isSell ? entryCe - Math.max(risk * 1.8, 5.5) : entryCe + Math.max(risk * 1.8, 5.5);
-        const synth2 = isSell ? entryCe - Math.max(risk * 3.0, 10.0) : entryCe + Math.max(risk * 3.0, 10.0);
+        const synth2 = isSell ? entryCe - Math.max(risk * 2.5, 10.0) : entryCe + Math.max(risk * 2.5, 10.0);
+        const synth3 = isSell ? entryCe - Math.max(risk * 3.5, 14.0) : entryCe + Math.max(risk * 3.5, 14.0);
         return {
           tp1: { name: 'Partial BEP (1:1.8)', k: isSell ? 'L' : 'H', v: Number(synth1.toFixed(2)), synthetic: true },
-          tp2: { name: 'Ekspansi 3R', k: isSell ? 'L' : 'H', v: Number(synth2.toFixed(2)), synthetic: true },
+          tp2: { name: 'Ekspansi 2.5R', k: isSell ? 'L' : 'H', v: Number(synth2.toFixed(2)), synthetic: true },
+          tp3: { name: 'Runner 3.5R', k: isSell ? 'L' : 'H', v: Number(synth3.toFixed(2)), synthetic: true },
           risk,
           rr1: Math.abs(synth1 - entryCe) / risk,
-          rr2: Math.abs(synth2 - entryCe) / risk
+          rr2: Math.abs(synth2 - entryCe) / risk,
+          rr3: Math.abs(synth3 - entryCe) / risk
         };
       }
 
@@ -2222,10 +2651,107 @@ import {
         tp2 = { name: 'Ekspansi 2.5R', k: isSell ? 'L' : 'H', v: Number(synth2.toFixed(2)), synthetic: true };
       }
 
+      const tp3Val = Number.isFinite(entryCe)
+        ? Number((isSell ? (entryCe - Math.max(risk * 3.5, 14.0)) : (entryCe + Math.max(risk * 3.5, 14.0))).toFixed(2))
+        : NaN;
+      const tp3 = Number.isFinite(tp3Val)
+        ? { name: 'Runner 3.5R', k: isSell ? 'L' : 'H', v: tp3Val, synthetic: true }
+        : null;
       const rr1 = tp1 && Number.isFinite(entryCe) ? (Math.abs(tp1.v - entryCe) / risk) : NaN;
       const rr2 = tp2 && Number.isFinite(entryCe) ? (Math.abs(tp2.v - entryCe) / risk) : NaN;
-      return { tp1, tp2, risk, rr1, rr2 };
+      const rr3 = tp3 && Number.isFinite(entryCe) ? (Math.abs(tp3.v - entryCe) / risk) : NaN;
+      return { tp1, tp2, tp3, risk, rr1, rr2, rr3 };
     }
+
+    const rawM15ForLive = Array.isArray(amy?.chartCandles?.M15) ? amy.chartCandles.M15 : [];
+    const marketRegime = detectMarketRegime(rawM15ForLive, h1Dir);
+
+    // Live London Judas & BSL/SSL Sweep Reversal Signal Banner (v8)
+    const renderLiveSweepBanner = () => {
+      const bannerEl = $('poi-live-sweep-banner');
+      if (!bannerEl) return;
+      if (rawM15ForLive.length < 12) {
+        bannerEl.hidden = true;
+        latestLiveSweepPlan = null;
+        latestLiveSweepSignal = null;
+        return;
+      }
+      const lastBar = rawM15ForLive[rawM15ForLive.length - 1];
+      const rawLastSec = Number(lastBar?.close_time ?? lastBar?.closeTime ?? lastBar?.open_time ?? lastBar?.time ?? 0);
+      const lastM15Ms = rawLastSec > 10_000_000_000 ? rawLastSec : rawLastSec * 1000;
+      const h1Series = Array.isArray(dualLayerCache.h1Ng?.structure?.trendByTime) && dualLayerCache.h1Ng.structure.trendByTime.length
+        ? dualLayerCache.h1Ng.structure.trendByTime
+        : [{ time: 0, trend: h1Dir === 1 ? 'BULL' : (h1Dir === -1 ? 'BEAR' : 'NEUTRAL') }];
+
+      const detected = detectCausalJudasAndSweepSetups({
+        m15Candles: rawM15ForLive,
+        h1TrendSeries: h1Series,
+        nowMs: lastM15Ms || Date.now(),
+        lookbackMs: 6 * 3600 * 1000
+      });
+      const activeSignal = selectActiveLiveJudasOrSweep(detected, {
+        lastCandleMs: lastM15Ms,
+        livePrice
+      });
+
+      if (!activeSignal) {
+        bannerEl.hidden = true;
+        latestLiveSweepPlan = null;
+        latestLiveSweepSignal = null;
+        return;
+      }
+
+      const isSellSig = activeSignal.side === 'SELL';
+      latestLiveSweepSignal = activeSignal;
+      latestLiveSweepPlan = {
+        entry: Number(activeSignal.ce.toFixed(2)),
+        sl: Number(activeSignal.sl.toFixed(2)),
+        tp1: Number(activeSignal.tp1.toFixed(2)),
+        tp2: Number(activeSignal.tp2.toFixed(2))
+      };
+
+      bannerEl.hidden = false;
+      bannerEl.className = `poi-live-sweep-banner ${isSellSig ? 'is-sell' : 'is-buy'}`;
+
+      const kindTagEl = $('poi-sweep-kind-tag');
+      const sideTagEl = $('poi-sweep-side-tag');
+      const titleEl = $('poi-sweep-title');
+      const statusEl = $('poi-sweep-status');
+      const entryEl = $('poi-sweep-entry');
+      const slEl = $('poi-sweep-sl');
+      const tp1El = $('poi-sweep-tp1');
+      const tp2El = $('poi-sweep-tp2');
+      const footEl = $('poi-sweep-foot');
+
+      if (kindTagEl) kindTagEl.textContent = activeSignal.kind === 'JUDAS' ? 'LONDON JUDAS' : 'SWEEP REVERSAL';
+      if (sideTagEl) sideTagEl.textContent = activeSignal.side;
+      if (titleEl) titleEl.textContent = `${activeSignal.label || (isSellSig ? 'BSL Sweep Reversal' : 'SSL Sweep Reversal')} · ${formatWitaClock(activeSignal.touchedAt)}`;
+
+      if (statusEl) {
+        if (sessionGuard.blocked) {
+          statusEl.textContent = newsStatus === 'NEWS_LOCK' ? 'Tahan · News USD' : 'Pasar Tutup';
+          statusEl.className = 'poi-sweep-status is-warn';
+        } else {
+          statusEl.textContent = activeSignal.stateLabel;
+          statusEl.className = `poi-sweep-status ${
+            activeSignal.entryState === 'TP1_BEP'
+              ? 'is-bep'
+              : (activeSignal.entryState === 'CHASE_WARN' ? 'is-warn' : 'is-ready')
+          }`;
+        }
+      }
+
+      if (entryEl) entryEl.textContent = `$${fmt(activeSignal.ce)}`;
+      if (slEl) slEl.textContent = `$${fmt(activeSignal.sl)} (${activeSignal.slPips}p)`;
+      if (tp1El) tp1El.textContent = `$${fmt(activeSignal.tp1)}`;
+      if (tp2El) tp2El.textContent = `$${fmt(activeSignal.tp2)} · R3.5 $${fmt(activeSignal.tp3)}`;
+      if (footEl) {
+        const ageStr = activeSignal.ageMinutes <= 1 ? 'Baru close' : `${activeSignal.ageMinutes}m lalu`;
+        const sweepZone = fmtRange(activeSignal.low, activeSignal.high);
+        footEl.textContent = `Area sapuan ${sweepZone} · Close M15 terkonfirmasi (${ageStr}) · Searah H1 · Close 50% di TP1 lalu geser SL ke BEP.`;
+      }
+    };
+    renderLiveSweepBanner();
 
     // Helper Evaluasi & Render 5-Poin Scalper Verdict Gate (Delegasi ke pure module mapping-accuracy.js)
     function evaluateAndRenderVerdict(side, cfg) {
@@ -2235,8 +2761,9 @@ import {
       const gradeEl = $(`${prefix}-verdict-grade`);
       const scoreEl = $(`${prefix}-verdict-score`);
       const guardEl = $(`${prefix}-session-guard`);
+      const regimeEl = $(`${prefix}-regime-pill`);
       const checksEl = $(`${prefix}-verdict-checks`);
-      if (!barEl) return { grade: 'WAIT', skip: false, score: 0 };
+      if (!barEl) return { grade: 'WAIT', skip: false, score: 0, entryMode: 'LIMIT_CE', marketRegime };
 
       const verdict = evaluateScalperPoiVerdict({
         side,
@@ -2250,12 +2777,19 @@ import {
         tp1: cfg.tp1 || null,
         isSlHit: cfg.isSlHit,
         sessionGuard,
-        newsStatus
+        newsStatus,
+        nowMs: Date.now(),
+        marketRegime
       });
 
       barEl.className = `poi-verdict-card ${verdict.cls}`;
       if (gradeEl) gradeEl.textContent = verdict.grade;
       if (scoreEl) scoreEl.textContent = `${verdict.score}/5`;
+      if (regimeEl && marketRegime) {
+        regimeEl.hidden = false;
+        regimeEl.textContent = marketRegime.label;
+        regimeEl.className = `poi-regime-pill ${marketRegime.regime === 'SIDEWAYS' ? 'is-sideways' : 'is-trend'}`;
+      }
       if (guardEl) {
         guardEl.textContent = sessionGuard.label;
         guardEl.className = `poi-session-guard ${sessionGuard.tone}`;
@@ -2437,7 +2971,7 @@ import {
     const sellTpSubEl = $('sell-tp-sub');
     if (sellTpValEl) sellTpValEl.textContent = Number.isFinite(sellTpVal) ? `$${fmt(sellTpVal)}` : '—';
     if (sellTpSubEl) {
-      const subText = formatTp1Subtitle(tpCandSell, tpCandSell2, sellRr);
+      const subText = formatTp1Subtitle(tpCandSell, tpCandSell2, sellRr, sellTargets.tp3);
       sellTpSubEl.textContent = subText || 'Likuiditas SSL bawah';
     }
     const sellSlValEl = $('sell-sl-val');
@@ -2520,9 +3054,18 @@ import {
         const dist2 = Math.max(0, refEntry - tpCandSell2.v);
         const rr2Str = Number.isFinite(sellTargets.rr2) ? ` · R:R 1:${sellTargets.rr2.toFixed(1)}` : '';
         sellRows.push({
-          poi: `TP2 Runner (40%) · ${tpCandSell2.name}`,
+          poi: `TP2 Target DOL · ${tpCandSell2.name}`,
           level: '$' + fmt(tpCandSell2.v),
           note: `-$${fmt(dist2)} dari CE${rr2Str} — Magnet DOL utama`
+        });
+      }
+      if (sellTargets.tp3) {
+        const refEntry = primarySellZone ? primarySellZone.ce : livePrice;
+        const dist3 = Math.max(0, refEntry - sellTargets.tp3.v);
+        sellRows.push({
+          poi: 'TP3 Runner (3.5R)',
+          level: '$' + fmt(sellTargets.tp3.v),
+          note: `-$${fmt(dist3)} dari CE · Target ekspansi runner (setelah SL aman di BEP)`
         });
       }
 
@@ -2555,14 +3098,18 @@ import {
       if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi) || primarySellZone?.breached) {
         sopSell.innerHTML = '<li>Zona Supply tidak tersedia atau sudah tembus — <strong>jangan paksa entry Sell</strong> sampai struktur baru terbentuk.</li>';
       } else {
+        const sellRejMode = requiresHybridRejection({ tf: primarySellZone?.tf || 'M15', nowMs: Date.now() });
+        const sellEntryRule = sellRejMode
+          ? `<li><strong>Mode Hybrid Rejection (v8):</strong> Zona M5 / Sesi London wajib tunggu <strong>close candle rejection bearish</strong> di bawah CE $${fmt(entryCe)} lalu pasang SL ketat di atas wick (+$2.00, 45p–100p)${lotRule}</li>`
+          : `<li><strong>Konfirmasi Masuk:</strong> Tunggu pullback ke Supply $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}) + Rejection / MSS Bearish M5${lotRule}</li>`;
         sopSell.innerHTML = [
-          `<li><strong>Konfirmasi Masuk:</strong> Tunggu pullback ke Supply $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}) + Rejection / MSS Bearish M5${lotRule}</li>`,
+          sellEntryRule,
           Number.isFinite(sellTpVal)
-            ? `<li><strong>TP1 Cepat (BEP):</strong> $${fmt(sellTpVal)} (${esc(tpCandSell?.name || 'TP1')}) · Pasang di <strong>$${fmt(sellTpVal + 0.50)}</strong> (spread Ask). Close 60% lalu geser SL ke BEP!</li>`
-            : '<li><strong>TP1 Cepat:</strong> Likuiditas internal / 1:1.8 lalu geser SL ke BEP.</li>',
+            ? `<li><strong>TP1 Cepat (BEP):</strong> $${fmt(sellTpVal)} (${esc(tpCandSell?.name || 'TP1')}) · Pasang di <strong>$${fmt(sellTpVal + 0.50)}</strong> (spread Ask). Close 50–60% lalu geser SL ke BEP!</li>`
+            : '<li><strong>TP1 Cepat:</strong> Likuiditas internal / 1:1.5 lalu geser SL ke BEP.</li>',
           tpCandSell2
-            ? `<li><strong>TP2 Runner (40%):</strong> $${fmt(tpCandSell2.v)} (${esc(tpCandSell2.name)}) · Biarkan berjalan bebas risiko.</li>`
-            : '',
+            ? `<li><strong>TP2 DOL:</strong> $${fmt(tpCandSell2.v)} (${esc(tpCandSell2.name)})${sellTargets.tp3 ? ` · <strong>Runner 3.5R:</strong> $${fmt(sellTargets.tp3.v)}` : ''}.</li>`
+            : (sellTargets.tp3 ? `<li><strong>Runner 3.5R:</strong> $${fmt(sellTargets.tp3.v)} · Biarkan sisa posisi berjalan bebas risiko.</li>` : ''),
           `<li><strong>SL Scalper:</strong> di atas <strong>$${slStr}</strong> (${esc(slAnchorLabel)} + $${sellSlBuf.toFixed(2)} buffer wick Gold · ${esc(sellSlGuard.label)}).</li>`
         ].filter(Boolean).join('');
       }
@@ -2734,7 +3281,7 @@ import {
     const buyTpSubEl = $('buy-tp-sub');
     if (buyTpValEl) buyTpValEl.textContent = Number.isFinite(buyTpVal) ? `$${fmt(buyTpVal)}` : '—';
     if (buyTpSubEl) {
-      const subText = formatTp1Subtitle(tpCandBuy, tpCandBuy2, buyRr);
+      const subText = formatTp1Subtitle(tpCandBuy, tpCandBuy2, buyRr, buyTargets.tp3);
       buyTpSubEl.textContent = subText || 'Likuiditas BSL atas';
     }
     const buySlValEl = $('buy-sl-val');
@@ -2817,9 +3364,18 @@ import {
         const dist2 = Math.max(0, tpCandBuy2.v - refEntry);
         const rr2Str = Number.isFinite(buyTargets.rr2) ? ` · R:R 1:${buyTargets.rr2.toFixed(1)}` : '';
         buyRows.push({
-          poi: `TP2 Runner (40%) · ${tpCandBuy2.name}`,
+          poi: `TP2 Target DOL · ${tpCandBuy2.name}`,
           level: '$' + fmt(tpCandBuy2.v),
           note: `+$${fmt(dist2)} dari CE${rr2Str} — Magnet DOL utama`
+        });
+      }
+      if (buyTargets.tp3) {
+        const refEntry = primaryBuyZone ? primaryBuyZone.ce : livePrice;
+        const dist3 = Math.max(0, buyTargets.tp3.v - refEntry);
+        buyRows.push({
+          poi: 'TP3 Runner (3.5R)',
+          level: '$' + fmt(buyTargets.tp3.v),
+          note: `+$${fmt(dist3)} dari CE · Target ekspansi runner (setelah SL aman di BEP)`
         });
       }
 
@@ -2853,15 +3409,19 @@ import {
       if (!Number.isFinite(entryLo) || !Number.isFinite(entryHi) || primaryBuyZone?.breached) {
         sopBuy.innerHTML = '<li>Zona Demand tidak tersedia atau sudah jebol — <strong>jangan menangkap pisau jatuh</strong>, tunggu MSS Bullish M5 atau zona baru.</li>';
       } else {
+        const buyRejMode = requiresHybridRejection({ tf: primaryBuyZone?.tf || 'M15', nowMs: Date.now() });
+        const buyEntryRule = buyRejMode
+          ? `<li><strong>Mode Hybrid Rejection (v8):</strong> Zona M5 / Sesi London wajib tunggu <strong>close candle rejection bullish</strong> di atas CE $${fmt(entryCe)} lalu pasang SL ketat di bawah wick (-$2.00, 45p–100p)${lotRule}</li>`
+          : `<li><strong>Konfirmasi Masuk:</strong> Tunggu retest Demand $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}) + Rejection / MSS Bullish M5${lotRule}</li>`;
         sopBuy.innerHTML = [
-          `<li><strong>Konfirmasi Masuk:</strong> Tunggu retest Demand $${fmt(entryLo)}–$${fmt(entryHi)} (50% CE $${fmt(entryCe)}) + Rejection / MSS Bullish M5${lotRule}</li>`,
-          `<li><strong>Pending Referensi (Ask):</strong> Buy Limit di <strong>$${limitOrder}</strong> (+$0.40 spread), hanya jika searah tren.</li>`,
+          buyEntryRule,
+          !buyRejMode ? `<li><strong>Pending Referensi (Ask):</strong> Buy Limit di <strong>$${limitOrder}</strong> (+$0.40 spread), hanya jika searah tren.</li>` : '',
           Number.isFinite(buyTpVal)
-            ? `<li><strong>TP1 Cepat (BEP):</strong> $${fmt(buyTpVal)} (${esc(tpCandBuy?.name || 'TP1')}) · Close 60% lalu geser SL ke BEP!</li>`
-            : '<li><strong>TP1 Cepat:</strong> Likuiditas internal / 1:1.8 lalu geser SL ke BEP.</li>',
+            ? `<li><strong>TP1 Cepat (BEP):</strong> $${fmt(buyTpVal)} (${esc(tpCandBuy?.name || 'TP1')}) · Close 50–60% lalu geser SL ke BEP!</li>`
+            : '<li><strong>TP1 Cepat:</strong> Likuiditas internal / 1:1.5 lalu geser SL ke BEP.</li>',
           tpCandBuy2
-            ? `<li><strong>TP2 Runner (40%):</strong> $${fmt(tpCandBuy2.v)} (${esc(tpCandBuy2.name)}) · Biarkan berjalan bebas risiko.</li>`
-            : '',
+            ? `<li><strong>TP2 DOL:</strong> $${fmt(tpCandBuy2.v)} (${esc(tpCandBuy2.name)})${buyTargets.tp3 ? ` · <strong>Runner 3.5R:</strong> $${fmt(buyTargets.tp3.v)}` : ''}.</li>`
+            : (buyTargets.tp3 ? `<li><strong>Runner 3.5R:</strong> $${fmt(buyTargets.tp3.v)} · Biarkan sisa posisi berjalan bebas risiko.</li>` : ''),
           `<li><strong>SL Scalper:</strong> di bawah <strong>$${slStr}</strong> (${esc(slAnchorLabel)} - $${buySlBuf.toFixed(2)} buffer wick Gold · ${esc(buySlGuard.label)}).</li>`
         ].filter(Boolean).join('');
       }
@@ -2974,10 +3534,15 @@ import {
         : 'zona demand (menunggu validasi)';
     }
 
-    // Sinkronkan Single Source of Truth POI ke Chart Gold, Hero Distance, Tombol Alarm 1-Klik & Riwayat Reaksi POI
+    // Sinkronkan Single Source of Truth POI ke Chart Gold, Hero Distance, Vertical Ladder, Tombol Alarm 1-Klik & Riwayat Reaksi POI
+    latestLadderPois = {
+      buy: (primaryBuyZone && !primaryBuyZone.breached) ? primaryBuyZone : null,
+      sell: (primarySellZone && !primarySellZone.breached) ? primarySellZone : null
+    };
+    renderDealingLadderView();
     publishActiveScalperPlan();
     syncEntryAlarmButtons();
-    syncMappingHistoryFromContext(ctx, ngM15, ngM5, livePrice);
+    syncMappingHistoryFromContext(ctx, ngM15, ngM5, ngH1, livePrice);
 
     // Publish read-only Cockpit Snapshot untuk AMY Live Chat & Voice agar 100% sinkron dengan layar Mapping
     try {
@@ -3094,6 +3659,8 @@ import {
   /* ── Init ── */
   function init() {
     bindCockpitInteractions();
+    renderBiasCompassView();
+    renderDealingLadderView();
     setActivePoiTab(activePoiTab, false);
     startClock();
     syncEntryAlarmButtons();

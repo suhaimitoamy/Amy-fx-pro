@@ -189,16 +189,18 @@ export function resolveSsotTelemetry(ctx, ng, livePrice) {
 /**
  * Format TP1 subtitle honestly: clearly distinguish synthetic R:R projections from real structural liquidity pools.
  */
-export function formatTp1Subtitle(tp1, tp2, rr1) {
+export function formatTp1Subtitle(tp1, tp2, rr1, tp3 = null) {
   if (!tp1 || !Number.isFinite(tp1.v)) return null;
   const rrTag = Number.isFinite(rr1) && rr1 > 0 ? `1:${rr1.toFixed(1)}` : '';
   const runnerTag = tp2 && Number.isFinite(tp2.v)
     ? ` · DOL $${fmt(tp2.v)}`
     : '';
+  const tp3Num = typeof tp3 === 'object' && tp3 !== null ? num(tp3.v) : num(tp3);
+  const tp3Tag = Number.isFinite(tp3Num) ? ` · Runner 3.5R $${fmt(tp3Num)}` : '';
   if (tp1.synthetic) {
-    return `Proyeksi R:R ${rrTag || '1:1.6'} (Non-Struktural)${runnerTag}`;
+    return `Proyeksi R:R ${rrTag || '1:1.6'} (Non-Struktural)${runnerTag}${tp3Tag}`;
   }
-  return `DOL ${tp1.name || 'Struktural'}${rrTag ? ` (${rrTag})` : ''}${runnerTag}`;
+  return `DOL ${tp1.name || 'Struktural'}${rrTag ? ` (${rrTag})` : ''}${runnerTag}${tp3Tag}`;
 }
 
 /**
@@ -225,12 +227,91 @@ export function getWitaHour(tsMs) {
   return Number.isNaN(d.getTime()) ? 14 : d.getUTCHours();
 }
 
+/**
+ * Mapping POI Engine v8 — Hybrid Rejection Entry Gate.
+ * - M5 zones ALWAYS require a rejection close (cuts M5 falling-knife streaks & tightens SL).
+ * - London session (14:00–20:00 WITA) M15 zones ALSO require a rejection close to avoid Judas whipsaws.
+ * - Asia & NY M15 zones stay Limit-at-CE so strong directional expansions are not missed.
+ */
+export function requiresHybridRejection({ tf = 'M15', nowMs = null } = {}) {
+  const normTf = String(tf || 'M15').toUpperCase() === 'M5' ? 'M5' : 'M15';
+  if (normTf === 'M5') return true;
+  if (Number.isFinite(Number(nowMs)) && Number(nowMs) > 0) {
+    const witaH = getWitaHour(Number(nowMs));
+    if (witaH >= 14 && witaH < 20) return true;
+  }
+  return false;
+}
+
+/**
+ * Pure causal Market Regime classifier (TRENDING vs SIDEWAYS).
+ * Informational context for execution cards (does NOT hard-block middle FVGs,
+ * since walk-forward benchmarking proved hard blocking hurts Net R).
+ */
+export function detectMarketRegime(m15Candles = [], h1Dir = 0) {
+  const bars = Array.isArray(m15Candles) ? m15Candles : [];
+  if (bars.length < 24) {
+    const sideways = Number(h1Dir) === 0;
+    return {
+      regime: sideways ? 'SIDEWAYS' : 'TRENDING',
+      label: sideways ? 'Sideways · Fokus Sweep' : 'Trending',
+      eqCrosses: 0,
+      rangeLow: NaN,
+      rangeHigh: NaN,
+      eq: NaN
+    };
+  }
+
+  const win = bars.slice(-24);
+  let rangeHigh = -Infinity;
+  let rangeLow = Infinity;
+  for (const b of win) {
+    const h = Number(b?.high);
+    const l = Number(b?.low);
+    if (Number.isFinite(h) && h > rangeHigh) rangeHigh = h;
+    if (Number.isFinite(l) && l < rangeLow) rangeLow = l;
+  }
+  if (!Number.isFinite(rangeHigh) || !Number.isFinite(rangeLow) || rangeHigh <= rangeLow) {
+    return {
+      regime: Number(h1Dir) === 0 ? 'SIDEWAYS' : 'TRENDING',
+      label: Number(h1Dir) === 0 ? 'Sideways · Fokus Sweep' : 'Trending',
+      eqCrosses: 0,
+      rangeLow: NaN,
+      rangeHigh: NaN,
+      eq: NaN
+    };
+  }
+
+  const eq = (rangeHigh + rangeLow) / 2;
+  const recent = win.slice(-16);
+  let eqCrosses = 0;
+  for (let i = 1; i < recent.length; i += 1) {
+    const prev = Number(recent[i - 1]?.close);
+    const cur = Number(recent[i]?.close);
+    if (!Number.isFinite(prev) || !Number.isFinite(cur)) continue;
+    if ((prev < eq && cur >= eq) || (prev > eq && cur <= eq)) {
+      eqCrosses += 1;
+    }
+  }
+
+  const isSideways = Number(h1Dir) === 0 || eqCrosses >= 4;
+  return {
+    regime: isSideways ? 'SIDEWAYS' : 'TRENDING',
+    label: isSideways ? 'Sideways · Fokus Sweep' : 'Trending',
+    eqCrosses,
+    rangeLow: Number(rangeLow.toFixed(2)),
+    rangeHigh: Number(rangeHigh.toFixed(2)),
+    eq: Number(eq.toFixed(2))
+  };
+}
+
 export function evaluatePoiQualityGate({
   tf = 'M15',
   kind = 'FVG',
   side = 'BUY',
   width = NaN,
   m15Dir = 0,
+  h1Dir = 0,
   nowMs = null
 } = {}) {
   const normTf = String(tf || 'M15').toUpperCase() === 'M5' ? 'M5' : 'M15';
@@ -257,10 +338,16 @@ export function evaluatePoiQualityGate({
     }
   }
 
-  // Causal M15 trend discipline: M5 & raw M15 FVG cannot fight M15 trend;
-  // only institutional M15 reversal zones (OB / BB / iFVG) remain eligible counter-trend.
-  const isCounter = Number(m15Dir) !== 0 && Number(m15Dir) !== sideDir;
-  if (isCounter && (normTf === 'M5' || normKind === 'FVG')) {
+  // Causal H1 HTF trend discipline (v7): never take blind POI entries fighting the H1 structural trend.
+  const isCounterH1 = Number(h1Dir) !== 0 && Number(h1Dir) !== sideDir;
+  if (isCounterH1) {
+    return { allowed: false, reason: 'COUNTER_H1_BLOCKED' };
+  }
+
+  // Causal M15 trend discipline (v7): block counter-trend M5 and counter-trend M15 FVG/OB/iFVG;
+  // only structural M15 Breaker Block (BB) remains eligible during M15 transition (and never against H1).
+  const isCounterM15 = Number(m15Dir) !== 0 && Number(m15Dir) !== sideDir;
+  if (isCounterM15 && (normTf === 'M5' || normKind !== 'BB')) {
     return { allowed: false, reason: 'COUNTER_TREND_BLOCKED' };
   }
 
@@ -279,6 +366,7 @@ export function selectScalperDualLayerPoi({
   m5Bbs = [],
   livePrice = 0,
   m15Dir = 0,
+  h1Dir = 0,
   nowMs = null,
   activeLeg = null,
   eqVal = NaN,
@@ -304,6 +392,7 @@ export function selectScalperDualLayerPoi({
         side,
         width,
         m15Dir,
+        h1Dir,
         nowMs
       });
       // Enforce session & counter-trend SSOT gate (allow oversized check below so cleanSizedPool fallback still works cleanly)
@@ -493,7 +582,9 @@ export function evaluateScalperPoiVerdict({
   tp1 = null,
   isSlHit = false,
   sessionGuard = { blocked: false, halfLot: false },
-  newsStatus = ''
+  newsStatus = '',
+  nowMs = null,
+  marketRegime = null
 }) {
   const isSell = side === 'SELL';
   const sideDir = isSell ? -1 : 1;
@@ -501,6 +592,7 @@ export function evaluateScalperPoiVerdict({
   const isWithM15 = m15Dir === sideDir;
   const isWithH1 = h1Dir === sideDir;
   const isCounterM15 = m15Dir !== 0 && m15Dir !== sideDir;
+  const isCounterH1 = h1Dir !== 0 && h1Dir !== sideDir;
   const isCounterFull = h1Dir === -sideDir && m15Dir === -sideDir;
   const isM5Aligned = m5Dir === sideDir;
 
@@ -509,15 +601,17 @@ export function evaluateScalperPoiVerdict({
     : NaN;
   const isZoneFar = Number.isFinite(zoneDist) && zoneDist > 18.0;
 
-  // 1. Trend Alignment
-  const trendPass = isWithM15 || (m15Dir === 0 && isWithH1);
+  // 1. Trend Alignment (v7: HTF H1 alignment required for trendPass)
+  const trendPass = !isCounterH1 && (isWithM15 || (m15Dir === 0 && isWithH1));
   const trendLabel = isWithH1 && isWithM15
     ? 'Tren H1+M15'
-    : isWithM15
+    : isWithM15 && !isCounterH1
       ? 'Searah M15'
       : isCounterFull
         ? (isM5Aligned ? 'Counter H1+M15' : 'Counter 3-TF')
-        : 'Counter M15';
+        : isCounterH1
+          ? 'Counter H1'
+          : 'Counter M15';
 
   // 2. Location (OTE / Premium / Discount / Dual-Layer Continuation + Proximity)
   const continuationOk = Boolean(zone && !zone.inRightHalf && (zone.inImpulseHalf || zone.isContinuation) && trendPass && !isZoneFar);
@@ -606,9 +700,9 @@ export function evaluateScalperPoiVerdict({
     cls = 'is-skip';
     gradeText = 'SKIP · ZONA DI LUAR INVALIDASI';
     isSkip = true;
-  } else if (isCounterFull && !isM5Aligned) {
+  } else if (isCounterH1) {
     cls = 'is-skip';
-    gradeText = 'SKIP · COUNTER-TREND (WAJIB MSS M5)';
+    gradeText = isCounterFull ? 'SKIP · COUNTER TREN H1+M15' : 'SKIP · COUNTER TREN H1';
     isSkip = true;
   } else if (Number.isFinite(rr1) && rr1 < 1.2) {
     cls = 'is-skip';
@@ -648,6 +742,8 @@ export function evaluateScalperPoiVerdict({
     isSkip = true;
   }
 
+  const needRejection = Boolean(zone && requiresHybridRejection({ tf: zone.tf || 'M15', nowMs }));
+
   return {
     cls,
     grade: gradeText,
@@ -655,7 +751,9 @@ export function evaluateScalperPoiVerdict({
     score,
     checks,
     zoneDist,
-    isZoneFar
+    isZoneFar,
+    entryMode: needRejection ? 'REJECTION' : 'LIMIT_CE',
+    marketRegime: marketRegime || null
   };
 }
 
@@ -663,6 +761,8 @@ if (typeof window !== 'undefined') {
   window.AmyMappingAccuracy = {
     POI_QUALITY_RULES,
     getWitaHour,
+    requiresHybridRejection,
+    detectMarketRegime,
     evaluatePoiQualityGate,
     resolveM15Direction,
     formatPdlPdhRange,

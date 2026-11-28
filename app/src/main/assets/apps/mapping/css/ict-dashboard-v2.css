@@ -172,15 +172,7 @@ body.amyfx-module--ict header.cockpit-header h1 {
 }
 
 body.amyfx-module--ict #connection.cockpit-conn-status {
-  margin-left: 0;
-  padding: 4px 9px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ck-muted);
-  background: var(--ck-surface-elevated);
-  border: 1px solid var(--ck-border-subtle);
-  white-space: nowrap;
+  display: none !important;
 }
 
 body.amyfx-module--ict header.cockpit-header .nav-arrow-btn {
@@ -240,13 +232,13 @@ body.amyfx-module--ict main article.cockpit-card {
   color: var(--ck-gold);
 }
 
-.cockpit-card-title h3 {
+body.amyfx-module--ict .cockpit-card-title h3 {
   margin: 0;
   font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ck-text);
+  color: var(--ck-text) !important;
 }
 
 .cockpit-meta-tag {
@@ -498,11 +490,11 @@ body.amyfx-module--ict main article.hero-context-card::before {
 .hero-ict-val.is-gold { color: var(--ck-gold); }
 
 /* ============================================================
-   ROW 2: HERO + DEALING RANGE BALANCED SPLIT
+   ROW 2: HERO (BIAS COMPASS) + DEALING RANGE (VERTICAL LADDER)
    ============================================================ */
 .cockpit-hero-split {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 14px;
   width: 100%;
   align-items: stretch;
@@ -843,51 +835,46 @@ body.amyfx-module--ict .poi-tab-btn--sell.is-active {
 }
 .poi-tab-tag[hidden] { display: none; }
 
-/* Panel Status Row + Lot Calculator Button */
+/* Panel Status Row + Clean Action Hierarchy */
 .poi-panel-status-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
 .poi-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 8px;
-  letter-spacing: 0.01em;
-  line-height: 1.35;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 650;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+  color: var(--ck-text-secondary);
 }
-.poi-badge--buy {
-  background: var(--ck-buy-bg);
-  border: 1px solid var(--ck-buy-border);
-  color: var(--ck-buy-text);
+.poi-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
 }
-.poi-badge--sell {
-  background: var(--ck-sell-bg);
-  border: 1px solid var(--ck-sell-border);
-  color: var(--ck-sell-text);
-}
-.poi-badge--active {
-  background: var(--ck-warn-bg) !important;
-  border: 1px solid var(--ck-warn-border) !important;
-  color: var(--ck-warn-text) !important;
-}
-.poi-badge--hit {
-  background: var(--ck-buy-bg) !important;
-  border: 1px solid var(--ck-buy-border) !important;
-  color: var(--ck-buy-text) !important;
-}
+.poi-badge--buy { color: var(--ck-buy-text); }
+.poi-badge--sell { color: var(--ck-sell-text); }
+.poi-badge--active { color: var(--ck-warn-text) !important; }
+.poi-badge--hit { color: var(--ck-buy-text) !important; }
 
 .poi-panel-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
@@ -895,13 +882,13 @@ body.amyfx-module--ict .cockpit-alarm-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 36px;
+  min-height: 34px;
   padding: 6px 11px;
   border-radius: 9px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ck-text-secondary);
-  background: var(--ck-surface-inset);
+  background: transparent;
   border: 1px solid var(--ck-border);
   cursor: pointer;
   white-space: nowrap;
@@ -923,8 +910,8 @@ body.amyfx-module--ict .cockpit-lot-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
-  padding: 6px 12px;
+  min-height: 34px;
+  padding: 6px 13px;
   border-radius: 9px;
   font-size: 12px;
   font-weight: 700;
@@ -933,64 +920,57 @@ body.amyfx-module--ict .cockpit-lot-btn {
   border: 1px solid var(--ck-gold-border);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 body.amyfx-module--ict .cockpit-lot-btn:hover {
-  background: rgba(245, 196, 81, 0.22);
+  background: rgba(245, 196, 81, 0.20);
 }
 
-/* Zone Ban Warning inside POI Panel */
+/* Zone Ban Warning inside POI Panel — calm hairline box, zero thick left stripe */
 .poi-warning-box {
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--ck-warn-text);
   background: var(--ck-warn-bg);
   border: 1px solid var(--ck-warn-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-warn);
-  border-radius: 10px;
-  padding: 9px 12px 9px 14px;
-  margin-bottom: 12px;
+  border-radius: 11px;
+  padding: 10px 13px;
+  margin-bottom: 13px;
 }
 .poi-warning-box.is-danger {
   color: var(--ck-sell-text);
   background: var(--ck-sell-bg);
   border-color: var(--ck-sell-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-sell);
 }
 .poi-warning-box.is-active-buy {
   color: var(--ck-buy-text);
   background: var(--ck-buy-bg);
   border-color: var(--ck-buy-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-buy);
 }
 .poi-warning-box[hidden] { display: none; }
 
-/* Scalper Pro Verdict & 5-Point Confluence Strip */
+/* Scalper Pro Verdict & 5-Point Confluence Strip — calm, breathable, zero left stripe */
 .poi-verdict-card {
   background: var(--ck-surface-inset);
   border: 1px solid var(--ck-border-subtle);
-  border-radius: 11px;
-  padding: 10px 12px;
-  margin-bottom: 12px;
+  border-radius: 13px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .poi-verdict-card.is-ready {
   border-color: var(--ck-buy-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-buy);
 }
 .poi-verdict-card.is-ready-sell {
   border-color: var(--ck-sell-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-sell);
 }
 .poi-verdict-card.is-wait {
-  border-color: var(--ck-gold-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-gold);
+  border-color: var(--ck-border);
 }
 .poi-verdict-card.is-skip {
   border-color: var(--ck-sell-border);
-  box-shadow: inset 3px 0 0 0 var(--ck-sell);
   background: var(--ck-sell-bg);
 }
 
@@ -998,20 +978,20 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .poi-verdict-main {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
 }
 .poi-verdict-grade {
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-transform: none;
   color: var(--ck-text);
 }
 .poi-verdict-card.is-ready .poi-verdict-grade { color: var(--ck-buy-text); }
@@ -1021,20 +1001,52 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 
 .poi-verdict-score {
   font-family: var(--ck-mono);
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 11.5px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: 2px 6px;
-  border-radius: 5px;
-  background: rgba(148, 163, 184, 0.14);
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.12);
   color: var(--ck-text-secondary);
 }
 
-.poi-session-guard {
-  font-size: 10.5px;
-  font-weight: 700;
+.poi-verdict-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.poi-regime-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 650;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ck-text-secondary);
+  white-space: nowrap;
+}
+.poi-regime-pill::after {
+  content: '·';
+  margin-left: 3px;
   color: var(--ck-muted);
-  letter-spacing: 0.01em;
+  opacity: 0.65;
+}
+.poi-regime-pill[hidden] { display: none; }
+.poi-regime-pill.is-trend { color: var(--ck-buy-text); }
+.poi-regime-pill.is-sideways { color: var(--ck-gold); }
+html[data-amyfx-theme="light"] .poi-regime-pill.is-sideways,
+html[data-theme="light"] .poi-regime-pill.is-sideways {
+  color: #92400e;
+}
+
+.poi-session-guard {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ck-muted);
+  letter-spacing: 0;
 }
 .poi-session-guard.is-killzone { color: var(--ck-buy-text); }
 .poi-session-guard.is-caution { color: var(--ck-warn-text); }
@@ -1043,15 +1055,15 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 .poi-checks-row {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-  padding-top: 7px;
+  gap: 8px;
+  padding-top: 9px;
   border-top: 1px solid var(--ck-border-subtle);
 }
 .poi-check-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 10.5px;
+  gap: 5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ck-muted);
   min-width: 0;
@@ -1061,55 +1073,66 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 }
 .poi-check-item.is-pass { color: var(--ck-buy-text); }
 .poi-check-item.is-warn { color: var(--ck-warn-text); }
-.poi-check-item.is-fail { color: var(--ck-sell-text); opacity: 0.9; }
+.poi-check-item.is-fail { color: var(--ck-sell-text); opacity: 0.88; }
 .poi-check-mark {
   font-weight: 800;
-  font-size: 10px;
+  font-size: 10.5px;
   flex-shrink: 0;
 }
 @media (max-width: 560px) {
   .poi-checks-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 5px 8px;
+    gap: 6px 10px;
   }
 }
 
-/* 3 Execution Level Tiles (Entry · Target DOL/TP · Batas SL) */
+/* 3 Execution Level Tiles (Entry · Target TP1 · Batas SL) — unified hairline, zero top stripe */
 .poi-levels-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 11px;
+  margin-bottom: 14px;
 }
 
 .poi-level-tile {
   background: var(--ck-surface-inset);
   border: 1px solid var(--ck-border-subtle);
-  border-radius: 12px;
-  padding: 12px 12px 11px;
+  border-radius: 13px;
+  padding: 14px 15px 13px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
   overflow: hidden;
   position: relative;
 }
-.poi-level-tile--entry-buy { box-shadow: inset 0 2px 0 0 var(--ck-buy); }
-.poi-level-tile--entry-sell { box-shadow: inset 0 2px 0 0 var(--ck-sell); }
-.poi-level-tile--tp { box-shadow: inset 0 2px 0 0 var(--ck-gold); }
-.poi-level-tile--sl { box-shadow: inset 0 2px 0 0 var(--ck-muted); }
 
 .poi-level-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ck-muted);
 }
+.poi-level-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ck-muted);
+  flex-shrink: 0;
+}
+.poi-level-tile--entry-buy .poi-level-label::before { background: var(--ck-buy); }
+.poi-level-tile--entry-sell .poi-level-label::before { background: var(--ck-sell); }
+.poi-level-tile--tp .poi-level-label::before { background: var(--ck-gold); }
+.poi-level-tile--sl .poi-level-label::before { background: var(--ck-sell); opacity: 0.72; }
 
 .poi-level-val {
   font-family: var(--ck-mono);
-  font-size: 0.96rem;
+  font-size: 1.06rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--ck-text);
@@ -1121,9 +1144,9 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 .poi-level-tile--tp .poi-level-val { color: var(--ck-gold); }
 
 .poi-level-sub {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--ck-muted);
-  line-height: 1.35;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
@@ -1140,57 +1163,55 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 .poi-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11.5px;
+  font-size: 12px;
   margin: 0;
 }
 
 .poi-table th {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ck-muted);
-  padding: 8px 10px;
+  padding: 9px 11px;
   text-align: left;
   border-bottom: 1px solid var(--ck-border);
 }
 
 .poi-table td {
-  padding: 9px 10px;
+  padding: 10px 11px;
   border-bottom: 1px solid var(--ck-border-subtle);
   color: var(--ck-text-secondary);
-  line-height: 1.4;
+  line-height: 1.42;
   vertical-align: middle;
 }
 .poi-table tr:last-child td { border-bottom: none; }
 
 .poi-table td:first-child {
-  font-weight: 700;
+  font-weight: 650;
   color: var(--ck-text);
-  font-size: 11.5px;
+  font-size: 12px;
 }
 .poi-table td:nth-child(2) {
   font-family: var(--ck-mono);
-  font-weight: 800;
-  font-size: 11.5px;
+  font-weight: 750;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .poi-table--buy td:nth-child(2) { color: var(--ck-buy-text); }
 .poi-table--sell td:nth-child(2) { color: var(--ck-sell-text); }
 
-/* Collapsible SOP Accordion */
+/* Collapsible SOP & Detail Accordions — calm hairline disclosures, zero left stripe */
 .cockpit-sop-accordion {
   border-radius: 12px;
   border: 1px solid var(--ck-border-subtle);
   background: var(--ck-surface-inset);
   overflow: hidden;
+  transition: border-color 0.18s ease;
 }
-.cockpit-sop-accordion.sop-box--buy {
-  box-shadow: inset 3px 0 0 0 var(--ck-buy);
-}
-.cockpit-sop-accordion.sop-box--sell {
-  box-shadow: inset 3px 0 0 0 var(--ck-sell);
+.cockpit-sop-accordion:hover {
+  border-color: var(--ck-border);
 }
 
 .cockpit-sop-summary {
@@ -1198,12 +1219,12 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 13px;
+  padding: 11px 14px;
   min-height: 42px;
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ck-text);
   cursor: pointer;
   list-style: none;
@@ -1215,22 +1236,23 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 .cockpit-sop-chevron {
   transition: transform 0.2s ease;
   flex-shrink: 0;
+  opacity: 0.7;
 }
 .cockpit-sop-accordion[open] .cockpit-sop-chevron {
   transform: rotate(180deg);
 }
 
 .cockpit-sop-body {
-  padding: 0 13px 12px;
+  padding: 4px 14px 13px;
   border-top: 1px solid var(--ck-border-subtle);
-  font-size: 11.5px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.58;
   color: var(--ck-text-secondary);
 }
 
 .poi-confirm-rule {
   margin: 9px 0 6px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--ck-text-secondary);
 }
 
@@ -1247,11 +1269,11 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
 
 /* Collapsible Detail Table & SOP Accordions */
 .poi-details-accordion {
-  margin-bottom: 8px;
+  margin-bottom: 9px;
 }
 .poi-details-summary {
   color: var(--ck-text-secondary) !important;
-  font-weight: 700;
+  font-weight: 650;
 }
 .poi-table-wrap--nested {
   margin-bottom: 0;
@@ -1265,14 +1287,7 @@ body.amyfx-module--ict .cockpit-lot-btn:hover {
    MINIMAL SYNC TIMESTAMP FOOTER
    ============================================================ */
 .dashboard-footer-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px 8px;
-  font-size: 11px;
-  color: var(--ck-muted);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
+  display: none !important;
 }
 
 /* Floating FAB Clearance */
@@ -2476,6 +2491,124 @@ html[data-theme="light"] .history-touch-tag.is-ce {
   font-variant-numeric: tabular-nums;
 }
 
+.poi-cal-backfill-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ck-border-subtle, rgba(255, 255, 255, 0.09));
+  background: var(--ck-surface-inset, rgba(8, 13, 24, 0.45));
+}
+
+.history-cockpit-card .poi-cal-backfill-btn {
+  height: auto !important;
+  min-height: 36px !important;
+  padding: 7px 14px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(245, 196, 81, 0.45);
+  background: rgba(245, 196, 81, 0.14);
+  color: var(--ck-gold, #F5C451);
+  font-family: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  line-height: 1.25 !important;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.16s ease, border-color 0.16s ease, opacity 0.16s ease, transform 0.12s ease;
+}
+
+.history-cockpit-card .poi-cal-backfill-btn:hover:not(:disabled) {
+  background: rgba(245, 196, 81, 0.24);
+  border-color: rgba(245, 196, 81, 0.72);
+}
+
+.history-cockpit-card .poi-cal-backfill-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.history-cockpit-card .poi-cal-backfill-btn:disabled,
+.history-cockpit-card .poi-cal-backfill-btn.is-loading {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.poi-cal-backfill-status {
+  flex: 1 1 180px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ck-muted, #94a3b8);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.poi-cal-backfill-status.is-success {
+  color: #34d399;
+}
+
+.poi-cal-backfill-status.is-error {
+  color: #fb7185;
+}
+
+@media (max-width: 520px) {
+  .poi-cal-backfill-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+  }
+  .history-cockpit-card .poi-cal-backfill-btn {
+    width: 100%;
+    min-height: 36px !important;
+    padding: 7px 12px !important;
+  }
+  .poi-cal-backfill-status {
+    flex: none;
+    text-align: left;
+  }
+}
+
+html[data-amyfx-theme="light"] .poi-cal-backfill-bar,
+html[data-theme="light"] .poi-cal-backfill-bar {
+  background: rgba(248, 250, 252, 0.9);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+html[data-amyfx-theme="light"] .history-cockpit-card .poi-cal-backfill-btn,
+html[data-theme="light"] .history-cockpit-card .poi-cal-backfill-btn {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.42);
+  color: #92400e;
+}
+
+html[data-amyfx-theme="light"] .history-cockpit-card .poi-cal-backfill-btn:hover:not(:disabled),
+html[data-theme="light"] .history-cockpit-card .poi-cal-backfill-btn:hover:not(:disabled) {
+  background: rgba(217, 119, 6, 0.2);
+  border-color: rgba(217, 119, 6, 0.65);
+}
+
+html[data-amyfx-theme="light"] .poi-cal-backfill-status,
+html[data-theme="light"] .poi-cal-backfill-status {
+  color: #475569;
+}
+
+html[data-amyfx-theme="light"] .poi-cal-backfill-status.is-success,
+html[data-theme="light"] .poi-cal-backfill-status.is-success {
+  color: #047857;
+}
+
+html[data-amyfx-theme="light"] .poi-cal-backfill-status.is-error,
+html[data-theme="light"] .poi-cal-backfill-status.is-error {
+  color: #be123c;
+}
+
 .poi-cal-grid {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -3049,6 +3182,9 @@ body.amyfx-module--mapping .gold-price-panel {
 
 #gold-chart-workspace .gold-meta-sep {
   opacity: 0.45;
+}
+#gold-chart-workspace .gold-price-meta:has(#source:empty) .gold-meta-sep {
+  display: none;
 }
 
 #gold-chart-workspace #chart-dealing-range-badge.dr-badge {
@@ -3636,23 +3772,23 @@ body.amyfx-module--mapping .cockpit-journal-btn {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 34px;
+  padding: 6px 11px;
   border-radius: 9px;
-  border: 1px solid rgba(105, 183, 255, 0.28);
-  background: rgba(105, 183, 255, 0.1);
-  color: #e2e8f0;
-  font-size: 11.5px;
-  font-weight: 700;
+  border: 1px solid var(--ck-border);
+  background: transparent;
+  color: var(--ck-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
 
 body.amyfx-module--mapping .cockpit-journal-btn:hover {
-  background: rgba(105, 183, 255, 0.18);
-  border-color: rgba(105, 183, 255, 0.45);
-  color: #ffffff;
+  background: rgba(105, 183, 255, 0.14);
+  border-color: rgba(105, 183, 255, 0.40);
+  color: var(--ck-text);
 }
 
 :is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .poi-news-lock-banner {
@@ -3676,8 +3812,187 @@ body.amyfx-module--mapping .cockpit-journal-btn:hover {
 }
 
 :is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .cockpit-journal-btn {
+  background: transparent;
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #1e40af;
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .cockpit-journal-btn:hover {
   background: #eff6ff;
-  border-color: rgba(37, 99, 235, 0.24);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+/* ── Live London Judas & BSL/SSL Sweep Reversal Signal Banner (v8) ── */
+body.amyfx-module--mapping .poi-live-sweep-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  background: rgba(212, 175, 55, 0.08);
+}
+body.amyfx-module--mapping .poi-live-sweep-banner[hidden] {
+  display: none;
+}
+body.amyfx-module--mapping .poi-live-sweep-banner.is-buy {
+  border-color: rgba(16, 185, 129, 0.34);
+  background: rgba(16, 185, 129, 0.08);
+}
+body.amyfx-module--mapping .poi-live-sweep-banner.is-sell {
+  border-color: rgba(239, 68, 68, 0.34);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.poi-sweep-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.poi-sweep-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.poi-sweep-kind-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(212, 175, 55, 0.18);
+  color: var(--ck-gold, #f5b942);
+  border: 1px solid rgba(212, 175, 55, 0.32);
+}
+.poi-sweep-side-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+.poi-live-sweep-banner.is-buy .poi-sweep-side-tag {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--ck-buy-text, #34d399);
+}
+.poi-live-sweep-banner.is-sell .poi-sweep-side-tag {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--ck-sell-text, #f87171);
+}
+.poi-sweep-title {
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--ck-text);
+}
+.poi-sweep-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.poi-sweep-status {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(148, 163, 184, 0.14);
+  color: var(--ck-text-secondary);
+}
+.poi-sweep-status.is-ready {
+  background: rgba(16, 185, 129, 0.16);
+  color: var(--ck-buy-text, #34d399);
+}
+.poi-sweep-status.is-warn {
+  background: rgba(245, 158, 11, 0.18);
+  color: var(--ck-warn-text, #fbbf24);
+}
+.poi-sweep-status.is-bep {
+  background: rgba(59, 130, 246, 0.16);
+  color: #60a5fa;
+}
+body.amyfx-module--mapping .poi-sweep-btn {
+  min-height: 28px !important;
+  height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.poi-sweep-levels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.poi-sweep-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.34);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  min-width: 0;
+}
+.poi-sweep-kv span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ck-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.poi-sweep-kv strong {
+  font-family: var(--ck-mono);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  color: var(--ck-text);
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+.poi-sweep-foot {
+  font-size: 11px;
+  color: var(--ck-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .poi-sweep-levels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .poi-sweep-kv strong {
+    font-size: 11.5px;
+  }
+  .poi-sweep-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .poi-live-sweep-banner.is-buy {
+  background: #ecfdf5;
+  border-color: rgba(16, 185, 129, 0.32);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .poi-live-sweep-banner.is-sell {
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.32);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .poi-sweep-kind-tag {
+  background: rgba(217, 119, 6, 0.12);
+  color: #92400e;
+  border-color: rgba(180, 83, 9, 0.28);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .poi-sweep-kv {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping .poi-sweep-status.is-bep {
   color: #1d4ed8;
 }
 
@@ -3804,6 +4119,603 @@ body.amyfx-module--mapping .cockpit-journal-btn:hover {
 :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .poi-bd-wr.is-neg,
 :is(html[data-amyfx-theme="light"], html[data-theme="light"]) .poi-bd-pips.is-neg {
   color: #dc2626;
+}
+
+/* ============================================================
+   OPSI 1 VISUAL INSTRUMENTS:
+   1. 3-TF INSTITUTIONAL BIAS COMPASS (XAU/USD LIVE)
+   2. VERTICAL INSTITUTIONAL PRICE LADDER (DEALING RANGE)
+   ============================================================ */
+
+/* ── 1. XAU/USD Live: 3-TF Bias Compass ── */
+.hero-compass-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+}
+
+.hero-compass-dial {
+  width: 100%;
+  max-width: 288px;
+  display: flex;
+  justify-content: center;
+}
+
+.bias-compass-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.bias-compass-svg .bc-ring {
+  cursor: pointer;
+  outline: none;
+}
+.bias-compass-svg .bc-track {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.16);
+  stroke-linecap: round;
+}
+.bias-compass-svg .bc-fill {
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.78;
+  transition: opacity 0.2s ease, stroke-width 0.2s ease;
+}
+.bias-compass-svg .bc-ring:hover .bc-fill,
+.bias-compass-svg .bc-ring.is-selected .bc-fill {
+  opacity: 1;
+}
+.bias-compass-svg .bc-fill--bull { stroke: var(--ck-buy); }
+.bias-compass-svg .bc-fill--bear { stroke: var(--ck-sell); }
+.bias-compass-svg .bc-fill--neutral { stroke: var(--ck-muted); }
+
+.bias-compass-svg .bc-hit {
+  fill: none;
+  stroke: transparent;
+  cursor: pointer;
+}
+
+.bias-compass-svg .bc-tick {
+  stroke: rgba(148, 163, 184, 0.34);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.bias-compass-svg .bc-tick--zero {
+  stroke: var(--ck-gold);
+  stroke-width: 2;
+}
+
+.bias-compass-svg .bc-axis-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  fill: var(--ck-muted);
+}
+.bias-compass-svg .bc-axis-bear { fill: var(--ck-sell-text); }
+.bias-compass-svg .bc-axis-bull { fill: var(--ck-buy-text); }
+.bias-compass-svg .bc-axis-zero { fill: var(--ck-gold); }
+
+.bias-compass-svg .bc-needle-wrap {
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bias-compass-svg .bc-needle-stem {
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+.bias-compass-svg .bc-needle-stem.bc-needle--bull { stroke: var(--ck-buy); }
+.bias-compass-svg .bc-needle-stem.bc-needle--bear { stroke: var(--ck-sell); }
+.bias-compass-svg .bc-needle-stem.bc-needle--neutral { stroke: var(--ck-gold); }
+
+.bias-compass-svg .bc-needle-tip.bc-needle--bull { fill: var(--ck-buy); }
+.bias-compass-svg .bc-needle-tip.bc-needle--bear { fill: var(--ck-sell); }
+.bias-compass-svg .bc-needle-tip.bc-needle--neutral { fill: var(--ck-gold); }
+
+.bias-compass-svg .bc-hub-outer {
+  fill: #0f172a;
+  stroke: var(--ck-border);
+  stroke-width: 1.6;
+}
+.bias-compass-svg .bc-hub-inner.bc-hub--bull { fill: var(--ck-buy); }
+.bias-compass-svg .bc-hub-inner.bc-hub--bear { fill: var(--ck-sell); }
+.bias-compass-svg .bc-hub-inner.bc-hub--neutral { fill: var(--ck-gold); }
+
+.bias-compass-svg .bc-score-val {
+  font-family: var(--ck-mono);
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bias-compass-svg .bc-score--bull { fill: var(--ck-buy-text); }
+.bias-compass-svg .bc-score--bear { fill: var(--ck-sell-text); }
+.bias-compass-svg .bc-score--neutral { fill: var(--ck-text); }
+
+.hero-compass-caption {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ck-text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+.hero-compass-caption.is-bull { color: var(--ck-buy-text); }
+.hero-compass-caption.is-bear { color: var(--ck-sell-text); }
+.hero-compass-caption.is-neutral { color: var(--ck-gold); }
+
+/* Interactive TF Tabs under Compass */
+.hero-tf-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+body.amyfx-module--mapping button.hero-tf-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  border: 1px solid var(--ck-border-subtle);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--ck-text-secondary);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+body.amyfx-module--mapping button.hero-tf-tab:hover {
+  border-color: var(--ck-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ck-text);
+}
+body.amyfx-module--mapping button.hero-tf-tab.is-active {
+  border-color: var(--ck-gold-border);
+  background: var(--ck-gold-bg);
+  color: var(--ck-text);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping button.hero-tf-tab {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(15, 23, 42, 0.10);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) body.amyfx-module--mapping button.hero-tf-tab.is-active {
+  background: var(--ck-gold-bg);
+  border-color: var(--ck-gold-border);
+}
+
+.hero-tf-tab-key {
+  font-family: var(--ck-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ck-text);
+}
+.hero-tf-tab-dir {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.hero-tf-tab-dir::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.hero-tf-tab-dir.bias-bull { color: var(--ck-buy); }
+.hero-tf-tab-dir.bias-bear { color: var(--ck-sell); }
+.hero-tf-tab-dir.bias-neutral { color: var(--ck-muted); }
+
+.hero-tf-detail {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ck-text-secondary);
+  text-align: center;
+  padding: 6px 8px 2px;
+  border-top: 1px solid var(--ck-border-subtle);
+}
+.hero-tf-detail-key {
+  font-family: var(--ck-mono);
+  font-weight: 750;
+  color: var(--ck-text);
+}
+.hero-tf-detail-sep {
+  color: var(--ck-muted);
+  opacity: 0.65;
+}
+.hero-tf-detail-dir {
+  font-weight: 750;
+}
+.hero-tf-detail-dir.bias-bull { color: var(--ck-buy-text); }
+.hero-tf-detail-dir.bias-bear { color: var(--ck-sell-text); }
+.hero-tf-detail-dir.bias-neutral { color: var(--ck-muted); }
+.hero-tf-detail-desc {
+  color: var(--ck-text-secondary);
+}
+
+/* ADR Daily Range Energy Bar */
+.hero-adr-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 11px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+}
+.hero-adr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.hero-adr-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(148, 163, 184, 0.16);
+  overflow: hidden;
+}
+.hero-adr-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.45s ease, background 0.25s ease;
+}
+.hero-adr-fill.is-fresh { background: var(--ck-buy); }
+.hero-adr-fill.is-warm { background: var(--ck-gold); }
+.hero-adr-fill.is-exhausted { background: var(--ck-sell); }
+.hero-adr-fill.is-neutral { background: var(--ck-muted); }
+
+/* Quad Telemetry Strip */
+.hero-ict-strip--quad {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 0;
+  margin-top: auto;
+}
+
+/* ── 2. Dealing Range: Interactive Vertical Price Ladder ── */
+.dr-card-head {
+  margin-bottom: 10px;
+}
+.dr-head-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.dr-mode-seg {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+  gap: 2px;
+}
+body.amyfx-module--ict .dr-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--ck-muted);
+  font-size: 11px;
+  font-weight: 750;
+  padding: 4px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+body.amyfx-module--ict .dr-mode-btn:hover:not(:disabled) {
+  color: var(--ck-text);
+}
+body.amyfx-module--ict .dr-mode-btn.is-active {
+  background: var(--ck-gold-bg);
+  color: var(--ck-gold);
+}
+body.amyfx-module--ict .dr-mode-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.dr-ladder-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 6px 4px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: var(--ck-surface-inset);
+  border: 1px solid var(--ck-border-subtle);
+}
+.dr-ladder-svg-wrap {
+  width: 100%;
+  max-width: 344px;
+}
+.dealing-ladder-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.dealing-ladder-svg .dl-shaft-bg {
+  fill: rgba(15, 23, 42, 0.36);
+}
+.dealing-ladder-svg .dl-shaft-border {
+  fill: none;
+  stroke: var(--ck-border);
+  stroke-width: 1.2;
+}
+.dealing-ladder-svg .dl-zone-premium {
+  fill: rgba(239, 68, 68, 0.08);
+}
+.dealing-ladder-svg .dl-zone-discount {
+  fill: rgba(16, 185, 129, 0.08);
+}
+
+.dealing-ladder-svg .dl-hit-zone {
+  cursor: pointer;
+  outline: none;
+}
+.dealing-ladder-svg .dl-edge-hit {
+  fill: transparent;
+}
+.dealing-ladder-svg .dl-ote-sell {
+  fill: rgba(239, 68, 68, 0.16);
+  stroke: rgba(248, 113, 113, 0.36);
+  stroke-width: 1;
+  transition: fill 0.18s ease, stroke-width 0.18s ease;
+}
+.dealing-ladder-svg .dl-ote-buy {
+  fill: rgba(16, 185, 129, 0.16);
+  stroke: rgba(52, 211, 153, 0.36);
+  stroke-width: 1;
+  transition: fill 0.18s ease, stroke-width 0.18s ease;
+}
+.dealing-ladder-svg .dl-hit-zone:hover .dl-ote-sell,
+.dealing-ladder-svg .dl-hit-zone.is-selected .dl-ote-sell {
+  fill: rgba(239, 68, 68, 0.28);
+  stroke-width: 1.6;
+}
+.dealing-ladder-svg .dl-hit-zone:hover .dl-ote-buy,
+.dealing-ladder-svg .dl-hit-zone.is-selected .dl-ote-buy {
+  fill: rgba(16, 185, 129, 0.28);
+  stroke-width: 1.6;
+}
+
+.dealing-ladder-svg .dl-band-label {
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+.dealing-ladder-svg .dl-band-label--sell { fill: var(--ck-sell-text); }
+.dealing-ladder-svg .dl-band-label--buy { fill: var(--ck-buy-text); }
+
+.dealing-ladder-svg .dl-notrade-fill {
+  fill: rgba(245, 196, 81, 0.12);
+}
+.dealing-ladder-svg .dl-hatch-line {
+  stroke: rgba(245, 196, 81, 0.28);
+  stroke-width: 1.2;
+}
+.dealing-ladder-svg .dl-eq-line {
+  stroke: var(--ck-gold);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+.dealing-ladder-svg .dl-eq-inner-label {
+  font-size: 9px;
+  font-weight: 750;
+  fill: var(--ck-gold);
+}
+
+.dealing-ladder-svg .dl-bound-line {
+  stroke-width: 1.6;
+}
+.dealing-ladder-svg .dl-bound-line--high { stroke: var(--ck-sell); }
+.dealing-ladder-svg .dl-bound-line--low { stroke: var(--ck-buy); }
+.dealing-ladder-svg .dl-bound-line.is-swept { stroke-dasharray: 4 3; }
+
+.dealing-ladder-svg .dl-bound-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.dealing-ladder-svg .dl-bound-tag--high { fill: var(--ck-sell-text); }
+.dealing-ladder-svg .dl-bound-tag--low { fill: var(--ck-buy-text); }
+
+/* Active BUY / SELL POI markers inside ladder */
+.dealing-ladder-svg .dl-poi--buy .dl-poi-band {
+  fill: rgba(16, 185, 129, 0.24);
+  stroke: rgba(52, 211, 153, 0.55);
+  stroke-width: 0.9;
+}
+.dealing-ladder-svg .dl-poi--buy .dl-poi-ce {
+  stroke: var(--ck-buy);
+  stroke-width: 1.1;
+  stroke-dasharray: 2.5 2;
+}
+.dealing-ladder-svg .dl-poi--buy .dl-poi-dot { fill: var(--ck-buy); }
+.dealing-ladder-svg .dl-poi--buy .dl-poi-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  fill: var(--ck-buy-text);
+}
+
+.dealing-ladder-svg .dl-poi--sell .dl-poi-band {
+  fill: rgba(239, 68, 68, 0.24);
+  stroke: rgba(248, 113, 113, 0.55);
+  stroke-width: 0.9;
+}
+.dealing-ladder-svg .dl-poi--sell .dl-poi-ce {
+  stroke: var(--ck-sell);
+  stroke-width: 1.1;
+  stroke-dasharray: 2.5 2;
+}
+.dealing-ladder-svg .dl-poi--sell .dl-poi-dot { fill: var(--ck-sell); }
+.dealing-ladder-svg .dl-poi--sell .dl-poi-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  fill: var(--ck-sell-text);
+}
+
+/* Right Price Ruler */
+.dealing-ladder-svg .dl-price-ref {
+  font-family: var(--ck-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  fill: var(--ck-text-secondary);
+  transition: opacity 0.2s ease;
+}
+.dealing-ladder-svg .dl-price-ref--high { fill: var(--ck-sell-text); }
+.dealing-ladder-svg .dl-price-ref--eq { fill: var(--ck-gold); }
+.dealing-ladder-svg .dl-price-ref--low { fill: var(--ck-buy-text); }
+.dealing-ladder-svg .dl-price-ref.is-faded { opacity: 0.22; }
+
+/* Live Price Pin & Pointer Tag */
+.dealing-ladder-svg .dl-live-line {
+  stroke-width: 1.8;
+}
+.dealing-ladder-svg .dl-live-pin--bull .dl-live-line { stroke: var(--ck-buy); }
+.dealing-ladder-svg .dl-live-pin--bear .dl-live-line { stroke: var(--ck-sell); }
+.dealing-ladder-svg .dl-live-pin--neutral .dl-live-line { stroke: var(--ck-gold); }
+
+.dealing-ladder-svg .dl-live-dot {
+  stroke: #0c1320;
+  stroke-width: 2;
+}
+.dealing-ladder-svg .dl-live-pin--bull .dl-live-dot,
+.dealing-ladder-svg .dl-live-pin--bull .dl-live-arrow { fill: var(--ck-buy); }
+.dealing-ladder-svg .dl-live-pin--bear .dl-live-dot,
+.dealing-ladder-svg .dl-live-pin--bear .dl-live-arrow { fill: var(--ck-sell); }
+.dealing-ladder-svg .dl-live-pin--neutral .dl-live-dot,
+.dealing-ladder-svg .dl-live-pin--neutral .dl-live-arrow { fill: var(--ck-gold); }
+
+.dealing-ladder-svg .dl-live-tag {
+  fill: #0f172a;
+  stroke-width: 1.4;
+}
+.dealing-ladder-svg .dl-live-pin--bull .dl-live-tag { stroke: var(--ck-buy); }
+.dealing-ladder-svg .dl-live-pin--bear .dl-live-tag { stroke: var(--ck-sell); }
+.dealing-ladder-svg .dl-live-pin--neutral .dl-live-tag { stroke: var(--ck-gold); }
+
+.dealing-ladder-svg .dl-live-val {
+  font-family: var(--ck-mono);
+  font-size: 11px;
+  font-weight: 800;
+  fill: #f8fafc;
+}
+.dealing-ladder-svg .dl-live-pct {
+  font-family: var(--ck-mono);
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--ck-gold);
+}
+
+.dr-footer-meta {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dr-card .dr-notrade-row {
+  margin: 0;
+}
+.dr-status-badge.is-inspecting {
+  border-style: dashed;
+}
+
+/* ── Light Mode Parity for Bias Compass & Vertical Price Ladder ── */
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .bias-compass-svg .bc-track {
+  stroke: rgba(15, 23, 42, 0.11);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .bias-compass-svg .bc-tick {
+  stroke: rgba(15, 23, 42, 0.25);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .bias-compass-svg .bc-hub-outer {
+  fill: #ffffff;
+  stroke: rgba(15, 23, 42, 0.18);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .hero-adr-track {
+  background: rgba(15, 23, 42, 0.10);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-shaft-bg {
+  fill: rgba(255, 255, 255, 0.85);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-zone-premium {
+  fill: rgba(220, 38, 38, 0.06);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-zone-discount {
+  fill: rgba(5, 150, 105, 0.06);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-ote-sell {
+  fill: rgba(220, 38, 38, 0.11);
+  stroke: rgba(220, 38, 38, 0.34);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-ote-buy {
+  fill: rgba(5, 150, 105, 0.11);
+  stroke: rgba(5, 150, 105, 0.34);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-notrade-fill {
+  fill: rgba(217, 119, 6, 0.10);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-hatch-line {
+  stroke: rgba(180, 83, 9, 0.26);
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-live-dot {
+  stroke: #ffffff;
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-live-tag {
+  fill: #ffffff;
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-live-val {
+  fill: #0f172a;
+}
+:is(html[data-amyfx-theme="light"], html[data-theme="light"]) .dealing-ladder-svg .dl-live-pct {
+  fill: #b45309;
+}
+
+/* ── Mobile Responsive Rules for Compass & Vertical Ladder ── */
+@media (max-width: 600px) {
+  .hero-ict-strip--quad {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hero-ict-strip--quad .hero-ict-metric {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 3px;
+  }
+  .hero-ict-strip--quad .hero-ict-val {
+    text-align: left;
+  }
+  .hero-compass-dial {
+    max-width: 262px;
+  }
+  .dr-ladder-svg-wrap {
+    max-width: 100%;
+  }
+  .poi-level-tile {
+    padding: 12px 13px;
+  }
 }
 
 

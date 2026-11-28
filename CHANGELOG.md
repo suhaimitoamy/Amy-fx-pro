@@ -1,3 +1,8 @@
+## 2.0.0-pro.484
+
+- feat(mapping-visuals): Sinkronisasi visualisasi interaktif Mapping (`mapping-visuals.js`, `apps/mapping/index.html`, `dashboard-v2.js`, `ict-dashboard-v2.css`, `tests/mapping-visuals.test.mjs`) dari `Amy-fx-ai-studio` (`61f1525`): Kompas Bias 3-TF SVG interaktif + tab TF + ADR bar, Tangga Harga Vertikal Dealing Range (`M15 | PDL–PDH`, zona OTE, arsir EQ No-Trade, marker POI aktif), dan pemolesan tata letak card Rencana Eksekusi POI Dark/Light.
+- feat(mapping-engine-v8): Sinkronisasi Mapping POI Engine v7 & v8 (`mapping-accuracy.js`, `mapping-history-engine.js`, `dashboard-v2.js`, `lib/market-snapshot-offline.json`, `home-account-cockpit.js`, `app.js`, `amyfx-natural-ui-pro355.css`): Hybrid Rejection Gate M5 & London (`requiresHybridRejection`), detektor kausal London Judas Swing & BSL/SSL Sweep + banner live (`#poi-live-sweep-banner`), filter kausal H1 (`COUNTER_H1_BLOCKED`), Market Regime + Runner 3.5R, serta tombol Tarik Riwayat 30 Hari + pewarnaan kalender berbasis Net R.
+
 ## 2.0.0-pro.483
 
 - chore(cleanup): Pembersihan menyeluruh 303 berkas yatim & duplikat aset (`-27.11 MB` di `app/src/main/assets`, total turun menjadi `20 MB`), termasuk proyek 3D non-trading (`jalusi/`, `character3d/`), `192` gambar lama Academy, sisa Vite bundle `mapping/assets/`, `49` skrip scratch `indikator/files/`, serta folder legasi `academy/{connected,backtest-learning,admin,tools,.github}` yang disinkronkan dua arah dengan `Amy-fx-ai-studio`.

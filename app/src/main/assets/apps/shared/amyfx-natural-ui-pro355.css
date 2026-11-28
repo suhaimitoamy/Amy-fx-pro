@@ -2464,6 +2464,9 @@ body.amyfx-module--home .home-price-panel .home-price-head h2 {
 .home-price-sep {
   opacity: 0.55;
 }
+.home-price-meta:has(#home-chart-source:empty) .home-price-sep {
+  display: none;
+}
 
 body.amyfx-module--home .home-price-panel .dr-badge {
   display: inline !important;

@@ -1,19 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.483/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.484/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Pemangkasan Aset & Perbaikan Deep-Link AMY/Market Intel: Menghapus 303 berkas mati & duplikat (-27.11 MB assets), memperbaiki rute 404 kalkulator/glosarium + hitungan 36 bab Academy di AMY Assistant (?tool=lot-calc & ?view=glossary), menyinkronkan label 100 Studi Kasus, serta memperbaiki status awal CEK SESI & fallback offline di Market Intel."
+    "✦ Mapping POI Engine v7/v8 & Visualisasi SVG Interaktif (sinkron AI Studio 61f1525): Kompas Bias 3-TF interaktif dengan jarum berbobot & ADR bar, Tangga Harga Vertikal Dealing Range (OTE, EQ No-Trade, POI aktif, mode M15/PDL-PDH), Hybrid Rejection Gate (M5 & London), detektor kausal London Judas Swing + BSL/SSL Sweep + banner live, serta tombol Tarik Riwayat 30 Hari & kalender Net R."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.483/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.484/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950483,
-  "latest_version_name": "2.0.0-pro.483",
+  "latest_version_code": 950484,
+  "latest_version_name": "2.0.0-pro.484",
   "mandatory": false,
   "releaseDate": "2026-11-28",
   "release_notes": [
-    "✦ Pemangkasan Aset & Perbaikan Deep-Link AMY/Market Intel: Menghapus 303 berkas mati & duplikat (-27.11 MB assets), memperbaiki rute 404 kalkulator/glosarium + hitungan 36 bab Academy di AMY Assistant (?tool=lot-calc & ?view=glossary), menyinkronkan label 100 Studi Kasus, serta memperbaiki status awal CEK SESI & fallback offline di Market Intel."
+    "✦ Mapping POI Engine v7/v8 & Visualisasi SVG Interaktif (sinkron AI Studio 61f1525): Kompas Bias 3-TF interaktif dengan jarum berbobot & ADR bar, Tangga Harga Vertikal Dealing Range (OTE, EQ No-Trade, POI aktif, mode M15/PDL-PDH), Hybrid Rejection Gate (M5 & London), detektor kausal London Judas Swing + BSL/SSL Sweep + banner live, serta tombol Tarik Riwayat 30 Hari & kalender Net R."
   ],
-  "version": "2.0.0-pro.483",
-  "versionCode": 950483,
+  "version": "2.0.0-pro.484",
+  "versionCode": 950484,
   "sha256": "102deaa9d94a9a2cdfcaae3103e7139ec6e88925f3789c112a1b55553db0e62e"
 }

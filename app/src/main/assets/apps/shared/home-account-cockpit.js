@@ -393,8 +393,8 @@
     const todayValClass = toneClass(snap.todayTotalUsd);
 
     const statusMeta = marketOpen
-      ? (marketPrice ? `XAU/USD $${marketPrice.toFixed(2)} · 1:${params.leverage}` : `Akun Pro · 1:${params.leverage}`)
-      : `Pasar Tutup (Akhir Pekan)${marketPrice ? ` · Ref $${marketPrice.toFixed(2)}` : ""}`;
+      ? (marketPrice ? `XAU/USD $${marketPrice.toFixed(2)} · 1:${params.leverage}` : `1:${params.leverage}`)
+      : "Pasar Tutup";
 
     const positionsHtml = hasOpen
       ? `
