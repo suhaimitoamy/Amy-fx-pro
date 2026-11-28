@@ -67,13 +67,18 @@ function extractActivePoiList(context, m15Candles, m5Candles) {
 
   function addZone(z, tf) {
     if (!z) return;
-    const side = String(z.side || '').toUpperCase();
+    const isBreaker = Boolean(z.breaker && !z.removed);
+    const side = isBreaker
+      ? (String(z.side || '').toUpperCase() === 'BUY' ? 'SELL' : 'BUY')
+      : String(z.side || '').toUpperCase();
     if (side !== 'BUY' && side !== 'SELL') return;
-    const kind = String(z.kind || 'FVG').toUpperCase();
+    const kind = isBreaker ? 'BB' : String(z.kind || 'FVG').toUpperCase();
     const low = Number(z.low ?? z.bot);
     const high = Number(z.high ?? z.top);
     if (!Number.isFinite(low) || !Number.isFinite(high) || high <= low) return;
-    if (z.status === 4 || z.lifecycle === 'BROKEN') return;
+    const width = high - low;
+    if (width < 0.8 || width > 12.0) return;
+    if (!isBreaker && (z.status === 4 || z.lifecycle === 'BROKEN')) return;
 
     const id = `POI_${side}_${tf}_${kind}_${low.toFixed(2)}_${high.toFixed(2)}`;
     if (seen.has(id)) return;
@@ -81,7 +86,6 @@ function extractActivePoiList(context, m15Candles, m5Candles) {
 
     const isSell = side === 'SELL';
     const isM5 = tf === 'M5';
-    const width = Math.max(0.5, high - low);
     const ce = Number((z.ce ?? ((low + high) / 2)).toFixed(2));
     const targetDist = isM5
       ? Math.max(6.0, Math.min(8.0, 6.0 + width * 0.55))
@@ -124,10 +128,13 @@ function extractActivePoiList(context, m15Candles, m5Candles) {
   const m15Vis = context?.amy?.visuals;
   if (m15Vis) {
     if (Array.isArray(m15Vis.fvg)) {
-      for (const z of m15Vis.fvg.slice(-6)) addZone(z, 'M15');
+      for (const z of m15Vis.fvg.slice(-8)) addZone(z, 'M15');
+    }
+    if (Array.isArray(m15Vis.implied)) {
+      for (const z of m15Vis.implied.slice(-6)) addZone({ ...z, kind: 'iFVG' }, 'M15');
     }
     if (Array.isArray(m15Vis.ob)) {
-      for (const z of m15Vis.ob.slice(-6)) addZone(z, 'M15');
+      for (const z of m15Vis.ob.slice(-8)) addZone(z, 'M15');
     }
   }
 
@@ -135,10 +142,13 @@ function extractActivePoiList(context, m15Candles, m5Candles) {
     if (Array.isArray(m5Candles) && m5Candles.length >= 20) {
       const m5Vis = baseVisuals(m5Candles);
       if (Array.isArray(m5Vis.fvg)) {
-        for (const z of m5Vis.fvg.slice(-6)) addZone(z, 'M5');
+        for (const z of m5Vis.fvg.slice(-8)) addZone(z, 'M5');
+      }
+      if (Array.isArray(m5Vis.implied)) {
+        for (const z of m5Vis.implied.slice(-6)) addZone({ ...z, kind: 'iFVG' }, 'M5');
       }
       if (Array.isArray(m5Vis.ob)) {
-        for (const z of m5Vis.ob.slice(-6)) addZone(z, 'M5');
+        for (const z of m5Vis.ob.slice(-8)) addZone(z, 'M5');
       }
     }
   } catch (_) {}
@@ -215,6 +225,22 @@ export default async function handler(req, res) {
     const poiList = extractActivePoiList(context, m15, m5);
     context.poiList = poiList;
     if (context.amy) context.amy.poiList = poiList;
+
+    // 15-minute high/low envelope so background workers never miss intrabar touches between M15 polls
+    const latestM15Bar = m15.at(-1) || null;
+    const recentM5Bars = m5.slice(-3);
+    const recentHighs = [latestM15Bar?.high, ...recentM5Bars.map(c => c?.high)].filter(v => Number.isFinite(v) && v > 0);
+    const recentLows = [latestM15Bar?.low, ...recentM5Bars.map(c => c?.low)].filter(v => Number.isFinite(v) && v > 0);
+    if (recentHighs.length && recentLows.length) {
+      const recentWindow = {
+        high: Number(Math.max(...recentHighs).toFixed(2)),
+        low: Number(Math.min(...recentLows).toFixed(2)),
+        fromTime: recentM5Bars[0]?.open_time || latestM15Bar?.open_time || null,
+        toTime: recentM5Bars.at(-1)?.close_time || latestM15Bar?.close_time || null
+      };
+      context.recentWindow = recentWindow;
+      if (context.amy) context.amy.recentWindow = recentWindow;
+    }
 
     const isMarketClosed = context.session === 'PASAR TUTUP' || !isGoldMarketOpen(nowSec);
     const active = [];

@@ -1,3 +1,10 @@
+## 2.0.0-pro.485
+
+- fix(notifications): Perbaikan menyeluruh 3 bug notifikasi pop-up:
+  1. **Mapping Setup Entry & History Sync:** Menambahkan `collectFreshBackfillAlerts` pada `mapping-history-engine.js` & `dashboard-v2.js` agar POI baru di Riwayat Reaksi (seluruh zona valid M15/M5 termasuk `iFVG` & `BB` pada `api/scalper-setups.js`) tetap memicu pop-up tanpa duplikasi, memperluas `recentWindow` + freshness `3600L` pada `DriverSetupSyncWorker.kt`, serta memasang observer POI/Alarm lintas halaman (`app.js`, `amyfx-universal-nav.js`).
+  2. **Alarm Harga Pop-Up (Peta Harga & Chart Gold):** Menambahkan evaluator native background `PriceAlertNativeEvaluator.kt` + worker 60 detik `PriceAlertSyncWorker.kt` + hook `TwelveDataPriceBridge.kt` & `BootReceiver.kt`, membebaskan alarm harga & tes notifikasi dari `AMYFX_NOTIFY_GUARD` / mute 9 detik dan batas gate 30 menit (`AmyFxNotificationGate.java`, `MainActivity.kt`), serta fallback `ServiceWorkerRegistration.showNotification` (`price-alert-manager.js`).
+  3. **Belajar (Academy) Last-Studied Sync:** Menghubungkan `apps/academy/index.html` + `academy-app.js` ke `amy-learning-reminder.js` & `Android.recordLastStudiedLesson` saat membuka bab, scroll >=80%, dan lulus kuis; memperbaiki overload 2-argumen di `MainActivity.kt`; memprioritaskan `amy_last_opened_time` terbaru di `amy-learning-reminder.js`; serta memperbarui notifikasi aktif (`NOTIFICATION_ID = 88219`) secara langsung lewat `LearningReminderWorker.refreshActiveNotificationIfShowing()`.
+
 ## 2.0.0-pro.484
 
 - feat(mapping-visuals): Sinkronisasi visualisasi interaktif Mapping (`mapping-visuals.js`, `apps/mapping/index.html`, `dashboard-v2.js`, `ict-dashboard-v2.css`, `tests/mapping-visuals.test.mjs`) dari `Amy-fx-ai-studio` (`61f1525`): Kompas Bias 3-TF SVG interaktif + tab TF + ADR bar, Tangga Harga Vertikal Dealing Range (`M15 | PDL–PDH`, zona OTE, arsir EQ No-Trade, marker POI aktif), dan pemolesan tata letak card Rencana Eksekusi POI Dark/Light.

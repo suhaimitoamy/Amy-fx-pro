@@ -22,11 +22,16 @@
     const x=(String(t||'')+' '+String(b||'')).toLowerCase();
     if(x.includes('scanner terhubung'))return 'scanner_connected';
     if(x.includes('amy fx aktif'))return 'scanner_alive';
+    if(x.includes('alarm harga')||x.includes('tes alarm')||x.includes('tes notifikasi'))return 'price_alarm';
+    if(x.includes('sentuh')||x.includes('disentuh')||x.includes('tp1')||x.includes('tp2')||x.includes('jebol sl')||x.includes('peluru utama'))return 'poi_signal';
+    if(x.includes('breaking news')||x.includes('berita'))return 'news_alert';
+    if(x.includes('tingkatkan skill')||x.includes('materi terakhir'))return 'learning_reminder';
     if(x.includes('liquidity sweep')||x.includes('order block')||x.includes('fair value gap')||x.includes('displacement'))return 'setup_alert';
     if(x.includes('ssl')||x.includes('bsl'))return 'bsl_ssl_touched';
     return 'amyfx_alert';
   }
   function cooldown(k){
+    if(k==='price_alarm'||k==='poi_signal'||k==='news_alert'||k==='learning_reminder')return 0;
     if(k==='scanner_connected')return 10*60*1000;
     if(k==='scanner_alive')return 10*60*1000;
     if(k==='setup_alert')return 2*60*1000;
@@ -35,6 +40,9 @@
   }
   function key(t,b){
     const k=kind(t,b);
+    if(k==='price_alarm'||k==='poi_signal'||k==='news_alert'||k==='learning_reminder'){
+      return k+'|'+String(t||'').trim().slice(0,180)+'|'+String(b||'').trim().slice(0,180);
+    }
     return k+'|'+norm(t)+'|'+norm(b);
   }
   function read(){
@@ -46,6 +54,7 @@
   }
   function route(t,b){
     const k=kind(t,b);
+    if(k==='price_alarm'||k==='poi_signal')return 'Dashboard';
     if(k==='setup_alert'||k==='bsl_ssl_touched')return 'Analyze';
     if(k==='scanner_connected'||k==='scanner_alive')return 'Dashboard';
     return 'Analyze';
@@ -57,8 +66,10 @@
     try{window.focus?.()}catch(e){}
   }
   function allow(t,b){
-    const n=now(),knd=kind(t,b),kk=key(t,b),last=read(),prev=last[kk]||0;
-    if(n-prev<cooldown(knd))return false;
+    const n=now(),knd=kind(t,b),cd=cooldown(knd);
+    if(cd===0)return true;
+    const kk=key(t,b),last=read(),prev=last[kk]||0;
+    if(n-prev<cd)return false;
     last[kk]=n;
     write(last);
     return true;

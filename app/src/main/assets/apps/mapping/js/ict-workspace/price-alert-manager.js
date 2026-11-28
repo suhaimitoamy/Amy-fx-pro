@@ -746,9 +746,50 @@ export function saveAlerts(alerts) {
     if (typeof localStorage === 'undefined') return false;
     const safeList = Array.isArray(alerts) ? alerts : [];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(safeList));
+    try {
+      if (typeof window !== 'undefined' && typeof window.Android?.syncPriceAlerts === 'function') {
+        window.Android.syncPriceAlerts(JSON.stringify(safeList));
+      }
+    } catch (_) {}
     return true;
   } catch (err) {
     console.error('[PriceAlert] Gagal menyimpan alerts:', err);
+    return false;
+  }
+}
+
+export function syncNativeTriggeredAlerts() {
+  try {
+    if (typeof window === 'undefined' || typeof window.Android?.getSyncedPriceAlerts !== 'function') return false;
+    const rawNative = window.Android.getSyncedPriceAlerts();
+    if (!rawNative) return false;
+    const nativeList = JSON.parse(rawNative);
+    if (!Array.isArray(nativeList) || !nativeList.length) return false;
+    const localList = getAlerts();
+    if (!localList.length) return false;
+
+    const nativeMap = new Map(nativeList.map(item => [item?.id, item]));
+    let changed = false;
+    const merged = localList.map(local => {
+      const nat = nativeMap.get(local?.id);
+      if (nat && local.status === 'ACTIVE' && nat.status === 'TRIGGERED') {
+        changed = true;
+        return {
+          ...local,
+          status: 'TRIGGERED',
+          triggeredAt: nat.triggeredAt || Date.now(),
+          lastCheckedPrice: nat.lastCheckedPrice || local.lastCheckedPrice
+        };
+      }
+      return local;
+    });
+
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      broadcastAlertsUpdated({ action: 'native-sync', alerts: merged });
+    }
+    return changed;
+  } catch (_) {
     return false;
   }
 }
@@ -1090,14 +1131,23 @@ export function notifyTriggeredAlert(alert, currentPrice) {
     console.warn('[PriceAlert] Gagal memanggil Android notification bridge:', err);
   }
 
-  // 2. Web Notification API
+  // 2. Web Notification API (with ServiceWorker fallback for mobile Chrome / PWA)
   try {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
+      const notifOpts = {
         body: message,
         icon: '/favicon.ico',
         tag: 'amyfx_alert_' + (alert.id || Date.now())
-      });
+      };
+      try {
+        new Notification(title, notifOpts);
+      } catch (_) {
+        if (typeof navigator !== 'undefined' && navigator.serviceWorker?.ready) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg?.showNotification?.(title, notifOpts);
+          }).catch(() => {});
+        }
+      }
     }
   } catch (_) {}
 
@@ -1773,7 +1823,20 @@ export function initPriceAlertObserver() {
     }
   });
 
+  if (typeof window.Android?.syncPriceAlerts === 'function') {
+    syncNativeTriggeredAlerts();
+    try {
+      const initialAlerts = getAlerts();
+      if (initialAlerts.length > 0) {
+        window.Android.syncPriceAlerts(JSON.stringify(initialAlerts));
+      }
+    } catch (_) {}
+  }
+
   if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) syncNativeTriggeredAlerts();
+    });
     const observedEls = new WeakSet();
     const attachDomObservers = () => {
       syncAlertButtonBadges();

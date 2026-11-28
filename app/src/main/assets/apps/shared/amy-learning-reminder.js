@@ -90,9 +90,20 @@
 
       // Last studied lesson details from Academy reading history
       var lastRead = readJson('amy_academy_last_read_v2', null);
-      var lastTitle = (lastRead && lastRead.title) || localStorage.getItem('amy_last_opened_title') || '';
-      var lastUrl = (lastRead && lastRead.path) || localStorage.getItem('amy_last_opened_url') || DEFAULT_URL;
-      var lastTime = (lastRead && lastRead.updatedAt) || 0;
+      var lastReadTime = Number((lastRead && lastRead.updatedAt) || 0);
+      var openedTitle = localStorage.getItem('amy_last_opened_title') || '';
+      var openedUrl = localStorage.getItem('amy_last_opened_url') || '';
+      var openedTime = Number(localStorage.getItem('amy_last_opened_time') || 0);
+
+      var useOpened = Boolean(openedTitle && (!lastRead || !lastRead.title || openedTime > lastReadTime));
+      var lastTitle = useOpened ? openedTitle : ((lastRead && lastRead.title) || openedTitle || '');
+      var lastUrl = useOpened
+        ? (openedUrl || (lastRead && lastRead.path) || DEFAULT_URL)
+        : ((lastRead && lastRead.path) || openedUrl || DEFAULT_URL);
+      var lastTime = Math.max(lastReadTime, openedTime);
+      var lastSection = useOpened
+        ? (localStorage.getItem('amy_last_opened_section') || (lastRead && lastRead.section) || '')
+        : ((lastRead && lastRead.section) || localStorage.getItem('amy_last_opened_section') || '');
 
       // Check native config if available
       if (global.Android && typeof global.Android.getLearningReminderConfig === 'function') {
@@ -100,12 +111,18 @@
           var nativeConfig = JSON.parse(global.Android.getLearningReminderConfig() || '{}');
           if (nativeConfig.enabled !== undefined) enabled = Boolean(nativeConfig.enabled);
           if (nativeConfig.time) time = nativeConfig.time;
+          var localTime = lastTime;
           var nativeTime = Number(nativeConfig.lastTime || nativeConfig.timestamp || 0);
-          if (nativeConfig.lastTitle && (nativeTime >= lastTime || !lastTitle)) {
+          var adoptNative = nativeTime >= localTime;
+          if (nativeConfig.lastTitle && (adoptNative || !lastTitle)) {
             lastTitle = nativeConfig.lastTitle;
             if (nativeTime) lastTime = nativeTime;
+          } else if (lastTitle && localTime > nativeTime && typeof global.Android.recordLastStudiedLesson === 'function') {
+            try {
+              global.Android.recordLastStudiedLesson(lastTitle, lastUrl, lastSection);
+            } catch (_) {}
           }
-          if (nativeConfig.lastUrl && (nativeTime >= lastTime || !lastUrl || lastUrl === DEFAULT_URL)) {
+          if (nativeConfig.lastUrl && (adoptNative || !lastUrl || lastUrl === DEFAULT_URL)) {
             lastUrl = nativeConfig.lastUrl;
           }
         } catch (_) {}
@@ -193,13 +210,17 @@
       if (!title) return;
       var cleanTitle = String(title).replace(/\s+[—|-]\s+Tutorial Trading.*$/i, '').trim();
       var cleanUrl = String(url || DEFAULT_URL).trim();
+      var cleanSection = String(section || '').trim();
+      var now = Date.now();
 
       localStorage.setItem('amy_last_opened_title', cleanTitle);
       localStorage.setItem('amy_last_opened_url', cleanUrl);
+      localStorage.setItem('amy_last_opened_time', String(now));
+      if (cleanSection) localStorage.setItem('amy_last_opened_section', cleanSection);
 
       if (global.Android && typeof global.Android.recordLastStudiedLesson === 'function') {
         try {
-          global.Android.recordLastStudiedLesson(cleanTitle, cleanUrl, String(section || ''));
+          global.Android.recordLastStudiedLesson(cleanTitle, cleanUrl, cleanSection);
         } catch (e) {
           console.warn('Android recordLastStudiedLesson failed', e);
         }

@@ -166,3 +166,46 @@ test('BootReceiver and MainActivity re-arm and synchronize both AlarmManager and
   assert.match(mainActivitySource, /LearningReminderReceiver\.schedule\(mContext\)/);
   assert.match(mainActivitySource, /LearningReminderWorker\.reschedule\(mContext\)/);
 });
+
+test('Learning notification updates with newest studied lesson (recordLesson, academy-app.js, and in-place refresh)', () => {
+  // 1. Stale amy_academy_last_read_v2 must NOT override a newer recordLesson call
+  const storage = new Map([
+    ['amy_academy_last_read_v2', JSON.stringify({
+      title: 'Materi Lama Banget',
+      path: 'https://appassets.androidplatform.net/assets/apps/academy/old.html',
+      updatedAt: 1000
+    })]
+  ]);
+  const localStorage = {
+    getItem: (k) => (storage.has(k) ? storage.get(k) : null),
+    setItem: (k, v) => storage.set(k, String(v)),
+    removeItem: (k) => storage.delete(k)
+  };
+  const ctx = {
+    window: {},
+    document: { readyState: 'complete', addEventListener: () => {} },
+    localStorage,
+    Date,
+    console
+  };
+  ctx.global = ctx;
+  ctx.window = ctx;
+  vm.runInNewContext(jsSource, ctx);
+  ctx.AmyLearningReminder.recordLesson(
+    'Bab Baru: Liquidity Sweep M15',
+    'https://appassets.androidplatform.net/assets/apps/academy/index.html#ch=24',
+    'Bab 24'
+  );
+  const cfg = ctx.AmyLearningReminder.getConfig();
+  assert.equal(cfg.lastTitle, 'Bab Baru: Liquidity Sweep M15');
+  assert.match(cfg.lastUrl, /ch=24/);
+
+  // 2. Main Academy app must sync studied chapter and refresh active notification in MainActivity/Worker
+  const academyHtml = readFileSync(new URL('../app/src/main/assets/apps/academy/index.html', import.meta.url), 'utf8');
+  const academyJs = readFileSync(new URL('../app/src/main/assets/apps/academy/js/academy-app.js', import.meta.url), 'utf8');
+  assert.match(academyHtml, /amy-learning-reminder\.js/);
+  assert.match(academyJs, /syncLastStudiedLesson/);
+  assert.match(academyJs, /recordLastStudiedLesson/);
+  assert.match(workerSource, /fun refreshActiveNotificationIfShowing/);
+  assert.match(mainActivitySource, /LearningReminderWorker\.refreshActiveNotificationIfShowing/);
+});

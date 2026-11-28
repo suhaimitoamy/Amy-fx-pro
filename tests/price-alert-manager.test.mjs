@@ -489,3 +489,22 @@ test('PriceAlertManager: SSL Sweep alert triggers custom sweep notification and 
   assert.ok(notif.message.includes('Level Likuiditas 2640.00 telah tersapu (Sweep)!'));
   assert.ok(window.Android.playGoldChimeCount > 0, 'Must play gold chime on ICT sweep');
 });
+
+test('PriceAlertManager: native Android background evaluator & AMYFX_NOTIFY_GUARD exemptions are wired', () => {
+  const evaluatorSrc = fs.readFileSync('app/src/main/java/com/amyelitesuite/PriceAlertNativeEvaluator.kt', 'utf8');
+  assert.match(evaluatorSrc, /object PriceAlertNativeEvaluator/);
+  assert.match(evaluatorSrc, /fun syncAlerts/);
+  assert.match(evaluatorSrc, /fun evaluate\(/);
+
+  const workerSrc = fs.readFileSync('app/src/main/java/com/amyelitesuite/PriceAlertSyncWorker.kt', 'utf8');
+  assert.match(workerSrc, /class PriceAlertSyncWorker/);
+  assert.match(workerSrc, /PriceAlertNativeEvaluator\.evaluate/);
+
+  const mainActivitySrc = fs.readFileSync('app/src/main/java/com/amyelitesuite/MainActivity.kt', 'utf8');
+  assert.match(mainActivitySrc, /@JavascriptInterface\s+fun syncPriceAlerts/);
+  assert.match(mainActivitySrc, /PriceAlertSyncWorker\.schedule/);
+
+  const appJsSrc = fs.readFileSync('app/src/main/assets/app.js', 'utf8');
+  assert.match(appJsSrc, /if\(k==='price_alarm'\|\|k==='poi_signal'\|\|k==='news_alert'\|\|k==='learning_reminder'\)\{\s*return k\+'\|'/);
+  assert.match(appJsSrc, /if\(knd==='price_alarm'\|\|knd==='poi_signal'\|\|knd==='news_alert'\|\|knd==='learning_reminder'\)return true;/);
+});

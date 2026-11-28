@@ -68,6 +68,21 @@ class DriverSetupSyncWorker(
                 }
 
                 if (contextObj != null) {
+                    val evalPrice = contextObj.optDouble("price", 0.0)
+                    val recentWin = contextObj.optJSONObject("recentWindow")
+                        ?: contextObj.optJSONObject("amy")?.optJSONObject("recentWindow")
+                    val winHigh = recentWin?.optDouble("high", 0.0) ?: 0.0
+                    val winLow = recentWin?.optDouble("low", 0.0) ?: 0.0
+                    val winFromMs = (recentWin?.optLong("fromTime", 0L) ?: 0L) * 1000L
+                    if (evalPrice > 0.0) {
+                        PriceAlertNativeEvaluator.evaluate(
+                            context = applicationContext,
+                            currentPrice = evalPrice,
+                            windowHigh = winHigh,
+                            windowLow = winLow,
+                            windowFromMs = winFromMs
+                        )
+                    }
                     processAssistantAlerts(contextObj, payload)
                 }
 
@@ -126,8 +141,8 @@ class DriverSetupSyncWorker(
         if (candleTime <= 0L) return
 
         val nowSec = System.currentTimeMillis() / 1000
-        // Freshness window diperlonggar menjadi 45 menit (2700s) agar tidak langsung di-drop jika Android WorkManager delay beberapa menit saat Doze Mode
-        if (nowSec - candleTime > 2700L) {
+        // Freshness window diperlonggar menjadi 60 menit (3600s) sesuai Pro 408 agar WorkManager delay tidak membatalkan alert POI
+        if (nowSec - candleTime > 3600L) {
             android.util.Log.d("AmyFX-DriverWorker", "Candle is stale (${nowSec - candleTime}s old), assistant alerts suppressed.")
             return
         }
@@ -333,8 +348,11 @@ class DriverSetupSyncWorker(
             }
         }
 
-        val effHigh = if (cHigh > 0.0) cHigh else currentPrice
-        val effLow = if (cLow > 0.0) cLow else currentPrice
+        val recentWin = contextObj.optJSONObject("recentWindow") ?: amy.optJSONObject("recentWindow")
+        val winHigh = recentWin?.optDouble("high", 0.0) ?: 0.0
+        val winLow = recentWin?.optDouble("low", 0.0) ?: 0.0
+        val effHigh = listOf(cHigh, winHigh, currentPrice).filter { it > 0.0 }.maxOrNull() ?: currentPrice
+        val effLow = listOf(cLow, winLow, currentPrice).filter { it > 0.0 }.minOrNull() ?: currentPrice
 
         for (i in 0 until poiList.length()) {
             val z = poiList.optJSONObject(i) ?: continue

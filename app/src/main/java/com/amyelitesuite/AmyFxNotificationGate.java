@@ -23,6 +23,7 @@ public class AmyFxNotificationGate {
         if (t.contains("news") || t.contains("berita") || m.contains("breaking news")) return "News";
         if (t.contains("journal") || t.contains("jurnal")) return "Journal";
         if (t.contains("academy") || t.contains("akademi") || t.contains("belajar") || t.contains("materi") || t.contains("skill")) return "Academy";
+        if (t.contains("alarm harga") || t.contains("tes alarm") || t.contains("entry") || t.contains("sentuh") || t.contains("disentuh") || t.contains("tp1") || t.contains("tp2") || t.contains("jebol sl")) return "Dashboard";
         if (t.contains("target atas") || m.contains("bsl")) return "Analyze";
         if (t.contains("target bawah") || m.contains("ssl")) return "Analyze";
         if (t.contains("scanner") || m.contains("scanner")) return "Analyze";
@@ -58,10 +59,11 @@ public class AmyFxNotificationGate {
     public static boolean isTradingAlert(String key) {
         if (key == null || key.trim().isEmpty()) return false;
         String k = key.toLowerCase(Locale.ROOT);
-        // Educational, News, Journal, and System update alerts are permitted outside market hours
+        // Educational, News, Journal, User Test/Price Alarms, and System update alerts are permitted outside market hours
         if (k.contains("news") || k.contains("berita") || k.contains("breaking news")) return false;
         if (k.contains("journal") || k.contains("jurnal")) return false;
         if (k.contains("academy") || k.contains("akademi") || k.contains("belajar") || k.contains("materi") || k.contains("reminder") || k.contains("pelajaran")) return false;
+        if (k.contains("tes alarm") || k.contains("tes notifikasi") || k.contains("alarm harga")) return false;
         if (k.contains("update amy fx") || k.contains("pembaruan sistem")) return false;
         // All other notifications (market context, scalper, driver setup, live assistant, entry watch, POI/DOL) are trading signals
         return true;

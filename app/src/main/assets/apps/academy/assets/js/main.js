@@ -531,6 +531,10 @@ if (!window.amyHapticListenerAdded) {
     const x=(String(t||'')+' '+String(b||'')).toLowerCase();
     if(x.includes('scanner terhubung'))return 'scanner_connected';
     if(x.includes('amy fx aktif'))return 'scanner_alive';
+    if(x.includes('alarm harga')||x.includes('tes alarm')||x.includes('tes notifikasi'))return 'price_alarm';
+    if(x.includes('sentuh')||x.includes('disentuh')||x.includes('tp1')||x.includes('tp2')||x.includes('jebol sl')||x.includes('peluru utama'))return 'poi_signal';
+    if(x.includes('breaking news')||x.includes('berita'))return 'news_alert';
+    if(x.includes('tingkatkan skill')||x.includes('materi terakhir'))return 'learning_reminder';
     if(x.includes('liquidity sweep'))return 'liquidity_sweep';
     if(x.includes('ssl')||x.includes('bsl'))return 'bsl_ssl_touched';
     return 'amyfx_alert';
@@ -559,10 +563,12 @@ if (!window.amyHapticListenerAdded) {
     try{window.focus()}catch(e){}
   }
   function allow(t,b){
+    const knd=kind(t,b);
+    if(knd==='price_alarm'||knd==='poi_signal'||knd==='news_alert'||knd==='learning_reminder')return true;
     const n=now();
     const k=key(t,b);
 
-    if(n<muteUntil && kind(t,b)!=='scanner_alive')return false;
+    if(n<muteUntil && knd!=='scanner_alive')return false;
 
     const last=read();
     const prev=last[k]||0;

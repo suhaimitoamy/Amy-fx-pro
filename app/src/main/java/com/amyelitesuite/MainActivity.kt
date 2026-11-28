@@ -43,6 +43,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -98,6 +99,7 @@ class MainActivity : Activity() {
         )
 
         createNotificationChannels()
+        PriceAlertNativeEvaluator.createAlarmChannel(this)
         try {
             androidx.work.WorkManager.getInstance(this).enqueue(
                 androidx.work.OneTimeWorkRequestBuilder<NewsSyncWorker>().build()
@@ -106,6 +108,9 @@ class MainActivity : Activity() {
                 androidx.work.OneTimeWorkRequestBuilder<DriverSetupSyncWorker>().build()
             )
             DriverSetupSyncWorker.scheduleNextCandleSync(this)
+            if (PriceAlertNativeEvaluator.hasActiveAlerts(this)) {
+                PriceAlertSyncWorker.scheduleNext(this, delaySeconds = 30L)
+            }
         } catch (_: Exception) {}
 
         rootLayout = FrameLayout(this)
@@ -1284,6 +1289,16 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun syncPriceAlerts(alertsJson: String?) {
+            PriceAlertNativeEvaluator.syncAlerts(applicationContext, alertsJson)
+        }
+
+        @JavascriptInterface
+        fun getSyncedPriceAlerts(): String {
+            return PriceAlertNativeEvaluator.getAlertsJson(applicationContext)
+        }
+
+        @JavascriptInterface
         fun showNotification(title: String, message: String) {
             showNotificationWithUrl(title, message, null)
         }
@@ -1291,6 +1306,13 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun showNotificationWithUrl(title: String, message: String, url: String?) {
             try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    ContextCompat.checkSelfPermission(mContext, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    return
+                }
+
                 val route = AmyFxNotificationGate.routeFor(title, message)
                 val intent = Intent(mContext, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -1300,40 +1322,48 @@ class MainActivity : Activity() {
                     putExtra("target_url", routedUrl)
                     putExtra("amyfx_route", route)
                 }
-                val requestCode = System.currentTimeMillis().toInt()
+                val requestCode = (title + "|" + message + "|" + System.currentTimeMillis()).hashCode()
                 val pendingIntent = PendingIntent.getActivity(
                     mContext, requestCode, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
-                val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Notification.Builder(mContext, "amy_heads_up_v5")
-                } else {
-                    @Suppress("DEPRECATION")
-                    Notification.Builder(mContext)
-                        .setPriority(Notification.PRIORITY_HIGH)
+                val tLower = title.lowercase(java.util.Locale.ROOT)
+                val isUserPriceAlarm = tLower.contains("alarm harga") || tLower.contains("tes alarm") || tLower.contains("tes notifikasi")
+                val isLearning = tLower.contains("tingkatkan skill") || tLower.contains("materi terakhir") || tLower.contains("belajar")
+                val isPoiOrGold = tLower.contains("sentuh") || tLower.contains("disentuh") || tLower.contains("tp1") || tLower.contains("tp2") || tLower.contains("a+") || tLower.contains("peluru utama")
+
+                val channelId = when {
+                    isUserPriceAlarm -> PriceAlertNativeEvaluator.CHANNEL_ID
+                    isLearning -> AmyFxApplication.LEARNING_REMINDER_CHANNEL_ID
+                    isPoiOrGold -> AmyFxApplication.GOLD_SIGNAL_CHANNEL_ID
+                    else -> "amy_heads_up_v5"
                 }
 
-                val notification = builder
+                val notification = NotificationCompat.Builder(mContext, channelId)
                     .setSmallIcon(R.drawable.ic_stat_amy_fx)
                     .setContentTitle(title)
                     .setContentText(message)
-                    .setStyle(Notification.BigTextStyle().bigText(message))
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent)
-                    .setCategory(Notification.CATEGORY_ALARM)
-                    .setPriority(Notification.PRIORITY_MAX)
-                    .setVisibility(Notification.VISIBILITY_PUBLIC)
-                    .setDefaults(Notification.DEFAULT_ALL)
-                    .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                    .setVibrate(longArrayOf(0, 500, 250, 500))
+                    .setCategory(if (isLearning) NotificationCompat.CATEGORY_REMINDER else NotificationCompat.CATEGORY_ALARM)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL)
                     .build()
 
                 val nm = mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 val gateKey = "global|" + title + "|" + message
-                if (AmyFxNotificationGate.shouldNotify(applicationContext, gateKey, System.currentTimeMillis())) {
-                    nm.notify(AmyFxNotificationGate.stableId(gateKey, requestCode), notification)
-                } // AMYFX_NOTIFY_NATIVE_FIX
+                val bypassGate = isUserPriceAlarm || isLearning
+                if (bypassGate || AmyFxNotificationGate.shouldNotify(applicationContext, gateKey, System.currentTimeMillis())) {
+                    val notifId = if (bypassGate) {
+                        Math.abs((title + "|" + System.currentTimeMillis()).hashCode() % 100000) + 100000
+                    } else {
+                        AmyFxNotificationGate.stableId(gateKey, requestCode)
+                    }
+                    nm.notify(notifId, notification)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -1343,7 +1373,9 @@ class MainActivity : Activity() {
         fun recordLastStudiedLesson(title: String?, url: String?, section: String?) {
             try {
                 val cleanTitle = title?.trim()?.takeIf { it.isNotBlank() } ?: return
-                val cleanUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return
+                val rawUrl = url?.trim().orEmpty()
+                val cleanUrl = this@MainActivity.normalizeLocalUrl(rawUrl)
+                    ?: if (rawUrl.startsWith("http")) rawUrl else LearningReminderWorker.DEFAULT_LESSON_URL
                 val prefs = mContext.getSharedPreferences(LearningReminderWorker.PREFS, Context.MODE_PRIVATE)
                 prefs.edit().apply {
                     putString(LearningReminderWorker.KEY_LAST_TITLE, cleanTitle)
@@ -1351,6 +1383,7 @@ class MainActivity : Activity() {
                     putString(LearningReminderWorker.KEY_LAST_SECTION, section?.trim().orEmpty())
                     putLong(LearningReminderWorker.KEY_LAST_TIME, System.currentTimeMillis())
                 }.apply()
+                LearningReminderWorker.refreshActiveNotificationIfShowing(mContext)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -1361,9 +1394,11 @@ class MainActivity : Activity() {
             try {
                 if (folderOrTitle != null && titleOrUrl != null) {
                     if (folderOrTitle.contains("modul-") || folderOrTitle.contains("bagian-")) {
-                        recordLastStudiedLesson(titleOrUrl, "", folderOrTitle)
+                        val fallbackUrl = "${APP_ASSET_PREFIX}apps/academy/$folderOrTitle/index.html"
+                        recordLastStudiedLesson(titleOrUrl, fallbackUrl, folderOrTitle)
                     } else {
-                        recordLastStudiedLesson(folderOrTitle, titleOrUrl, "")
+                        val resolvedUrl = titleOrUrl.trim().ifBlank { LearningReminderWorker.DEFAULT_LESSON_URL }
+                        recordLastStudiedLesson(folderOrTitle, resolvedUrl, "")
                     }
                 }
             } catch (e: Exception) {

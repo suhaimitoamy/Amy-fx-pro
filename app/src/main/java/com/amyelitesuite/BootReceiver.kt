@@ -36,6 +36,9 @@ class BootReceiver : BroadcastReceiver() {
             LearningReminderReceiver.schedule(context)
             LearningReminderWorker.schedule(context)
             DriverSetupSyncWorker.scheduleNextCandleSync(context)
+            if (PriceAlertNativeEvaluator.hasActiveAlerts(context)) {
+                PriceAlertSyncWorker.scheduleNext(context, delaySeconds = 30L)
+            }
         } catch (e: Exception) {
             Log.w("AmyFX", "Failed to re-arm learning reminder or candle sync on boot", e)
         }

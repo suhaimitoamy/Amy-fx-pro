@@ -94,13 +94,13 @@ function logout(){sessionStorage.removeItem(ACADEMY_SESSION_KEY);location.href=t
   const STORE='amyfx.notify.last.sent';const COOLDOWN=5*60*1000;const RESUME_MUTE=9000;const MAX_ITEMS=80;let muteUntil=0;
   function now(){return Date.now()}
   function norm(x){return String(x||'').replace(/\d+([.,]\d+)?/g,'#').replace(/\s+/g,' ').trim().slice(0,180)}
-  function kind(t,b){const x=(String(t||'')+' '+String(b||'')).toLowerCase();if(x.includes('scanner terhubung'))return'scanner_connected';if(x.includes('amy fx aktif'))return'scanner_alive';if(x.includes('liquidity sweep'))return'liquidity_sweep';if(x.includes('ssl')||x.includes('bsl'))return'bsl_ssl_touched';return'amyfx_alert'}
+  function kind(t,b){const x=(String(t||'')+' '+String(b||'')).toLowerCase();if(x.includes('scanner terhubung'))return'scanner_connected';if(x.includes('amy fx aktif'))return'scanner_alive';if(x.includes('alarm harga')||x.includes('tes alarm')||x.includes('tes notifikasi'))return'price_alarm';if(x.includes('sentuh')||x.includes('disentuh')||x.includes('tp1')||x.includes('tp2')||x.includes('jebol sl')||x.includes('peluru utama'))return'poi_signal';if(x.includes('breaking news')||x.includes('berita'))return'news_alert';if(x.includes('tingkatkan skill')||x.includes('materi terakhir'))return'learning_reminder';if(x.includes('liquidity sweep'))return'liquidity_sweep';if(x.includes('ssl')||x.includes('bsl'))return'bsl_ssl_touched';return'amyfx_alert'}
   function key(t,b){return kind(t,b)+'|'+norm(t)+'|'+norm(b)}
   function read(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch(e){return{}}}
   function write(o){const arr=Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,MAX_ITEMS);localStorage.setItem(STORE,JSON.stringify(Object.fromEntries(arr)))}
   function route(t,b){const k=kind(t,b);if(k==='liquidity_sweep'||k==='bsl_ssl_touched')return'Analyze';if(k==='scanner_connected'||k==='scanner_alive')return'Dashboard';return'Analyze'}
   function openRoute(t,b){const r=route(t,b);try{localStorage.setItem('amyfx.notification.route',r)}catch(e){}try{if(typeof setTab==='function')setTab(r)}catch(e){}try{window.focus()}catch(e){}}
-  function allow(t,b){const n=now();const k=key(t,b);if(n<muteUntil&&kind(t,b)!=='scanner_alive')return false;const last=read();const prev=last[k]||0;if(n-prev<COOLDOWN)return false;last[k]=n;write(last);return true}
+  function allow(t,b){const knd=kind(t,b);if(knd==='price_alarm'||knd==='poi_signal'||knd==='news_alert'||knd==='learning_reminder')return true;const n=now();const k=key(t,b);if(n<muteUntil&&knd!=='scanner_alive')return false;const last=read();const prev=last[k]||0;if(n-prev<COOLDOWN)return false;last[k]=n;write(last);return true}
   document.addEventListener('visibilitychange',function(){if(!document.hidden)muteUntil=now()+RESUME_MUTE});
   window.addEventListener('pageshow',function(){muteUntil=now()+RESUME_MUTE});
   try{

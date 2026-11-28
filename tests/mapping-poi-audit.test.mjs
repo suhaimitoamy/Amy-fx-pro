@@ -14,7 +14,8 @@ import {
   evaluateZoneLifecycleOnCandles,
   backfillFromCandles,
   recordLivePoiProgress,
-  mergeHistoryState
+  mergeHistoryState,
+  collectFreshBackfillAlerts
 } from '../app/src/main/assets/apps/mapping/js/ict-workspace/mapping-history-engine.js';
 import { DEFAULT_CHART_LAYERS } from '../app/src/main/assets/apps/mapping/js/ict-workspace/chart-view.js';
 
@@ -277,4 +278,63 @@ test('mapping-history-engine tracks accurate edge touchPrice, multi-touch counts
   const merged = mergeHistoryState(live.state, bf, nowSec * 1000);
   assert.equal(merged.poiRecords[0].touchCount, 2);
   assert.equal(merged.poiRecords[0].ceTouched, true);
+});
+
+test('collectFreshBackfillAlerts emits ZONE_TOUCH for fresh backfill POIs without duplicate spam', () => {
+  const nowMs = Date.UTC(2026, 10, 28, 12, 0, 0);
+  const prevState = { version: 2, poiRecords: [], timelineEvents: [] };
+  const nextState = {
+    version: 2,
+    poiRecords: [
+      {
+        id: 'M15|BUY|3200.0|3204.0|FVG',
+        side: 'BUY',
+        tf: 'M15',
+        kind: 'FVG',
+        low: 3200,
+        high: 3204,
+        ce: 3202,
+        touchPrice: 3204,
+        sl: 3199.5,
+        tp1: 3207,
+        tp2: 3211,
+        touchedAt: nowMs - 2 * 60_000,
+        lastTouchAt: nowMs - 2 * 60_000,
+        status: 'ACTIVE'
+      },
+      {
+        id: 'M15|SELL|3220.0|3224.0|OB',
+        side: 'SELL',
+        tf: 'M15',
+        kind: 'OB',
+        low: 3220,
+        high: 3224,
+        ce: 3222,
+        touchPrice: 3220,
+        touchedAt: nowMs - 60 * 60_000, // stale > 20m
+        lastTouchAt: nowMs - 60 * 60_000,
+        status: 'ACTIVE'
+      }
+    ],
+    timelineEvents: []
+  };
+
+  const first = collectFreshBackfillAlerts(prevState, nextState, nowMs, 20 * 60_000);
+  assert.equal(first.changed, true);
+  assert.equal(first.alerts.length, 1);
+  assert.equal(first.alerts[0].type, 'ZONE_TOUCH');
+  assert.equal(first.alerts[0].poiId, 'M15|BUY|3200.0|3204.0|FVG');
+  assert.equal(first.state.poiRecords[0].notifiedTouch, true);
+
+  // Subsequent check with same updated state must NOT duplicate notification
+  const second = collectFreshBackfillAlerts(first.state, first.state, nowMs + 10_000, 20 * 60_000);
+  assert.equal(second.alerts.length, 0);
+});
+
+test('api/scalper-setups.js tracks iFVG, Breaker Block (BB), and recentWindow for reliable background popups', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'api/scalper-setups.js'), 'utf8');
+  assert.match(src, /extractActivePoiList/);
+  assert.match(src, /kind:\s*'iFVG'/);
+  assert.match(src, /'BB'/);
+  assert.match(src, /recentWindow/);
 });

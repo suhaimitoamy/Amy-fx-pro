@@ -140,6 +140,52 @@
     }
   }
 
+  let lastSyncedReadSig = '';
+  function syncLastStudiedLesson(lesson, progressPct = 0, force = false) {
+    if (!lesson || !lesson.id || !lesson.title) return;
+    try {
+      const stage = typeof C.getStageById === 'function' ? C.getStageById(lesson.stageId) : null;
+      const stepStr = fmtStep(lesson);
+      const displayTitle = `Bab ${stepStr}: ${lesson.title}`;
+      const section = stage ? `${stage.code} · ${stage.title}` : 'Amy FX Academy';
+      const relPath = `index.html?lesson=${encodeURIComponent(lesson.id)}`;
+      const fullUrl = (() => {
+        try {
+          return new URL(relPath, root.location.href).href;
+        } catch {
+          return `https://appassets.androidplatform.net/assets/apps/academy/${relPath}`;
+        }
+      })();
+      const pct = Math.max(0, Math.min(100, Math.round(Number(progressPct) || 0)));
+      const sig = `${lesson.id}:${pct >= 80 ? 'done' : 'open'}`;
+      if (!force && sig === lastSyncedReadSig) return;
+      lastSyncedReadSig = sig;
+
+      const record = {
+        version: 2,
+        path: relPath,
+        title: displayTitle,
+        section,
+        progress: pct,
+        completed: pct >= 95,
+        status: pct >= 95 ? 'completed' : 'reading',
+        namespace: 'academy-book-36',
+        updatedAt: Date.now()
+      };
+      root.localStorage.setItem('amy_last_opened_title', displayTitle);
+      root.localStorage.setItem('amy_last_opened_url', fullUrl);
+      root.localStorage.setItem('amy_academy_last_read_v2', JSON.stringify(record));
+
+      if (root.AmyLearningReminder && typeof root.AmyLearningReminder.recordLesson === 'function') {
+        root.AmyLearningReminder.recordLesson(displayTitle, fullUrl, section);
+      } else if (root.Android && typeof root.Android.recordLastStudiedLesson === 'function') {
+        root.Android.recordLastStudiedLesson(displayTitle, fullUrl, section);
+      }
+    } catch {
+      // Ignore storage / bridge errors
+    }
+  }
+
   function syncUrl(lessonId, replace) {
     try {
       const url = new URL(root.location.href);
@@ -265,6 +311,7 @@
 
     state.progress = C.setLastLesson(state.progress, lesson.id);
     saveProgress();
+    syncLastStudiedLesson(lesson, C.isLessonMastered(state.progress, lesson.id) ? 100 : 15, true);
 
     if (!options.skipUrl) syncUrl(lesson.id, Boolean(options.replaceUrl));
     render();
@@ -1858,6 +1905,7 @@
           const wasMastered = C.isLessonMastered(state.progress, lesson.id);
           state.progress = C.recordQuizAttempt(state.progress, lesson.id, correct, lesson.quiz.length);
           saveProgress();
+          syncLastStudiedLesson(lesson, 100, true);
           const nowMastered = C.isLessonMastered(state.progress, lesson.id);
           if (!wasMastered && nowMastered) {
             const adj = C.getAdjacentLessons(lesson.id);
@@ -1979,6 +2027,21 @@
         else if (state.drawerOpen) setDrawerOpen(false);
       }
     });
+
+    let scrollSyncTimer = 0;
+    root.addEventListener('scroll', () => {
+      if (state.view !== 'lesson' || !state.activeLessonId) return;
+      clearTimeout(scrollSyncTimer);
+      scrollSyncTimer = setTimeout(() => {
+        const lesson = C.getLessonById(state.activeLessonId);
+        if (!lesson) return;
+        const height = Math.max(1, document.documentElement.scrollHeight - document.documentElement.clientHeight);
+        const pct = Math.max(0, Math.min(100, Math.round((root.scrollY / height) * 100)));
+        if (pct >= 80) {
+          syncLastStudiedLesson(lesson, pct >= 95 ? 100 : pct, false);
+        }
+      }, 300);
+    }, { passive: true });
 
     root.addEventListener('popstate', () => {
       const id = readLessonFromUrl();

@@ -1,19 +1,19 @@
 {
-  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.484/AmyFX-Pro-latest.apk",
+  "apk_url": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.485/AmyFX-Pro-latest.apk",
   "changelog": [
-    "✦ Mapping POI Engine v7/v8 & Visualisasi SVG Interaktif (sinkron AI Studio 61f1525): Kompas Bias 3-TF interaktif dengan jarum berbobot & ADR bar, Tangga Harga Vertikal Dealing Range (OTE, EQ No-Trade, POI aktif, mode M15/PDL-PDH), Hybrid Rejection Gate (M5 & London), detektor kausal London Judas Swing + BSL/SSL Sweep + banner live, serta tombol Tarik Riwayat 30 Hari & kalender Net R."
+    "✦ Perbaikan 3 Bug Notifikasi Pop-Up (Mapping Entry, Alarm Harga, & Belajar): Sinkronisasi alert backfill/live seluruh zona M15/M5 (FVG, OB, iFVG, BB) & observer lintas halaman, evaluator native + WorkManager Alarm Harga XAU/USD di background meski aplikasi ditutup, bypass guard anti-mute & ServiceWorker fallback, serta sinkronisasi materi Academy terakhir yang dibaca (termasuk pembaruan notifikasi aktif secara real-time)."
   ],
-  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.484/AmyFX-Pro-latest.apk",
+  "downloadUrl": "https://github.com/suhaimitoamy/Amy-fx-pro/releases/download/amyfx-pro-2.0.0-pro.485/AmyFX-Pro-latest.apk",
   "enabled": true,
   "force_update": false,
-  "latest_version_code": 950484,
-  "latest_version_name": "2.0.0-pro.484",
+  "latest_version_code": 950485,
+  "latest_version_name": "2.0.0-pro.485",
   "mandatory": false,
   "releaseDate": "2026-11-28",
   "release_notes": [
-    "✦ Mapping POI Engine v7/v8 & Visualisasi SVG Interaktif (sinkron AI Studio 61f1525): Kompas Bias 3-TF interaktif dengan jarum berbobot & ADR bar, Tangga Harga Vertikal Dealing Range (OTE, EQ No-Trade, POI aktif, mode M15/PDL-PDH), Hybrid Rejection Gate (M5 & London), detektor kausal London Judas Swing + BSL/SSL Sweep + banner live, serta tombol Tarik Riwayat 30 Hari & kalender Net R."
+    "✦ Perbaikan 3 Bug Notifikasi Pop-Up (Mapping Entry, Alarm Harga, & Belajar): Sinkronisasi alert backfill/live seluruh zona M15/M5 (FVG, OB, iFVG, BB) & observer lintas halaman, evaluator native + WorkManager Alarm Harga XAU/USD di background meski aplikasi ditutup, bypass guard anti-mute & ServiceWorker fallback, serta sinkronisasi materi Academy terakhir yang dibaca (termasuk pembaruan notifikasi aktif secara real-time)."
   ],
-  "version": "2.0.0-pro.484",
-  "versionCode": 950484,
+  "version": "2.0.0-pro.485",
+  "versionCode": 950485,
   "sha256": "d14d4e6d211afad13b7b468a1fcde9866b01bb84c7e6b16cdc5b728de0187720"
 }

@@ -26,6 +26,7 @@
         completedAt: new Date().toISOString()
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prog));
+      recordReadingHistory(true);
     } catch (e) {
       console.warn('Gagal menyimpan progres:', e);
     }
@@ -70,7 +71,7 @@
     });
   }
 
-  function recordReadingHistory() {
+  function recordReadingHistory(isCompleted) {
     try {
       if (/\/level-\d+\/(?:index\.html)?$/i.test(window.location.pathname)) return;
 
@@ -111,8 +112,8 @@
         headingIndex: 0,
         headingText: title,
         namespace: 'micro-learning',
-        status: 'reading',
-        completed: false,
+        status: isCompleted ? 'completed' : 'reading',
+        completed: Boolean(isCompleted),
         updatedAt: Date.now()
       };
       localStorage.setItem('amy_academy_last_read_v2', JSON.stringify(record));

@@ -33,6 +33,7 @@ import {
   selectActiveLiveJudasOrSweep,
   backfillMultiDayWalkForward,
   recordLivePoiProgress,
+  collectFreshBackfillAlerts,
   mergeHistoryState,
   filterByRange,
   summarizePoiStats,
@@ -114,6 +115,8 @@ import {
   let historyClearArmedUntil = 0;
   let historyClearArmTimer = null;
   let historyBackfill30dBusy = false;
+  let historyHydratedOnce = false;
+  let latestTrackableZones = [];
 
   function toNgCandles(rows) {
     if (!Array.isArray(rows) || rows.length < 15) return [];
@@ -313,6 +316,10 @@ import {
 
     try {
       mgr.unlockAlertAudio?.();
+      const st = mgr.getNotificationStatus?.();
+      if (st && !st.native && st.permission === 'default') {
+        mgr.requestNotificationPermission?.();
+      }
       const note = `Entry ${ov?.kind || 'POI'} ${side} · CE $${fmt(ov?.area?.ce || target)}`;
       const created = mgr.addAlert(target, { direction: 'AUTO', note });
       syncEntryAlarmButtons();
@@ -1539,6 +1546,39 @@ import {
     });
   }
 
+  function collectTrackableNgPlans(ngM15, ngM5) {
+    const out = [];
+    const collect = (ng, tf) => {
+      if (!ng?.poi) return;
+      const pushZones = (arr, kind) => {
+        if (!Array.isArray(arr)) return;
+        for (const z of arr.slice(-8)) {
+          if (!z || z.broken || z.lifecycle === 'BROKEN') continue;
+          const rawSide = String(z.side || z.direction || '').toUpperCase();
+          const side = (rawSide === 'SELL' || rawSide === 'BEARISH') ? 'SELL' : 'BUY';
+          const lo = num(z.bot ?? z.low);
+          const hi = num(z.top ?? z.high);
+          if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) continue;
+          const ce = num(z.ce) || (lo + hi) / 2;
+          out.push({
+            side,
+            tf,
+            kind,
+            area: { low: lo, high: hi, ce },
+            sl: computeGoldSlPrice(side, lo, hi, ce, tf)
+          });
+        }
+      };
+      pushZones(ng.poi.bb, 'BB');
+      pushZones(ng.poi.ifvg, 'iFVG');
+      pushZones(ng.poi.ob, 'OB');
+      pushZones(ng.poi.fvg, 'FVG');
+    };
+    collect(ngM15, 'M15');
+    collect(ngM5, 'M5');
+    return out;
+  }
+
   function syncMappingHistoryFromContext(ctx, ngM15, ngM5, ngH1, livePrice) {
     const amy = ctx?.amy || ctx;
     latestHistoryM15Dir = resolveM15Direction(ctx);
@@ -1551,6 +1591,8 @@ import {
     const lastH1 = h1Candles[h1Candles.length - 1];
     const backfillKey = `v${BACKFILL_ENGINE_VERSION}:${m15Candles.length}:${lastM15?.open_time || 0}:${m5Candles.length}:${lastM5?.open_time || 0}:${h1Candles.length}:${lastH1?.open_time || 0}:${historyResetFloorMs}`;
     const nowMs = Date.now();
+    const marketOpen = resolveGoldSessionState(nowMs).isOpen;
+    const hadBaseline = (mappingHistoryState?.poiRecords?.length || 0) > 0 || historyHydratedOnce;
 
     let stateChanged = false;
     if (backfillKey !== lastHistoryBackfillKey && (m15Candles.length >= 10 || m5Candles.length >= 10)) {
@@ -1574,12 +1616,29 @@ import {
             timelineEvents: rawBackfill.timelineEvents.filter(e => e.ts >= historyResetFloorMs)
           }
         : rawBackfill;
-      mappingHistoryState = mergeHistoryState(mappingHistoryState, filteredBackfill, nowMs);
+      let mergedState = mergeHistoryState(mappingHistoryState, filteredBackfill, nowMs);
+      if (hadBaseline && marketOpen) {
+        const bfAlertsRes = collectFreshBackfillAlerts(mappingHistoryState, mergedState, nowMs);
+        if (bfAlertsRes.changed) mergedState = bfAlertsRes.state;
+        if (bfAlertsRes.alerts && bfAlertsRes.alerts.length > 0) {
+          dispatchPoiNotifications(bfAlertsRes.alerts);
+        }
+      }
+      mappingHistoryState = mergedState;
+      historyHydratedOnce = true;
       stateChanged = true;
     }
 
-    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay], latestHistoryM15Dir, latestHistoryH1Dir, nowMs);
-    if (Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
+    const combinedPlans = [
+      latestBuyOverlay,
+      backupBuyOverlay,
+      latestSellOverlay,
+      backupSellOverlay,
+      ...collectTrackableNgPlans(ngM15, ngM5)
+    ];
+    const activePlans = filterTrackableLivePlans(combinedPlans, latestHistoryM15Dir, latestHistoryH1Dir, nowMs);
+    latestTrackableZones = activePlans;
+    if (marketOpen && Number.isFinite(livePrice) && livePrice > 0 && activePlans.length > 0) {
       const liveRes = recordLivePoiProgress({
         state: mappingHistoryState,
         plans: activePlans,
@@ -1605,10 +1664,39 @@ import {
     renderMappingHistory();
   }
 
+  function hasRecentlyNotifiedPoi(poiKey) {
+    if (!poiKey) return false;
+    try {
+      const raw = localStorage.getItem('amyfx.poi.notified.v1');
+      const map = raw ? JSON.parse(raw) : {};
+      const ts = Number(map[poiKey] || 0);
+      return ts > 0 && (Date.now() - ts) < 6 * 3600 * 1000;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function markPoiNotified(poiKey) {
+    if (!poiKey) return;
+    try {
+      const raw = localStorage.getItem('amyfx.poi.notified.v1');
+      const map = raw ? JSON.parse(raw) : {};
+      map[poiKey] = Date.now();
+      const recent = Object.fromEntries(
+        Object.entries(map).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 120)
+      );
+      localStorage.setItem('amyfx.poi.notified.v1', JSON.stringify(recent));
+    } catch (_) {}
+  }
+
   function dispatchPoiNotifications(alerts) {
     if (!Array.isArray(alerts) || alerts.length === 0) return;
     for (const a of alerts) {
       if (!a || !a.title || !a.body) continue;
+      const dedupeKey = a.poiId && a.type ? `${a.poiId}:${a.type}` : `${a.title}|${a.body}`;
+      if (hasRecentlyNotifiedPoi(dedupeKey)) continue;
+      markPoiNotified(dedupeKey);
+
       const targetUrl = typeof location !== 'undefined' ? `${location.href.split('#')[0]}#Dashboard` : '';
       try {
         if (typeof window !== 'undefined' && window.Android?.showNotificationWithUrl) {
@@ -1616,8 +1704,19 @@ import {
         } else if (typeof window !== 'undefined' && window.Android?.showNotification) {
           window.Android.showNotification(a.title, a.body);
         } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          new Notification(a.title, { body: a.body });
+          try {
+            new Notification(a.title, { body: a.body, tag: `amy-poi-${dedupeKey}` });
+          } catch (_) {
+            navigator.serviceWorker?.ready?.then(reg => {
+              reg?.showNotification?.(a.title, { body: a.body, tag: `amy-poi-${dedupeKey}` });
+            }).catch(() => {});
+          }
         }
+        window.AmyPriceAlertManager?.showInAppBanner?.({
+          targetPrice: Number(window.amyfxCurrentPrice) || 0,
+          direction: a.title.includes('SELL') ? 'CROSS_BELOW' : 'CROSS_ABOVE',
+          note: a.title
+        }, Number(window.amyfxCurrentPrice) || 0);
         if (a.sound === 'gold' && typeof window !== 'undefined' && window.Android?.playNotificationSound) {
           window.Android.playNotificationSound('gold');
         }
@@ -1629,7 +1728,8 @@ import {
 
   function tickMappingHistory(livePrice) {
     if (!Number.isFinite(livePrice) || livePrice <= 0) return;
-    const activePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay]);
+    const basePlans = filterTrackableLivePlans([latestBuyOverlay, backupBuyOverlay, latestSellOverlay, backupSellOverlay]);
+    const activePlans = latestTrackableZones.length ? latestTrackableZones : basePlans;
     const liveRes = recordLivePoiProgress({
       state: mappingHistoryState,
       plans: activePlans,

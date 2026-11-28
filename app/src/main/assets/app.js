@@ -3699,6 +3699,161 @@ if (!window.amyHapticListenerAdded) {
     window.amyHapticListenerAdded = true;
 }
 
+// ─── Beranda Global Mapping POI & Price Alarm Observer ───────────────
+(function initGlobalMappingPoiObserver() {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof fetch !== 'function' || !window.location) return;
+  if (window.__amyGlobalPoiObserverStarted) return;
+  window.__amyGlobalPoiObserverStarted = true;
+
+  function isGoldMarketOpenNow() {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'short',
+        hour: '2-digit',
+        hour12: false
+      }).formatToParts(new Date());
+      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      const day = map.weekday;
+      const hour = Number(map.hour === '24' ? '0' : map.hour);
+      if (day === 'Sat') return false;
+      if (day === 'Fri' && hour >= 17) return false;
+      if (day === 'Sun' && hour < 17) return false;
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  function dispatchPoiPopup(title, body, targetUrl, tag) {
+    if (window.Android && typeof window.Android.showNotificationWithUrl === 'function') {
+      window.Android.showNotificationWithUrl(title, body, targetUrl);
+      return;
+    }
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+      navigator.serviceWorker.ready
+        .then(reg => {
+          if (reg && typeof reg.showNotification === 'function') {
+            return reg.showNotification(title, { body, tag: tag || undefined, renotify: true, data: { url: targetUrl } });
+          }
+          new Notification(title, { body, tag: tag || undefined });
+        })
+        .catch(() => {
+          try { new Notification(title, { body, tag: tag || undefined }); } catch {}
+        });
+    } else {
+      try { new Notification(title, { body, tag: tag || undefined }); } catch {}
+    }
+  }
+
+  function checkGlobalMappingPois() {
+    if (!isGoldMarketOpenNow()) return;
+    const now = Date.now();
+    const lastCheck = Number(sessionStorage.getItem('amy_home_poi_poll_ms') || 0);
+    if (now - lastCheck < 60000) return;
+    sessionStorage.setItem('amy_home_poi_poll_ms', String(now));
+
+    const apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? '/api/scalper-setups?limit=10'
+      : 'https://amy-fx.vercel.app/api/scalper-setups?limit=10';
+
+    fetch(apiUrl, { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
+        if (!data || data.ok === false) return;
+        const ctx = data.context || {};
+        const price = Number(ctx.price || data.price || 0);
+        const rw = ctx.recentWindow || null;
+        const winHigh = Number((rw && rw.high) || (ctx.candle && ctx.candle.high) || price || 0);
+        const winLow = Number((rw && rw.low) || (ctx.candle && ctx.candle.low) || price || 0);
+        if (!Number.isFinite(price) || price <= 0) return;
+
+        // Sinkron & evaluasi alarm harga apabila price-alert-manager tidak aktif
+        try {
+          if (!window.AmyPriceAlertManager) {
+            const rawAlerts = localStorage.getItem('amyfx_custom_price_alerts');
+            const parsed = rawAlerts ? JSON.parse(rawAlerts) : [];
+            if (Array.isArray(parsed) && parsed.length) {
+              let changed = false;
+              const nextAlerts = parsed.map(item => {
+                if (!item || item.status !== 'ACTIVE') return item;
+                const target = Number(item.targetPrice);
+                if (!Number.isFinite(target) || target <= 0) return item;
+                const crossedAbove = item.condition === 'CROSS_ABOVE' && (price >= target || winHigh >= target);
+                const crossedBelow = item.condition === 'CROSS_BELOW' && (price <= target || winLow <= target);
+                if (!crossedAbove && !crossedBelow) return item;
+                changed = true;
+                const dirText = item.condition === 'CROSS_ABOVE' ? 'menembus ke atas' : 'menembus ke bawah';
+                const labelText = item.note ? ` (${item.note})` : '';
+                dispatchPoiPopup(
+                  `🔔 Alarm Harga Gold: $${target.toFixed(2)}`,
+                  `XAU/USD ${dirText} target $${target.toFixed(2)}${labelText}. Harga saat ini: $${price.toFixed(2)}.`,
+                  'https://appassets.androidplatform.net/assets/apps/mapping/index.html',
+                  `price-alarm-${item.id || target}`
+                );
+                return { ...item, status: 'TRIGGERED', triggeredAt: now, triggeredPrice: price };
+              });
+              if (changed) {
+                localStorage.setItem('amyfx_custom_price_alerts', JSON.stringify(nextAlerts));
+                if (window.Android && typeof window.Android.syncPriceAlerts === 'function') {
+                  try { window.Android.syncPriceAlerts(JSON.stringify(nextAlerts)); } catch {}
+                }
+              }
+            }
+          }
+        } catch {}
+
+        const poiList = Array.isArray(ctx.poiList) ? ctx.poiList : [];
+        if (!poiList.length) return;
+        let notifiedMap = {};
+        try { notifiedMap = JSON.parse(localStorage.getItem('amyfx.poi.notified.v1') || '{}') || {}; } catch { notifiedMap = {}; }
+
+        for (const poi of poiList.slice(0, 12)) {
+          if (!poi) continue;
+          const low = Number(poi.low);
+          const high = Number(poi.high);
+          if (!Number.isFinite(low) || !Number.isFinite(high)) continue;
+          const minBound = Math.min(low, high);
+          const maxBound = Math.max(low, high);
+          if (!(winHigh >= minBound && winLow <= maxBound)) continue;
+
+          const dedupeKey = String(poi.id || `${poi.tf || 'M15'}:${poi.direction || 'SETUP'}:${minBound.toFixed(1)}-${maxBound.toFixed(1)}`);
+          if (now - Number(notifiedMap[dedupeKey] || 0) < 30 * 60000) continue;
+
+          notifiedMap[dedupeKey] = now;
+          const isBuy = String(poi.direction || poi.side || '').toUpperCase() === 'BUY';
+          const title = isBuy
+            ? `🟢 Zona BUY ${poi.tf || 'M15'} Disentuh — $${price.toFixed(2)}`
+            : `🔴 Zona SELL ${poi.tf || 'M15'} Disentuh — $${price.toFixed(2)}`;
+          const label = poi.label || (isBuy ? 'Demand / FVG Bullish' : 'Supply / FVG Bearish');
+          const body = `${label} ($${minBound.toFixed(2)} – $${maxBound.toFixed(2)}) baru disentuh. Buka Mapping untuk detail setup.`;
+          dispatchPoiPopup(
+            title,
+            body,
+            'https://appassets.androidplatform.net/assets/apps/mapping/index.html#tab-history',
+            `poi-touch-${dedupeKey}`
+          );
+          break;
+        }
+
+        const pruned = Object.fromEntries(
+          Object.entries(notifiedMap)
+            .filter(([, ts]) => now - Number(ts) < 6 * 3600000)
+            .sort((a, b) => Number(b[1]) - Number(a[1]))
+            .slice(0, 60)
+        );
+        try { localStorage.setItem('amyfx.poi.notified.v1', JSON.stringify(pruned)); } catch {}
+      })
+      .catch(() => {});
+  }
+
+  setTimeout(checkGlobalMappingPois, 4000);
+  setInterval(checkGlobalMappingPois, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkGlobalMappingPois();
+  });
+})();
 
 /* AMYFX_NOTIFY_GUARD_START */
 (function(){
@@ -3723,12 +3878,20 @@ if (!window.amyHapticListenerAdded) {
     const x=(String(t||'')+' '+String(b||'')).toLowerCase();
     if(x.includes('scanner terhubung'))return 'scanner_connected';
     if(x.includes('amy fx aktif'))return 'scanner_alive';
+    if(x.includes('alarm harga')||x.includes('tes alarm')||x.includes('tes notifikasi'))return 'price_alarm';
+    if(x.includes('sentuh')||x.includes('disentuh')||x.includes('tp1')||x.includes('tp2')||x.includes('jebol sl')||x.includes('peluru utama'))return 'poi_signal';
+    if(x.includes('breaking news')||x.includes('berita'))return 'news_alert';
+    if(x.includes('tingkatkan skill')||x.includes('materi terakhir'))return 'learning_reminder';
     if(x.includes('liquidity sweep'))return 'liquidity_sweep';
     if(x.includes('ssl')||x.includes('bsl'))return 'bsl_ssl_touched';
     return 'amyfx_alert';
   }
   function key(t,b){
-    return kind(t,b)+'|'+norm(t)+'|'+norm(b);
+    const k=kind(t,b);
+    if(k==='price_alarm'||k==='poi_signal'||k==='news_alert'||k==='learning_reminder'){
+      return k+'|'+String(t||'').trim().slice(0,180)+'|'+String(b||'').trim().slice(0,180);
+    }
+    return k+'|'+norm(t)+'|'+norm(b);
   }
   function read(){
     try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch(e){return{}}
@@ -3739,6 +3902,7 @@ if (!window.amyHapticListenerAdded) {
   }
   function route(t,b){
     const k=kind(t,b);
+    if(k==='price_alarm'||k==='poi_signal')return 'Dashboard';
     if(k==='liquidity_sweep')return 'Analyze';
     if(k==='bsl_ssl_touched')return 'Analyze';
     if(k==='scanner_connected'||k==='scanner_alive')return 'Dashboard';
@@ -3751,10 +3915,12 @@ if (!window.amyHapticListenerAdded) {
     try{window.focus()}catch(e){}
   }
   function allow(t,b){
+    const knd=kind(t,b);
+    if(knd==='price_alarm'||knd==='poi_signal'||knd==='news_alert'||knd==='learning_reminder')return true;
     const n=now();
     const k=key(t,b);
 
-    if(n<muteUntil && kind(t,b)!=='scanner_alive')return false;
+    if(n<muteUntil && knd!=='scanner_alive')return false;
 
     const last=read();
     const prev=last[k]||0;

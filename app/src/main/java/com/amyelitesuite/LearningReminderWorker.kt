@@ -260,5 +260,60 @@ class LearningReminderWorker(
         fun reschedule(context: Context) {
             schedule(context, forceReenqueue = true)
         }
+
+        fun refreshActiveNotificationIfShowing(context: Context) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    return
+                }
+                val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+                val isShowing = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    manager.activeNotifications.any { it.id == NOTIFICATION_ID }
+                } else {
+                    false
+                }
+                if (!isShowing) return
+
+                val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                val lastTitle = prefs.getString(KEY_LAST_TITLE, null)?.trim()
+                val lastUrl = prefs.getString(KEY_LAST_URL, null)?.trim()
+                val resolvedTitle = if (!lastTitle.isNullOrBlank()) lastTitle else DEFAULT_LESSON_TITLE
+                val resolvedUrl = if (!lastUrl.isNullOrBlank()) lastUrl else DEFAULT_LESSON_URL
+                val title = "📚 Waktunya Tingkatkan Skill Trading-mu!"
+                val message = "Materi terakhir yang kamu pelajari: \"$resolvedTitle\". Yuk lanjutkan belajar sekarang!"
+
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("target_url", resolvedUrl)
+                    putExtra("amyfx_route", "Academy")
+                }
+                val requestCode = ("learning_reminder").hashCode()
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    requestCode,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val notification = NotificationCompat.Builder(context, AmyFxApplication.LEARNING_REMINDER_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_stat_amy_fx)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setOnlyAlertOnce(true)
+                    .setSilent(true)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .build()
+
+                manager.notify(NOTIFICATION_ID, notification)
+            } catch (_: Exception) {}
+        }
     }
 }

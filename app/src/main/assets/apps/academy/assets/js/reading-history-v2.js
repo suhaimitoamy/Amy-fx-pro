@@ -108,7 +108,7 @@
     return Math.max(0, Math.min(100, Math.round((window.scrollY / height) * 100)));
   }
 
-  function saveLessonPosition() {
+  function saveLessonPosition(force) {
     var path = relativePath(location.href);
     if (!isLessonPage(path)) return;
     var previous = readJson(LAST_KEY, {});
@@ -130,7 +130,7 @@
       completed: Boolean(priorPosition.completed || progress >= 95),
       updatedAt: Date.now()
     };
-    if (previous.path === path && previous.updatedAt && Date.now() - previous.updatedAt < 250 && previous.scrollY === record.scrollY) return;
+    if (!force && previous.path === path && previous.updatedAt && Date.now() - previous.updatedAt < 250 && previous.scrollY === record.scrollY) return;
     writeJson(LAST_KEY, record);
 
     positions[path] = { scrollY: record.scrollY, progress: record.progress, headingIndex: record.headingIndex, completed: record.completed, status: record.status, namespace: record.namespace, updatedAt: record.updatedAt };
@@ -250,7 +250,7 @@
   }
 
   function markCompleted(path) {
-    saveLessonPosition();
+    saveLessonPosition(true);
     var resolved = path || relativePath(location.href);
     var positions = readJson(POSITION_KEY, {});
     var current = Object.assign({}, positions[resolved] || {}, {
@@ -267,6 +267,15 @@
     writeJson(HISTORY_KEY, history);
     var last = readJson(LAST_KEY, null);
     if (last && last.path === resolved) writeJson(LAST_KEY, Object.assign({}, last, current));
+    try {
+      var title = (last && last.title) || cleanTitle();
+      var sec = (last && last.section) || sectionLabel(resolved);
+      if (window.AmyLearningReminder && typeof window.AmyLearningReminder.recordLesson === 'function') {
+        window.AmyLearningReminder.recordLesson(title, absolutePath(resolved), sec);
+      } else if (window.Android && typeof window.Android.recordLastStudiedLesson === 'function') {
+        window.Android.recordLastStudiedLesson(title, absolutePath(resolved), sec);
+      }
+    } catch (_) {}
     document.dispatchEvent(new CustomEvent('amy:reading-progress-changed', { detail: { path: resolved, record: current } }));
     return current;
   }

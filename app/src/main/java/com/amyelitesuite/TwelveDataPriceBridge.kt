@@ -16,9 +16,10 @@ import org.json.JSONObject
 
 /** Receives server-owned WebSocket ticks over Vercel SSE, without device credentials. */
 class TwelveDataPriceBridge(
-    @Suppress("UNUSED_PARAMETER") context: Context,
+    context: Context,
     private val webView: WebView
 ) {
+    private val appContext = context.applicationContext
     private val handler = Handler(Looper.getMainLooper())
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -73,6 +74,7 @@ class TwelveDataPriceBridge(
                                 if (isCurrent(currentGeneration) && timestamp >= lastTimestamp) {
                                     lastTimestamp = timestamp
                                     reconnectAttempt = 0
+                                    PriceAlertNativeEvaluator.evaluate(appContext, price)
                                     emitEvent(PRICE_EVENT, payload, currentGeneration)
                                 }
                             }

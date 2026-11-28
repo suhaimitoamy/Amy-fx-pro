@@ -31,6 +31,12 @@ class AmyFxApplication : android.app.Application() {
         // Background alarm & worker terjadwal untuk pengingat materi belajar & skill trading
         LearningReminderReceiver.schedule(this)
         LearningReminderWorker.schedule(this)
+
+        // Monitor background untuk Alarm Target Harga Kustom (jika ada yang aktif)
+        PriceAlertNativeEvaluator.createAlarmChannel(this)
+        if (PriceAlertNativeEvaluator.hasActiveAlerts(this)) {
+            PriceAlertSyncWorker.scheduleNext(this, delaySeconds = 30L)
+        }
     }
 
     private fun createNotificationChannels() {

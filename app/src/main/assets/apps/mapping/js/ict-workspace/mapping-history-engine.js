@@ -1599,6 +1599,24 @@ export function recordLivePoiProgress({
         source: 'LIVE'
       });
       changed = true;
+    } else if (!existing.notifiedTouch && (nowMs - (Number(existing.touchedAt) || 0)) <= 25 * 60 * 1000) {
+      existing.notifiedTouch = true;
+      if (hitCeNow) existing.ceTouched = true;
+      if (hitCeNow) existing.notifiedCe = true;
+      existing.lastTouchAt = nowMs;
+      const icon = existing.side === 'BUY' ? '🟢' : '🔴';
+      const touchTitle = hitCeNow
+        ? `${icon} ${existing.side} ${existing.kind} ${existing.tf} · Sentuh 50% CE ($${fmt(existing.low)}–$${fmt(existing.high)})`
+        : `${icon} ${existing.side} ${existing.kind} ${existing.tf} · Disentuh ($${fmt(existing.low)}–$${fmt(existing.high)})`;
+      const tp2BodyStr = existing.tp2 ? ` | TP2 $${fmt(existing.tp2)}` : '';
+      alerts.push({
+        type: hitCeNow ? 'CE_TOUCH' : 'ZONE_TOUCH',
+        poiId: existing.id,
+        title: touchTitle,
+        body: `CE $${fmt(existing.ce)} | SL $${fmt(existing.sl)} | TP1 $${fmt(existing.tp1)}${tp2BodyStr}`,
+        sound: 'gold'
+      });
+      changed = true;
     } else if (hitCeNow && !existing.ceTouched) {
       existing.ceTouched = true;
       existing.lastTouchAt = nowMs;
@@ -1785,6 +1803,7 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
     merged.maxFavorable = Math.max(Number(prev.maxFavorable) || 0, Number(rec.maxFavorable) || 0);
     merged.touchCount = Math.max(Number(prev.touchCount) || 1, Number(rec.touchCount) || 1);
     merged.ceTouched = Boolean(prev.ceTouched || rec.ceTouched);
+    merged.notifiedTouch = Boolean(prev.notifiedTouch || rec.notifiedTouch);
     merged.notifiedCe = Boolean(prev.notifiedCe || rec.notifiedCe);
     merged.notifiedTp1 = Boolean(prev.notifiedTp1 || rec.notifiedTp1);
     merged.notifiedTp2 = Boolean(prev.notifiedTp2 || rec.notifiedTp2);
@@ -1851,6 +1870,91 @@ export function mergeHistoryState(persisted, backfilled, nowMs = Date.now()) {
     poiRecords: keptPois,
     timelineEvents: [...evMap.values()].sort((a, b) => b.ts - a.ts).slice(0, MAX_TIMELINE_EVENTS),
     dailyArchive
+  };
+}
+
+/**
+ * Emit pop-up alerts for newly backfilled POI setups / outcomes that occurred recently
+ * (e.g. from closed M5/M15 candles or while user was on another tab) and haven't notified yet.
+ */
+export function collectFreshBackfillAlerts(prevState, nextState, nowMs = Date.now(), maxAgeMs = 25 * 60 * 1000) {
+  if (!nextState || !Array.isArray(nextState.poiRecords) || nextState.poiRecords.length === 0) {
+    return { state: nextState, alerts: [], changed: false };
+  }
+  const prevMap = new Map((prevState?.poiRecords || []).map(r => [r.id, r]));
+  const alerts = [];
+  let changed = false;
+
+  const updatedRecords = nextState.poiRecords.map(rawRec => {
+    const rec = { ...rawRec };
+    const prev = prevMap.get(rec.id);
+    const touchTs = Number(rec.lastTouchAt || rec.touchedAt || 0);
+    const resolvedTs = Number(rec.resolvedAt || rec.touchedAt || 0);
+    const touchIsFresh = touchTs > 0 && (nowMs - touchTs) <= maxAgeMs && (nowMs - touchTs) >= -60_000;
+    const resolvedIsFresh = resolvedTs > 0 && (nowMs - resolvedTs) <= maxAgeMs && (nowMs - resolvedTs) >= -60_000;
+    const icon = rec.side === 'BUY' ? '🟢' : '🔴';
+
+    if (!rec.notifiedTouch && touchIsFresh && (!prev || !prev.notifiedTouch)) {
+      rec.notifiedTouch = true;
+      if (rec.ceTouched) rec.notifiedCe = true;
+      changed = true;
+      const touchTitle = rec.ceTouched
+        ? `${icon} ${rec.side} ${rec.kind} ${rec.tf} · Sentuh 50% CE ($${fmt(rec.low)}–$${fmt(rec.high)})`
+        : `${icon} ${rec.side} ${rec.kind} ${rec.tf} · Disentuh ($${fmt(rec.low)}–$${fmt(rec.high)})`;
+      const tp2BodyStr = rec.tp2 ? ` | TP2 $${fmt(rec.tp2)}` : '';
+      alerts.push({
+        type: rec.ceTouched ? 'CE_TOUCH' : 'ZONE_TOUCH',
+        poiId: rec.id,
+        title: touchTitle,
+        body: `CE $${fmt(rec.ce)} | SL $${fmt(rec.sl)} | TP1 $${fmt(rec.tp1)}${tp2BodyStr}`,
+        sound: 'gold'
+      });
+    }
+
+    if (rec.status === 'TP2_HIT' && !rec.notifiedTp2 && resolvedIsFresh && (!prev || prev.status !== 'TP2_HIT')) {
+      rec.notifiedTp2 = true;
+      rec.notifiedTp1 = true;
+      changed = true;
+      const tp2Pips = Math.round(Math.abs((Number(rec.tp2) || 0) - (Number(rec.ce) || 0)) * GOLD_PIPS_PER_USD);
+      alerts.push({
+        type: 'TP2_HIT',
+        poiId: rec.id,
+        title: `👑 TP2 DOL ★ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
+        body: `Target penuh $${fmt(rec.tp2)} tercapai (+${tp2Pips} Pips). Posisi selesai!`,
+        sound: 'gold'
+      });
+    } else if (rec.status === 'TP1_HIT' && !rec.notifiedTp1 && resolvedIsFresh && (!prev || prev.status !== 'TP1_HIT')) {
+      rec.notifiedTp1 = true;
+      changed = true;
+      alerts.push({
+        type: 'TP1_HIT',
+        poiId: rec.id,
+        title: `🎯 TP1 BEP ✓ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
+        body: `Target 1 $${fmt(rec.tp1)} tercapai. Amankan posisi & pasang BEP!`,
+        sound: 'gold'
+      });
+    } else if (rec.status === 'SL_HIT' && !rec.notifiedSl && resolvedIsFresh && (!prev || prev.status !== 'SL_HIT')) {
+      rec.notifiedSl = true;
+      changed = true;
+      const slDist = Math.abs((Number(rec.ce) || 0) - (Number(rec.sl) || 0));
+      const slPips = Math.round(slDist * GOLD_PIPS_PER_USD);
+      alerts.push({
+        type: 'SL_HIT',
+        poiId: rec.id,
+        title: `🛡️ Jebol SL ✕ · ${rec.side} ${rec.kind} ${rec.tf} ($${fmt(rec.low)}–$${fmt(rec.high)})`,
+        body: `Batas risiko $${fmt(rec.sl)} tersentuh (-$${slDist.toFixed(2)} / -${slPips}p). Disiplin risiko terjaga.`,
+        sound: 'default'
+      });
+    }
+
+    return rec;
+  });
+
+  if (!changed) return { state: nextState, alerts: [], changed: false };
+  return {
+    state: { ...nextState, poiRecords: updatedRecords },
+    alerts,
+    changed: true
   };
 }
 
@@ -2613,6 +2717,7 @@ if (typeof window !== 'undefined') {
     selectActiveLiveJudasOrSweep,
     backfillMultiDayWalkForward,
     recordLivePoiProgress,
+    collectFreshBackfillAlerts,
     mergeHistoryState,
     mergeRemoteHistoryState,
     rebuildDailyArchive,
